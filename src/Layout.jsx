@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,11 @@ const navigationItems = [
     title: "Find Walkers",
     url: createPageUrl("Home"),
     icon: Home,
+  },
+  {
+    title: "Post Emergency Walk",
+    url: createPageUrl("PostEmergency"),
+    icon: Zap,
   },
   {
     title: "My Bookings",
@@ -75,10 +80,10 @@ export default function Layout({ children, currentPageName }) {
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        }`}
+                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className="w-5 h-5" />
+                          <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>

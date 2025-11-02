@@ -3,6 +3,8 @@ import WalkerDetails from './pages/WalkerDetails';
 import MyBookings from './pages/MyBookings';
 import BecomeWalker from './pages/BecomeWalker';
 import MyProfile from './pages/MyProfile';
+import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
+import PostEmergency from './pages/PostEmergency';
 import Layout from './Layout.jsx';
 
 
@@ -12,6 +14,8 @@ export const PAGES = {
     "MyBookings": MyBookings,
     "BecomeWalker": BecomeWalker,
     "MyProfile": MyProfile,
+    "EmergencyWalkDetails": EmergencyWalkDetails,
+    "PostEmergency": PostEmergency,
 }
 
 export const pagesConfig = {
