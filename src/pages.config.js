@@ -9,6 +9,10 @@ import Favorites from './pages/Favorites';
 import DogSittingServices from './pages/DogSittingServices';
 import Messages from './pages/Messages';
 import ScheduledWalks from './pages/ScheduledWalks';
+import Notifications from './pages/Notifications';
+import WalkHistory from './pages/WalkHistory';
+import Subscriptions from './pages/Subscriptions';
+import LoyaltyRewards from './pages/LoyaltyRewards';
 import Layout from './Layout.jsx';
 
 
@@ -24,6 +28,10 @@ export const PAGES = {
     "DogSittingServices": DogSittingServices,
     "Messages": Messages,
     "ScheduledWalks": ScheduledWalks,
+    "Notifications": Notifications,
+    "WalkHistory": WalkHistory,
+    "Subscriptions": Subscriptions,
+    "LoyaltyRewards": LoyaltyRewards,
 }
 
 export const pagesConfig = {

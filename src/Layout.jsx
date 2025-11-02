@@ -1,7 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -48,14 +51,35 @@ const navigationItems = [
     icon: CalendarClock,
   },
   {
+    title: "Walk History",
+    url: createPageUrl("WalkHistory"),
+    icon: History,
+  },
+  {
     title: "Messages",
     url: createPageUrl("Messages"),
     icon: MessageCircle,
   },
   {
+    title: "Notifications",
+    url: createPageUrl("Notifications"),
+    icon: Bell,
+    hasNotifications: true,
+  },
+  {
+    title: "Loyalty Rewards",
+    url: createPageUrl("LoyaltyRewards"),
+    icon: Gift,
+  },
+  {
     title: "Become a Walker",
     url: createPageUrl("BecomeWalker"),
     icon: PlusCircle,
+  },
+  {
+    title: "Walker Subscriptions",
+    url: createPageUrl("Subscriptions"),
+    icon: Crown,
   },
   {
     title: "My Profile",
@@ -66,6 +90,26 @@ const navigationItems = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: notifications } = useQuery({
+    queryKey: ['unreadNotifications'],
+    queryFn: async () => {
+      const allNotifications = await base44.entities.Notification.filter({ 
+        recipient_email: user?.email,
+        is_read: false 
+      });
+      return allNotifications;
+    },
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const unreadCount = notifications?.length || 0;
 
   return (
     <SidebarProvider>
@@ -86,7 +130,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div>
                 <h2 className="font-bold text-xl text-gray-900">PawWalk</h2>
-                <p className="text-xs text-gray-500">Dog Walking & Care</p>
+                <p className="text-xs text-gray-500">Premium Dog Care</p>
               </div>
             </Link>
           </SidebarHeader>
@@ -119,7 +163,35 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MY ACTIVITY</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(3, 7).map((item) => (
+                  {navigationItems.slice(3, 10).map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
+                          location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
+                        }`}
+                      >
+                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                          <item.icon className="w-5 h-5" />
+                          <span className="font-medium">{item.title}</span>
+                          {item.hasNotifications && unreadCount > 0 && (
+                            <Badge className="ml-auto bg-red-500 text-white">
+                              {unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">WALKER SERVICES</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navigationItems.slice(10, 12).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -142,7 +214,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(7).map((item) => (
+                  {navigationItems.slice(12).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -171,6 +243,13 @@ export default function Layout({ children, currentPageName }) {
                 <Dog className="w-6 h-6 text-green-600" />
                 <h1 className="text-xl font-bold text-gray-900">PawWalk</h1>
               </div>
+              {unreadCount > 0 && (
+                <Link to={createPageUrl("Notifications")} className="ml-auto">
+                  <Badge className="bg-red-500 text-white">
+                    {unreadCount}
+                  </Badge>
+                </Link>
+              )}
             </div>
           </header>
 
