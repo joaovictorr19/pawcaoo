@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BookingForm from "../components/booking/BookingForm";
@@ -18,6 +19,11 @@ export default function WalkerDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const walkerId = urlParams.get('id');
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: walkers, isLoading } = useQuery({
     queryKey: ['walkers'],
     queryFn: () => base44.entities.WalkerProfile.list(),
@@ -27,7 +33,34 @@ export default function WalkerDetails() {
   const walker = walkers.find(w => w.id === walkerId);
 
   const createBookingMutation = useMutation({
-    mutationFn: (bookingData) => base44.entities.Booking.create(bookingData),
+    mutationFn: async (bookingData) => {
+      // Create booking
+      const booking = await base44.entities.Booking.create({
+        ...bookingData,
+        walker_id: walker.id,
+        walker_name: walker.walker_name,
+        payment_status: "held",
+        completion_code: Math.random().toString(36).substring(2, 8).toUpperCase()
+      });
+
+      // Create payment record
+      await base44.entities.Payment.create({
+        booking_id: booking.id,
+        payer_email: user?.email,
+        payer_name: bookingData.owner_name,
+        recipient_email: walker.created_by, // Assuming created_by is the walker's email
+        recipient_name: walker.walker_name,
+        service_amount: bookingData.service_amount,
+        platform_fee: bookingData.platform_fee,
+        total_amount: bookingData.total_amount,
+        platform_fee_percentage: 15,
+        status: "held",
+        payment_method: bookingData.payment_method,
+        held_date: new Date().toISOString()
+      });
+
+      return booking;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       navigate(createPageUrl('MyBookings'));
@@ -35,12 +68,7 @@ export default function WalkerDetails() {
   });
 
   const handleBooking = async (bookingData) => {
-    await createBookingMutation.mutateAsync({
-      ...bookingData,
-      walker_id: walker.id,
-      walker_name: walker.walker_name,
-      total_amount: bookingData.duration_hours * walker.hourly_rate,
-    });
+    await createBookingMutation.mutateAsync(bookingData);
   };
 
   if (isLoading) {
@@ -117,7 +145,13 @@ export default function WalkerDetails() {
                 </div>
               </div>
             )}
-            <div className="absolute top-6 right-6">
+            <div className="absolute top-6 right-6 flex flex-col gap-3">
+              {walker.verification_status === "verified" && (
+                <Badge className="bg-green-500 text-white border-0 shadow-lg text-base px-4 py-2">
+                  <ShieldCheck className="w-5 h-5 mr-2" />
+                  Verified Walker
+                </Badge>
+              )}
               {walker.rating && (
                 <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg text-lg px-4 py-2">
                   <Star className="w-5 h-5 mr-2 fill-yellow-400 text-yellow-400" />
@@ -143,6 +177,7 @@ export default function WalkerDetails() {
                   ${walker.hourly_rate}
                 </div>
                 <div className="text-gray-600">per hour</div>
+                <div className="text-xs text-gray-500 mt-1">+15% platform fee</div>
               </div>
             </div>
 
@@ -232,8 +267,9 @@ export default function WalkerDetails() {
             <Button 
               className="w-full md:w-auto bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
               onClick={() => setShowBookingForm(true)}
+              disabled={walker.verification_status !== "verified"}
             >
-              Book This Walker
+              {walker.verification_status === "verified" ? "Book This Walker" : "Verification Pending"}
             </Button>
           </CardContent>
         </Card>

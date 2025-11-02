@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, DollarSign } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -17,16 +17,6 @@ export default function WalkerCard({ walker }) {
       extra_large: "XL"
     };
     return labels[size] || size;
-  };
-
-  const getTimeLabel = (time) => {
-    const labels = {
-      morning: "Morning",
-      afternoon: "Afternoon",
-      evening: "Evening",
-      night: "Night"
-    };
-    return labels[time] || time;
   };
 
   return (
@@ -47,7 +37,13 @@ export default function WalkerCard({ walker }) {
             </div>
           </div>
         )}
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 flex gap-2 flex-col items-end">
+          {walker.verification_status === "verified" && (
+            <Badge className="bg-green-500 text-white border-0 shadow-lg">
+              <ShieldCheck className="w-4 h-4 mr-1" />
+              Verified
+            </Badge>
+          )}
           {walker.rating && (
             <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg">
               <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
@@ -107,8 +103,9 @@ export default function WalkerCard({ walker }) {
         <Button 
           className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg h-12 text-base font-semibold"
           onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+          disabled={walker.verification_status !== "verified"}
         >
-          View Profile & Book
+          {walker.verification_status === "verified" ? "View Profile & Book" : "Verification Pending"}
         </Button>
       </CardContent>
     </Card>

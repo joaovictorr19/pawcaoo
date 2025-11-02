@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, DollarSign } from "lucide-react";
+import { Calendar, DollarSign, CreditCard, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const PLATFORM_FEE_PERCENTAGE = 15;
 
 export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }) {
   const [formData, setFormData] = useState({
@@ -18,14 +21,22 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
     walk_time: "",
     duration_hours: 1,
     special_notes: "",
+    payment_method: "credit_card",
   });
+
+  const serviceAmount = formData.duration_hours * walker.hourly_rate;
+  const platformFee = serviceAmount * (PLATFORM_FEE_PERCENTAGE / 100);
+  const totalAmount = serviceAmount + platformFee;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      service_amount: serviceAmount,
+      platform_fee: platformFee,
+      total_amount: totalAmount,
+    });
   };
-
-  const totalAmount = formData.duration_hours * walker.hourly_rate;
 
   return (
     <motion.div
@@ -38,6 +49,14 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
           <CardTitle className="text-2xl">Book a Walk with {walker.walker_name}</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
+          <Alert className="mb-6 border-blue-200 bg-blue-50">
+            <CreditCard className="h-5 w-5 text-blue-600" />
+            <AlertDescription className="text-blue-900">
+              <strong>Secure Payment:</strong> Your payment will be held securely until the walk is completed. 
+              The walker receives payment only after you confirm the walk is done.
+            </AlertDescription>
+          </Alert>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -137,15 +156,20 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Total Amount
-                </Label>
-                <div className="h-10 px-3 py-2 border rounded-md bg-gray-50 flex items-center">
-                  <span className="text-2xl font-bold text-green-600">
-                    ${totalAmount.toFixed(2)}
-                  </span>
-                </div>
+                <Label htmlFor="payment_method">Payment Method *</Label>
+                <Select 
+                  required
+                  value={formData.payment_method}
+                  onValueChange={(value) => setFormData({...formData, payment_method: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="credit_card">Credit Card</SelectItem>
+                    <SelectItem value="debit_card">Debit Card</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -158,6 +182,26 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
                 placeholder="Any special instructions about your dog? (e.g., medications, behavioral notes, favorite routes...)"
                 rows={4}
               />
+            </div>
+
+            {/* Payment Breakdown */}
+            <div className="bg-gray-50 rounded-xl p-6 space-y-3">
+              <h3 className="font-semibold text-gray-900 mb-4">Payment Summary</h3>
+              <div className="flex justify-between text-gray-700">
+                <span>Service Amount (${walker.hourly_rate}/hr × {formData.duration_hours}h)</span>
+                <span className="font-semibold">${serviceAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-gray-700">
+                <span>Platform Fee ({PLATFORM_FEE_PERCENTAGE}%)</span>
+                <span className="font-semibold">${platformFee.toFixed(2)}</span>
+              </div>
+              <div className="border-t-2 border-gray-200 pt-3 flex justify-between text-lg font-bold text-gray-900">
+                <span>Total Amount</span>
+                <span className="text-green-600">${totalAmount.toFixed(2)}</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                * Payment will be held securely and released to the walker after walk completion
+              </p>
             </div>
 
             <div className="flex gap-4 pt-4">
@@ -175,7 +219,7 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
                 disabled={isProcessing}
                 className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white"
               >
-                {isProcessing ? "Processing..." : "Confirm Booking"}
+                {isProcessing ? "Processing..." : "Confirm & Pay"}
               </Button>
             </div>
           </form>

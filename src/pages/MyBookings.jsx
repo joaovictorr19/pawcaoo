@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -5,14 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, Clock, DollarSign, Phone, Dog } from "lucide-react";
+import { Input } from "@/components/ui/input"; // Added Input
+import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2 } from "lucide-react"; // Added ShieldCheck, CheckCircle2
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner"; // Added toast
 
 export default function MyBookings() {
   const [activeTab, setActiveTab] = useState("all");
+  const [completionCode, setCompletionCode] = useState("");
+  const [verifyingBookingId, setVerifyingBookingId] = useState(null);
   const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['bookings'],
@@ -27,21 +37,71 @@ export default function MyBookings() {
     },
   });
 
+  const completeWalkMutation = useMutation({
+    mutationFn: async ({ bookingId, code }) => {
+      // Find the booking from the cached data, or refetch if not found
+      const currentBookings = queryClient.getQueryData(['bookings']);
+      const booking = currentBookings.find(b => b.id === bookingId);
+      
+      if (!booking) {
+        throw new Error("Booking not found.");
+      }
+
+      if (booking.completion_code !== code.toUpperCase()) {
+        throw new Error("Invalid completion code");
+      }
+
+      // Update booking status
+      await base44.entities.Booking.update(bookingId, {
+        status: "completed",
+        payment_status: "released",
+        completed_date: new Date().toISOString()
+      });
+
+      // Find all payments for this booking
+      const payments = await base44.entities.Payment.filter({ booking_id: bookingId });
+      for (const payment of payments) {
+        await base44.entities.Payment.update(payment.id, {
+          status: "released",
+          released_date: new Date().toISOString()
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      setCompletionCode("");
+      setVerifyingBookingId(null);
+      toast.success("Walk completed! Payment released to walker.");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Invalid completion code");
+    }
+  });
+
   const handleCancelBooking = async (booking) => {
     await updateBookingMutation.mutateAsync({
       id: booking.id,
-      data: { status: "cancelled" }
+      data: { status: "cancelled", payment_status: "refunded" }
+    });
+  };
+
+  const handleVerifyCompletion = async (bookingId) => {
+    await completeWalkMutation.mutateAsync({ 
+      bookingId, 
+      code: completionCode 
     });
   };
 
   const filteredBookings = activeTab === "all" 
-    ? bookings 
-    : bookings.filter(booking => booking.status === activeTab);
+    ? bookings.filter(b => b.created_by === user?.email)
+    : bookings.filter(b => b.status === activeTab && b.created_by === user?.email);
 
   const getStatusColor = (status) => {
     const colors = {
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
       confirmed: "bg-blue-100 text-blue-800 border-blue-200",
+      in_progress: "bg-purple-100 text-purple-800 border-purple-200",
       completed: "bg-green-100 text-green-800 border-green-200",
       cancelled: "bg-gray-100 text-gray-800 border-gray-200"
     };
@@ -51,7 +111,8 @@ export default function MyBookings() {
   const getPaymentStatusColor = (status) => {
     const colors = {
       pending: "bg-orange-100 text-orange-800 border-orange-200",
-      paid: "bg-green-100 text-green-800 border-green-200",
+      held: "bg-blue-100 text-blue-800 border-blue-200",
+      released: "bg-green-100 text-green-800 border-green-200",
       refunded: "bg-gray-100 text-gray-800 border-gray-200"
     };
     return colors[status] || colors.pending;
@@ -75,6 +136,9 @@ export default function MyBookings() {
             </TabsTrigger>
             <TabsTrigger value="confirmed" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
               Confirmed
+            </TabsTrigger>
+            <TabsTrigger value="in_progress" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700">
+              In Progress
             </TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
               Completed
@@ -114,7 +178,7 @@ export default function MyBookings() {
                         <CardTitle className="text-2xl mb-2">
                           Walk with {booking.walker_name}
                         </CardTitle>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Badge className={getStatusColor(booking.status)}>
                             {booking.status}
                           </Badge>
@@ -128,6 +192,9 @@ export default function MyBookings() {
                           ${booking.total_amount?.toFixed(2)}
                         </div>
                         <div className="text-sm text-gray-600">
+                          ${booking.service_amount?.toFixed(2)} + ${booking.platform_fee?.toFixed(2)} fee
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
                           {booking.duration_hours}h walk
                         </div>
                       </div>
@@ -202,6 +269,47 @@ export default function MyBookings() {
                         <div className="text-gray-600">
                           {booking.special_notes}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Completion Code Section */}
+                    {(booking.status === "in_progress" || booking.status === "confirmed") && booking.payment_status === "held" && (
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-4">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <ShieldCheck className="w-5 h-5 text-blue-600" />
+                          Complete the Walk
+                        </h4>
+                        <p className="text-sm text-gray-700 mb-4">
+                          Once the walk is finished, ask the walker for the completion code and enter it below to release payment.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Input
+                            placeholder="Enter 6-digit code"
+                            value={verifyingBookingId === booking.id ? completionCode : ""}
+                            onChange={(e) => {
+                              setCompletionCode(e.target.value.toUpperCase());
+                              setVerifyingBookingId(booking.id);
+                            }}
+                            maxLength={6}
+                            className="text-center text-lg font-mono tracking-wider sm:w-1/2 md:w-2/3"
+                          />
+                          <Button
+                            onClick={() => handleVerifyCompletion(booking.id)}
+                            disabled={completeWalkMutation.isPending || completionCode.length !== 6 || verifyingBookingId !== booking.id}
+                            className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                          >
+                            Verify & Release Payment
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {booking.status === "completed" && (
+                      <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4">
+                        <p className="text-green-700 font-semibold flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          Walk completed! Payment has been released to the walker.
+                        </p>
                       </div>
                     )}
 
