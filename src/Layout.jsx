@@ -1,12 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -27,9 +28,29 @@ const navigationItems = [
     icon: Zap,
   },
   {
+    title: "Dog Sitting Services",
+    url: createPageUrl("DogSittingServices"),
+    icon: HomeIcon,
+  },
+  {
+    title: "My Favorites",
+    url: createPageUrl("Favorites"),
+    icon: Heart,
+  },
+  {
     title: "My Bookings",
     url: createPageUrl("MyBookings"),
     icon: Calendar,
+  },
+  {
+    title: "Scheduled Walks",
+    url: createPageUrl("ScheduledWalks"),
+    icon: CalendarClock,
+  },
+  {
+    title: "Messages",
+    url: createPageUrl("Messages"),
+    icon: MessageCircle,
   },
   {
     title: "Become a Walker",
@@ -65,16 +86,17 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div>
                 <h2 className="font-bold text-xl text-gray-900">PawWalk</h2>
-                <p className="text-xs text-gray-500">Dog Walking Marketplace</p>
+                <p className="text-xs text-gray-500">Dog Walking & Care</p>
               </div>
             </Link>
           </SidebarHeader>
           
           <SidebarContent className="p-4">
             <SidebarGroup>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MAIN MENU</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.map((item) => (
+                  {navigationItems.slice(0, 3).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -84,6 +106,52 @@ export default function Layout({ children, currentPageName }) {
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
                           <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MY ACTIVITY</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navigationItems.slice(3, 7).map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
+                          location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
+                        }`}
+                      >
+                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                          <item.icon className="w-5 h-5" />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navigationItems.slice(7).map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
+                          location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
+                        }`}
+                      >
+                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                          <item.icon className="w-5 h-5" />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>

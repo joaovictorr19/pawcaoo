@@ -1,13 +1,67 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, DollarSign, ShieldCheck } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ShieldCheck, Heart } from "lucide-react"; // Added Heart icon
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query"; // Added react-query hooks
+
+// Assuming base44 is globally available or imported from a specific path.
+// If not global, you would need to add: import base44 from '@/lib/base44'; or similar
+// For this implementation, we assume `base44` is accessible.
 
 export default function WalkerCard({ walker }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient(); // Initialize queryClient
+
+  // Fetch current user data (if needed, though not directly used in rendering the card,
+  // it might be for authentication checks or future features).
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    // Keep user data in sync if it changes, useful for showing favorite button only if logged in
+    staleTime: Infinity, // User data rarely changes
+  });
+
+  // Fetch favorite walkers
+  const { data: favorites } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: () => base44.entities.Favorite.list(),
+    initialData: [], // Provide an initial empty array to prevent `undefined` issues
+    enabled: !!user, // Only fetch favorites if a user is logged in
+  });
+
+  // Check if the current walker is in the favorites list
+  const isFavorite = favorites.some(f => f.walker_id === walker.id);
+
+  // Mutation for toggling favorite status
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      if (isFavorite) {
+        // If already a favorite, find and delete it
+        const favorite = favorites.find(f => f.walker_id === walker.id);
+        if (favorite) { // Ensure favorite is found before attempting to delete
+          await base44.entities.Favorite.delete(favorite.id);
+        }
+      } else {
+        // If not a favorite, create a new favorite entry
+        await base44.entities.Favorite.create({
+          walker_id: walker.id,
+          walker_name: walker.walker_name,
+          walker_photo_url: walker.photo_url,
+          walker_location: walker.location,
+          walker_hourly_rate: walker.hourly_rate,
+        });
+      }
+    },
+    onSuccess: () => {
+      // Invalidate the 'favorites' query to refetch and update the UI
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
+    // Optional: onError handling, onSettled, etc.
+  });
 
   const getSizeLabel = (size) => {
     const labels = {
@@ -37,6 +91,21 @@ export default function WalkerCard({ walker }) {
             </div>
           </div>
         )}
+        {/* New Favorite Button */}
+        <div className="absolute top-4 left-4">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="bg-white/90 hover:bg-white shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent the card's click event from firing
+              toggleFavoriteMutation.mutate();
+            }}
+            disabled={toggleFavoriteMutation.isLoading || !user} // Disable if mutating or not logged in
+          >
+            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+          </Button>
+        </div>
         <div className="absolute top-4 right-4 flex gap-2 flex-col items-end">
           {walker.verification_status === "verified" && (
             <Badge className="bg-green-500 text-white border-0 shadow-lg">
