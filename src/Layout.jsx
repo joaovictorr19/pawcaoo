@@ -80,7 +80,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
-    { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: TrendingUp }, // New item added here
+    { title: "🏆 Leaderboard", url: createPageUrl("Leaderboard"), icon: TrendingUp },
+    { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: TrendingUp },
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
     { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: Award },
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
@@ -229,7 +230,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(13, 18).map((item) => ( /* Adjusted slice: starts at the new item (index 13) and ends before OwnerMembership (index 18) */
+                  {navigationItems.slice(13, 18).map((item) => ( /* This slice now includes Leaderboard (new index 13) and ends before Walker Subscriptions (new index 18) */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -252,7 +253,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(18).map((item) => ( /* Adjusted slice: starts at OwnerMembership (index 18) */
+                  {navigationItems.slice(18).map((item) => ( /* This slice now starts at Walker Subscriptions (new index 18) */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 

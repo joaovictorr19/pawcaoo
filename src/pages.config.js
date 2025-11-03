@@ -23,6 +23,7 @@ import OwnerSubscriptions from './pages/OwnerSubscriptions';
 import PartnerDashboard from './pages/PartnerDashboard';
 import LiveWalkTracking from './pages/LiveWalkTracking';
 import ProfessionalDashboard from './pages/ProfessionalDashboard';
+import Leaderboard from './pages/Leaderboard';
 import Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "PartnerDashboard": PartnerDashboard,
     "LiveWalkTracking": LiveWalkTracking,
     "ProfessionalDashboard": ProfessionalDashboard,
+    "Leaderboard": Leaderboard,
 }
 
 export const pagesConfig = {

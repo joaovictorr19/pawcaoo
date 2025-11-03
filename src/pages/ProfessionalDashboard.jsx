@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  TrendingUp, Users, Calendar, DollarSign, Star, Package, 
+import {
+  TrendingUp, Users, Calendar, DollarSign, Star, Package,
   Clock, Target, Award, Activity, BarChart3, ArrowUp, ArrowDown,
-  Dog, Phone, Mail, MapPin, History
+  Dog, Phone, Mail, MapPin, History, Trophy
 } from "lucide-react";
 import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
+import { toast } from "sonner"; // Assuming sonner is used for toasts
 
 export default function ProfessionalDashboard() {
   const navigate = useNavigate();
@@ -65,9 +67,9 @@ export default function ProfessionalDashboard() {
 
   const { data: scheduledAppointments } = useQuery({
     queryKey: ['myScheduledAppointments'],
-    queryFn: () => base44.entities.ScheduledAppointment.filter({ 
+    queryFn: () => base44.entities.ScheduledAppointment.filter({
       walker_email: user?.email,
-      is_active: true 
+      is_active: true
     }),
     enabled: !!user,
     initialData: [],
@@ -77,7 +79,7 @@ export default function ProfessionalDashboard() {
     queryKey: ['myReviews'],
     queryFn: async () => {
       const allReviews = await base44.entities.Review.list();
-      return allReviews.filter(r => 
+      return allReviews.filter(r =>
         r.walker_id === profile?.id || r.trainer_id === profile?.id
       );
     },
@@ -87,11 +89,22 @@ export default function ProfessionalDashboard() {
 
   const { data: availabilityData } = useQuery({
     queryKey: ['myAvailability'],
-    queryFn: () => base44.entities.CalendarAvailability.filter({ 
-      professional_email: user?.email 
+    queryFn: () => base44.entities.CalendarAvailability.filter({
+      professional_email: user?.email
     }),
     enabled: !!user,
     initialData: [],
+  });
+
+  const { data: myAchievements, refetch: refetchAchievements } = useQuery({
+    queryKey: ['myAchievements'],
+    queryFn: async () => {
+      const achievements = await base44.entities.ProfessionalAchievement.filter({
+        professional_email: user?.email
+      });
+      return achievements[0];
+    },
+    enabled: !!user,
   });
 
   // Calculate date range
@@ -105,7 +118,7 @@ export default function ProfessionalDashboard() {
   };
 
   const startDate = subDays(new Date(), getDaysAgo());
-  const filteredBookings = bookings.filter(b => 
+  const filteredBookings = bookings.filter(b =>
     new Date(b.created_date) >= startDate
   );
 
@@ -116,7 +129,7 @@ export default function ProfessionalDashboard() {
     totalEarnings: filteredBookings
       .filter(b => b.status === 'completed')
       .reduce((sum, b) => sum + (b.service_amount || 0), 0),
-    averageRating: reviews.length > 0 
+    averageRating: reviews.length > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : 0,
     pendingBookings: filteredBookings.filter(b => b.status === 'pending').length,
@@ -126,17 +139,17 @@ export default function ProfessionalDashboard() {
 
   // Calculate client retention
   const uniqueClients = [...new Set(bookings.map(b => b.owner_email))];
-  const returningClients = uniqueClients.filter(email => 
+  const returningClients = uniqueClients.filter(email =>
     bookings.filter(b => b.owner_email === email).length > 1
   );
-  const retentionRate = uniqueClients.length > 0 
+  const retentionRate = uniqueClients.length > 0
     ? ((returningClients.length / uniqueClients.length) * 100).toFixed(1)
     : 0;
 
   // Calculate growth
   const prevPeriodStart = subDays(startDate, getDaysAgo());
-  const prevBookings = bookings.filter(b => 
-    new Date(b.created_date) >= prevPeriodStart && 
+  const prevBookings = bookings.filter(b =>
+    new Date(b.created_date) >= prevPeriodStart &&
     new Date(b.created_date) < startDate
   );
   const bookingsGrowth = prevBookings.length > 0
@@ -178,6 +191,152 @@ export default function ProfessionalDashboard() {
     };
   }).sort((a, b) => b.totalBookings - a.totalBookings);
 
+
+  // Achievement checking function
+  const checkAndAwardAchievements = async () => {
+    if (!user || !profile) return;
+
+    let currentAchievementsRecord = myAchievements;
+
+    // If no achievement record exists, create one
+    if (!currentAchievementsRecord) {
+      currentAchievementsRecord = await base44.entities.ProfessionalAchievement.create({
+        professional_email: user.email,
+        professional_name: profile.walker_name || profile.trainer_name,
+        professional_type: isWalker ? 'walker' : 'trainer',
+        achievements: [],
+        badges: [],
+        total_achievements: 0,
+        achievement_points: 0,
+        longest_streak: 0,
+        leaderboard_stats: {}
+      });
+      refetchAchievements(); // Refetch to ensure the newly created record is picked up
+      return; // Exit after creating, will re-run on next analytics change
+    }
+
+    const newAchievements = [];
+    const existingIds = currentAchievementsRecord.achievements?.map(a => a.achievement_id) || [];
+
+    // Milestone Achievements
+    if (analytics.completedBookings >= 10 && !existingIds.includes('first_10')) {
+      newAchievements.push({
+        achievement_id: 'first_10',
+        name: 'Primeiros 10',
+        description: '10 serviços completados',
+        icon: '🎯',
+        category: 'milestone',
+        rarity: 'common',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    if (analytics.completedBookings >= 50 && !existingIds.includes('half_century')) {
+      newAchievements.push({
+        achievement_id: 'half_century',
+        name: 'Meio Século',
+        description: '50 serviços completados',
+        icon: '⭐',
+        category: 'milestone',
+        rarity: 'rare',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    if (analytics.completedBookings >= 100 && !existingIds.includes('centurion')) {
+      newAchievements.push({
+        achievement_id: 'centurion',
+        name: 'Centurião',
+        description: '100 serviços completados',
+        icon: '🏆',
+        category: 'milestone',
+        rarity: 'epic',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    if (analytics.completedBookings >= 500 && !existingIds.includes('legend')) {
+      newAchievements.push({
+        achievement_id: 'legend',
+        name: 'Lenda',
+        description: '500 serviços completados!',
+        icon: '👑',
+        category: 'milestone',
+        rarity: 'legendary',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    // Quality Achievements
+    if (parseFloat(analytics.averageRating) >= 4.8 && analytics.completedBookings >= 20 && !existingIds.includes('top_rated')) {
+      newAchievements.push({
+        achievement_id: 'top_rated',
+        name: 'Top Rated',
+        description: 'Rating 4.8+ com 20+ serviços',
+        icon: '🌟',
+        category: 'quality',
+        rarity: 'epic',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    if (parseFloat(analytics.averageRating) >= 5.0 && analytics.completedBookings >= 10 && !existingIds.includes('perfect_score')) {
+      newAchievements.push({
+        achievement_id: 'perfect_score',
+        name: '5 Estrelas Perfeito',
+        description: 'Rating 5.0 com 10+ serviços',
+        icon: '💫',
+        category: 'quality',
+        rarity: 'legendary',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    // Earnings Achievements
+    if (analytics.totalEarnings >= 1000 && !existingIds.includes('first_1k')) {
+      newAchievements.push({
+        achievement_id: 'first_1k',
+        name: 'Primeiro €1,000',
+        description: 'Ganhou €1,000',
+        icon: '💰',
+        category: 'milestone',
+        rarity: 'rare',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    if (analytics.totalEarnings >= 5000 && !existingIds.includes('big_earner')) {
+      newAchievements.push({
+        achievement_id: 'big_earner',
+        name: 'Grande Ganho',
+        description: 'Ganhou €5,000',
+        icon: '💎',
+        category: 'milestone',
+        rarity: 'epic',
+        earned_date: new Date().toISOString()
+      });
+    }
+
+    // Update if new achievements
+    if (newAchievements.length > 0) {
+      await base44.entities.ProfessionalAchievement.update(currentAchievementsRecord.id, {
+        achievements: [...(currentAchievementsRecord.achievements || []), ...newAchievements],
+        total_achievements: (currentAchievementsRecord.total_achievements || 0) + newAchievements.length,
+        achievement_points: (currentAchievementsRecord.achievement_points || 0) + (newAchievements.length * 100)
+      });
+
+      toast.success(`🎉 Novo Achievement: ${newAchievements[0].name}!`);
+      refetchAchievements(); // Refetch to update the UI with new achievements
+    }
+  };
+
+  useEffect(() => {
+    if (profile && user && analytics.completedBookings !== undefined && analytics.totalEarnings !== undefined && analytics.averageRating !== undefined) {
+      checkAndAwardAchievements();
+    }
+  }, [profile, user, analytics.completedBookings, analytics.totalEarnings, analytics.averageRating, myAchievements]); // Added myAchievements to trigger effect if it changes (e.g. initial creation)
+
+
   if (!profile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
@@ -217,21 +376,21 @@ export default function ProfessionalDashboard() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button 
+              <Button
                 variant={dateRange === '7days' ? 'default' : 'outline'}
                 onClick={() => setDateRange('7days')}
                 size="sm"
               >
                 7 dias
               </Button>
-              <Button 
+              <Button
                 variant={dateRange === '30days' ? 'default' : 'outline'}
                 onClick={() => setDateRange('30days')}
                 size="sm"
               >
                 30 dias
               </Button>
-              <Button 
+              <Button
                 variant={dateRange === '90days' ? 'default' : 'outline'}
                 onClick={() => setDateRange('90days')}
                 size="sm"
@@ -298,10 +457,14 @@ export default function ProfessionalDashboard() {
         </div>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="bg-white shadow-lg grid w-full grid-cols-4">
+          <TabsList className="bg-white shadow-lg grid w-full grid-cols-5">
             <TabsTrigger value="analytics" className="text-xs md:text-sm">
               <BarChart3 className="w-4 h-4 md:mr-2" />
               <span className="hidden md:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="text-xs md:text-sm">
+              <Award className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Achievements</span>
             </TabsTrigger>
             <TabsTrigger value="calendar" className="text-xs md:text-sm">
               <Calendar className="w-4 h-4 md:mr-2" />
@@ -335,9 +498,9 @@ export default function ProfessionalDashboard() {
                         <div className="w-12 text-sm font-semibold text-gray-600">{day.day}</div>
                         <div className="flex-1">
                           <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
-                            <div 
+                            <div
                               className="h-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-end px-2"
-                              style={{ width: `${(day.bookings / Math.max(...weeklyData.map(d => d.bookings)) * 100) || 0}%` }}
+                              style={{ width: `${(day.bookings / Math.max(1, ...weeklyData.map(d => d.bookings)) * 100) || 0}%` }}
                             >
                               {day.bookings > 0 && (
                                 <span className="text-xs font-bold text-white">{day.bookings}</span>
@@ -434,6 +597,219 @@ export default function ProfessionalDashboard() {
               </Card>
             </div>
           </TabsContent>
+
+          {/* NEW: Achievements Tab */}
+          <TabsContent value="achievements" className="space-y-6">
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-6 h-6" />
+                  Os Meus Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="text-center p-4 bg-purple-50 rounded-xl">
+                    <div className="text-3xl font-bold text-purple-600">
+                      {myAchievements?.total_achievements || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Achievements</div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                    <div className="text-3xl font-bold text-yellow-600">
+                      {myAchievements?.achievement_points || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Pontos</div>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-xl">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {myAchievements?.longest_streak || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Melhor Streak</div>
+                  </div>
+                </div>
+
+                {/* Achievements Grid */}
+                {!myAchievements || myAchievements.achievements?.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Ainda sem achievements
+                    </h3>
+                    <p className="text-gray-600">
+                      Complete mais serviços para desbloquear achievements!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {myAchievements.achievements.map((achievement, idx) => {
+                      const rarityColors = {
+                        common: 'from-gray-400 to-gray-600',
+                        rare: 'from-blue-400 to-blue-600',
+                        epic: 'from-purple-400 to-purple-600',
+                        legendary: 'from-yellow-400 to-yellow-600'
+                      };
+
+                      return (
+                        <motion.div
+                          key={achievement.achievement_id}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <Card className={`border-2 hover:scale-105 transition-transform cursor-pointer bg-gradient-to-br ${rarityColors[achievement.rarity]}`}>
+                            <CardContent className="p-4 text-white text-center">
+                              <div className="text-5xl mb-3">{achievement.icon}</div>
+                              <h4 className="font-bold text-lg mb-1">{achievement.name}</h4>
+                              <p className="text-sm opacity-90 mb-2">{achievement.description}</p>
+                              <Badge className="bg-white/20 text-white text-xs">
+                                {achievement.rarity.toUpperCase()}
+                              </Badge>
+                              <p className="text-xs mt-2 opacity-75">
+                                {format(new Date(achievement.earned_date), 'dd/MM/yyyy')}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Next Achievements to Unlock */}
+                <div className="mt-8 pt-8 border-t">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-green-600" />
+                    Próximos Objetivos
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {analytics.completedBookings < 10 && (
+                      <div className="p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-3xl">🎯</span>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">Primeiros 10</h4>
+                            <p className="text-sm text-gray-600">Complete 10 serviços</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-600 h-2 rounded-full"
+                            style={{ width: `${(analytics.completedBookings / 10) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {analytics.completedBookings} / 10
+                        </p>
+                      </div>
+                    )}
+
+                    {analytics.completedBookings >= 10 && analytics.completedBookings < 50 && (
+                      <div className="p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-3xl">⭐</span>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">Meio Século</h4>
+                            <p className="text-sm text-gray-600">Complete 50 serviços</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{ width: `${(analytics.completedBookings / 50) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {analytics.completedBookings} / 50
+                        </p>
+                      </div>
+                    )}
+
+                    {analytics.completedBookings >= 5 && parseFloat(analytics.averageRating) < 4.8 && (
+                      <div className="p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-3xl">⭐</span>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">Top Rated</h4>
+                            <p className="text-sm text-gray-600">Alcance rating 4.8+ com 20+ serviços</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-yellow-600 h-2 rounded-full"
+                            style={{ width: `${(parseFloat(analytics.averageRating) / 4.8) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {analytics.averageRating} / 4.8
+                        </p>
+                      </div>
+                    )}
+                    {analytics.totalEarnings < 1000 && (
+                      <div className="p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-3xl">💰</span>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">Primeiro €1,000</h4>
+                            <p className="text-sm text-gray-600">Ganhe €1,000</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-orange-600 h-2 rounded-full"
+                            style={{ width: `${(analytics.totalEarnings / 1000) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          €{analytics.totalEarnings.toFixed(0)} / €1,000
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Leaderboard Preview */}
+            <Card className="border-0 shadow-xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-600" />
+                    A Sua Posição no Leaderboard
+                  </h3>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl('Leaderboard'))}
+                  >
+                    Ver Completo
+                  </Button>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-green-50 rounded-xl">
+                    <div className="text-sm text-gray-600 mb-1">Por Ganhos</div>
+                    <div className="text-3xl font-bold text-green-600">
+                      #{myAchievements?.leaderboard_stats?.total_earnings_rank || '-'}
+                    </div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                    <div className="text-sm text-gray-600 mb-1">Por Rating</div>
+                    <div className="text-3xl font-bold text-yellow-600">
+                      #{myAchievements?.leaderboard_stats?.rating_rank || '-'}
+                    </div>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-xl">
+                    <div className="text-sm text-gray-600 mb-1">Por Reservas</div>
+                    <div className="text-3xl font-bold text-blue-600">
+                      #{myAchievements?.leaderboard_stats?.bookings_rank || '-'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           {/* Calendar Tab */}
           <TabsContent value="calendar">
@@ -549,8 +925,8 @@ export default function ProfessionalDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {clientProfiles.map((client) => (
-                      <Card 
-                        key={client.email} 
+                      <Card
+                        key={client.email}
                         className="p-4 md:p-6 hover:shadow-lg transition-shadow cursor-pointer"
                         onClick={() => setSelectedClient(selectedClient?.email === client.email ? null : client)}
                       >
