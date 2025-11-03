@@ -24,6 +24,8 @@ export const translations = {
     myProfile: "Meu Perfil",
     accountSettings: "Configurações de Conta",
     adminDashboard: "Painel Admin",
+    professionalDashboard: "Dashboard Profissional",
+    leaderboard: "Tabela de Classificação",
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -438,7 +440,8 @@ export const translations = {
     bathroomBreaks: "Pausas para necessidades",
     
     // Professional Dashboard
-    professionalDashboard: "Dashboard Profissional",
+    // This was already present, but the outline moved it. Keeping it as is.
+    // professionalDashboard: "Dashboard Profissional", 
     totalEarned: "Total Ganho",
     totalBookings: "Total Reservas",
     averageRating: "Rating Médio",
@@ -701,6 +704,8 @@ export const translations = {
     myProfile: "My Profile",
     accountSettings: "Account Settings",
     adminDashboard: "Admin Dashboard",
+    professionalDashboard: "Professional Dashboard",
+    leaderboard: "Leaderboard",
 
     // Sidebar Groups
     mainMenu: "MAIN MENU",
@@ -1115,7 +1120,8 @@ export const translations = {
     bathroomBreaks: "Bathroom breaks",
     
     // Professional Dashboard
-    professionalDashboard: "Professional Dashboard",
+    // This was already present, but the outline moved it. Keeping it as is.
+    // professionalDashboard: "Professional Dashboard",
     totalEarned: "Total Earned",
     totalBookings: "Total Bookings",
     averageRating: "Average Rating",
@@ -1375,6 +1381,8 @@ export const translations = {
     myProfile: "Mi Perfil",
     accountSettings: "Configuración de Cuenta",
     adminDashboard: "Panel Admin",
+    professionalDashboard: "Panel Profesional",
+    leaderboard: "Tabla de Clasificación",
     
     // Sidebar Groups
     mainMenu: "MENÚ PRINCIPAL",
@@ -1789,7 +1797,8 @@ export const translations = {
     bathroomBreaks: "Pausas para necesidades",
     
     // Professional Dashboard
-    professionalDashboard: "Panel Profesional",
+    // This was already present, but the outline moved it. Keeping it as is.
+    // professionalDashboard: "Panel Profesional",
     totalEarned: "Total Ganado",
     totalBookings: "Total Reservas",
     averageRating: "Calificación Promedio",
