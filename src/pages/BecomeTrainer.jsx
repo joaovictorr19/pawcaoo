@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export default function BecomeTrainer() {
   const navigate = useNavigate();
@@ -86,9 +87,12 @@ export default function BecomeTrainer() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setFormData({ ...formData, [fieldName]: file_url });
+      toast.success("File uploaded successfully!");
     } catch (error) {
       console.error("Error uploading file:", error);
-      alert(`Error uploading ${uploadingKey}: ${error.message || 'Please try again.'}`);
+      toast.error("Upload failed", {
+        description: error.message || 'Please try again.'
+      });
     }
     setUploading(prev => ({ ...prev, [uploadingKey]: false }));
   };
@@ -228,7 +232,9 @@ export default function BecomeTrainer() {
     }
 
     if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields to proceed:\n- ${missingFields.join('\n- ')}`);
+      toast.error("Missing Required Fields", {
+        description: missingFields.join(', ')
+      });
       return false;
     }
     return true;
@@ -265,9 +271,14 @@ export default function BecomeTrainer() {
 
     try {
       await createTrainerMutation.mutateAsync(dataToSubmit);
+      toast.success("Profile submitted successfully!", {
+        description: "Your trainer profile is under verification"
+      });
     } catch (error) {
       console.error("Error submitting trainer profile:", error);
-      alert(`Error submitting profile: ${error.message || 'Please try again.'}`);
+      toast.error("Error submitting profile", {
+        description: error.message || 'Please try again.'
+      });
     }
   };
 
