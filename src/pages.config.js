@@ -13,6 +13,8 @@ import Notifications from './pages/Notifications';
 import WalkHistory from './pages/WalkHistory';
 import Subscriptions from './pages/Subscriptions';
 import LoyaltyRewards from './pages/LoyaltyRewards';
+import Partners from './pages/Partners';
+import PartnerDetails from './pages/PartnerDetails';
 import Layout from './Layout.jsx';
 
 
@@ -32,6 +34,8 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "Subscriptions": Subscriptions,
     "LoyaltyRewards": LoyaltyRewards,
+    "Partners": Partners,
+    "PartnerDetails": PartnerDetails,
 }
 
 export const pagesConfig = {

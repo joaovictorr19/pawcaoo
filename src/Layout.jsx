@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,11 @@ const navigationItems = [
     title: "Dog Sitting Services",
     url: createPageUrl("DogSittingServices"),
     icon: HomeIcon,
+  },
+  {
+    title: "PawCão Partners",
+    url: createPageUrl("Partners"),
+    icon: Store,
   },
   {
     title: "My Favorites",
@@ -129,7 +134,7 @@ export default function Layout({ children, currentPageName }) {
                 <Dog className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-xl text-gray-900">PawWalk</h2>
+                <h2 className="font-bold text-xl text-gray-900">PawCão</h2>
                 <p className="text-xs text-gray-500">Premium Dog Care</p>
               </div>
             </Link>
@@ -140,7 +145,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MAIN MENU</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(0, 3).map((item) => (
+                  {navigationItems.slice(0, 4).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -163,7 +168,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MY ACTIVITY</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(3, 10).map((item) => (
+                  {navigationItems.slice(4, 11).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -191,7 +196,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">WALKER SERVICES</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(10, 12).map((item) => (
+                  {navigationItems.slice(11, 13).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -214,7 +219,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(12).map((item) => (
+                  {navigationItems.slice(13).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -241,7 +246,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarTrigger className="hover:bg-green-100 p-2 rounded-lg transition-colors duration-200" />
               <div className="flex items-center gap-2">
                 <Dog className="w-6 h-6 text-green-600" />
-                <h1 className="text-xl font-bold text-gray-900">PawWalk</h1>
+                <h1 className="text-xl font-bold text-gray-900">PawCão</h1>
               </div>
               {unreadCount > 0 && (
                 <Link to={createPageUrl("Notifications")} className="ml-auto">
@@ -256,6 +261,56 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex-1 overflow-auto">
             {children}
           </div>
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-gray-200 mt-auto">
+            <div className="max-w-7xl mx-auto px-6 py-8">
+              <div className="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Dog className="w-6 h-6 text-green-600" />
+                    <h3 className="font-bold text-lg text-gray-900">PawCão</h3>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    The leading platform for professional dog walking and care services.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Services</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li><Link to={createPageUrl("Home")} className="hover:text-green-600">Find Walkers</Link></li>
+                    <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600">Dog Sitting</Link></li>
+                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600">Partner Stores</Link></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">For Walkers</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600">Become a Walker</Link></li>
+                    <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600">Subscription Plans</Link></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Legal</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li><a href="#" className="hover:text-green-600">About Us</a></li>
+                    <li><a href="#" className="hover:text-green-600">Contact</a></li>
+                    <li><a href="#" className="hover:text-green-600">Terms of Service</a></li>
+                    <li><a href="#" className="hover:text-green-600">Privacy Policy</a></li>
+                    <li><a href="#" className="hover:text-green-600">Cookie Policy</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p className="text-sm text-gray-600">
+                  © 2025 PawCão. All rights reserved.
+                </p>
+                <div className="flex items-center gap-2 text-sm text-green-700 font-semibold">
+                  ✓ Verified & Insured Walkers
+                </div>
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
     </SidebarProvider>
