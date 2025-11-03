@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import PawCaoLogo from "@/components/PawCaoLogo";
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
@@ -100,14 +101,8 @@ function LayoutContent({ children, currentPageName }) {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         <Sidebar className="border-r border-green-100">
           <SidebarHeader className="border-b border-green-100 p-6">
-            <Link to={createPageUrl("Home")} className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Dog className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="font-bold text-xl text-gray-900">PawCão</h2>
-                <p className="text-xs text-gray-500">{t('footerTagline', language).substring(0, 20)}...</p>
-              </div>
+            <Link to={createPageUrl("Home")} className="block hover:opacity-80 transition-opacity">
+              <PawCaoLogo size="default" />
             </Link>
             
             {/* Language Selector */}
@@ -234,16 +229,39 @@ function LayoutContent({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-6 py-4 md:hidden sticky top-0 z-10">
+          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-6 py-4 sticky top-0 z-10">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-green-100 p-2 rounded-lg transition-colors duration-200" />
-              <div className="flex items-center gap-2">
-                <Dog className="w-6 h-6 text-green-600" />
-                <h1 className="text-xl font-bold text-gray-900">PawCão</h1>
+              {/* Mobile Menu Trigger */}
+              <div className="md:hidden">
+                <SidebarTrigger className="hover:bg-green-100 p-2 rounded-lg transition-colors duration-200" />
               </div>
+
+              {/* Logo for Mobile */}
+              <Link to={createPageUrl("Home")} className="md:hidden">
+                <PawCaoLogo size="small" showText={false} />
+              </Link>
+
+              {/* Quick Home Button for Desktop */}
+              <Link 
+                to={createPageUrl("Home")} 
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 rounded-xl transition-colors group"
+              >
+                <Dog className="w-5 h-5 text-green-600 group-hover:scale-110 transition-transform" />
+                <span className="font-semibold text-green-700">{t('findWalkers', language)}</span>
+              </Link>
+
+              {/* Page Title - Hidden on small screens */}
+              <div className="hidden lg:block flex-1">
+                <h1 className="text-lg font-semibold text-gray-900">
+                  {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
+                </h1>
+              </div>
+
+              {/* Notifications */}
               {unreadCount > 0 && (
-                <Link to={createPageUrl("Notifications")} className="ml-auto">
-                  <Badge className="bg-red-500 text-white">
+                <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0">
+                  <Badge className="bg-red-500 text-white px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer">
+                    <Bell className="w-4 h-4 mr-1" />
                     {unreadCount}
                   </Badge>
                 </Link>
@@ -252,7 +270,7 @@ function LayoutContent({ children, currentPageName }) {
               {/* Mobile Language Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="md:hidden">
                     <Globe className="w-5 h-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -274,10 +292,7 @@ function LayoutContent({ children, currentPageName }) {
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Dog className="w-6 h-6 text-green-600" />
-                    <h3 className="font-bold text-lg text-gray-900">PawCão</h3>
-                  </div>
+                  <PawCaoLogo size="default" className="mb-4" />
                   <p className="text-sm text-gray-600">
                     {t('footerTagline', language)}
                   </p>
@@ -285,28 +300,28 @@ function LayoutContent({ children, currentPageName }) {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("Home")} className="hover:text-green-600">{t('findWalkers', language)}</Link></li>
-                    <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600">{t('findTrainers', language)}</Link></li>
-                    <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600">{t('dogSitting', language)}</Link></li>
-                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600">{t('pawcaoShop', language)}</Link></li>
+                    <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
+                    <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
+                    <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
+                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{t('pawcaoShop', language)}</Link></li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">{t('forProfessionals', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600">{t('becomeWalker', language)}</Link></li>
-                    <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600">{t('becomeTrainer', language)}</Link></li>
-                    <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600">{t('walkerSubscriptions', language)}</Link></li>
+                    <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
+                    <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
+                    <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600 transition-colors">{t('walkerSubscriptions', language)}</Link></li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-green-600">{t('aboutUs', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600">{t('contactUs', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600">{t('termsOfService', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600">{t('privacyPolicy', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600">{t('cookiePolicy', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('contactUs', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('cookiePolicy', language)}</a></li>
                   </ul>
                 </div>
               </div>
