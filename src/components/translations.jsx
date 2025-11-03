@@ -140,6 +140,17 @@ export const translations = {
     pointsHistory: "Histórico de Pontos",
     noTransactions: "Sem transações ainda",
     startBooking: "Comece a reservar serviços para ganhar pontos!",
+
+    // Additional Loyalty translations
+    pointsBalanceTitle: "Saldo de Pontos",
+    totalEarnedTitle: "Total Ganho",
+    currentTier: "Nível Atual",
+    progressToNextTier: "Progresso para o Próximo Nível",
+    allRewards: "Todas as Recompensas",
+    walkDiscounts: "Descontos em Passeios",
+    trainingDiscounts: "Descontos em Treino",
+    premiumServices: "Serviços Premium",
+    earnMore: "Ganhar Mais",
     
     // Subscriptions Page
     subscriptionPlans: "Planos de Subscrição PawCão",
@@ -181,6 +192,16 @@ export const translations = {
     getPaidInstantly: "Seja pago instantaneamente",
     betterSupport: "Melhor Suporte",
     priorityAssistance: "Assistência prioritária quando precisar",
+
+    // Subscription translations
+    subscriptionPlansTitle: "Planos de Subscrição PawCão",
+    choosePlan: "Escolha o plano que se adequa ao seu negócio",
+    freeCommission: "€0 comissão",
+    onlyCommission: "Apenas",
+    unlimitedBookings: "Reservas Ilimitadas",
+    prioritySupport: "Suporte Prioritário",
+    instantPayments: "Pagamentos Instantâneos",
+    proFeatures: "Funcionalidades Pro",
     
     // Home Page
     homeTitle: "Encontre o Passeador Perfeito para o seu Cão",
@@ -270,6 +291,35 @@ export const translations = {
     becomePartner: "Tornar-se um Parceiro",
     becomePartnerDesc: "Junte-se à nossa rede e alcance milhares de donos de cães apaixonados",
     contactUs: "Contacte-nos",
+
+    // Become Trainer translations
+    becomeTrainerTitle: "Torne-se um Treinador Certificado",
+    joinNetwork: "Junte-se à nossa rede de treinadores profissionais",
+    professionalStandards: "Padrões Profissionais",
+    verificationRequired: "Todos os treinadores devem submeter certificações para verificação",
+    createProfile: "Criar o Seu Perfil de Treinador",
+    uploadPhoto: "Carregar uma foto profissional",
+    yourNameLabel: "O Seu Nome",
+    phoneNumberLabel: "Número de Telefone",
+    locationLabel: "Localização",
+    hourlyRateLabel: "Taxa Horária (€)",
+    experienceYearsLabel: "Anos de Experiência",
+    professionalBio: "Biografia Profissional",
+    trainingSpecialties: "Especialidades de Treino",
+    consultationMethods: "Métodos de Consulta",
+    inPerson: "Presencial",
+    online: "Online",
+    hybrid: "Híbrido",
+    certifications: "Certificações Profissionais",
+    addCertification: "Adicionar Certificação",
+    verificationDocuments: "Documentos de Verificação",
+    governmentID: "ID Governamental",
+    proofOfAddress: "Comprovativo de Morada",
+    paymentInformation: "Informação de Pagamento",
+    accountHolderName: "Nome do Titular da Conta",
+    bankAccountNumber: "Número da Conta Bancária",
+    routingNumber: "Número de Routing",
+    submitForVerification: "Submeter para Verificação",
     
     // Footer
     footerTagline: "A plataforma líder para serviços profissionais de passeio e cuidados de cães",
@@ -424,6 +474,17 @@ export const translations = {
     pointsHistory: "Points History",
     noTransactions: "No transactions yet",
     startBooking: "Start booking services to earn points!",
+
+    // Additional Loyalty translations
+    pointsBalanceTitle: "Points Balance",
+    totalEarnedTitle: "Total Earned",
+    currentTier: "Current Tier",
+    progressToNextTier: "Progress to Next Tier",
+    allRewards: "All Rewards",
+    walkDiscounts: "Walk Discounts",
+    trainingDiscounts: "Training Discounts",
+    premiumServices: "Premium Services",
+    earnMore: "Earn More",
     
     // Subscriptions Page
     subscriptionPlans: "PawCão Subscription Plans",
@@ -465,6 +526,16 @@ export const translations = {
     getPaidInstantly: "Get paid instantly",
     betterSupport: "Better Support",
     priorityAssistance: "Priority assistance when you need it",
+
+    // Subscription translations
+    subscriptionPlansTitle: "PawCão Subscription Plans",
+    choosePlan: "Choose the plan that fits your business",
+    freeCommission: "€0 commission",
+    onlyCommission: "Only",
+    unlimitedBookings: "Unlimited Bookings",
+    prioritySupport: "Priority Support",
+    instantPayments: "Instant Payments",
+    proFeatures: "Pro Features",
     
     // Home Page
     homeTitle: "Find the Perfect Dog Walker",
@@ -554,6 +625,35 @@ export const translations = {
     becomePartner: "Become a Partner",
     becomePartnerDesc: "Join our network and reach thousands of passionate dog owners",
     contactUs: "Contact Us",
+
+    // Become Trainer translations
+    becomeTrainerTitle: "Become a Certified Trainer",
+    joinNetwork: "Join our network of professional dog trainers",
+    professionalStandards: "Professional Standards",
+    verificationRequired: "All trainers must submit certifications for verification",
+    createProfile: "Create Your Trainer Profile",
+    uploadPhoto: "Upload a professional photo",
+    yourNameLabel: "Your Name",
+    phoneNumberLabel: "Phone Number",
+    locationLabel: "Location",
+    hourlyRateLabel: "Hourly Rate (€)",
+    experienceYearsLabel: "Years of Experience",
+    professionalBio: "Professional Bio",
+    trainingSpecialties: "Training Specialties",
+    consultationMethods: "Consultation Methods",
+    inPerson: "In-Person",
+    online: "Online",
+    hybrid: "Hybrid",
+    certifications: "Professional Certifications",
+    addCertification: "Add Certification",
+    verificationDocuments: "Verification Documents",
+    governmentID: "Government ID",
+    proofOfAddress: "Proof of Address",
+    paymentInformation: "Payment Information",
+    accountHolderName: "Account Holder Name",
+    bankAccountNumber: "Bank Account Number",
+    routingNumber: "Routing Number",
+    submitForVerification: "Submit for Verification",
     
     // Footer
     footerTagline: "The leading platform for professional dog walking and care services",
@@ -708,6 +808,17 @@ export const translations = {
     pointsHistory: "Historial de Puntos",
     noTransactions: "Aún no hay transacciones",
     startBooking: "¡Comienza a reservar servicios para ganar puntos!",
+
+    // Additional Loyalty translations
+    pointsBalanceTitle: "Saldo de Puntos",
+    totalEarnedTitle: "Total Ganado",
+    currentTier: "Nivel Actual",
+    progressToNextTier: "Progreso al Siguiente Nivel",
+    allRewards: "Todas las Recompensas",
+    walkDiscounts: "Descuentos en Paseos",
+    trainingDiscounts: "Descuentos en Entrenamiento",
+    premiumServices: "Servicios Premium",
+    earnMore: "Ganar Más",
     
     // Subscriptions Page
     subscriptionPlans: "Planes de Suscripción PawCão",
@@ -749,6 +860,16 @@ export const translations = {
     getPaidInstantly: "Recibe el pago al instante",
     betterSupport: "Mejor Soporte",
     priorityAssistance: "Asistencia prioritaria cuando la necesites",
+
+    // Subscription translations
+    subscriptionPlansTitle: "Planes de Suscripción PawCão",
+    choosePlan: "Elige el plan que se adapte a tu negocio",
+    freeCommission: "€0 comisión",
+    onlyCommission: "Solo",
+    unlimitedBookings: "Reservas Ilimitadas",
+    prioritySupport: "Soporte Prioritario",
+    instantPayments: "Pagos Instantáneos",
+    proFeatures: "Funciones Pro",
     
     // Home Page
     homeTitle: "Encuentra el Paseador Perfecto para tu Perro",
@@ -838,6 +959,35 @@ export const translations = {
     becomePartner: "Convertirse en Socio",
     becomePartnerDesc: "Únete a nuestra red y alcanza miles de dueños de perros apasionados",
     contactUs: "Contáctanos",
+
+    // Become Trainer translations
+    becomeTrainerTitle: "Conviértete en Entrenador Certificado",
+    joinNetwork: "Únete a nuestra red de entrenadores profesionales",
+    professionalStandards: "Estándares Profesionales",
+    verificationRequired: "Todos los entrenadores deben enviar certificaciones para verificación",
+    createProfile: "Crear tu Perfil de Entrenador",
+    uploadPhoto: "Subir una foto profesional",
+    yourNameLabel: "Tu Nombre",
+    phoneNumberLabel: "Número de Teléfono",
+    locationLabel: "Ubicación",
+    hourlyRateLabel: "Tarifa por Hora (€)",
+    experienceYearsLabel: "Años de Experiencia",
+    professionalBio: "Biografía Profesional",
+    trainingSpecialties: "Especialidades de Entrenamiento",
+    consultationMethods: "Métodos de Consulta",
+    inPerson: "En Persona",
+    online: "En Línea",
+    hybrid: "Híbrido",
+    certifications: "Certificaciones Profesionales",
+    addCertification: "Agregar Certificación",
+    verificationDocuments: "Documentos de Verificación",
+    governmentID: "ID Gubernamental",
+    proofOfAddress: "Comprobante de Domicilio",
+    paymentInformation: "Información de Pago",
+    accountHolderName: "Nombre del Titular de la Cuenta",
+    bankAccountNumber: "Número de Cuenta Bancaria",
+    routingNumber: "Número de Ruta",
+    submitForVerification: "Enviar para Verificación",
     
     // Footer
     footerTagline: "La plataforma líder para servicios profesionales de paseo y cuidado de perros",

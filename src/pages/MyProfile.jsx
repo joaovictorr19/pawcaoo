@@ -169,45 +169,6 @@ export default function MyProfile() {
           </p>
         </motion.div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}>
-            <CardContent className="p-6 text-center">
-              <Gift className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
-              <div className="text-sm opacity-90">{t('pawPoints', language)}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => navigate(createPageUrl('MyBookings'))}>
-            <CardContent className="p-6 text-center">
-              <Calendar className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{upcomingBookings?.length || 0}</div>
-              <div className="text-sm opacity-90">{t('upcomingWalks', language)}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => navigate(createPageUrl('Favorites'))}>
-            <CardContent className="p-6 text-center">
-              <Heart className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{favorites?.length || 0}</div>
-              <div className="text-sm opacity-90">{t('favorites', language)}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => navigate(createPageUrl('Notifications'))}>
-            <CardContent className="p-6 text-center">
-              <Bell className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{notifications?.length || 0}</div>
-              <div className="text-sm opacity-90">{t('notifications', language)}</div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Account Info */}
         <Card className="border-0 shadow-2xl mb-8">
           <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
@@ -256,6 +217,45 @@ export default function MyProfile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}>
+            <CardContent className="p-6 text-center">
+              <Gift className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
+              <div className="text-sm opacity-90">{t('pawPoints', language)}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('MyBookings'))}>
+            <CardContent className="p-6 text-center">
+              <Calendar className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{upcomingBookings?.length || 0}</div>
+              <div className="text-sm opacity-90">{t('upcomingWalks', language)}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('Favorites'))}>
+            <CardContent className="p-6 text-center">
+              <Heart className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{favorites?.length || 0}</div>
+              <div className="text-sm opacity-90">{t('favorites', language)}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('Notifications'))}>
+            <CardContent className="p-6 text-center">
+              <Bell className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{notifications?.length || 0}</div>
+              <div className="text-sm opacity-90">{t('notifications', language)}</div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Subscription Status - Owner */}
         {!isProfessional && (
