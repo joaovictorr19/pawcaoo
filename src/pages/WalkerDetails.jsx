@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck } from "lucide-react";
-import { useNavigate } => "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BookingForm from "../components/booking/BookingForm";
+import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import ReviewCard from "../components/ReviewCard"; // Assuming ReviewCard component exists
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -60,7 +59,7 @@ export default function WalkerDetails() {
         booking_id: booking.id,
         payer_email: user?.email,
         payer_name: bookingData.owner_name,
-        recipient_email: walker.created_by, // Assuming created_by is the walker's email
+        recipient_email: walker.created_by,
         recipient_name: walker.walker_name,
         service_amount: bookingData.service_amount,
         platform_fee: bookingData.platform_fee,
@@ -184,7 +183,7 @@ export default function WalkerDetails() {
               </div>
               <div className="mt-4 md:mt-0 text-right">
                 <div className="text-4xl font-bold text-green-600">
-                  ${walker.hourly_rate}
+                  €{walker.hourly_rate}
                 </div>
                 <div className="text-gray-600">per hour</div>
                 <div className="text-xs text-gray-500 mt-1">+15% platform fee</div>
