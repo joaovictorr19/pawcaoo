@@ -284,15 +284,6 @@ function LayoutContent({ children, currentPageName }) {
                 <PawCaoLogo size="small" showText={false} />
               </Link>
 
-              {/* Quick Home Button for Desktop */}
-              <Link 
-                to={createPageUrl("Home")} 
-                className="hidden md:flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 rounded-xl transition-colors group"
-              >
-                <Dog className="w-5 h-5 text-green-600 group-hover:scale-110 transition-transform" />
-                <span className="font-semibold text-green-700">{t('findWalkers', language)}</span>
-              </Link>
-
               {/* Page Title */}
               <div className="hidden md:block flex-1">
                 <h1 className="text-lg font-semibold text-gray-900 truncate">
@@ -300,7 +291,7 @@ function LayoutContent({ children, currentPageName }) {
                 </h1>
               </div>
 
-              {/* Plan Badge Desktop */}
+              {/* Plan Badge */}
               {planBadge && (
                 <Badge className={`${planBadge.color} text-white text-xs md:text-sm`}>
                   <span className="hidden sm:inline">{planBadge.icon} </span>
