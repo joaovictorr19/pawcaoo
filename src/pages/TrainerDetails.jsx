@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
@@ -366,13 +366,24 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            <Button
-              className="w-full md:w-auto bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
-              onClick={() => setShowBookingForm(true)} // Changed onClick to show the booking form
-              disabled={trainer.verification_status !== "verified"}
-            >
-              {trainer.verification_status === "verified" ? "Book Training Session" : "Verification Pending"}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                className="flex-1 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
+                onClick={() => setShowBookingForm(true)}
+                disabled={trainer.verification_status !== "verified"}
+              >
+                {trainer.verification_status === "verified" ? "Book Training Session" : "Verification Pending"}
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="h-14 px-6 border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                onClick={() => navigate(createPageUrl(`Messages?trainer_id=${trainer.id}`))}
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Message
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

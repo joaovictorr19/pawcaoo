@@ -162,7 +162,7 @@ export const translations = {
     intendedForLiving: "Destinado a quem vive do mundo pet",
     madeForSchools: "Feito para escolas de treino, pet shops e empresas",
     commission: "comissão",
-    perMonth: "por mês",
+    perMonth: "per mês",
     subscribe: "Subscrever",
     comingSoon: "Em Breve",
     mostPopular: "MAIS POPULAR",
@@ -320,6 +320,17 @@ export const translations = {
     bankAccountNumber: "Número da Conta Bancária",
     routingNumber: "Número de Routing",
     submitForVerification: "Submeter para Verificação",
+
+    // Messages/Chat
+    chatWith: "Conversar com",
+    typeMessage: "Escrever mensagem...",
+    sendMessage: "Enviar",
+    noMessagesYet: "Sem mensagens ainda",
+    startConversation: "Começar conversa",
+    searchConversations: "Pesquisar conversas...",
+    messageRead: "Lido",
+    online: "Online",
+    offline: "Offline",
     
     // Footer
     footerTagline: "A plataforma líder para serviços profissionais de passeio e cuidados de cães",
@@ -654,6 +665,17 @@ export const translations = {
     bankAccountNumber: "Bank Account Number",
     routingNumber: "Routing Number",
     submitForVerification: "Submit for Verification",
+
+    // Messages/Chat
+    chatWith: "Chat with",
+    typeMessage: "Type a message...",
+    sendMessage: "Send",
+    noMessagesYet: "No messages yet",
+    startConversation: "Start conversation",
+    searchConversations: "Search conversations...",
+    messageRead: "Read",
+    online: "Online",
+    offline: "Offline",
     
     // Footer
     footerTagline: "The leading platform for professional dog walking and care services",
@@ -988,6 +1010,17 @@ export const translations = {
     bankAccountNumber: "Número de Cuenta Bancaria",
     routingNumber: "Número de Ruta",
     submitForVerification: "Enviar para Verificación",
+
+    // Messages/Chat
+    chatWith: "Chatear con",
+    typeMessage: "Escribir mensaje...",
+    sendMessage: "Enviar",
+    noMessagesYet: "Sin mensajes aún",
+    startConversation: "Iniciar conversación",
+    searchConversations: "Buscar conversaciones...",
+    messageRead: "Leído",
+    online: "En línea",
+    offline: "Desconectado",
     
     // Footer
     footerTagline: "La plataforma líder para servicios profesionales de paseo y cuidado de perros",
