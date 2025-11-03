@@ -47,9 +47,10 @@ const navigationItems = [
     icon: HomeIcon,
   },
   {
-    title: "PawCão Partners",
+    title: "🏪 PawCão Shop",
     url: createPageUrl("Partners"),
     icon: Store,
+    highlight: true,
   },
   {
     title: "My Favorites",
@@ -83,9 +84,10 @@ const navigationItems = [
     hasNotifications: true,
   },
   {
-    title: "Loyalty Rewards",
+    title: "🎁 Loyalty Rewards",
     url: createPageUrl("LoyaltyRewards"),
     icon: Gift,
+    highlight: true,
   },
   {
     title: "Become a Walker",
@@ -111,6 +113,11 @@ const navigationItems = [
     title: "Owner Membership",
     url: createPageUrl("OwnerSubscriptions"),
     icon: Crown,
+  },
+  {
+    title: "Partner Dashboard",
+    url: createPageUrl("PartnerDashboard"),
+    icon: Store,
   },
   {
     title: "My Profile",
@@ -177,7 +184,8 @@ export default function Layout({ children, currentPageName }) {
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
+                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}
+                        ${item.highlight ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 font-bold' : ''}`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
                           <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
@@ -200,7 +208,7 @@ export default function Layout({ children, currentPageName }) {
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        }`}
+                        } ${item.highlight ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 font-bold' : ''}`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
                           <item.icon className="w-5 h-5" />
