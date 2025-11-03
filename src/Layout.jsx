@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Moon, Sun } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -29,10 +29,12 @@ import {
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { ThemeProvider, useTheme } from "@/components/ThemeProvider";
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const { language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -147,22 +149,64 @@ function LayoutContent({ children, currentPageName }) {
           --accent: 142 76% 92%;
           --accent-foreground: 142 76% 20%;
         }
+        
+        .dark {
+          --background: 222 47% 11%;
+          --foreground: 213 31% 91%;
+          --card: 222 47% 11%;
+          --card-foreground: 213 31% 91%;
+          --popover: 222 47% 11%;
+          --popover-foreground: 213 31% 91%;
+          --primary: 142 76% 36%;
+          --primary-foreground: 0 0% 100%;
+          --secondary: 217 33% 17%;
+          --secondary-foreground: 213 31% 91%;
+          --muted: 223 47% 11%;
+          --muted-foreground: 215 20% 65%;
+          --accent: 216 34% 17%;
+          --accent-foreground: 213 31% 91%;
+          --destructive: 0 63% 31%;
+          --destructive-foreground: 213 31% 91%;
+          --border: 216 34% 17%;
+          --input: 216 34% 17%;
+          --ring: 142 76% 36%;
+        }
       `}</style>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
-        <Sidebar className="border-r border-green-100">
-          <SidebarHeader className="border-b border-green-100 p-6">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+        <Sidebar className="border-r border-green-100 dark:border-gray-700 bg-white dark:bg-gray-900 transition-colors">
+          <SidebarHeader className="border-b border-green-100 dark:border-gray-700 p-6">
             <Link to={createPageUrl("Home")} className="block hover:opacity-80 transition-opacity">
               <PawCaoLogo size="default" />
             </Link>
             
             {planBadge && (
-              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center`}>
+              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
                 <div className="text-xs font-semibold">
                   {planBadge.icon} {planBadge.name} MEMBER
                 </div>
               </div>
             )}
             
+            {/* Theme Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTheme}
+              className="mt-3 w-full"
+            >
+              {theme === 'light' ? (
+                <>
+                  <Moon className="w-4 h-4 mr-2" />
+                  Modo Escuro
+                </>
+              ) : (
+                <>
+                  <Sun className="w-4 h-4 mr-2" />
+                  Modo Claro
+                </>
+              )}
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="mt-3 w-full">
@@ -307,22 +351,23 @@ function LayoutContent({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-10">
+          <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-green-100 dark:border-gray-700 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-10 transition-colors">
             <div className="flex items-center gap-3 md:gap-4">
-              <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors" />
+              <SidebarTrigger className="md:hidden hover:bg-green-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors" />
 
               <Link to={createPageUrl("Home")} className="md:hidden">
                 <PawCaoLogo size="small" showText={false} />
               </Link>
 
-              <div className="hidden md:block flex-1">
-                <h1 className="text-lg font-semibold text-gray-900 truncate">
+              <div className="hidden md:flex items-center gap-3 flex-1">
+                <PawCaoLogo size="small" showText={false} />
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                   {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                 </h1>
               </div>
 
               {planBadge && (
-                <Badge className={`${planBadge.color} text-white text-xs md:text-sm`}>
+                <Badge className={`${planBadge.color} text-white text-xs md:text-sm shadow-lg`}>
                   <span className="hidden sm:inline">{planBadge.icon} </span>
                   {planBadge.name}
                 </Badge>
@@ -330,13 +375,26 @@ function LayoutContent({ children, currentPageName }) {
 
               {unreadCount > 0 && (
                 <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0">
-                  <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer">
+                  <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer shadow-lg">
                     <Bell className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
                     <span className="hidden sm:inline">{unreadCount}</span>
                   </Badge>
                 </Link>
               )}
               
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="hidden md:flex h-9 w-9"
+              >
+                {theme === 'light' ? (
+                  <Moon className="w-4 h-4" />
+                ) : (
+                  <Sun className="w-4 h-4" />
+                )}
+              </Button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="md:hidden h-9 w-9">
@@ -347,6 +405,10 @@ function LayoutContent({ children, currentPageName }) {
                   <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleTheme}>
+                    {theme === 'light' ? <Moon className="w-4 h-4 mr-2" /> : <Sun className="w-4 h-4 mr-2" />}
+                    {theme === 'light' ? 'Escuro' : 'Claro'}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -356,12 +418,12 @@ function LayoutContent({ children, currentPageName }) {
             {children}
           </div>
 
-          <footer className="bg-white border-t border-gray-200 mt-auto">
+          <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-auto transition-colors">
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
                 <div>
                   <PawCaoLogo size="default" className="mb-4" />
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {t('footerTagline', language)}
                   </p>
                 </div>
@@ -396,12 +458,15 @@ function LayoutContent({ children, currentPageName }) {
                 </div>
               </div>
               
-              <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-sm text-gray-600">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   © 2025 PawCão. {t('allRightsReserved', language)}.
                 </p>
-                <div className="flex items-center gap-2 text-sm text-green-700 font-semibold">
-                  ✓ {t('verifiedProfessionals', language)}
+                <div className="flex items-center gap-2">
+                  <PawCaoLogo size="small" showText={false} />
+                  <span className="text-sm text-green-700 dark:text-green-400 font-semibold">
+                    ✓ {t('verifiedProfessionals', language)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -414,8 +479,10 @@ function LayoutContent({ children, currentPageName }) {
 
 export default function Layout({ children, currentPageName }) {
   return (
-    <LanguageProvider>
-      <LayoutContent children={children} currentPageName={currentPageName} />
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <LayoutContent children={children} currentPageName={currentPageName} />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
