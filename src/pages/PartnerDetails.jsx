@@ -4,12 +4,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, Globe, ShoppingBag, Star, Tag } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { 
+  ArrowLeft, MapPin, Phone, Globe, ShoppingBag, Star, Tag, 
+  ShoppingCart, Search, Filter, Grid, List, Plus, Minus, X
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function PartnerDetails() {
   const navigate = useNavigate();
@@ -17,6 +21,13 @@ export default function PartnerDetails() {
   
   const urlParams = new URLSearchParams(window.location.search);
   const partnerId = urlParams.get('id');
+
+  const [cart, setCart] = useState([]);
+  const [showCart, setShowCart] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("featured");
+  const [viewMode, setViewMode] = useState("grid");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -52,51 +63,62 @@ export default function PartnerDetails() {
     enabled: !!user,
   });
 
-  const redeemProductMutation = useMutation({
-    mutationFn: async (product) => {
-      if (!loyaltyPoints || loyaltyPoints.points_balance < product.points_cost) {
-        throw new Error("Pontos insuficientes");
-      }
-
-      const redemption = await base44.entities.Redemption.create({
-        user_email: user?.email,
-        user_name: user?.full_name,
-        product_id: product.id,
-        product_name: product.product_name,
-        partner_id: partner.id,
-        partner_name: partner.partner_name,
-        points_spent: product.points_cost,
-        euro_value: product.price_euro || 0,
-        redemption_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-      });
-
-      await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
-        points_balance: loyaltyPoints.points_balance - product.points_cost,
-        total_redeemed: (loyaltyPoints.total_redeemed || 0) + product.points_cost
-      });
-
-      await base44.entities.PointsTransaction.create({
-        user_email: user?.email,
-        transaction_type: "redeemed",
-        points_amount: product.points_cost,
-        description: `Resgatado: ${product.product_name}`,
-        balance_after: loyaltyPoints.points_balance - product.points_cost
-      });
-
-      return redemption;
-    },
-    onSuccess: (redemption) => {
-      queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
-      toast.success(`Produto resgatado! Código: ${redemption.redemption_code}`);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Falha ao resgatar");
+  const addToCart = (product) => {
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) {
+      setCart(cart.map(item => 
+        item.id === product.id 
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+    } else {
+      setCart([...cart, { ...product, quantity: 1 }]);
     }
+    toast.success(`${product.product_name} adicionado ao carrinho!`);
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.id !== productId));
+  };
+
+  const updateQuantity = (productId, delta) => {
+    setCart(cart.map(item => {
+      if (item.id === productId) {
+        const newQuantity = Math.max(0, item.quantity + delta);
+        return newQuantity === 0 ? null : { ...item, quantity: newQuantity };
+      }
+      return item;
+    }).filter(Boolean));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price_euro * item.quantity), 0);
+  const cartPoints = cart.reduce((sum, item) => sum + (item.points_cost * item.quantity), 0);
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const categories = ["all", "food", "toys", "accessories", "grooming", "health"];
+
+  let filteredProducts = products.filter(product => {
+    const matchesSearch = !searchQuery || 
+      product.product_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
   });
+
+  // Sort products
+  if (sortBy === "price_asc") {
+    filteredProducts = [...filteredProducts].sort((a, b) => a.price_euro - b.price_euro);
+  } else if (sortBy === "price_desc") {
+    filteredProducts = [...filteredProducts].sort((a, b) => b.price_euro - a.price_euro);
+  } else if (sortBy === "name") {
+    filteredProducts = [...filteredProducts].sort((a, b) => 
+      a.product_name.localeCompare(b.product_name)
+    );
+  }
 
   if (loadingPartner) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
         <Skeleton className="h-64 rounded-xl mb-6" />
       </div>
     );
@@ -104,127 +126,218 @@ export default function PartnerDetails() {
 
   if (!partner) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Parceiro não encontrado</h2>
-          <Button onClick={() => navigate(createPageUrl('Partners'))}>
-            Voltar
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6 flex items-center justify-center">
+        <Card className="max-w-md dark:bg-gray-800">
+          <CardContent className="p-12 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Parceiro não encontrado</h2>
+            <Button onClick={() => navigate(createPageUrl('Partners'))}>
+              Voltar à Loja
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        <Button
-          variant="outline"
-          className="mb-4"
-          onClick={() => navigate(createPageUrl('Partners'))}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Fixed Header */}
+      <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b dark:border-gray-700 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('Partners'))}
+              className="hover:bg-green-50 dark:hover:bg-gray-800"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
 
-        {/* Compact Header */}
-        <Card className="border-0 shadow-xl mb-6">
-          <div className="relative h-40 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
-            {partner.logo_url ? (
-              <img
-                src={partner.logo_url}
-                alt={partner.partner_name}
-                className="max-h-32 max-w-[80%] object-contain"
-              />
-            ) : (
-              <h1 className="text-4xl font-bold text-gray-700">{partner.partner_name}</h1>
-            )}
-            {partner.discount_percentage > 0 && (
-              <Badge className="absolute top-4 right-4 bg-red-500 text-white text-xl px-4 py-2">
-                -{partner.discount_percentage}%
-              </Badge>
-            )}
+            <Button
+              onClick={() => setShowCart(true)}
+              className="relative bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              Carrinho
+              {cartItemCount > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white px-2 py-1 text-xs">
+                  {cartItemCount}
+                </Badge>
+              )}
+            </Button>
           </div>
+        </div>
+      </div>
 
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                  {partner.partner_name}
-                </h1>
-                <p className="text-gray-700 mb-4">
-                  {partner.description}
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-3">
-                  {partner.location && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">{partner.location}</span>
-                    </div>
-                  )}
-                  {partner.phone && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-sm">{partner.phone}</span>
-                    </div>
-                  )}
-                  {partner.website && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Globe className="w-4 h-4" />
-                      <a href={partner.website} target="_blank" rel="noopener noreferrer" className="hover:text-green-600 text-sm">
-                        {partner.website}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {partner.promo_code && (
-                <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-xs text-green-100 mb-1">Código Promocional</p>
-                    <p className="text-2xl font-bold font-mono mb-1">{partner.promo_code}</p>
-                    <p className="text-xs text-green-100">Use no checkout</p>
-                  </CardContent>
-                </Card>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* Partner Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="border-0 shadow-2xl mb-8 overflow-hidden dark:bg-gray-800">
+            <div className="relative h-56 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20 flex items-center justify-center">
+              {partner.logo_url ? (
+                <img
+                  src={partner.logo_url}
+                  alt={partner.partner_name}
+                  className="max-h-40 max-w-[80%] object-contain"
+                />
+              ) : (
+                <h1 className="text-5xl font-bold text-gray-700 dark:text-gray-300">{partner.partner_name}</h1>
+              )}
+              {partner.discount_percentage > 0 && (
+                <Badge className="absolute top-6 right-6 bg-red-500 text-white text-2xl px-6 py-3 shadow-xl">
+                  -{partner.discount_percentage}%
+                </Badge>
               )}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Products Section - Compact */}
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Produtos Disponíveis</h2>
-          <p className="text-gray-600 text-sm">Resgate com PawPoints ou obtenha descontos</p>
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row justify-between gap-6">
+                <div className="flex-1">
+                  <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                    {partner.partner_name}
+                  </h1>
+                  <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+                    {partner.description}
+                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {partner.location && (
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                        <MapPin className="w-5 h-5 text-green-600" />
+                        <span>{partner.location}</span>
+                      </div>
+                    )}
+                    {partner.phone && (
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                        <Phone className="w-5 h-5 text-green-600" />
+                        <span>{partner.phone}</span>
+                      </div>
+                    )}
+                    {partner.website && (
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                        <Globe className="w-5 h-5 text-green-600" />
+                        <a href={partner.website} target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
+                          {partner.website}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {partner.promo_code && (
+                  <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-xl">
+                    <CardContent className="p-6 text-center">
+                      <p className="text-sm text-green-100 mb-2">Código Promocional</p>
+                      <p className="text-3xl font-bold font-mono mb-2">{partner.promo_code}</p>
+                      <p className="text-sm text-green-100">Use no checkout</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Products Section */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Produtos Disponíveis</h2>
+          <p className="text-gray-600 dark:text-gray-400">Resgate com PawPoints ou compre com desconto</p>
         </div>
 
-        {loadingProducts ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-64 rounded-xl" />
+        {/* Filters & Search */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder="Pesquisar produtos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 dark:bg-gray-800"
+            />
+          </div>
+
+          <div className="flex gap-2 flex-wrap">
+            {categories.map((cat) => (
+              <Button
+                key={cat}
+                variant={categoryFilter === cat ? "default" : "outline"}
+                onClick={() => setCategoryFilter(cat)}
+                className="capitalize"
+                size="sm"
+              >
+                {cat === "all" ? "Todos" : cat}
+              </Button>
             ))}
           </div>
-        ) : products.length === 0 ? (
-          <Card className="border-0 shadow-xl">
-            <CardContent className="p-12 text-center">
-              <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sem produtos ainda</h3>
-              <p className="text-gray-600">Em breve teremos ofertas exclusivas!</p>
+
+          <div className="flex gap-2">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm"
+            >
+              <option value="featured">Destaque</option>
+              <option value="name">Nome A-Z</option>
+              <option value="price_asc">Preço: Baixo-Alto</option>
+              <option value="price_desc">Preço: Alto-Baixo</option>
+            </select>
+
+            <div className="flex border dark:border-gray-700 rounded-lg overflow-hidden">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="icon"
+                onClick={() => setViewMode("grid")}
+                className="rounded-none"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="icon"
+                onClick={() => setViewMode("list")}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Products Grid */}
+        {loadingProducts ? (
+          <div className={`grid ${viewMode === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"} gap-6`}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <Skeleton key={i} className="h-96 rounded-xl dark:bg-gray-800" />
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <Card className="border-0 shadow-xl dark:bg-gray-800">
+            <CardContent className="p-16 text-center">
+              <ShoppingBag className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum produto encontrado</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Tente ajustar os filtros</p>
+              <Button onClick={() => { setSearchQuery(""); setCategoryFilter("all"); }}>
+                Limpar Filtros
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {products.map((product, index) => (
+          <div className={`grid ${viewMode === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"} gap-6`}>
+            {filteredProducts.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.03 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ scale: 1.02, y: -5 }}
               >
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all overflow-hidden h-full">
-                  {/* Product Image - Compact */}
-                  <div className="relative h-40 bg-gray-100">
+                <Card className="border-0 shadow-lg hover:shadow-2xl transition-all overflow-hidden h-full dark:bg-gray-800">
+                  {/* Product Image */}
+                  <div className="relative h-56 bg-gray-100 dark:bg-gray-700">
                     {product.image_url ? (
                       <img
                         src={product.image_url}
@@ -233,68 +346,59 @@ export default function PartnerDetails() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="w-12 h-12 text-gray-400" />
+                        <ShoppingBag className="w-16 h-16 text-gray-400" />
                       </div>
                     )}
                     {product.discount_percentage > 0 && (
-                      <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs">
+                      <Badge className="absolute top-3 right-3 bg-red-500 text-white font-bold shadow-lg">
                         -{product.discount_percentage}%
                       </Badge>
                     )}
                     {product.stock_quantity === 0 && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <span className="text-white font-bold">Esgotado</span>
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">Esgotado</span>
                       </div>
                     )}
                   </div>
 
-                  <CardContent className="p-3">
-                    <Badge variant="outline" className="text-xs mb-2">
+                  <CardContent className="p-4">
+                    <Badge variant="outline" className="mb-2 capitalize">
                       {product.category}
                     </Badge>
-                    <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-2">
+                    <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-3 line-clamp-2">
                       {product.product_name}
                     </h3>
 
-                    {/* Price Display - Compact */}
-                    <div className="mb-3">
+                    {/* Price Display */}
+                    <div className="mb-4">
                       {product.price_euro > 0 && (
-                        <div className="text-xl font-bold text-green-600">
+                        <div className="text-2xl font-bold text-green-600">
                           €{product.price_euro.toFixed(2)}
                         </div>
                       )}
                       {product.is_redeemable_with_points && product.points_cost > 0 && (
-                        <div className="flex items-center gap-1 text-purple-600">
-                          <Star className="w-4 h-4 fill-purple-500" />
-                          <span className="font-bold">{product.points_cost}</span>
-                          <span className="text-xs">pts</span>
+                        <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                          <Star className="w-5 h-5 fill-purple-500" />
+                          <span className="font-bold text-lg">{product.points_cost}</span>
+                          <span className="text-sm">pts</span>
                         </div>
                       )}
                     </div>
 
                     {product.stock_quantity !== undefined && product.stock_quantity > 0 && (
-                      <p className="text-xs text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                         {product.stock_quantity} em stock
                       </p>
                     )}
 
-                    {product.is_redeemable_with_points && (
-                      <Button
-                        size="sm"
-                        className="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-xs h-8"
-                        onClick={() => redeemProductMutation.mutate(product)}
-                        disabled={
-                          !loyaltyPoints || 
-                          loyaltyPoints.points_balance < product.points_cost ||
-                          product.stock_quantity === 0 ||
-                          redeemProductMutation.isPending
-                        }
-                      >
-                        {loyaltyPoints && loyaltyPoints.points_balance >= product.points_cost 
-                          ? 'Resgatar' 
-                          : `Faltam ${product.points_cost - (loyaltyPoints?.points_balance || 0)} pts`}
-                      </Button>
-                    )}
+                    <Button
+                      className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+                      onClick={() => addToCart(product)}
+                      disabled={product.stock_quantity === 0}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -302,6 +406,114 @@ export default function PartnerDetails() {
           </div>
         )}
       </div>
+
+      {/* Cart Sidebar */}
+      <AnimatePresence>
+        {showCart && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setShowCart(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30 }}
+              className="fixed right-0 top-0 h-full w-full md:w-96 bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col"
+            >
+              <div className="p-6 border-b dark:border-gray-700 flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Carrinho</h3>
+                <Button variant="ghost" size="icon" onClick={() => setShowCart(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {cart.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">Carrinho vazio</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {cart.map((item) => (
+                      <Card key={item.id} className="dark:bg-gray-800">
+                        <CardContent className="p-4">
+                          <div className="flex gap-4">
+                            {item.image_url && (
+                              <img src={item.image_url} alt={item.product_name} className="w-20 h-20 object-cover rounded-lg" />
+                            )}
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+                                {item.product_name}
+                              </h4>
+                              <div className="text-green-600 font-bold mb-2">
+                                €{item.price_euro.toFixed(2)}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => updateQuantity(item.id, -1)}
+                                  className="h-8 w-8"
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </Button>
+                                <span className="font-bold text-lg">{item.quantity}</span>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => updateQuantity(item.id, 1)}
+                                  className="h-8 w-8"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => removeFromCart(item.id)}
+                                  className="h-8 w-8 ml-auto text-red-600"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {cart.length > 0 && (
+                <div className="border-t dark:border-gray-700 p-6">
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-lg">
+                      <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">€{cartTotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg">
+                      <span className="text-gray-600 dark:text-gray-400">PawPoints:</span>
+                      <span className="font-bold text-purple-600 dark:text-purple-400">+{cartPoints} pts</span>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg h-14 text-lg"
+                    onClick={() => toast.success("Checkout em desenvolvimento!")}
+                  >
+                    Finalizar Compra
+                  </Button>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
