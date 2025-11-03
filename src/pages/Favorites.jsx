@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,10 +10,13 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function Favorites() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
 
   const { data: favorites, isLoading } = useQuery({
     queryKey: ['favorites'],
@@ -37,9 +41,9 @@ export default function Favorites() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <Heart className="w-10 h-10 text-red-500 fill-red-500" />
-            My Favorite Walkers
+            {t('myFavoriteWalkers', language)}
           </h1>
-          <p className="text-gray-600 text-lg">Quick access to your trusted dog walkers</p>
+          <p className="text-gray-600 text-lg">{t('quickAccessTrusted', language)}</p>
         </div>
 
         {isLoading ? (
@@ -54,10 +58,10 @@ export default function Favorites() {
               <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Heart className="w-12 h-12 text-red-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">No favorites yet</h3>
-              <p className="text-gray-600 mb-6">Start adding your favorite walkers for quick access</p>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-2">{t('noFavorites', language)}</h3>
+              <p className="text-gray-600 mb-6">{t('startAdding', language)}</p>
               <Button onClick={() => navigate(createPageUrl('Home'))}>
-                Browse Walkers
+                {t('browseWalkers', language)}
               </Button>
             </CardContent>
           </Card>
@@ -90,7 +94,7 @@ export default function Favorites() {
                     <div className="absolute top-4 right-4">
                       <Badge className="bg-red-500 text-white border-0 shadow-lg">
                         <Heart className="w-4 h-4 mr-1 fill-white" />
-                        Favorite
+                        {t('favorite', language)}
                       </Badge>
                     </div>
                   </div>
@@ -126,7 +130,7 @@ export default function Favorites() {
                         className="flex-1 bg-green-600 hover:bg-green-700"
                         onClick={() => navigate(createPageUrl(`WalkerDetails?id=${favorite.walker_id}`))}
                       >
-                        Book Now
+                        {t('bookNow', language)}
                       </Button>
                       <Button
                         variant="outline"

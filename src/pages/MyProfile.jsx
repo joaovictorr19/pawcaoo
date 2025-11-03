@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,9 +14,12 @@ import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function MyProfile() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -113,8 +117,8 @@ export default function MyProfile() {
   const getSubscriptionProgress = () => {
     if (!ownerSubscription || ownerSubscription.plan_type === 'free') {
       return {
-        message: "Desbloquear benefícios exclusivos",
-        action: "Melhore a sua adesão para poupar mais!",
+        message: t("unlockExclusiveBenefits", language),
+        action: t("upgradeToSaveMore", language),
         progress: 0
       };
     }
@@ -127,8 +131,8 @@ export default function MyProfile() {
     const monthsSaved = investment > 0 ? savings / investment : 0;
     
     return {
-      message: `Poupou €${savings.toFixed(2)} com o plano ${ownerSubscription.plan_type}`,
-      action: monthsSaved >= 1 ? "O seu plano já se pagou! 🎉" : `${Math.ceil(monthsSaved * 10) * 10}% até ao equilíbrio`,
+      message: `${t('saved', language)} €${savings.toFixed(2)} ${t('withThePlan', language)} ${ownerSubscription.plan_type}`,
+      action: monthsSaved >= 1 ? t("planAlreadyPaidOff", language) : `${Math.ceil(monthsSaved * 10) * 10}% ${t("untilBreakeven", language)}`,
       progress: Math.min(100, monthsSaved * 100)
     };
   };
@@ -158,10 +162,10 @@ export default function MyProfile() {
           className="mb-8"
         >
           <h1 className="text-5xl font-bold text-gray-900 mb-2">
-            Olá, {user?.full_name || 'Utilizador'} 👋
+            {t('hello', language)}, {user?.full_name || t('notDefined', language)} 👋
           </h1>
           <p className="text-xl text-gray-600">
-            O seu painel completo do PawCão Universe
+            {t('yourCompleteDashboard', language)}
           </p>
         </motion.div>
 
@@ -172,7 +176,7 @@ export default function MyProfile() {
             <CardContent className="p-6 text-center">
               <Gift className="w-8 h-8 mx-auto mb-2" />
               <div className="text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
-              <div className="text-sm opacity-90">PawPoints</div>
+              <div className="text-sm opacity-90">{t('pawPoints', language)}</div>
             </CardContent>
           </Card>
 
@@ -181,7 +185,7 @@ export default function MyProfile() {
             <CardContent className="p-6 text-center">
               <Calendar className="w-8 h-8 mx-auto mb-2" />
               <div className="text-3xl font-bold">{upcomingBookings?.length || 0}</div>
-              <div className="text-sm opacity-90">Próximos Passeios</div>
+              <div className="text-sm opacity-90">{t('upcomingWalks', language)}</div>
             </CardContent>
           </Card>
 
@@ -190,7 +194,7 @@ export default function MyProfile() {
             <CardContent className="p-6 text-center">
               <Heart className="w-8 h-8 mx-auto mb-2" />
               <div className="text-3xl font-bold">{favorites?.length || 0}</div>
-              <div className="text-sm opacity-90">Favoritos</div>
+              <div className="text-sm opacity-90">{t('favorites', language)}</div>
             </CardContent>
           </Card>
 
@@ -199,7 +203,7 @@ export default function MyProfile() {
             <CardContent className="p-6 text-center">
               <Bell className="w-8 h-8 mx-auto mb-2" />
               <div className="text-3xl font-bold">{notifications?.length || 0}</div>
-              <div className="text-sm opacity-90">Notificações</div>
+              <div className="text-sm opacity-90">{t('notifications', language)}</div>
             </CardContent>
           </Card>
         </div>
@@ -209,7 +213,7 @@ export default function MyProfile() {
           <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
             <CardTitle className="text-2xl flex items-center gap-2">
               <User className="w-6 h-6" />
-              Informação da Conta
+              {t('accountInformation', language)}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -219,9 +223,9 @@ export default function MyProfile() {
                   <User className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">Nome Completo</div>
+                  <div className="text-sm text-gray-600">{t('fullName', language)}</div>
                   <div className="text-xl font-semibold text-gray-900">
-                    {user?.full_name || 'Não definido'}
+                    {user?.full_name || t('notDefined', language)}
                   </div>
                 </div>
               </div>
@@ -231,7 +235,7 @@ export default function MyProfile() {
                   <Mail className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">Email</div>
+                  <div className="text-sm text-gray-600">{t('email', language)}</div>
                   <div className="text-xl font-semibold text-gray-900">
                     {user?.email}
                   </div>
@@ -243,7 +247,7 @@ export default function MyProfile() {
                   <Shield className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">Função</div>
+                  <div className="text-sm text-gray-600">{t('role', language)}</div>
                   <div className="text-xl font-semibold text-gray-900 capitalize">
                     {user?.role || 'user'}
                   </div>
@@ -262,7 +266,7 @@ export default function MyProfile() {
                   <Crown className="w-8 h-8" />
                   <div>
                     <h3 className="text-2xl font-bold">
-                      Membro {ownerSubscription ? ownerSubscription.plan_type.toUpperCase() : 'GRÁTIS'}
+                      {t('member', language)} {ownerSubscription ? ownerSubscription.plan_type.toUpperCase() : t('freePlan', language).toUpperCase()}
                     </h3>
                     <p className="text-white/90">
                       {getSubscriptionProgress().message}
@@ -273,14 +277,14 @@ export default function MyProfile() {
                   onClick={() => navigate(createPageUrl('OwnerSubscriptions'))}
                   className="bg-white text-orange-600 hover:bg-gray-100"
                 >
-                  {ownerSubscription?.plan_type === 'free' || !ownerSubscription ? 'Melhorar Plano' : 'Gerir Plano'}
+                  {ownerSubscription?.plan_type === 'free' || !ownerSubscription ? t('upgradePlan', language) : t('managePlan', language)}
                 </Button>
               </div>
 
               {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Valor Desbloqueado</span>
+                    <span>{t('valueUnlocked', language)}</span>
                     <span>{getSubscriptionProgress().action}</span>
                   </div>
                   <div className="w-full bg-white/20 rounded-full h-3">
@@ -297,19 +301,19 @@ export default function MyProfile() {
                   <div className="text-2xl font-bold">
                     {ownerSubscription?.booking_discount_percentage || 0}%
                   </div>
-                  <div className="text-xs opacity-90">Desconto Reservas</div>
+                  <div className="text-xs opacity-90">{t('bookingDiscount', language)}</div>
                 </div>
                 <div className="bg-white/10 rounded-lg p-3 text-center">
                   <div className="text-2xl font-bold">
                     {ownerSubscription?.points_multiplier || 1}x
                   </div>
-                  <div className="text-xs opacity-90">Multiplicador Pontos</div>
+                  <div className="text-xs opacity-90">{t('pointsMultiplier', language)}</div>
                 </div>
                 <div className="bg-white/10 rounded-lg p-3 text-center">
                   <div className="text-2xl font-bold">
                     {ownerSubscription?.free_cancellations || 0}
                   </div>
-                  <div className="text-xs opacity-90">Cancelamentos/mês</div>
+                  <div className="text-xs opacity-90">{t('cancellationsPerMonth', language)}</div>
                 </div>
               </div>
             </div>
@@ -319,27 +323,27 @@ export default function MyProfile() {
                 <div className="flex items-start gap-4">
                   <Target className="w-12 h-12 text-orange-600 flex-shrink-0" />
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-2">Porquê Melhorar a Sua Adesão?</h4>
+                    <h4 className="font-bold text-gray-900 mb-2">{t('whyUpgrade', language)}</h4>
                     <ul className="space-y-2 text-sm text-gray-700">
                       <li className="flex items-start gap-2">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>Poupar dinheiro:</strong> 10-25% de desconto em cada reserva</span>
+                        <span><strong>{t('saveMoney', language)}:</strong> {t('saveMoneyDesc', language)}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>Ganhar mais rápido:</strong> Até 3x PawPoints em cada compra</span>
+                        <span><strong>{t('earnFaster', language)}:</strong> {t('earnFasterDesc', language)}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>Tranquilidade:</strong> Seguro grátis e suporte prioritário</span>
+                        <span><strong>{t('peaceOfMind', language)}:</strong> {t('peaceOfMindDesc', language)}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>Acesso VIP:</strong> Passeadores exclusivos e eventos</span>
+                        <span><strong>{t('vipAccess', language)}:</strong> {t('vipAccessDesc', language)}</span>
                       </li>
                     </ul>
                     <p className="mt-3 text-purple-700 font-semibold">
-                      💡 O plano Premium paga-se após apenas 3 reservas!
+                      💡 {t('premiumPayoff', language)}
                     </p>
                   </div>
                 </div>
@@ -354,7 +358,7 @@ export default function MyProfile() {
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
               <CardTitle className="text-2xl flex items-center gap-2">
                 <Dog className="w-6 h-6" />
-                Perfis Profissionais
+                {t('professionalProfiles', language)}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
@@ -369,7 +373,7 @@ export default function MyProfile() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-600">Total de Passeios</div>
+                      <div className="text-sm text-gray-600">{t('totalWalks', language)}</div>
                       <div className="text-2xl font-bold text-gray-900">
                         {profile.total_walks || 0}
                       </div>
@@ -388,19 +392,19 @@ export default function MyProfile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-green-600" />
-                Próximos Passeios
+                {t('upcomingWalks', language)}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {upcomingBookings.length === 0 ? (
                 <div className="text-center py-8">
                   <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 text-sm mb-4">Sem reservas próximas</p>
+                  <p className="text-gray-600 text-sm mb-4">{t('noUpcomingBookings', language)}</p>
                   <Button 
                     className="w-full"
                     onClick={() => navigate(createPageUrl('Home'))}
                   >
-                    Reservar Passeio
+                    {t('bookWalk', language)}
                   </Button>
                 </div>
               ) : (
@@ -419,7 +423,7 @@ export default function MyProfile() {
                     className="w-full"
                     onClick={() => navigate(createPageUrl('MyBookings'))}
                   >
-                    Ver Todas
+                    {t('viewAll', language)}
                   </Button>
                 </div>
               )}
@@ -430,7 +434,7 @@ export default function MyProfile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="w-5 h-5 text-purple-600" />
-                PawPoints
+                {t('pawPoints', language)}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -446,7 +450,7 @@ export default function MyProfile() {
                 className="w-full bg-purple-600"
                 onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
               >
-                Resgatar Pontos
+                {t('redeemPoints', language)}
               </Button>
             </CardContent>
           </Card>
@@ -455,7 +459,7 @@ export default function MyProfile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-orange-600" />
-                Ações Rápidas
+                {t('quickActions', language)}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -466,7 +470,7 @@ export default function MyProfile() {
                   onClick={() => navigate(createPageUrl('Home'))}
                 >
                   <Dog className="w-4 h-4 mr-2" />
-                  Encontrar Passeador
+                  {t('findWalker', language)}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -474,7 +478,7 @@ export default function MyProfile() {
                   onClick={() => navigate(createPageUrl('Partners'))}
                 >
                   <Store className="w-4 h-4 mr-2" />
-                  Loja PawCão
+                  {t('pawcaoShop', language)}
                 </Button>
                 {(!myWalkerProfiles || myWalkerProfiles.length === 0) && (
                   <Button
@@ -483,7 +487,7 @@ export default function MyProfile() {
                     onClick={() => navigate(createPageUrl('BecomeWalker'))}
                   >
                     <Award className="w-4 h-4 mr-2" />
-                    Ser Passeador
+                    {t('becomeWalker', language)}
                   </Button>
                 )}
               </div>
@@ -497,7 +501,7 @@ export default function MyProfile() {
           onClick={handleLogout}
           className="w-full max-w-md mx-auto block h-12 border-red-200 text-red-600 hover:bg-red-50"
         >
-          Terminar Sessão
+          {t('logout', language)}
         </Button>
       </div>
     </div>
