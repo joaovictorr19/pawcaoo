@@ -11,6 +11,7 @@ import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import BookingForm from "../components/booking/BookingForm"; // Assuming BookingForm is located here
+import { format } from 'date-fns'; // Import format for date formatting
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
@@ -255,7 +256,44 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            {/* Service Areas - NEW */}
+            {/* NEW: Video Introduction */}
+            {trainer.video_intro_url && (
+              <div className="mb-6 border-t border-gray-200 pt-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-purple-600" />
+                  Video Introduction
+                </h3>
+                <video
+                  src={trainer.video_intro_url}
+                  controls
+                  className="w-full rounded-xl shadow-lg border-2 border-purple-100"
+                  poster={trainer.photo_url}
+                />
+              </div>
+            )}
+
+            {/* NEW: Background Check Badge */}
+            {trainer.background_check_status === 'verified' && (
+              <div className="mb-6">
+                <div className="flex items-center gap-3 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                  <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-purple-900">Background Check Verified</h4>
+                    <p className="text-sm text-purple-700">
+                      Verified by {trainer.background_check_provider || 'trusted provider'} • {trainer.background_check_date ? format(new Date(trainer.background_check_date), 'MMM yyyy') : 'N/A'}
+                    </p>
+                  </div>
+                  <Badge className="bg-purple-600 text-white">
+                    <ShieldCheck className="w-3 h-3 mr-1" />
+                    Verified
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* Service Areas */}
             {trainer.service_areas && trainer.service_areas.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -320,7 +358,7 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            {/* Training Methodologies - NEW */}
+            {/* Training Methodologies */}
             {trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -354,7 +392,7 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            {/* Dog Breeds - NEW */}
+            {/* Dog Breeds */}
             {trainer.dog_breeds_handled && trainer.dog_breeds_handled.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h3>
@@ -439,8 +477,58 @@ export default function TrainerDetails() {
               )}
             </div>
 
-            {/* Package Pricing */}
-            {trainer.package_rates && (
+            {/* NEW: Services Offered */}
+            {trainer.services_offered && trainer.services_offered.length > 0 && (
+              <div className="mb-6 border-t border-gray-200 pt-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  Training Programs & Packages
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {trainer.services_offered.map((service, idx) => (
+                    <Card key={idx} className="border-2 border-purple-200 hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-bold text-lg text-gray-900">{service.service_name}</h4>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-purple-600">
+                              €{service.price}
+                            </div>
+                            <span className="text-xs text-gray-500">per session</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-3">{service.description}</p>
+                        {service.duration_options && service.duration_options.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {service.duration_options.map(duration => (
+                              <Badge key={duration} variant="outline" className="text-xs">
+                                ⏱️ {duration}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        {service.package_options && service.package_options.length > 0 && (
+                          <div className="border-t pt-3 mt-3">
+                            <p className="text-xs font-semibold text-gray-700 mb-2">Package Options:</p>
+                            <div className="space-y-2">
+                              {service.package_options.map((pkg, pkgIdx) => (
+                                <div key={pkgIdx} className="flex justify-between items-center text-sm">
+                                  <span className="text-gray-700">{pkg.name} ({pkg.sessions} sessions)</span>
+                                  <span className="font-bold text-purple-600">€{pkg.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Package Pricing (old structure, conditional if new services_offered is not present) */}
+            {(!trainer.services_offered || trainer.services_offered.length === 0) && trainer.package_rates && (
               <div className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Package Options</h3>
                 <div className="grid md:grid-cols-3 gap-4">

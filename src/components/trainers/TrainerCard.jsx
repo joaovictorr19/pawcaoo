@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,21 @@ export default function TrainerCard({ trainer }) {
             <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg">
               <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
               {(trainer.average_rating || trainer.rating).toFixed(1)}
+            </Badge>
+          )}
+          {/* NEW: Video Badge */}
+          {trainer.video_intro_url && (
+            <Badge className="bg-blue-500 text-white border-0 shadow-lg flex items-center gap-1">
+              <Video className="w-3 h-3" />
+              Video
+            </Badge>
+          )}
+
+          {/* NEW: Background Check Badge */}
+          {trainer.background_check_status === 'verified' && (
+            <Badge className="bg-gradient-to-r from-purple-600 to-purple-500 text-white border-0 shadow-lg flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" />
+              Verified
             </Badge>
           )}
         </div>

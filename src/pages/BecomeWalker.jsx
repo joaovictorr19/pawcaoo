@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dog, Upload, DollarSign, Shield, FileText, CheckCircle2, Sparkles } from "lucide-react";
+import { Dog, Upload, DollarSign, Shield, FileText, CheckCircle2, Sparkles, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -19,6 +19,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
@@ -30,6 +37,7 @@ export default function BecomeWalker() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [uploading, setUploading] = useState({
     photo: false,
+    video: false, // Added for video upload
     id: false,
     background: false,
     address: false
@@ -38,10 +46,12 @@ export default function BecomeWalker() {
   const [formData, setFormData] = useState({
     walker_name: "",
     photo_url: "",
+    video_intro_url: "", // New field
     bio: "",
     location: "",
     service_areas: [],
     hourly_rate: "",
+    services_offered: [], // New field
     experience_years: "",
     phone: "",
     dog_sizes: [],
@@ -50,6 +60,7 @@ export default function BecomeWalker() {
     availability: [],
     id_document_url: "",
     background_check_url: "",
+    background_check_provider: "", // New field
     proof_of_address_url: "",
     bank_account_holder: "",
     bank_account_number: "",
@@ -97,6 +108,32 @@ export default function BecomeWalker() {
       ? current.filter(item => item !== value)
       : [...current, value];
     setFormData({ ...formData, [field]: updated });
+  };
+
+  const addService = () => {
+    setFormData({
+      ...formData,
+      services_offered: [...formData.services_offered, {
+        service_name: "",
+        description: "",
+        duration_options: [],
+        price: 0,
+        custom_pricing: false
+      }]
+    });
+  };
+
+  const updateService = (index, field, value) => {
+    const updated = [...formData.services_offered];
+    updated[index][field] = value;
+    setFormData({ ...formData, services_offered: updated });
+  };
+
+  const removeService = (index) => {
+    setFormData({
+      ...formData,
+      services_offered: formData.services_offered.filter((_, i) => i !== index)
+    });
   };
 
   const canProceedToStep2 = formData.walker_name && formData.phone && formData.location && formData.hourly_rate && formData.photo_url && formData.dog_sizes.length > 0 && formData.availability.length > 0;
@@ -218,6 +255,40 @@ export default function BecomeWalker() {
                     </div>
                   </div>
 
+                  {/* NEW: Video Introduction */}
+                  <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
+                    <Label htmlFor="video">Video Introduction (Optional but Recommended) 📹</Label>
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-3">
+                      <p className="text-sm text-blue-900">
+                        <strong>💡 Profiles with videos get 3x more bookings!</strong> Record a 1-2 minute intro showing your personality and love for dogs.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-start gap-4">
+                      {formData.video_intro_url ? (
+                        <video
+                          src={formData.video_intro_url}
+                          controls
+                          className="w-full max-w-md rounded-xl border-4 border-green-100"
+                        />
+                      ) : (
+                        <div className="w-full max-w-md bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200 h-48">
+                          <Upload className="w-12 h-12 text-gray-400" />
+                        </div>
+                      )}
+                      <Input
+                        id="video"
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => handleFileUpload(e, 'video_intro_url', 'video')}
+                        disabled={uploading.video}
+                        className="mt-3"
+                      />
+                      <p className="text-sm text-gray-500">
+                        {uploading.video ? "Uploading video..." : "MP4, MOV, AVI (max 100MB, 1-2 minutes)"}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Basic Info */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -300,7 +371,93 @@ export default function BecomeWalker() {
                     />
                   </div>
 
-                  {/* Service Areas - NEW */}
+                  {/* NEW: Services Offered */}
+                  <div className="border-t-2 border-green-100 pt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-xl font-bold">Services Offered</Label>
+                        <p className="text-sm text-gray-600 mt-1">Define your service packages and pricing</p>
+                      </div>
+                      <Button type="button" variant="outline" onClick={addService}>
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        Add Service
+                      </Button>
+                    </div>
+
+                    {formData.services_offered.map((service, index) => (
+                      <Card key={index} className="p-4 bg-green-50 border-2 border-green-200">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-gray-900">Service #{index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeService(index)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Service Name</Label>
+                              <Input
+                                placeholder="e.g., Standard Walk"
+                                value={service.service_name}
+                                onChange={(e) => updateService(index, 'service_name', e.target.value)}
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Price (€)</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="25.00"
+                                value={service.price || ""}
+                                onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Description</Label>
+                            <Textarea
+                              placeholder="Describe what's included in this service..."
+                              value={service.description}
+                              onChange={(e) => updateService(index, 'description', e.target.value)}
+                              rows={3}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Duration Options</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {['30min', '1hr', '1.5hr', '2hr'].map(duration => (
+                                <label key={duration} className="flex items-center gap-2 cursor-pointer">
+                                  <Checkbox
+                                    checked={service.duration_options?.includes(duration)}
+                                    onCheckedChange={() => {
+                                      const current = service.duration_options || [];
+                                      const updated = current.includes(duration)
+                                        ? current.filter(d => d !== duration)
+                                        : [...current, duration];
+                                      updateService(index, 'duration_options', updated);
+                                    }}
+                                  />
+                                  <span className="text-sm">{duration}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Service Areas */}
                   <div className="space-y-2">
                     <Label>Service Areas</Label>
                     <ServiceAreaSelector
@@ -333,7 +490,7 @@ export default function BecomeWalker() {
                     </div>
                   </div>
 
-                  {/* Dog Breeds - NEW */}
+                  {/* Dog Breeds */}
                   <div className="space-y-2">
                     <Label>Dog Breeds You Have Experience With</Label>
                     <BreedSelector
@@ -401,7 +558,12 @@ export default function BecomeWalker() {
                             disabled={uploading.id}
                             required
                           />
-                          {formData.id_document_url && <p className="text-sm text-green-600">✓ Document uploaded</p>}
+                          {formData.id_document_url && (
+                            <div className="flex items-center gap-2 text-sm text-green-600">
+                              <CheckCircle2 className="w-4 h-4" />
+                              Document uploaded - pending verification
+                            </div>
+                          )}
                           {uploading.id && <p className="text-sm text-gray-500">Uploading...</p>}
                         </div>
                       </TooltipTrigger>
@@ -411,17 +573,53 @@ export default function BecomeWalker() {
                     </Tooltip>
                   </TooltipProvider>
 
-                  <div className="space-y-2">
-                    <Label>Background Check Document (Optional)</Label>
-                    <Input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={(e) => handleFileUpload(e, 'background_check_url', 'background')}
-                      disabled={uploading.background}
-                    />
-                    {formData.background_check_url && <p className="text-sm text-green-600">✓ Document uploaded</p>}
-                    {uploading.background && <p className="text-sm text-gray-500">Uploading...</p>}
-                  </div>
+                  {/* ENHANCED: Background Check */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="space-y-2">
+                          <Label>Background Check (Highly Recommended) 🛡️</Label>
+                          <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-3">
+                            <p className="text-sm text-green-900">
+                              <strong>✓ Verified profiles get priority placement!</strong> Upload a background check from a trusted provider (Checkr, Sterling, etc.) to boost trust.
+                            </p>
+                          </div>
+                          <Select
+                            value={formData.background_check_provider}
+                            onValueChange={(value) => setFormData({...formData, background_check_provider: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Background Check Provider" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="checkr">Checkr</SelectItem>
+                              <SelectItem value="sterling">Sterling</SelectItem>
+                              <SelectItem value="goodhire">GoodHire</SelectItem>
+                              <SelectItem value="certn">Certn</SelectItem>
+                              <SelectItem value="other">Other Provider</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => handleFileUpload(e, 'background_check_url', 'background')}
+                            disabled={uploading.background}
+                            className="mt-2"
+                          />
+                          {formData.background_check_url && (
+                            <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+                              <CheckCircle2 className="w-4 h-4" />
+                              Document uploaded - pending verification
+                            </div>
+                          )}
+                          {uploading.background && <p className="text-sm text-gray-500">Uploading...</p>}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Background checks significantly increase booking rates and client trust</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
                   <TooltipProvider>
                     <Tooltip>
@@ -435,7 +633,12 @@ export default function BecomeWalker() {
                             disabled={uploading.address}
                             required
                           />
-                          {formData.proof_of_address_url && <p className="text-sm text-green-600">✓ Document uploaded</p>}
+                          {formData.proof_of_address_url && (
+                            <div className="flex items-center gap-2 text-sm text-green-600">
+                              <CheckCircle2 className="w-4 h-4" />
+                              Document uploaded - pending verification
+                            </div>
+                          )}
                           {uploading.address && <p className="text-sm text-gray-500">Uploading...</p>}
                         </div>
                       </TooltipTrigger>

@@ -8,55 +8,59 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Award, Upload, Shield } from "lucide-react";
+import { Award, Upload, Shield, PlusCircle } from "lucide-react"; // Added PlusCircle
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { motion } from "framer-motion"; // Added for multi-step form animations
-import BreedSelector from "../components/professionals/BreedSelector"; // New import
-import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector"; // New import
+import { motion } from "framer-motion";
+import BreedSelector from "../components/professionals/BreedSelector";
+import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function BecomeTrainer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState({
     photo: false,
+    video: false, // New field for video upload status
     id: false,
-    background: false, // This field is not currently used in the form, but kept as per original structure
+    background: false,
     address: false,
-    certificates: {} // This field is not currently used in the form, but kept as per original structure
+    certificates: {}
   });
 
-  const [currentStep, setCurrentStep] = useState(1); // State for multi-step form
-  const totalSteps = 3; // Define total number of steps
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
 
   const [formData, setFormData] = useState({
     trainer_name: "",
     photo_url: "",
+    video_intro_url: "", // New field
     bio: "",
     location: "",
-    service_areas: [], // New field
+    service_areas: [],
     hourly_rate: "",
+    services_offered: [], // New field
     experience_years: "",
     phone: "",
     training_specialties: [],
-    training_methodologies: [], // New field
+    training_methodologies: [],
     dog_sizes: [], // Existing field
     dog_breeds_handled: [], // New field
     breed_specialization: [], // New field
     consultation_options: [],
     availability: [],
-    // languages: [], // Removed as per outline, as it's not present in the new formData definition
     certifications: [],
     id_document_url: "",
-    background_check_url: "", // This field is not currently used in the form, but kept as per original structure
+    background_check_url: "",
+    background_check_provider: "", // New field
     proof_of_address_url: "",
     bank_account_holder: "",
     bank_account_number: "",
     bank_routing_number: "",
   });
 
-  const trainingMethodologies = [ // New constant data
+  const trainingMethodologies = [
     { value: "positive_reinforcement", label: "Positive Reinforcement", description: "Reward-based training focusing on desired behaviors" },
     { value: "clicker_training", label: "Clicker Training", description: "Using a marker signal to communicate correct behavior" },
     { value: "model_rival", label: "Model-Rival", description: "Dog learns by observing another dog or person" },
@@ -83,6 +87,7 @@ export default function BecomeTrainer() {
       setFormData({ ...formData, [fieldName]: file_url });
     } catch (error) {
       console.error("Error uploading file:", error);
+      alert(`Error uploading ${uploadingKey}: ${error.message || 'Please try again.'}`);
     }
     setUploading(prev => ({ ...prev, [uploadingKey]: false }));
   };
@@ -100,6 +105,37 @@ export default function BecomeTrainer() {
     setFormData({ ...formData, certifications: updated });
   };
 
+  const addService = () => {
+    setFormData({
+      ...formData,
+      services_offered: [...formData.services_offered, {
+        service_name: "",
+        description: "",
+        duration_options: [],
+        price: null, // Use null for initial price to allow easier validation later if 0 is a valid price
+        package_options: [] // Placeholder for future use, not in current form
+      }]
+    });
+  };
+
+  const updateService = (index, field, value) => {
+    const updated = [...formData.services_offered];
+    // Special handling for price to ensure it's a number or null
+    if (field === 'price') {
+      updated[index][field] = value === '' ? null : parseFloat(value);
+    } else {
+      updated[index][field] = value;
+    }
+    setFormData({ ...formData, services_offered: updated });
+  };
+
+  const removeService = (index) => {
+    setFormData({
+      ...formData,
+      services_offered: formData.services_offered.filter((_, i) => i !== index)
+    });
+  };
+
   const toggleArrayItem = (field, value) => {
     const current = formData[field];
     const updated = current.includes(value)
@@ -108,7 +144,7 @@ export default function BecomeTrainer() {
     setFormData({ ...formData, [field]: updated });
   };
 
-  const toggleMethodology = (methodValue, setAsPrimary = false) => { // Implemented as per outline
+  const toggleMethodology = (methodValue, setAsPrimary = false) => {
     const existing = formData.training_methodologies.find(m => m.methodology_name === methodValue);
 
     if (existing) {
@@ -146,44 +182,59 @@ export default function BecomeTrainer() {
     }
   };
 
-  const canProceedToNextStep = (step) => { // Logic to determine if user can proceed to next step
+  const canProceedToNextStep = (step) => {
+    let missingFields = [];
+
     switch (step) {
       case 1:
-        return (
-          formData.trainer_name.trim() !== "" &&
-          formData.photo_url.trim() !== "" &&
-          formData.bio.trim() !== "" &&
-          formData.location.trim() !== "" &&
-          formData.hourly_rate !== "" &&
-          formData.experience_years !== "" &&
-          formData.phone.trim() !== "" &&
-          formData.training_specialties.length > 0 &&
-          formData.training_methodologies.length > 0 &&
-          formData.consultation_options.length > 0
-          // service_areas, dog_breeds_handled, breed_specialization are optional for proceeding
-        );
+        if (formData.trainer_name.trim() === "") missingFields.push("Your Name");
+        if (formData.photo_url.trim() === "") missingFields.push("Profile Photo");
+        if (formData.bio.trim() === "") missingFields.push("Professional Bio");
+        if (formData.location.trim() === "") missingFields.push("Location");
+        if (formData.hourly_rate === "" || isNaN(parseFloat(formData.hourly_rate))) missingFields.push("Hourly Rate");
+        if (formData.experience_years === "" || isNaN(parseFloat(formData.experience_years))) missingFields.push("Years of Experience");
+        if (formData.phone.trim() === "") missingFields.push("Phone Number");
+        if (formData.training_specialties.length === 0) missingFields.push("Training Specialties");
+        if (formData.training_methodologies.length === 0) missingFields.push("Training Methodologies");
+        if (formData.consultation_options.length === 0) missingFields.push("Consultation Methods");
+
+        // Validate services if any are added
+        if (formData.services_offered.length > 0) {
+          formData.services_offered.forEach((service, idx) => {
+            if (service.service_name.trim() === "") {
+              missingFields.push(`Service #${idx + 1} Name`);
+            }
+            if (service.price === null || isNaN(parseFloat(service.price))) {
+              missingFields.push(`Service #${idx + 1} Price`);
+            }
+          });
+        }
+        break;
       case 2:
-        return (
-          formData.id_document_url.trim() !== "" &&
-          formData.proof_of_address_url.trim() !== ""
-          // Certifications are optional to have, but if present, fields inside should be valid
-        );
+        if (formData.id_document_url.trim() === "") missingFields.push("Government ID");
+        if (formData.proof_of_address_url.trim() === "") missingFields.push("Proof of Address");
+        // Certifications are optional, background check is optional
+        break;
       case 3:
-        return (
-          formData.bank_account_holder.trim() !== "" &&
-          formData.bank_account_number.trim() !== "" &&
-          formData.bank_routing_number.trim() !== ""
-        );
+        if (formData.bank_account_holder.trim() === "") missingFields.push("Account Holder Name");
+        if (formData.bank_account_number.trim() === "") missingFields.push("Bank Account Number");
+        if (formData.bank_routing_number.trim() === "") missingFields.push("Routing Number");
+        break;
       default:
-        return false;
+        // Should not happen
+        missingFields.push("Unknown step validation error.");
     }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following required fields to proceed:\n- ${missingFields.join('\n- ')}`);
+      return false;
+    }
+    return true;
   };
 
   const handleNextStep = () => {
     if (canProceedToNextStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-    } else {
-      alert("Please fill in all required fields to proceed.");
     }
   };
 
@@ -194,15 +245,27 @@ export default function BecomeTrainer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canProceedToNextStep(totalSteps)) { // Final check for the last step's requirements
-      alert("Please fill in all required fields to submit your application.");
       return;
     }
-    await createTrainerMutation.mutateAsync({
+
+    // Prepare data for submission - convert hourly_rate and experience_years to numbers
+    const dataToSubmit = {
       ...formData,
       hourly_rate: parseFloat(formData.hourly_rate),
       experience_years: parseFloat(formData.experience_years),
+      services_offered: formData.services_offered.map(service => ({
+        ...service,
+        price: service.price !== null ? parseFloat(service.price) : null // Ensure price is number or null
+      })),
       verification_status: "pending"
-    });
+    };
+
+    try {
+      await createTrainerMutation.mutateAsync(dataToSubmit);
+    } catch (error) {
+      console.error("Error submitting trainer profile:", error);
+      alert(`Error submitting profile: ${error.message || 'Please try again.'}`);
+    }
   };
 
   return (
@@ -284,8 +347,42 @@ export default function BecomeTrainer() {
                     </div>
                   </div>
 
+                  {/* NEW: Video Introduction */}
+                  <div className="space-y-2 border-t-2 border-purple-100 pt-6">
+                    <Label htmlFor="video_intro_upload">Video Introduction (Optional but Recommended) 📹</Label>
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-3">
+                      <p className="text-sm text-blue-900">
+                        <strong>💡 Show your training style!</strong> Record a 1-2 minute video demonstrating your approach and personality.
+                      </p>
+                    </div>
+                    {formData.video_intro_url ? (
+                      <div className="flex items-center justify-center">
+                        <video
+                          src={formData.video_intro_url}
+                          controls
+                          className="w-full max-w-md rounded-xl border-4 border-purple-100"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full max-w-md bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200 h-48">
+                        <Upload className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
+                    <Input
+                      id="video_intro_upload"
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => handleFileUpload(e, 'video_intro_url', 'video')}
+                      disabled={uploading.video}
+                      className="mt-3"
+                    />
+                    <p className="text-sm text-gray-500">
+                      {uploading.video ? "Uploading video..." : "MP4, MOV, AVI (max 100MB)"}
+                    </p>
+                  </div>
+
                   {/* Basic Info */}
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-2 gap-6 border-t-2 border-purple-100 pt-6">
                     <div className="space-y-2">
                       <Label htmlFor="trainer_name">Your Name *</Label>
                       <Input
@@ -359,7 +456,7 @@ export default function BecomeTrainer() {
                   </div>
 
                   {/* Service Areas - NEW */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 border-t-2 border-purple-100 pt-6">
                     <Label>Service Areas</Label>
                     <ServiceAreaSelector
                       serviceAreas={formData.service_areas}
@@ -368,7 +465,7 @@ export default function BecomeTrainer() {
                   </div>
 
                   {/* Training Specialties */}
-                  <div className="space-y-3">
+                  <div className="space-y-3 border-t-2 border-purple-100 pt-6">
                     <Label>Training Specialties *</Label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {[
@@ -394,7 +491,7 @@ export default function BecomeTrainer() {
                   </div>
 
                   {/* Training Methodologies - NEW */}
-                  <div className="space-y-3">
+                  <div className="space-y-3 border-t-2 border-purple-100 pt-6">
                     <Label>Training Methodologies *</Label>
                     <p className="text-sm text-gray-600 mb-3">
                       Select all that apply. Mark one as primary.
@@ -443,7 +540,7 @@ export default function BecomeTrainer() {
                   </div>
 
                   {/* Dog Breeds - NEW */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 border-t-2 border-purple-100 pt-6">
                     <Label>Dog Breeds You Have Experience With</Label>
                     <BreedSelector
                       selectedBreeds={formData.dog_breeds_handled}
@@ -454,7 +551,7 @@ export default function BecomeTrainer() {
                   </div>
 
                   {/* Consultation Options */}
-                  <div className="space-y-3">
+                  <div className="space-y-3 border-t-2 border-purple-100 pt-6">
                     <Label>Consultation Methods *</Label>
                     <div className="grid grid-cols-3 gap-4">
                       {[
@@ -464,7 +561,7 @@ export default function BecomeTrainer() {
                       ].map(method => (
                         <div key={method.value} className="flex items-center space-x-2">
                           <Checkbox
-                            id={`method-consultation-${method.value}`} // Unique ID to avoid conflict with training methodologies
+                            id={`method-consultation-${method.value}`}
                             checked={formData.consultation_options.includes(method.value)}
                             onCheckedChange={() => toggleArrayItem('consultation_options', method.value)}
                           />
@@ -474,6 +571,97 @@ export default function BecomeTrainer() {
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* NEW: Services Offered */}
+                  <div className="border-t-2 border-purple-100 pt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-xl font-bold">Services & Packages</Label>
+                        <p className="text-sm text-gray-600 mt-1">Define your training programs and pricing</p>
+                      </div>
+                      <Button type="button" variant="outline" onClick={addService}>
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        Add Service
+                      </Button>
+                    </div>
+
+                    {formData.services_offered.map((service, index) => (
+                      <Card key={index} className="p-4 bg-purple-50 border-2 border-purple-200">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-gray-900">Program #{index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeService(index)}
+                              className="text-red-600"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`service-name-${index}`}>Service Name</Label>
+                              <Input
+                                id={`service-name-${index}`}
+                                placeholder="e.g., Basic Obedience"
+                                value={service.service_name}
+                                onChange={(e) => updateService(index, 'service_name', e.target.value)}
+                                required // Made required if service exists
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor={`service-price-${index}`}>Single Session Price (€)</Label>
+                              <Input
+                                id={`service-price-${index}`}
+                                type="number"
+                                step="0.01"
+                                placeholder="50.00"
+                                value={service.price === null ? '' : service.price} // Handle null for empty input
+                                onChange={(e) => updateService(index, 'price', e.target.value)}
+                                required // Made required if service exists
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`service-description-${index}`}>Description</Label>
+                            <Textarea
+                              id={`service-description-${index}`}
+                              placeholder="What does this training program include..."
+                              value={service.description}
+                              onChange={(e) => updateService(index, 'description', e.target.value)}
+                              rows={3}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Session Duration Options</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {['45min', '1hr', '1.5hr', '2hr'].map(duration => (
+                                <label key={duration} className="flex items-center gap-2 cursor-pointer">
+                                  <Checkbox
+                                    checked={service.duration_options?.includes(duration)}
+                                    onCheckedChange={() => {
+                                      const current = service.duration_options || [];
+                                      const updated = current.includes(duration)
+                                        ? current.filter(d => d !== duration)
+                                        : [...current, duration];
+                                      updateService(index, 'duration_options', updated);
+                                    }}
+                                  />
+                                  <span className="text-sm">{duration}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -528,8 +716,9 @@ export default function BecomeTrainer() {
                     </h3>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Government ID *</Label>
+                        <Label htmlFor="id_document_upload">Government ID *</Label>
                         <Input
+                          id="id_document_upload"
                           type="file"
                           accept="image/*,.pdf"
                           onChange={(e) => handleFileUpload(e, 'id_document_url', 'id')}
@@ -539,9 +728,45 @@ export default function BecomeTrainer() {
                         {formData.id_document_url && <p className="text-sm text-green-600">✓ Uploaded</p>}
                       </div>
 
+                      {/* ENHANCED: Background Check */}
                       <div className="space-y-2">
-                        <Label>Proof of Address *</Label>
+                        <Label htmlFor="background_check_provider">Background Check (Highly Recommended) 🛡️</Label>
+                        <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-3">
+                          <p className="text-sm text-purple-900">
+                            <strong>✓ Build trust with clients!</strong> Upload a background check from a trusted provider.
+                          </p>
+                        </div>
+                        <Select
+                          value={formData.background_check_provider}
+                          onValueChange={(value) => setFormData({...formData, background_check_provider: value})}
+                        >
+                          <SelectTrigger id="background_check_provider">
+                            <SelectValue placeholder="Select Provider" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="checkr">Checkr</SelectItem>
+                            <SelectItem value="sterling">Sterling</SelectItem>
+                            <SelectItem value="goodhire">GoodHire</SelectItem>
+                            <SelectItem value="certn">Certn</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => handleFileUpload(e, 'background_check_url', 'background')}
+                          disabled={uploading.background}
+                          className="mt-2"
+                        />
+                        {formData.background_check_url && (
+                          <p className="text-sm text-green-600">✓ Document uploaded</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="proof_of_address_upload">Proof of Address *</Label>
+                        <Input
+                          id="proof_of_address_upload"
                           type="file"
                           accept="image/*,.pdf"
                           onChange={(e) => handleFileUpload(e, 'proof_of_address_url', 'address')}
@@ -567,24 +792,27 @@ export default function BecomeTrainer() {
                     <h3 className="text-xl font-bold text-gray-900 mb-4">Payment Information *</h3>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2 md:col-span-2">
-                        <Label>Account Holder Name *</Label>
+                        <Label htmlFor="bank_account_holder">Account Holder Name *</Label>
                         <Input
+                          id="bank_account_holder"
                           required
                           value={formData.bank_account_holder}
                           onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Bank Account Number *</Label>
+                        <Label htmlFor="bank_account_number">Bank Account Number *</Label>
                         <Input
+                          id="bank_account_number"
                           required
                           value={formData.bank_account_number}
                           onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Routing Number *</Label>
+                        <Label htmlFor="bank_routing_number">Routing Number *</Label>
                         <Input
+                          id="bank_routing_number"
                           required
                           value={formData.bank_routing_number}
                           onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}

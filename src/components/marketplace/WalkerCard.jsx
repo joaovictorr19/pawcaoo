@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, DollarSign, ShieldCheck, Heart, Zap, Crown } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ShieldCheck, Heart, Zap, Crown, Video } from "lucide-react"; // Added Video
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
@@ -198,6 +198,36 @@ export default function WalkerCard({ walker }) {
                 <Badge className="bg-white/95 backdrop-blur-md text-gray-900 border-0 shadow-xl">
                   <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
                   {walker.rating.toFixed(1)}
+                </Badge>
+              </motion.div>
+            )}
+            
+            {/* NEW: Video Badge */}
+            {walker.video_intro_url && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
+                whileHover={{ scale: 1.1 }}
+              >
+                <Badge className="bg-blue-500 text-white border-0 shadow-xl backdrop-blur-md flex items-center gap-1">
+                  <Video className="w-3 h-3" />
+                  Video
+                </Badge>
+              </motion.div>
+            )}
+
+            {/* NEW: Background Check Badge */}
+            {walker.background_check_status === 'verified' && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
+                whileHover={{ scale: 1.1 }}
+              >
+                <Badge className="bg-gradient-to-r from-green-600 to-green-500 text-white border-0 shadow-xl backdrop-blur-md flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  Background Verified
                 </Badge>
               </motion.div>
             )}

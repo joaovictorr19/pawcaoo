@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, MessageCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, MessageCircle, Video } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BookingForm from "../components/booking/BookingForm";
@@ -240,6 +240,43 @@ export default function WalkerDetails() {
               </div>
             )}
 
+            {/* NEW: Video Introduction */}
+            {walker.video_intro_url && (
+              <div className="mb-6 border-t border-gray-200 pt-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-green-600" />
+                  Video Introduction
+                </h3>
+                <video
+                  src={walker.video_intro_url}
+                  controls
+                  className="w-full rounded-xl shadow-lg border-2 border-green-100"
+                  poster={walker.photo_url}
+                />
+              </div>
+            )}
+
+            {/* NEW: Background Check Badge */}
+            {walker.background_check_status === 'verified' && (
+              <div className="mb-6">
+                <div className="flex items-center gap-3 bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-green-900">Background Check Verified</h4>
+                    <p className="text-sm text-green-700">
+                      Verified by {walker.background_check_provider || 'trusted provider'} • {walker.background_check_date ? format(new Date(walker.background_check_date), 'MMM yyyy') : 'N/A'}
+                    </p>
+                  </div>
+                  <Badge className="bg-green-600 text-white">
+                    <ShieldCheck className="w-3 h-3 mr-1" />
+                    Verified
+                  </Badge>
+                </div>
+              </div>
+            )}
+
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {walker.experience_years && (
                 <div className="flex items-center gap-3">
@@ -281,6 +318,45 @@ export default function WalkerDetails() {
                 </div>
               )}
             </div>
+
+            {/* NEW: Services Offered */}
+            {walker.services_offered && walker.services_offered.length > 0 && (
+              <div className="mb-6 border-t border-gray-200 pt-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  Services & Pricing
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {walker.services_offered.map((service, idx) => (
+                    <Card key={idx} className="border-2 border-green-200 hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-bold text-lg text-gray-900">{service.service_name}</h4>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-green-600">
+                              €{service.price}
+                            </div>
+                            {service.custom_pricing && (
+                              <span className="text-xs text-gray-500">starting from</span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-3">{service.description}</p>
+                        {service.duration_options && service.duration_options.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {service.duration_options.map(duration => (
+                              <Badge key={duration} variant="outline" className="text-xs">
+                                ⏱️ {duration}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Service Areas - NEW */}
             {walker.service_areas && walker.service_areas.length > 0 && (
