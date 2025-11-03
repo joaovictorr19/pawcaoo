@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,8 @@ import { createPageUrl } from "@/utils";
 import BookingForm from "../components/booking/BookingForm";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
+import { format } from "date-fns";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -35,6 +38,22 @@ export default function WalkerDetails() {
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['walkerReviews', walkerId],
     queryFn: () => base44.entities.Review.filter({ walker_id: walkerId }, '-created_date'),
+    enabled: !!walkerId,
+    initialData: [],
+  });
+
+  const { data: availability } = useQuery({
+    queryKey: ['walkerAvailability', walkerId],
+    queryFn: () => base44.entities.CalendarAvailability.filter({ 
+      professional_email: walker?.created_by 
+    }),
+    enabled: !!walker,
+    initialData: [],
+  });
+
+  const { data: walkerBookings } = useQuery({
+    queryKey: ['walkerBookings', walkerId],
+    queryFn: () => base44.entities.Booking.filter({ walker_id: walkerId }),
     enabled: !!walkerId,
     initialData: [],
   });
@@ -79,7 +98,18 @@ export default function WalkerDetails() {
   });
 
   const handleBooking = async (bookingData) => {
-    await createBookingMutation.mutateAsync(bookingData);
+    const booking = await createBookingMutation.mutateAsync(bookingData);
+    
+    // Send notification to walker
+    await base44.entities.Notification.create({
+      recipient_email: walker.created_by,
+      title: "New Booking Request",
+      message: `${bookingData.owner_name} has requested a walk for ${bookingData.dog_name} on ${format(new Date(bookingData.walk_date), 'MMM d, yyyy')}`,
+      type: "booking",
+      related_id: booking.id,
+      action_url: "/MyBookings",
+      priority: "high"
+    });
   };
 
   if (isLoading) {
@@ -280,6 +310,23 @@ export default function WalkerDetails() {
             >
               {walker.verification_status === "verified" ? "Book This Walker" : "Verification Pending"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* NEW: Availability Calendar */}
+        <Card className="border-0 shadow-2xl mb-6">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Calendar className="w-6 h-6 text-green-600" />
+              Availability
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <AvailabilityCalendar
+              availabilityData={availability}
+              bookings={walkerBookings}
+              selectedDate={null}
+            />
           </CardContent>
         </Card>
 

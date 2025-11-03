@@ -93,6 +93,11 @@ const navigationItems = [
     icon: Award,
   },
   {
+    title: "Manage Availability",
+    url: createPageUrl("ManageAvailability"),
+    icon: CalendarClock,
+  },
+  {
     title: "Walker Subscriptions",
     url: createPageUrl("Subscriptions"),
     icon: Crown,
@@ -207,7 +212,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">PROFESSIONAL SERVICES</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(12, 15).map((item) => (
+                  {navigationItems.slice(12, 16).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -230,7 +235,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(15).map((item) => (
+                  {navigationItems.slice(16).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 

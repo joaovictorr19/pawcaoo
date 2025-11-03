@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ export default function Home() {
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSize, setFilterSize] = useState("all");
   const [filterTime, setFilterTime] = useState("all");
+  const [filterAvailability, setFilterAvailability] = useState("all");
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
@@ -27,6 +29,21 @@ export default function Home() {
     initialData: [],
   });
 
+  const { data: availability } = useQuery({
+    queryKey: ['allAvailability'],
+    queryFn: () => base44.entities.CalendarAvailability.list(),
+    initialData: [],
+  });
+
+  const getWalkerAvailability = (walker) => {
+    const today = new Date().toISOString().split('T')[0]; // Format 'YYYY-MM-DD'
+    const walkerAvailability = availability.filter(a => 
+      a.professional_email === walker.created_by && 
+      a.date >= today
+    );
+    return walkerAvailability.length > 0;
+  };
+
   const filteredWalkers = walkers.filter(walker => {
     const matchesLocation = !searchLocation || 
       walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
@@ -34,8 +51,11 @@ export default function Home() {
       walker.dog_sizes?.includes(filterSize);
     const matchesTime = filterTime === "all" || 
       walker.availability?.includes(filterTime);
+    const matchesAvailability = filterAvailability === "all" ||
+      (filterAvailability === "available" && getWalkerAvailability(walker)) ||
+      (filterAvailability === "unavailable" && !getWalkerAvailability(walker));
     
-    return matchesLocation && matchesSize && matchesTime;
+    return matchesLocation && matchesSize && matchesTime && matchesAvailability;
   });
 
   const filteredEmergencyWalks = emergencyWalks.filter(walk => {
@@ -103,6 +123,16 @@ export default function Home() {
                   <SelectItem value="afternoon">Afternoon</SelectItem>
                   <SelectItem value="evening">Evening</SelectItem>
                   <SelectItem value="night">Night</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterAvailability} onValueChange={setFilterAvailability}>
+                <SelectTrigger className="md:w-48 h-12 border-gray-200">
+                  <SelectValue placeholder="Availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Walkers</SelectItem>
+                  <SelectItem value="available">Available Soon</SelectItem>
+                  <SelectItem value="unavailable">Not Available</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -18,6 +18,7 @@ import PartnerDetails from './pages/PartnerDetails';
 import Trainers from './pages/Trainers';
 import TrainerDetails from './pages/TrainerDetails';
 import BecomeTrainer from './pages/BecomeTrainer';
+import ManageAvailability from './pages/ManageAvailability';
 import Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "Trainers": Trainers,
     "TrainerDetails": TrainerDetails,
     "BecomeTrainer": BecomeTrainer,
+    "ManageAvailability": ManageAvailability,
 }
 
 export const pagesConfig = {
