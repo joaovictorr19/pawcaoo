@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,10 +22,21 @@ export default function LoyaltyRewards() {
   });
 
   const { data: loyaltyPoints, isLoading } = useQuery({
-    queryKey: ['loyaltyPoints'],
+    queryKey: ['loyaltyPoints', user?.email],
     queryFn: async () => {
+      if (!user?.email) {
+        return { 
+          points_balance: 0, 
+          total_earned: 0, 
+          tier: 'bronze',
+          achievements: [],
+          lifetime_bookings: 0,
+          lifetime_redemptions: 0,
+          total_redeemed: 0
+        };
+      }
       const points = await base44.entities.LoyaltyPoints.filter({
-        user_email: user?.email
+        user_email: user.email
       });
       return points[0] || { 
         points_balance: 0, 
@@ -36,16 +48,17 @@ export default function LoyaltyRewards() {
         total_redeemed: 0
       };
     },
-    enabled: !!user,
+    enabled: !!user?.email,
+    staleTime: 0,
   });
 
   const { data: transactions } = useQuery({
-    queryKey: ['pointsTransactions'],
+    queryKey: ['pointsTransactions', user?.email],
     queryFn: () => base44.entities.PointsTransaction.filter(
       { user_email: user?.email },
       '-created_date'
     ),
-    enabled: !!user,
+    enabled: !!user?.email,
     initialData: [],
   });
 
