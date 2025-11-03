@@ -1,9 +1,10 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Award } from "lucide-react";
+import { Search, MapPin, Award, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import TrainerCard from "../components/trainers/TrainerCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +13,7 @@ export default function Trainers() {
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState("all");
   const [filterMethod, setFilterMethod] = useState("all");
+  const [filterRating, setFilterRating] = useState("all");
 
   const { data: trainers, isLoading } = useQuery({
     queryKey: ['trainers'],
@@ -19,15 +21,38 @@ export default function Trainers() {
     initialData: [],
   });
 
-  const filteredTrainers = trainers.filter(trainer => {
+  const { data: allReviews } = useQuery({
+    queryKey: ['allTrainerReviews'],
+    queryFn: () => base44.entities.Review.list(),
+    initialData: [],
+  });
+
+  // Calculate average ratings for each trainer
+  const trainersWithRatings = trainers.map(trainer => {
+    const trainerReviews = allReviews.filter(r => r.trainer_id === trainer.id);
+    const averageRating = trainerReviews.length > 0
+      ? trainerReviews.reduce((sum, r) => sum + r.rating, 0) / trainerReviews.length
+      : trainer.rating || 0; // Fallback to trainer.rating or 0 if no reviews exist
+    return {
+      ...trainer,
+      average_rating: averageRating,
+      review_count: trainerReviews.length
+    };
+  });
+
+  const filteredTrainers = trainersWithRatings.filter(trainer => {
     const matchesLocation = !searchLocation || 
       trainer.location?.toLowerCase().includes(searchLocation.toLowerCase());
     const matchesSpecialty = filterSpecialty === "all" || 
       trainer.training_specialties?.includes(filterSpecialty);
     const matchesMethod = filterMethod === "all" || 
       trainer.consultation_options?.includes(filterMethod);
+    const matchesRating = filterRating === "all" ||
+      (filterRating === "4+" && trainer.average_rating >= 4) ||
+      (filterRating === "4.5+" && trainer.average_rating >= 4.5) ||
+      (filterRating === "5" && trainer.average_rating === 5);
     
-    return matchesLocation && matchesSpecialty && matchesMethod;
+    return matchesLocation && matchesSpecialty && matchesMethod && matchesRating;
   });
 
   return (
@@ -91,6 +116,32 @@ export default function Trainers() {
                   <SelectItem value="in_person">In-Person</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
                   <SelectItem value="hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterRating} onValueChange={setFilterRating}>
+                <SelectTrigger className="md:w-48 h-12 border-gray-200">
+                  <SelectValue placeholder="Rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ratings</SelectItem>
+                  <SelectItem value="4+">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      4.0+
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="4.5+">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      4.5+
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="5">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      5.0 Only
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

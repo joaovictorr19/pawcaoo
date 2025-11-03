@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,10 +60,10 @@ export default function TrainerCard({ trainer }) {
               Certified
             </Badge>
           )}
-          {trainer.rating && (
+          {(trainer.rating || trainer.average_rating) && (
             <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg">
               <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-              {trainer.rating.toFixed(1)}
+              {(trainer.average_rating || trainer.rating).toFixed(1)}
             </Badge>
           )}
         </div>

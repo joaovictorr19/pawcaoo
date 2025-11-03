@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,6 +122,18 @@ export default function ReviewCard({ review }) {
               <div>
                 <div className="text-xs text-gray-600 mb-1">Professionalism</div>
                 <div className="flex">{renderCategoryStars(review.categories.professionalism)}</div>
+              </div>
+            )}
+            {review.categories.effectiveness && (
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Effectiveness</div>
+                <div className="flex">{renderCategoryStars(review.categories.effectiveness)}</div>
+              </div>
+            )}
+            {review.categories.knowledge && (
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Knowledge</div>
+                <div className="flex">{renderCategoryStars(review.categories.knowledge)}</div>
               </div>
             )}
           </div>

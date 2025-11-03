@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TrainerDetails() {
@@ -24,6 +25,17 @@ export default function TrainerDetails() {
   });
 
   const trainer = trainers.find(t => t.id === trainerId);
+
+  const { data: reviews, isLoading: loadingReviews } = useQuery({
+    queryKey: ['trainerReviews', trainerId],
+    queryFn: () => base44.entities.Review.filter({ trainer_id: trainerId }, '-created_date'),
+    enabled: !!trainerId,
+    initialData: [],
+  });
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : trainer?.rating || 5;
 
   const getSpecialtyLabel = (specialty) => {
     const labels = {
@@ -105,12 +117,10 @@ export default function TrainerDetails() {
                   Certified Trainer
                 </Badge>
               )}
-              {trainer.rating && (
-                <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg text-lg px-4 py-2">
-                  <Star className="w-5 h-5 mr-2 fill-yellow-400 text-yellow-400" />
-                  {trainer.rating.toFixed(1)} Rating
-                </Badge>
-              )}
+              <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg text-lg px-4 py-2">
+                <Star className="w-5 h-5 mr-2 fill-yellow-400 text-yellow-400" />
+                {averageRating.toFixed(1)} ({reviews.length} reviews)
+              </Badge>
             </div>
           </div>
 
@@ -273,6 +283,37 @@ export default function TrainerDetails() {
             >
               {trainer.verification_status === "verified" ? "Book Training Session" : "Verification Pending"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Reviews Section */}
+        <Card className="border-0 shadow-2xl mb-6">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Star className="w-6 h-6 text-yellow-500" />
+              Reviews ({reviews.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {loadingReviews ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-32 rounded-lg" />
+                ))}
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="text-center py-12">
+                <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No reviews yet</h3>
+                <p className="text-gray-600">Be the first to leave a review!</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
