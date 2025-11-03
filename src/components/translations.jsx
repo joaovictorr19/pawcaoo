@@ -501,12 +501,12 @@ export const translations = {
     forProfessionals: "Para Profissionais",
     company: "Empresa",
     aboutUs: "Sobre Nós",
+    allRightsReserved: "Todos os direitos reservados",
+    verifiedProfessionals: "Profissionais verificados",
     termsOfService: "Termos de Serviço",
     privacyPolicy: "Política de Privacidade",
-    cookiePolicy: "Política de Cookies",
-    allRightsReserved: "Todos os direitos reservados",
-    verifiedProfessionals: "Profissionais Verificados e Segurados",
-
+    cookiesPolicy: "Política de Cookies",
+    
     // Dog Sitting Services
     dogSittingTitle: "Serviços de Dog Sitting",
     dogSittingSubtitle: "Vai de férias? Precisa de cuidados prolongados para o seu amigo peludo? Os nossos passeadores verificados oferecem serviços profissionais de dog sitting.",
@@ -1209,11 +1209,11 @@ export const translations = {
     forProfessionals: "For Professionals",
     company: "Company",
     aboutUs: "About Us",
+    allRightsReserved: "All rights reserved",
+    verifiedProfessionals: "Verified professionals",
     termsOfService: "Terms of Service",
     privacyPolicy: "Privacy Policy",
-    cookiePolicy: "Cookie Policy",
-    allRightsReserved: "All rights reserved",
-    verifiedProfessionals: "Verified & Insured Professionals",
+    cookiesPolicy: "Cookie Policy",
     
     // Dog Sitting Services
     dogSittingTitle: "Dog Sitting Services",
@@ -1914,11 +1914,11 @@ export const translations = {
     forProfessionals: "Para Profesionales",
     company: "Empresa",
     aboutUs: "Sobre Nosotros",
+    allRightsReserved: "Todos los derechos reservados",
+    verifiedProfessionals: "Profesionales verificados",
     termsOfService: "Términos de Servicio",
     privacyPolicy: "Política de Privacidad",
-    cookiePolicy: "Política de Cookies",
-    allRightsReserved: "Todos los derechos reservados",
-    verifiedProfessionals: "Profesionales Verificados y Asegurados",
+    cookiesPolicy: "Política de Cookies",
     
     // Dog Sitting Services
     dogSittingTitle: "Servicios de Cuidado de Perros",

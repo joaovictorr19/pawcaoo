@@ -29,6 +29,9 @@ import SocialFeed from './pages/SocialFeed';
 import ForumTopicDetails from './pages/ForumTopicDetails';
 import AccountSettings from './pages/AccountSettings';
 import AdminDashboard from './pages/AdminDashboard';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookiesPolicy from './pages/CookiesPolicy';
 import Layout from './Layout.jsx';
 
 
@@ -64,6 +67,9 @@ export const PAGES = {
     "ForumTopicDetails": ForumTopicDetails,
     "AccountSettings": AccountSettings,
     "AdminDashboard": AdminDashboard,
+    "TermsOfService": TermsOfService,
+    "PrivacyPolicy": PrivacyPolicy,
+    "CookiesPolicy": CookiesPolicy,
 }
 
 export const pagesConfig = {
