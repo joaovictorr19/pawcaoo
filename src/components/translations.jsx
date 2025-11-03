@@ -364,7 +364,7 @@ export const translations = {
     uploadPhoto: "Carregar uma foto profissional",
     yourNameLabel: "O Seu Nome",
     phoneNumberLabel: "Número de Telefone",
-    locationLabel: "Localização",
+    // locationLabel: "Localização", // Reusing 'location'
     hourlyRateLabel: "Taxa Horária (€)",
     experienceYearsLabel: "Anos de Experiência",
     professionalBio: "Biografia Profissional",
@@ -392,7 +392,7 @@ export const translations = {
     startConversation: "Começar conversa",
     searchConversations: "Pesquisar conversas...",
     messageRead: "Lido",
-    online: "Online",
+    // online: "Online", // Already exists
     offline: "Offline",
     newConversation: "Nova Conversa",
     noConversationsYet: "Nenhuma conversa ainda",
@@ -473,6 +473,206 @@ export const translations = {
     cookiePolicy: "Política de Cookies",
     allRightsReserved: "Todos os direitos reservados",
     verifiedProfessionals: "Profissionais Verificados e Segurados",
+
+    // Dog Sitting Services
+    dogSittingTitle: "Serviços de Dog Sitting",
+    dogSittingSubtitle: "Vai de férias? Precisa de cuidados prolongados para o seu amigo peludo? Os nossos passeadores verificados oferecem serviços profissionais de dog sitting.",
+    
+    // Boarding
+    dogBoarding: "Alojamento para Cães",
+    boardingDesc: "O seu cão fica na casa do passeador com cuidados e atenção 24/7",
+    boardingFeature1: "Supervisão e cuidados 24/7",
+    boardingFeature2: "Ambiente como em casa",
+    boardingFeature3: "Passeios e brincadeiras regulares",
+    boardingFeature4: "Atualizações fotográficas diárias",
+    boardingFeature5: "Perfeito para férias",
+    
+    // House Sitting
+    houseSitting: "Casa-Sitting",
+    houseSittingDesc: "Passeador fica na sua casa para cuidar do seu cão no ambiente familiar",
+    houseSittingFeature1: "Cão fica em casa",
+    houseSittingFeature2: "Segurança da casa incluída",
+    houseSittingFeature3: "Cuidado do correio e plantas",
+    houseSittingFeature4: "Mantém a rotina",
+    houseSittingFeature5: "Melhor para cães ansiosos",
+    
+    // Drop-in Visits
+    dropInVisits: "Visitas de Controlo",
+    dropInVisitsDesc: "Passeador visita a sua casa para alimentar, passear e verificar o seu cão",
+    dropInFeature1: "Visitas de 30-60 minutos",
+    dropInFeature2: "Alimentação e água fresca",
+    dropInFeature3: "Passeios rápidos ou brincadeiras",
+    dropInFeature4: "Medicação se necessário",
+    dropInFeature5: "Ótimo para viagens curtas",
+    
+    requestService: "Solicitar Serviço",
+    whyChooseDogSitting: "Por Que Escolher os Nossos Serviços de Dog Sitting?",
+    verifiedSitters: "Cuidadores Verificados e Confiáveis",
+    verifiedSittersDesc: "Todos os cuidadores passam por verificação de antecedentes e documentos",
+    securePayment: "Sistema de Pagamento Seguro",
+    securePaymentDesc: "Pagamento retido em caução até a conclusão do serviço",
+    communication247: "Comunicação 24/7",
+    communication247Desc: "Chat integrado para permanecer conectado com o seu cuidador",
+    insuranceCoverage: "Cobertura de Seguro",
+    insuranceCoverageDesc: "Todos os serviços cobertos pela nossa política de seguros",
+    
+    // Become Walker
+    becomeWalkerTitle: "Torne-se um Passeador",
+    becomeWalkerSubtitle: "Junte-se ao PawCão e comece a ganhar fazendo o que ama — cuidar de cães",
+    step1Profile: "Passo 1: Perfil",
+    step2Documents: "Passo 2: Documentos",
+    step3Payment: "Passo 3: Info de Pagamento",
+    
+    // Profile Step
+    profilePhoto: "Foto de Perfil",
+    // uploadPhoto: "Carregar Foto", // Reusing existing
+    uploadingPhoto: "A carregar...",
+    uploadFriendlyPhoto: "Carregue uma foto amigável sua",
+    videoIntroduction: "Vídeo de Apresentação (Opcional mas Recomendado)",
+    videoIntroTip: "💡 Perfis com vídeos obtêm 3x mais reservas! Grave uma introdução de 1-2 minutos mostrando a sua personalidade e amor por cães.",
+    uploadingVideo: "A carregar vídeo...",
+    videoFormats: "MP4, MOV, AVI (máx 100MB, 1-2 minutos)",
+    
+    yourName: "O Seu Nome",
+    phoneNumber: "Número de Telefone",
+    // location: "Localização", // Reusing existing
+    hourlyRate: "Taxa Horária (€)",
+    platformCommission: "Plataforma cobra 15% de comissão",
+    yearsOfExperience: "Anos de Experiência",
+    aboutYou: "Sobre Si",
+    aboutYouPlaceholder: "Conte aos potenciais clientes sobre a sua experiência com cães, a sua abordagem aos passeios e por que ama cães...",
+    
+    servicesOffered: "Serviços Oferecidos",
+    servicesOfferedDesc: "Defina os seus pacotes de serviços e preços",
+    addService: "Adicionar Serviço",
+    serviceName: "Nome do Serviço",
+    serviceNamePlaceholder: "ex: Passeio Normal",
+    // price: "Preço (€)", // Reusing existing
+    description: "Descrição",
+    descriptionPlaceholder: "Descreva o que está incluído neste serviço...",
+    durationOptions: "Opções de Duração",
+    removeService: "Remover",
+    
+    serviceAreas: "Áreas de Serviço",
+    dogSizesYouHandle: "Tamanhos de Cães Que Consegue Lidar",
+    dogBreedsExperience: "Raças de Cães com Que Tem Experiência",
+    yourAvailability: "A Sua Disponibilidade",
+    
+    // morning: "Manhã", // Reusing existing
+    // afternoon: "Tarde", // Reusing existing
+    // evening: "Noite", // Reusing existing
+    // night: "Noite", // Reusing existing
+    
+    // Documents Step
+    // verificationDocuments: "Documentos de Verificação", // Reusing existing
+    governmentId: "Identificação Emitida pelo Governo",
+    governmentIdDesc: "(Carta de Condução, Passaporte, etc.)",
+    backgroundCheck: "Verificação de Antecedentes (Altamente Recomendado)",
+    backgroundCheckTip: "✓ Perfis verificados obtêm colocação prioritária! Carregue uma verificação de antecedentes de um fornecedor confiável (Checkr, Sterling, etc.) para aumentar a confiança.",
+    selectProvider: "Selecionar Fornecedor de Verificação",
+    // proofOfAddress: "Comprovativo de Morada", // Reusing existing
+    proofOfAddressDesc: "(Conta de serviços, contrato de arrendamento, etc.)",
+    documentUploaded: "✓ Documento carregado - verificação pendente",
+    
+    // Payment Step
+    // paymentInformation: "Informação de Pagamento", // Reusing existing
+    paymentInfoDesc: "Onde receberá os seus ganhos (menos 15% de taxa da plataforma)",
+    // accountHolderName: "Nome do Titular da Conta", // Reusing existing
+    // bankAccountNumber: "Número de Conta Bancária", // Reusing existing
+    swiftBicCode: "Código SWIFT/BIC",
+    // submitForVerification: "Submeter para Verificação", // Reusing existing
+    applicationReceived: "🎉 Candidatura Recebida!",
+    verificationTime: "A verificação geralmente leva 24–48 horas. Notificamo-lo quando aprovado!",
+    
+    // Become Trainer
+    becomeTrainerTitle: "Torne-se um Treinador Certificado", // Updated string from outline
+    becomeTrainerSubtitle: "Junte-se à nossa rede de treinadores profissionais de cães",
+    professionalStandards: "Padrões Profissionais:", // Updated string from outline
+    professionalStandardsDesc: "Todos os treinadores devem submeter certificações e documentos para verificação. Isto garante treino de qualidade para todos os cães na nossa plataforma.",
+    
+    createYourProfile: "Crie o Seu Perfil de Treinador - Info Básica",
+    certificationsVerification: "Certificações e Verificação",
+    
+    professionalBio: "Bio Profissional", // Now specifically a label, was a generic text.
+    professionalBioPlaceholder: "Descreva a sua filosofia de treino, métodos e o que o torna único...",
+    
+    trainingSpecialties: "Especialidades de Treino", // Updated string from outline
+    trainingSpecialtiesDesc: "Selecione todas as áreas de treino em que se especializa. Estas serão pesquisáveis por potenciais clientes.",
+    
+    basicObedience: "Obediência Básica",
+    basicObedienceDesc: "Sentar, ficar, vir, andar à trela básicos",
+    advancedObedience: "Obediência Avançada",
+    advancedObedienceDesc: "Controlo sem trela, comandos complexos",
+    behaviorModification: "Modificação de Comportamento",
+    behaviorModificationDesc: "Corrigir comportamentos indesejados",
+    puppyTraining: "Treino de Cachorros",
+    puppyTrainingDesc: "Socialização precoce e básicos",
+    socialization: "Socialização",
+    socializationDesc: "Interação com pessoas e cães",
+    aggressionIssues: "Problemas de Agressão",
+    aggressionIssuesDesc: "Gerir comportamento agressivo",
+    anxietyFear: "Ansiedade e Medo",
+    anxietyFearDesc: "Ansiedade de separação, fobias",
+    pottyTraining: "Treino de Necessidades",
+    pottyTrainingDesc: "Ensino de casa e acidentes",
+    leashTraining: "Treino de Trela",
+    leashTrainingDesc: "Prevenir puxar e investir",
+    serviceDogTraining: "Treino de Cão de Serviço",
+    serviceDogTrainingDesc: "Treino específico de tarefas",
+    therapyDogTraining: "Treino de Cão de Terapia",
+    therapyDogTrainingDesc: "Preparação para certificação",
+    agilityTraining: "Treino de Agilidade",
+    agilityTrainingDesc: "Percursos de obstáculos, competições",
+    tricksCommands: "Truques e Comandos",
+    tricksCommandsDesc: "Truques divertidos e comandos avançados",
+    
+    trainingMethodologies: "Metodologias de Treino",
+    trainingMethodologiesDesc: "Selecione todas as metodologias que usa. Marque uma como a sua abordagem principal. Isto ajuda os clientes a encontrar treinadores que correspondam à sua filosofia de treino.",
+    positiveReinforcement: "Reforço Positivo",
+    positiveReinforcementDesc: "Treino baseado em recompensas focado em comportamentos desejados",
+    clickerTraining: "Treino com Clicker",
+    clickerTrainingDesc: "Usar um sinal marcador para comunicar comportamento correto",
+    modelRival: "Modelo-Rival",
+    modelRivalDesc: "Cão aprende observando outro cão ou pessoa",
+    relationshipBased: "Baseado em Relacionamento",
+    relationshipBasedDesc: "Foco na construção de confiança e comunicação",
+    scienceBased: "Baseado em Ciência",
+    scienceBasedDesc: "Métodos baseados em evidências da ciência comportamental",
+    balancedTraining: "Treino Equilibrado",
+    balancedTrainingDesc: "Combinação de métodos positivos e corretivos",
+    setPrimary: "Definir como Principal",
+    primaryMethod: "★ Método Principal",
+    
+    professionalTrackRecord: "Historial Profissional",
+    successRate: "Taxa de Sucesso (%)",
+    successRateDesc: "Percentagem de clientes que atingiram os seus objetivos de treino",
+    
+    servicesPackages: "Serviços e Pacotes",
+    servicesPackagesDesc: "Defina os seus programas de treino e preços",
+    programNumber: "Programa #",
+    singleSessionPrice: "Preço de Sessão Única (€)",
+    sessionDurationOptions: "Opções de Duração de Sessão",
+    
+    // consultationMethods: "Métodos de Consulta", // Reusing existing, but note: new context implies a section label.
+    // inPerson: "Presencial", // Reusing existing
+    // online: "Online", // Reusing existing
+    // hybrid: "Híbrido", // Reusing existing
+    
+    professionalCertifications: "Certificações Profissionais",
+    // addCertification: "Adicionar Certificação", // Reusing existing
+    certificationName: "Nome da Certificação",
+    issuingOrganization: "Organização Emissora",
+    year: "Ano",
+    
+    buildTrustWithClients: "✓ Construa confiança com os clientes! Carregue uma verificação de antecedentes de um fornecedor confiável.",
+    
+    // previous: "Anterior", // Reusing existing
+    // next: "Próximo", // Reusing existing
+    submitting: "A submeter...",
+    
+    // cancel: "Cancelar", // Reusing existing
+    // save: "Guardar", // Reusing existing
+    remove: "Remover",
   },
   
   en: {
@@ -839,7 +1039,7 @@ export const translations = {
     uploadPhoto: "Upload a professional photo",
     yourNameLabel: "Your Name",
     phoneNumberLabel: "Phone Number",
-    locationLabel: "Location",
+    // locationLabel: "Location", // Reusing 'location'
     hourlyRateLabel: "Hourly Rate (€)",
     experienceYearsLabel: "Years of Experience",
     professionalBio: "Professional Bio",
@@ -867,7 +1067,7 @@ export const translations = {
     startConversation: "Start conversation",
     searchConversations: "Search conversations...",
     messageRead: "Read",
-    online: "Online",
+    // online: "Online", // Already exists
     offline: "Offline",
     newConversation: "New Conversation",
     noConversationsYet: "No conversations yet",
@@ -948,6 +1148,203 @@ export const translations = {
     cookiePolicy: "Cookie Policy",
     allRightsReserved: "All rights reserved",
     verifiedProfessionals: "Verified & Insured Professionals",
+    
+    // Dog Sitting Services
+    dogSittingTitle: "Dog Sitting Services",
+    dogSittingSubtitle: "Going on vacation? Need extended care for your furry friend? Our verified walkers offer professional dog sitting services.",
+    
+    dogBoarding: "Dog Boarding",
+    boardingDesc: "Your dog stays at the walker's home with 24/7 care and attention",
+    boardingFeature1: "24/7 supervision and care",
+    boardingFeature2: "Home-like environment",
+    boardingFeature3: "Regular walks and playtime",
+    boardingFeature4: "Daily photo updates",
+    boardingFeature5: "Perfect for vacations",
+    
+    houseSitting: "House Sitting",
+    houseSittingDesc: "Walker stays at your home to care for your dog in their familiar environment",
+    houseSittingFeature1: "Dog stays in their home",
+    houseSittingFeature2: "Home security included",
+    houseSittingFeature3: "Mail and plant care",
+    houseSittingFeature4: "Maintains routine",
+    houseSittingFeature5: "Best for anxious dogs",
+    
+    dropInVisits: "Drop-In Visits",
+    dropInVisitsDesc: "Walker visits your home to feed, walk, and check on your dog",
+    dropInFeature1: "30-60 minute visits",
+    dropInFeature2: "Feeding and fresh water",
+    dropInFeature3: "Quick walks or playtime",
+    dropInFeature4: "Medication if needed",
+    dropInFeature5: "Great for short trips",
+    
+    requestService: "Request Service",
+    whyChooseDogSitting: "Why Choose Our Dog Sitting Services?",
+    verifiedSitters: "Verified & Trusted Sitters",
+    verifiedSittersDesc: "All sitters undergo background checks and document verification",
+    securePayment: "Secure Payment System",
+    securePaymentDesc: "Payment held in escrow until service is completed",
+    communication247: "24/7 Communication",
+    communication247Desc: "Built-in chat to stay connected with your sitter",
+    insuranceCoverage: "Insurance Coverage",
+    insuranceCoverageDesc: "All services covered by our insurance policy",
+    
+    // Become Walker
+    becomeWalkerTitle: "Become a Walker",
+    becomeWalkerSubtitle: "Join PawCão and start earning doing what you love — caring for dogs",
+    step1Profile: "Step 1: Profile",
+    step2Documents: "Step 2: Documents",
+    step3Payment: "Step 3: Payment Info",
+    
+    // Profile Step
+    profilePhoto: "Profile Photo",
+    // uploadPhoto: "Upload Photo", // Reusing existing
+    uploadingPhoto: "Uploading...",
+    uploadFriendlyPhoto: "Upload a friendly photo of yourself",
+    videoIntroduction: "Video Introduction (Optional but Recommended)",
+    videoIntroTip: "💡 Profiles with videos get 3x more bookings! Record a 1-2 minute introduction showing your personality and love for dogs.",
+    uploadingVideo: "Uploading video...",
+    videoFormats: "MP4, MOV, AVI (max 100MB, 1-2 minutes)",
+    
+    yourName: "Your Name",
+    phoneNumber: "Phone Number",
+    // location: "Location", // Reusing existing
+    hourlyRate: "Hourly Rate (€)",
+    platformCommission: "Platform charges 15% commission",
+    yearsOfExperience: "Years of Experience",
+    aboutYou: "About You",
+    aboutYouPlaceholder: "Tell potential clients about your experience with dogs, your approach to walks, and why you love dogs...",
+    
+    servicesOffered: "Services Offered",
+    servicesOfferedDesc: "Define your service packages and pricing",
+    addService: "Add Service",
+    serviceName: "Service Name",
+    serviceNamePlaceholder: "ex: Standard Walk",
+    // price: "Price (€)", // Reusing existing
+    description: "Description",
+    descriptionPlaceholder: "Describe what's included in this service...",
+    durationOptions: "Duration Options",
+    removeService: "Remove",
+    
+    serviceAreas: "Service Areas",
+    dogSizesYouHandle: "Dog Sizes You Handle",
+    dogBreedsExperience: "Dog Breeds You Have Experience With",
+    yourAvailability: "Your Availability",
+    
+    // morning: "Morning", // Reusing existing
+    // afternoon: "Afternoon", // Reusing existing
+    // evening: "Evening", // Reusing existing
+    // night: "Night", // Reusing existing
+    
+    // Documents Step
+    // verificationDocuments: "Verification Documents", // Reusing existing
+    governmentId: "Government-Issued ID",
+    governmentIdDesc: "(Driver's License, Passport, etc.)",
+    backgroundCheck: "Background Check (Highly Recommended)",
+    backgroundCheckTip: "✓ Verified profiles get priority placement! Upload a background check from a trusted provider (Checkr, Sterling, etc.) to build trust.",
+    selectProvider: "Select Verification Provider",
+    // proofOfAddress: "Proof of Address", // Reusing existing
+    proofOfAddressDesc: "(Utility bill, lease agreement, etc.)",
+    documentUploaded: "✓ Document uploaded - verification pending",
+    
+    // Payment Step
+    // paymentInformation: "Payment Information", // Reusing existing
+    paymentInfoDesc: "Where you'll receive your earnings (less 15% platform fee)",
+    // accountHolderName: "Account Holder Name", // Reusing existing
+    // bankAccountNumber: "Bank Account Number", // Reusing existing
+    swiftBicCode: "SWIFT/BIC Code",
+    // submitForVerification: "Submit for Verification", // Reusing existing
+    applicationReceived: "🎉 Application Received!",
+    verificationTime: "Verification usually takes 24–48 hours. We'll notify you when approved!",
+    
+    // Become Trainer
+    becomeTrainerTitle: "Become a Certified Trainer", // Updated string from outline
+    becomeTrainerSubtitle: "Join our network of professional dog trainers",
+    professionalStandards: "Professional Standards:", // Updated string from outline
+    professionalStandardsDesc: "All trainers must submit certifications and documents for verification. This ensures quality training for all dogs on our platform.",
+    
+    createYourProfile: "Create Your Trainer Profile - Basic Info",
+    certificationsVerification: "Certifications & Verification",
+    
+    professionalBio: "Professional Bio", // Now specifically a label, was a generic text.
+    professionalBioPlaceholder: "Describe your training philosophy, methods, and what makes you unique...",
+    
+    trainingSpecialties: "Training Specialties", // Updated string from outline
+    trainingSpecialtiesDesc: "Select all training areas you specialize in. These will be searchable by potential clients.",
+    
+    basicObedience: "Basic Obedience",
+    basicObedienceDesc: "Basic sit, stay, come, leash walking",
+    advancedObedience: "Advanced Obedience",
+    advancedObedienceDesc: "Off-leash control, complex commands",
+    behaviorModification: "Behavior Modification",
+    behaviorModificationDesc: "Correcting unwanted behaviors",
+    puppyTraining: "Puppy Training",
+    puppyTrainingDesc: "Early socialization and basics",
+    socialization: "Socialization",
+    socializationDesc: "Interaction with people and dogs",
+    aggressionIssues: "Aggression Issues",
+    aggressionIssuesDesc: "Managing aggressive behavior",
+    anxietyFear: "Anxiety & Fear",
+    anxietyFearDesc: "Separation anxiety, phobias",
+    pottyTraining: "Potty Training",
+    pottyTrainingDesc: "House training and accidents",
+    leashTraining: "Leash Training",
+    leashTrainingDesc: "Preventing pulling and lunging",
+    serviceDogTraining: "Service Dog Training",
+    serviceDogTrainingDesc: "Specific task training",
+    therapyDogTraining: "Therapy Dog Training",
+    therapyDogTrainingDesc: "Preparation for certification",
+    agilityTraining: "Agility Training",
+    agilityTrainingDesc: "Obstacle courses, competitions",
+    tricksCommands: "Tricks & Commands",
+    tricksCommandsDesc: "Fun tricks and advanced commands",
+    
+    trainingMethodologies: "Training Methodologies",
+    trainingMethodologiesDesc: "Select all methodologies you use. Mark one as your primary approach. This helps clients find trainers that match their training philosophy.",
+    positiveReinforcement: "Positive Reinforcement",
+    positiveReinforcementDesc: "Reward-based training focused on desired behaviors",
+    clickerTraining: "Clicker Training",
+    clickerTrainingDesc: "Using a marker signal to communicate correct behavior",
+    modelRival: "Model-Rival",
+    modelRivalDesc: "Dog learns by observing another dog or person",
+    relationshipBased: "Relationship-Based",
+    relationshipBasedDesc: "Focus on building trust and communication",
+    scienceBased: "Science-Based",
+    scienceBasedDesc: "Evidence-based methods from behavioral science",
+    balancedTraining: "Balanced Training",
+    balancedTrainingDesc: "Combination of positive and corrective methods",
+    setPrimary: "Set as Primary",
+    primaryMethod: "★ Primary Method",
+    
+    professionalTrackRecord: "Professional Track Record",
+    successRate: "Success Rate (%)",
+    successRateDesc: "Percentage of clients who achieved their training goals",
+    
+    servicesPackages: "Services & Packages",
+    servicesPackagesDesc: "Define your training programs and pricing",
+    programNumber: "Program #",
+    singleSessionPrice: "Single Session Price (€)",
+    sessionDurationOptions: "Session Duration Options",
+    
+    // consultationMethods: "Consultation Methods", // Reusing existing, but note: new context implies a section label.
+    // inPerson: "In-Person", // Reusing existing
+    // online: "Online", // Reusing existing
+    // hybrid: "Hybrid", // Reusing existing
+    
+    professionalCertifications: "Professional Certifications",
+    // addCertification: "Add Certification", // Reusing existing
+    certificationName: "Certification Name",
+    issuingOrganization: "Issuing Organization",
+    year: "Year",
+    
+    buildTrustWithClients: "✓ Build trust with clients! Upload a background check from a trusted provider.",
+    
+    // previous: "Previous", // Reusing existing
+    // next: "Next", // Reusing existing
+    submitting: "Submitting...",
+    
+    // cancel: "Cancel", // Reusing existing
+    // save: "Save", // Reusing existing
+    remove: "Remove",
   },
   
   es: {
@@ -1314,7 +1711,7 @@ export const translations = {
     uploadPhoto: "Subir una foto profesional",
     yourNameLabel: "Tu Nombre",
     phoneNumberLabel: "Número de Teléfono",
-    locationLabel: "Ubicación",
+    // locationLabel: "Ubicación", // Reusing 'location'
     hourlyRateLabel: "Tarifa por Hora (€)",
     experienceYearsLabel: "Años de Experiencia",
     professionalBio: "Biografía Profesional",
@@ -1342,7 +1739,7 @@ export const translations = {
     startConversation: "Iniciar conversación",
     searchConversations: "Buscar conversaciones...",
     messageRead: "Leído",
-    online: "En línea",
+    // online: "En línea", // Already exists
     offline: "Desconectado",
     newConversation: "Nueva Conversación",
     noConversationsYet: "Aún no hay conversaciones",
@@ -1376,7 +1773,7 @@ export const translations = {
     playedWithDogs: "Jugó con otros perros",
     mediaUpdates: "Actualizaciones de Medios",
     photos: "Fotos",
-    videos: "Videos",
+    videos: "Vídeos",
     behaviorNotes: "Notas de Comportamiento",
     walkPhotos: "Fotos del Paseo",
     walkTimeline: "Línea de Tiempo del Paseo",
@@ -1423,9 +1820,206 @@ export const translations = {
     cookiePolicy: "Política de Cookies",
     allRightsReserved: "Todos los derechos reservados",
     verifiedProfessionals: "Profesionales Verificados y Asegurados",
+    
+    // Dog Sitting Services
+    dogSittingTitle: "Servicios de Cuidado de Perros",
+    dogSittingSubtitle: "¿Te vas de vacaciones? ¿Necesitas cuidados prolongados para tu amigo peludo? Nuestros paseadores verificados ofrecen servicios profesionales de cuidado de perros.",
+    
+    dogBoarding: "Alojamiento para Perros",
+    boardingDesc: "Tu perro se queda en la casa del paseador con cuidado y atención 24/7",
+    boardingFeature1: "Supervisión y cuidados 24/7",
+    boardingFeature2: "Ambiente como en casa",
+    boardingFeature3: "Paseos y juegos regulares",
+    boardingFeature4: "Actualizaciones fotográficas diarias",
+    boardingFeature5: "Perfecto para vacaciones",
+    
+    houseSitting: "Cuidado en Casa",
+    houseSittingDesc: "Paseador se queda en tu casa para cuidar a tu perro en su entorno familiar",
+    houseSittingFeature1: "Perro se queda en casa",
+    houseSittingFeature2: "Seguridad del hogar incluida",
+    houseSittingFeature3: "Cuidado del correo y plantas",
+    houseSittingFeature4: "Mantiene la rutina",
+    houseSittingFeature5: "Mejor para perros ansiosos",
+    
+    dropInVisits: "Visitas de Control",
+    dropInVisitsDesc: "Paseador visita tu casa para alimentar, pasear y verificar a tu perro",
+    dropInFeature1: "Visitas de 30-60 minutos",
+    dropInFeature2: "Alimentación y agua fresca",
+    dropInFeature3: "Paseos rápidos o juegos",
+    dropInFeature4: "Medicación si es necesario",
+    dropInFeature5: "Genial para viajes cortos",
+    
+    requestService: "Solicitar Servicio",
+    whyChooseDogSitting: "¿Por Qué Elegir Nuestros Servicios de Cuidado de Perros?",
+    verifiedSitters: "Cuidadores Verificados y Confiables",
+    verifiedSittersDesc: "Todos los cuidadores pasan por verificación de antecedentes y documentos",
+    securePayment: "Sistema de Pago Seguro",
+    securePaymentDesc: "Pago retenido en caución hasta la conclusión del servicio",
+    communication247: "Comunicación 24/7",
+    communication247Desc: "Chat integrado para permanecer conectado con tu cuidador",
+    insuranceCoverage: "Cobertura de Seguro",
+    insuranceCoverageDesc: "Todos los servicios cubiertos por nuestra política de seguros",
+    
+    // Become Walker
+    becomeWalkerTitle: "Conviértete en Paseador",
+    becomeWalkerSubtitle: "Únete a PawCão y empieza a ganar haciendo lo que amas — cuidar perros",
+    step1Profile: "Paso 1: Perfil",
+    step2Documents: "Paso 2: Documentos",
+    step3Payment: "Paso 3: Información de Pago",
+    
+    // Profile Step
+    profilePhoto: "Foto de Perfil",
+    // uploadPhoto: "Subir Foto", // Reusing existing
+    uploadingPhoto: "Subiendo...",
+    uploadFriendlyPhoto: "Sube una foto amigable tuya",
+    videoIntroduction: "Video de Presentación (Opcional pero Recomendado)",
+    videoIntroTip: "💡 ¡Los perfiles con videos obtienen 3 veces más reservas! Graba una introducción de 1-2 minutos mostrando tu personalidad y amor por los perros.",
+    uploadingVideo: "Subiendo video...",
+    videoFormats: "MP4, MOV, AVI (máx. 100MB, 1-2 minutos)",
+    
+    yourName: "Tu Nombre",
+    phoneNumber: "Número de Teléfono",
+    // location: "Ubicación", // Reusing existing
+    hourlyRate: "Tarifa por Hora (€)",
+    platformCommission: "La plataforma cobra 15% de comisión",
+    yearsOfExperience: "Años de Experiencia",
+    aboutYou: "Sobre Ti",
+    aboutYouPlaceholder: "Cuenta a los clientes potenciales sobre tu experiencia con perros, tu enfoque en los paseos y por qué amas a los perros...",
+    
+    servicesOffered: "Servicios Ofrecidos",
+    servicesOfferedDesc: "Define tus paquetes de servicios y precios",
+    addService: "Agregar Servicio",
+    serviceName: "Nombre del Servicio",
+    serviceNamePlaceholder: "ej: Paseo Estándar",
+    // price: "Precio (€)", // Reusing existing
+    description: "Descripción",
+    descriptionPlaceholder: "Describe lo que incluye este servicio...",
+    durationOptions: "Opciones de Duración",
+    removeService: "Eliminar",
+    
+    serviceAreas: "Áreas de Servicio",
+    dogSizesYouHandle: "Tamaños de Perros que Puedes Manejar",
+    dogBreedsExperience: "Razas de Perros con las que Tienes Experiencia",
+    yourAvailability: "Tu Disponibilidad",
+    
+    // morning: "Mañana", // Reusing existing
+    // afternoon: "Tarde", // Reusing existing
+    // evening: "Noche", // Reusing existing
+    // night: "Noche", // Reusing existing
+    
+    // Documents Step
+    // verificationDocuments: "Documentos de Verificación", // Reusing existing
+    governmentId: "Identificación Emitida por el Gobierno",
+    governmentIdDesc: "(Licencia de Conducir, Pasaporte, etc.)",
+    backgroundCheck: "Verificación de Antecedentes (Altamente Recomendado)",
+    backgroundCheckTip: "✓ ¡Los perfiles verificados obtienen una ubicación prioritaria! Sube una verificación de antecedentes de un proveedor de confianza (Checkr, Sterling, etc.) para generar confianza.",
+    selectProvider: "Seleccionar Proveedor de Verificación",
+    // proofOfAddress: "Comprobante de Domicilio", // Reusing existing
+    proofOfAddressDesc: "(Factura de servicios, contrato de arrendamiento, etc.)",
+    documentUploaded: "✓ Documento subido - verificación pendiente",
+    
+    // Payment Step
+    // paymentInformation: "Información de Pago", // Reusing existing
+    paymentInfoDesc: "Donde recibirás tus ganancias (menos 15% de tarifa de la plataforma)",
+    // accountHolderName: "Nombre del Titular de la Cuenta", // Reusing existing
+    // bankAccountNumber: "Número de Cuenta Bancaria", // Reusing existing
+    swiftBicCode: "Código SWIFT/BIC",
+    // submitForVerification: "Enviar para Verificación", // Reusing existing
+    applicationReceived: "🎉 ¡Solicitud Recibida!",
+    verificationTime: "La verificación generalmente toma de 24 a 48 horas. ¡Te notificaremos cuando sea aprobado!",
+    
+    // Become Trainer
+    becomeTrainerTitle: "Conviértete en Entrenador Certificado", // Updated string from outline
+    becomeTrainerSubtitle: "Únete a nuestra red de entrenadores profesionales de perros",
+    professionalStandards: "Estándares Profesionales:", // Updated string from outline
+    professionalStandardsDesc: "Todos los entrenadores deben enviar certificaciones y documentos para su verificación. Esto garantiza una formación de calidad para todos los perros en nuestra plataforma.",
+    
+    createYourProfile: "Crea tu Perfil de Entrenador - Información Básica",
+    certificationsVerification: "Certificaciones y Verificación",
+    
+    professionalBio: "Biografía Profesional", // Now specifically a label, was a generic text.
+    professionalBioPlaceholder: "Describe tu filosofía de entrenamiento, métodos y lo que te hace único...",
+    
+    trainingSpecialties: "Especialidades de Entrenamiento", // Updated string from outline
+    trainingSpecialtiesDesc: "Selecciona todas las áreas de entrenamiento en las que te especializas. Estas serán buscables por clientes potenciales.",
+    
+    basicObedience: "Obediencia Básica",
+    basicObedienceDesc: "Sentarse, quedarse, venir, caminar con correa básicos",
+    advancedObedience: "Obediencia Avanzada",
+    advancedObedienceDesc: "Control sin correa, comandos complejos",
+    behaviorModification: "Modificación de Comportamiento",
+    behaviorModificationDesc: "Corregir comportamientos no deseados",
+    puppyTraining: "Entrenamiento de Cachorros",
+    puppyTrainingDesc: "Socialización temprana y conceptos básicos",
+    socialization: "Socialización",
+    socializationDesc: "Interacción con personas y perros",
+    aggressionIssues: "Problemas de Agresión",
+    aggressionIssuesDesc: "Manejo del comportamiento agresivo",
+    anxietyFear: "Ansiedad y Miedo",
+    anxietyFearDesc: "Ansiedad por separación, fobias",
+    pottyTraining: "Entrenamiento para Ir al Baño",
+    pottyTrainingDesc: "Entrenamiento en casa y accidentes",
+    leashTraining: "Entrenamiento de Correa",
+    leashTrainingDesc: "Prevención de tirones y arremetidas",
+    serviceDogTraining: "Entrenamiento de Perro de Servicio",
+    serviceDogTrainingDesc: "Entrenamiento de tareas específicas",
+    therapyDogTraining: "Entrenamiento de Perro de Terapia",
+    therapyDogTrainingDesc: "Preparación para la certificación",
+    agilityTraining: "Entrenamiento de Agilidad",
+    agilityTrainingDesc: "Pistas de obstáculos, competiciones",
+    tricksCommands: "Trucos y Comandos",
+    tricksCommandsDesc: "Trucos divertidos y comandos avanzados",
+    
+    trainingMethodologies: "Metodologías de Entrenamiento",
+    trainingMethodologiesDesc: "Selecciona todas las metodologías que utilizas. Marca una como tu enfoque principal. Esto ayuda a los clientes a encontrar entrenadores que coincidan con su filosofía de entrenamiento.",
+    positiveReinforcement: "Refuerzo Positivo",
+    positiveReinforcementDesc: "Entrenamiento basado en recompensas centrado en comportamientos deseados",
+    clickerTraining: "Entrenamiento con Clicker",
+    clickerTrainingDesc: "Usar una señal de marcador para comunicar el comportamiento correcto",
+    modelRival: "Modelo-Rival",
+    modelRivalDesc: "El perro aprende observando a otro perro o persona",
+    relationshipBased: "Basado en la Relación",
+    relationshipBasedDesc: "Enfoque en la construcción de confianza y comunicación",
+    scienceBased: "Basado en la Ciencia",
+    scienceBasedDesc: "Métodos basados en evidencia de la ciencia del comportamiento",
+    balancedTraining: "Entrenamiento Equilibrado",
+    balancedTrainingDesc: "Combinación de métodos positivos y correctivos",
+    setPrimary: "Establecer como Principal",
+    primaryMethod: "★ Método Principal",
+    
+    professionalTrackRecord: "Trayectoria Profesional",
+    successRate: "Tasa de Éxito (%)",
+    successRateDesc: "Porcentaje de clientes que lograron sus objetivos de entrenamiento",
+    
+    servicesPackages: "Servicios y Paquetes",
+    servicesPackagesDesc: "Define tus programas y precios de entrenamiento",
+    programNumber: "Programa #",
+    singleSessionPrice: "Precio de Sesión Única (€)",
+    sessionDurationOptions: "Opciones de Duración de Sesión",
+    
+    // consultationMethods: "Métodos de Consulta", // Reusing existing, but note: new context implies a section label.
+    // inPerson: "En Persona", // Reusing existing
+    // online: "En Línea", // Reusing existing
+    // hybrid: "Híbrido", // Reusing existing
+    
+    professionalCertifications: "Certificaciones Profesionales",
+    // addCertification: "Agregar Certificación", // Reusing existing
+    certificationName: "Nombre de la Certificación",
+    issuingOrganization: "Organización Emisora",
+    year: "Año",
+    
+    buildTrustWithClients: "✓ ¡Genera confianza con los clientes! Sube una verificación de antecedentes de un proveedor de confianza.",
+    
+    // previous: "Anterior", // Reusing existing
+    // next: "Siguiente", // Reusing existing
+    submitting: "Enviando...",
+    
+    // cancel: "Cancelar", // Reusing existing
+    // save: "Guardar", // Reusing existing
+    remove: "Eliminar",
   }
 };
 
-export const t = (key, language = 'pt') => {
-  return translations[language]?.[key] || translations['pt']?.[key] || key;
+export const t = (key, lang = 'pt') => {
+  return translations[lang]?.[key] || translations['pt']?.[key] || key;
 };

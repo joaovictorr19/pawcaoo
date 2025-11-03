@@ -4,51 +4,54 @@ import { Button } from "@/components/ui/button";
 import { Home as HomeIcon, Clock, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function DogSittingServices() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const services = [
     {
       id: "boarding",
-      title: "Dog Boarding",
-      description: "Your dog stays at the walker's home with 24/7 care and attention",
+      title: t('dogBoarding', language),
+      description: t('boardingDesc', language),
       icon: HomeIcon,
       color: "from-blue-500 to-blue-600",
       features: [
-        "24/7 supervision and care",
-        "Home-like environment",
-        "Regular walks and playtime",
-        "Daily photo updates",
-        "Perfect for vacations"
+        t('boardingFeature1', language),
+        t('boardingFeature2', language),
+        t('boardingFeature3', language),
+        t('boardingFeature4', language),
+        t('boardingFeature5', language)
       ]
     },
     {
       id: "house_sitting",
-      title: "House Sitting",
-      description: "Walker stays at your home to care for your dog in their familiar environment",
+      title: t('houseSitting', language),
+      description: t('houseSittingDesc', language),
       icon: HomeIcon,
       color: "from-purple-500 to-purple-600",
       features: [
-        "Dog stays in their home",
-        "Home security included",
-        "Mail and plant care",
-        "Maintains routine",
-        "Best for anxious dogs"
+        t('houseSittingFeature1', language),
+        t('houseSittingFeature2', language),
+        t('houseSittingFeature3', language),
+        t('houseSittingFeature4', language),
+        t('houseSittingFeature5', language)
       ]
     },
     {
       id: "drop_in_feeding",
-      title: "Drop-In Visits",
-      description: "Walker visits your home to feed, walk, and check on your dog",
+      title: t('dropInVisits', language),
+      description: t('dropInVisitsDesc', language),
       icon: Clock,
       color: "from-orange-500 to-orange-600",
       features: [
-        "30-60 minute visits",
-        "Feeding and fresh water",
-        "Quick walks or playtime",
-        "Medication if needed",
-        "Great for short trips"
+        t('dropInFeature1', language),
+        t('dropInFeature2', language),
+        t('dropInFeature3', language),
+        t('dropInFeature4', language),
+        t('dropInFeature5', language)
       ]
     }
   ];
@@ -60,10 +63,9 @@ export default function DogSittingServices() {
           <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <HomeIcon className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Dog Sitting Services</h1>
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">{t('dogSittingTitle', language)}</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Going on vacation? Need extended care for your furry friend? 
-            Our verified walkers offer professional dog sitting services.
+            {t('dogSittingSubtitle', language)}
           </p>
         </div>
 
@@ -91,7 +93,7 @@ export default function DogSittingServices() {
                   className={`w-full bg-gradient-to-r ${service.color} hover:opacity-90 text-white shadow-lg h-12`}
                   onClick={() => navigate(createPageUrl(`RequestDogSitting?type=${service.id}`))}
                 >
-                  Request Service
+                  {t('requestService', language)}
                 </Button>
               </CardContent>
             </Card>
@@ -100,23 +102,25 @@ export default function DogSittingServices() {
 
         <Card className="border-2 border-blue-200 bg-blue-50">
           <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Why Choose Our Dog Sitting Services?</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              {t('whyChooseDogSitting', language)}
+            </h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">✓ Verified & Trusted Sitters</h4>
-                <p className="text-gray-700">All sitters undergo background checks and document verification</p>
+                <h4 className="font-semibold text-gray-900 mb-2">✓ {t('verifiedSitters', language)}</h4>
+                <p className="text-gray-700">{t('verifiedSittersDesc', language)}</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">✓ Secure Payment System</h4>
-                <p className="text-gray-700">Payment held in escrow until service is completed</p>
+                <h4 className="font-semibold text-gray-900 mb-2">✓ {t('securePayment', language)}</h4>
+                <p className="text-gray-700">{t('securePaymentDesc', language)}</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">✓ 24/7 Communication</h4>
-                <p className="text-gray-700">Built-in chat to stay connected with your sitter</p>
+                <h4 className="font-semibold text-gray-900 mb-2">✓ {t('communication247', language)}</h4>
+                <p className="text-gray-700">{t('communication247Desc', language)}</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">✓ Insurance Coverage</h4>
-                <p className="text-gray-700">All services covered by our insurance policy</p>
+                <h4 className="font-semibold text-gray-900 mb-2">✓ {t('insuranceCoverage', language)}</h4>
+                <p className="text-gray-700">{t('insuranceCoverageDesc', language)}</p>
               </div>
             </div>
           </CardContent>
