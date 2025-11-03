@@ -20,7 +20,6 @@ import TrainerDetails from './pages/TrainerDetails';
 import BecomeTrainer from './pages/BecomeTrainer';
 import ManageAvailability from './pages/ManageAvailability';
 import OwnerSubscriptions from './pages/OwnerSubscriptions';
-import Dashboard from './pages/Dashboard';
 import PartnerDashboard from './pages/PartnerDashboard';
 import Layout from './Layout.jsx';
 
@@ -48,7 +47,6 @@ export const PAGES = {
     "BecomeTrainer": BecomeTrainer,
     "ManageAvailability": ManageAvailability,
     "OwnerSubscriptions": OwnerSubscriptions,
-    "Dashboard": Dashboard,
     "PartnerDashboard": PartnerDashboard,
 }
 

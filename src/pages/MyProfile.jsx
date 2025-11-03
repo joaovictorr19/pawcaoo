@@ -3,13 +3,21 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Shield, Dog } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { 
+  User, Mail, Shield, Dog, Crown, Gift, Calendar, Heart, 
+  Store, Award, TrendingUp, Bell, Star, Clock, Zap, Target, Sparkles
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { motion } from "framer-motion";
 
 export default function MyProfile() {
-  const { data: user, isLoading } = useQuery({
+  const navigate = useNavigate();
+
+  const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
@@ -21,15 +29,120 @@ export default function MyProfile() {
     initialData: [],
   });
 
+  const { data: ownerSubscription } = useQuery({
+    queryKey: ['ownerSubscription'],
+    queryFn: async () => {
+      const subs = await base44.entities.OwnerSubscription.filter({
+        owner_email: user?.email,
+        is_active: true
+      });
+      return subs[0];
+    },
+    enabled: !!user,
+  });
+
+  const { data: walkerProfile } = useQuery({
+    queryKey: ['myWalkerProfile'],
+    queryFn: async () => {
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user?.email });
+      return profiles[0];
+    },
+    enabled: !!user,
+  });
+
+  const { data: trainerProfile } = useQuery({
+    queryKey: ['myTrainerProfile'],
+    queryFn: async () => {
+      const profiles = await base44.entities.TrainerProfile.filter({ created_by: user?.email });
+      return profiles[0];
+    },
+    enabled: !!user,
+  });
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: ['loyaltyPoints'],
+    queryFn: async () => {
+      const points = await base44.entities.LoyaltyPoints.filter({ user_email: user?.email });
+      return points[0] || { 
+        points_balance: 0, 
+        tier: 'bronze', 
+        total_earned: 0,
+        total_redeemed: 0,
+        lifetime_bookings: 0,
+        lifetime_redemptions: 0
+      };
+    },
+    enabled: !!user,
+  });
+
+  const { data: upcomingBookings } = useQuery({
+    queryKey: ['upcomingBookings'],
+    queryFn: async () => {
+      const bookings = await base44.entities.Booking.filter({ 
+        created_by: user?.email,
+        status: { $in: ['pending', 'confirmed', 'in_progress'] }
+      });
+      return bookings.slice(0, 3);
+    },
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: favorites } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: notifications } = useQuery({
+    queryKey: ['unreadNotifications'],
+    queryFn: async () => {
+      const allNotifications = await base44.entities.Notification.filter({ 
+        recipient_email: user?.email,
+        is_read: false 
+      });
+      return allNotifications;
+    },
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const isProfessional = !!walkerProfile || !!trainerProfile;
+
+  const getSubscriptionProgress = () => {
+    if (!ownerSubscription || ownerSubscription.plan_type === 'free') {
+      return {
+        message: "Desbloquear benefícios exclusivos",
+        action: "Melhore a sua adesão para poupar mais!",
+        progress: 0
+      };
+    }
+    
+    const savings = ownerSubscription.total_savings || 0;
+    const investment = ownerSubscription.billing_cycle === 'monthly' 
+      ? ownerSubscription.monthly_price 
+      : ownerSubscription.annual_price / 12;
+    
+    const monthsSaved = investment > 0 ? savings / investment : 0;
+    
+    return {
+      message: `Poupou €${savings.toFixed(2)} com o plano ${ownerSubscription.plan_type}`,
+      action: monthsSaved >= 1 ? "O seu plano já se pagou! 🎉" : `${Math.ceil(monthsSaved * 10) * 10}% até ao equilíbrio`,
+      progress: Math.min(100, monthsSaved * 100)
+    };
+  };
+
   const handleLogout = () => {
     base44.auth.logout();
   };
 
-  if (isLoading) {
+  if (loadingUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-        <div className="max-w-3xl mx-auto">
-          <Skeleton className="h-64 w-full rounded-3xl" />
+        <Skeleton className="h-64 rounded-3xl mb-6" />
+        <div className="grid md:grid-cols-3 gap-6">
+          {[1,2,3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
         </div>
       </div>
     );
@@ -37,26 +150,78 @@ export default function MyProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
-          <p className="text-gray-600 text-lg">Manage your account information</p>
+      <div className="max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-5xl font-bold text-gray-900 mb-2">
+            Olá, {user?.full_name || 'Utilizador'} 👋
+          </h1>
+          <p className="text-xl text-gray-600">
+            O seu painel completo do PawCão Universe
+          </p>
+        </motion.div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}>
+            <CardContent className="p-6 text-center">
+              <Gift className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
+              <div className="text-sm opacity-90">PawPoints</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('MyBookings'))}>
+            <CardContent className="p-6 text-center">
+              <Calendar className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{upcomingBookings?.length || 0}</div>
+              <div className="text-sm opacity-90">Próximos Passeios</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('Favorites'))}>
+            <CardContent className="p-6 text-center">
+              <Heart className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{favorites?.length || 0}</div>
+              <div className="text-sm opacity-90">Favoritos</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => navigate(createPageUrl('Notifications'))}>
+            <CardContent className="p-6 text-center">
+              <Bell className="w-8 h-8 mx-auto mb-2" />
+              <div className="text-3xl font-bold">{notifications?.length || 0}</div>
+              <div className="text-sm opacity-90">Notificações</div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Card className="border-0 shadow-2xl mb-6">
+        {/* Account Info */}
+        <Card className="border-0 shadow-2xl mb-8">
           <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-            <CardTitle className="text-2xl">Account Information</CardTitle>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <User className="w-6 h-6" />
+              Informação da Conta
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <div className="space-y-6">
+            <div className="grid md:grid-cols-3 gap-6">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                   <User className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">Full Name</div>
+                  <div className="text-sm text-gray-600">Nome Completo</div>
                   <div className="text-xl font-semibold text-gray-900">
-                    {user?.full_name || 'Not set'}
+                    {user?.full_name || 'Não definido'}
                   </div>
                 </div>
               </div>
@@ -78,7 +243,7 @@ export default function MyProfile() {
                   <Shield className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600">Role</div>
+                  <div className="text-sm text-gray-600">Função</div>
                   <div className="text-xl font-semibold text-gray-900 capitalize">
                     {user?.role || 'user'}
                   </div>
@@ -88,12 +253,108 @@ export default function MyProfile() {
           </CardContent>
         </Card>
 
+        {/* Subscription Status - Owner */}
+        {!isProfessional && (
+          <Card className="border-0 shadow-2xl mb-8 overflow-hidden">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Crown className="w-8 h-8" />
+                  <div>
+                    <h3 className="text-2xl font-bold">
+                      Membro {ownerSubscription ? ownerSubscription.plan_type.toUpperCase() : 'GRÁTIS'}
+                    </h3>
+                    <p className="text-white/90">
+                      {getSubscriptionProgress().message}
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => navigate(createPageUrl('OwnerSubscriptions'))}
+                  className="bg-white text-orange-600 hover:bg-gray-100"
+                >
+                  {ownerSubscription?.plan_type === 'free' || !ownerSubscription ? 'Melhorar Plano' : 'Gerir Plano'}
+                </Button>
+              </div>
+
+              {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Valor Desbloqueado</span>
+                    <span>{getSubscriptionProgress().action}</span>
+                  </div>
+                  <div className="w-full bg-white/20 rounded-full h-3">
+                    <div 
+                      className="bg-white h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${getSubscriptionProgress().progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">
+                    {ownerSubscription?.booking_discount_percentage || 0}%
+                  </div>
+                  <div className="text-xs opacity-90">Desconto Reservas</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">
+                    {ownerSubscription?.points_multiplier || 1}x
+                  </div>
+                  <div className="text-xs opacity-90">Multiplicador Pontos</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">
+                    {ownerSubscription?.free_cancellations || 0}
+                  </div>
+                  <div className="text-xs opacity-90">Cancelamentos/mês</div>
+                </div>
+              </div>
+            </div>
+
+            {(!ownerSubscription || ownerSubscription.plan_type === 'free') && (
+              <CardContent className="p-6 bg-gradient-to-r from-yellow-50 to-orange-50">
+                <div className="flex items-start gap-4">
+                  <Target className="w-12 h-12 text-orange-600 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-2">Porquê Melhorar a Sua Adesão?</h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✓</span>
+                        <span><strong>Poupar dinheiro:</strong> 10-25% de desconto em cada reserva</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✓</span>
+                        <span><strong>Ganhar mais rápido:</strong> Até 3x PawPoints em cada compra</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✓</span>
+                        <span><strong>Tranquilidade:</strong> Seguro grátis e suporte prioritário</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✓</span>
+                        <span><strong>Acesso VIP:</strong> Passeadores exclusivos e eventos</span>
+                      </li>
+                    </ul>
+                    <p className="mt-3 text-purple-700 font-semibold">
+                      💡 O plano Premium paga-se após apenas 3 reservas!
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {/* Professional Section */}
         {myWalkerProfiles && myWalkerProfiles.length > 0 && (
           <Card className="border-0 shadow-2xl mb-6">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
               <CardTitle className="text-2xl flex items-center gap-2">
                 <Dog className="w-6 h-6" />
-                My Walker Profile
+                Perfis Profissionais
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
@@ -104,14 +365,15 @@ export default function MyProfile() {
                       <div className="font-semibold text-gray-900">{profile.walker_name}</div>
                       <div className="text-sm text-gray-600">{profile.location}</div>
                       <div className="text-lg font-bold text-green-600 mt-1">
-                        ${profile.hourly_rate}/hour
+                        €{profile.hourly_rate}/hora
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-600">Total Walks</div>
+                      <div className="text-sm text-gray-600">Total de Passeios</div>
                       <div className="text-2xl font-bold text-gray-900">
                         {profile.total_walks || 0}
                       </div>
+                      <Badge className="mt-2">{profile.verification_status}</Badge>
                     </div>
                   </div>
                 ))}
@@ -120,23 +382,123 @@ export default function MyProfile() {
           </Card>
         )}
 
-        <div className="flex flex-col gap-4">
-          {(!myWalkerProfiles || myWalkerProfiles.length === 0) && (
-            <Link to={createPageUrl('BecomeWalker')} className="block">
-              <Button className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white h-14 text-lg">
-                <Dog className="w-5 h-5 mr-2" />
-                Become a Walker
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-6 mb-6">
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-green-600" />
+                Próximos Passeios
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upcomingBookings.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 text-sm mb-4">Sem reservas próximas</p>
+                  <Button 
+                    className="w-full"
+                    onClick={() => navigate(createPageUrl('Home'))}
+                  >
+                    Reservar Passeio
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingBookings.map(booking => (
+                    <div key={booking.id} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="font-semibold text-gray-900">{booking.walker_name}</div>
+                      <div className="text-sm text-gray-600">{booking.dog_name}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {format(new Date(booking.walk_date), 'MMM d')} • {booking.walk_time}
+                      </div>
+                    </div>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate(createPageUrl('MyBookings'))}
+                  >
+                    Ver Todas
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-50 to-pink-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="w-5 h-5 text-purple-600" />
+                PawPoints
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center mb-4">
+                <div className="text-5xl font-bold text-purple-600 mb-2">
+                  {loyaltyPoints?.points_balance || 0}
+                </div>
+                <Badge className="bg-purple-600">
+                  {(loyaltyPoints?.tier || 'bronze').toUpperCase()}
+                </Badge>
+              </div>
+              <Button 
+                className="w-full bg-purple-600"
+                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
+              >
+                Resgatar Pontos
               </Button>
-            </Link>
-          )}
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="w-full h-12 border-red-200 text-red-600 hover:bg-red-50"
-          >
-            Logout
-          </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-orange-600" />
+                Ações Rápidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate(createPageUrl('Home'))}
+                >
+                  <Dog className="w-4 h-4 mr-2" />
+                  Encontrar Passeador
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate(createPageUrl('Partners'))}
+                >
+                  <Store className="w-4 h-4 mr-2" />
+                  Loja PawCão
+                </Button>
+                {(!myWalkerProfiles || myWalkerProfiles.length === 0) && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => navigate(createPageUrl('BecomeWalker'))}
+                  >
+                    <Award className="w-4 h-4 mr-2" />
+                    Ser Passeador
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Logout Button */}
+        <Button
+          variant="outline"
+          onClick={handleLogout}
+          className="w-full max-w-md mx-auto block h-12 border-red-200 text-red-600 hover:bg-red-50"
+        >
+          Terminar Sessão
+        </Button>
       </div>
     </div>
   );
