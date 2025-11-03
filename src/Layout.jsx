@@ -231,6 +231,7 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+        </Sidebar>
 
         <main className="flex-1 flex flex-col">
           <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-6 py-4 md:hidden sticky top-0 z-10">
