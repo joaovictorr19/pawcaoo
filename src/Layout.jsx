@@ -103,6 +103,11 @@ const navigationItems = [
     icon: Crown,
   },
   {
+    title: "Owner Membership",
+    url: createPageUrl("OwnerSubscriptions"),
+    icon: Crown,
+  },
+  {
     title: "My Profile",
     url: createPageUrl("MyProfile"),
     icon: User,
