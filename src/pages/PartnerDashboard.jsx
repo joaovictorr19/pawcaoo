@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Store, Package, TrendingUp, DollarSign, Plus, 
-  Edit, Trash2, Megaphone, BarChart3, ShoppingBag 
+  Edit, Trash2, Megaphone, BarChart3, ShoppingBag, 
+  Users, UserPlus, Mail, Phone, Calendar
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -20,8 +21,9 @@ import { motion } from "framer-motion";
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
   const [showProductForm, setShowProductForm] = useState(false);
-  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [editingEmployee, setEditingEmployee] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -43,6 +45,15 @@ export default function PartnerDashboard() {
     queryKey: ['companyProducts'],
     queryFn: () => base44.entities.PartnerProduct.filter({ 
       partner_id: company?.partnership_id 
+    }),
+    enabled: !!company,
+    initialData: [],
+  });
+
+  const { data: employees } = useQuery({
+    queryKey: ['companyEmployees'],
+    queryFn: () => base44.entities.CompanyEmployee.filter({ 
+      company_id: company?.id 
     }),
     enabled: !!company,
     initialData: [],
@@ -81,7 +92,7 @@ export default function PartnerDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyProducts'] });
-      toast.success(editingProduct ? "Product updated!" : "Product added!");
+      toast.success(editingProduct ? "Produto atualizado!" : "Produto adicionado!");
       setShowProductForm(false);
       setEditingProduct(null);
     },
@@ -91,7 +102,35 @@ export default function PartnerDashboard() {
     mutationFn: (id) => base44.entities.PartnerProduct.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyProducts'] });
-      toast.success("Product deleted!");
+      toast.success("Produto eliminado!");
+    },
+  });
+
+  const saveEmployeeMutation = useMutation({
+    mutationFn: async (employeeData) => {
+      if (editingEmployee) {
+        return await base44.entities.CompanyEmployee.update(editingEmployee.id, employeeData);
+      } else {
+        return await base44.entities.CompanyEmployee.create({
+          ...employeeData,
+          company_id: company.id,
+          company_name: company.company_name
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
+      toast.success(editingEmployee ? "Funcionário atualizado!" : "Funcionário adicionado!");
+      setShowEmployeeForm(false);
+      setEditingEmployee(null);
+    },
+  });
+
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: (id) => base44.entities.CompanyEmployee.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
+      toast.success("Funcionário removido!");
     },
   });
 
@@ -109,12 +148,12 @@ export default function PartnerDashboard() {
         <Card className="max-w-md">
           <CardContent className="p-12 text-center">
             <Store className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Company Access</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Sem Acesso de Empresa</h2>
             <p className="text-gray-600 mb-4">
-              You don't have partner company access. Contact PawCão admin to set up your company account.
+              Não tem acesso de empresa parceira. Contacte o admin do PawCão para configurar a sua conta de empresa.
             </p>
             <Button onClick={() => window.location.href = 'mailto:partners@pawcao.com'}>
-              Contact Admin
+              Contactar Admin
             </Button>
           </CardContent>
         </Card>
@@ -125,6 +164,8 @@ export default function PartnerDashboard() {
   const stats = {
     totalProducts: products.length,
     activeProducts: products.filter(p => p.is_available).length,
+    totalEmployees: employees.length,
+    activeEmployees: employees.filter(e => e.is_active).length,
     totalSales: company.total_sales || 0,
     totalRedemptions: redemptions.length,
     revenue: redemptions.reduce((sum, r) => sum + (r.euro_value || 0), 0)
@@ -137,9 +178,9 @@ export default function PartnerDashboard() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <Store className="w-10 h-10 text-green-600" />
-            {company.company_name} Dashboard
+            {company.company_name} - Painel de Gestão
           </h1>
-          <p className="text-gray-600 text-lg">Manage your products, sales, and promotions</p>
+          <p className="text-gray-600 text-lg">Gira produtos, funcionários, vendas e promoções</p>
         </div>
 
         {/* Stats Cards */}
@@ -148,7 +189,7 @@ export default function PartnerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Products</p>
+                  <p className="text-sm text-gray-600">Produtos Totais</p>
                   <p className="text-3xl font-bold text-blue-600">{stats.totalProducts}</p>
                 </div>
                 <Package className="w-12 h-12 text-blue-600 opacity-20" />
@@ -160,10 +201,10 @@ export default function PartnerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Active Products</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.activeProducts}</p>
+                  <p className="text-sm text-gray-600">Funcionários Ativos</p>
+                  <p className="text-3xl font-bold text-green-600">{stats.activeEmployees}</p>
                 </div>
-                <ShoppingBag className="w-12 h-12 text-green-600 opacity-20" />
+                <Users className="w-12 h-12 text-green-600 opacity-20" />
               </div>
             </CardContent>
           </Card>
@@ -172,7 +213,7 @@ export default function PartnerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Redemptions</p>
+                  <p className="text-sm text-gray-600">Resgates</p>
                   <p className="text-3xl font-bold text-purple-600">{stats.totalRedemptions}</p>
                 </div>
                 <TrendingUp className="w-12 h-12 text-purple-600 opacity-20" />
@@ -184,7 +225,7 @@ export default function PartnerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Revenue</p>
+                  <p className="text-sm text-gray-600">Receita</p>
                   <p className="text-3xl font-bold text-orange-600">€{stats.revenue.toFixed(2)}</p>
                 </div>
                 <DollarSign className="w-12 h-12 text-orange-600 opacity-20" />
@@ -194,25 +235,126 @@ export default function PartnerDashboard() {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="products" className="space-y-6">
+        <Tabs defaultValue="employees" className="space-y-6">
           <TabsList className="bg-white shadow-lg">
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="announcements">Announcements</TabsTrigger>
-            <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="employees">Funcionários</TabsTrigger>
+            <TabsTrigger value="products">Produtos</TabsTrigger>
+            <TabsTrigger value="announcements">Anúncios</TabsTrigger>
+            <TabsTrigger value="redemptions">Resgates</TabsTrigger>
+            <TabsTrigger value="analytics">Análises</TabsTrigger>
           </TabsList>
+
+          {/* Employees Tab */}
+          <TabsContent value="employees">
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Gestão de Funcionários</CardTitle>
+                <Button onClick={() => {
+                  setEditingEmployee(null);
+                  setShowEmployeeForm(true);
+                }}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Adicionar Funcionário
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {showEmployeeForm && <EmployeeForm />}
+                
+                <div className="space-y-4 mt-6">
+                  {employees.map((employee) => (
+                    <Card key={employee.id} className="p-4 hover:shadow-lg transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                              <Users className="w-6 h-6 text-green-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-lg text-gray-900">{employee.employee_name}</h3>
+                              <Badge className={employee.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                                {employee.is_active ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-3 gap-4 mt-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Mail className="w-4 h-4" />
+                              {employee.employee_email}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Phone className="w-4 h-4" />
+                              {employee.employee_phone}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Calendar className="w-4 h-4" />
+                              {employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('pt-PT') : 'N/A'}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 mt-3">
+                            <Badge>{employee.employee_type === 'walker' ? 'Passeador' : employee.employee_type === 'trainer' ? 'Treinador' : 'Ambos'}</Badge>
+                            <Badge className="bg-blue-100 text-blue-700">
+                              €{employee.hourly_rate}/hora
+                            </Badge>
+                            <Badge className="bg-purple-100 text-purple-700">
+                              {employee.commission_split}% comissão
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <p className="text-xs text-gray-500">Total de Reservas</p>
+                              <p className="text-xl font-bold text-gray-900">{employee.total_bookings || 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">Total Ganho</p>
+                              <p className="text-xl font-bold text-green-600">€{(employee.total_earnings || 0).toFixed(2)}</p>
+                            </div>
+                          </div>
+
+                          {employee.specialties && employee.specialties.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs text-gray-500 mb-2">Especialidades:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {employee.specialties.map((spec, idx) => (
+                                  <Badge key={idx} variant="outline">{spec}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button size="icon" variant="ghost" onClick={() => {
+                            setEditingEmployee(employee);
+                            setShowEmployeeForm(true);
+                          }}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => deleteEmployeeMutation.mutate(employee.id)}>
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Products Tab */}
           <TabsContent value="products">
             <Card className="border-0 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Your Products</CardTitle>
+                <CardTitle>Seus Produtos</CardTitle>
                 <Button onClick={() => {
                   setEditingProduct(null);
                   setShowProductForm(true);
                 }}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Product
+                  Adicionar Produto
                 </Button>
               </CardHeader>
               <CardContent>
@@ -260,12 +402,8 @@ export default function PartnerDashboard() {
           {/* Announcements Tab */}
           <TabsContent value="announcements">
             <Card className="border-0 shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Promotions & Announcements</CardTitle>
-                <Button onClick={() => setShowAnnouncementForm(true)}>
-                  <Megaphone className="w-4 h-4 mr-2" />
-                  Create Announcement
-                </Button>
+              <CardHeader>
+                <CardTitle>Promoções & Anúncios</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -296,7 +434,7 @@ export default function PartnerDashboard() {
           <TabsContent value="redemptions">
             <Card className="border-0 shadow-xl">
               <CardHeader>
-                <CardTitle>Recent Redemptions</CardTitle>
+                <CardTitle>Resgates Recentes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -305,10 +443,10 @@ export default function PartnerDashboard() {
                       <div>
                         <p className="font-semibold">{redemption.product_name}</p>
                         <p className="text-sm text-gray-600">{redemption.user_name}</p>
-                        <p className="text-xs text-gray-500">Code: {redemption.redemption_code}</p>
+                        <p className="text-xs text-gray-500">Código: {redemption.redemption_code}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-purple-600">{redemption.points_spent} points</p>
+                        <p className="font-bold text-purple-600">{redemption.points_spent} pontos</p>
                         <Badge>{redemption.status}</Badge>
                       </div>
                     </div>
@@ -321,6 +459,150 @@ export default function PartnerDashboard() {
       </div>
     </div>
   );
+
+  function EmployeeForm() {
+    const [formData, setFormData] = useState(editingEmployee || {
+      employee_name: "",
+      employee_email: "",
+      employee_phone: "",
+      employee_type: "walker",
+      hourly_rate: 0,
+      commission_split: 70,
+      specialties: [],
+      is_active: true,
+      hire_date: new Date().toISOString().split('T')[0]
+    });
+
+    const [specialtyInput, setSpecialtyInput] = useState("");
+
+    const addSpecialty = () => {
+      if (specialtyInput && !formData.specialties.includes(specialtyInput)) {
+        setFormData({
+          ...formData,
+          specialties: [...formData.specialties, specialtyInput]
+        });
+        setSpecialtyInput("");
+      }
+    };
+
+    const removeSpecialty = (spec) => {
+      setFormData({
+        ...formData,
+        specialties: formData.specialties.filter(s => s !== spec)
+      });
+    };
+
+    return (
+      <Card className="bg-green-50 border-2 border-green-200">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-bold mb-4">
+            {editingEmployee ? 'Editar Funcionário' : 'Novo Funcionário'}
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Nome Completo *</Label>
+              <Input
+                value={formData.employee_name}
+                onChange={(e) => setFormData({...formData, employee_name: e.target.value})}
+                placeholder="João Silva"
+              />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={formData.employee_email}
+                onChange={(e) => setFormData({...formData, employee_email: e.target.value})}
+                placeholder="joao@email.com"
+              />
+            </div>
+            <div>
+              <Label>Telefone *</Label>
+              <Input
+                value={formData.employee_phone}
+                onChange={(e) => setFormData({...formData, employee_phone: e.target.value})}
+                placeholder="+351 912 345 678"
+              />
+            </div>
+            <div>
+              <Label>Tipo de Serviço *</Label>
+              <Select value={formData.employee_type} onValueChange={(v) => setFormData({...formData, employee_type: v})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="walker">Passeador</SelectItem>
+                  <SelectItem value="trainer">Treinador</SelectItem>
+                  <SelectItem value="both">Ambos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Taxa Horária (€) *</Label>
+              <Input
+                type="number"
+                value={formData.hourly_rate}
+                onChange={(e) => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div>
+              <Label>Comissão do Funcionário (%) *</Label>
+              <Input
+                type="number"
+                value={formData.commission_split}
+                onChange={(e) => setFormData({...formData, commission_split: parseFloat(e.target.value)})}
+                placeholder="70"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Empresa fica com {100 - formData.commission_split}%
+              </p>
+            </div>
+            <div>
+              <Label>Data de Contratação</Label>
+              <Input
+                type="date"
+                value={formData.hire_date}
+                onChange={(e) => setFormData({...formData, hire_date: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={formData.is_active.toString()} onValueChange={(v) => setFormData({...formData, is_active: v === 'true'})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Ativo</SelectItem>
+                  <SelectItem value="false">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-2">
+              <Label>Especialidades</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={specialtyInput}
+                  onChange={(e) => setSpecialtyInput(e.target.value)}
+                  placeholder="Ex: Cães grandes, Treino de obediência..."
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialty())}
+                />
+                <Button type="button" onClick={addSpecialty}>Adicionar</Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.specialties.map((spec, idx) => (
+                  <Badge key={idx} className="cursor-pointer" onClick={() => removeSpecialty(spec)}>
+                    {spec} ×
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <Button onClick={() => setShowEmployeeForm(false)} variant="outline">Cancelar</Button>
+            <Button onClick={() => saveEmployeeMutation.mutate(formData)}>
+              {editingEmployee ? 'Atualizar' : 'Adicionar'} Funcionário
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   function ProductForm() {
     const [formData, setFormData] = useState(editingProduct || {
@@ -339,27 +621,27 @@ export default function PartnerDashboard() {
         <CardContent className="p-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <Label>Product Name *</Label>
+              <Label>Nome do Produto *</Label>
               <Input
                 value={formData.product_name}
                 onChange={(e) => setFormData({...formData, product_name: e.target.value})}
               />
             </div>
             <div>
-              <Label>Category *</Label>
+              <Label>Categoria *</Label>
               <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="food">Food</SelectItem>
-                  <SelectItem value="toys">Toys</SelectItem>
-                  <SelectItem value="accessories">Accessories</SelectItem>
-                  <SelectItem value="grooming">Grooming</SelectItem>
-                  <SelectItem value="health">Health</SelectItem>
+                  <SelectItem value="food">Comida</SelectItem>
+                  <SelectItem value="toys">Brinquedos</SelectItem>
+                  <SelectItem value="accessories">Acessórios</SelectItem>
+                  <SelectItem value="grooming">Higiene</SelectItem>
+                  <SelectItem value="health">Saúde</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Price (€) *</Label>
+              <Label>Preço (€) *</Label>
               <Input
                 type="number"
                 value={formData.price_euro}
@@ -367,7 +649,7 @@ export default function PartnerDashboard() {
               />
             </div>
             <div>
-              <Label>Points Cost *</Label>
+              <Label>Custo em Pontos *</Label>
               <Input
                 type="number"
                 value={formData.points_cost}
@@ -375,7 +657,7 @@ export default function PartnerDashboard() {
               />
             </div>
             <div>
-              <Label>Stock Quantity *</Label>
+              <Label>Quantidade em Stock *</Label>
               <Input
                 type="number"
                 value={formData.stock_quantity}
@@ -383,7 +665,7 @@ export default function PartnerDashboard() {
               />
             </div>
             <div className="md:col-span-2">
-              <Label>Description</Label>
+              <Label>Descrição</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -392,9 +674,9 @@ export default function PartnerDashboard() {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <Button onClick={() => setShowProductForm(false)} variant="outline">Cancel</Button>
+            <Button onClick={() => setShowProductForm(false)} variant="outline">Cancelar</Button>
             <Button onClick={() => saveProductMutation.mutate(formData)}>
-              {editingProduct ? 'Update' : 'Add'} Product
+              {editingProduct ? 'Atualizar' : 'Adicionar'} Produto
             </Button>
           </div>
         </CardContent>
