@@ -72,7 +72,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User }, // This item will be excluded from Main Menu and handled explicitly in Account
+    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
     { title: "💬 Community Forum", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "🐾 Social Feed", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
@@ -89,9 +89,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
-    { title: t('accountSettings', language), url: createPageUrl("AccountSettings"), icon: Shield }, // This item will be excluded from Account and handled explicitly in combined item
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
-    { title: "💳 " + (language === 'pt' ? 'Métodos de Pagamento' : 'Payment Methods'), url: createPageUrl("PaymentMethods"), icon: CreditCard },
   ];
 
   // Add Admin Dashboard if user is admin

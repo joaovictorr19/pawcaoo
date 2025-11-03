@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { 
-  User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell, 
+import {
+  User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
   Globe, CreditCard, Upload, Save, Eye, EyeOff
 } from "lucide-react";
 import { toast } from "sonner";
@@ -156,6 +157,14 @@ export default function MyProfile() {
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Preferências
+                </Button>
+                <Button
+                  variant={activeTab === "payment" ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("payment")}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Pagamentos
                 </Button>
                 <Button
                   variant={activeTab === "security" ? "default" : "ghost"}
@@ -366,6 +375,56 @@ export default function MyProfile() {
                   >
                     <Save className="w-4 h-4 mr-2" />
                     Guardar Preferências
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment Tab */}
+            {activeTab === "payment" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Métodos de Pagamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Informação:</strong> Gerencie seus cartões e métodos de pagamento de forma segura.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-4">Cartões Salvos</h3>
+                    {user?.payment_methods?.length > 0 ? (
+                      <div className="space-y-3">
+                        {user.payment_methods.map((method, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="w-5 h-5 text-gray-600" />
+                              <div>
+                                <p className="font-medium">•••• {method.last_four}</p>
+                                <p className="text-sm text-gray-600">{method.type}</p>
+                              </div>
+                            </div>
+                            {method.is_default && (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                                Principal
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-600">Nenhum método de pagamento salvo.</p>
+                    )}
+                  </div>
+
+                  <Button className="w-full bg-gradient-to-r from-green-600 to-blue-600">
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Adicionar Novo Cartão
                   </Button>
                 </CardContent>
               </Card>
