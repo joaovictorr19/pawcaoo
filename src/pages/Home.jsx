@@ -10,8 +10,11 @@ import { motion } from "framer-motion";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function Home() {
+  const { language } = useLanguage();
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSize, setFilterSize] = useState("all");
   const [filterTime, setFilterTime] = useState("all");
@@ -77,10 +80,10 @@ export default function Home() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Find the Perfect Dog Walker
+              {t('homeTitle', language)}
             </h1>
             <p className="text-xl md:text-2xl text-green-50 mb-8">
-              Trusted, experienced walkers in your neighborhood
+              {t('homeSubtitle', language)}
             </p>
           </motion.div>
 
@@ -95,7 +98,7 @@ export default function Home() {
               <div className="flex-1 relative">
                 <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  placeholder="Enter your location..."
+                  placeholder={t('searchPlaceholder', language)}
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
                   className="pl-12 h-12 text-base border-gray-200 focus:ring-green-500"
@@ -103,36 +106,36 @@ export default function Home() {
               </div>
               <Select value={filterSize} onValueChange={setFilterSize}>
                 <SelectTrigger className="md:w-48 h-12 border-gray-200">
-                  <SelectValue placeholder="Dog Size" />
+                  <SelectValue placeholder={t('allSizes', language)} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Sizes</SelectItem>
-                  <SelectItem value="small">Small</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="large">Large</SelectItem>
-                  <SelectItem value="extra_large">Extra Large</SelectItem>
+                  <SelectItem value="all">{t('allSizes', language)}</SelectItem>
+                  <SelectItem value="small">{t('small', language)}</SelectItem>
+                  <SelectItem value="medium">{t('medium', language)}</SelectItem>
+                  <SelectItem value="large">{t('large', language)}</SelectItem>
+                  <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterTime} onValueChange={setFilterTime}>
                 <SelectTrigger className="md:w-48 h-12 border-gray-200">
-                  <SelectValue placeholder="Time" />
+                  <SelectValue placeholder={t('anyTime', language)} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Any Time</SelectItem>
-                  <SelectItem value="morning">Morning</SelectItem>
-                  <SelectItem value="afternoon">Afternoon</SelectItem>
-                  <SelectItem value="evening">Evening</SelectItem>
-                  <SelectItem value="night">Night</SelectItem>
+                  <SelectItem value="all">{t('anyTime', language)}</SelectItem>
+                  <SelectItem value="morning">{t('morning', language)}</SelectItem>
+                  <SelectItem value="afternoon">{t('afternoon', language)}</SelectItem>
+                  <SelectItem value="evening">{t('evening', language)}</SelectItem>
+                  <SelectItem value="night">{t('night', language)}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterAvailability} onValueChange={setFilterAvailability}>
                 <SelectTrigger className="md:w-48 h-12 border-gray-200">
-                  <SelectValue placeholder="Availability" />
+                  <SelectValue placeholder={t('availability', language)} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Walkers</SelectItem>
-                  <SelectItem value="available">Available Soon</SelectItem>
-                  <SelectItem value="unavailable">Not Available</SelectItem>
+                  <SelectItem value="all">{t('allWalkers', language)}</SelectItem>
+                  <SelectItem value="available">{t('available', language)}</SelectItem>
+                  <SelectItem value="unavailable">{t('unavailable', language)}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -149,14 +152,14 @@ export default function Home() {
               className="text-base font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
             >
               <Search className="w-5 h-5 mr-2" />
-              Browse Walkers
+              {t('browseWalkers', language)}
             </TabsTrigger>
             <TabsTrigger 
               value="emergency" 
               className="text-base font-semibold data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-lg"
             >
               <Zap className="w-5 h-5 mr-2" />
-              Emergency Walks
+              {t('emergencyWalks', language)}
             </TabsTrigger>
           </TabsList>
 
@@ -164,9 +167,9 @@ export default function Home() {
           <TabsContent value="walkers">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold text-gray-900">Available Walkers</h2>
+                <h2 className="text-3xl font-bold text-gray-900">{t('availableWalkers', language)}</h2>
                 <p className="text-gray-600 mt-1">
-                  {filteredWalkers.length} walkers found
+                  {filteredWalkers.length} {t('walkersFound', language)}
                 </p>
               </div>
             </div>
@@ -187,8 +190,8 @@ export default function Home() {
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search className="w-12 h-12 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No walkers found</h3>
-                <p className="text-gray-600">Try adjusting your filters or search in a different area</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noWalkersFound', language)}</h3>
+                <p className="text-gray-600">{t('tryAdjustingFilters', language)}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -212,10 +215,10 @@ export default function Home() {
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                   <Zap className="w-8 h-8 text-orange-500" />
-                  Dogs Needing Urgent Walks
+                  {t('dogsNeedingUrgentWalks', language)}
                 </h2>
                 <p className="text-gray-600 mt-1">
-                  {filteredEmergencyWalks.length} dogs need help now
+                  {filteredEmergencyWalks.length} {t('dogsNeedHelpNow', language)}
                 </p>
               </div>
             </div>
@@ -236,8 +239,8 @@ export default function Home() {
                 <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-12 h-12 text-orange-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No emergency walks at the moment</h3>
-                <p className="text-gray-600">Check back soon or browse regular walkers</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noEmergencyWalks', language)}</h3>
+                <p className="text-gray-600">{t('checkBackSoon', language)}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,11 +1,11 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -19,115 +19,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
-const navigationItems = [
-  {
-    title: "Dashboard",
-    url: createPageUrl("Dashboard"),
-    icon: Home,
-  },
-  {
-    title: "Find Walkers",
-    url: createPageUrl("Home"),
-    icon: Dog,
-  },
-  {
-    title: "Find Trainers",
-    url: createPageUrl("Trainers"),
-    icon: Award,
-  },
-  {
-    title: "Post Emergency Walk",
-    url: createPageUrl("PostEmergency"),
-    icon: Zap,
-  },
-  {
-    title: "Dog Sitting Services",
-    url: createPageUrl("DogSittingServices"),
-    icon: HomeIcon,
-  },
-  {
-    title: "🏪 PawCão Shop",
-    url: createPageUrl("Partners"),
-    icon: Store,
-    highlight: true,
-  },
-  {
-    title: "My Favorites",
-    url: createPageUrl("Favorites"),
-    icon: Heart,
-  },
-  {
-    title: "My Bookings",
-    url: createPageUrl("MyBookings"),
-    icon: Calendar,
-  },
-  {
-    title: "Scheduled Walks",
-    url: createPageUrl("ScheduledWalks"),
-    icon: CalendarClock,
-  },
-  {
-    title: "Walk History",
-    url: createPageUrl("WalkHistory"),
-    icon: History,
-  },
-  {
-    title: "Messages",
-    url: createPageUrl("Messages"),
-    icon: MessageCircle,
-  },
-  {
-    title: "Notifications",
-    url: createPageUrl("Notifications"),
-    icon: Bell,
-    hasNotifications: true,
-  },
-  {
-    title: "🎁 Loyalty Rewards",
-    url: createPageUrl("LoyaltyRewards"),
-    icon: Gift,
-    highlight: true,
-  },
-  {
-    title: "Become a Walker",
-    url: createPageUrl("BecomeWalker"),
-    icon: PlusCircle,
-  },
-  {
-    title: "Become a Trainer",
-    url: createPageUrl("BecomeTrainer"),
-    icon: Award,
-  },
-  {
-    title: "Manage Availability",
-    url: createPageUrl("ManageAvailability"),
-    icon: CalendarClock,
-  },
-  {
-    title: "Walker Subscriptions",
-    url: createPageUrl("Subscriptions"),
-    icon: Crown,
-  },
-  {
-    title: "Owner Membership",
-    url: createPageUrl("OwnerSubscriptions"),
-    icon: Crown,
-  },
-  {
-    title: "Partner Dashboard",
-    url: createPageUrl("PartnerDashboard"),
-    icon: Store,
-  },
-  {
-    title: "My Profile",
-    url: createPageUrl("MyProfile"),
-    icon: User,
-  },
-];
-
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
+  const { language, setLanguage } = useLanguage();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -149,6 +52,41 @@ export default function Layout({ children, currentPageName }) {
 
   const unreadCount = notifications?.length || 0;
 
+  const navigationItems = [
+    { title: t('dashboard', language), url: createPageUrl("Dashboard"), icon: Home },
+    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
+    { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
+    { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
+    { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
+    { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store, highlight: true },
+    { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
+    { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
+    { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
+    { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
+    { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
+    { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
+    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift, highlight: true },
+    { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
+    { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: Award },
+    { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
+    { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
+    { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
+    { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
+    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
+  ];
+
+  const languageFlags = {
+    pt: "🇵🇹",
+    en: "🇬🇧",
+    es: "🇪🇸"
+  };
+
+  const languageNames = {
+    pt: "Português",
+    en: "English",
+    es: "Español"
+  };
+
   return (
     <SidebarProvider>
       <style>{`
@@ -168,14 +106,35 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div>
                 <h2 className="font-bold text-xl text-gray-900">PawCão</h2>
-                <p className="text-xs text-gray-500">Premium Dog Care</p>
+                <p className="text-xs text-gray-500">{t('footerTagline', language).substring(0, 20)}...</p>
               </div>
             </Link>
+            
+            {/* Language Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="mt-3 w-full">
+                  <Globe className="w-4 h-4 mr-2" />
+                  {languageFlags[language]} {languageNames[language]}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-48">
+                <DropdownMenuItem onClick={() => setLanguage('pt')} className="cursor-pointer">
+                  🇵🇹 Português
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
+                  🇬🇧 English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')} className="cursor-pointer">
+                  🇪🇸 Español
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarHeader>
           
           <SidebarContent className="p-4">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MAIN MENU</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MENU PRINCIPAL</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(0, 6).map((item) => (
@@ -199,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MY ACTIVITY</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MINHA ATIVIDADE</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(6, 13).map((item) => (
@@ -227,7 +186,7 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">PROFESSIONAL SERVICES</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">SERVIÇOS PROFISSIONAIS</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(13, 17).map((item) => (
@@ -250,7 +209,7 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">CONTA</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(17).map((item) => (
@@ -289,6 +248,20 @@ export default function Layout({ children, currentPageName }) {
                   </Badge>
                 </Link>
               )}
+              
+              {/* Mobile Language Selector */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Globe className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
@@ -306,43 +279,43 @@ export default function Layout({ children, currentPageName }) {
                     <h3 className="font-bold text-lg text-gray-900">PawCão</h3>
                   </div>
                   <p className="text-sm text-gray-600">
-                    The leading platform for professional dog walking and care services.
+                    {t('footerTagline', language)}
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Services</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("Home")} className="hover:text-green-600">Find Walkers</Link></li>
-                    <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600">Find Trainers</Link></li>
-                    <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600">Dog Sitting</Link></li>
-                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600">Partner Stores</Link></li>
+                    <li><Link to={createPageUrl("Home")} className="hover:text-green-600">{t('findWalkers', language)}</Link></li>
+                    <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600">{t('findTrainers', language)}</Link></li>
+                    <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600">{t('dogSitting', language)}</Link></li>
+                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600">{t('pawcaoShop', language)}</Link></li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">For Professionals</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('forProfessionals', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600">Become a Walker</Link></li>
-                    <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600">Become a Trainer</Link></li>
-                    <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600">Subscription Plans</Link></li>
+                    <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600">{t('becomeWalker', language)}</Link></li>
+                    <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600">{t('becomeTrainer', language)}</Link></li>
+                    <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600">{t('walkerSubscriptions', language)}</Link></li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Company</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-green-600">About Us</a></li>
-                    <li><a href="#" className="hover:text-green-600">Contact</a></li>
-                    <li><a href="#" className="hover:text-green-600">Terms of Service</a></li>
-                    <li><a href="#" className="hover:text-green-600">Privacy Policy</a></li>
-                    <li><a href="#" className="hover:text-green-600">Cookie Policy</a></li>
+                    <li><a href="#" className="hover:text-green-600">{t('aboutUs', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600">{t('contactUs', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600">{t('termsOfService', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600">{t('privacyPolicy', language)}</a></li>
+                    <li><a href="#" className="hover:text-green-600">{t('cookiePolicy', language)}</a></li>
                   </ul>
                 </div>
               </div>
               <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p className="text-sm text-gray-600">
-                  © 2025 PawCão. All rights reserved.
+                  © 2025 PawCão. {t('allRightsReserved', language)}.
                 </p>
                 <div className="flex items-center gap-2 text-sm text-green-700 font-semibold">
-                  ✓ Verified & Insured Professionals
+                  ✓ {t('verifiedProfessionals', language)}
                 </div>
               </div>
             </div>
@@ -350,5 +323,13 @@ export default function Layout({ children, currentPageName }) {
         </main>
       </div>
     </SidebarProvider>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <LanguageProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
+    </LanguageProvider>
   );
 }
