@@ -7,17 +7,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2, Activity } from "lucide-react"; // Added Activity icon
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom"; // Added useNavigate for navigation
 
 export default function MyBookings() {
   const [activeTab, setActiveTab] = useState("all");
   const [completionCode, setCompletionCode] = useState("");
   const [verifyingBookingId, setVerifyingBookingId] = useState(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
+  // Helper function for creating page URLs (assuming simple path construction for now)
+  const createPageUrl = (pathWithParams) => `/${pathWithParams}`;
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -309,6 +314,17 @@ export default function MyBookings() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Live Tracking Button - NEW */}
+                      {!isTraining && (booking.status === "in_progress" || booking.status === "confirmed") && (
+                        <Button
+                          className="w-full mb-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg h-12"
+                          onClick={() => navigate(createPageUrl(`LiveWalkTracking?booking_id=${booking.id}`))}
+                        >
+                          <Activity className="w-5 h-5 mr-2" />
+                          Track Walk Live
+                        </Button>
+                      )}
 
                       {booking.special_notes && (
                         <div className="bg-gray-50 rounded-lg p-4 mb-4">

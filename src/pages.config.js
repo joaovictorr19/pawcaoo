@@ -21,6 +21,7 @@ import BecomeTrainer from './pages/BecomeTrainer';
 import ManageAvailability from './pages/ManageAvailability';
 import OwnerSubscriptions from './pages/OwnerSubscriptions';
 import PartnerDashboard from './pages/PartnerDashboard';
+import LiveWalkTracking from './pages/LiveWalkTracking';
 import Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "ManageAvailability": ManageAvailability,
     "OwnerSubscriptions": OwnerSubscriptions,
     "PartnerDashboard": PartnerDashboard,
+    "LiveWalkTracking": LiveWalkTracking,
 }
 
 export const pagesConfig = {
