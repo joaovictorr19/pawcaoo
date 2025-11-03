@@ -22,6 +22,7 @@ export const translations = {
     ownerMembership: "Membros Proprietários",
     partnerDashboard: "Painel de Parceiros",
     myProfile: "Meu Perfil",
+    accountSettings: "Configurações de Conta",
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -697,6 +698,7 @@ export const translations = {
     ownerMembership: "Owner Membership",
     partnerDashboard: "Partner Dashboard",
     myProfile: "My Profile",
+    accountSettings: "Account Settings",
 
     // Sidebar Groups
     mainMenu: "MAIN MENU",
@@ -1369,7 +1371,8 @@ export const translations = {
     ownerMembership: "Membresía de Propietarios",
     partnerDashboard: "Panel de Socios",
     myProfile: "Mi Perfil",
-
+    accountSettings: "Configuración de Cuenta",
+    
     // Sidebar Groups
     mainMenu: "MENÚ PRINCIPAL",
     myActivity: "MI ACTIVIDAD",

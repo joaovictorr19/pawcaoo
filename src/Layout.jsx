@@ -89,7 +89,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
-    { title: "⚙️ Account Settings", url: createPageUrl("AccountSettings"), icon: Shield },
+    { title: t('accountSettings', language), url: createPageUrl("AccountSettings"), icon: Shield },
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
   ];
 
