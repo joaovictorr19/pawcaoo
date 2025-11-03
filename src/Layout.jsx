@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -87,11 +88,12 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
-    { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
+    // Removed: { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
   ];
 
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
+    { title: "🏢 " + (language === 'pt' ? 'Painel Parceiros' : 'Partner Dashboard'), url: createPageUrl("PartnerDashboard"), icon: Store },
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
@@ -258,7 +260,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(15, 22).map((item) => (
+                  {allNavigationItems.slice(15, 21).map((item) => ( /* Adjusted slice end index from 22 to 21 */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -277,12 +279,12 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {allNavigationItems.length > 22 && (
+            {allNavigationItems.length > 21 && ( /* Adjusted condition from 22 to 21 */
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(22).map((item) => (
+                    {allNavigationItems.slice(21).map((item) => ( /* Adjusted slice start index from 22 to 21 */
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 

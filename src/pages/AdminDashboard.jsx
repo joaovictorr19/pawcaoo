@@ -32,7 +32,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label"; // Added Label import
+import { Label } from "@/components/ui/label";
 import {
   Shield,
   Users,
@@ -51,13 +51,28 @@ import {
   AlertCircle,
   FileText,
   Download,
-  Trash2, // Added Trash2 icon
-  ShieldCheck, // Added ShieldCheck icon
-  User, // Added User icon
+  Trash2,
+  ShieldCheck,
+  User,
+  Store, // Added Store icon
+  Plus, // Added Plus icon
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch"; // Added Switch import
+
+// Placeholder for createPageUrl function (if not already defined globally or in another utility)
+// In a real application, this would typically be a routing function or use Next.js/React Router hooks.
+const createPageUrl = (pageName) => {
+  switch (pageName) {
+    case 'PartnerDashboard':
+      return '/partner-dashboard'; // Example path
+    // Add other cases as needed
+    default:
+      return '#'; // Fallback
+  }
+};
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -68,6 +83,8 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userFormData, setUserFormData] = useState({});
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
+  const [companyFormData, setCompanyFormData] = useState({});
 
   // Check if user is admin
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -116,6 +133,12 @@ export default function AdminDashboard() {
     enabled: user?.role === 'admin',
   });
 
+  const { data: partnerCompanies = [] } = useQuery({
+    queryKey: ['allPartnerCompanies'],
+    queryFn: () => base44.entities.PartnerCompany.list(),
+    enabled: user?.role === 'admin',
+  });
+
   // Update Walker Application
   const updateWalkerMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WalkerProfile.update(id, data),
@@ -123,7 +146,12 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['walkerApplications'] });
       toast.success("Walker application updated!");
       setSelectedApplication(null);
+      setVerificationNotes("");
     },
+    onError: (error) => {
+      toast.error("Erro ao atualizar aplicação de passeador");
+      console.error("Error updating walker application:", error);
+    }
   });
 
   // Update Trainer Application
@@ -133,7 +161,12 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['trainerApplications'] });
       toast.success("Trainer application updated!");
       setSelectedApplication(null);
+      setVerificationNotes("");
     },
+    onError: (error) => {
+      toast.error("Erro ao atualizar aplicação de treinador");
+      console.error("Error updating trainer application:", error);
+    }
   });
 
   // Update User Mutation
@@ -164,6 +197,33 @@ export default function AdminDashboard() {
     }
   });
 
+  // Company Mutations
+  const createCompanyMutation = useMutation({
+    mutationFn: (companyData) => base44.entities.PartnerCompany.create(companyData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPartnerCompanies'] });
+      toast.success("Empresa criada com sucesso!");
+      setShowCompanyDialog(false);
+      setCompanyFormData({});
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar empresa");
+      console.error("Error creating company:", error);
+    }
+  });
+
+  const deleteCompanyMutation = useMutation({
+    mutationFn: (id) => base44.entities.PartnerCompany.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPartnerCompanies'] });
+      toast.success("Empresa eliminada!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao eliminar empresa");
+      console.error("Error deleting company:", error);
+    }
+  });
+
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setUserFormData({
@@ -189,6 +249,20 @@ export default function AdminDashboard() {
   const handleDeleteUser = (user) => {
     if (window.confirm(`Tem certeza que deseja eliminar o utilizador ${user.email}?`)) {
       deleteUserMutation.mutate(user.id);
+    }
+  };
+
+  const handleCreateCompany = () => {
+    if (!companyFormData.company_email || !companyFormData.company_name || !companyFormData.company_type) {
+      toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+    createCompanyMutation.mutate(companyFormData);
+  };
+
+  const handleDeleteCompany = (company) => {
+    if (window.confirm(`Tem certeza que deseja eliminar a empresa ${company.company_name}?`)) {
+      deleteCompanyMutation.mutate(company.id);
     }
   };
 
@@ -315,7 +389,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 mb-8 bg-white shadow-lg p-1 h-auto">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 mb-8 bg-white shadow-lg p-1 h-auto">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <BarChart3 className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Overview</span>
@@ -323,6 +397,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <Users className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3">
+              <Store className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Empresas</span>
             </TabsTrigger>
             <TabsTrigger value="applications" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <Briefcase className="w-4 h-4 mr-1 md:mr-2" />
@@ -672,6 +750,241 @@ export default function AdminDashboard() {
             </Dialog>
           </TabsContent>
 
+          {/* COMPANIES TAB */}
+          <TabsContent value="companies">
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <CardTitle className="text-2xl">Gestão de Empresas Parceiras</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">Adicione e gira empresas parceiras no sistema</p>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setCompanyFormData({
+                        company_email: "",
+                        company_name: "",
+                        company_type: "pet_store",
+                        is_active: true,
+                        commission_rate: 10,
+                        monthly_fee: 0,
+                        subscription_tier: "free"
+                      });
+                      setShowCompanyDialog(true);
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Empresa
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {partnerCompanies.map((company) => (
+                    <Card key={company.id} className="border-2 border-green-100">
+                      <CardContent className="p-6">
+                        {company.logo_url && (
+                          <img 
+                            src={company.logo_url} 
+                            alt={company.company_name} 
+                            className="w-full h-32 object-contain mb-4 bg-gray-50 rounded-lg p-2"
+                          />
+                        )}
+                        <h3 className="font-bold text-lg text-gray-900 mb-2">{company.company_name}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{company.company_email}</p>
+                        
+                        <div className="flex gap-2 mb-4">
+                          <Badge className="capitalize">{company.company_type.replace('_', ' ')}</Badge>
+                          <Badge className={company.is_active ? "bg-green-500" : "bg-gray-500"}>
+                            {company.is_active ? "Ativo" : "Inativo"}
+                          </Badge>
+                          <Badge variant="outline" className="capitalize">{company.subscription_tier}</Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-sm mb-4 p-3 bg-gray-50 rounded-lg">
+                          <div>
+                            <p className="text-gray-500">Produtos</p>
+                            <p className="font-bold text-gray-900">{company.total_products || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Vendas</p>
+                            <p className="font-bold text-green-600">€{(company.total_sales || 0).toFixed(0)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Comissão</p>
+                            <p className="font-bold text-gray-900">{company.commission_rate}%</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Taxa Mensal</p>
+                            <p className="font-bold text-gray-900">€{company.monthly_fee || 0}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button 
+                            className="flex-1" 
+                            variant="outline"
+                            onClick={() => window.open(createPageUrl('PartnerDashboard'), '_blank')} // Use window.open for external link
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Painel
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="outline"
+                            onClick={() => handleDeleteCompany(company)}
+                            className="hover:bg-red-50 text-red-600 border-red-200"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Company Creation Dialog */}
+            <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Nova Empresa Parceira</DialogTitle>
+                  <DialogDescription>
+                    Crie uma nova conta de empresa parceira para acesso ao painel
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4 py-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Email da Empresa *</Label>
+                      <Input
+                        type="email"
+                        value={companyFormData.company_email || ""}
+                        onChange={(e) => setCompanyFormData({...companyFormData, company_email: e.target.value})}
+                        placeholder="empresa@email.com"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Este email será usado para login</p>
+                    </div>
+
+                    <div>
+                      <Label>Nome da Empresa *</Label>
+                      <Input
+                        value={companyFormData.company_name || ""}
+                        onChange={(e) => setCompanyFormData({...companyFormData, company_name: e.target.value})}
+                        placeholder="Nome da Empresa"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Tipo de Empresa *</Label>
+                      <Select 
+                        value={companyFormData.company_type || "pet_store"} 
+                        onValueChange={(value) => setCompanyFormData({...companyFormData, company_type: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="veterinary">Veterinária</SelectItem>
+                          <SelectItem value="pet_store">Pet Shop</SelectItem>
+                          <SelectItem value="grooming">Grooming</SelectItem>
+                          <SelectItem value="insurance">Seguros</SelectItem>
+                          <SelectItem value="training">Treino</SelectItem>
+                          <SelectItem value="food_brand">Marca de Ração</SelectItem>
+                          <SelectItem value="clothing_brand">Roupas/Acessórios</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>URL do Logo</Label>
+                      <Input
+                        value={companyFormData.logo_url || ""}
+                        onChange={(e) => setCompanyFormData({...companyFormData, logo_url: e.target.value})}
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Taxa de Comissão (%)</Label>
+                      <Input
+                        type="number"
+                        value={companyFormData.commission_rate || 0}
+                        onChange={(e) => setCompanyFormData({...companyFormData, commission_rate: parseFloat(e.target.value)})}
+                        placeholder="10"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Taxa Mensal (€)</Label>
+                      <Input
+                        type="number"
+                        value={companyFormData.monthly_fee || 0}
+                        onChange={(e) => setCompanyFormData({...companyFormData, monthly_fee: parseFloat(e.target.value)})}
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Nível de Subscrição</Label>
+                      <Select 
+                        value={companyFormData.subscription_tier || "free"} 
+                        onValueChange={(value) => setCompanyFormData({...companyFormData, subscription_tier: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um nível" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                          <SelectItem value="enterprise">Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="company-active" className="cursor-pointer">Empresa Ativa</Label>
+                      <Switch
+                        id="company-active"
+                        checked={companyFormData.is_active || false}
+                        onCheckedChange={(checked) => setCompanyFormData({...companyFormData, is_active: checked})}
+                      />
+                    </div>
+                  </div>
+
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Nota:</strong> A empresa receberá acesso ao painel de parceiros através do email fornecido. 
+                        Eles poderão fazer login usando o sistema de autenticação Base44.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowCompanyDialog(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleCreateCompany}
+                    disabled={createCompanyMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {createCompanyMutation.isPending ? "A criar..." : "Criar Empresa"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+
           {/* APPLICATIONS TAB */}
           <TabsContent value="applications">
             <div className="space-y-6">
@@ -720,7 +1033,10 @@ export default function AdminDashboard() {
                                   <DialogTrigger asChild>
                                     <Button
                                       className="bg-green-600 hover:bg-green-700"
-                                      onClick={() => setSelectedApplication(walker)}
+                                      onClick={() => {
+                                        setSelectedApplication(walker);
+                                        setVerificationNotes("");
+                                      }}
                                     >
                                       <CheckCircle2 className="w-4 h-4 mr-2" />
                                       Approve
@@ -777,7 +1093,10 @@ export default function AdminDashboard() {
                                     <Button
                                       variant="outline"
                                       className="border-red-200 text-red-600 hover:bg-red-50"
-                                      onClick={() => setSelectedApplication(walker)}
+                                      onClick={() => {
+                                        setSelectedApplication(walker);
+                                        setVerificationNotes("");
+                                      }}
                                     >
                                       <XCircle className="w-4 h-4 mr-2" />
                                       Reject
@@ -873,7 +1192,10 @@ export default function AdminDashboard() {
                                   <DialogTrigger asChild>
                                     <Button
                                       className="bg-green-600 hover:bg-green-700"
-                                      onClick={() => setSelectedApplication(trainer)}
+                                      onClick={() => {
+                                        setSelectedApplication(trainer);
+                                        setVerificationNotes("");
+                                      }}
                                     >
                                       <CheckCircle2 className="w-4 h-4 mr-2" />
                                       Approve
@@ -932,7 +1254,10 @@ export default function AdminDashboard() {
                                     <Button
                                       variant="outline"
                                       className="border-red-200 text-red-600 hover:bg-red-50"
-                                      onClick={() => setSelectedApplication(trainer)}
+                                      onClick={() => {
+                                        setSelectedApplication(trainer);
+                                        setVerificationNotes("");
+                                      }}
                                     >
                                       <XCircle className="w-4 h-4 mr-2" />
                                       Reject

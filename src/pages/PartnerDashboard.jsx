@@ -27,25 +27,39 @@ export default function PartnerDashboard() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
+  // Para admin: listar todas as empresas
+  const { data: allCompanies } = useQuery({
+    queryKey: ['allPartnerCompanies'],
+    queryFn: () => base44.entities.PartnerCompany.list(),
+    enabled: user?.role === 'admin',
+    initialData: [],
+  });
+
+  // Para empresa: buscar a própria empresa
   const { data: company, isLoading: loadingCompany } = useQuery({
-    queryKey: ['partnerCompany'],
+    queryKey: ['partnerCompany', user?.role, selectedCompany?.id], // Add selectedCompany.id to queryKey for admin mode
     queryFn: async () => {
+      if (user?.role === 'admin' && selectedCompany) {
+        return selectedCompany;
+      }
+      if (!user) return null; // Avoid running if user is not loaded
       const companies = await base44.entities.PartnerCompany.filter({ 
         company_email: user?.email 
       });
       return companies[0];
     },
-    enabled: !!user,
+    enabled: !!user && (user?.role === 'admin' ? !!selectedCompany : true), // Enable if user is loaded, for admin only if selectedCompany is set
   });
 
   const { data: products } = useQuery({
-    queryKey: ['companyProducts'],
+    queryKey: ['companyProducts', company?.id], // Add company?.id to invalidate on company change
     queryFn: () => base44.entities.PartnerProduct.filter({ 
       partner_id: company?.partnership_id 
     }),
@@ -54,7 +68,7 @@ export default function PartnerDashboard() {
   });
 
   const { data: employees } = useQuery({
-    queryKey: ['companyEmployees'],
+    queryKey: ['companyEmployees', company?.id], // Add company?.id
     queryFn: () => base44.entities.CompanyEmployee.filter({ 
       company_id: company?.id 
     }),
@@ -63,7 +77,7 @@ export default function PartnerDashboard() {
   });
 
   const { data: announcements } = useQuery({
-    queryKey: ['companyAnnouncements'],
+    queryKey: ['companyAnnouncements', company?.id], // Add company?.id
     queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
       company_id: company?.id 
     }, '-created_date'),
@@ -72,7 +86,7 @@ export default function PartnerDashboard() {
   });
 
   const { data: redemptions } = useQuery({
-    queryKey: ['companyRedemptions'],
+    queryKey: ['companyRedemptions', company?.id], // Add company?.id
     queryFn: async () => {
       const allRedemptions = await base44.entities.Redemption.list('-created_date');
       return allRedemptions.filter(r => r.partner_id === company?.partnership_id);
@@ -173,7 +187,56 @@ export default function PartnerDashboard() {
     );
   }
 
-  if (!company) {
+  // Admin sem empresa selecionada - mostrar lista de empresas
+  if (user?.role === 'admin' && !selectedCompany) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <Store className="w-10 h-10 text-green-600" />
+              Painel de Empresas Parceiras - Admin
+            </h1>
+            <p className="text-gray-600 text-lg">Selecione uma empresa para gerir</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {allCompanies.map((comp) => (
+              <Card 
+                key={comp.id} 
+                className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+                onClick={() => setSelectedCompany(comp)}
+              >
+                <CardContent className="p-6">
+                  {comp.logo_url && (
+                    <img src={comp.logo_url} alt={comp.company_name} className="w-full h-32 object-contain mb-4" />
+                  )}
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{comp.company_name}</h3>
+                  <Badge className="mb-2">{comp.company_type}</Badge>
+                  <div className="grid grid-cols-2 gap-2 text-sm mt-4">
+                    <div>
+                      <p className="text-gray-500">Produtos</p>
+                      <p className="font-bold">{comp.total_products || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Vendas</p>
+                      <p className="font-bold">€{(comp.total_sales || 0).toFixed(0)}</p>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-4" onClick={() => setSelectedCompany(comp)}>
+                    Gerir Empresa
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empresa sem acesso
+  if (!company && user?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
         <Card className="max-w-md">
@@ -197,7 +260,7 @@ export default function PartnerDashboard() {
     activeProducts: products.filter(p => p.is_available).length,
     totalEmployees: employees.length,
     activeEmployees: employees.filter(e => e.is_active).length,
-    totalSales: company.total_sales || 0,
+    totalSales: company?.total_sales || 0,
     totalRedemptions: redemptions.length,
     revenue: redemptions.reduce((sum, r) => sum + (r.euro_value || 0), 0),
     totalAnnouncements: announcements.length,
@@ -211,11 +274,27 @@ export default function PartnerDashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <Store className="w-10 h-10 text-green-600" />
-            {company.company_name} - Painel de Gestão
-          </h1>
-          <p className="text-gray-600 text-lg">Gira produtos, anúncios, funcionários e promoções</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Store className="w-10 h-10 text-green-600" />
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900">
+                  {company?.company_name} - Painel de Gestão
+                </h1>
+                <p className="text-gray-600 text-lg">Gira produtos, anúncios, funcionários e promoções</p>
+              </div>
+            </div>
+            {user?.role === 'admin' && (
+              <Button variant="outline" onClick={() => setSelectedCompany(null)}>
+                ← Voltar à Lista de Empresas
+              </Button>
+            )}
+          </div>
+          {user?.role === 'admin' && company && (
+            <Badge className="bg-purple-600 text-white">
+              Modo Admin - A gerir {company.company_name}
+            </Badge>
+          )}
         </div>
 
         {/* Stats Cards */}
