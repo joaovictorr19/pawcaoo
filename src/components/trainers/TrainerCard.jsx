@@ -53,6 +53,23 @@ export default function TrainerCard({ trainer }) {
     return labels[specialty] || specialty;
   };
 
+  const getMethodologyLabel = (methodology) => {
+    const labels = {
+      positive_reinforcement: "Positive Reinforcement",
+      aversive_training: "Aversive Training",
+      balanced_training: "Balanced Training",
+      force_free: "Force-Free Training",
+      clicker_training: "Clicker Training",
+      lure_reward: "Lure-Reward Training",
+      model_rival: "Model-Rival Training",
+      scientific_methods: "Scientific Methods",
+      ethology_based: "Ethology-Based",
+      cognitive_training: "Cognitive Training"
+    };
+    // Fallback: replace underscores and capitalize each word
+    return labels[methodology] || methodology.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
   const getConsultationIcon = (method) => {
     if (method === "online") return <Video className="w-4 h-4" />;
     if (method === "in_person") return <UserIcon className="w-4 h-4" />;
@@ -138,6 +155,16 @@ export default function TrainerCard({ trainer }) {
           </div>
         </div>
 
+        {/* Success Rate Badge - NEW */}
+        {trainer.success_rate && trainer.success_rate >= 90 && (
+          <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg px-3 py-2 border border-green-200">
+            <Award className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-bold text-green-700">
+              {trainer.success_rate}% Success Rate
+            </span>
+          </div>
+        )}
+
         {/* Response Time Badge */}
         {(isPremium || isProPlan) && (
           <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2">
@@ -160,6 +187,25 @@ export default function TrainerCard({ trainer }) {
             <span className="font-semibold">
               {trainer.certifications.length} Professional Certificate{trainer.certifications.length !== 1 ? 's' : ''}
             </span>
+          </div>
+        )}
+
+        {/* Primary Methodology Badge - NEW */}
+        {trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
+          <div className="text-sm">
+            {(() => {
+              const primaryMethod = trainer.training_methodologies.find(m => m.primary);
+              if (primaryMethod) {
+                return (
+                  <div className="flex items-center gap-2 bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-200">
+                    <span className="text-indigo-700 font-semibold">
+                      ★ {getMethodologyLabel(primaryMethod.methodology_name)}
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         )}
 

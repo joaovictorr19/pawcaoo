@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck, MessageCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck, MessageCircle, Target } from "lucide-react"; // Added Target icon
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
@@ -293,11 +293,38 @@ export default function TrainerDetails() {
               </div>
             )}
 
+            {/* NEW: Success Rate Banner - Before Service Areas */}
+            {trainer.success_rate && (
+              <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                      <Award className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-2xl font-bold text-green-900">
+                        {trainer.success_rate}% Success Rate
+                      </h4>
+                      <p className="text-sm text-green-700">
+                        Clients who achieved their training goals
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-4xl font-bold text-green-600">
+                      {trainer.total_clients || 0}
+                    </div>
+                    <div className="text-sm text-green-700">Happy Clients</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Service Areas */}
             {trainer.service_areas && trainer.service_areas.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-purple-600" />
+                  <MapPin className="w-5 h-5 mr-2" />
                   Service Areas
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -341,53 +368,78 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            {/* Specialties */}
+            {/* Training Specialties - ENHANCED */}
             {trainer.training_specialties && trainer.training_specialties.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Training Specialties</h3>
-                <div className="flex flex-wrap gap-3">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Target className="w-6 h-6 text-purple-600" />
+                  Training Specialties
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {trainer.training_specialties.map(specialty => (
-                    <Badge
+                    <div
                       key={specialty}
-                      className="bg-purple-100 text-purple-700 border-purple-200 text-base px-4 py-2"
+                      className="bg-gradient-to-r from-purple-100 to-purple-50 border-2 border-purple-200 rounded-xl p-4 text-center hover:shadow-md transition-all"
                     >
-                      {getSpecialtyLabel(specialty)}
-                    </Badge>
+                      <div className="text-2xl mb-2">
+                        {specialty === 'basic_obedience' && '🎯'}
+                        {specialty === 'advanced_obedience' && '⭐'}
+                        {specialty === 'behavior_modification' && '🔧'}
+                        {specialty === 'puppy_training' && '🐕'}
+                        {specialty === 'socialization' && '🤝'}
+                        {specialty === 'aggression' && '⚠️'}
+                        {specialty === 'anxiety' && '💙'}
+                        {specialty === 'potty_training' && '🚽'}
+                        {specialty === 'leash_training' && '🦮'}
+                        {specialty === 'service_dog' && '🦺'}
+                        {specialty === 'therapy_dog' && '❤️'}
+                        {specialty === 'agility' && '🏃'}
+                        {specialty === 'tricks' && '✨'}
+                      </div>
+                      <div className="font-semibold text-purple-900">
+                        {getSpecialtyLabel(specialty)}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Training Methodologies */}
+            {/* Training Methodologies - ENHANCED */}
             {trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-purple-600" />
-                  Training Methodologies
+                  <Award className="w-6 h-6 text-purple-600" />
+                  Training Methodologies & Approach
                 </h3>
                 <div className="space-y-3">
                   {trainer.training_methodologies.map((method, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-xl p-4 ${
+                      className={`rounded-xl p-5 ${
                         method.primary
-                          ? 'bg-purple-100 border-2 border-purple-500'
+                          ? 'bg-gradient-to-r from-purple-100 to-purple-50 border-2 border-purple-500 ring-2 ring-purple-200'
                           : 'bg-gray-50 border border-gray-200'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-semibold text-gray-900">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-gray-900 text-lg">
                           {getMethodologyLabel(method.methodology_name)}
                         </h4>
                         {method.primary && (
-                          <Badge className="bg-purple-600 text-white">
+                          <Badge className="bg-purple-600 text-white text-sm">
                             ★ Primary Method
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">{method.description}</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{method.description}</p>
                     </div>
                   ))}
+                </div>
+                <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <p className="text-sm text-blue-900">
+                    <strong>💡 Training Philosophy:</strong> This trainer uses evidence-based methods tailored to your dog's individual needs and learning style.
+                  </p>
                 </div>
               </div>
             )}

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Award, Upload, Shield, PlusCircle } from "lucide-react"; // Added PlusCircle
+import { Award, Upload, Shield, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -42,6 +42,7 @@ export default function BecomeTrainer() {
     hourly_rate: "",
     services_offered: [], // New field
     experience_years: "",
+    success_rate: null, // New field
     phone: "",
     training_specialties: [],
     training_methodologies: [],
@@ -193,6 +194,7 @@ export default function BecomeTrainer() {
         if (formData.location.trim() === "") missingFields.push("Location");
         if (formData.hourly_rate === "" || isNaN(parseFloat(formData.hourly_rate))) missingFields.push("Hourly Rate");
         if (formData.experience_years === "" || isNaN(parseFloat(formData.experience_years))) missingFields.push("Years of Experience");
+        if (formData.success_rate === null || isNaN(parseFloat(formData.success_rate)) || parseFloat(formData.success_rate) < 0 || parseFloat(formData.success_rate) > 100) missingFields.push("Success Rate");
         if (formData.phone.trim() === "") missingFields.push("Phone Number");
         if (formData.training_specialties.length === 0) missingFields.push("Training Specialties");
         if (formData.training_methodologies.length === 0) missingFields.push("Training Methodologies");
@@ -248,11 +250,12 @@ export default function BecomeTrainer() {
       return;
     }
 
-    // Prepare data for submission - convert hourly_rate and experience_years to numbers
+    // Prepare data for submission - convert hourly_rate, experience_years, and success_rate to numbers
     const dataToSubmit = {
       ...formData,
       hourly_rate: parseFloat(formData.hourly_rate),
       experience_years: parseFloat(formData.experience_years),
+      success_rate: formData.success_rate !== null ? parseFloat(formData.success_rate) : null,
       services_offered: formData.services_offered.map(service => ({
         ...service,
         price: service.price !== null ? parseFloat(service.price) : null // Ensure price is number or null
@@ -428,18 +431,6 @@ export default function BecomeTrainer() {
                         placeholder="50"
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="experience_years">Years of Experience *</Label>
-                      <Input
-                        id="experience_years"
-                        type="number"
-                        required
-                        value={formData.experience_years}
-                        onChange={(e) => setFormData({...formData, experience_years: e.target.value})}
-                        placeholder="5"
-                      />
-                    </div>
                   </div>
 
                   {/* Bio */}
@@ -455,7 +446,7 @@ export default function BecomeTrainer() {
                     />
                   </div>
 
-                  {/* Service Areas - NEW */}
+                  {/* Service Areas */}
                   <div className="space-y-2 border-t-2 border-purple-100 pt-6">
                     <Label>Service Areas</Label>
                     <ServiceAreaSelector
@@ -464,37 +455,57 @@ export default function BecomeTrainer() {
                     />
                   </div>
 
-                  {/* Training Specialties */}
+                  {/* Training Specialties - ENHANCED */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label>Training Specialties *</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <Label className="text-lg font-semibold">Training Specialties * 🎯</Label>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Select all training areas you specialize in. These will be searchable by potential clients.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {[
-                        { value: "basic_obedience", label: "Basic Obedience" },
-                        { value: "behavior_modification", label: "Behavior Modification" },
-                        { value: "puppy_training", label: "Puppy Training" },
-                        { value: "aggression", label: "Aggression" },
-                        { value: "anxiety", label: "Anxiety & Fear" },
-                        { value: "socialization", label: "Socialization" },
+                        { value: "basic_obedience", label: "Basic Obedience", desc: "Sit, stay, come, heel basics" },
+                        { value: "advanced_obedience", label: "Advanced Obedience", desc: "Off-leash control, complex commands" },
+                        { value: "behavior_modification", label: "Behavior Modification", desc: "Correcting unwanted behaviors" },
+                        { value: "puppy_training", label: "Puppy Training", desc: "Early socialization & basics" },
+                        { value: "socialization", label: "Socialization", desc: "Interaction with people & dogs" },
+                        { value: "aggression", label: "Aggression Issues", desc: "Managing aggressive behavior" },
+                        { value: "anxiety", label: "Anxiety & Fear", desc: "Separation anxiety, phobias" },
+                        { value: "potty_training", label: "Potty Training", desc: "Housebreaking & accidents" },
+                        { value: "leash_training", label: "Leash Training", desc: "Pulling, lunging prevention" },
+                        { value: "service_dog", label: "Service Dog Training", desc: "Task-specific training" },
+                        { value: "therapy_dog", label: "Therapy Dog Training", desc: "Certification preparation" },
+                        { value: "agility", label: "Agility Training", desc: "Obstacle courses, competitions" },
+                        { value: "tricks", label: "Tricks & Commands", desc: "Fun tricks and advanced commands" },
                       ].map(specialty => (
-                        <div key={specialty.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`specialty-${specialty.value}`}
-                            checked={formData.training_specialties.includes(specialty.value)}
-                            onCheckedChange={() => toggleArrayItem('training_specialties', specialty.value)}
-                          />
-                          <label htmlFor={`specialty-${specialty.value}`} className="text-sm font-medium cursor-pointer">
-                            {specialty.label}
-                          </label>
+                        <div key={specialty.value} className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                          formData.training_specialties.includes(specialty.value)
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-purple-300'
+                        }`}
+                        onClick={() => toggleArrayItem('training_specialties', specialty.value)}>
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              id={`specialty-${specialty.value}`}
+                              checked={formData.training_specialties.includes(specialty.value)}
+                              onCheckedChange={() => toggleArrayItem('training_specialties', specialty.value)}
+                            />
+                            <div className="flex-1">
+                              <label htmlFor={`specialty-${specialty.value}`} className="text-sm font-semibold cursor-pointer text-gray-900">
+                                {specialty.label}
+                              </label>
+                              <p className="text-xs text-gray-600 mt-1">{specialty.desc}</p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Training Methodologies - NEW */}
+                  {/* Training Methodologies - ENHANCED */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label>Training Methodologies *</Label>
+                    <Label className="text-lg font-semibold">Training Methodologies * 🎓</Label>
                     <p className="text-sm text-gray-600 mb-3">
-                      Select all that apply. Mark one as primary.
+                      Select all methodologies you use. Mark one as your primary approach. This helps clients find trainers that match their training philosophy.
                     </p>
                     <div className="grid gap-3">
                       {trainingMethodologies.map(method => {
@@ -502,7 +513,7 @@ export default function BecomeTrainer() {
                         return (
                           <div key={method.value} className={`border-2 rounded-xl p-4 transition-all ${
                             selected?.primary
-                              ? 'border-purple-500 bg-purple-50'
+                              ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
                               : selected
                               ? 'border-purple-300 bg-purple-25'
                               : 'border-gray-200 hover:border-purple-200'
@@ -526,7 +537,7 @@ export default function BecomeTrainer() {
                                       onClick={() => toggleMethodology(method.value, true)}
                                       className="text-xs"
                                     >
-                                      {selected.primary ? "★ Primary" : "Set as Primary"}
+                                      {selected.primary ? "★ Primary Method" : "Set as Primary"}
                                     </Button>
                                   )}
                                 </div>
@@ -536,6 +547,41 @@ export default function BecomeTrainer() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+
+                  {/* Success Rate & Experience - NEW SECTION */}
+                  <div className="border-t-2 border-purple-100 pt-6">
+                    <h3 className="text-lg font-semibold mb-4">Professional Track Record</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="experience_years">Years of Experience *</Label>
+                        <Input
+                          id="experience_years"
+                          type="number"
+                          required
+                          value={formData.experience_years}
+                          onChange={(e) => setFormData({...formData, experience_years: e.target.value})}
+                          placeholder="5"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="success_rate">Success Rate (%) *</Label>
+                        <Input
+                          id="success_rate"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          required
+                          value={formData.success_rate === null ? '' : formData.success_rate}
+                          onChange={(e) => setFormData({...formData, success_rate: parseFloat(e.target.value)})}
+                          placeholder="95"
+                        />
+                        <p className="text-xs text-gray-500">
+                          Percentage of clients who achieved their training goals
+                        </p>
+                      </div>
                     </div>
                   </div>
 

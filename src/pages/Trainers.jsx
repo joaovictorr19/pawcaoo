@@ -12,8 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Trainers() {
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState("all");
+  const [filterMethodology, setFilterMethodology] = useState("all"); // NEW
   const [filterMethod, setFilterMethod] = useState("all");
   const [filterRating, setFilterRating] = useState("all");
+  const [filterSuccessRate, setFilterSuccessRate] = useState("all"); // NEW
 
   const { data: trainers, isLoading } = useQuery({
     queryKey: ['trainers'],
@@ -45,14 +47,20 @@ export default function Trainers() {
       trainer.location?.toLowerCase().includes(searchLocation.toLowerCase());
     const matchesSpecialty = filterSpecialty === "all" ||
       trainer.training_specialties?.includes(filterSpecialty);
+    const matchesMethodology = filterMethodology === "all" ||
+      trainer.training_methodologies?.some(m => m.methodology_name === filterMethodology); // NEW
     const matchesMethod = filterMethod === "all" ||
       trainer.consultation_options?.includes(filterMethod);
     const matchesRating = filterRating === "all" ||
       (filterRating === "4+" && trainer.average_rating >= 4) ||
       (filterRating === "4.5+" && trainer.average_rating >= 4.5) ||
       (filterRating === "5" && trainer.average_rating === 5);
+    const matchesSuccessRate = filterSuccessRate === "all" ||
+      (filterSuccessRate === "90+" && trainer.success_rate >= 90) ||
+      (filterSuccessRate === "95+" && trainer.success_rate >= 95) ||
+      (filterSuccessRate === "98+" && trainer.success_rate >= 98); // NEW
 
-    return matchesLocation && matchesSpecialty && matchesMethod && matchesRating;
+    return matchesLocation && matchesSpecialty && matchesMethodology && matchesMethod && matchesRating && matchesSuccessRate; // Updated return
   });
 
   return (
@@ -76,15 +84,16 @@ export default function Trainers() {
             </p>
           </motion.div>
 
-          {/* Search Bar */}
+          {/* Enhanced Search Bar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="bg-white rounded-2xl shadow-2xl p-4 md:p-6"
           >
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Location */}
+              <div className="relative">
                 <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   placeholder="Enter your location..."
@@ -93,23 +102,46 @@ export default function Trainers() {
                   className="pl-12 h-12 text-base border-gray-200 focus:ring-purple-500"
                 />
               </div>
+
+              {/* Training Specialty */}
               <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
-                <SelectTrigger className="md:w-56 h-12 border-gray-200">
-                  <SelectValue placeholder="Training Type" />
+                <SelectTrigger className="h-12 border-gray-200">
+                  <SelectValue placeholder="Training Specialty" /> {/* Changed placeholder */}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Training Types</SelectItem>
+                  <SelectItem value="all">All Specialties</SelectItem> {/* Changed text */}
                   <SelectItem value="basic_obedience">Basic Obedience</SelectItem>
+                  <SelectItem value="advanced_obedience">Advanced Obedience</SelectItem> {/* NEW */}
                   <SelectItem value="behavior_modification">Behavior Modification</SelectItem>
                   <SelectItem value="puppy_training">Puppy Training</SelectItem>
                   <SelectItem value="aggression">Aggression Issues</SelectItem>
                   <SelectItem value="anxiety">Anxiety & Fear</SelectItem>
                   <SelectItem value="socialization">Socialization</SelectItem>
+                  <SelectItem value="service_dog">Service Dog</SelectItem> {/* NEW */}
+                  <SelectItem value="agility">Agility Training</SelectItem> {/* NEW */}
                 </SelectContent>
               </Select>
+
+              {/* Training Methodology - NEW */}
+              <Select value={filterMethodology} onValueChange={setFilterMethodology}>
+                <SelectTrigger className="h-12 border-gray-200">
+                  <SelectValue placeholder="Training Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Methodologies</SelectItem>
+                  <SelectItem value="positive_reinforcement">Positive Reinforcement</SelectItem>
+                  <SelectItem value="clicker_training">Clicker Training</SelectItem>
+                  <SelectItem value="model_rival">Model-Rival</SelectItem>
+                  <SelectItem value="relationship_based">Relationship-Based</SelectItem>
+                  <SelectItem value="science_based">Science-Based</SelectItem>
+                  <SelectItem value="balanced_training">Balanced Training</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Consultation Method */}
               <Select value={filterMethod} onValueChange={setFilterMethod}>
-                <SelectTrigger className="md:w-48 h-12 border-gray-200">
-                  <SelectValue placeholder="Method" />
+                <SelectTrigger className="h-12 border-gray-200">
+                  <SelectValue placeholder="Consultation Type" /> {/* Changed placeholder */}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Methods</SelectItem>
@@ -118,8 +150,23 @@ export default function Trainers() {
                   <SelectItem value="hybrid">Hybrid</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Success Rate - NEW */}
+              <Select value={filterSuccessRate} onValueChange={setFilterSuccessRate}>
+                <SelectTrigger className="h-12 border-gray-200">
+                  <SelectValue placeholder="Success Rate" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Success Rates</SelectItem>
+                  <SelectItem value="90+">90%+ Success</SelectItem>
+                  <SelectItem value="95+">95%+ Success</SelectItem>
+                  <SelectItem value="98+">98%+ Success</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Rating */}
               <Select value={filterRating} onValueChange={setFilterRating}>
-                <SelectTrigger className="md:w-48 h-12 border-gray-200">
+                <SelectTrigger className="h-12 border-gray-200">
                   <SelectValue placeholder="Rating" />
                 </SelectTrigger>
                 <SelectContent>
