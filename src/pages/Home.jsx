@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -19,23 +20,54 @@ export default function Home() {
   const [filterTime, setFilterTime] = useState("all");
   const [filterAvailability, setFilterAvailability] = useState("all");
 
+  // Check authentication - if not logged in, redirect to landing
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (!userLoading && !user) {
+      // User is not logged in, redirect to landing
+      window.location.href = "/";
+    }
+  }, [user, userLoading]);
+
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
     queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating'),
     initialData: [],
+    enabled: !!user,
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
     queryFn: () => base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date'),
     initialData: [],
+    enabled: !!user,
   });
 
   const { data: availability } = useQuery({
     queryKey: ['allAvailability'],
     queryFn: () => base44.entities.CalendarAvailability.list(),
     initialData: [],
+    enabled: !!user,
   });
+
+  // Show loading while checking auth
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <p className="text-gray-600">A carregar...</p>
+      </div>
+    );
+  }
+
+  // Don't render if not logged in (will redirect)
+  if (!user) {
+    return null;
+  }
 
   const getWalkerAvailability = (walker) => {
     const today = new Date().toISOString().split('T')[0];

@@ -72,7 +72,6 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
     { title: "💬 Community Forum", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "🐾 Social Feed", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
@@ -189,12 +188,32 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarHeader>
           
           <SidebarContent className="p-4">
+            {/* Profile Section - FIRST */}
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-3 ${
+                        location.pathname === createPageUrl("MyProfile") ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
+                      } border-2 border-purple-200 bg-purple-50`}
+                    >
+                      <Link to={createPageUrl("MyProfile")} className="flex items-center gap-3 px-4 py-3">
+                        <User className="w-5 h-5 text-purple-600" />
+                        <span className="font-semibold">{t('myProfile', language)} & {language === 'pt' ? 'Config.' : 'Settings'}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
             <SidebarGroup>
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {/* Exclude MyProfile from this list, it's now combined in Account section */}
-                  {allNavigationItems.slice(0, 5).map((item) => (
+                  {allNavigationItems.slice(0, 7).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -217,7 +236,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(6, 15).map((item) => (
+                  {allNavigationItems.slice(7, 15).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -245,7 +264,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(15, 20).map((item) => (
+                  {allNavigationItems.slice(15, 22).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -264,46 +283,31 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {/* Combined Profile & Settings */}
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-2 ${
-                        location.pathname === createPageUrl("MyProfile") || location.pathname === createPageUrl("AccountSettings") ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
-                      } border-2 border-purple-200 bg-purple-50`}
-                    >
-                      <Link to={createPageUrl("MyProfile")} className="flex items-center gap-3 px-4 py-3">
-                        <User className="w-5 h-5 text-purple-600" />
-                        <span className="font-medium">{t('myProfile', language)} & {language === 'pt' ? 'Configurações' : 'Settings'}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-
-                  {/* Other account items, excluding Account Settings which is now part of the combined item */}
-                  {allNavigationItems.slice(20).filter(item => 
-                    !item.title.includes('Configurações') && !item.title.includes('Settings')
-                  ).map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
-                          location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        } ${item.title.includes('Admin') ? 'border-2 border-purple-300 bg-purple-50' : ''}`}
-                      >
-                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className={`w-5 h-5 ${item.title.includes('Admin') ? 'text-purple-600' : ''}`} />
-                          <span className="font-medium">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* Admin & Special Items */}
+            {allNavigationItems.length > 22 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {allNavigationItems.slice(22).map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-2 ${
+                            location.pathname === item.url ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
+                          } border-2 border-purple-200 bg-purple-50`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                            <item.icon className="w-5 h-5 text-purple-600" />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
           </SidebarContent>
         </Sidebar>
 
@@ -396,7 +400,7 @@ function LayoutContent({ children, currentPageName }) {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
                     <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
-                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
+                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors}>FAQ</Link></li>
                     <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
                     <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
                     <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
