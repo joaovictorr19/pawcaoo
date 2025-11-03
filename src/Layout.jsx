@@ -378,8 +378,9 @@ function LayoutContent({ children, currentPageName }) {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><a href="#about" className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</a></li>
-                    <li><a href="#contact" className="hover:text-green-600 transition-colors">{t('contactUs', language)}</a></li>
+                    <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
+                    <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
+                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
                     <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
                     <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
                     <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>

@@ -37,6 +37,9 @@ import PaymentSetup from './pages/PaymentSetup';
 import StripeConnectSetup from './pages/StripeConnectSetup';
 import ConnectedAccountStorefront from './pages/ConnectedAccountStorefront';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import AboutUs from './pages/AboutUs';
+import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
 import Layout from './Layout.jsx';
 
 
@@ -80,6 +83,9 @@ export const PAGES = {
     "StripeConnectSetup": StripeConnectSetup,
     "ConnectedAccountStorefront": ConnectedAccountStorefront,
     "CheckoutSuccess": CheckoutSuccess,
+    "AboutUs": AboutUs,
+    "Contact": Contact,
+    "FAQ": FAQ,
 }
 
 export const pagesConfig = {
