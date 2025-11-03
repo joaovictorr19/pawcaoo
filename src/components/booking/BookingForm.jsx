@@ -8,30 +8,78 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, DollarSign, CreditCard, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import TimeSlotPicker from "./TimeSlotPicker";
+import { format } from "date-fns";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 const PLATFORM_FEE_PERCENTAGE = 15;
 
-export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }) {
+export default function BookingForm({ walker, trainer, onSubmit, onCancel, isProcessing }) {
+  const professional = walker || trainer;
+  const professionalType = walker ? 'walker' : 'trainer';
+  
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [formData, setFormData] = useState({
     owner_name: "",
     owner_phone: "",
     dog_name: "",
     dog_size: "",
-    walk_date: "",
-    walk_time: "",
     duration_hours: 1,
     special_notes: "",
     payment_method: "credit_card",
   });
 
-  const serviceAmount = formData.duration_hours * walker.hourly_rate;
+  const { data: availability } = useQuery({
+    queryKey: ['professionalAvailability', professional.created_by],
+    queryFn: () => base44.entities.CalendarAvailability.filter({ 
+      professional_email: professional.created_by 
+    }),
+    enabled: !!professional,
+    initialData: [],
+  });
+
+  const { data: bookings } = useQuery({
+    queryKey: ['professionalBookings', professional.id],
+    queryFn: async () => {
+      if (walker) {
+        return await base44.entities.Booking.filter({ walker_id: professional.id });
+      } else {
+        return await base44.entities.TrainingBooking.filter({ trainer_id: professional.id });
+      }
+    },
+    enabled: !!professional,
+    initialData: [],
+  });
+
+  const serviceAmount = formData.duration_hours * professional.hourly_rate;
   const platformFee = serviceAmount * (PLATFORM_FEE_PERCENTAGE / 100);
   const totalAmount = serviceAmount + platformFee;
 
+  const handleSlotSelect = (date, slot) => {
+    setSelectedDate(date);
+    if (slot) {
+      setSelectedSlot(`${slot.start_time}-${slot.end_time}`);
+    } else {
+      setSelectedSlot(null);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (!selectedDate || !selectedSlot) {
+      alert("Please select a date and time slot");
+      return;
+    }
+
     onSubmit({
       ...formData,
+      walk_date: format(selectedDate, 'yyyy-MM-dd'),
+      session_date: format(selectedDate, 'yyyy-MM-dd'),
+      walk_time: selectedSlot,
+      session_time: selectedSlot,
       service_amount: serviceAmount,
       platform_fee: platformFee,
       total_amount: totalAmount,
@@ -43,17 +91,30 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="space-y-6"
     >
+      {/* Time Slot Picker */}
+      <TimeSlotPicker
+        availabilityData={availability}
+        bookings={bookings}
+        onSlotSelect={handleSlotSelect}
+        selectedDate={selectedDate}
+        selectedSlot={selectedSlot}
+      />
+
+      {/* Booking Details Form */}
       <Card className="border-0 shadow-2xl">
         <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-          <CardTitle className="text-2xl">Book a Walk with {walker.walker_name}</CardTitle>
+          <CardTitle className="text-2xl">
+            {walker ? `Book a Walk with ${professional.walker_name}` : `Book Training with ${professional.trainer_name}`}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <Alert className="mb-6 border-blue-200 bg-blue-50">
             <CreditCard className="h-5 w-5 text-blue-600" />
             <AlertDescription className="text-blue-900">
-              <strong>Secure Payment:</strong> Your payment will be held securely until the walk is completed. 
-              The walker receives payment only after you confirm the walk is done.
+              <strong>Secure Payment:</strong> Your payment will be held securely until the {walker ? 'walk' : 'session'} is completed. 
+              The {professionalType} receives payment only after you confirm completion.
             </AlertDescription>
           </Alert>
 
@@ -112,37 +173,6 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="walk_date">Walk Date *</Label>
-                <Input
-                  id="walk_date"
-                  type="date"
-                  required
-                  value={formData.walk_date}
-                  onChange={(e) => setFormData({...formData, walk_date: e.target.value})}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="walk_time">Preferred Time *</Label>
-                <Select 
-                  required
-                  value={formData.walk_time}
-                  onValueChange={(value) => setFormData({...formData, walk_time: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="morning">Morning (6am-12pm)</SelectItem>
-                    <SelectItem value="afternoon">Afternoon (12pm-6pm)</SelectItem>
-                    <SelectItem value="evening">Evening (6pm-10pm)</SelectItem>
-                    <SelectItem value="night">Night (10pm-6am)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="duration_hours">Duration (hours) *</Label>
                 <Input
                   id="duration_hours"
@@ -179,7 +209,7 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
                 id="special_notes"
                 value={formData.special_notes}
                 onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
-                placeholder="Any special instructions about your dog? (e.g., medications, behavioral notes, favorite routes...)"
+                placeholder="Any special instructions about your dog?"
                 rows={4}
               />
             </div>
@@ -188,19 +218,31 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
             <div className="bg-gray-50 rounded-xl p-6 space-y-3">
               <h3 className="font-semibold text-gray-900 mb-4">Payment Summary</h3>
               <div className="flex justify-between text-gray-700">
-                <span>Service Amount (${walker.hourly_rate}/hr × {formData.duration_hours}h)</span>
-                <span className="font-semibold">${serviceAmount.toFixed(2)}</span>
+                <span>Service Amount (€{professional.hourly_rate}/hr × {formData.duration_hours}h)</span>
+                <span className="font-semibold">€{serviceAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-700">
                 <span>Platform Fee ({PLATFORM_FEE_PERCENTAGE}%)</span>
-                <span className="font-semibold">${platformFee.toFixed(2)}</span>
+                <span className="font-semibold">€{platformFee.toFixed(2)}</span>
               </div>
+              {selectedDate && selectedSlot && (
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex justify-between text-gray-700 mb-2">
+                    <span>Selected Date:</span>
+                    <span className="font-semibold">{format(selectedDate, 'MMM d, yyyy')}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-700">
+                    <span>Selected Time:</span>
+                    <span className="font-semibold">{selectedSlot}</span>
+                  </div>
+                </div>
+              )}
               <div className="border-t-2 border-gray-200 pt-3 flex justify-between text-lg font-bold text-gray-900">
                 <span>Total Amount</span>
-                <span className="text-green-600">${totalAmount.toFixed(2)}</span>
+                <span className="text-green-600">€{totalAmount.toFixed(2)}</span>
               </div>
               <p className="text-xs text-gray-600 mt-2">
-                * Payment will be held securely and released to the walker after walk completion
+                * Payment will be held securely and released after {walker ? 'walk' : 'session'} completion
               </p>
             </div>
 
@@ -216,7 +258,7 @@ export default function BookingForm({ walker, onSubmit, onCancel, isProcessing }
               </Button>
               <Button
                 type="submit"
-                disabled={isProcessing}
+                disabled={isProcessing || !selectedDate || !selectedSlot}
                 className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white"
               >
                 {isProcessing ? "Processing..." : "Confirm & Pay"}

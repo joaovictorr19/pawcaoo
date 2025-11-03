@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -53,6 +54,7 @@ export default function ManageAvailability() {
           ...data,
           professional_email: user?.email,
           professional_name: user?.full_name,
+          professional_type: "walker", // Could be determined from user profile
           date: dateStr
         });
       }
@@ -60,6 +62,18 @@ export default function ManageAvailability() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability'] });
       toast.success("Availability updated successfully!");
+      
+      // Send notification reminder to update availability for next week
+      const nextWeek = new Date(selectedDate);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      
+      base44.entities.Notification.create({
+        recipient_email: user?.email,
+        title: "Update Your Availability",
+        message: `Don't forget to set your availability for ${format(nextWeek, 'MMM d, yyyy')}`,
+        type: "system",
+        priority: "low"
+      });
     },
   });
 

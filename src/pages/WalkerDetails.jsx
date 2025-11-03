@@ -89,6 +89,28 @@ export default function WalkerDetails() {
         held_date: new Date().toISOString()
       });
 
+      // Send confirmation notification to owner
+      await base44.entities.Notification.create({
+        recipient_email: user?.email,
+        title: "Booking Confirmed!",
+        message: `Your walk with ${walker.walker_name} is confirmed for ${bookingData.walk_date} at ${bookingData.walk_time}`,
+        type: "booking",
+        related_id: booking.id,
+        action_url: "/MyBookings",
+        priority: "high"
+      });
+
+      // Send notification to walker
+      await base44.entities.Notification.create({
+        recipient_email: walker.created_by,
+        title: "New Booking Request",
+        message: `${bookingData.owner_name} has booked a walk for ${bookingData.dog_name} on ${bookingData.walk_date} at ${bookingData.walk_time}`,
+        type: "booking",
+        related_id: booking.id,
+        action_url: "/MyBookings",
+        priority: "high"
+      });
+
       return booking;
     },
     onSuccess: () => {
@@ -98,18 +120,7 @@ export default function WalkerDetails() {
   });
 
   const handleBooking = async (bookingData) => {
-    const booking = await createBookingMutation.mutateAsync(bookingData);
-    
-    // Send notification to walker
-    await base44.entities.Notification.create({
-      recipient_email: walker.created_by,
-      title: "New Booking Request",
-      message: `${bookingData.owner_name} has requested a walk for ${bookingData.dog_name} on ${format(new Date(bookingData.walk_date), 'MMM d, yyyy')}`,
-      type: "booking",
-      related_id: booking.id,
-      action_url: "/MyBookings",
-      priority: "high"
-    });
+    await createBookingMutation.mutateAsync(bookingData);
   };
 
   if (isLoading) {

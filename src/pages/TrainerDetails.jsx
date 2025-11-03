@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,12 +10,15 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import BookingForm from "../components/booking/BookingForm"; // Assuming BookingForm is located here
+import { useAuth } from '@/hooks/useAuth'; // Assuming useAuth hook provides user data
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showBookingForm, setShowBookingForm] = useState(false);
-  
+  const { user } = useAuth(); // Access current user information
+
   const urlParams = new URLSearchParams(window.location.search);
   const trainerId = urlParams.get('id');
 
@@ -33,9 +37,92 @@ export default function TrainerDetails() {
     initialData: [],
   });
 
+  const { data: availability } = useQuery({
+    queryKey: ['trainerAvailability', trainerId],
+    queryFn: () => base44.entities.CalendarAvailability.filter({
+      professional_email: trainer?.created_by
+    }),
+    enabled: !!trainer, // Only fetch if trainer data is available
+    initialData: [],
+  });
+
+  const { data: trainerBookings } = useQuery({
+    queryKey: ['trainerBookings', trainerId],
+    queryFn: () => base44.entities.TrainingBooking.filter({ trainer_id: trainerId }),
+    enabled: !!trainerId, // Only fetch if trainer ID is available
+    initialData: [],
+  });
+
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : trainer?.rating || 5;
+
+  const createBookingMutation = useMutation({
+    mutationFn: async (bookingData) => {
+      // Create TrainingBooking record
+      const booking = await base44.entities.TrainingBooking.create({
+        ...bookingData,
+        trainer_id: trainer.id,
+        trainer_name: trainer.trainer_name,
+        owner_email: user?.email, // Use current user's email for the owner
+        payment_status: "held", // Payment is held until confirmed by trainer
+        completion_code: Math.random().toString(36).substring(2, 8).toUpperCase()
+      });
+
+      // Create Payment record
+      await base44.entities.Payment.create({
+        booking_id: booking.id,
+        payer_email: user?.email,
+        payer_name: bookingData.owner_name,
+        recipient_email: trainer.created_by, // Trainer's email (creator of the profile)
+        recipient_name: trainer.trainer_name,
+        service_amount: bookingData.service_amount,
+        platform_fee: bookingData.platform_fee,
+        total_amount: bookingData.total_amount,
+        platform_fee_percentage: 15, // Example platform fee percentage
+        status: "held",
+        payment_method: bookingData.payment_method,
+        held_date: new Date().toISOString()
+      });
+
+      // Send confirmation notifications
+      await base44.entities.Notification.create({
+        recipient_email: user?.email,
+        title: "Training Session Confirmed!",
+        message: `Your training session with ${trainer.trainer_name} is confirmed for ${bookingData.session_date} at ${bookingData.session_time}.`,
+        type: "booking",
+        related_id: booking.id,
+        action_url: "/MyBookings",
+        priority: "high"
+      });
+
+      await base44.entities.Notification.create({
+        recipient_email: trainer.created_by,
+        title: "New Training Booking",
+        message: `${bookingData.owner_name} has booked a session for ${bookingData.dog_name} on ${bookingData.session_date} at ${bookingData.session_time}.`,
+        type: "booking",
+        related_id: booking.id,
+        action_url: "/MyBookings",
+        priority: "high"
+      });
+
+      return booking;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainingBookings'] }); // Invalidate general bookings list
+      queryClient.invalidateQueries({ queryKey: ['trainerBookings', trainerId] }); // Invalidate trainer's specific bookings
+      setShowBookingForm(false); // Close the booking form
+      navigate(createPageUrl('MyBookings')); // Navigate to the user's bookings page
+    },
+    onError: (error) => {
+      console.error("Failed to create booking:", error);
+      // Optionally, add user-friendly error feedback here (e.g., a toast notification)
+    }
+  });
+
+  const handleBooking = async (bookingData) => {
+    await createBookingMutation.mutateAsync(bookingData);
+  };
 
   const getSpecialtyLabel = (specialty) => {
     const labels = {
@@ -178,8 +265,8 @@ export default function TrainerDetails() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Training Specialties</h3>
                 <div className="flex flex-wrap gap-3">
                   {trainer.training_specialties.map(specialty => (
-                    <Badge 
-                      key={specialty} 
+                    <Badge
+                      key={specialty}
                       className="bg-purple-100 text-purple-700 border-purple-200 text-base px-4 py-2"
                     >
                       {getSpecialtyLabel(specialty)}
@@ -276,9 +363,9 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            <Button 
+            <Button
               className="w-full md:w-auto bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
-              onClick={() => navigate(createPageUrl(`BookTrainer?id=${trainer.id}`))}
+              onClick={() => setShowBookingForm(true)} // Changed onClick to show the booking form
               disabled={trainer.verification_status !== "verified"}
             >
               {trainer.verification_status === "verified" ? "Book Training Session" : "Verification Pending"}
@@ -316,6 +403,18 @@ export default function TrainerDetails() {
             )}
           </CardContent>
         </Card>
+
+        {/* Conditional Booking Form */}
+        {showBookingForm && (
+          <BookingForm
+            trainer={trainer}
+            availability={availability} // Pass trainer's availability
+            bookings={trainerBookings}   // Pass trainer's existing bookings
+            onSubmit={handleBooking}
+            onCancel={() => setShowBookingForm(false)}
+            isProcessing={createBookingMutation.isPending}
+          />
+        )}
       </div>
     </div>
   );

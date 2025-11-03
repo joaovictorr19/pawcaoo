@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input"; // Added Input
-import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2 } from "lucide-react"; // Added ShieldCheck, CheckCircle2
+import { Input } from "@/components/ui/input";
+import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner"; // Added toast
+import { toast } from "sonner";
 
 export default function MyBookings() {
   const [activeTab, setActiveTab] = useState("all");
@@ -26,19 +26,44 @@ export default function MyBookings() {
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['bookings'],
-    queryFn: () => base44.entities.Booking.list('-created_date'),
+    queryFn: async () => {
+      const walkerBookings = await base44.entities.Booking.list('-created_date');
+      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date');
+      return [...walkerBookings, ...trainerBookings];
+    },
     initialData: [],
   });
 
   const updateBookingMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Booking.update(id, data),
-    onSuccess: () => {
+    mutationFn: async ({ id, data, isTraining }) => {
+      if (isTraining) {
+        return await base44.entities.TrainingBooking.update(id, data);
+      } else {
+        return await base44.entities.Booking.update(id, data);
+      }
+    },
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      
+      // Send cancellation notification
+      if (variables.data.status === "cancelled") {
+        const booking = queryClient.getQueryData(['bookings']).find(b => b.id === variables.id);
+        if (booking) {
+          await base44.entities.Notification.create({
+            recipient_email: booking.walker_email || booking.trainer_email,
+            title: "Booking Cancelled",
+            message: `Booking for ${booking.dog_name} on ${format(new Date(booking.walk_date || booking.session_date), "MMM d, yyyy")} has been cancelled`,
+            type: "booking",
+            related_id: variables.id,
+            priority: "high"
+          });
+        }
+      }
     },
   });
 
   const completeWalkMutation = useMutation({
-    mutationFn: async ({ bookingId, code }) => {
+    mutationFn: async ({ bookingId, code, isTraining }) => {
       // Find the booking from the cached data, or refetch if not found
       const currentBookings = queryClient.getQueryData(['bookings']);
       const booking = currentBookings.find(b => b.id === bookingId);
@@ -52,11 +77,19 @@ export default function MyBookings() {
       }
 
       // Update booking status
-      await base44.entities.Booking.update(bookingId, {
-        status: "completed",
-        payment_status: "released",
-        completed_date: new Date().toISOString()
-      });
+      if (isTraining) {
+        await base44.entities.TrainingBooking.update(bookingId, {
+          status: "completed",
+          payment_status: "released",
+          completed_date: new Date().toISOString()
+        });
+      } else {
+        await base44.entities.Booking.update(bookingId, {
+          status: "completed",
+          payment_status: "released",
+          completed_date: new Date().toISOString()
+        });
+      }
 
       // Find all payments for this booking
       const payments = await base44.entities.Payment.filter({ booking_id: bookingId });
@@ -66,6 +99,16 @@ export default function MyBookings() {
           released_date: new Date().toISOString()
         });
       }
+
+      // Send completion notifications
+      await base44.entities.Notification.create({
+        recipient_email: booking.walker_email || booking.trainer_email,
+        title: "Payment Released",
+        message: `Payment for ${booking.dog_name}'s ${isTraining ? 'training session' : 'walk'} has been released to your account`,
+        type: "payment",
+        related_id: bookingId,
+        priority: "high"
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
@@ -82,20 +125,22 @@ export default function MyBookings() {
   const handleCancelBooking = async (booking) => {
     await updateBookingMutation.mutateAsync({
       id: booking.id,
-      data: { status: "cancelled", payment_status: "refunded" }
+      data: { status: "cancelled", payment_status: "refunded" },
+      isTraining: !!booking.session_date
     });
   };
 
-  const handleVerifyCompletion = async (bookingId) => {
+  const handleVerifyCompletion = async (bookingId, isTraining) => {
     await completeWalkMutation.mutateAsync({ 
       bookingId, 
-      code: completionCode 
+      code: completionCode,
+      isTraining 
     });
   };
 
   const filteredBookings = activeTab === "all" 
-    ? bookings.filter(b => b.created_by === user?.email)
-    : bookings.filter(b => b.status === activeTab && b.created_by === user?.email);
+    ? bookings.filter(b => b.created_by === user?.email || b.owner_email === user?.email)
+    : bookings.filter(b => b.status === activeTab && (b.created_by === user?.email || b.owner_email === user?.email));
 
   const getStatusColor = (status) => {
     const colors = {
@@ -159,176 +204,181 @@ export default function MyBookings() {
                 <Calendar className="w-12 h-12 text-gray-400" />
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">No bookings yet</h3>
-              <p className="text-gray-600">Start by finding a dog walker!</p>
+              <p className="text-gray-600">Start by finding a dog walker or trainer!</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
-            {filteredBookings.map((booking, index) => (
-              <motion.div
-                key={booking.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                  <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-2xl mb-2">
-                          Walk with {booking.walker_name}
-                        </CardTitle>
-                        <div className="flex gap-2 flex-wrap">
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                          <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                            Payment: {booking.payment_status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold text-green-600">
-                          ${booking.total_amount?.toFixed(2)}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          ${booking.service_amount?.toFixed(2)} + ${booking.platform_fee?.toFixed(2)} fee
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {booking.duration_hours}h walk
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <Dog className="w-5 h-5 text-green-600" />
+            {filteredBookings.map((booking, index) => {
+              const isTraining = !!booking.session_date;
+              return (
+                <motion.div
+                  key={booking.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-2xl mb-2">
+                            {isTraining ? `Training with ${booking.trainer_name}` : `Walk with ${booking.walker_name}`}
+                          </CardTitle>
+                          <div className="flex gap-2 flex-wrap">
+                            <Badge className={getStatusColor(booking.status)}>
+                              {booking.status}
+                            </Badge>
+                            <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                              Payment: {booking.payment_status}
+                            </Badge>
                           </div>
-                          <div>
-                            <div className="text-sm text-gray-600">Dog</div>
-                            <div className="font-semibold text-gray-900">
-                              {booking.dog_name} ({booking.dog_size})
+                        </div>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold text-green-600">
+                            €{booking.total_amount?.toFixed(2)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            €{booking.service_amount?.toFixed(2)} + €{booking.platform_fee?.toFixed(2)} fee
+                          </div>
+                          {booking.duration_hours && ( // Only show if duration_hours exists
+                            <div className="text-xs text-gray-500 mt-1">
+                              {booking.duration_hours}h walk
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                              <Dog className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-600">Dog</div>
+                              <div className="font-semibold text-gray-900">
+                                {booking.dog_name} ({booking.dog_size})
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-600">Date & Time</div>
+                              <div className="font-semibold text-gray-900">
+                                {format(new Date(booking.walk_date || booking.session_date), "MMMM d, yyyy")}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {booking.walk_time || booking.session_time}
+                              </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Calendar className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm text-gray-600">Date & Time</div>
-                            <div className="font-semibold text-gray-900">
-                              {format(new Date(booking.walk_date), "MMMM d, yyyy")}
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <Phone className="w-5 h-5 text-purple-600" />
                             </div>
-                            <div className="text-sm text-gray-600">
-                              {booking.walk_time}
+                            <div>
+                              <div className="text-sm text-gray-600">Your Contact</div>
+                              <div className="font-semibold text-gray-900">
+                                {booking.owner_name}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {booking.owner_phone}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-orange-600" />
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-600">Booked On</div>
+                              <div className="font-semibold text-gray-900">
+                                {format(new Date(booking.created_date), "MMM d, yyyy 'at' h:mm a")}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <Phone className="w-5 h-5 text-purple-600" />
+                      {booking.special_notes && (
+                        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                          <div className="text-sm font-semibold text-gray-700 mb-1">
+                            Special Notes:
                           </div>
-                          <div>
-                            <div className="text-sm text-gray-600">Your Contact</div>
-                            <div className="font-semibold text-gray-900">
-                              {booking.owner_name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {booking.owner_phone}
-                            </div>
+                          <div className="text-gray-600">
+                            {booking.special_notes}
                           </div>
                         </div>
+                      )}
 
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-orange-600" />
+                      {/* Completion Code Section */}
+                      {(booking.status === "in_progress" || booking.status === "confirmed") && booking.payment_status === "held" && (
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-4">
+                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <ShieldCheck className="w-5 h-5 text-blue-600" />
+                            Complete the {isTraining ? 'Session' : 'Walk'}
+                          </h4>
+                          <p className="text-sm text-gray-700 mb-4">
+                            Ask the {isTraining ? 'trainer' : 'walker'} for the completion code and enter it below to release payment.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <Input
+                              placeholder="Enter 6-digit code"
+                              value={verifyingBookingId === booking.id ? completionCode : ""}
+                              onChange={(e) => {
+                                setCompletionCode(e.target.value.toUpperCase());
+                                setVerifyingBookingId(booking.id);
+                              }}
+                              maxLength={6}
+                              className="text-center text-lg font-mono tracking-wider sm:w-1/2 md:w-2/3"
+                            />
+                            <Button
+                              onClick={() => handleVerifyCompletion(booking.id, isTraining)}
+                              disabled={completeWalkMutation.isPending || completionCode.length !== 6 || verifyingBookingId !== booking.id}
+                              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                            >
+                              Verify & Release Payment
+                            </Button>
                           </div>
-                          <div>
-                            <div className="text-sm text-gray-600">Booked On</div>
-                            <div className="font-semibold text-gray-900">
-                              {format(new Date(booking.created_date), "MMM d, yyyy 'at' h:mm a")}
-                            </div>
-                          </div>
                         </div>
-                      </div>
-                    </div>
+                      )}
 
-                    {booking.special_notes && (
-                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                        <div className="text-sm font-semibold text-gray-700 mb-1">
-                          Special Notes:
+                      {booking.status === "completed" && (
+                        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4">
+                          <p className="text-green-700 font-semibold flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5" />
+                            {isTraining ? 'Session' : 'Walk'} completed! Payment has been released.
+                          </p>
                         </div>
-                        <div className="text-gray-600">
-                          {booking.special_notes}
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Completion Code Section */}
-                    {(booking.status === "in_progress" || booking.status === "confirmed") && booking.payment_status === "held" && (
-                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-4">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <ShieldCheck className="w-5 h-5 text-blue-600" />
-                          Complete the Walk
-                        </h4>
-                        <p className="text-sm text-gray-700 mb-4">
-                          Once the walk is finished, ask the walker for the completion code and enter it below to release payment.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <Input
-                            placeholder="Enter 6-digit code"
-                            value={verifyingBookingId === booking.id ? completionCode : ""}
-                            onChange={(e) => {
-                              setCompletionCode(e.target.value.toUpperCase());
-                              setVerifyingBookingId(booking.id);
-                            }}
-                            maxLength={6}
-                            className="text-center text-lg font-mono tracking-wider sm:w-1/2 md:w-2/3"
-                          />
+                      {booking.status === "pending" && (
+                        <div className="flex gap-3">
                           <Button
-                            onClick={() => handleVerifyCompletion(booking.id)}
-                            disabled={completeWalkMutation.isPending || completionCode.length !== 6 || verifyingBookingId !== booking.id}
-                            className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                            variant="outline"
+                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                            onClick={() => handleCancelBooking(booking)}
+                            disabled={updateBookingMutation.isPending}
                           >
-                            Verify & Release Payment
+                            Cancel Booking
                           </Button>
                         </div>
-                      </div>
-                    )}
-
-                    {booking.status === "completed" && (
-                      <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4">
-                        <p className="text-green-700 font-semibold flex items-center gap-2">
-                          <CheckCircle2 className="w-5 h-5" />
-                          Walk completed! Payment has been released to the walker.
-                        </p>
-                      </div>
-                    )}
-
-                    {booking.status === "pending" && (
-                      <div className="flex gap-3">
-                        <Button
-                          variant="outline"
-                          className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-                          onClick={() => handleCancelBooking(booking)}
-                          disabled={updateBookingMutation.isPending}
-                        >
-                          Cancel Booking
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
