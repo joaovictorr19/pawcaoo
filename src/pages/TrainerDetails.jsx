@@ -11,16 +11,19 @@ import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import BookingForm from "../components/booking/BookingForm"; // Assuming BookingForm is located here
-import { useAuth } from '@/hooks/useAuth'; // Assuming useAuth hook provides user data
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const { user } = useAuth(); // Access current user information
 
   const urlParams = new URLSearchParams(window.location.search);
   const trainerId = urlParams.get('id');
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
 
   const { data: trainers, isLoading } = useQuery({
     queryKey: ['trainers'],
