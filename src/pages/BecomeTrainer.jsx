@@ -17,10 +17,13 @@ import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function BecomeTrainer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [uploading, setUploading] = useState({
     photo: false,
     video: false, // New field for video upload status
@@ -63,12 +66,12 @@ export default function BecomeTrainer() {
   });
 
   const trainingMethodologies = [
-    { value: "positive_reinforcement", label: "Positive Reinforcement", description: "Reward-based training focusing on desired behaviors" },
-    { value: "clicker_training", label: "Clicker Training", description: "Using a marker signal to communicate correct behavior" },
-    { value: "model_rival", label: "Model-Rival", description: "Dog learns by observing another dog or person" },
-    { value: "relationship_based", label: "Relationship-Based", description: "Focus on building trust and communication" },
-    { value: "science_based", label: "Science-Based", description: "Evidence-based methods from behavioral science" },
-    { value: "balanced_training", label: "Balanced Training", description: "Combination of positive and corrective methods" },
+    { value: "positive_reinforcement", label: t('positiveReinforcement', language), description: t('positiveReinforcementDesc', language) },
+    { value: "clicker_training", label: t('clickerTraining', language), description: t('clickerTrainingDesc', language) },
+    { value: "model_rival", label: t('modelRival', language), description: t('modelRivalDesc', language) },
+    { value: "relationship_based", label: t('relationshipBased', language), description: t('relationshipBasedDesc', language) },
+    { value: "science_based", label: t('scienceBased', language), description: t('scienceBasedDesc', language) },
+    { value: "balanced_training", label: t('balancedTraining', language), description: t('balancedTrainingDesc', language) },
   ];
 
   const createTrainerMutation = useMutation({
@@ -289,15 +292,14 @@ export default function BecomeTrainer() {
           <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Award className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Become a Certified Trainer</h1>
-          <p className="text-gray-600 text-lg">Join our network of professional dog trainers</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('becomeTrainerTitle', language)}</h1>
+          <p className="text-gray-600 text-lg">{t('becomeTrainerSubtitle', language)}</p>
         </div>
 
         <Alert className="mb-6 border-purple-200 bg-purple-50">
           <Shield className="h-5 w-5 text-purple-600" />
           <AlertDescription className="text-purple-900">
-            <strong>Professional Standards:</strong> All trainers must submit certifications and documents for verification.
-            This ensures quality training for all dogs on our platform.
+            <strong>{t('professionalStandards', language)}</strong> {t('professionalStandardsDesc', language)}
           </AlertDescription>
         </Alert>
 
@@ -316,9 +318,9 @@ export default function BecomeTrainer() {
         <Card className="border-0 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-500 text-white">
             <CardTitle className="text-2xl">
-              {currentStep === 1 && "Create Your Trainer Profile - Basic Info"}
-              {currentStep === 2 && "Certifications & Verification"}
-              {currentStep === 3 && "Payment Information"}
+              {currentStep === 1 && t('createYourProfile', language)}
+              {currentStep === 2 && t('certificationsVerification', language)}
+              {currentStep === 3 && t('paymentInformation', language)}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -332,7 +334,7 @@ export default function BecomeTrainer() {
                 >
                   {/* Profile Photo */}
                   <div className="space-y-2">
-                    <Label htmlFor="photo">Profile Photo *</Label>
+                    <Label htmlFor="photo">{t('profilePhoto', language)} *</Label>
                     <div className="flex items-center gap-4">
                       {formData.photo_url ? (
                         <img
@@ -355,18 +357,18 @@ export default function BecomeTrainer() {
                           required
                         />
                         <p className="text-sm text-gray-500 mt-2">
-                          {uploading.photo ? "Uploading..." : "Upload a professional photo"}
+                          {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* NEW: Video Introduction */}
+                  {/* Video Introduction */}
                   <div className="space-y-2 border-t-2 border-purple-100 pt-6">
-                    <Label htmlFor="video_intro_upload">Video Introduction (Optional but Recommended) 📹</Label>
+                    <Label htmlFor="video_intro_upload">{t('videoIntroduction', language)} 📹</Label>
                     <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-3">
                       <p className="text-sm text-blue-900">
-                        <strong>💡 Show your training style!</strong> Record a 1-2 minute video demonstrating your approach and personality.
+                        {t('videoIntroTip', language)}
                       </p>
                     </div>
                     {formData.video_intro_url ? (
@@ -391,25 +393,25 @@ export default function BecomeTrainer() {
                       className="mt-3"
                     />
                     <p className="text-sm text-gray-500">
-                      {uploading.video ? "Uploading video..." : "MP4, MOV, AVI (max 100MB)"}
+                      {uploading.video ? t('uploadingVideo', language) : t('videoFormats', language)}
                     </p>
                   </div>
 
                   {/* Basic Info */}
                   <div className="grid md:grid-cols-2 gap-6 border-t-2 border-purple-100 pt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="trainer_name">Your Name *</Label>
+                      <Label htmlFor="trainer_name">{t('yourName', language)} *</Label>
                       <Input
                         id="trainer_name"
                         required
                         value={formData.trainer_name}
                         onChange={(e) => setFormData({...formData, trainer_name: e.target.value})}
-                        placeholder="John Smith"
+                        placeholder={t('joaoSilva', language)}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Label htmlFor="phone">{t('phoneNumber', language)} *</Label>
                       <Input
                         id="phone"
                         required
@@ -420,18 +422,18 @@ export default function BecomeTrainer() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="location">Location *</Label>
+                      <Label htmlFor="location">{t('location', language)} *</Label>
                       <Input
                         id="location"
                         required
                         value={formData.location}
                         onChange={(e) => setFormData({...formData, location: e.target.value})}
-                        placeholder="Lisbon, Portugal"
+                        placeholder={t('lisboaPortugal', language)}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="hourly_rate">Hourly Rate (€) *</Label>
+                      <Label htmlFor="hourly_rate">{t('hourlyRate', language)} *</Label>
                       <Input
                         id="hourly_rate"
                         type="number"
@@ -446,47 +448,47 @@ export default function BecomeTrainer() {
 
                   {/* Bio */}
                   <div className="space-y-2">
-                    <Label htmlFor="bio">Professional Bio *</Label>
+                    <Label htmlFor="bio">{t('professionalBio', language)} *</Label>
                     <Textarea
                       id="bio"
                       required
                       value={formData.bio}
                       onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                      placeholder="Describe your training philosophy, methods, and what makes you unique..."
+                      placeholder={t('professionalBioPlaceholder', language)}
                       rows={5}
                     />
                   </div>
 
                   {/* Service Areas */}
                   <div className="space-y-2 border-t-2 border-purple-100 pt-6">
-                    <Label>Service Areas</Label>
+                    <Label>{t('serviceAreas', language)}</Label>
                     <ServiceAreaSelector
                       serviceAreas={formData.service_areas}
                       onChange={(areas) => setFormData({...formData, service_areas: areas})}
                     />
                   </div>
 
-                  {/* Training Specialties - ENHANCED */}
+                  {/* Training Specialties */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label className="text-lg font-semibold">Training Specialties * 🎯</Label>
+                    <Label className="text-lg font-semibold">{t('trainingSpecialties', language)} * 🎯</Label>
                     <p className="text-sm text-gray-600 mb-4">
-                      Select all training areas you specialize in. These will be searchable by potential clients.
+                      {t('trainingSpecialtiesDesc', language)}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {[
-                        { value: "basic_obedience", label: "Basic Obedience", desc: "Sit, stay, come, heel basics" },
-                        { value: "advanced_obedience", label: "Advanced Obedience", desc: "Off-leash control, complex commands" },
-                        { value: "behavior_modification", label: "Behavior Modification", desc: "Correcting unwanted behaviors" },
-                        { value: "puppy_training", label: "Puppy Training", desc: "Early socialization & basics" },
-                        { value: "socialization", label: "Socialization", desc: "Interaction with people & dogs" },
-                        { value: "aggression", label: "Aggression Issues", desc: "Managing aggressive behavior" },
-                        { value: "anxiety", label: "Anxiety & Fear", desc: "Separation anxiety, phobias" },
-                        { value: "potty_training", label: "Potty Training", desc: "Housebreaking & accidents" },
-                        { value: "leash_training", label: "Leash Training", desc: "Pulling, lunging prevention" },
-                        { value: "service_dog", label: "Service Dog Training", desc: "Task-specific training" },
-                        { value: "therapy_dog", label: "Therapy Dog Training", desc: "Certification preparation" },
-                        { value: "agility", label: "Agility Training", desc: "Obstacle courses, competitions" },
-                        { value: "tricks", label: "Tricks & Commands", desc: "Fun tricks and advanced commands" },
+                        { value: "basic_obedience", label: t('basicObedience', language), desc: t('basicObedienceDesc', language) },
+                        { value: "advanced_obedience", label: t('advancedObedience', language), desc: t('advancedObedienceDesc', language) },
+                        { value: "behavior_modification", label: t('behaviorModification', language), desc: t('behaviorModificationDesc', language) },
+                        { value: "puppy_training", label: t('puppyTraining', language), desc: t('puppyTrainingDesc', language) },
+                        { value: "socialization", label: t('socialization', language), desc: t('socializationDesc', language) },
+                        { value: "aggression", label: t('aggressionIssues', language), desc: t('aggressionIssuesDesc', language) },
+                        { value: "anxiety", label: t('anxietyFear', language), desc: t('anxietyFearDesc', language) },
+                        { value: "potty_training", label: t('pottyTraining', language), desc: t('pottyTrainingDesc', language) },
+                        { value: "leash_training", label: t('leashTraining', language), desc: t('leashTrainingDesc', language) },
+                        { value: "service_dog", label: t('serviceDogTraining', language), desc: t('serviceDogTrainingDesc', language) },
+                        { value: "therapy_dog", label: t('therapyDogTraining', language), desc: t('therapyDogTrainingDesc', language) },
+                        { value: "agility", label: t('agilityTraining', language), desc: t('agilityTrainingDesc', language) },
+                        { value: "tricks", label: t('tricksCommands', language), desc: t('tricksCommandsDesc', language) },
                       ].map(specialty => (
                         <div key={specialty.value} className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
                           formData.training_specialties.includes(specialty.value)
@@ -512,11 +514,11 @@ export default function BecomeTrainer() {
                     </div>
                   </div>
 
-                  {/* Training Methodologies - ENHANCED */}
+                  {/* Training Methodologies */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label className="text-lg font-semibold">Training Methodologies * 🎓</Label>
+                    <Label className="text-lg font-semibold">{t('trainingMethodologies', language)} * 🎓</Label>
                     <p className="text-sm text-gray-600 mb-3">
-                      Select all methodologies you use. Mark one as your primary approach. This helps clients find trainers that match their training philosophy.
+                      {t('trainingMethodologiesDesc', language)}
                     </p>
                     <div className="grid gap-3">
                       {trainingMethodologies.map(method => {
@@ -548,7 +550,7 @@ export default function BecomeTrainer() {
                                       onClick={() => toggleMethodology(method.value, true)}
                                       className="text-xs"
                                     >
-                                      {selected.primary ? "★ Primary Method" : "Set as Primary"}
+                                      {selected.primary ? t('primaryMethod', language) : t('setPrimary', language)}
                                     </Button>
                                   )}
                                 </div>
@@ -561,12 +563,12 @@ export default function BecomeTrainer() {
                     </div>
                   </div>
 
-                  {/* Success Rate & Experience - NEW SECTION */}
+                  {/* Professional Track Record */}
                   <div className="border-t-2 border-purple-100 pt-6">
-                    <h3 className="text-lg font-semibold mb-4">Professional Track Record</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('professionalTrackRecord', language)}</h3>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="experience_years">Years of Experience *</Label>
+                        <Label htmlFor="experience_years">{t('yearsOfExperience', language)} *</Label>
                         <Input
                           id="experience_years"
                           type="number"
@@ -577,7 +579,7 @@ export default function BecomeTrainer() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="success_rate">Success Rate (%) *</Label>
+                        <Label htmlFor="success_rate">{t('successRate', language)} *</Label>
                         <Input
                           id="success_rate"
                           type="number"
@@ -590,15 +592,15 @@ export default function BecomeTrainer() {
                           placeholder="95"
                         />
                         <p className="text-xs text-gray-500">
-                          Percentage of clients who achieved their training goals
+                          {t('successRateDesc', language)}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Dog Breeds - NEW */}
+                  {/* Dog Breeds */}
                   <div className="space-y-2 border-t-2 border-purple-100 pt-6">
-                    <Label>Dog Breeds You Have Experience With</Label>
+                    <Label>{t('dogBreedsExperience', language)}</Label>
                     <BreedSelector
                       selectedBreeds={formData.dog_breeds_handled}
                       onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
@@ -609,12 +611,12 @@ export default function BecomeTrainer() {
 
                   {/* Consultation Options */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label>Consultation Methods *</Label>
+                    <Label>{t('consultationMethods', language)} *</Label>
                     <div className="grid grid-cols-3 gap-4">
                       {[
-                        { value: "in_person", label: "In-Person" },
-                        { value: "online", label: "Online" },
-                        { value: "hybrid", label: "Hybrid" },
+                        { value: "in_person", label: t('inPerson', language) },
+                        { value: "online", label: t('online', language) },
+                        { value: "hybrid", label: t('hybrid', language) },
                       ].map(method => (
                         <div key={method.value} className="flex items-center space-x-2">
                           <Checkbox
@@ -630,16 +632,16 @@ export default function BecomeTrainer() {
                     </div>
                   </div>
 
-                  {/* NEW: Services Offered */}
+                  {/* Services Offered */}
                   <div className="border-t-2 border-purple-100 pt-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-xl font-bold">Services & Packages</Label>
-                        <p className="text-sm text-gray-600 mt-1">Define your training programs and pricing</p>
+                        <Label className="text-xl font-bold">{t('servicesPackages', language)}</Label>
+                        <p className="text-sm text-gray-600 mt-1">{t('servicesPackagesDesc', language)}</p>
                       </div>
                       <Button type="button" variant="outline" onClick={addService}>
                         <PlusCircle className="w-4 h-4 mr-2" />
-                        Add Service
+                        {t('addService', language)}
                       </Button>
                     </div>
 
@@ -647,7 +649,7 @@ export default function BecomeTrainer() {
                       <Card key={index} className="p-4 bg-purple-50 border-2 border-purple-200">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-gray-900">Program #{index + 1}</h4>
+                            <h4 className="font-semibold text-gray-900">{t('programNumber', language).replace('#', `#${index + 1}`)}</h4>
                             <Button
                               type="button"
                               variant="ghost"
@@ -655,41 +657,41 @@ export default function BecomeTrainer() {
                               onClick={() => removeService(index)}
                               className="text-red-600"
                             >
-                              Remove
+                              {t('remove', language)}
                             </Button>
                           </div>
 
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor={`service-name-${index}`}>Service Name</Label>
+                              <Label htmlFor={`service-name-${index}`}>{t('serviceName', language)}</Label>
                               <Input
                                 id={`service-name-${index}`}
-                                placeholder="e.g., Basic Obedience"
+                                placeholder={t('serviceNamePlaceholder', language)}
                                 value={service.service_name}
                                 onChange={(e) => updateService(index, 'service_name', e.target.value)}
-                                required // Made required if service exists
+                                required
                               />
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor={`service-price-${index}`}>Single Session Price (€)</Label>
+                              <Label htmlFor={`service-price-${index}`}>{t('singleSessionPrice', language)} (€)</Label>
                               <Input
                                 id={`service-price-${index}`}
                                 type="number"
                                 step="0.01"
                                 placeholder="50.00"
-                                value={service.price === null ? '' : service.price} // Handle null for empty input
+                                value={service.price === null ? '' : service.price}
                                 onChange={(e) => updateService(index, 'price', e.target.value)}
-                                required // Made required if service exists
+                                required
                               />
                             </div>
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor={`service-description-${index}`}>Description</Label>
+                            <Label htmlFor={`service-description-${index}`}>{t('description', language)}</Label>
                             <Textarea
                               id={`service-description-${index}`}
-                              placeholder="What does this training program include..."
+                              placeholder={t('descriptionPlaceholder', language)}
                               value={service.description}
                               onChange={(e) => updateService(index, 'description', e.target.value)}
                               rows={3}
@@ -697,7 +699,7 @@ export default function BecomeTrainer() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Session Duration Options</Label>
+                            <Label>{t('sessionDurationOptions', language)}</Label>
                             <div className="flex flex-wrap gap-2">
                               {['45min', '1hr', '1.5hr', '2hr'].map(duration => (
                                 <label key={duration} className="flex items-center gap-2 cursor-pointer">
@@ -735,28 +737,28 @@ export default function BecomeTrainer() {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Award className="w-6 h-6 text-purple-600" />
-                        Professional Certifications
+                        {t('professionalCertifications', language)}
                       </h3>
                       <Button type="button" variant="outline" onClick={addCertification}>
-                        Add Certification
+                        {t('addCertification', language)}
                       </Button>
                     </div>
                     {formData.certifications.map((cert, index) => (
                       <div key={index} className="bg-purple-50 rounded-lg p-4 mb-4">
                         <div className="grid md:grid-cols-2 gap-4">
                           <Input
-                            placeholder="Certification Name"
+                            placeholder={t('certificationName', language)}
                             value={cert.name}
                             onChange={(e) => updateCertification(index, 'name', e.target.value)}
                           />
                           <Input
-                            placeholder="Issuing Organization"
+                            placeholder={t('issuingOrganization', language)}
                             value={cert.issuing_organization}
                             onChange={(e) => updateCertification(index, 'issuing_organization', e.target.value)}
                           />
                           <Input
                             type="number"
-                            placeholder="Year"
+                            placeholder={t('year', language)}
                             value={cert.year}
                             onChange={(e) => updateCertification(index, 'year', e.target.value)}
                           />
@@ -769,11 +771,11 @@ export default function BecomeTrainer() {
                   <div className="border-t-2 border-purple-100 pt-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <Shield className="w-6 h-6 text-purple-600" />
-                      Verification Documents *
+                      {t('verificationDocuments', language)} *
                     </h3>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="id_document_upload">Government ID *</Label>
+                        <Label htmlFor="id_document_upload">{t('governmentId', language)} *</Label>
                         <Input
                           id="id_document_upload"
                           type="file"
@@ -782,15 +784,14 @@ export default function BecomeTrainer() {
                           disabled={uploading.id}
                           required
                         />
-                        {formData.id_document_url && <p className="text-sm text-green-600">✓ Uploaded</p>}
+                        {formData.id_document_url && <p className="text-sm text-green-600">✓ {t('documentUploaded', language)}</p>}
                       </div>
 
-                      {/* ENHANCED: Background Check */}
                       <div className="space-y-2">
-                        <Label htmlFor="background_check_provider">Background Check (Highly Recommended) 🛡️</Label>
+                        <Label htmlFor="background_check_provider">{t('backgroundCheck', language)} 🛡️</Label>
                         <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-3">
                           <p className="text-sm text-purple-900">
-                            <strong>✓ Build trust with clients!</strong> Upload a background check from a trusted provider.
+                            {t('buildTrustWithClients', language)}
                           </p>
                         </div>
                         <Select
@@ -798,14 +799,14 @@ export default function BecomeTrainer() {
                           onValueChange={(value) => setFormData({...formData, background_check_provider: value})}
                         >
                           <SelectTrigger id="background_check_provider">
-                            <SelectValue placeholder="Select Provider" />
+                            <SelectValue placeholder={t('selectProvider', language)} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="checkr">Checkr</SelectItem>
                             <SelectItem value="sterling">Sterling</SelectItem>
                             <SelectItem value="goodhire">GoodHire</SelectItem>
                             <SelectItem value="certn">Certn</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="other">{t('other', language)}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Input
@@ -816,12 +817,12 @@ export default function BecomeTrainer() {
                           className="mt-2"
                         />
                         {formData.background_check_url && (
-                          <p className="text-sm text-green-600">✓ Document uploaded</p>
+                          <p className="text-sm text-green-600">✓ {t('documentUploaded', language)}</p>
                         )}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="proof_of_address_upload">Proof of Address *</Label>
+                        <Label htmlFor="proof_of_address_upload">{t('proofOfAddress', language)} *</Label>
                         <Input
                           id="proof_of_address_upload"
                           type="file"
@@ -830,7 +831,7 @@ export default function BecomeTrainer() {
                           disabled={uploading.address}
                           required
                         />
-                        {formData.proof_of_address_url && <p className="text-sm text-green-600">✓ Uploaded</p>}
+                        {formData.proof_of_address_url && <p className="text-sm text-green-600">✓ {t('documentUploaded', language)}</p>}
                       </div>
                     </div>
                   </div>
@@ -844,35 +845,38 @@ export default function BecomeTrainer() {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  {/* Banking Info */}
                   <div className="border-t-2 border-purple-100 pt-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Payment Information *</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">{t('paymentInformation', language)} *</h3>
+                    <p className="text-gray-600 mb-4">{t('paymentInfoDesc', language)}</p>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="bank_account_holder">Account Holder Name *</Label>
+                        <Label htmlFor="bank_account_holder">{t('accountHolderName', language)} *</Label>
                         <Input
                           id="bank_account_holder"
                           required
                           value={formData.bank_account_holder}
                           onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                          placeholder={t('joaoSilva', language)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="bank_account_number">Bank Account Number *</Label>
+                        <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)} *</Label>
                         <Input
                           id="bank_account_number"
                           required
                           value={formData.bank_account_number}
                           onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                          placeholder="PT50000201231234567890154"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="bank_routing_number">Routing Number *</Label>
+                        <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)} *</Label>
                         <Input
                           id="bank_routing_number"
                           required
                           value={formData.bank_routing_number}
                           onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
+                          placeholder="BOFAPORTXXX"
                         />
                       </div>
                     </div>
@@ -888,7 +892,7 @@ export default function BecomeTrainer() {
                     onClick={handlePreviousStep}
                     className="flex-1"
                   >
-                    Previous
+                    {t('previous', language)}
                   </Button>
                 )}
                 {currentStep < totalSteps ? (
@@ -898,7 +902,7 @@ export default function BecomeTrainer() {
                     disabled={!canProceedToNextStep(currentStep)}
                     className="flex-1 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white"
                   >
-                    Next
+                    {t('next', language)}
                   </Button>
                 ) : (
                   <Button
@@ -906,7 +910,7 @@ export default function BecomeTrainer() {
                     disabled={createTrainerMutation.isPending || !canProceedToNextStep(currentStep)}
                     className="flex-1 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white"
                   >
-                    {createTrainerMutation.isPending ? "Submitting..." : "Submit for Verification"}
+                    {createTrainerMutation.isPending ? t('submitting', language) : t('submitForVerification', language)}
                   </Button>
                 )}
               </div>
