@@ -214,51 +214,55 @@ export default function MyBookings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Bookings</h1>
-          <p className="text-gray-600 text-lg">Manage your dog walking appointments</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">My Bookings</h1>
+          <p className="text-sm md:text-lg text-gray-600">Manage your appointments</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="bg-white border border-gray-200 shadow-sm">
-            <TabsTrigger value="all" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
-              All Bookings
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700">
-              Pending
-            </TabsTrigger>
-            <TabsTrigger value="confirmed" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
-              Confirmed
-            </TabsTrigger>
-            <TabsTrigger value="in_progress" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700">
-              In Progress
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
-              Completed
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Tabs - Mobile Optimized with Horizontal Scroll */}
+        <div className="mb-6 md:mb-8 overflow-x-auto pb-2 scrollbar-hide">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-max">
+            <TabsList className="bg-white border border-gray-200 shadow-sm inline-flex">
+              <TabsTrigger value="all" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700 text-sm md:text-base px-3 md:px-4">
+                All
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700 text-sm md:text-base px-3 md:px-4">
+                Pending
+              </TabsTrigger>
+              <TabsTrigger value="confirmed" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-sm md:text-base px-3 md:px-4">
+                Confirmed
+              </TabsTrigger>
+              <TabsTrigger value="in_progress" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 text-sm md:text-base px-3 md:px-4">
+                Progress
+              </TabsTrigger>
+              <TabsTrigger value="completed" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700 text-sm md:text-base px-3 md:px-4">
+                Done
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
+        {/* Bookings List - Mobile Optimized */}
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+              <Skeleton key={i} className="h-48 md:h-64 w-full rounded-2xl" />
             ))}
           </div>
         ) : filteredBookings.length === 0 ? (
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-12 text-center">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-12 h-12 text-gray-400" />
+            <CardContent className="p-8 md:p-12 text-center">
+              <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Calendar className="w-8 h-8 md:w-12 md:h-12 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">No bookings yet</h3>
-              <p className="text-gray-600">Start by finding a dog walker or trainer!</p>
+              <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2">No bookings yet</h3>
+              <p className="text-sm md:text-base text-gray-600">Find a dog walker or trainer!</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {filteredBookings.map((booking, index) => {
               const isTraining = !!booking.session_date;
               return (
@@ -269,10 +273,10 @@ export default function MyBookings() {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-2xl mb-2">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100 p-4 md:p-6">
+                      <div className="flex flex-col md:flex-row justify-between items-start gap-3 md:gap-4">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg md:text-2xl mb-2">
                             {isTraining ? `Training with ${booking.trainer_name}` : `Walk with ${booking.walker_name}`}
                           </CardTitle>
                           <div className="flex gap-2 flex-wrap">
@@ -280,26 +284,21 @@ export default function MyBookings() {
                               {booking.status}
                             </Badge>
                             <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                              Payment: {booking.payment_status}
+                              {booking.payment_status}
                             </Badge>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-3xl font-bold text-green-600">
+                          <div className="text-2xl md:text-3xl font-bold text-green-600">
                             €{booking.total_amount?.toFixed(2)}
                           </div>
-                          <div className="text-sm text-gray-600">
-                            €{booking.service_amount?.toFixed(2)} + €{booking.platform_fee?.toFixed(2)} fee
+                          <div className="text-xs md:text-sm text-gray-600">
+                            {booking.duration_hours}h
                           </div>
-                          {booking.duration_hours && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {booking.duration_hours}h walk
-                            </div>
-                          )}
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                       <div className="grid md:grid-cols-2 gap-6 mb-6">
                         <div className="space-y-4">
                           <div className="flex items-start gap-3">

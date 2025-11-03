@@ -159,10 +159,10 @@ export default function MyProfile() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-        <Skeleton className="h-64 rounded-3xl mb-6" />
-        <div className="grid md:grid-cols-3 gap-6">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
+        <Skeleton className="h-48 md:h-64 rounded-3xl mb-4 md:mb-6" />
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+          {[1,2,3].map(i => <Skeleton key={i} className="h-32 md:h-48 rounded-2xl" />)}
         </div>
       </div>
     );
@@ -171,20 +171,20 @@ export default function MyProfile() {
   const subscriptionInfo = getSubscriptionProgress();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Hero Section */}
+        {/* Hero Section - Mobile Optimized */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 md:mb-8"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-5xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2">
                 {t('hello', language)}, {user?.full_name || t('notDefined', language)} 👋
               </h1>
-              <p className="text-xl text-gray-600">
+              <p className="text-base md:text-xl text-gray-600">
                 {t('yourCompleteDashboard', language)}
               </p>
             </div>
@@ -192,11 +192,11 @@ export default function MyProfile() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className={`bg-gradient-to-r ${subscriptionInfo.color} text-white rounded-2xl px-6 py-4 shadow-2xl`}
+                className={`bg-gradient-to-r ${subscriptionInfo.color} text-white rounded-2xl px-4 md:px-6 py-3 md:py-4 shadow-2xl`}
               >
                 <div className="text-center">
-                  <div className="text-4xl mb-2">{subscriptionInfo.icon}</div>
-                  <div className="text-xl font-bold">{ownerSubscription.plan_type.toUpperCase()}</div>
+                  <div className="text-3xl md:text-4xl mb-1 md:mb-2">{subscriptionInfo.icon}</div>
+                  <div className="text-lg md:text-xl font-bold">{ownerSubscription.plan_type.toUpperCase()}</div>
                   <div className="text-xs opacity-90">Member</div>
                 </div>
               </motion.div>
@@ -253,41 +253,41 @@ export default function MyProfile() {
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:scale-105 transition-transform"
+        {/* Quick Stats - Mobile Optimized */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
                 onClick={() => navigate(createPageUrl('LoyaltyRewards'))}>
-            <CardContent className="p-6 text-center">
-              <Gift className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
-              <div className="text-sm opacity-90">{t('pawPoints', language)}</div>
+            <CardContent className="p-4 md:p-6 text-center">
+              <Gift className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
+              <div className="text-2xl md:text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
+              <div className="text-xs md:text-sm opacity-90">{t('pawPoints', language)}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:scale-105 transition-transform"
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
                 onClick={() => navigate(createPageUrl('MyBookings'))}>
-            <CardContent className="p-6 text-center">
-              <Calendar className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{upcomingBookings?.length || 0}</div>
-              <div className="text-sm opacity-90">{t('upcomingWalks', language)}</div>
+            <CardContent className="p-4 md:p-6 text-center">
+              <Calendar className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
+              <div className="text-2xl md:text-3xl font-bold">{upcomingBookings?.length || 0}</div>
+              <div className="text-xs md:text-sm opacity-90">{t('upcomingWalks', language)}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:scale-105 transition-transform"
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
                 onClick={() => navigate(createPageUrl('Favorites'))}>
-            <CardContent className="p-6 text-center">
-              <Heart className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{favorites?.length || 0}</div>
-              <div className="text-sm opacity-90">{t('favorites', language)}</div>
+            <CardContent className="p-4 md:p-6 text-center">
+              <Heart className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
+              <div className="text-2xl md:text-3xl font-bold">{favorites?.length || 0}</div>
+              <div className="text-xs md:text-sm opacity-90">{t('favorites', language)}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:scale-105 transition-transform"
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
                 onClick={() => navigate(createPageUrl('Notifications'))}>
-            <CardContent className="p-6 text-center">
-              <Bell className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{notifications?.length || 0}</div>
-              <div className="text-sm opacity-90">{t('notifications', language)}</div>
+            <CardContent className="p-4 md:p-6 text-center">
+              <Bell className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
+              <div className="text-2xl md:text-3xl font-bold">{notifications?.length || 0}</div>
+              <div className="text-xs md:text-sm opacity-90">{t('notifications', language)}</div>
             </CardContent>
           </Card>
         </div>
@@ -429,8 +429,8 @@ export default function MyProfile() {
           </Card>
         )}
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-6 mb-6">
+        {/* Quick Actions - Mobile Optimized Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
           <Card className="border-0 shadow-xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -538,11 +538,11 @@ export default function MyProfile() {
           </Card>
         </div>
 
-        {/* Logout Button */}
+        {/* Logout Button - Mobile Optimized */}
         <Button
           variant="outline"
           onClick={handleLogout}
-          className="w-full max-w-md mx-auto block h-12 border-red-200 text-red-600 hover:bg-red-50"
+          className="w-full max-w-md mx-auto block h-11 md:h-12 border-red-200 text-red-600 hover:bg-red-50 touch-manipulation active:scale-95"
         >
           {t('logout', language)}
         </Button>

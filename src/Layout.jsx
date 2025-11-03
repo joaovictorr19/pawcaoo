@@ -273,12 +273,10 @@ function LayoutContent({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-6 py-4 sticky top-0 z-10">
-            <div className="flex items-center gap-4">
+          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-10">
+            <div className="flex items-center gap-3 md:gap-4">
               {/* Mobile Menu Trigger */}
-              <div className="md:hidden">
-                <SidebarTrigger className="hover:bg-green-100 p-2 rounded-lg transition-colors duration-200" />
-              </div>
+              <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors" />
 
               {/* Logo for Mobile */}
               <Link to={createPageUrl("Home")} className="md:hidden">
@@ -294,28 +292,27 @@ function LayoutContent({ children, currentPageName }) {
                 <span className="font-semibold text-green-700">{t('findWalkers', language)}</span>
               </Link>
 
-              {/* Page Title - Hidden on small screens */}
-              <div className="hidden lg:block flex-1">
-                <h1 className="text-lg font-semibold text-gray-900">
+              {/* Page Title */}
+              <div className="hidden md:block flex-1">
+                <h1 className="text-lg font-semibold text-gray-900 truncate">
                   {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                 </h1>
               </div>
 
               {/* Plan Badge Desktop */}
               {planBadge && (
-                <div className="hidden md:block">
-                  <Badge className={`${planBadge.color} text-white`}>
-                    {planBadge.icon} {planBadge.name}
-                  </Badge>
-                </div>
+                <Badge className={`${planBadge.color} text-white text-xs md:text-sm`}>
+                  <span className="hidden sm:inline">{planBadge.icon} </span>
+                  {planBadge.name}
+                </Badge>
               )}
 
               {/* Notifications */}
               {unreadCount > 0 && (
                 <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0">
-                  <Badge className="bg-red-500 text-white px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer">
-                    <Bell className="w-4 h-4 mr-1" />
-                    {unreadCount}
+                  <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer">
+                    <Bell className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+                    <span className="hidden sm:inline">{unreadCount}</span>
                   </Badge>
                 </Link>
               )}
@@ -323,8 +320,8 @@ function LayoutContent({ children, currentPageName }) {
               {/* Mobile Language Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Globe className="w-5 h-5" />
+                  <Button variant="ghost" size="icon" className="md:hidden h-9 w-9">
+                    <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
