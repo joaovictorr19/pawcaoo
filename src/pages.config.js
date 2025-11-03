@@ -24,6 +24,9 @@ import PartnerDashboard from './pages/PartnerDashboard';
 import LiveWalkTracking from './pages/LiveWalkTracking';
 import ProfessionalDashboard from './pages/ProfessionalDashboard';
 import Leaderboard from './pages/Leaderboard';
+import Community from './pages/Community';
+import SocialFeed from './pages/SocialFeed';
+import ForumTopicDetails from './pages/ForumTopicDetails';
 import Layout from './Layout.jsx';
 
 
@@ -54,6 +57,9 @@ export const PAGES = {
     "LiveWalkTracking": LiveWalkTracking,
     "ProfessionalDashboard": ProfessionalDashboard,
     "Leaderboard": Leaderboard,
+    "Community": Community,
+    "SocialFeed": SocialFeed,
+    "ForumTopicDetails": ForumTopicDetails,
 }
 
 export const pagesConfig = {

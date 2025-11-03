@@ -73,6 +73,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
+    { title: "💬 Community Forum", url: createPageUrl("Community"), icon: MessageCircle },
+    { title: "🐾 Social Feed", url: createPageUrl("SocialFeed"), icon: Heart },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -202,7 +204,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(6, 13).map((item) => ( /* This slice remains correct, includes items up to LoyaltyRewards (index 12) */
+                  {navigationItems.slice(6, 15).map((item) => ( /* Updated slice to include Community Forum, Social Feed, and shifted subsequent items */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -230,7 +232,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(13, 18).map((item) => ( /* This slice now includes Leaderboard (new index 13) and ends before Walker Subscriptions (new index 18) */
+                  {navigationItems.slice(15, 20).map((item) => ( /* Updated slice for professional services */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -253,7 +255,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(18).map((item) => ( /* This slice now starts at Walker Subscriptions (new index 18) */
+                  {navigationItems.slice(20).map((item) => ( /* Updated slice for account items */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
