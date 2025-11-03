@@ -350,7 +350,7 @@ export default function AdminDashboard() {
   // Access control
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
         <Skeleton className="w-full max-w-7xl h-96" />
       </div>
     );
@@ -358,14 +358,14 @@ export default function AdminDashboard() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
-        <Card className="max-w-md border-0 shadow-2xl dark:bg-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
+        <Card className="max-w-md border-0 shadow-2xl">
           <CardContent className="p-12 text-center">
-            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Ban className="w-10 h-10 text-red-600 dark:text-red-400" />
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Ban className="w-10 h-10 text-red-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
-            <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-gray-600">You don't have permission to access this page.</p>
           </CardContent>
         </Card>
       </div>
@@ -373,7 +373,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 transition-colors">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -382,39 +382,39 @@ export default function AdminDashboard() {
               <Shield className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400">Manage PawCão platform</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600">Manage PawCão platform</p>
             </div>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 mb-8 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 mb-8 bg-white shadow-lg p-1 h-auto">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <BarChart3 className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-blue-700">
+            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <Users className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
+            <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <Store className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Empresas</span>
             </TabsTrigger>
-            <TabsTrigger value="applications" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-orange-700">
+            <TabsTrigger value="applications" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <Briefcase className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Apps</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
+            <TabsTrigger value="bookings" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <Calendar className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Bookings</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-emerald-700">
+            <TabsTrigger value="payments" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <DollarSign className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Payments</span>
             </TabsTrigger>
-            <TabsTrigger value="support" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-red-700">
+            <TabsTrigger value="support" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs md:text-sm py-3">
               <AlertCircle className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Support</span>
             </TabsTrigger>
@@ -472,37 +472,37 @@ export default function AdminDashboard() {
 
               {/* Additional Stats */}
               <div className="grid md:grid-cols-3 gap-4">
-                <Card className="border-0 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                <Card className="border-0 shadow-lg">
                   <CardContent className="p-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Active Bookings</div>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.activeBookings}</div>
+                    <div className="text-sm text-gray-600 mb-1">Active Bookings</div>
+                    <div className="text-2xl font-bold text-blue-600">{stats.activeBookings}</div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                <Card className="border-0 shadow-lg">
                   <CardContent className="p-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Monthly Revenue</div>
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">€{stats.monthlyRevenue.toFixed(0)}</div>
+                    <div className="text-sm text-gray-600 mb-1">Monthly Revenue</div>
+                    <div className="text-2xl font-bold text-green-600">€{stats.monthlyRevenue.toFixed(0)}</div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                <Card className="border-0 shadow-lg">
                   <CardContent className="p-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending Applications</div>
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.pendingApplications}</div>
+                    <div className="text-sm text-gray-600 mb-1">Pending Applications</div>
+                    <div className="text-2xl font-bold text-orange-600">{stats.pendingApplications}</div>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Alerts */}
               {stats.openEmergencies > 0 && (
-                <Card className="border-2 border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-700">
+                <Card className="border-2 border-red-500 bg-red-50">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3">
-                      <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                      <AlertCircle className="w-8 h-8 text-red-600" />
                       <div>
-                        <h3 className="font-bold text-red-900 dark:text-red-300 text-lg">Open Emergencies</h3>
-                        <p className="text-red-700 dark:text-red-300">{stats.openEmergencies} emergency reports need attention</p>
+                        <h3 className="font-bold text-red-900 text-lg">Open Emergencies</h3>
+                        <p className="text-red-700">{stats.openEmergencies} emergency reports need attention</p>
                       </div>
                     </div>
                   </CardContent>
@@ -513,17 +513,17 @@ export default function AdminDashboard() {
 
           {/* USERS TAB */}
           <TabsContent value="users">
-            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+            <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <CardTitle className="text-2xl dark:text-gray-100">Gestão de Utilizadores</CardTitle>
+                  <CardTitle className="text-2xl">Gestão de Utilizadores</CardTitle>
                   <div className="relative w-full md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       placeholder="Pesquisar utilizadores..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      className="pl-10"
                     />
                   </div>
                 </div>
@@ -532,13 +532,13 @@ export default function AdminDashboard() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="dark:border-gray-700">
-                        <TableHead className="dark:text-gray-300">Email</TableHead>
-                        <TableHead className="dark:text-gray-300">Nome</TableHead>
-                        <TableHead className="dark:text-gray-300">Tipo de Conta</TableHead>
-                        <TableHead className="dark:text-gray-300">Função</TableHead>
-                        <TableHead className="dark:text-gray-300">Registado</TableHead>
-                        <TableHead className="dark:text-gray-300">Ações</TableHead>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Tipo de Conta</TableHead>
+                        <TableHead>Função</TableHead>
+                        <TableHead>Registado</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -548,11 +548,11 @@ export default function AdminDashboard() {
                           u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
                         )
                         .map(user => (
-                          <TableRow key={user.id} className="dark:border-gray-700">
-                            <TableCell className="font-medium dark:text-gray-300">{user.email}</TableCell>
-                            <TableCell className="dark:text-gray-300">{user.full_name || 'N/A'}</TableCell>
+                          <TableRow key={user.id}>
+                            <TableCell className="font-medium">{user.email}</TableCell>
+                            <TableCell>{user.full_name || 'N/A'}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="capitalize dark:border-gray-600 dark:text-gray-300">
+                              <Badge variant="outline" className="capitalize">
                                 {user.account_type || 'owner'}
                               </Badge>
                             </TableCell>
@@ -561,14 +561,14 @@ export default function AdminDashboard() {
                                 {user.role === 'admin' ? 'Admin' : 'Utilizador'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="dark:text-gray-300">{format(new Date(user.created_date), 'dd/MM/yyyy')}</TableCell>
+                            <TableCell>{format(new Date(user.created_date), 'dd/MM/yyyy')}</TableCell>
                             <TableCell>
                               <div className="flex gap-2">
                                 <Button 
                                   size="sm" 
                                   variant="outline"
                                   onClick={() => handleEditUser(user)}
-                                  className="hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300"
+                                  className="hover:bg-blue-50"
                                 >
                                   <Edit className="w-4 h-4 mr-1" />
                                   Editar
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
                                   size="sm" 
                                   variant="outline"
                                   onClick={() => handleDeleteUser(user)}
-                                  className="hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
+                                  className="hover:bg-red-50 text-red-600 border-red-200"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -593,59 +593,61 @@ export default function AdminDashboard() {
 
             {/* User Edit Dialog */}
             <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-              <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700">
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle className="dark:text-gray-100">Editar Utilizador</DialogTitle>
-                  <DialogDescription className="dark:text-gray-400">
+                  <DialogTitle>Editar Utilizador</DialogTitle>
+                  <DialogDescription>
                     Edite as informações e permissões do utilizador {selectedUser?.email}
                   </DialogDescription>
                 </DialogHeader>
                 
                 {selectedUser && (
                   <div className="space-y-4 py-4">
+                    {/* Email (read-only) */}
                     <div>
-                      <Label className="dark:text-gray-300">Email</Label>
-                      <Input value={selectedUser.email} disabled className="bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-400" />
+                      <Label>Email</Label>
+                      <Input value={selectedUser.email} disabled className="bg-gray-50" />
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
+                      {/* Full Name */}
                       <div>
-                        <Label className="dark:text-gray-300">Nome Completo</Label>
+                        <Label>Nome Completo</Label>
                         <Input
                           value={userFormData.full_name}
                           onChange={(e) => setUserFormData({...userFormData, full_name: e.target.value})}
                           placeholder="Nome do utilizador"
-                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                         />
                       </div>
 
+                      {/* Phone */}
                       <div>
-                        <Label className="dark:text-gray-300">Telefone</Label>
+                        <Label>Telefone</Label>
                         <Input
                           value={userFormData.phone}
                           onChange={(e) => setUserFormData({...userFormData, phone: e.target.value})}
                           placeholder="+351 912 345 678"
-                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                         />
                       </div>
 
+                      {/* Role */}
                       <div>
-                        <Label className="dark:text-gray-300">Função no Sistema</Label>
+                        <Label>Função no Sistema</Label>
                         <Select 
                           value={userFormData.role} 
                           onValueChange={(value) => setUserFormData({...userFormData, role: value})}
                         >
-                          <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
-                            <SelectItem value="user" className="dark:hover:bg-gray-700">
+                          <SelectContent>
+                            <SelectItem value="user">
                               <span className="flex items-center gap-2">
                                 <User className="w-4 h-4" />
                                 Utilizador
                               </span>
                             </SelectItem>
-                            <SelectItem value="admin" className="dark:hover:bg-gray-700">
+                            <SelectItem value="admin">
                               <span className="flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4" />
                                 Administrador
@@ -654,72 +656,74 @@ export default function AdminDashboard() {
                           </SelectContent>
                         </Select>
                         {userFormData.role === 'admin' && (
-                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                          <p className="text-xs text-orange-600 mt-1">
                             ⚠️ Administradores têm acesso total ao sistema
                           </p>
                         )}
                       </div>
 
+                      {/* Account Type */}
                       <div>
-                        <Label className="dark:text-gray-300">Tipo de Conta</Label>
+                        <Label>Tipo de Conta</Label>
                         <Select 
                           value={userFormData.account_type} 
                           onValueChange={(value) => setUserFormData({...userFormData, account_type: value})}
                         >
-                          <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
-                            <SelectItem value="owner" className="dark:hover:bg-gray-700">Dono de Cão</SelectItem>
-                            <SelectItem value="walker" className="dark:hover:bg-gray-700">Passeador</SelectItem>
-                            <SelectItem value="trainer" className="dark:hover:bg-gray-700">Treinador</SelectItem>
-                            <SelectItem value="both" className="dark:hover:bg-gray-700">Passeador & Treinador</SelectItem>
-                            <SelectItem value="company" className="dark:hover:bg-gray-700">Empresa</SelectItem>
+                          <SelectContent>
+                            <SelectItem value="owner">Dono de Cão</SelectItem>
+                            <SelectItem value="walker">Passeador</SelectItem>
+                            <SelectItem value="trainer">Treinador</SelectItem>
+                            <SelectItem value="both">Passeador & Treinador</SelectItem>
+                            <SelectItem value="company">Empresa</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
+                      {/* City */}
                       <div>
-                        <Label className="dark:text-gray-300">Cidade</Label>
+                        <Label>Cidade</Label>
                         <Input
                           value={userFormData.city}
                           onChange={(e) => setUserFormData({...userFormData, city: e.target.value})}
                           placeholder="Lisboa"
-                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                         />
                       </div>
 
+                      {/* Postal Code */}
                       <div>
-                        <Label className="dark:text-gray-300">Código Postal</Label>
+                        <Label>Código Postal</Label>
                         <Input
                           value={userFormData.postal_code}
                           onChange={(e) => setUserFormData({...userFormData, postal_code: e.target.value})}
                           placeholder="1000-001"
-                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                         />
                       </div>
                     </div>
 
+                    {/* Address */}
                     <div>
-                      <Label className="dark:text-gray-300">Morada</Label>
+                      <Label>Morada</Label>
                       <Input
                         value={userFormData.address}
                         onChange={(e) => setUserFormData({...userFormData, address: e.target.value})}
                         placeholder="Rua Principal, 123"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
 
-                    <Card className="bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                    {/* User Info Card */}
+                    <Card className="bg-gray-50 border-gray-200">
                       <CardContent className="p-4">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400">ID do Utilizador</p>
-                            <p className="font-mono text-xs dark:text-gray-300">{selectedUser.id}</p>
+                            <p className="text-gray-500">ID do Utilizador</p>
+                            <p className="font-mono text-xs">{selectedUser.id}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400">Data de Registo</p>
-                            <p className="dark:text-gray-300">{format(new Date(selectedUser.created_date), 'dd/MM/yyyy HH:mm')}</p>
+                            <p className="text-gray-500">Data de Registo</p>
+                            <p>{format(new Date(selectedUser.created_date), 'dd/MM/yyyy HH:mm')}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -731,7 +735,6 @@ export default function AdminDashboard() {
                   <Button 
                     variant="outline" 
                     onClick={() => setShowUserDialog(false)}
-                    className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Cancelar
                   </Button>
@@ -749,12 +752,12 @@ export default function AdminDashboard() {
 
           {/* COMPANIES TAB */}
           <TabsContent value="companies">
-            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+            <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
-                    <CardTitle className="text-2xl dark:text-gray-100">Gestão de Empresas Parceiras</CardTitle>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Adicione e gira empresas parceiras no sistema</p>
+                    <CardTitle className="text-2xl">Gestão de Empresas Parceiras</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">Adicione e gira empresas parceiras no sistema</p>
                   </div>
                   <Button 
                     onClick={() => {
@@ -779,42 +782,42 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {partnerCompanies.map((company) => (
-                    <Card key={company.id} className="border-2 border-green-100 dark:border-green-700 dark:bg-gray-800">
+                    <Card key={company.id} className="border-2 border-green-100">
                       <CardContent className="p-6">
                         {company.logo_url && (
                           <img 
                             src={company.logo_url} 
                             alt={company.company_name} 
-                            className="w-full h-32 object-contain mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-2"
+                            className="w-full h-32 object-contain mb-4 bg-gray-50 rounded-lg p-2"
                           />
                         )}
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">{company.company_name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{company.company_email}</p>
+                        <h3 className="font-bold text-lg text-gray-900 mb-2">{company.company_name}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{company.company_email}</p>
                         
                         <div className="flex gap-2 mb-4">
-                          <Badge className="capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type.replace('_', ' ')}</Badge>
+                          <Badge className="capitalize">{company.company_type.replace('_', ' ')}</Badge>
                           <Badge className={company.is_active ? "bg-green-500" : "bg-gray-500"}>
                             {company.is_active ? "Ativo" : "Inativo"}
                           </Badge>
-                          <Badge variant="outline" className="capitalize dark:border-gray-600 dark:text-gray-300">{company.subscription_tier}</Badge>
+                          <Badge variant="outline" className="capitalize">{company.subscription_tier}</Badge>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-sm mb-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                        <div className="grid grid-cols-2 gap-2 text-sm mb-4 p-3 bg-gray-50 rounded-lg">
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400">Produtos</p>
-                            <p className="font-bold text-gray-900 dark:text-gray-100">{company.total_products || 0}</p>
+                            <p className="text-gray-500">Produtos</p>
+                            <p className="font-bold text-gray-900">{company.total_products || 0}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400">Vendas</p>
-                            <p className="font-bold text-green-600 dark:text-green-400">€{(company.total_sales || 0).toFixed(0)}</p>
+                            <p className="text-gray-500">Vendas</p>
+                            <p className="font-bold text-green-600">€{(company.total_sales || 0).toFixed(0)}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400">Comissão</p>
-                            <p className="font-bold text-gray-900 dark:text-gray-100">{company.commission_rate}%</p>
+                            <p className="text-gray-500">Comissão</p>
+                            <p className="font-bold text-gray-900">{company.commission_rate}%</p>
                           </div>
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400">Taxa Mensal</p>
-                            <p className="font-bold text-gray-900 dark:text-gray-100">€{company.monthly_fee || 0}</p>
+                            <p className="text-gray-500">Taxa Mensal</p>
+                            <p className="font-bold text-gray-900">€{company.monthly_fee || 0}</p>
                           </div>
                         </div>
 
@@ -823,9 +826,6 @@ export default function AdminDashboard() {
                             className="flex-1" 
                             variant="outline"
                             onClick={() => window.open(createPageUrl('PartnerDashboard'), '_blank')} // Use window.open for external link
-                            // Add dark mode classes for this button
-                            // Example: dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300
-                            className="flex-1 dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300"
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Painel
@@ -834,7 +834,7 @@ export default function AdminDashboard() {
                             size="icon" 
                             variant="outline"
                             onClick={() => handleDeleteCompany(company)}
-                            className="hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800"
+                            className="hover:bg-red-50 text-red-600 border-red-200"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -848,10 +848,10 @@ export default function AdminDashboard() {
 
             {/* Company Creation Dialog */}
             <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
-              <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700">
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle className="dark:text-gray-100">Adicionar Nova Empresa Parceira</DialogTitle>
-                  <DialogDescription className="dark:text-gray-400">
+                  <DialogTitle>Adicionar Nova Empresa Parceira</DialogTitle>
+                  <DialogDescription>
                     Crie uma nova conta de empresa parceira para acesso ao painel
                   </DialogDescription>
                 </DialogHeader>
@@ -859,100 +859,95 @@ export default function AdminDashboard() {
                 <div className="space-y-4 py-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="dark:text-gray-300">Email da Empresa *</Label>
+                      <Label>Email da Empresa *</Label>
                       <Input
                         type="email"
                         value={companyFormData.company_email || ""}
                         onChange={(e) => setCompanyFormData({...companyFormData, company_email: e.target.value})}
                         placeholder="empresa@email.com"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Este email será usado para login</p>
+                      <p className="text-xs text-gray-500 mt-1">Este email será usado para login</p>
                     </div>
 
                     <div>
-                      <Label className="dark:text-gray-300">Nome da Empresa *</Label>
+                      <Label>Nome da Empresa *</Label>
                       <Input
                         value={companyFormData.company_name || ""}
                         onChange={(e) => setCompanyFormData({...companyFormData, company_name: e.target.value})}
                         placeholder="Nome da Empresa"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
-                      <Label className="dark:text-gray-300">Tipo de Empresa *</Label>
+                      <Label>Tipo de Empresa *</Label>
                       <Select 
                         value={companyFormData.company_type || "pet_store"} 
                         onValueChange={(value) => setCompanyFormData({...companyFormData, company_type: value})}
                       >
-                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                        <SelectTrigger>
                           <SelectValue placeholder="Selecione um tipo" />
                         </SelectTrigger>
-                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
-                          <SelectItem value="veterinary" className="dark:hover:bg-gray-700">Veterinária</SelectItem>
-                          <SelectItem value="pet_store" className="dark:hover:bg-gray-700">Pet Shop</SelectItem>
-                          <SelectItem value="grooming" className="dark:hover:bg-gray-700">Grooming</SelectItem>
-                          <SelectItem value="insurance" className="dark:hover:bg-gray-700">Seguros</SelectItem>
-                          <SelectItem value="training" className="dark:hover:bg-gray-700">Treino</SelectItem>
-                          <SelectItem value="food_brand" className="dark:hover:bg-gray-700">Marca de Ração</SelectItem>
-                          <SelectItem value="clothing_brand" className="dark:hover:bg-gray-700">Roupas/Acessórios</SelectItem>
+                        <SelectContent>
+                          <SelectItem value="veterinary">Veterinária</SelectItem>
+                          <SelectItem value="pet_store">Pet Shop</SelectItem>
+                          <SelectItem value="grooming">Grooming</SelectItem>
+                          <SelectItem value="insurance">Seguros</SelectItem>
+                          <SelectItem value="training">Treino</SelectItem>
+                          <SelectItem value="food_brand">Marca de Ração</SelectItem>
+                          <SelectItem value="clothing_brand">Roupas/Acessórios</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
-                      <Label className="dark:text-gray-300">URL do Logo</Label>
+                      <Label>URL do Logo</Label>
                       <Input
                         value={companyFormData.logo_url || ""}
                         onChange={(e) => setCompanyFormData({...companyFormData, logo_url: e.target.value})}
                         placeholder="https://..."
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
-                      <Label className="dark:text-gray-300">Taxa de Comissão (%)</Label>
+                      <Label>Taxa de Comissão (%)</Label>
                       <Input
                         type="number"
                         value={companyFormData.commission_rate || 0}
                         onChange={(e) => setCompanyFormData({...companyFormData, commission_rate: parseFloat(e.target.value)})}
                         placeholder="10"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
-                      <Label className="dark:text-gray-300">Taxa Mensal (€)</Label>
+                      <Label>Taxa Mensal (€)</Label>
                       <Input
                         type="number"
                         value={companyFormData.monthly_fee || 0}
                         onChange={(e) => setCompanyFormData({...companyFormData, monthly_fee: parseFloat(e.target.value)})}
                         placeholder="0"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
-                      <Label className="dark:text-gray-300">Nível de Subscrição</Label>
+                      <Label>Nível de Subscrição</Label>
                       <Select 
                         value={companyFormData.subscription_tier || "free"} 
                         onValueChange={(value) => setCompanyFormData({...companyFormData, subscription_tier: value})}
                       >
-                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                        <SelectTrigger>
                           <SelectValue placeholder="Selecione um nível" />
                         </SelectTrigger>
-                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
-                          <SelectItem value="free" className="dark:hover:bg-gray-700">Free</SelectItem>
-                          <SelectItem value="basic" className="dark:hover:bg-gray-700">Basic</SelectItem>
-                          <SelectItem value="premium" className="dark:hover:bg-gray-700">Premium</SelectItem>
-                          <SelectItem value="enterprise" className="dark:hover:bg-gray-700">Enterprise</SelectItem>
+                        <SelectContent>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                          <SelectItem value="enterprise">Enterprise</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="company-active" className="cursor-pointer dark:text-gray-300">Empresa Ativa</Label>
+                      <Label htmlFor="company-active" className="cursor-pointer">Empresa Ativa</Label>
                       <Switch
                         id="company-active"
                         checked={companyFormData.is_active || false}
@@ -961,9 +956,9 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700">
+                  <Card className="bg-blue-50 border-blue-200">
                     <CardContent className="p-4">
-                      <p className="text-sm text-blue-800 dark:text-blue-300">
+                      <p className="text-sm text-blue-800">
                         <strong>Nota:</strong> A empresa receberá acesso ao painel de parceiros através do email fornecido. 
                         Eles poderão fazer login usando o sistema de autenticação Base44.
                       </p>
@@ -975,7 +970,6 @@ export default function AdminDashboard() {
                   <Button 
                     variant="outline" 
                     onClick={() => setShowCompanyDialog(false)}
-                    className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Cancelar
                   </Button>
@@ -995,16 +989,16 @@ export default function AdminDashboard() {
           <TabsContent value="applications">
             <div className="space-y-6">
               {/* Walker Applications */}
-              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl dark:text-gray-100">Walker Applications</CardTitle>
+                  <CardTitle className="text-2xl">Walker Applications</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {walkerApplications
                       .filter(w => w.verification_status === 'pending')
                       .map(walker => (
-                        <Card key={walker.id} className="border-2 border-orange-200 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/10">
+                        <Card key={walker.id} className="border-2 border-orange-200 bg-orange-50">
                           <CardContent className="p-6">
                             <div className="flex flex-col md:flex-row justify-between gap-4">
                               <div className="flex-1">
@@ -1017,15 +1011,15 @@ export default function AdminDashboard() {
                                     />
                                   )}
                                   <div>
-                                    <h3 className="text-lg font-bold dark:text-gray-100">{walker.walker_name}</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">{walker.location}</p>
+                                    <h3 className="text-lg font-bold">{walker.walker_name}</h3>
+                                    <p className="text-sm text-gray-600">{walker.location}</p>
                                   </div>
                                 </div>
-                                <div className="grid md:grid-cols-2 gap-2 text-sm dark:text-gray-300">
-                                  <div><span className="font-semibold dark:text-gray-400">Email:</span> {walker.created_by}</div>
-                                  <div><span className="font-semibold dark:text-gray-400">Phone:</span> {walker.phone}</div>
-                                  <div><span className="font-semibold dark:text-gray-400">Experience:</span> {walker.experience_years} years</div>
-                                  <div><span className="font-semibold dark:text-gray-400">Rate:</span> €{walker.hourly_rate}/hr</div>
+                                <div className="grid md:grid-cols-2 gap-2 text-sm">
+                                  <div><span className="font-semibold">Email:</span> {walker.created_by}</div>
+                                  <div><span className="font-semibold">Phone:</span> {walker.phone}</div>
+                                  <div><span className="font-semibold">Experience:</span> {walker.experience_years} years</div>
+                                  <div><span className="font-semibold">Rate:</span> €{walker.hourly_rate}/hr</div>
                                 </div>
                                 {walker.video_intro_url && (
                                   <Badge className="mt-2 bg-blue-500">Has Video Intro</Badge>
@@ -1048,26 +1042,25 @@ export default function AdminDashboard() {
                                       Approve
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
+                                  <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle className="dark:text-gray-100">Approve Walker Application</DialogTitle>
-                                      <DialogDescription className="dark:text-gray-400">
+                                      <DialogTitle>Approve Walker Application</DialogTitle>
+                                      <DialogDescription>
                                         Review and approve {walker.walker_name}'s application
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <Label className="text-sm font-medium dark:text-gray-300">Verification Notes</Label>
+                                        <Label className="text-sm font-medium">Verification Notes</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
                                           placeholder="Add any notes about the verification..."
                                           rows={3}
-                                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                                         />
                                       </div>
                                       {walker.id_document_url && (
-                                        <Button variant="outline" className="w-full dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300" asChild>
+                                        <Button variant="outline" className="w-full" asChild>
                                           <a href={walker.id_document_url} target="_blank" rel="noopener noreferrer">
                                             <FileText className="w-4 h-4 mr-2" />
                                             View ID Document
@@ -1075,7 +1068,7 @@ export default function AdminDashboard() {
                                         </Button>
                                       )}
                                       {walker.background_check_url && (
-                                        <Button variant="outline" className="w-full dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300" asChild>
+                                        <Button variant="outline" className="w-full" asChild>
                                           <a href={walker.background_check_url} target="_blank" rel="noopener noreferrer">
                                             <Shield className="w-4 h-4 mr-2" />
                                             View Background Check
@@ -1099,7 +1092,7 @@ export default function AdminDashboard() {
                                   <DialogTrigger asChild>
                                     <Button
                                       variant="outline"
-                                      className="border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                                      className="border-red-200 text-red-600 hover:bg-red-50"
                                       onClick={() => {
                                         setSelectedApplication(walker);
                                         setVerificationNotes("");
@@ -1109,23 +1102,22 @@ export default function AdminDashboard() {
                                       Reject
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
+                                  <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle className="dark:text-gray-100">Reject Walker Application</DialogTitle>
-                                      <DialogDescription className="dark:text-gray-400">
+                                      <DialogTitle>Reject Walker Application</DialogTitle>
+                                      <DialogDescription>
                                         Provide a reason for rejecting {walker.walker_name}'s application
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <Label className="text-sm font-medium dark:text-gray-300">Rejection Reason *</Label>
+                                        <Label className="text-sm font-medium">Rejection Reason *</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
                                           placeholder="Please provide a clear reason for rejection..."
                                           rows={4}
                                           required
-                                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                                         />
                                       </div>
                                     </div>
@@ -1146,23 +1138,23 @@ export default function AdminDashboard() {
                         </Card>
                       ))}
                     {walkerApplications.filter(w => w.verification_status === 'pending').length === 0 && (
-                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">No pending walker applications</p>
+                      <p className="text-center text-gray-500 py-8">No pending walker applications</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Trainer Applications */}
-              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl dark:text-gray-100">Trainer Applications</CardTitle>
+                  <CardTitle className="text-2xl">Trainer Applications</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {trainerApplications
                       .filter(t => t.verification_status === 'pending')
                       .map(trainer => (
-                        <Card key={trainer.id} className="border-2 border-purple-200 bg-purple-50 dark:border-purple-700 dark:bg-purple-900/10">
+                        <Card key={trainer.id} className="border-2 border-purple-200 bg-purple-50">
                           <CardContent className="p-6">
                             <div className="flex flex-col md:flex-row justify-between gap-4">
                               <div className="flex-1">
@@ -1175,15 +1167,15 @@ export default function AdminDashboard() {
                                     />
                                   )}
                                   <div>
-                                    <h3 className="text-lg font-bold dark:text-gray-100">{trainer.trainer_name}</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">{trainer.location}</p>
+                                    <h3 className="text-lg font-bold">{trainer.trainer_name}</h3>
+                                    <p className="text-sm text-gray-600">{trainer.location}</p>
                                   </div>
                                 </div>
-                                <div className="grid md:grid-cols-2 gap-2 text-sm mb-3 dark:text-gray-300">
-                                  <div><span className="font-semibold dark:text-gray-400">Email:</span> {trainer.created_by}</div>
-                                  <div><span className="font-semibold dark:text-gray-400">Phone:</span> {trainer.phone}</div>
-                                  <div><span className="font-semibold dark:text-gray-400">Experience:</span> {trainer.experience_years} years</div>
-                                  <div><span className="font-semibold dark:text-gray-400">Rate:</span> €{trainer.hourly_rate}/hr</div>
+                                <div className="grid md:grid-cols-2 gap-2 text-sm mb-3">
+                                  <div><span className="font-semibold">Email:</span> {trainer.created_by}</div>
+                                  <div><span className="font-semibold">Phone:</span> {trainer.phone}</div>
+                                  <div><span className="font-semibold">Experience:</span> {trainer.experience_years} years</div>
+                                  <div><span className="font-semibold">Rate:</span> €{trainer.hourly_rate}/hr</div>
                                 </div>
                                 {trainer.certifications && trainer.certifications.length > 0 && (
                                   <div className="flex flex-wrap gap-2">
@@ -1209,26 +1201,25 @@ export default function AdminDashboard() {
                                       Approve
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
+                                  <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle className="dark:text-gray-100">Approve Trainer Application</DialogTitle>
-                                      <DialogDescription className="dark:text-gray-400">
+                                      <DialogTitle>Approve Trainer Application</DialogTitle>
+                                      <DialogDescription>
                                         Review and approve {trainer.trainer_name}'s application
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <Label className="text-sm font-medium dark:text-gray-300">Verification Notes</Label>
+                                        <Label className="text-sm font-medium">Verification Notes</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
                                           placeholder="Add any notes about the verification..."
                                           rows={3}
-                                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                                         />
                                       </div>
                                       {trainer.id_document_url && (
-                                        <Button variant="outline" className="w-full dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300" asChild>
+                                        <Button variant="outline" className="w-full" asChild>
                                           <a href={trainer.id_document_url} target="_blank" rel="noopener noreferrer">
                                             <FileText className="w-4 h-4 mr-2" />
                                             View ID Document
@@ -1237,7 +1228,7 @@ export default function AdminDashboard() {
                                       )}
                                       {trainer.certifications?.map((cert, idx) => (
                                         cert.certificate_url && (
-                                          <Button key={idx} variant="outline" className="w-full dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300" asChild>
+                                          <Button key={idx} variant="outline" className="w-full" asChild>
                                             <a href={cert.certificate_url} target="_blank" rel="noopener noreferrer">
                                               <FileText className="w-4 h-4 mr-2" />
                                               View {cert.name}
@@ -1262,7 +1253,7 @@ export default function AdminDashboard() {
                                   <DialogTrigger asChild>
                                     <Button
                                       variant="outline"
-                                      className="border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                                      className="border-red-200 text-red-600 hover:bg-red-50"
                                       onClick={() => {
                                         setSelectedApplication(trainer);
                                         setVerificationNotes("");
@@ -1272,23 +1263,22 @@ export default function AdminDashboard() {
                                       Reject
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
+                                  <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle className="dark:text-gray-100">Reject Trainer Application</DialogTitle>
-                                      <DialogDescription className="dark:text-gray-400">
+                                      <DialogTitle>Reject Trainer Application</DialogTitle>
+                                      <DialogDescription>
                                         Provide a reason for rejecting {trainer.trainer_name}'s application
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <Label className="text-sm font-medium dark:text-gray-300">Rejection Reason *</Label>
+                                        <Label className="text-sm font-medium">Rejection Reason *</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
                                           placeholder="Please provide a clear reason for rejection..."
                                           rows={4}
                                           required
-                                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                                         />
                                       </div>
                                     </div>
@@ -1309,7 +1299,7 @@ export default function AdminDashboard() {
                         </Card>
                       ))}
                     {trainerApplications.filter(t => t.verification_status === 'pending').length === 0 && (
-                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">No pending trainer applications</p>
+                      <p className="text-center text-gray-500 py-8">No pending trainer applications</p>
                     )}
                   </div>
                 </CardContent>
@@ -1319,33 +1309,33 @@ export default function AdminDashboard() {
 
           {/* BOOKINGS TAB */}
           <TabsContent value="bookings">
-            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+            <Card className="border-0 shadow-xl">
               <CardHeader>
-                <CardTitle className="text-2xl dark:text-gray-100">All Bookings</CardTitle>
+                <CardTitle className="text-2xl">All Bookings</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="dark:border-gray-700">
-                        <TableHead className="dark:text-gray-300">ID</TableHead>
-                        <TableHead className="dark:text-gray-300">Owner</TableHead>
-                        <TableHead className="dark:text-gray-300">Professional</TableHead>
-                        <TableHead className="dark:text-gray-300">Date</TableHead>
-                        <TableHead className="dark:text-gray-300">Amount</TableHead>
-                        <TableHead className="dark:text-gray-300">Status</TableHead>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Owner</TableHead>
+                        <TableHead>Professional</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allBookings.slice(0, 20).map(booking => (
-                        <TableRow key={booking.id} className="dark:border-gray-700">
-                          <TableCell className="font-mono text-xs dark:text-gray-300">{booking.id.slice(0, 8)}...</TableCell>
-                          <TableCell className="dark:text-gray-300">{booking.owner_name}</TableCell>
-                          <TableCell className="dark:text-gray-300">{booking.walker_name || booking.trainer_name}</TableCell>
-                          <TableCell className="dark:text-gray-300">
+                        <TableRow key={booking.id}>
+                          <TableCell className="font-mono text-xs">{booking.id.slice(0, 8)}...</TableCell>
+                          <TableCell>{booking.owner_name}</TableCell>
+                          <TableCell>{booking.walker_name || booking.trainer_name}</TableCell>
+                          <TableCell>
                             {format(new Date(booking.walk_date || booking.session_date), 'MMM d, yyyy')}
                           </TableCell>
-                          <TableCell className="font-semibold dark:text-gray-300">€{booking.total_amount?.toFixed(2)}</TableCell>
+                          <TableCell className="font-semibold">€{booking.total_amount?.toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge className={
                               booking.status === 'completed' ? 'bg-green-500' :
@@ -1368,10 +1358,10 @@ export default function AdminDashboard() {
 
           {/* PAYMENTS TAB */}
           <TabsContent value="payments">
-            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+            <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle className="text-2xl dark:text-gray-100">Payment Management</CardTitle>
+                  <CardTitle className="text-2xl">Payment Management</CardTitle>
                   <Button className="bg-green-600">
                     <Download className="w-4 h-4 mr-2" />
                     Export
@@ -1382,24 +1372,24 @@ export default function AdminDashboard() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="dark:border-gray-700">
-                        <TableHead className="dark:text-gray-300">ID</TableHead>
-                        <TableHead className="dark:text-gray-300">Payer</TableHead>
-                        <TableHead className="dark:text-gray-300">Recipient</TableHead>
-                        <TableHead className="dark:text-gray-300">Amount</TableHead>
-                        <TableHead className="dark:text-gray-300">Platform Fee</TableHead>
-                        <TableHead className="dark:text-gray-300">Status</TableHead>
-                        <TableHead className="dark:text-gray-300">Date</TableHead>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Payer</TableHead>
+                        <TableHead>Recipient</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Platform Fee</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allPayments.slice(0, 20).map(payment => (
-                        <TableRow key={payment.id} className="dark:border-gray-700">
-                          <TableCell className="font-mono text-xs dark:text-gray-300">{payment.id.slice(0, 8)}...</TableCell>
-                          <TableCell className="dark:text-gray-300">{payment.payer_name}</TableCell>
-                          <TableCell className="dark:text-gray-300">{payment.recipient_name}</TableCell>
-                          <TableCell className="font-semibold dark:text-gray-300">€{payment.total_amount?.toFixed(2)}</TableCell>
-                          <TableCell className="text-green-600 font-semibold dark:text-green-400">€{payment.platform_fee?.toFixed(2)}</TableCell>
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-mono text-xs">{payment.id.slice(0, 8)}...</TableCell>
+                          <TableCell>{payment.payer_name}</TableCell>
+                          <TableCell>{payment.recipient_name}</TableCell>
+                          <TableCell className="font-semibold">€{payment.total_amount?.toFixed(2)}</TableCell>
+                          <TableCell className="text-green-600 font-semibold">€{payment.platform_fee?.toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge className={
                               payment.status === 'released' ? 'bg-green-500' :
@@ -1410,7 +1400,7 @@ export default function AdminDashboard() {
                               {payment.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="dark:text-gray-300">{format(new Date(payment.created_date), 'MMM d')}</TableCell>
+                          <TableCell>{format(new Date(payment.created_date), 'MMM d')}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1424,32 +1414,32 @@ export default function AdminDashboard() {
           <TabsContent value="support">
             <div className="space-y-6">
               {/* Emergency Reports */}
-              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-red-600 dark:text-red-400">Emergency Reports</CardTitle>
+                  <CardTitle className="text-2xl text-red-600">Emergency Reports</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {emergencies.filter(e => e.status === 'reported').length === 0 ? (
-                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">No open emergency reports</p>
+                    <p className="text-center text-gray-500 py-8">No open emergency reports</p>
                   ) : (
                     <div className="space-y-4">
                       {emergencies
                         .filter(e => e.status === 'reported')
                         .map(emergency => (
-                          <Card key={emergency.id} className="border-2 border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-900/10">
+                          <Card key={emergency.id} className="border-2 border-red-500 bg-red-50">
                             <CardContent className="p-6">
                               <div className="flex items-start gap-4">
-                                <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400 flex-shrink-0" />
+                                <AlertCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
                                 <div className="flex-1">
-                                  <h3 className="font-bold text-lg text-red-900 dark:text-gray-100 mb-2">
+                                  <h3 className="font-bold text-lg text-red-900 mb-2">
                                     {emergency.emergency_type.replace('_', ' ').toUpperCase()}
                                   </h3>
-                                  <p className="text-gray-700 dark:text-gray-300 mb-2">{emergency.description}</p>
-                                  <div className="grid md:grid-cols-2 gap-2 text-sm mb-3 dark:text-gray-300">
-                                    <div><span className="font-semibold dark:text-gray-400">Reported by:</span> {emergency.reported_by_name}</div>
-                                    <div><span className="font-semibold dark:text-gray-400">Severity:</span> {emergency.severity}</div>
+                                  <p className="text-gray-700 mb-2">{emergency.description}</p>
+                                  <div className="grid md:grid-cols-2 gap-2 text-sm mb-3">
+                                    <div><span className="font-semibold">Reported by:</span> {emergency.reported_by_name}</div>
+                                    <div><span className="font-semibold">Severity:</span> {emergency.severity}</div>
                                     {emergency.location_address && (
-                                      <div className="col-span-2"><span className="font-semibold dark:text-gray-400">Location:</span> {emergency.location_address}</div>
+                                      <div className="col-span-2"><span className="font-semibold">Location:</span> {emergency.location_address}</div>
                                     )}
                                   </div>
                                   <Badge className={
