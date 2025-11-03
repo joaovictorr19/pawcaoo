@@ -1,13 +1,14 @@
 
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useQueryClient } from "@tanstack/react-query"; // Added useQueryClient
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   User, Mail, Shield, Dog, Crown, Gift, Calendar, Heart, 
-  Store, Award, TrendingUp, Bell, Star, Clock, Zap, Target, Sparkles, PlusCircle // Added PlusCircle
+  Store, Award, TrendingUp, Bell, Star, Clock, Zap, Target, Sparkles, PlusCircle, // Existing imports
+  MapPin, ShieldCheck // Added new icons
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -22,7 +23,7 @@ import AddEditDogForm from "@/components/profile/AddEditDogForm";
 export default function MyProfile() {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  const queryClient = useQueryClient(); // Initialized queryClient
+  const queryClient = useQueryClient();
 
   const [showDogForm, setShowDogForm] = useState(false);
   const [editingDog, setEditingDog] = useState(null);
@@ -489,36 +490,132 @@ export default function MyProfile() {
           </Card>
         )}
 
-        {/* Professional Section */}
+        {/* Professional Section - REDESIGNED */}
         {myWalkerProfiles && myWalkerProfiles.length > 0 && (
-          <Card className="border-0 shadow-2xl mb-6">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <Dog className="w-6 h-6" />
-                {t('professionalProfiles', language)}
-              </CardTitle>
+          <Card className="border-0 shadow-xl mb-8">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                  <Award className="w-5 h-5" />
+                  {t('professionalProfiles', language)}
+                </CardTitle>
+                <Button
+                  size="sm"
+                  onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+                  className="bg-white text-blue-600 hover:bg-blue-50"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  {t('dashboard', language)}
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="p-8">
-              <div className="space-y-4">
+            <CardContent className="p-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 {myWalkerProfiles.map(profile => (
-                  <div key={profile.id} className="flex justify-between items-center p-4 bg-green-50 rounded-xl">
-                    <div>
-                      <div className="font-semibold text-gray-900">{profile.walker_name}</div>
-                      <div className="text-sm text-gray-600">{profile.location}</div>
-                      <div className="text-lg font-bold text-green-600 mt-1">
-                        €{profile.hourly_rate}/hora
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">{t('totalWalks', language)}</div>
-                      <div className="text-2xl font-bold text-gray-900">
-                        {profile.total_walks || 0}
-                      </div>
-                      <Badge className="mt-2">{profile.verification_status}</Badge>
-                    </div>
-                  </div>
+                  <motion.div
+                    key={profile.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ y: -4 }}
+                    className="relative"
+                  >
+                    <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full -mr-16 -mt-16"></div>
+                      <CardContent className="p-4 relative">
+                        <div className="flex items-start gap-4">
+                          {/* Profile Photo */}
+                          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 border-blue-200">
+                            {profile.photo_url ? (
+                              <img
+                                src={profile.photo_url}
+                                alt={profile.walker_name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                                <Dog className="w-8 h-8 text-white" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">
+                              {profile.walker_name}
+                            </h3>
+                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate">{profile.location}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Badge className={`${
+                                profile.verification_status === 'verified' 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : profile.verification_status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : 'bg-gray-100 text-gray-700'
+                              } text-xs`}>
+                                {profile.verification_status === 'verified' && <ShieldCheck className="w-3 h-3 mr-1" />}
+                                {profile.verification_status}
+                              </Badge>
+                              <div className="flex items-center gap-1 text-sm">
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                <span className="font-semibold">{profile.rating?.toFixed(1) || '5.0'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t">
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-green-600">€{profile.hourly_rate}</div>
+                            <div className="text-xs text-gray-600">/hora</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-blue-600">{profile.total_walks || 0}</div>
+                            <div className="text-xs text-gray-600">{t('walks', language)}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-purple-600">€{(profile.total_earnings || 0).toFixed(0)}</div>
+                            <div className="text-xs text-gray-600">{t('earnings', language)}</div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs"
+                            onClick={() => navigate(createPageUrl(`WalkerDetails?id=${profile.id}`))}
+                          >
+                            {t('viewProfile', language)}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-xs"
+                            onClick={() => navigate(createPageUrl('ManageAvailability'))}
+                          >
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {t('schedule', language)}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
+
+              {/* Add Professional Profile Button */}
+              <Button
+                variant="outline"
+                className="w-full mt-4 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 h-12"
+                onClick={() => navigate(createPageUrl('BecomeWalker'))}
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                {t('addNewProfessionalProfile', language)}
+              </Button>
             </CardContent>
           </Card>
         )}
