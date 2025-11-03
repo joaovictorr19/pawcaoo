@@ -1,13 +1,13 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // Added useQueryClient
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   User, Mail, Shield, Dog, Crown, Gift, Calendar, Heart, 
-  Store, Award, TrendingUp, Bell, Star, Clock, Zap, Target, Sparkles
+  Store, Award, TrendingUp, Bell, Star, Clock, Zap, Target, Sparkles, PlusCircle // Added PlusCircle
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -16,10 +16,16 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import DogProfileCard from "@/components/profile/DogProfileCard";
+import AddEditDogForm from "@/components/profile/AddEditDogForm";
 
 export default function MyProfile() {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const queryClient = useQueryClient(); // Initialized queryClient
+
+  const [showDogForm, setShowDogForm] = useState(false);
+  const [editingDog, setEditingDog] = useState(null);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -107,6 +113,19 @@ export default function MyProfile() {
         is_read: false 
       });
       return allNotifications;
+    },
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: myDogs, isLoading: loadingDogs } = useQuery({
+    queryKey: ['myDogs'],
+    queryFn: async () => {
+      const dogs = await base44.entities.DogProfile.filter({
+        owner_email: user?.email,
+        is_active: true
+      });
+      return dogs;
     },
     enabled: !!user,
     initialData: [],
@@ -291,6 +310,81 @@ export default function MyProfile() {
             </CardContent>
           </Card>
         </div>
+
+        {/* My Dogs Section - NEW */}
+        <div className="mb-8">
+          <Card className="border-0 shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Dog className="w-6 h-6" />
+                  {t('myDogs', language) || 'Os Meus Cães'}
+                </CardTitle>
+                <Button
+                  onClick={() => {
+                    setEditingDog(null);
+                    setShowDogForm(true);
+                  }}
+                  className="bg-white text-green-600 hover:bg-green-50"
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  {t('addDog', language) || 'Adicionar Cão'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {loadingDogs ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-96 rounded-2xl" />
+                  ))}
+                </div>
+              ) : myDogs.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Dog className="w-12 h-12 text-green-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                    {t('noDogs', language) || 'Ainda não tem cães cadastrados'}
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {t('addFirstDog', language) || 'Adicione o perfil do seu cão para facilitar as reservas'}
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setEditingDog(null);
+                      setShowDogForm(true);
+                    }}
+                    className="bg-gradient-to-r from-green-600 to-green-500"
+                  >
+                    <PlusCircle className="w-5 h-5 mr-2" />
+                    {t('addDog', language) || 'Adicionar Meu Primeiro Cão'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {myDogs.map((dog, index) => (
+                    <motion.div
+                      key={dog.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <DogProfileCard 
+                        dog={dog}
+                        onEdit={() => {
+                          setEditingDog(dog);
+                          setShowDogForm(true);
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
 
         {/* Enhanced Subscription Status */}
         {!isProfessional && (
@@ -547,6 +641,22 @@ export default function MyProfile() {
           {t('logout', language)}
         </Button>
       </div>
+
+      {/* Dog Form Modal */}
+      {showDogForm && (
+        <AddEditDogForm
+          dog={editingDog}
+          onSuccess={() => {
+            setShowDogForm(false);
+            setEditingDog(null);
+            queryClient.invalidateQueries({ queryKey: ['myDogs'] });
+          }}
+          onCancel={() => {
+            setShowDogForm(false);
+            setEditingDog(null);
+          }}
+        />
+      )}
     </div>
   );
 }
