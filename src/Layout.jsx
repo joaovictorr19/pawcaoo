@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -88,7 +87,6 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
-    // Removed: { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
   ];
 
   const adminItem = user?.role === 'admin' ? [
@@ -149,20 +147,20 @@ function LayoutContent({ children, currentPageName }) {
         }
       `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
-        <Sidebar className="border-r border-green-100">
+        <Sidebar className="border-r border-green-100 bg-white">
           <SidebarHeader className="border-b border-green-100 p-6">
             <Link to={createPageUrl("Home")} className="block hover:opacity-80 transition-opacity">
               <PawCaoLogo size="default" />
             </Link>
             
             {planBadge && (
-              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center`}>
+              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
                 <div className="text-xs font-semibold">
                   {planBadge.icon} {planBadge.name} MEMBER
                 </div>
               </div>
             )}
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="mt-3 w-full">
@@ -260,7 +258,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(15, 21).map((item) => ( /* Adjusted slice end index from 22 to 21 */
+                  {allNavigationItems.slice(15, 21).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -279,12 +277,12 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {allNavigationItems.length > 21 && ( /* Adjusted condition from 22 to 21 */
+            {allNavigationItems.length > 21 && (
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(21).map((item) => ( /* Adjusted slice start index from 22 to 21 */
+                    {allNavigationItems.slice(21).map((item) => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
@@ -315,14 +313,15 @@ function LayoutContent({ children, currentPageName }) {
                 <PawCaoLogo size="small" showText={false} />
               </Link>
 
-              <div className="hidden md:block flex-1">
+              <div className="hidden md:flex items-center gap-3 flex-1">
+                <PawCaoLogo size="small" showText={false} />
                 <h1 className="text-lg font-semibold text-gray-900 truncate">
                   {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                 </h1>
               </div>
 
               {planBadge && (
-                <Badge className={`${planBadge.color} text-white text-xs md:text-sm`}>
+                <Badge className={`${planBadge.color} text-white text-xs md:text-sm shadow-lg`}>
                   <span className="hidden sm:inline">{planBadge.icon} </span>
                   {planBadge.name}
                 </Badge>
@@ -330,7 +329,7 @@ function LayoutContent({ children, currentPageName }) {
 
               {unreadCount > 0 && (
                 <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0">
-                  <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer">
+                  <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer shadow-lg">
                     <Bell className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
                     <span className="hidden sm:inline">{unreadCount}</span>
                   </Badge>
@@ -400,8 +399,11 @@ function LayoutContent({ children, currentPageName }) {
                 <p className="text-sm text-gray-600">
                   © 2025 PawCão. {t('allRightsReserved', language)}.
                 </p>
-                <div className="flex items-center gap-2 text-sm text-green-700 font-semibold">
-                  ✓ {t('verifiedProfessionals', language)}
+                <div className="flex items-center gap-2">
+                  <PawCaoLogo size="small" showText={false} />
+                  <span className="text-sm text-green-700 font-semibold">
+                    ✓ {t('verifiedProfessionals', language)}
+                  </span>
                 </div>
               </div>
             </div>

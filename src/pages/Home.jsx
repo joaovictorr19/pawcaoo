@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import PawCaoLogo from "@/components/PawCaoLogo"; // Added import for PawCaoLogo
 
 export default function Home() {
   const { language } = useLanguage();
@@ -53,7 +55,7 @@ export default function Home() {
   // Show loading while checking auth
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center transition-colors duration-300">
         <p className="text-gray-600">A carregar...</p>
       </div>
     );
@@ -104,15 +106,15 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      {/* Hero Section - Mobile Optimized */}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 transition-colors duration-300">
+      {/* Hero Section - Enhanced with Logo */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-10 left-5 w-40 h-40 md:w-72 md:h-72 bg-green-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
           <div className="absolute top-20 right-5 w-40 h-40 md:w-72 md:h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         </div>
 
-        <div className="relative bg-gradient-to-br from-green-600/90 via-green-500/90 to-blue-600/90 backdrop-blur-sm py-8 md:py-16 px-4 md:px-6">
+        <div className="relative bg-gradient-to-br from-green-600/90 via-green-500/90 to-blue-600/90 backdrop-blur-sm py-8 md:py-16 px-4 md:px-6 transition-colors">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -120,19 +122,29 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="text-center mb-6 md:mb-10"
             >
+              {/* Logo animado no topo */}
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex justify-center mb-6"
+              >
+                <PawCaoLogo size="large" animated={true} />
+              </motion.div>
+
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="inline-block mb-3 md:mb-4"
               >
-                <span className="px-3 py-1 md:px-4 md:py-2 bg-white/20 backdrop-blur-md rounded-full text-white text-xs md:text-sm font-semibold border border-white/30 shadow-lg">
+                <span className="px-3 py-1 md:px-4 md:py-2 bg-white/20 backdrop-blur-md rounded-full text-white text-xs md:text-sm font-semibold border border-white/30 shadow-lg animate-pulse">
                   🐕 #1 em Portugal
                 </span>
               </motion.div>
               
-              <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-5 leading-tight px-2">
-                Encontre o <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">Passeador Perfeito</span>
+              <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-5 leading-tight px-2 drop-shadow-lg">
+                Encontre o <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 drop-shadow-none">Passeador Perfeito</span>
                 <br className="hidden md:block" />
                 <span className="block md:inline"> Para o Seu Pet</span>
               </h1>
@@ -233,7 +245,7 @@ export default function Home() {
       {/* Results Section */}
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
         <Tabs defaultValue="walkers" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1">
+          <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
             <TabsTrigger 
               value="walkers" 
               className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
@@ -272,16 +284,16 @@ export default function Home() {
               {loadingWalkers ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                   {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="bg-white rounded-xl p-4 space-y-3">
-                      <Skeleton className="w-full h-48 md:h-56 rounded-lg" />
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
+                    <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                      <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                      <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                      <Skeleton className="h-4 w-1/2 bg-gray-200" />
                     </div>
                   ))}
                 </div>
               ) : filteredWalkers.length === 0 ? (
                 <div className="text-center py-12 md:py-16">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                     <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                   </div>
                   <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
@@ -321,16 +333,16 @@ export default function Home() {
             {loadingEmergency ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white rounded-xl p-4 space-y-3">
-                    <Skeleton className="w-full h-48 md:h-56 rounded-lg" />
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
+                  <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                    <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                    <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                    <Skeleton className="h-4 w-1/2 bg-gray-200" />
                   </div>
                 ))}
               </div>
             ) : filteredEmergencyWalks.length === 0 ? (
               <div className="text-center py-12 md:py-16">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                   <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
                 </div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Sem emergências no momento</h3>
