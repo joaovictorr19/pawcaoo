@@ -10,10 +10,13 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function Notifications() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState("all");
 
   const { data: user } = useQuery({
@@ -79,15 +82,15 @@ export default function Notifications() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case "emergency":
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-red-500" />;
       case "payment":
-        return <Bell className="w-5 h-5 text-green-500" />;
+        return <Bell className="w-4 h-4 md:w-5 md:h-5 text-green-500" />;
       case "booking":
-        return <Bell className="w-5 h-5 text-blue-500" />;
+        return <Bell className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />;
       case "message":
-        return <Bell className="w-5 h-5 text-purple-500" />;
+        return <Bell className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />;
       default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
+        return <Bell className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />;
     }
   };
 
@@ -103,68 +106,85 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-3 md:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 mb-4 md:mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Bell className="w-10 h-10 text-blue-600" />
-              Notifications
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-1 md:mb-2 flex items-center gap-2 md:gap-3">
+              <Bell className="w-6 h-6 md:w-10 md:h-10 text-blue-600" />
+              {t('notifications', language)}
               {unreadCount > 0 && (
-                <Badge className="bg-red-500 text-white">
-                  {unreadCount} new
+                <Badge className="bg-red-500 text-white text-xs md:text-sm px-2 py-0.5">
+                  {unreadCount} {t('newNotification', language)}
                 </Badge>
               )}
             </h1>
-            <p className="text-gray-600 text-lg">Stay updated with your activity</p>
+            <p className="text-gray-600 text-sm md:text-lg">{t('stayUpdated', language)}</p>
           </div>
           {unreadCount > 0 && (
             <Button
               variant="outline"
               onClick={() => markAllAsReadMutation.mutate()}
               disabled={markAllAsReadMutation.isPending}
+              size="sm"
+              className="w-full md:w-auto text-xs md:text-sm h-8 md:h-10"
             >
-              <CheckCheck className="w-4 h-4 mr-2" />
-              Mark all as read
+              <CheckCheck className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+              {t('markAllAsRead', language)}
             </Button>
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-white shadow-sm">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="unread">
-              Unread {unreadCount > 0 && `(${unreadCount})`}
-            </TabsTrigger>
-            <TabsTrigger value="booking">Bookings</TabsTrigger>
-            <TabsTrigger value="payment">Payments</TabsTrigger>
-            <TabsTrigger value="message">Messages</TabsTrigger>
-            <TabsTrigger value="emergency">Emergencies</TabsTrigger>
-          </TabsList>
+        {/* Tabs - Scrollable on Mobile */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 md:mb-6">
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="bg-white shadow-sm inline-flex w-auto min-w-full h-auto p-1">
+              <TabsTrigger value="all" className="text-xs md:text-sm px-3 md:px-4 py-2 md:py-2.5 whitespace-nowrap">
+                {t('allNotifications', language)}
+              </TabsTrigger>
+              <TabsTrigger value="unread" className="text-xs md:text-sm px-3 md:px-4 py-2 md:py-2.5 whitespace-nowrap">
+                {t('unreadNotifications', language)} {unreadCount > 0 && `(${unreadCount})`}
+              </TabsTrigger>
+              <TabsTrigger value="booking" className="text-xs md:text-sm px-3 md:px-4 py-2 md:py-2.5 whitespace-nowrap">
+                {t('bookingNotifications', language)}
+              </TabsTrigger>
+              <TabsTrigger value="payment" className="text-xs md:text-sm px-3 md:px-4 py-2 md:py-2.5 whitespace-nowrap">
+                {t('paymentNotifications', language)}
+              </TabsTrigger>
+              <TabsTrigger value="message" className="text-xs md:text-sm px-3 md:px-4 py-2 md:py-2.5 whitespace-nowrap">
+                {t('messageNotifications', language)}
+              </TabsTrigger>
+              <TabsTrigger value="emergency" className="text-xs md:text-sm px-3 md:px-4 py-2 md:py-2.5 whitespace-nowrap">
+                {t('emergencyNotifications', language)}
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </Tabs>
 
+        {/* Notifications List */}
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4">
             {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
+              <Skeleton key={i} className="h-20 md:h-24 rounded-xl" />
             ))}
           </div>
         ) : filteredNotifications.length === 0 ? (
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-12 text-center">
-              <Bell className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">No notifications</h3>
-              <p className="text-gray-600">You're all caught up!</p>
+            <CardContent className="p-8 md:p-12 text-center">
+              <Bell className="w-12 h-12 md:w-20 md:h-20 text-gray-300 mx-auto mb-3 md:mb-4" />
+              <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-1 md:mb-2">{t('noNotifications', language)}</h3>
+              <p className="text-sm md:text-base text-gray-600">{t('allCaughtUp', language)}</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {filteredNotifications.map((notification, index) => (
               <motion.div
                 key={notification.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: index * 0.05 }}
+                transition={{ duration: 0.2, delay: index * 0.03 }}
               >
                 <Card 
                   className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${
@@ -172,52 +192,60 @@ export default function Notifications() {
                   } ${getPriorityColor(notification.priority)}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="mt-1">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-start gap-2 md:gap-4">
+                      {/* Icon */}
+                      <div className="mt-0.5 md:mt-1 flex-shrink-0">
                         {getNotificationIcon(notification.type)}
                       </div>
+                      
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <h3 className={`font-semibold ${!notification.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`font-semibold text-sm md:text-base line-clamp-1 ${!notification.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
                               {notification.title}
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1 line-clamp-2">
                               {notification.message}
                             </p>
-                            <div className="flex items-center gap-4 mt-2">
-                              <span className="text-xs text-gray-500">
-                                {format(new Date(notification.created_date), "MMM d, yyyy 'at' h:mm a")}
+                            
+                            {/* Meta Info */}
+                            <div className="flex items-center gap-2 md:gap-4 mt-1 md:mt-2 flex-wrap">
+                              <span className="text-[10px] md:text-xs text-gray-500">
+                                {format(new Date(notification.created_date), "MMM d, yyyy 'às' HH:mm")}
                               </span>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-[10px] md:text-xs px-1.5 py-0">
                                 {notification.type}
                               </Badge>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          
+                          {/* Action Buttons - Stacked on Mobile */}
+                          <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2 flex-shrink-0">
                             {!notification.is_read && (
                               <Button
                                 size="icon"
                                 variant="ghost"
+                                className="h-7 w-7 md:h-8 md:w-8"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   markAsReadMutation.mutate(notification.id);
                                 }}
                               >
-                                <Check className="w-4 h-4" />
+                                <Check className="w-3 h-3 md:w-4 md:h-4" />
                               </Button>
                             )}
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="text-red-600 hover:bg-red-50"
+                              className="text-red-600 hover:bg-red-50 h-7 w-7 md:h-8 md:w-8"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 deleteNotificationMutation.mutate(notification.id);
                               }}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                             </Button>
                           </div>
                         </div>

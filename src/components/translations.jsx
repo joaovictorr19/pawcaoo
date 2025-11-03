@@ -24,8 +24,22 @@ export const translations = {
     myProfile: "Meu Perfil",
     accountSettings: "Configurações de Conta",
     adminDashboard: "Painel Admin",
-    professionalDashboard: "Dashboard Profissional",
+    professionalDashboard: "Painel Profissional",
     leaderboard: "Tabela de Classificação",
+
+    // Notifications
+    notifications: "Notificações",
+    stayUpdated: "Fique atualizado com a sua atividade",
+    markAllAsRead: "Marcar todas como lidas",
+    allNotifications: "Todas",
+    unreadNotifications: "Não Lidas",
+    bookingNotifications: "Reservas",
+    paymentNotifications: "Pagamentos",
+    messageNotifications: "Mensagens",
+    emergencyNotifications: "Emergências",
+    noNotifications: "Sem notificações",
+    allCaughtUp: "Está tudo em dia!",
+    newNotification: "nova",
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -707,6 +721,20 @@ export const translations = {
     professionalDashboard: "Professional Dashboard",
     leaderboard: "Leaderboard",
 
+    // Notifications
+    notifications: "Notifications",
+    stayUpdated: "Stay updated with your activity",
+    markAllAsRead: "Mark all as read",
+    allNotifications: "All",
+    unreadNotifications: "Unread",
+    bookingNotifications: "Bookings",
+    paymentNotifications: "Payments",
+    messageNotifications: "Messages",
+    emergencyNotifications: "Emergencies",
+    noNotifications: "No notifications",
+    allCaughtUp: "You're all caught up!",
+    newNotification: "new",
+
     // Sidebar Groups
     mainMenu: "MAIN MENU",
     myActivity: "MY ACTIVITY",
@@ -1384,6 +1412,20 @@ export const translations = {
     professionalDashboard: "Panel Profesional",
     leaderboard: "Tabla de Clasificación",
     
+    // Notifications
+    notifications: "Notificaciones",
+    stayUpdated: "Mantente actualizado con tu actividad",
+    markAllAsRead: "Marcar todas como leídas",
+    allNotifications: "Todas",
+    unreadNotifications: "No Leídas",
+    bookingNotifications: "Reservas",
+    paymentNotifications: "Pagos",
+    messageNotifications: "Mensajes",
+    emergencyNotifications: "Emergencias",
+    noNotifications: "Sin notificaciones",
+    allCaughtUp: "¡Estás al día!",
+    newNotification: "nueva",
+
     // Sidebar Groups
     mainMenu: "MENÚ PRINCIPAL",
     myActivity: "MI ACTIVIDAD",
@@ -1428,7 +1470,7 @@ export const translations = {
     yourCompleteDashboard: "Tu panel completo del Universo PawCão",
     pawPoints: "PawPoints",
     upcomingWalks: "Próximos Paseos",
-    favorites: "Favoritos",
+    favorites: "Mis Favoritos",
     accountInformation: "Información de la Cuenta",
     fullName: "Nombre Completo",
     email: "Email",
