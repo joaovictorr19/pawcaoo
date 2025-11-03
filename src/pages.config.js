@@ -27,6 +27,7 @@ import Leaderboard from './pages/Leaderboard';
 import Community from './pages/Community';
 import SocialFeed from './pages/SocialFeed';
 import ForumTopicDetails from './pages/ForumTopicDetails';
+import AccountSettings from './pages/AccountSettings';
 import Layout from './Layout.jsx';
 
 
@@ -60,6 +61,7 @@ export const PAGES = {
     "Community": Community,
     "SocialFeed": SocialFeed,
     "ForumTopicDetails": ForumTopicDetails,
+    "AccountSettings": AccountSettings,
 }
 
 export const pagesConfig = {

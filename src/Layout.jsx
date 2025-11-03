@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +89,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
+    { title: "⚙️ Account Settings", url: createPageUrl("AccountSettings"), icon: Shield },
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
   ];
 
@@ -204,7 +205,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(6, 15).map((item) => ( /* Updated slice to include Community Forum, Social Feed, and shifted subsequent items */
+                  {navigationItems.slice(6, 15).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -232,7 +233,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(15, 20).map((item) => ( /* Updated slice for professional services */
+                  {navigationItems.slice(15, 20).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -255,7 +256,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(20).map((item) => ( /* Updated slice for account items */
+                  {navigationItems.slice(20).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
