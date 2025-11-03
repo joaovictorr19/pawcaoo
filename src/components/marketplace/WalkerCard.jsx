@@ -85,261 +85,169 @@ export default function WalkerCard({ walker }) {
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="h-full"
     >
-      <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white relative backdrop-blur-sm">
-        {/* Glassmorphism overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/0 to-blue-500/0 group-hover:from-green-500/10 group-hover:to-blue-500/10 transition-all duration-500 pointer-events-none z-10" />
-        
-        {/* Premium Ribbon with glow */}
+      <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white h-full flex flex-col">
+        {/* Premium Ribbon */}
         {isProPlan && (
-          <motion.div
-            initial={{ x: -100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="absolute top-0 left-0 z-20"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-yellow-400 blur-lg opacity-50 animate-pulse"></div>
-              <div className="relative bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 text-xs font-bold shadow-xl rounded-br-2xl flex items-center gap-1.5">
-                <Crown className="w-4 h-4 animate-bounce" />
-                PRO
-              </div>
+          <div className="absolute top-0 left-0 z-20">
+            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-bold shadow-lg rounded-br-xl flex items-center gap-1">
+              <Crown className="w-3 h-3" />
+              PRO
             </div>
-          </motion.div>
+          </div>
         )}
         {isPremium && !isProPlan && (
-          <motion.div
-            initial={{ x: -100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="absolute top-0 left-0 z-20"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-purple-400 blur-lg opacity-50 animate-pulse"></div>
-              <div className="relative bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 text-xs font-bold shadow-xl rounded-br-2xl flex items-center gap-1.5">
-                <Zap className="w-4 h-4" />
-                PREMIUM
-              </div>
+          <div className="absolute top-0 left-0 z-20">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-bold shadow-lg rounded-br-xl flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              PREMIUM
             </div>
-          </motion.div>
+          </div>
         )}
 
-        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
+        <div className="relative h-44 md:h-56 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
           {walker.photo_url ? (
-            <motion.img
+            <img
               src={walker.photo_url}
               alt={walker.walker_name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              whileHover={{ scale: 1.1 }}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-200 to-blue-200">
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-xl"
-              >
-                <span className="text-4xl font-bold bg-gradient-to-br from-green-600 to-blue-600 bg-clip-text text-transparent">
+              <div className="w-20 h-20 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-2xl md:text-4xl font-bold bg-gradient-to-br from-green-600 to-blue-600 bg-clip-text text-transparent">
                   {walker.walker_name?.[0]?.toUpperCase()}
                 </span>
-              </motion.div>
+              </div>
             </div>
           )}
           
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          {/* Favorite Button with enhanced animation */}
-          <motion.div
-            className="absolute top-4 left-4"
-            whileHover={{ scale: 1.2, rotate: 10 }}
-            whileTap={{ scale: 0.9 }}
-          >
+          {/* Favorite Button */}
+          <div className="absolute top-2 left-2 md:top-3 md:left-3">
             <Button
               size="icon"
               variant="ghost"
-              className="bg-white/90 hover:bg-white shadow-xl backdrop-blur-md border border-white/50"
+              className="bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm border border-white/50 h-8 w-8 md:h-9 md:w-9"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleFavoriteMutation.mutate();
               }}
               disabled={toggleFavoriteMutation.isLoading || !user}
             >
-              <motion.div
-                animate={isFavorite ? { scale: [1, 1.2, 1] } : {}}
-                transition={{ duration: 0.3 }}
-              >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-              </motion.div>
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
             </Button>
-          </motion.div>
+          </div>
 
-          <div className="absolute top-4 right-4 flex gap-2 flex-col items-end">
+          <div className="absolute top-2 right-2 md:top-3 md:right-3 flex gap-1 md:gap-1.5 flex-col items-end">
             {walker.verification_status === "verified" && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-              >
-                <Badge className="bg-green-500 text-white border-0 shadow-xl backdrop-blur-md">
-                  <ShieldCheck className="w-4 h-4 mr-1" />
-                  Verified
-                </Badge>
-              </motion.div>
+              <Badge className="bg-green-500 text-white border-0 shadow-lg text-[10px] md:text-xs px-1.5 py-0.5 md:px-2 md:py-1">
+                <ShieldCheck className="w-3 h-3 mr-0.5" />
+                Verified
+              </Badge>
             )}
             {walker.rating && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
-                whileHover={{ scale: 1.1 }}
-              >
-                <Badge className="bg-white/95 backdrop-blur-md text-gray-900 border-0 shadow-xl">
-                  <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                  {walker.rating.toFixed(1)}
-                </Badge>
-              </motion.div>
+              <Badge className="bg-white/95 backdrop-blur-sm text-gray-900 border-0 shadow-lg text-[10px] md:text-xs px-1.5 py-0.5 md:px-2 md:py-1">
+                <Star className="w-3 h-3 mr-0.5 fill-yellow-400 text-yellow-400" />
+                {walker.rating.toFixed(1)}
+              </Badge>
             )}
             
             {/* NEW: Video Badge */}
             {walker.video_intro_url && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
-                whileHover={{ scale: 1.1 }}
-              >
-                <Badge className="bg-blue-500 text-white border-0 shadow-xl backdrop-blur-md flex items-center gap-1">
-                  <Video className="w-3 h-3" />
-                  Video
-                </Badge>
-              </motion.div>
+              <Badge className="bg-blue-500 text-white border-0 shadow-lg text-[10px] md:text-xs px-1.5 py-0.5 md:px-2 md:py-1">
+                <Video className="w-3 h-3" />
+              </Badge>
             )}
 
             {/* NEW: Background Check Badge */}
             {walker.background_check_status === 'verified' && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
-                whileHover={{ scale: 1.1 }}
-              >
-                <Badge className="bg-gradient-to-r from-green-600 to-green-500 text-white border-0 shadow-xl backdrop-blur-md flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" />
-                  Background Verified
-                </Badge>
-              </motion.div>
+              <Badge className="bg-green-600 text-white border-0 shadow-lg text-[10px] md:text-xs px-1.5 py-0.5 md:px-2 md:py-1">
+                <ShieldCheck className="w-3 h-3" />
+              </Badge>
             )}
           </div>
         </div>
         
-        <CardContent className="p-6 space-y-4 relative z-20">
+        <CardContent className="p-3 md:p-5 space-y-2 md:space-y-3 flex-1 flex flex-col">
           <div>
-            <motion.h3
-              className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2"
-              whileHover={{ x: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
+            <h3 className="text-base md:text-xl font-bold text-gray-900 mb-1 flex items-center gap-1.5 line-clamp-1">
               {walker.walker_name}
-              {isProPlan && <Crown className="w-5 h-5 text-yellow-500 animate-pulse" />}
-            </motion.h3>
-            <div className="flex items-center text-gray-600 text-sm">
-              <MapPin className="w-4 h-4 mr-1" />
-              {walker.location}
+              {isProPlan && <Crown className="w-4 h-4 text-yellow-500" />}
+            </h3>
+            <div className="flex items-center text-gray-600 text-xs md:text-sm">
+              <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{walker.location}</span>
             </div>
           </div>
 
-          {/* Response Time Badge with glow */}
           {(isPremium || isProPlan) && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="relative"
-            >
-              <div className="absolute inset-0 bg-blue-400 blur-md opacity-20"></div>
-              <div className="relative flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl px-3 py-2 border border-blue-200/50">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700">
-                  Usually replies in {getResponseTime()}
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg px-2 py-1.5 md:px-3 md:py-2 border border-blue-200/50">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3 h-3 md:w-4 md:h-4 text-blue-600 flex-shrink-0" />
+                <span className="text-[10px] md:text-xs font-medium text-blue-700 truncate">
+                  Responde em {getResponseTime()}
                 </span>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {walker.bio && (
-            <p className="text-gray-600 text-sm line-clamp-2">
+            <p className="text-xs md:text-sm text-gray-600 line-clamp-2">
               {walker.bio}
             </p>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1 md:gap-1.5">
             {walker.dog_sizes?.slice(0, 3).map(size => (
-              <motion.div
-                key={size}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50 hover:bg-green-100 transition-colors">
-                  {getSizeLabel(size)}
-                </Badge>
-              </motion.div>
+              <Badge key={size} variant="outline" className="border-green-200 text-green-700 bg-green-50 text-[10px] md:text-xs px-1.5 py-0.5">
+                {getSizeLabel(size)}
+              </Badge>
             ))}
             {walker.dog_sizes?.length > 3 && (
-              <Badge variant="outline" className="border-gray-200 text-gray-600 bg-gray-50">
+              <Badge variant="outline" className="border-gray-200 text-gray-600 bg-gray-50 text-[10px] md:text-xs px-1.5 py-0.5">
                 +{walker.dog_sizes.length - 3}
               </Badge>
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
+            <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-600">
               {walker.experience_years && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {walker.experience_years}y
+                <div className="flex items-center gap-0.5 md:gap-1">
+                  <Clock className="w-3 h-3 md:w-4 md:h-4" />
+                  {walker.experience_years}a
                 </div>
               )}
               {walker.total_walks > 0 && (
-                <div>
-                  {walker.total_walks} walks
+                <div className="text-xs md:text-sm">
+                  {walker.total_walks} passeios
                 </div>
               )}
             </div>
-            <motion.div
-              className="text-right"
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+            <div className="text-right">
+              <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
                 €{walker.hourly_rate}
               </div>
-              <div className="text-xs text-gray-500">per hour</div>
-            </motion.div>
+              <div className="text-[10px] md:text-xs text-gray-500">por hora</div>
+            </div>
           </div>
 
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <Button 
+            className={`w-full shadow-md h-9 md:h-11 text-xs md:text-sm font-semibold ${
+              isProPlan 
+                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                : isPremium
+                ? 'bg-gradient-to-r from-purple-600 to-purple-500'
+                : 'bg-gradient-to-r from-green-600 to-green-500'
+            } text-white`}
+            onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+            disabled={walker.verification_status !== "verified"}
           >
-            <Button 
-              className={`w-full shadow-lg h-12 text-base font-semibold relative overflow-hidden group/btn ${
-                isProPlan 
-                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
-                  : isPremium
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
-                  : 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
-              } text-white`}
-              onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-              disabled={walker.verification_status !== "verified"}
-            >
-              <span className="relative z-10">
-                {walker.verification_status === "verified" ? "View Profile & Book" : "Verification Pending"}
-              </span>
-              <div className="absolute inset-0 bg-white/20 transform translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
-            </Button>
-          </motion.div>
+            {walker.verification_status === "verified" ? "Ver Perfil" : "Pendente"}
+          </Button>
         </CardContent>
       </Card>
     </motion.div>
