@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -57,7 +58,14 @@ export default function Dashboard() {
     queryKey: ['loyaltyPoints'],
     queryFn: async () => {
       const points = await base44.entities.LoyaltyPoints.filter({ user_email: user?.email });
-      return points[0] || { points_balance: 0, tier: 'bronze', total_earned: 0 };
+      return points[0] || { 
+        points_balance: 0, 
+        tier: 'bronze', 
+        total_earned: 0,
+        total_redeemed: 0,
+        lifetime_bookings: 0,
+        lifetime_redemptions: 0
+      };
     },
     enabled: !!user,
   });
@@ -166,7 +174,7 @@ export default function Dashboard() {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
             <CardContent className="p-6 text-center">
               <Gift className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{loyaltyPoints.points_balance}</div>
+              <div className="text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
               <div className="text-sm opacity-90">PawPoints</div>
             </CardContent>
           </Card>
@@ -174,7 +182,7 @@ export default function Dashboard() {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
             <CardContent className="p-6 text-center">
               <Calendar className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{upcomingBookings.length}</div>
+              <div className="text-3xl font-bold">{upcomingBookings?.length || 0}</div>
               <div className="text-sm opacity-90">Upcoming Walks</div>
             </CardContent>
           </Card>
@@ -182,7 +190,7 @@ export default function Dashboard() {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
             <CardContent className="p-6 text-center">
               <Heart className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{favorites.length}</div>
+              <div className="text-3xl font-bold">{favorites?.length || 0}</div>
               <div className="text-sm opacity-90">Favorites</div>
             </CardContent>
           </Card>
@@ -190,7 +198,7 @@ export default function Dashboard() {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
             <CardContent className="p-6 text-center">
               <Bell className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-3xl font-bold">{notifications.length}</div>
+              <div className="text-3xl font-bold">{notifications?.length || 0}</div>
               <div className="text-sm opacity-90">Notifications</div>
             </CardContent>
           </Card>
@@ -427,21 +435,21 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-center mb-4">
                 <div className="text-5xl font-bold text-purple-600 mb-2">
-                  {loyaltyPoints.points_balance}
+                  {loyaltyPoints?.points_balance || 0}
                 </div>
                 <div className="text-sm text-gray-600">Available Points</div>
                 <Badge className="mt-2 bg-purple-600">
-                  {loyaltyPoints.tier.toUpperCase()} Tier
+                  {(loyaltyPoints?.tier || 'bronze').toUpperCase()} Tier
                 </Badge>
               </div>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Total Earned</span>
-                  <span className="font-semibold">{loyaltyPoints.total_earned}</span>
+                  <span className="font-semibold">{loyaltyPoints?.total_earned || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Total Redeemed</span>
-                  <span className="font-semibold">{loyaltyPoints.total_redeemed || 0}</span>
+                  <span className="font-semibold">{loyaltyPoints?.total_redeemed || 0}</span>
                 </div>
               </div>
               <Button 
