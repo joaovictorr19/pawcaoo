@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,15 +28,18 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [uploading, setUploading] = useState({
     photo: false,
-    video: false, // Added for video upload
+    video: false,
     id: false,
     background: false,
     address: false
@@ -46,12 +48,12 @@ export default function BecomeWalker() {
   const [formData, setFormData] = useState({
     walker_name: "",
     photo_url: "",
-    video_intro_url: "", // New field
+    video_intro_url: "",
     bio: "",
     location: "",
     service_areas: [],
     hourly_rate: "",
-    services_offered: [], // New field
+    services_offered: [],
     experience_years: "",
     phone: "",
     dog_sizes: [],
@@ -60,7 +62,7 @@ export default function BecomeWalker() {
     availability: [],
     id_document_url: "",
     background_check_url: "",
-    background_check_provider: "", // New field
+    background_check_provider: "",
     proof_of_address_url: "",
     bank_account_holder: "",
     bank_account_number: "",
@@ -147,23 +149,22 @@ export default function BecomeWalker() {
           <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
             <Dog className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Become a Walker</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('becomeWalkerTitle', language)}</h1>
           <p className="text-gray-600 text-lg mb-4">
-            Join PawCão and start earning doing what you love — caring for dogs
+            {t('becomeWalkerSubtitle', language)}
           </p>
           
-          {/* Progress Bar */}
           <div className="max-w-2xl mx-auto mb-6">
             <Progress value={progress} className="h-3 mb-3" />
             <div className="flex justify-between text-sm">
               <span className={`font-semibold ${currentStep >= 1 ? 'text-green-600' : 'text-gray-400'}`}>
-                Step 1: Profile
+                {t('step1Profile', language)}
               </span>
               <span className={`font-semibold ${currentStep >= 2 ? 'text-green-600' : 'text-gray-400'}`}>
-                Step 2: Documents
+                {t('step2Documents', language)}
               </span>
               <span className={`font-semibold ${currentStep >= 3 ? 'text-green-600' : 'text-gray-400'}`}>
-                Step 3: Payment Info
+                {t('step3Payment', language)}
               </span>
             </div>
           </div>
@@ -188,9 +189,9 @@ export default function BecomeWalker() {
                       <Sparkles className="w-12 h-12 text-green-600" />
                     </div>
                   </motion.div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">🎉 Application Received!</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('applicationReceived', language)}</h2>
                   <p className="text-lg text-gray-600">
-                    Verification usually takes 24–48 hours. We'll notify you once approved!
+                    {t('verificationTime', language)}
                   </p>
                 </CardContent>
               </Card>
@@ -201,17 +202,16 @@ export default function BecomeWalker() {
         <Alert className="mb-6 border-blue-200 bg-blue-50">
           <Shield className="h-5 w-5 text-blue-600" />
           <AlertDescription className="text-blue-900">
-            <strong>Safety & Trust:</strong> All walkers must submit official documents for verification. 
-            This protects dog owners and builds trust in our community.
+            <strong>{t('professionalStandards', language)}</strong> {t('professionalStandardsDesc', language)}
           </AlertDescription>
         </Alert>
 
         <Card className="border-0 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
             <CardTitle className="text-2xl flex items-center gap-2">
-              {currentStep === 1 && <><Dog className="w-6 h-6" /> Step 1: Create Your Profile</>}
-              {currentStep === 2 && <><Shield className="w-6 h-6" /> Step 2: Verification Documents</>}
-              {currentStep === 3 && <><DollarSign className="w-6 h-6" /> Step 3: Payment Information</>}
+              {currentStep === 1 && <><Dog className="w-6 h-6" /> {t('step1Profile', language)}</>}
+              {currentStep === 2 && <><Shield className="w-6 h-6" /> {t('step2Documents', language)}</>}
+              {currentStep === 3 && <><DollarSign className="w-6 h-6" /> {t('step3Payment', language)}</>}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -226,7 +226,7 @@ export default function BecomeWalker() {
                 >
                   {/* Profile Photo */}
                   <div className="space-y-2 mb-6">
-                    <Label htmlFor="photo">Profile Photo *</Label>
+                    <Label htmlFor="photo">{t('profilePhoto', language)} *</Label>
                     <div className="flex items-center gap-4">
                       {formData.photo_url ? (
                         <img
@@ -249,18 +249,18 @@ export default function BecomeWalker() {
                           required
                         />
                         <p className="text-sm text-gray-500 mt-2">
-                          {uploading.photo ? "Uploading..." : "Upload a friendly photo of yourself"}
+                          {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* NEW: Video Introduction */}
+                  {/* Video Introduction */}
                   <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
-                    <Label htmlFor="video">Video Introduction (Optional but Recommended) 📹</Label>
+                    <Label htmlFor="video">{t('videoIntroduction', language)} 📹</Label>
                     <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-3">
                       <p className="text-sm text-blue-900">
-                        <strong>💡 Profiles with videos get 3x more bookings!</strong> Record a 1-2 minute intro showing your personality and love for dogs.
+                        {t('videoIntroTip', language)}
                       </p>
                     </div>
                     <div className="flex flex-col items-start gap-4">
@@ -284,7 +284,7 @@ export default function BecomeWalker() {
                         className="mt-3"
                       />
                       <p className="text-sm text-gray-500">
-                        {uploading.video ? "Uploading video..." : "MP4, MOV, AVI (max 100MB, 1-2 minutes)"}
+                        {uploading.video ? t('uploadingVideo', language) : t('videoFormats', language)}
                       </p>
                     </div>
                   </div>
@@ -292,18 +292,18 @@ export default function BecomeWalker() {
                   {/* Basic Info */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="walker_name">Your Name *</Label>
+                      <Label htmlFor="walker_name">{t('yourName', language)} *</Label>
                       <Input
                         id="walker_name"
                         required
                         value={formData.walker_name}
                         onChange={(e) => setFormData({...formData, walker_name: e.target.value})}
-                        placeholder="John Smith"
+                        placeholder="João Silva"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Label htmlFor="phone">{t('phoneNumber', language)} *</Label>
                       <Input
                         id="phone"
                         required
@@ -314,13 +314,13 @@ export default function BecomeWalker() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="location">Location *</Label>
+                      <Label htmlFor="location">{t('location', language)} *</Label>
                       <Input
                         id="location"
                         required
                         value={formData.location}
                         onChange={(e) => setFormData({...formData, location: e.target.value})}
-                        placeholder="Lisbon, Portugal"
+                        placeholder="Lisboa, Portugal"
                       />
                     </div>
 
@@ -328,7 +328,7 @@ export default function BecomeWalker() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="space-y-2">
-                            <Label htmlFor="hourly_rate">Hourly Rate (€) *</Label>
+                            <Label htmlFor="hourly_rate">{t('hourlyRate', language)} *</Label>
                             <Input
                               id="hourly_rate"
                               type="number"
@@ -338,17 +338,17 @@ export default function BecomeWalker() {
                               onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
                               placeholder="25"
                             />
-                            <p className="text-xs text-gray-500">Platform takes 15% commission</p>
+                            <p className="text-xs text-gray-500">{t('platformCommission', language)}</p>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Example: €25/hour = You earn €21.25 per walk (after 15% commission)</p>
+                          <p>Exemplo: €25/hora = Recebe €21.25 por passeio (após 15% comissão)</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
 
                     <div className="space-y-2">
-                      <Label htmlFor="experience_years">Years of Experience</Label>
+                      <Label htmlFor="experience_years">{t('yearsOfExperience', language)}</Label>
                       <Input
                         id="experience_years"
                         type="number"
@@ -361,26 +361,26 @@ export default function BecomeWalker() {
 
                   {/* Bio */}
                   <div className="space-y-2">
-                    <Label htmlFor="bio">About You</Label>
+                    <Label htmlFor="bio">{t('aboutYou', language)}</Label>
                     <Textarea
                       id="bio"
                       value={formData.bio}
                       onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                      placeholder="Tell potential clients about your experience with dogs, your approach to dog walking, and why you love dogs..."
+                      placeholder={t('aboutYouPlaceholder', language)}
                       rows={5}
                     />
                   </div>
 
-                  {/* NEW: Services Offered */}
+                  {/* Services Offered */}
                   <div className="border-t-2 border-green-100 pt-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-xl font-bold">Services Offered</Label>
-                        <p className="text-sm text-gray-600 mt-1">Define your service packages and pricing</p>
+                        <Label className="text-xl font-bold">{t('servicesOffered', language)}</Label>
+                        <p className="text-sm text-gray-600 mt-1">{t('servicesOfferedDesc', language)}</p>
                       </div>
                       <Button type="button" variant="outline" onClick={addService}>
                         <PlusCircle className="w-4 h-4 mr-2" />
-                        Add Service
+                        {t('addService', language)}
                       </Button>
                     </div>
 
@@ -388,7 +388,7 @@ export default function BecomeWalker() {
                       <Card key={index} className="p-4 bg-green-50 border-2 border-green-200">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-gray-900">Service #{index + 1}</h4>
+                            <h4 className="font-semibold text-gray-900">{t('serviceNumber', language).replace('#', `#${index + 1}`)}</h4>
                             <Button
                               type="button"
                               variant="ghost"
@@ -396,22 +396,22 @@ export default function BecomeWalker() {
                               onClick={() => removeService(index)}
                               className="text-red-600 hover:text-red-700"
                             >
-                              Remove
+                              {t('removeService', language)}
                             </Button>
                           </div>
                           
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Service Name</Label>
+                              <Label>{t('serviceName', language)}</Label>
                               <Input
-                                placeholder="e.g., Standard Walk"
+                                placeholder={t('serviceNamePlaceholder', language)}
                                 value={service.service_name}
                                 onChange={(e) => updateService(index, 'service_name', e.target.value)}
                               />
                             </div>
                             
                             <div className="space-y-2">
-                              <Label>Price (€)</Label>
+                              <Label>{t('price', language)} (€)</Label>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -423,9 +423,9 @@ export default function BecomeWalker() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Description</Label>
+                            <Label>{t('description', language)}</Label>
                             <Textarea
-                              placeholder="Describe what's included in this service..."
+                              placeholder={t('descriptionPlaceholder', language)}
                               value={service.description}
                               onChange={(e) => updateService(index, 'description', e.target.value)}
                               rows={3}
@@ -433,7 +433,7 @@ export default function BecomeWalker() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Duration Options</Label>
+                            <Label>{t('durationOptions', language)}</Label>
                             <div className="flex flex-wrap gap-2">
                               {['30min', '1hr', '1.5hr', '2hr'].map(duration => (
                                 <label key={duration} className="flex items-center gap-2 cursor-pointer">
@@ -459,7 +459,7 @@ export default function BecomeWalker() {
 
                   {/* Service Areas */}
                   <div className="space-y-2">
-                    <Label>Service Areas</Label>
+                    <Label>{t('serviceAreas', language)}</Label>
                     <ServiceAreaSelector
                       serviceAreas={formData.service_areas}
                       onChange={(areas) => setFormData({...formData, service_areas: areas})}
@@ -468,13 +468,13 @@ export default function BecomeWalker() {
 
                   {/* Dog Sizes */}
                   <div className="space-y-3">
-                    <Label>Dog Sizes You Can Handle *</Label>
+                    <Label>{t('dogSizesYouHandle', language)} *</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[
-                        { value: "small", label: "Small" },
-                        { value: "medium", label: "Medium" },
-                        { value: "large", label: "Large" },
-                        { value: "extra_large", label: "Extra Large" },
+                        { value: "small", label: t('small', language) },
+                        { value: "medium", label: t('medium', language) },
+                        { value: "large", label: t('large', language) },
+                        { value: "extra_large", label: t('extraLarge', language) },
                       ].map(size => (
                         <div key={size.value} className="flex items-center space-x-2">
                           <Checkbox
@@ -492,7 +492,7 @@ export default function BecomeWalker() {
 
                   {/* Dog Breeds */}
                   <div className="space-y-2">
-                    <Label>Dog Breeds You Have Experience With</Label>
+                    <Label>{t('dogBreedsExperience', language)}</Label>
                     <BreedSelector
                       selectedBreeds={formData.dog_breeds_handled}
                       onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
@@ -503,13 +503,13 @@ export default function BecomeWalker() {
 
                   {/* Availability */}
                   <div className="space-y-3">
-                    <Label>Your Availability *</Label>
+                    <Label>{t('yourAvailability', language)} *</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[
-                        { value: "morning", label: "Morning" },
-                        { value: "afternoon", label: "Afternoon" },
-                        { value: "evening", label: "Evening" },
-                        { value: "night", label: "Night" },
+                        { value: "morning", label: t('morning', language) },
+                        { value: "afternoon", label: t('afternoon', language) },
+                        { value: "evening", label: t('evening', language) },
+                        { value: "night", label: t('night', language) },
                       ].map(time => (
                         <div key={time.value} className="flex items-center space-x-2">
                           <Checkbox
@@ -532,7 +532,7 @@ export default function BecomeWalker() {
                       disabled={!canProceedToStep2}
                       className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
                     >
-                      Next: Documents →
+                      {t('next', language)}: {t('step2Documents', language).split(':')[1]} →
                     </Button>
                   </div>
                 </motion.div>
@@ -550,7 +550,7 @@ export default function BecomeWalker() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="space-y-2">
-                          <Label>Government-Issued ID * (Driver's License, Passport, etc.)</Label>
+                          <Label>{t('governmentId', language)} *</Label>
                           <Input
                             type="file"
                             accept="image/*,.pdf"
@@ -561,27 +561,26 @@ export default function BecomeWalker() {
                           {formData.id_document_url && (
                             <div className="flex items-center gap-2 text-sm text-green-600">
                               <CheckCircle2 className="w-4 h-4" />
-                              Document uploaded - pending verification
+                              {t('documentUploaded', language)}
                             </div>
                           )}
-                          {uploading.id && <p className="text-sm text-gray-500">Uploading...</p>}
+                          {uploading.id && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>We need this to verify your identity and ensure safety for all users</p>
+                        <p>Necessário para verificar a sua identidade</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 
-                  {/* ENHANCED: Background Check */}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="space-y-2">
-                          <Label>Background Check (Highly Recommended) 🛡️</Label>
+                          <Label>{t('backgroundCheck', language)} 🛡️</Label>
                           <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-3">
                             <p className="text-sm text-green-900">
-                              <strong>✓ Verified profiles get priority placement!</strong> Upload a background check from a trusted provider (Checkr, Sterling, etc.) to boost trust.
+                              {t('backgroundCheckTip', language)}
                             </p>
                           </div>
                           <Select
@@ -589,14 +588,14 @@ export default function BecomeWalker() {
                             onValueChange={(value) => setFormData({...formData, background_check_provider: value})}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select Background Check Provider" />
+                              <SelectValue placeholder={t('selectProvider', language)} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="checkr">Checkr</SelectItem>
                               <SelectItem value="sterling">Sterling</SelectItem>
                               <SelectItem value="goodhire">GoodHire</SelectItem>
                               <SelectItem value="certn">Certn</SelectItem>
-                              <SelectItem value="other">Other Provider</SelectItem>
+                              <SelectItem value="other">Outro</SelectItem>
                             </SelectContent>
                           </Select>
                           <Input
@@ -609,14 +608,14 @@ export default function BecomeWalker() {
                           {formData.background_check_url && (
                             <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
                               <CheckCircle2 className="w-4 h-4" />
-                              Document uploaded - pending verification
+                              {t('documentUploaded', language)}
                             </div>
                           )}
-                          {uploading.background && <p className="text-sm text-gray-500">Uploading...</p>}
+                          {uploading.background && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Background checks significantly increase booking rates and client trust</p>
+                        <p>Verificação de antecedentes aumenta significativamente as taxas de reserva</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -625,7 +624,7 @@ export default function BecomeWalker() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="space-y-2">
-                          <Label>Proof of Address * (Utility bill, lease agreement, etc.)</Label>
+                          <Label>{t('proofOfAddress', language)} *</Label>
                           <Input
                             type="file"
                             accept="image/*,.pdf"
@@ -636,14 +635,14 @@ export default function BecomeWalker() {
                           {formData.proof_of_address_url && (
                             <div className="flex items-center gap-2 text-sm text-green-600">
                               <CheckCircle2 className="w-4 h-4" />
-                              Document uploaded - pending verification
+                              {t('documentUploaded', language)}
                             </div>
                           )}
-                          {uploading.address && <p className="text-sm text-gray-500">Uploading...</p>}
+                          {uploading.address && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Required for verification - must match your profile location</p>
+                        <p>Obrigatório para verificação - deve corresponder à sua localização</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -655,7 +654,7 @@ export default function BecomeWalker() {
                       onClick={() => setCurrentStep(1)}
                       className="flex-1"
                     >
-                      ← Back
+                      ← {t('previous', language)}
                     </Button>
                     <Button
                       type="button"
@@ -663,7 +662,7 @@ export default function BecomeWalker() {
                       disabled={!canProceedToStep3}
                       className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
                     >
-                      Next: Payment Info →
+                      {t('next', language)}: Info de Pagamento →
                     </Button>
                   </div>
                 </motion.div>
@@ -677,22 +676,22 @@ export default function BecomeWalker() {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  <p className="text-gray-600">Where you'll receive your earnings (minus 15% platform fee)</p>
+                  <p className="text-gray-600">{t('paymentInfoDesc', language)}</p>
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="bank_account_holder">Account Holder Name *</Label>
+                      <Label htmlFor="bank_account_holder">{t('accountHolderName', language)} *</Label>
                       <Input
                         id="bank_account_holder"
                         required
                         value={formData.bank_account_holder}
                         onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
-                        placeholder="John Smith"
+                        placeholder="João Silva"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="bank_account_number">Bank Account Number *</Label>
+                      <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)} *</Label>
                       <Input
                         id="bank_account_number"
                         required
@@ -703,7 +702,7 @@ export default function BecomeWalker() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="bank_routing_number">SWIFT/BIC Code *</Label>
+                      <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)} *</Label>
                       <Input
                         id="bank_routing_number"
                         required
@@ -721,7 +720,7 @@ export default function BecomeWalker() {
                       onClick={() => setCurrentStep(2)}
                       className="flex-1"
                     >
-                      ← Back
+                      ← {t('previous', language)}
                     </Button>
                     <Button
                       type="submit"
@@ -729,11 +728,11 @@ export default function BecomeWalker() {
                       className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white h-14 text-lg font-semibold shadow-xl"
                     >
                       {createWalkerMutation.isPending ? (
-                        "Submitting..."
+                        t('submitting', language)
                       ) : (
                         <>
                           <CheckCircle2 className="w-5 h-5 mr-2" />
-                          Submit for Verification
+                          {t('submitForVerification', language)}
                         </>
                       )}
                     </Button>
