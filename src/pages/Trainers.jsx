@@ -1,0 +1,187 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, MapPin, Award } from "lucide-react";
+import { motion } from "framer-motion";
+import TrainerCard from "../components/trainers/TrainerCard";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function Trainers() {
+  const [searchLocation, setSearchLocation] = useState("");
+  const [filterSpecialty, setFilterSpecialty] = useState("all");
+  const [filterMethod, setFilterMethod] = useState("all");
+
+  const { data: trainers, isLoading } = useQuery({
+    queryKey: ['trainers'],
+    queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
+    initialData: [],
+  });
+
+  const filteredTrainers = trainers.filter(trainer => {
+    const matchesLocation = !searchLocation || 
+      trainer.location?.toLowerCase().includes(searchLocation.toLowerCase());
+    const matchesSpecialty = filterSpecialty === "all" || 
+      trainer.training_specialties?.includes(filterSpecialty);
+    const matchesMethod = filterMethod === "all" || 
+      trainer.consultation_options?.includes(filterMethod);
+    
+    return matchesLocation && matchesSpecialty && matchesMethod;
+  });
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 text-white py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <Award className="w-12 h-12" />
+              <h1 className="text-4xl md:text-6xl font-bold">
+                Find Professional Dog Trainers
+              </h1>
+            </div>
+            <p className="text-xl md:text-2xl text-purple-50 mb-8">
+              Certified trainers for obedience, behavior, and specialized training
+            </p>
+          </motion.div>
+
+          {/* Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-white rounded-2xl shadow-2xl p-4 md:p-6"
+          >
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Enter your location..."
+                  value={searchLocation}
+                  onChange={(e) => setSearchLocation(e.target.value)}
+                  className="pl-12 h-12 text-base border-gray-200 focus:ring-purple-500"
+                />
+              </div>
+              <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
+                <SelectTrigger className="md:w-56 h-12 border-gray-200">
+                  <SelectValue placeholder="Training Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Training Types</SelectItem>
+                  <SelectItem value="basic_obedience">Basic Obedience</SelectItem>
+                  <SelectItem value="behavior_modification">Behavior Modification</SelectItem>
+                  <SelectItem value="puppy_training">Puppy Training</SelectItem>
+                  <SelectItem value="aggression">Aggression Issues</SelectItem>
+                  <SelectItem value="anxiety">Anxiety & Fear</SelectItem>
+                  <SelectItem value="socialization">Socialization</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterMethod} onValueChange={setFilterMethod}>
+                <SelectTrigger className="md:w-48 h-12 border-gray-200">
+                  <SelectValue placeholder="Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Methods</SelectItem>
+                  <SelectItem value="in_person">In-Person</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Trainers List */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Available Trainers</h2>
+            <p className="text-gray-600 mt-1">
+              {filteredTrainers.length} certified trainers found
+            </p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="bg-white rounded-2xl p-6 space-y-4">
+                <Skeleton className="w-full h-64 rounded-xl" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : filteredTrainers.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No trainers found</h3>
+            <p className="text-gray-600">Try adjusting your filters or search in a different area</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTrainers.map((trainer, index) => (
+              <motion.div
+                key={trainer.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <TrainerCard trainer={trainer} />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Info Section */}
+      <div className="bg-white border-t border-gray-200 py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            Why Choose PawCão Certified Trainers?
+          </h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Certified Professionals</h3>
+              <p className="text-gray-600 text-sm">All trainers have verified certifications</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Proven Methods</h3>
+              <p className="text-gray-600 text-sm">Positive reinforcement techniques</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Flexible Options</h3>
+              <p className="text-gray-600 text-sm">In-person or online sessions</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-orange-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Satisfaction Guaranteed</h3>
+              <p className="text-gray-600 text-sm">Money-back guarantee on packages</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,11 @@ const navigationItems = [
     title: "Find Walkers",
     url: createPageUrl("Home"),
     icon: Home,
+  },
+  {
+    title: "Find Trainers",
+    url: createPageUrl("Trainers"),
+    icon: Award,
   },
   {
     title: "Post Emergency Walk",
@@ -80,6 +86,11 @@ const navigationItems = [
     title: "Become a Walker",
     url: createPageUrl("BecomeWalker"),
     icon: PlusCircle,
+  },
+  {
+    title: "Become a Trainer",
+    url: createPageUrl("BecomeTrainer"),
+    icon: Award,
   },
   {
     title: "Walker Subscriptions",
@@ -145,7 +156,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MAIN MENU</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(0, 4).map((item) => (
+                  {navigationItems.slice(0, 5).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -168,7 +179,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MY ACTIVITY</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(4, 11).map((item) => (
+                  {navigationItems.slice(5, 12).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -193,10 +204,10 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">WALKER SERVICES</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">PROFESSIONAL SERVICES</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(11, 13).map((item) => (
+                  {navigationItems.slice(12, 15).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -219,7 +230,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(13).map((item) => (
+                  {navigationItems.slice(15).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -279,19 +290,21 @@ export default function Layout({ children, currentPageName }) {
                   <h4 className="font-semibold text-gray-900 mb-3">Services</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("Home")} className="hover:text-green-600">Find Walkers</Link></li>
+                    <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600">Find Trainers</Link></li>
                     <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600">Dog Sitting</Link></li>
                     <li><Link to={createPageUrl("Partners")} className="hover:text-green-600">Partner Stores</Link></li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">For Walkers</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">For Professionals</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600">Become a Walker</Link></li>
+                    <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600">Become a Trainer</Link></li>
                     <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600">Subscription Plans</Link></li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Legal</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">Company</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><a href="#" className="hover:text-green-600">About Us</a></li>
                     <li><a href="#" className="hover:text-green-600">Contact</a></li>
@@ -306,7 +319,7 @@ export default function Layout({ children, currentPageName }) {
                   © 2025 PawCão. All rights reserved.
                 </p>
                 <div className="flex items-center gap-2 text-sm text-green-700 font-semibold">
-                  ✓ Verified & Insured Walkers
+                  ✓ Verified & Insured Professionals
                 </div>
               </div>
             </div>

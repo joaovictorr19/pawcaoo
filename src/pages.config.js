@@ -15,6 +15,9 @@ import Subscriptions from './pages/Subscriptions';
 import LoyaltyRewards from './pages/LoyaltyRewards';
 import Partners from './pages/Partners';
 import PartnerDetails from './pages/PartnerDetails';
+import Trainers from './pages/Trainers';
+import TrainerDetails from './pages/TrainerDetails';
+import BecomeTrainer from './pages/BecomeTrainer';
 import Layout from './Layout.jsx';
 
 
@@ -36,6 +39,9 @@ export const PAGES = {
     "LoyaltyRewards": LoyaltyRewards,
     "Partners": Partners,
     "PartnerDetails": PartnerDetails,
+    "Trainers": Trainers,
+    "TrainerDetails": TrainerDetails,
+    "BecomeTrainer": BecomeTrainer,
 }
 
 export const pagesConfig = {
