@@ -1,14 +1,37 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Award, Video, User as UserIcon, ShieldCheck } from "lucide-react";
+import { MapPin, Star, Award, Video, User as UserIcon, ShieldCheck, Clock, Crown, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export default function TrainerCard({ trainer }) {
   const navigate = useNavigate();
+
+  // Fetch trainer's subscription to determine if premium
+  const { data: trainerSubscription } = useQuery({
+    queryKey: ['trainerSubscription', trainer.created_by],
+    queryFn: async () => {
+      const subs = await base44.entities.WalkerSubscription.filter({
+        walker_email: trainer.created_by,
+        is_active: true
+      });
+      return subs[0];
+    },
+    enabled: !!trainer.created_by,
+  });
+
+  const isPremium = trainerSubscription && ['premium', 'pro'].includes(trainerSubscription.plan_type);
+  const isProPlan = trainerSubscription?.plan_type === 'pro';
+
+  const getResponseTime = () => {
+    if (isProPlan) return "< 5 min";
+    if (isPremium) return "< 15 min";
+    return "< 1 hour";
+  };
 
   const getSpecialtyLabel = (specialty) => {
     const labels = {
@@ -36,7 +59,25 @@ export default function TrainerCard({ trainer }) {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group border-0 bg-white">
+    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group border-0 bg-white relative">
+      {/* Premium Ribbon */}
+      {isProPlan && (
+        <div className="absolute top-0 left-0 z-20">
+          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1 text-xs font-bold shadow-lg rounded-br-lg flex items-center gap-1">
+            <Crown className="w-3 h-3" />
+            PRO
+          </div>
+        </div>
+      )}
+      {isPremium && !isProPlan && (
+        <div className="absolute top-0 left-0 z-20">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 text-xs font-bold shadow-lg rounded-br-lg flex items-center gap-1">
+            <Zap className="w-3 h-3" />
+            PREMIUM
+          </div>
+        </div>
+      )}
+
       <div className="relative h-64 overflow-hidden bg-gradient-to-br from-purple-100 to-blue-100">
         {trainer.photo_url ? (
           <img
@@ -71,14 +112,25 @@ export default function TrainerCard({ trainer }) {
       
       <CardContent className="p-6 space-y-4">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">
+          <h3 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
             {trainer.trainer_name}
+            {isProPlan && <Crown className="w-5 h-5 text-yellow-500" />}
           </h3>
           <div className="flex items-center text-gray-600 text-sm">
             <MapPin className="w-4 h-4 mr-1" />
             {trainer.location}
           </div>
         </div>
+
+        {/* Response Time Badge */}
+        {(isPremium || isProPlan) && (
+          <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2">
+            <Clock className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">
+              Usually replies in {getResponseTime()}
+            </span>
+          </div>
+        )}
 
         {trainer.bio && (
           <p className="text-gray-600 text-sm line-clamp-2">
@@ -122,8 +174,9 @@ export default function TrainerCard({ trainer }) {
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="flex items-center gap-4 text-sm text-gray-600">
             {trainer.experience_years && (
-              <div>
-                {trainer.experience_years}y exp
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {trainer.experience_years}y
               </div>
             )}
             {trainer.total_clients > 0 && (
@@ -141,7 +194,13 @@ export default function TrainerCard({ trainer }) {
         </div>
 
         <Button 
-          className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-lg h-12 text-base font-semibold"
+          className={`w-full shadow-lg h-12 text-base font-semibold ${
+            isProPlan 
+              ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
+              : isPremium
+              ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
+              : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
+          } text-white`}
           onClick={() => navigate(createPageUrl(`TrainerDetails?id=${trainer.id}`))}
           disabled={trainer.verification_status !== "verified"}
         >

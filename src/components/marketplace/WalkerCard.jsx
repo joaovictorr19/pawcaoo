@@ -1,52 +1,62 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, DollarSign, ShieldCheck, Heart } from "lucide-react"; // Added Heart icon
+import { MapPin, Star, Clock, DollarSign, ShieldCheck, Heart, Zap, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query"; // Added react-query hooks
-
-// Assuming base44 is globally available or imported from a specific path.
-// If not global, you would need to add: import base44 from '@/lib/base44'; or similar
-// For this implementation, we assume `base44` is accessible.
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export default function WalkerCard({ walker }) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient(); // Initialize queryClient
+  const queryClient = useQueryClient();
 
-  // Fetch current user data (if needed, though not directly used in rendering the card,
-  // it might be for authentication checks or future features).
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    // Keep user data in sync if it changes, useful for showing favorite button only if logged in
-    staleTime: Infinity, // User data rarely changes
+    staleTime: Infinity,
   });
 
-  // Fetch favorite walkers
+  // Fetch walker's subscription to determine if premium
+  const { data: walkerSubscription } = useQuery({
+    queryKey: ['walkerSubscription', walker.created_by],
+    queryFn: async () => {
+      const subs = await base44.entities.WalkerSubscription.filter({
+        walker_email: walker.created_by,
+        is_active: true
+      });
+      return subs[0];
+    },
+    enabled: !!walker.created_by,
+  });
+
   const { data: favorites } = useQuery({
     queryKey: ['favorites'],
     queryFn: () => base44.entities.Favorite.list(),
-    initialData: [], // Provide an initial empty array to prevent `undefined` issues
-    enabled: !!user, // Only fetch favorites if a user is logged in
+    initialData: [],
+    enabled: !!user,
   });
 
-  // Check if the current walker is in the favorites list
   const isFavorite = favorites.some(f => f.walker_id === walker.id);
+  const isPremium = walkerSubscription && ['premium', 'pro'].includes(walkerSubscription.plan_type);
+  const isProPlan = walkerSubscription?.plan_type === 'pro';
 
-  // Mutation for toggling favorite status
+  // Calculate average response time (mock - you'd track this in real implementation)
+  const getResponseTime = () => {
+    if (isProPlan) return "< 5 min";
+    if (isPremium) return "< 15 min";
+    return "< 1 hour";
+  };
+
   const toggleFavoriteMutation = useMutation({
     mutationFn: async () => {
       if (isFavorite) {
-        // If already a favorite, find and delete it
         const favorite = favorites.find(f => f.walker_id === walker.id);
-        if (favorite) { // Ensure favorite is found before attempting to delete
+        if (favorite) {
           await base44.entities.Favorite.delete(favorite.id);
         }
       } else {
-        // If not a favorite, create a new favorite entry
         await base44.entities.Favorite.create({
           walker_id: walker.id,
           walker_name: walker.walker_name,
@@ -57,10 +67,8 @@ export default function WalkerCard({ walker }) {
       }
     },
     onSuccess: () => {
-      // Invalidate the 'favorites' query to refetch and update the UI
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
     },
-    // Optional: onError handling, onSettled, etc.
   });
 
   const getSizeLabel = (size) => {
@@ -74,7 +82,25 @@ export default function WalkerCard({ walker }) {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group border-0 bg-white">
+    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group border-0 bg-white relative">
+      {/* Premium Ribbon */}
+      {isProPlan && (
+        <div className="absolute top-0 left-0 z-20">
+          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1 text-xs font-bold shadow-lg rounded-br-lg flex items-center gap-1">
+            <Crown className="w-3 h-3" />
+            PRO
+          </div>
+        </div>
+      )}
+      {isPremium && !isProPlan && (
+        <div className="absolute top-0 left-0 z-20">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 text-xs font-bold shadow-lg rounded-br-lg flex items-center gap-1">
+            <Zap className="w-3 h-3" />
+            PREMIUM
+          </div>
+        </div>
+      )}
+
       <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
         {walker.photo_url ? (
           <img
@@ -91,21 +117,23 @@ export default function WalkerCard({ walker }) {
             </div>
           </div>
         )}
-        {/* New Favorite Button */}
+        
+        {/* Favorite Button */}
         <div className="absolute top-4 left-4">
           <Button
             size="icon"
             variant="ghost"
             className="bg-white/90 hover:bg-white shadow-lg"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent the card's click event from firing
+              e.stopPropagation();
               toggleFavoriteMutation.mutate();
             }}
-            disabled={toggleFavoriteMutation.isLoading || !user} // Disable if mutating or not logged in
+            disabled={toggleFavoriteMutation.isLoading || !user}
           >
             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
           </Button>
         </div>
+
         <div className="absolute top-4 right-4 flex gap-2 flex-col items-end">
           {walker.verification_status === "verified" && (
             <Badge className="bg-green-500 text-white border-0 shadow-lg">
@@ -124,14 +152,25 @@ export default function WalkerCard({ walker }) {
       
       <CardContent className="p-6 space-y-4">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">
+          <h3 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
             {walker.walker_name}
+            {isProPlan && <Crown className="w-5 h-5 text-yellow-500" />}
           </h3>
           <div className="flex items-center text-gray-600 text-sm">
             <MapPin className="w-4 h-4 mr-1" />
             {walker.location}
           </div>
         </div>
+
+        {/* Response Time Badge */}
+        {(isPremium || isProPlan) && (
+          <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2">
+            <Clock className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">
+              Usually replies in {getResponseTime()}
+            </span>
+          </div>
+        )}
 
         {walker.bio && (
           <p className="text-gray-600 text-sm line-clamp-2">
@@ -145,6 +184,11 @@ export default function WalkerCard({ walker }) {
               {getSizeLabel(size)}
             </Badge>
           ))}
+          {walker.dog_sizes?.length > 3 && (
+            <Badge variant="outline" className="border-gray-200 text-gray-600">
+              +{walker.dog_sizes.length - 3}
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
@@ -152,7 +196,7 @@ export default function WalkerCard({ walker }) {
             {walker.experience_years && (
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {walker.experience_years}y exp
+                {walker.experience_years}y
               </div>
             )}
             {walker.total_walks > 0 && (
@@ -163,14 +207,20 @@ export default function WalkerCard({ walker }) {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-green-600">
-              ${walker.hourly_rate}
+              €{walker.hourly_rate}
             </div>
             <div className="text-xs text-gray-500">per hour</div>
           </div>
         </div>
 
         <Button 
-          className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg h-12 text-base font-semibold"
+          className={`w-full shadow-lg h-12 text-base font-semibold ${
+            isProPlan 
+              ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
+              : isPremium
+              ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
+              : 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
+          } text-white`}
           onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
           disabled={walker.verification_status !== "verified"}
         >

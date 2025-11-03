@@ -317,14 +317,30 @@ function LayoutContent({ children, currentPageName }) {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('contactUs', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</a></li>
-                    <li><a href="#" className="hover:text-green-600 transition-colors">{t('cookiePolicy', language)}</a></li>
+                    <li><a href="#about" className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</a></li>
+                    <li><a href="#contact" className="hover:text-green-600 transition-colors">{t('contactUs', language)}</a></li>
+                    <li><a href="#terms" className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</a></li>
+                    <li><a href="#privacy" className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</a></li>
+                    <li><a href="#cookies" className="hover:text-green-600 transition-colors">{t('cookiePolicy', language)}</a></li>
                   </ul>
                 </div>
               </div>
+              
+              {/* Quick Links Bar */}
+              <div className="border-t border-gray-200 pt-6 pb-4">
+                <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-gray-600 mb-4">
+                  <a href="#about" className="hover:text-green-600 transition-colors font-medium">About</a>
+                  <span className="text-gray-300">·</span>
+                  <a href="#contact" className="hover:text-green-600 transition-colors font-medium">Contact</a>
+                  <span className="text-gray-300">·</span>
+                  <a href="#terms" className="hover:text-green-600 transition-colors font-medium">Terms</a>
+                  <span className="text-gray-300">·</span>
+                  <a href="#privacy" className="hover:text-green-600 transition-colors font-medium">Privacy</a>
+                  <span className="text-gray-300">·</span>
+                  <a href="#cookies" className="hover:text-green-600 transition-colors font-medium">Cookies</a>
+                </div>
+              </div>
+
               <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p className="text-sm text-gray-600">
                   © 2025 PawCão. {t('allRightsReserved', language)}.

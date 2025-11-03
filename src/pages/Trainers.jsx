@@ -41,17 +41,17 @@ export default function Trainers() {
   });
 
   const filteredTrainers = trainersWithRatings.filter(trainer => {
-    const matchesLocation = !searchLocation || 
+    const matchesLocation = !searchLocation ||
       trainer.location?.toLowerCase().includes(searchLocation.toLowerCase());
-    const matchesSpecialty = filterSpecialty === "all" || 
+    const matchesSpecialty = filterSpecialty === "all" ||
       trainer.training_specialties?.includes(filterSpecialty);
-    const matchesMethod = filterMethod === "all" || 
+    const matchesMethod = filterMethod === "all" ||
       trainer.consultation_options?.includes(filterMethod);
     const matchesRating = filterRating === "all" ||
       (filterRating === "4+" && trainer.average_rating >= 4) ||
       (filterRating === "4.5+" && trainer.average_rating >= 4.5) ||
       (filterRating === "5" && trainer.average_rating === 5);
-    
+
     return matchesLocation && matchesSpecialty && matchesMethod && matchesRating;
   });
 
@@ -161,7 +161,7 @@ export default function Trainers() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="bg-white rounded-2xl p-6 space-y-4">
                 <Skeleton className="w-full h-64 rounded-xl" />
@@ -180,7 +180,7 @@ export default function Trainers() {
             <p className="text-gray-600">Try adjusting your filters or search in a different area</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTrainers.map((trainer, index) => (
               <motion.div
                 key={trainer.id}

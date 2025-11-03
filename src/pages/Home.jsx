@@ -175,7 +175,7 @@ export default function Home() {
             </div>
 
             {loadingWalkers ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                   <div key={i} className="bg-white rounded-2xl p-6 space-y-4">
                     <Skeleton className="w-full h-64 rounded-xl" />
@@ -194,7 +194,7 @@ export default function Home() {
                 <p className="text-gray-600">{t('tryAdjustingFilters', language)}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredWalkers.map((walker, index) => (
                   <motion.div
                     key={walker.id}
