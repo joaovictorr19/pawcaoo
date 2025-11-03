@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -12,27 +11,23 @@ import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function Home() {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSize, setFilterSize] = useState("all");
   const [filterTime, setFilterTime] = useState("all");
   const [filterAvailability, setFilterAvailability] = useState("all");
 
-  // Check authentication - if not logged in, redirect to landing
+  // Check authentication
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
     retry: false,
   });
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      // User is not logged in, redirect to landing
-      window.location.href = "/";
-    }
-  }, [user, userLoading]);
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
@@ -64,8 +59,9 @@ export default function Home() {
     );
   }
 
-  // Don't render if not logged in (will redirect)
+  // If not logged in, redirect to landing using navigate
   if (!user) {
+    navigate(createPageUrl("Landing"));
     return null;
   }
 

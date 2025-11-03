@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,11 +6,13 @@ import { Dog, Star, Shield, Heart, Clock, TrendingUp, Users, Award, CheckCircle2
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Landing() {
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
   // Check if user is logged in
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -17,12 +20,12 @@ export default function Landing() {
     retry: false,
   });
 
-  // Redirect to Home if user is logged in
+  // Redirect to Home if user is logged in using navigate
   useEffect(() => {
     if (!isLoading && user) {
-      window.location.href = createPageUrl("Home");
+      navigate(createPageUrl("Home")); // Use navigate instead of window.location.href
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, navigate]); // Added navigate to dependency array
 
   const handleLogin = () => {
     base44.auth.redirectToLogin(window.location.origin + createPageUrl("Home"));
