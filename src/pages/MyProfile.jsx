@@ -1,759 +1,432 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { 
-  User, Mail, Shield, Dog, Crown, Gift, Calendar, Heart, 
-  Store, Award, TrendingUp, Bell, Star, Clock, Zap, Target, Sparkles, PlusCircle, // Existing imports
-  MapPin, ShieldCheck // Added new icons
+  User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell, 
+  Globe, CreditCard, Upload, Save, Eye, EyeOff
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
-import { motion } from "framer-motion";
-import { useLanguage } from "@/components/LanguageContext";
-import { t } from "@/components/translations";
-import DogProfileCard from "@/components/profile/DogProfileCard";
-import AddEditDogForm from "@/components/profile/AddEditDogForm";
+import { toast } from "sonner";
 
 export default function MyProfile() {
-  const navigate = useNavigate();
-  const { language } = useLanguage();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("profile");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [showDogForm, setShowDogForm] = useState(false);
-  const [editingDog, setEditingDog] = useState(null);
-
-  const { data: user, isLoading: loadingUser } = useQuery({
+  const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: myWalkerProfiles } = useQuery({
-    queryKey: ['myWalkerProfiles'],
-    queryFn: () => base44.entities.WalkerProfile.filter({ created_by: user?.email }),
-    enabled: !!user?.email,
-    initialData: [],
+  const [profileData, setProfileData] = useState({
+    full_name: user?.full_name || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+    city: user?.city || "",
+    postal_code: user?.postal_code || "",
   });
 
-  const { data: ownerSubscription } = useQuery({
-    queryKey: ['ownerSubscription'],
-    queryFn: async () => {
-      const subs = await base44.entities.OwnerSubscription.filter({
-        owner_email: user?.email,
-        is_active: true
-      });
-      return subs[0];
+  const [preferences, setPreferences] = useState({
+    language: user?.preferences?.language || "pt",
+    notifications_enabled: user?.preferences?.notifications_enabled ?? true,
+    email_notifications: user?.preferences?.email_notifications ?? true,
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data) => {
+      await base44.auth.updateMe(data);
     },
-    enabled: !!user,
-  });
-
-  const { data: walkerProfile } = useQuery({
-    queryKey: ['myWalkerProfile'],
-    queryFn: async () => {
-      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user?.email });
-      return profiles[0];
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success("Perfil atualizado com sucesso!");
     },
-    enabled: !!user,
-  });
-
-  const { data: trainerProfile } = useQuery({
-    queryKey: ['myTrainerProfile'],
-    queryFn: async () => {
-      const profiles = await base44.entities.TrainerProfile.filter({ created_by: user?.email });
-      return profiles[0];
-    },
-    enabled: !!user,
-  });
-
-  const { data: loyaltyPoints } = useQuery({
-    queryKey: ['loyaltyPoints'],
-    queryFn: async () => {
-      const points = await base44.entities.LoyaltyPoints.filter({ user_email: user?.email });
-      return points[0] || { 
-        points_balance: 0, 
-        tier: 'bronze', 
-        total_earned: 0,
-        total_redeemed: 0,
-        lifetime_bookings: 0,
-        lifetime_redemptions: 0
-      };
-    },
-    enabled: !!user,
-  });
-
-  const { data: upcomingBookings } = useQuery({
-    queryKey: ['upcomingBookings'],
-    queryFn: async () => {
-      const bookings = await base44.entities.Booking.filter({ 
-        created_by: user?.email,
-        status: { $in: ['pending', 'confirmed', 'in_progress'] }
-      });
-      return bookings.slice(0, 3);
-    },
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: favorites } = useQuery({
-    queryKey: ['favorites'],
-    queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: notifications } = useQuery({
-    queryKey: ['unreadNotifications'],
-    queryFn: async () => {
-      const allNotifications = await base44.entities.Notification.filter({ 
-        recipient_email: user?.email,
-        is_read: false 
-      });
-      return allNotifications;
-    },
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: myDogs, isLoading: loadingDogs } = useQuery({
-    queryKey: ['myDogs'],
-    queryFn: async () => {
-      const dogs = await base44.entities.DogProfile.filter({
-        owner_email: user?.email,
-        is_active: true
-      });
-      return dogs;
-    },
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const isProfessional = !!walkerProfile || !!trainerProfile;
-
-  const getSubscriptionProgress = () => {
-    if (!ownerSubscription || ownerSubscription.plan_type === 'free') {
-      return {
-        message: t("unlockExclusiveBenefits", language),
-        action: t("upgradeToSaveMore", language),
-        progress: 0,
-        color: "from-gray-500 to-gray-600",
-        icon: "⚡"
-      };
+    onError: () => {
+      toast.error("Erro ao atualizar perfil");
     }
-    
-    const savings = ownerSubscription.total_savings || 0;
-    const investment = ownerSubscription.billing_cycle === 'monthly' 
-      ? ownerSubscription.monthly_price 
-      : ownerSubscription.annual_price / 12;
-    
-    const monthsSaved = investment > 0 ? savings / investment : 0;
-    
-    const colors = {
-      basic: "from-blue-500 to-blue-600",
-      premium: "from-purple-500 to-purple-600",
-      vip: "from-yellow-500 to-yellow-600"
-    };
-    
-    const icons = {
-      basic: "💼",
-      premium: "🥇",
-      vip: "👑"
-    };
-    
-    return {
-      message: `${t('saved', language)} €${savings.toFixed(2)} ${t('withThePlan', language)} ${ownerSubscription.plan_type}`,
-      action: monthsSaved >= 1 ? t("planAlreadyPaidOff", language) : `${Math.ceil(monthsSaved * 10) * 10}% ${t("untilBreakeven", language)}`,
-      progress: Math.min(100, monthsSaved * 100),
-      color: colors[ownerSubscription.plan_type] || "from-gray-500 to-gray-600",
-      icon: icons[ownerSubscription.plan_type] || "⚡"
-    };
+  });
+
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ profile_photo_url: file_url });
+      return file_url;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success("Foto atualizada!");
+    }
+  });
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadPhotoMutation.mutate(file);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate(profileData);
+  };
+
+  const handleSavePreferences = () => {
+    updateProfileMutation.mutate({ preferences });
   };
 
   const handleLogout = () => {
     base44.auth.logout();
   };
 
-  if (loadingUser) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
-        <Skeleton className="h-48 md:h-64 rounded-3xl mb-4 md:mb-6" />
-        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-32 md:h-48 rounded-2xl" />)}
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <p className="text-gray-600">A carregar...</p>
       </div>
     );
   }
 
-  const subscriptionInfo = getSubscriptionProgress();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Hero Section - Mobile Optimized */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 md:mb-8"
-        >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2">
-                {t('hello', language)}, {user?.full_name || t('notDefined', language)} 👋
-              </h1>
-              <p className="text-base md:text-xl text-gray-600">
-                {t('yourCompleteDashboard', language)}
-              </p>
-            </div>
-            {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className={`bg-gradient-to-r ${subscriptionInfo.color} text-white rounded-2xl px-4 md:px-6 py-3 md:py-4 shadow-2xl`}
-              >
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl mb-1 md:mb-2">{subscriptionInfo.icon}</div>
-                  <div className="text-lg md:text-xl font-bold">{ownerSubscription.plan_type.toUpperCase()}</div>
-                  <div className="text-xs opacity-90">Member</div>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Account Info */}
-        <Card className="border-0 shadow-2xl mb-8">
-          <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <User className="w-6 h-6" />
-              {t('accountInformation', language)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <User className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">{t('fullName', language)}</div>
-                  <div className="text-xl font-semibold text-gray-900">
-                    {user?.full_name || t('notDefined', language)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">{t('email', language)}</div>
-                  <div className="text-xl font-semibold text-gray-900">
-                    {user?.email}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">{t('role', language)}</div>
-                  <div className="text-xl font-semibold text-gray-900 capitalize">
-                    {user?.role || 'user'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Stats - Mobile Optimized */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
-                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}>
-            <CardContent className="p-4 md:p-6 text-center">
-              <Gift className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
-              <div className="text-2xl md:text-3xl font-bold">{loyaltyPoints?.points_balance || 0}</div>
-              <div className="text-xs md:text-sm opacity-90">{t('pawPoints', language)}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
-                onClick={() => navigate(createPageUrl('MyBookings'))}>
-            <CardContent className="p-4 md:p-6 text-center">
-              <Calendar className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
-              <div className="text-2xl md:text-3xl font-bold">{upcomingBookings?.length || 0}</div>
-              <div className="text-xs md:text-sm opacity-90">{t('upcomingWalks', language)}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
-                onClick={() => navigate(createPageUrl('Favorites'))}>
-            <CardContent className="p-4 md:p-6 text-center">
-              <Heart className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
-              <div className="text-2xl md:text-3xl font-bold">{favorites?.length || 0}</div>
-              <div className="text-xs md:text-sm opacity-90">{t('favorites', language)}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:scale-105 transition-transform touch-manipulation active:scale-95"
-                onClick={() => navigate(createPageUrl('Notifications'))}>
-            <CardContent className="p-4 md:p-6 text-center">
-              <Bell className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2" />
-              <div className="text-2xl md:text-3xl font-bold">{notifications?.length || 0}</div>
-              <div className="text-xs md:text-sm opacity-90">{t('notifications', language)}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* My Dogs Section - NEW */}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
-          <Card className="border-0 shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Dog className="w-6 h-6" />
-                  {t('myDogs', language) || 'Os Meus Cães'}
-                </CardTitle>
-                <Button
-                  onClick={() => {
-                    setEditingDog(null);
-                    setShowDogForm(true);
-                  }}
-                  className="bg-white text-green-600 hover:bg-green-50"
-                >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  {t('addDog', language) || 'Adicionar Cão'}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {loadingDogs ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1, 2, 3].map(i => (
-                    <Skeleton key={i} className="h-96 rounded-2xl" />
-                  ))}
-                </div>
-              ) : myDogs.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Dog className="w-12 h-12 text-green-400" />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                    {t('noDogs', language) || 'Ainda não tem cães cadastrados'}
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    {t('addFirstDog', language) || 'Adicione o perfil do seu cão para facilitar as reservas'}
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      setEditingDog(null);
-                      setShowDogForm(true);
-                    }}
-                    className="bg-gradient-to-r from-green-600 to-green-500"
-                  >
-                    <PlusCircle className="w-5 h-5 mr-2" />
-                    {t('addDog', language) || 'Adicionar Meu Primeiro Cão'}
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {myDogs.map((dog, index) => (
-                    <motion.div
-                      key={dog.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      <DogProfileCard 
-                        dog={dog}
-                        onEdit={() => {
-                          setEditingDog(dog);
-                          setShowDogForm(true);
-                        }}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            Meu Perfil & Configurações
+          </h1>
+          <p className="text-gray-600">
+            Gerencie suas informações pessoais e preferências
+          </p>
         </div>
 
-
-        {/* Enhanced Subscription Status */}
-        {!isProfessional && (
-          <Card className="border-0 shadow-2xl mb-8 overflow-hidden">
-            <div className={`bg-gradient-to-r ${subscriptionInfo.color} p-6 text-white`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Crown className="w-8 h-8" />
-                  <div>
-                    <h3 className="text-2xl font-bold">
-                      {subscriptionInfo.icon} {t('member', language)} {ownerSubscription ? ownerSubscription.plan_type.toUpperCase() : t('freePlan', language).toUpperCase()}
-                    </h3>
-                    <p className="text-white/90">
-                      {subscriptionInfo.message}
-                    </p>
-                  </div>
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <Card className="lg:col-span-1 h-fit">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative">
+                  <Avatar className="w-24 h-24 mb-4">
+                    <AvatarImage src={user?.profile_photo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-2xl">
+                      {user?.full_name?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <label htmlFor="photo-upload" className="absolute bottom-4 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50">
+                    <Upload className="w-4 h-4 text-gray-600" />
+                  </label>
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadPhotoMutation.isPending}
+                  />
                 </div>
-                <Button 
-                  onClick={() => navigate(createPageUrl('OwnerSubscriptions'))}
-                  className="bg-white text-gray-900 hover:bg-gray-100"
-                >
-                  {ownerSubscription?.plan_type === 'free' || !ownerSubscription ? t('upgradePlan', language) : t('managePlan', language)}
-                </Button>
-              </div>
-
-              {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
-                <>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span>{t('valueUnlocked', language)}</span>
-                      <span>{subscriptionInfo.action}</span>
-                    </div>
-                    <div className="w-full bg-white/20 rounded-full h-3">
-                      <div 
-                        className="bg-white h-3 rounded-full transition-all duration-500"
-                        style={{ width: `${subscriptionInfo.progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold">
-                        {ownerSubscription?.booking_discount_percentage || 0}%
-                      </div>
-                      <div className="text-xs opacity-90">{t('bookingDiscount', language)}</div>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold">
-                        {ownerSubscription?.points_multiplier || 1}x
-                      </div>
-                      <div className="text-xs opacity-90">{t('pointsMultiplier', language)}</div>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold">
-                        {ownerSubscription?.free_cancellations === 999 ? "∞" : ownerSubscription?.free_cancellations || 0}
-                      </div>
-                      <div className="text-xs opacity-90">{t('cancellationsPerMonth', language)}</div>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold">
-                        €{(ownerSubscription?.total_savings || 0).toFixed(0)}
-                      </div>
-                      <div className="text-xs opacity-90">Total Saved</div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {(!ownerSubscription || ownerSubscription.plan_type === 'free') && (
-              <CardContent className="p-6 bg-gradient-to-r from-yellow-50 to-orange-50">
-                <div className="flex items-start gap-4">
-                  <Target className="w-12 h-12 text-orange-600 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-2">{t('whyUpgrade', language)}</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>{t('saveMoney', language)}:</strong> {t('saveMoneyDesc', language)}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>{t('earnFaster', language)}:</strong> {t('earnFasterDesc', language)}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>{t('peaceOfMind', language)}:</strong> {t('peaceOfMindDesc', language)}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 font-bold">✓</span>
-                        <span><strong>{t('vipAccess', language)}:</strong> {t('vipAccessDesc', language)}</span>
-                      </li>
-                    </ul>
-                    <p className="mt-3 text-purple-700 font-semibold">
-                      💡 {t('premiumPayoff', language)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        )}
-
-        {/* Professional Section - REDESIGNED */}
-        {myWalkerProfiles && myWalkerProfiles.length > 0 && (
-          <Card className="border-0 shadow-xl mb-8">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                  <Award className="w-5 h-5" />
-                  {t('professionalProfiles', language)}
-                </CardTitle>
-                <Button
-                  size="sm"
-                  onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
-                  className="bg-white text-blue-600 hover:bg-blue-50"
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  {t('dashboard', language)}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                {myWalkerProfiles.map(profile => (
-                  <motion.div
-                    key={profile.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ y: -4 }}
-                    className="relative"
-                  >
-                    <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full -mr-16 -mt-16"></div>
-                      <CardContent className="p-4 relative">
-                        <div className="flex items-start gap-4">
-                          {/* Profile Photo */}
-                          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 border-blue-200">
-                            {profile.photo_url ? (
-                              <img
-                                src={profile.photo_url}
-                                alt={profile.walker_name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                                <Dog className="w-8 h-8 text-white" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">
-                              {profile.walker_name}
-                            </h3>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                              <MapPin className="w-3 h-3" />
-                              <span className="truncate">{profile.location}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Badge className={`${
-                                profile.verification_status === 'verified' 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : profile.verification_status === 'pending'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-gray-100 text-gray-700'
-                              } text-xs`}>
-                                {profile.verification_status === 'verified' && <ShieldCheck className="w-3 h-3 mr-1" />}
-                                {profile.verification_status}
-                              </Badge>
-                              <div className="flex items-center gap-1 text-sm">
-                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                <span className="font-semibold">{profile.rating?.toFixed(1) || '5.0'}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Stats Row */}
-                        <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t">
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-green-600">€{profile.hourly_rate}</div>
-                            <div className="text-xs text-gray-600">/hora</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-blue-600">{profile.total_walks || 0}</div>
-                            <div className="text-xs text-gray-600">{t('walks', language)}</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-purple-600">€{(profile.total_earnings || 0).toFixed(0)}</div>
-                            <div className="text-xs text-gray-600">{t('earnings', language)}</div>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 text-xs"
-                            onClick={() => navigate(createPageUrl(`WalkerDetails?id=${profile.id}`))}
-                          >
-                            {t('viewProfile', language)}
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-xs"
-                            onClick={() => navigate(createPageUrl('ManageAvailability'))}
-                          >
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {t('schedule', language)}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Add Professional Profile Button */}
-              <Button
-                variant="outline"
-                className="w-full mt-4 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 h-12"
-                onClick={() => navigate(createPageUrl('BecomeWalker'))}
-              >
-                <PlusCircle className="w-4 h-4 mr-2" />
-                {t('addNewProfessionalProfile', language)}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Actions - Mobile Optimized Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-          <Card className="border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-green-600" />
-                {t('upcomingWalks', language)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {upcomingBookings.length === 0 ? (
-                <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 text-sm mb-4">{t('noUpcomingBookings', language)}</p>
-                  <Button 
-                    className="w-full"
-                    onClick={() => navigate(createPageUrl('Home'))}
-                  >
-                    {t('bookWalk', language)}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingBookings.map(booking => (
-                    <div key={booking.id} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="font-semibold text-gray-900">{booking.walker_name}</div>
-                      <div className="text-sm text-gray-600">{booking.dog_name}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {format(new Date(booking.walk_date), 'MMM d')} • {booking.walk_time}
-                      </div>
-                    </div>
-                  ))}
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => navigate(createPageUrl('MyBookings'))}
-                  >
-                    {t('viewAll', language)}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-50 to-pink-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-purple-600" />
-                {t('pawPoints', language)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center mb-4">
-                <div className="text-5xl font-bold text-purple-600 mb-2">
-                  {loyaltyPoints?.points_balance || 0}
-                </div>
-                <Badge className="bg-purple-600">
-                  {(loyaltyPoints?.tier || 'bronze').toUpperCase()}
-                </Badge>
-              </div>
-              <Button 
-                className="w-full bg-purple-600"
-                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
-              >
-                {t('redeemPoints', language)}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-orange-600" />
-                {t('quickActions', language)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate(createPageUrl('Home'))}
-                >
-                  <Dog className="w-4 h-4 mr-2" />
-                  {t('findWalker', language)}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate(createPageUrl('Partners'))}
-                >
-                  <Store className="w-4 h-4 mr-2" />
-                  {t('pawcaoShop', language)}
-                </Button>
-                {(!myWalkerProfiles || myWalkerProfiles.length === 0) && (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => navigate(createPageUrl('BecomeWalker'))}
-                  >
-                    <Award className="w-4 h-4 mr-2" />
-                    {t('becomeWalker', language)}
-                  </Button>
+                <h3 className="font-bold text-lg text-gray-900">{user?.full_name}</h3>
+                <p className="text-sm text-gray-600">{user?.email}</p>
+                {user?.role === 'admin' && (
+                  <span className="mt-2 px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+                    ADMIN
+                  </span>
                 )}
               </div>
+
+              <Separator className="my-4" />
+
+              <nav className="space-y-2">
+                <Button
+                  variant={activeTab === "profile" ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("profile")}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Perfil
+                </Button>
+                <Button
+                  variant={activeTab === "settings" ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("settings")}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Preferências
+                </Button>
+                <Button
+                  variant={activeTab === "security" ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("security")}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Segurança
+                </Button>
+
+                <Separator className="my-4" />
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </Button>
+              </nav>
             </CardContent>
           </Card>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Profile Tab */}
+            {activeTab === "profile" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Informações Pessoais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="full_name">Nome Completo *</Label>
+                      <div className="relative mt-2">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          id="full_name"
+                          value={profileData.full_name}
+                          onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
+                          className="pl-10"
+                          placeholder="Seu nome completo"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <div className="relative mt-2">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          id="email"
+                          value={user?.email}
+                          disabled
+                          className="pl-10 bg-gray-50"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone">Telefone</Label>
+                      <div className="relative mt-2">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          id="phone"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                          className="pl-10"
+                          placeholder="+351 912 345 678"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="city">Cidade</Label>
+                      <div className="relative mt-2">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          id="city"
+                          value={profileData.city}
+                          onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                          className="pl-10"
+                          placeholder="Lisboa"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="address">Morada</Label>
+                    <div className="relative mt-2">
+                      <MapPin className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="address"
+                        value={profileData.address}
+                        onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                        className="pl-10"
+                        placeholder="Rua Principal, 123"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="postal_code">Código Postal</Label>
+                      <Input
+                        id="postal_code"
+                        value={profileData.postal_code}
+                        onChange={(e) => setProfileData({...profileData, postal_code: e.target.value})}
+                        className="mt-2"
+                        placeholder="1000-001"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Tipo de Conta</Label>
+                      <Input
+                        value={user?.account_type || "owner"}
+                        disabled
+                        className="mt-2 bg-gray-50"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfileMutation.isPending}
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateProfileMutation.isPending ? "A guardar..." : "Guardar Alterações"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Settings Tab */}
+            {activeTab === "settings" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Preferências
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="language" className="flex items-center gap-2 mb-2">
+                      <Globe className="w-4 h-4" />
+                      Idioma
+                    </Label>
+                    <Select
+                      value={preferences.language}
+                      onValueChange={(value) => setPreferences({...preferences, language: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pt">🇵🇹 Português</SelectItem>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                        <SelectItem value="es">🇪🇸 Español</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="flex items-center gap-2 mb-4">
+                      <Bell className="w-4 h-4" />
+                      Notificações
+                    </Label>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Notificações na App</p>
+                          <p className="text-sm text-gray-600">Receber notificações na aplicação</p>
+                        </div>
+                        <Switch
+                          checked={preferences.notifications_enabled}
+                          onCheckedChange={(checked) => setPreferences({...preferences, notifications_enabled: checked})}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Notificações por Email</p>
+                          <p className="text-sm text-gray-600">Receber atualizações por email</p>
+                        </div>
+                        <Switch
+                          checked={preferences.email_notifications}
+                          onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleSavePreferences}
+                    disabled={updateProfileMutation.isPending}
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Guardar Preferências
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Security Tab */}
+            {activeTab === "security" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Segurança
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Informação:</strong> A autenticação e gestão de passwords são geridas de forma segura pelo Base44.
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>Email da Conta</Label>
+                    <div className="relative mt-2">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        value={user?.email}
+                        disabled
+                        className="pl-10 bg-gray-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Função</Label>
+                    <Input
+                      value={user?.role === 'admin' ? 'Administrador' : 'Utilizador'}
+                      disabled
+                      className="mt-2 bg-gray-50"
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <h3 className="font-semibold mb-2">Ações de Conta</h3>
+                    <Button
+                      variant="destructive"
+                      onClick={handleLogout}
+                      className="w-full"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair da Conta
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
-
-        {/* Logout Button - Mobile Optimized */}
-        <Button
-          variant="outline"
-          onClick={handleLogout}
-          className="w-full max-w-md mx-auto block h-11 md:h-12 border-red-200 text-red-600 hover:bg-red-50 touch-manipulation active:scale-95"
-        >
-          {t('logout', language)}
-        </Button>
       </div>
-
-      {/* Dog Form Modal */}
-      {showDogForm && (
-        <AddEditDogForm
-          dog={editingDog}
-          onSuccess={() => {
-            setShowDogForm(false);
-            setEditingDog(null);
-            queryClient.invalidateQueries({ queryKey: ['myDogs'] });
-          }}
-          onCancel={() => {
-            setShowDogForm(false);
-            setEditingDog(null);
-          }}
-        />
-      )}
     </div>
   );
 }

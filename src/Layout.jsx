@@ -72,7 +72,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
+    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User }, // This item will be excluded from Main Menu and handled explicitly in Account
     { title: "💬 Community Forum", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "🐾 Social Feed", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
@@ -89,7 +89,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
-    { title: t('accountSettings', language), url: createPageUrl("AccountSettings"), icon: Shield },
+    { title: t('accountSettings', language), url: createPageUrl("AccountSettings"), icon: Shield }, // This item will be excluded from Account and handled explicitly in combined item
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
     { title: "💳 " + (language === 'pt' ? 'Métodos de Pagamento' : 'Payment Methods'), url: createPageUrl("PaymentMethods"), icon: CreditCard },
   ];
@@ -195,17 +195,17 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(0, 6).map((item) => (
+                  {/* Exclude MyProfile from this list, it's now combined in Account section */}
+                  {allNavigationItems.slice(0, 5).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}
-                        ${item.icon === User ? 'border-2 border-purple-200 bg-purple-50' : ''}`}
+                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : item.icon === User ? 'text-purple-600' : ''}`} />
+                          <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -270,7 +270,25 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(20).map((item) => (
+                  {/* Combined Profile & Settings */}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-2 ${
+                        location.pathname === createPageUrl("MyProfile") || location.pathname === createPageUrl("AccountSettings") ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
+                      } border-2 border-purple-200 bg-purple-50`}
+                    >
+                      <Link to={createPageUrl("MyProfile")} className="flex items-center gap-3 px-4 py-3">
+                        <User className="w-5 h-5 text-purple-600" />
+                        <span className="font-medium">{t('myProfile', language)} & {language === 'pt' ? 'Configurações' : 'Settings'}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* Other account items, excluding Account Settings which is now part of the combined item */}
+                  {allNavigationItems.slice(20).filter(item => 
+                    !item.title.includes('Configurações') && !item.title.includes('Settings')
+                  ).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dog, Star, Shield, Heart, Clock, TrendingUp, Users, Award, CheckCircle2, Zap, Crown, Video } from "lucide-react";
@@ -7,11 +7,43 @@ import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Landing() {
+  // Check if user is logged in
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+  });
+
+  // Redirect to Home if user is logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      window.location.href = createPageUrl("Home");
+    }
+  }, [user, isLoading]);
+
   const handleLogin = () => {
-    base44.auth.redirectToLogin(window.location.href);
+    base44.auth.redirectToLogin(window.location.origin + createPageUrl("Home"));
   };
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <PawCaoLogo size="large" />
+          <p className="text-gray-600 mt-4">A carregar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is logged in, don't show landing page (will redirect)
+  if (user) {
+    return null;
+  }
 
   const features = [
     {
@@ -111,7 +143,7 @@ export default function Landing() {
                 onClick={handleLogin}
                 className="bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700"
               >
-                Criar Conta
+                Criar Conta Grátis
               </Button>
             </div>
           </div>
@@ -151,7 +183,7 @@ export default function Landing() {
                 className="bg-gradient-to-r from-green-600 to-blue-600 text-white h-14 text-lg px-8 hover:from-green-700 hover:to-blue-700 shadow-lg"
               >
                 <Dog className="w-5 h-5 mr-2" />
-                Encontrar Passeador
+                Começar Agora
               </Button>
               <Button
                 size="lg"
@@ -301,14 +333,6 @@ export default function Landing() {
               >
                 <CheckCircle2 className="w-5 h-5 mr-2" />
                 Criar Conta Grátis
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={handleLogin}
-                className="border-2 border-white text-white h-14 text-lg px-8 hover:bg-white/10"
-              >
-                Saber Mais
               </Button>
             </div>
           </motion.div>
