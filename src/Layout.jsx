@@ -60,6 +60,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
+    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -73,7 +74,6 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
-    { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
   ];
 
   const languageFlags = {
@@ -132,17 +132,17 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(0, 5).map((item) => (
+                  {navigationItems.slice(0, 6).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
                         } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}
-                        ${item.highlight ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 font-bold' : ''}`}
+                        ${item.icon === User ? 'border-2 border-purple-200 bg-purple-50' : ''}`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
+                          <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : item.icon === User ? 'text-purple-600' : ''}`} />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -156,13 +156,13 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(5, 12).map((item) => (
+                  {navigationItems.slice(6, 13).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        } ${item.highlight ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 font-bold' : ''}`}
+                        }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
                           <item.icon className="w-5 h-5" />
@@ -184,7 +184,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(12, 16).map((item) => (
+                  {navigationItems.slice(13, 17).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -207,7 +207,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(16).map((item) => (
+                  {navigationItems.slice(17).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
