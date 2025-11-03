@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,9 +11,12 @@ import { Calendar, Clock, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function ManageAvailability() {
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [selectedDate, setSelectedDate] = useState(null);
   const [timeSlots, setTimeSlots] = useState([
     { start_time: "09:00", end_time: "12:00", is_available: true }
@@ -54,23 +56,22 @@ export default function ManageAvailability() {
           ...data,
           professional_email: user?.email,
           professional_name: user?.full_name,
-          professional_type: "walker", // Could be determined from user profile
+          professional_type: "walker",
           date: dateStr
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast.success("Availability updated successfully!");
+      toast.success(t('saveAvailability', language) + "!");
       
-      // Send notification reminder to update availability for next week
       const nextWeek = new Date(selectedDate);
       nextWeek.setDate(nextWeek.getDate() + 7);
       
       base44.entities.Notification.create({
         recipient_email: user?.email,
-        title: "Update Your Availability",
-        message: `Don't forget to set your availability for ${format(nextWeek, 'MMM d, yyyy')}`,
+        title: t('manageAvailability', language),
+        message: `${t('setAvailableTimeSlots', language)} ${format(nextWeek, 'MMM d, yyyy')}`,
         type: "system",
         priority: "low"
       });
@@ -93,7 +94,7 @@ export default function ManageAvailability() {
 
   const handleSave = () => {
     if (!selectedDate) {
-      toast.error("Please select a date");
+      toast.error(t('selectDate', language));
       return;
     }
 
@@ -116,14 +117,18 @@ export default function ManageAvailability() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Manage Availability</h1>
-          <p className="text-gray-600 text-lg">Set your available time slots and view upcoming bookings</p>
+        {/* Header - Compact */}
+        <div className="mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-1 md:mb-2">
+            {t('manageAvailability', language)}
+          </h1>
+          <p className="text-gray-600 text-sm md:text-lg">{t('setAvailableTimeSlots', language)}</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-3 md:gap-6">
+          {/* Calendar - Responsive */}
           <div className="lg:col-span-2">
             <AvailabilityCalendar
               availabilityData={availabilityData}
@@ -133,65 +138,69 @@ export default function ManageAvailability() {
             />
           </div>
 
-          <div>
+          {/* Time Slots Panel - Compact */}
+          <div className="space-y-3 md:space-y-4">
             <Card className="border-0 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-6 h-6" />
-                  {selectedDate ? format(selectedDate, 'MMM d, yyyy') : 'Select a Date'}
+              <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white p-3 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-base md:text-xl">
+                  <Clock className="w-4 h-4 md:w-6 md:h-6" />
+                  {selectedDate ? format(selectedDate, 'MMM d, yyyy') : t('selectDate', language)}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 {!selectedDate ? (
-                  <div className="text-center py-12">
-                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Select a date to manage availability</p>
+                  <div className="text-center py-8 md:py-12">
+                    <Calendar className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-2 md:mb-4" />
+                    <p className="text-gray-600 text-sm md:text-base">{t('selectDate', language)}</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="font-semibold text-gray-900">Time Slots</h3>
-                      <Button size="sm" onClick={addTimeSlot} variant="outline">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Slot
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-semibold text-gray-900 text-sm md:text-base">{t('timeSlots', language)}</h3>
+                      <Button size="sm" onClick={addTimeSlot} variant="outline" className="h-7 md:h-9 text-xs md:text-sm">
+                        <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                        {t('addSlot', language)}
                       </Button>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       {timeSlots.map((slot, index) => (
-                        <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                        <div key={index} className="border rounded-lg p-2 md:p-3 bg-gray-50">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <Checkbox
                                 checked={slot.is_available}
                                 onCheckedChange={(checked) => updateTimeSlot(index, 'is_available', checked)}
                               />
-                              <Label className="text-sm">Available</Label>
+                              <Label className="text-xs md:text-sm">{t('available', language)}</Label>
                             </div>
                             <Button
                               size="icon"
                               variant="ghost"
                               onClick={() => removeTimeSlot(index)}
                               disabled={timeSlots.length === 1}
+                              className="h-6 w-6 md:h-8 md:w-8"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-3 h-3 md:w-4 md:h-4" />
                             </Button>
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <Label className="text-xs">Start Time</Label>
+                              <Label className="text-[10px] md:text-xs">{t('startTime', language)}</Label>
                               <Input
                                 type="time"
                                 value={slot.start_time}
                                 onChange={(e) => updateTimeSlot(index, 'start_time', e.target.value)}
+                                className="h-8 md:h-10 text-xs md:text-sm"
                               />
                             </div>
                             <div>
-                              <Label className="text-xs">End Time</Label>
+                              <Label className="text-[10px] md:text-xs">{t('endTime', language)}</Label>
                               <Input
                                 type="time"
                                 value={slot.end_time}
                                 onChange={(e) => updateTimeSlot(index, 'end_time', e.target.value)}
+                                className="h-8 md:h-10 text-xs md:text-sm"
                               />
                             </div>
                           </div>
@@ -200,36 +209,36 @@ export default function ManageAvailability() {
                     </div>
 
                     <Button
-                      className="w-full bg-gradient-to-r from-green-600 to-green-500"
+                      className="w-full bg-gradient-to-r from-green-600 to-green-500 h-9 md:h-11 text-sm md:text-base"
                       onClick={handleSave}
                       disabled={saveAvailabilityMutation.isPending}
                     >
-                      {saveAvailabilityMutation.isPending ? "Saving..." : "Save Availability"}
+                      {saveAvailabilityMutation.isPending ? t('saving', language) : t('saveAvailability', language)}
                     </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Upcoming Bookings */}
-            <Card className="border-0 shadow-xl mt-6">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
-                <CardTitle className="text-lg">Upcoming Bookings</CardTitle>
+            {/* Upcoming Bookings - Compact */}
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 md:p-4">
+                <CardTitle className="text-sm md:text-lg">{t('upcomingBookings', language)}</CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 {bookings.length === 0 ? (
-                  <p className="text-center text-gray-600 py-4 text-sm">No upcoming bookings</p>
+                  <p className="text-center text-gray-600 py-3 md:py-4 text-xs md:text-sm">{t('noUpcomingBookings', language)}</p>
                 ) : (
                   <div className="space-y-2">
                     {bookings.slice(0, 5).map(booking => (
-                      <div key={booking.id} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="font-semibold text-sm text-gray-900">
+                      <div key={booking.id} className="p-2 md:p-3 bg-gray-50 rounded-lg">
+                        <div className="font-semibold text-xs md:text-sm text-gray-900">
                           {booking.dog_name}
                         </div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-[10px] md:text-xs text-gray-600">
                           {format(new Date(booking.walk_date || booking.session_date), 'MMM d, yyyy')}
                         </div>
-                        <Badge className="mt-1 text-xs" variant="outline">
+                        <Badge className="mt-1 text-[10px] md:text-xs" variant="outline">
                           {booking.status}
                         </Badge>
                       </div>

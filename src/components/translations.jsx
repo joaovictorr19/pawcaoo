@@ -41,6 +41,20 @@ export const translations = {
     allCaughtUp: "Está tudo em dia!",
     newNotification: "nova",
     
+    // Manage Availability
+    manageAvailability: "Gerir Disponibilidade",
+    setAvailableTimeSlots: "Defina os seus horários disponíveis",
+    selectDate: "Selecione uma Data",
+    timeSlots: "Horários",
+    addSlot: "Adicionar",
+    available: "Disponível",
+    startTime: "Início",
+    endTime: "Fim",
+    saveAvailability: "Guardar",
+    saving: "A guardar...",
+    upcomingBookings: "Próximas Reservas",
+    noUpcomingBookings: "Sem reservas",
+    
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
     myActivity: "MINHA ATIVIDADE",
@@ -735,6 +749,20 @@ export const translations = {
     allCaughtUp: "You're all caught up!",
     newNotification: "new",
 
+    // Manage Availability
+    manageAvailability: "Manage Availability",
+    setAvailableTimeSlots: "Set your available time slots",
+    selectDate: "Select a Date",
+    timeSlots: "Time Slots",
+    addSlot: "Add Slot",
+    available: "Available",
+    startTime: "Start Time",
+    endTime: "End Time",
+    saveAvailability: "Save Availability",
+    saving: "Saving...",
+    upcomingBookings: "Upcoming Bookings",
+    noUpcomingBookings: "No upcoming bookings",
+
     // Sidebar Groups
     mainMenu: "MAIN MENU",
     myActivity: "MY ACTIVITY",
@@ -1425,7 +1453,21 @@ export const translations = {
     noNotifications: "Sin notificaciones",
     allCaughtUp: "¡Estás al día!",
     newNotification: "nueva",
-
+    
+    // Manage Availability
+    manageAvailability: "Gestionar Disponibilidad",
+    setAvailableTimeSlots: "Establece tus horarios disponibles",
+    selectDate: "Seleccionar Fecha",
+    timeSlots: "Horarios",
+    addSlot: "Añadir",
+    available: "Disponible",
+    startTime: "Inicio",
+    endTime: "Fin",
+    saveAvailability: "Guardar",
+    saving: "Guardando...",
+    upcomingBookings: "Próximas Reservas",
+    noUpcomingBookings: "Sin reservas",
+    
     // Sidebar Groups
     mainMenu: "MENÚ PRINCIPAL",
     myActivity: "MI ACTIVIDAD",
