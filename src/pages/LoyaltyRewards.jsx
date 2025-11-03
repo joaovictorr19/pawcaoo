@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,7 +32,8 @@ export default function LoyaltyRewards() {
         tier: 'bronze',
         achievements: [],
         lifetime_bookings: 0,
-        lifetime_redemptions: 0
+        lifetime_redemptions: 0,
+        total_redeemed: 0 // Added this line as per the instructions
       };
     },
     enabled: !!user,
