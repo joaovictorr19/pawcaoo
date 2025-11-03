@@ -40,6 +40,7 @@ import CheckoutSuccess from './pages/CheckoutSuccess';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
+import Landing from './pages/Landing';
 import Layout from './Layout.jsx';
 
 
@@ -86,6 +87,7 @@ export const PAGES = {
     "AboutUs": AboutUs,
     "Contact": Contact,
     "FAQ": FAQ,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
