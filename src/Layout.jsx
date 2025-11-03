@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +80,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
+    { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: TrendingUp }, // New item added here
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
     { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: Award },
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
@@ -200,7 +201,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(6, 13).map((item) => (
+                  {navigationItems.slice(6, 13).map((item) => ( /* This slice remains correct, includes items up to LoyaltyRewards (index 12) */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -228,7 +229,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(13, 17).map((item) => (
+                  {navigationItems.slice(13, 18).map((item) => ( /* Adjusted slice: starts at the new item (index 13) and ends before OwnerMembership (index 18) */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -251,7 +252,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(17).map((item) => (
+                  {navigationItems.slice(18).map((item) => ( /* Adjusted slice: starts at OwnerMembership (index 18) */
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -362,6 +363,7 @@ function LayoutContent({ children, currentPageName }) {
                     <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
                     <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
                     <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600 transition-colors">{t('walkerSubscriptions', language)}</Link></li>
+                    <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
                   </ul>
                 </div>
                 <div>
