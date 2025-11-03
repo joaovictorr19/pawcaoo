@@ -93,6 +93,13 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
   ];
 
+  // Add Admin Dashboard if user is admin
+  const adminItem = user?.role === 'admin' ? [
+    { title: "🛡️ Admin Dashboard", url: createPageUrl("AdminDashboard"), icon: Shield }
+  ] : [];
+
+  const allNavigationItems = [...navigationItems, ...adminItem];
+
   const languageFlags = {
     pt: "🇵🇹",
     en: "🇬🇧",
@@ -181,7 +188,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(0, 6).map((item) => (
+                  {allNavigationItems.slice(0, 6).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -205,7 +212,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(6, 15).map((item) => (
+                  {allNavigationItems.slice(6, 15).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -233,7 +240,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(15, 20).map((item) => (
+                  {allNavigationItems.slice(15, 20).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -256,16 +263,16 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(20).map((item) => (
+                  {allNavigationItems.slice(20).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        }`}
+                        } ${item.title.includes('Admin') ? 'border-2 border-purple-300 bg-purple-50' : ''}`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className="w-5 h-5" />
+                          <item.icon className={`w-5 h-5 ${item.title.includes('Admin') ? 'text-purple-600' : ''}`} />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
