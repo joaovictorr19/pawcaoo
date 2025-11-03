@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +74,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: t('myProfile', language), url: createPageUrl("MyProfile"), icon: User },
     { title: "💬 Community Forum", url: createPageUrl("Community"), icon: MessageCircle },
-    { title: "🐾 Social Feed", url: createPageUrl("SocialFeed"), icon: Heart },
+    { title: "🐾 Social Feed", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
