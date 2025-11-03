@@ -134,7 +134,7 @@ function LayoutContent({ children, currentPageName }) {
           
           <SidebarContent className="p-4">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MENU PRINCIPAL</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(0, 5).map((item) => (
@@ -158,7 +158,7 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">MINHA ATIVIDADE</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(5, 12).map((item) => (
@@ -186,7 +186,7 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">SERVIÇOS PROFISSIONAIS</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(12, 16).map((item) => (
@@ -209,7 +209,7 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">CONTA</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('account', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.slice(16).map((item) => (
@@ -231,7 +231,6 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-        </Sidebar>
 
         <main className="flex-1 flex flex-col">
           <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-6 py-4 md:hidden sticky top-0 z-10">

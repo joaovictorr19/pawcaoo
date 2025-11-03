@@ -1,3 +1,4 @@
+
 export const translations = {
   pt: {
     // Navigation
@@ -21,6 +22,12 @@ export const translations = {
     ownerMembership: "Membros Proprietários",
     partnerDashboard: "Painel de Parceiros",
     myProfile: "Meu Perfil",
+    
+    // Sidebar Groups
+    mainMenu: "MENU PRINCIPAL",
+    myActivity: "MINHA ATIVIDADE",
+    professionalServices: "SERVIÇOS PROFISSIONAIS",
+    account: "CONTA",
     
     // Common
     search: "Pesquisar",
@@ -297,6 +304,12 @@ export const translations = {
     ownerMembership: "Owner Membership",
     partnerDashboard: "Partner Dashboard",
     myProfile: "My Profile",
+
+    // Sidebar Groups
+    mainMenu: "MAIN MENU",
+    myActivity: "MY ACTIVITY",
+    professionalServices: "PROFESSIONAL SERVICES",
+    account: "ACCOUNT",
     
     // Common
     search: "Search",
@@ -382,7 +395,7 @@ export const translations = {
     pointsBalance: "Points Balance",
     availablePoints: "Available Points",
     totalEarned: "Total Earned",
-    totalRedeemed: "Total Redeemed",
+    totalRedeemed: "Total Redeeemed",
     tier: "Tier",
     yourBenefits: "Your Benefits",
     progressTo: "Progress to",
@@ -573,6 +586,12 @@ export const translations = {
     ownerMembership: "Membresía de Propietarios",
     partnerDashboard: "Panel de Socios",
     myProfile: "Mi Perfil",
+
+    // Sidebar Groups
+    mainMenu: "MENÚ PRINCIPAL",
+    myActivity: "MI ACTIVIDAD",
+    professionalServices: "SERVICIOS PROFESIONALES",
+    account: "CUENTA",
     
     // Common
     search: "Buscar",
