@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -91,13 +90,11 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
   ];
 
-  // Add Admin Dashboard if user is admin
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
-  // Add Stripe Connect for professionals
   const stripeConnectItem = (user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both') ? [
     { title: "💰 Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
   ] : [];
@@ -156,7 +153,6 @@ function LayoutContent({ children, currentPageName }) {
               <PawCaoLogo size="default" />
             </Link>
             
-            {/* Plan Badge */}
             {planBadge && (
               <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center`}>
                 <div className="text-xs font-semibold">
@@ -165,7 +161,6 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             )}
             
-            {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="mt-3 w-full">
@@ -188,7 +183,6 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarHeader>
           
           <SidebarContent className="p-4">
-            {/* Profile Section - FIRST */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -283,7 +277,6 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* Admin & Special Items */}
             {allNavigationItems.length > 22 && (
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
@@ -314,22 +307,18 @@ function LayoutContent({ children, currentPageName }) {
         <main className="flex-1 flex flex-col">
           <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-10">
             <div className="flex items-center gap-3 md:gap-4">
-              {/* Mobile Menu Trigger */}
               <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors" />
 
-              {/* Logo for Mobile */}
               <Link to={createPageUrl("Home")} className="md:hidden">
                 <PawCaoLogo size="small" showText={false} />
               </Link>
 
-              {/* Page Title */}
               <div className="hidden md:block flex-1">
                 <h1 className="text-lg font-semibold text-gray-900 truncate">
                   {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                 </h1>
               </div>
 
-              {/* Plan Badge */}
               {planBadge && (
                 <Badge className={`${planBadge.color} text-white text-xs md:text-sm`}>
                   <span className="hidden sm:inline">{planBadge.icon} </span>
@@ -337,7 +326,6 @@ function LayoutContent({ children, currentPageName }) {
                 </Badge>
               )}
 
-              {/* Notifications */}
               {unreadCount > 0 && (
                 <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0">
                   <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer">
@@ -347,7 +335,6 @@ function LayoutContent({ children, currentPageName }) {
                 </Link>
               )}
               
-              {/* Mobile Language Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="md:hidden h-9 w-9">
@@ -367,7 +354,6 @@ function LayoutContent({ children, currentPageName }) {
             {children}
           </div>
 
-          {/* Footer */}
           <footer className="bg-white border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
@@ -400,7 +386,7 @@ function LayoutContent({ children, currentPageName }) {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
                     <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
-                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors}>FAQ</Link></li>
+                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
                     <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
                     <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
                     <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
