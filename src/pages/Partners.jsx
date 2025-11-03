@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Store, MapPin, Phone, ShoppingBag, Search, Star, 
-  ChevronRight, Tag, TrendingUp, Gift
+  ChevronRight, Tag, TrendingUp, Gift, Crown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -45,6 +46,22 @@ export default function Partners() {
   const { data: allProducts } = useQuery({
     queryKey: ['allPartnerProducts'],
     queryFn: () => base44.entities.PartnerProduct.list(),
+    initialData: [],
+  });
+
+  const { data: featuredAnnouncements } = useQuery({
+    queryKey: ['featuredAnnouncements'],
+    queryFn: async () => {
+      const announcements = await base44.entities.CompanyAnnouncement.filter({
+        is_active: true,
+        is_featured: true
+      }, 'featured_position');
+      return announcements.filter(a => {
+        const now = new Date();
+        const end = new Date(a.featured_end_date);
+        return end > now;
+      });
+    },
     initialData: [],
   });
 
@@ -118,6 +135,71 @@ export default function Partners() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* Featured Announcements Banner */}
+        {featuredAnnouncements.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">🔥 Promoções em Destaque</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              {featuredAnnouncements.slice(0, 3).map((announcement, index) => {
+                const gradients = {
+                  basic: "from-blue-500 to-blue-600",
+                  premium: "from-purple-500 to-purple-600",
+                  exclusive: "from-yellow-500 to-orange-600"
+                };
+                const gradient = gradients[announcement.featured_tier] || gradients.basic;
+
+                return (
+                  <motion.div
+                    key={announcement.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card 
+                      className={`border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden bg-gradient-to-br ${gradient}`}
+                      onClick={() => {
+                        // Increment clicks
+                        base44.entities.CompanyAnnouncement.update(announcement.id, {
+                          clicks_count: (announcement.clicks_count || 0) + 1
+                        });
+                        // Navigate to partner
+                        navigate(createPageUrl(`PartnerDetails?id=${announcement.company_id}`));
+                      }}
+                    >
+                      <CardContent className="p-0">
+                        {announcement.image_url && (
+                          <div className="relative h-32 overflow-hidden">
+                            <img
+                              src={announcement.image_url}
+                              alt={announcement.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 right-2">
+                              <Badge className="bg-white text-gray-900 font-bold">
+                                <Crown className="w-3 h-3 mr-1" />
+                                {announcement.featured_tier?.toUpperCase()}
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+                        <div className="p-4 text-white">
+                          <h3 className="font-bold text-lg mb-1">{announcement.title}</h3>
+                          <p className="text-sm text-white/90 mb-3 line-clamp-2">{announcement.message}</p>
+                          {announcement.discount_percentage > 0 && (
+                            <Badge className="bg-red-500 text-white font-bold text-lg">
+                              -{announcement.discount_percentage}% OFF
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Compact Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
