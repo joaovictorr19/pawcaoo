@@ -23,6 +23,7 @@ export const translations = {
     partnerDashboard: "Painel de Parceiros",
     myProfile: "Meu Perfil",
     accountSettings: "Configurações de Conta",
+    adminDashboard: "Painel Admin",
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -699,6 +700,7 @@ export const translations = {
     partnerDashboard: "Partner Dashboard",
     myProfile: "My Profile",
     accountSettings: "Account Settings",
+    adminDashboard: "Admin Dashboard",
 
     // Sidebar Groups
     mainMenu: "MAIN MENU",
@@ -1240,7 +1242,7 @@ export const translations = {
     // Documents Step
     // verificationDocuments: "Verification Documents", // Reusing existing
     governmentId: "Government-Issued ID",
-    governmentIdDesc: "(Driver's License, Passport, etc.)",
+    governmentIdDesc: "(Driver's License, Passport, Passport, etc.)",
     backgroundCheck: "Background Check (Highly Recommended)",
     backgroundCheckTip: "✓ Verified profiles get priority placement! Upload a background check from a trusted provider (Checkr, Sterling, etc.) to build trust.",
     selectProvider: "Select Verification Provider",
@@ -1372,6 +1374,7 @@ export const translations = {
     partnerDashboard: "Panel de Socios",
     myProfile: "Mi Perfil",
     accountSettings: "Configuración de Cuenta",
+    adminDashboard: "Panel Admin",
     
     // Sidebar Groups
     mainMenu: "MENÚ PRINCIPAL",
