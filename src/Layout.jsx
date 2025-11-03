@@ -22,9 +22,14 @@ import {
 
 const navigationItems = [
   {
+    title: "Dashboard",
+    url: createPageUrl("Dashboard"),
+    icon: Home,
+  },
+  {
     title: "Find Walkers",
     url: createPageUrl("Home"),
-    icon: Home,
+    icon: Dog,
   },
   {
     title: "Find Trainers",
@@ -166,7 +171,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MAIN MENU</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(0, 5).map((item) => (
+                  {navigationItems.slice(0, 6).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -189,7 +194,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">MY ACTIVITY</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(5, 12).map((item) => (
+                  {navigationItems.slice(6, 13).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -217,7 +222,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">PROFESSIONAL SERVICES</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(12, 16).map((item) => (
+                  {navigationItems.slice(13, 17).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -240,7 +245,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">ACCOUNT</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.slice(16).map((item) => (
+                  {navigationItems.slice(17).map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
