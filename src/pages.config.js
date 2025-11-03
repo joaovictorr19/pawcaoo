@@ -34,6 +34,9 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiesPolicy from './pages/CookiesPolicy';
 import PaymentMethods from './pages/PaymentMethods';
 import PaymentSetup from './pages/PaymentSetup';
+import StripeConnectSetup from './pages/StripeConnectSetup';
+import ConnectedAccountStorefront from './pages/ConnectedAccountStorefront';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 import Layout from './Layout.jsx';
 
 
@@ -74,6 +77,9 @@ export const PAGES = {
     "CookiesPolicy": CookiesPolicy,
     "PaymentMethods": PaymentMethods,
     "PaymentSetup": PaymentSetup,
+    "StripeConnectSetup": StripeConnectSetup,
+    "ConnectedAccountStorefront": ConnectedAccountStorefront,
+    "CheckoutSuccess": CheckoutSuccess,
 }
 
 export const pagesConfig = {

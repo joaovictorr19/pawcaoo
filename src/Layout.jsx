@@ -100,7 +100,12 @@ function LayoutContent({ children, currentPageName }) {
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
-  const allNavigationItems = [...navigationItems, ...adminItem];
+  // Add Stripe Connect for professionals
+  const stripeConnectItem = (user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both') ? [
+    { title: "💰 Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
+  ] : [];
+
+  const allNavigationItems = [...navigationItems, ...adminItem, ...stripeConnectItem];
 
   const languageFlags = {
     pt: "🇵🇹",
