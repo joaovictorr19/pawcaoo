@@ -119,7 +119,9 @@ export default function MyProfile() {
       return {
         message: t("unlockExclusiveBenefits", language),
         action: t("upgradeToSaveMore", language),
-        progress: 0
+        progress: 0,
+        color: "from-gray-500 to-gray-600",
+        icon: "⚡"
       };
     }
     
@@ -130,10 +132,24 @@ export default function MyProfile() {
     
     const monthsSaved = investment > 0 ? savings / investment : 0;
     
+    const colors = {
+      basic: "from-blue-500 to-blue-600",
+      premium: "from-purple-500 to-purple-600",
+      vip: "from-yellow-500 to-yellow-600"
+    };
+    
+    const icons = {
+      basic: "💼",
+      premium: "🥇",
+      vip: "👑"
+    };
+    
     return {
       message: `${t('saved', language)} €${savings.toFixed(2)} ${t('withThePlan', language)} ${ownerSubscription.plan_type}`,
       action: monthsSaved >= 1 ? t("planAlreadyPaidOff", language) : `${Math.ceil(monthsSaved * 10) * 10}% ${t("untilBreakeven", language)}`,
-      progress: Math.min(100, monthsSaved * 100)
+      progress: Math.min(100, monthsSaved * 100),
+      color: colors[ownerSubscription.plan_type] || "from-gray-500 to-gray-600",
+      icon: icons[ownerSubscription.plan_type] || "⚡"
     };
   };
 
@@ -152,6 +168,8 @@ export default function MyProfile() {
     );
   }
 
+  const subscriptionInfo = getSubscriptionProgress();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -161,12 +179,29 @@ export default function MyProfile() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-5xl font-bold text-gray-900 mb-2">
-            {t('hello', language)}, {user?.full_name || t('notDefined', language)} 👋
-          </h1>
-          <p className="text-xl text-gray-600">
-            {t('yourCompleteDashboard', language)}
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-5xl font-bold text-gray-900 mb-2">
+                {t('hello', language)}, {user?.full_name || t('notDefined', language)} 👋
+              </h1>
+              <p className="text-xl text-gray-600">
+                {t('yourCompleteDashboard', language)}
+              </p>
+            </div>
+            {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className={`bg-gradient-to-r ${subscriptionInfo.color} text-white rounded-2xl px-6 py-4 shadow-2xl`}
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-2">{subscriptionInfo.icon}</div>
+                  <div className="text-xl font-bold">{ownerSubscription.plan_type.toUpperCase()}</div>
+                  <div className="text-xs opacity-90">Member</div>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </motion.div>
 
         {/* Account Info */}
@@ -257,65 +292,73 @@ export default function MyProfile() {
           </Card>
         </div>
 
-        {/* Subscription Status - Owner */}
+        {/* Enhanced Subscription Status */}
         {!isProfessional && (
           <Card className="border-0 shadow-2xl mb-8 overflow-hidden">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white">
+            <div className={`bg-gradient-to-r ${subscriptionInfo.color} p-6 text-white`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Crown className="w-8 h-8" />
                   <div>
                     <h3 className="text-2xl font-bold">
-                      {t('member', language)} {ownerSubscription ? ownerSubscription.plan_type.toUpperCase() : t('freePlan', language).toUpperCase()}
+                      {subscriptionInfo.icon} {t('member', language)} {ownerSubscription ? ownerSubscription.plan_type.toUpperCase() : t('freePlan', language).toUpperCase()}
                     </h3>
                     <p className="text-white/90">
-                      {getSubscriptionProgress().message}
+                      {subscriptionInfo.message}
                     </p>
                   </div>
                 </div>
                 <Button 
                   onClick={() => navigate(createPageUrl('OwnerSubscriptions'))}
-                  className="bg-white text-orange-600 hover:bg-gray-100"
+                  className="bg-white text-gray-900 hover:bg-gray-100"
                 >
                   {ownerSubscription?.plan_type === 'free' || !ownerSubscription ? t('upgradePlan', language) : t('managePlan', language)}
                 </Button>
               </div>
 
               {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{t('valueUnlocked', language)}</span>
-                    <span>{getSubscriptionProgress().action}</span>
+                <>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span>{t('valueUnlocked', language)}</span>
+                      <span>{subscriptionInfo.action}</span>
+                    </div>
+                    <div className="w-full bg-white/20 rounded-full h-3">
+                      <div 
+                        className="bg-white h-3 rounded-full transition-all duration-500"
+                        style={{ width: `${subscriptionInfo.progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-white/20 rounded-full h-3">
-                    <div 
-                      className="bg-white h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${getSubscriptionProgress().progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
 
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="bg-white/10 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold">
-                    {ownerSubscription?.booking_discount_percentage || 0}%
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold">
+                        {ownerSubscription?.booking_discount_percentage || 0}%
+                      </div>
+                      <div className="text-xs opacity-90">{t('bookingDiscount', language)}</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold">
+                        {ownerSubscription?.points_multiplier || 1}x
+                      </div>
+                      <div className="text-xs opacity-90">{t('pointsMultiplier', language)}</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold">
+                        {ownerSubscription?.free_cancellations === 999 ? "∞" : ownerSubscription?.free_cancellations || 0}
+                      </div>
+                      <div className="text-xs opacity-90">{t('cancellationsPerMonth', language)}</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold">
+                        €{(ownerSubscription?.total_savings || 0).toFixed(0)}
+                      </div>
+                      <div className="text-xs opacity-90">Total Saved</div>
+                    </div>
                   </div>
-                  <div className="text-xs opacity-90">{t('bookingDiscount', language)}</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold">
-                    {ownerSubscription?.points_multiplier || 1}x
-                  </div>
-                  <div className="text-xs opacity-90">{t('pointsMultiplier', language)}</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold">
-                    {ownerSubscription?.free_cancellations || 0}
-                  </div>
-                  <div className="text-xs opacity-90">{t('cancellationsPerMonth', language)}</div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
 
             {(!ownerSubscription || ownerSubscription.plan_type === 'free') && (

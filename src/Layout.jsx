@@ -52,6 +52,18 @@ function LayoutContent({ children, currentPageName }) {
     initialData: [],
   });
 
+  const { data: ownerSubscription } = useQuery({
+    queryKey: ['ownerSubscription'],
+    queryFn: async () => {
+      const subs = await base44.entities.OwnerSubscription.filter({
+        owner_email: user?.email,
+        is_active: true
+      });
+      return subs[0];
+    },
+    enabled: !!user,
+  });
+
   const unreadCount = notifications?.length || 0;
 
   const navigationItems = [
@@ -88,6 +100,29 @@ function LayoutContent({ children, currentPageName }) {
     es: "Español"
   };
 
+  const getPlanBadge = () => {
+    if (!ownerSubscription) return null;
+    const planColors = {
+      free: "bg-gray-500",
+      basic: "bg-blue-500",
+      premium: "bg-purple-500",
+      vip: "bg-yellow-500"
+    };
+    const planIcons = {
+      free: "⚡",
+      basic: "💼",
+      premium: "🥇",
+      vip: "👑"
+    };
+    return {
+      color: planColors[ownerSubscription.plan_type] || "bg-gray-500",
+      icon: planIcons[ownerSubscription.plan_type] || "⚡",
+      name: ownerSubscription.plan_type.toUpperCase()
+    };
+  };
+
+  const planBadge = getPlanBadge();
+
   return (
     <SidebarProvider>
       <style>{`
@@ -104,6 +139,15 @@ function LayoutContent({ children, currentPageName }) {
             <Link to={createPageUrl("Home")} className="block hover:opacity-80 transition-opacity">
               <PawCaoLogo size="default" />
             </Link>
+            
+            {/* Plan Badge */}
+            {planBadge && (
+              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center`}>
+                <div className="text-xs font-semibold">
+                  {planBadge.icon} {planBadge.name} MEMBER
+                </div>
+              </div>
+            )}
             
             {/* Language Selector */}
             <DropdownMenu>
@@ -256,6 +300,15 @@ function LayoutContent({ children, currentPageName }) {
                   {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                 </h1>
               </div>
+
+              {/* Plan Badge Desktop */}
+              {planBadge && (
+                <div className="hidden md:block">
+                  <Badge className={`${planBadge.color} text-white`}>
+                    {planBadge.icon} {planBadge.name}
+                  </Badge>
+                </div>
+              )}
 
               {/* Notifications */}
               {unreadCount > 0 && (

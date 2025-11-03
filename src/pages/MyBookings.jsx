@@ -7,19 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2, Activity } from "lucide-react"; // Added Activity icon
+import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2, Activity } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom"; // Added useNavigate for navigation
+import { useNavigate } from "react-router-dom";
 
 export default function MyBookings() {
   const [activeTab, setActiveTab] = useState("all");
   const [completionCode, setCompletionCode] = useState("");
-  const [verifyingBookingId, setVerifyingBookingId] = useState(null);
+  const [completingBooking, setCompletingBooking] = useState(null); // Renamed from verifyingBookingId to store the full booking object
   const queryClient = useQueryClient();
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate();
 
   // Helper function for creating page URLs (assuming simple path construction for now)
   const createPageUrl = (pathWithParams) => `/${pathWithParams}`;
@@ -67,37 +67,27 @@ export default function MyBookings() {
     },
   });
 
-  const completeWalkMutation = useMutation({
-    mutationFn: async ({ bookingId, code, isTraining }) => {
-      // Find the booking from the cached data, or refetch if not found
-      const currentBookings = queryClient.getQueryData(['bookings']);
-      const booking = currentBookings.find(b => b.id === bookingId);
-      
-      if (!booking) {
-        throw new Error("Booking not found.");
-      }
-
-      if (booking.completion_code !== code.toUpperCase()) {
-        throw new Error("Invalid completion code");
+  const completeBookingMutation = useMutation({
+    mutationFn: async ({ booking, code, isTraining }) => { // Now accepts full booking object and isTraining
+      if (booking.completion_code !== code.toUpperCase()) { // Ensure code is upper cased for comparison
+        throw new Error("Invalid completion code!");
       }
 
       // Update booking status
+      const updateData = {
+        status: 'completed',
+        payment_status: 'released',
+        completed_date: new Date().toISOString(),
+      };
+
       if (isTraining) {
-        await base44.entities.TrainingBooking.update(bookingId, {
-          status: "completed",
-          payment_status: "released",
-          completed_date: new Date().toISOString()
-        });
+        await base44.entities.TrainingBooking.update(booking.id, updateData);
       } else {
-        await base44.entities.Booking.update(bookingId, {
-          status: "completed",
-          payment_status: "released",
-          completed_date: new Date().toISOString()
-        });
+        await base44.entities.Booking.update(booking.id, updateData);
       }
 
-      // Find all payments for this booking
-      const payments = await base44.entities.Payment.filter({ booking_id: bookingId });
+      // Find all payments for this booking (retaining previous robust payment finding logic)
+      const payments = await base44.entities.Payment.filter({ booking_id: booking.id });
       for (const payment of payments) {
         await base44.entities.Payment.update(payment.id, {
           status: "released",
@@ -105,25 +95,80 @@ export default function MyBookings() {
         });
       }
 
-      // Send completion notifications
+      // PawPoints logic: Only award points to the owner
+      let totalPoints = 0;
+      if (user?.email === booking.owner_email) {
+        const ownerSubs = await base44.entities.OwnerSubscription.filter({
+          owner_email: user?.email,
+          is_active: true
+        });
+        const subscription = ownerSubs[0]; // Assuming only one active subscription
+        const pointsMultiplier = subscription?.points_multiplier || 1;
+        const basePoints = Math.floor(booking.total_amount * 10); // 10 points per euro
+        totalPoints = Math.floor(basePoints * pointsMultiplier);
+        
+        // Get or create loyalty points record
+        const loyaltyRecords = await base44.entities.LoyaltyPoints.filter({
+          user_email: user?.email
+        });
+        
+        let currentPointsBalance = 0;
+        if (loyaltyRecords.length > 0) {
+          const loyaltyPoints = loyaltyRecords[0];
+          currentPointsBalance = loyaltyPoints.points_balance + totalPoints;
+          await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
+            points_balance: currentPointsBalance,
+            total_earned: loyaltyPoints.total_earned + totalPoints,
+            lifetime_bookings: (loyaltyPoints.lifetime_bookings || 0) + 1
+          });
+        } else {
+          currentPointsBalance = totalPoints;
+          await base44.entities.LoyaltyPoints.create({
+            user_email: user?.email,
+            points_balance: currentPointsBalance,
+            total_earned: totalPoints,
+            tier: 'bronze', // Default tier
+            lifetime_bookings: 1
+          });
+        }
+
+        // Create transaction record
+        await base44.entities.PointsTransaction.create({
+          user_email: user?.email,
+          transaction_type: 'earned',
+          points_amount: totalPoints,
+          related_booking_id: booking.id,
+          description: `Earned ${totalPoints} points from booking with ${booking.walker_name || booking.trainer_name}${pointsMultiplier > 1 ? ` (${pointsMultiplier}x multiplier)` : ''}`,
+          balance_after: currentPointsBalance
+        });
+      }
+
+      // Notify walker/trainer
       await base44.entities.Notification.create({
         recipient_email: booking.walker_email || booking.trainer_email,
-        title: "Payment Released",
-        message: `Payment for ${booking.dog_name}'s ${isTraining ? 'training session' : 'walk'} has been released to your account`,
+        title: `${isTraining ? 'Session' : 'Walk'} Completed & Payment Released`,
+        message: `Payment for ${booking.dog_name}'s ${isTraining ? 'session' : 'walk'} has been released!`,
         type: "payment",
-        related_id: bookingId,
-        priority: "high"
+        related_id: booking.id,
+        priority: "normal"
       });
+
+      return totalPoints; // Return points for toast message
     },
-    onSuccess: () => {
+    onSuccess: (totalPoints) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] }); // Invalidate payments query
+      queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] }); // New query invalidation for loyalty points
       setCompletionCode("");
-      setVerifyingBookingId(null);
-      toast.success("Walk completed! Payment released to walker.");
+      setCompletingBooking(null); // Resetting the booking being completed
+      if (totalPoints > 0) {
+        toast.success(`Booking completed! You earned ${totalPoints} PawPoints! 🎉`);
+      } else {
+        toast.success("Booking completed! Payment released."); // Generic message if no points awarded (e.g., if walker completes)
+      }
     },
     onError: (error) => {
-      toast.error(error.message || "Invalid completion code");
+      toast.error(error.message || "Failed to complete booking.");
     }
   });
 
@@ -135,9 +180,9 @@ export default function MyBookings() {
     });
   };
 
-  const handleVerifyCompletion = async (bookingId, isTraining) => {
-    await completeWalkMutation.mutateAsync({ 
-      bookingId, 
+  const handleVerifyCompletion = async (bookingToComplete, isTraining) => {
+    await completeBookingMutation.mutateAsync({ 
+      booking: bookingToComplete, // Pass the full booking object
       code: completionCode,
       isTraining 
     });
@@ -246,7 +291,7 @@ export default function MyBookings() {
                           <div className="text-sm text-gray-600">
                             €{booking.service_amount?.toFixed(2)} + €{booking.platform_fee?.toFixed(2)} fee
                           </div>
-                          {booking.duration_hours && ( // Only show if duration_hours exists
+                          {booking.duration_hours && (
                             <div className="text-xs text-gray-500 mt-1">
                               {booking.duration_hours}h walk
                             </div>
@@ -350,17 +395,17 @@ export default function MyBookings() {
                           <div className="flex flex-col sm:flex-row gap-3">
                             <Input
                               placeholder="Enter 6-digit code"
-                              value={verifyingBookingId === booking.id ? completionCode : ""}
+                              value={completingBooking?.id === booking.id ? completionCode : ""}
                               onChange={(e) => {
                                 setCompletionCode(e.target.value.toUpperCase());
-                                setVerifyingBookingId(booking.id);
+                                setCompletingBooking(booking); // Store the full booking object
                               }}
                               maxLength={6}
                               className="text-center text-lg font-mono tracking-wider sm:w-1/2 md:w-2/3"
                             />
                             <Button
-                              onClick={() => handleVerifyCompletion(booking.id, isTraining)}
-                              disabled={completeWalkMutation.isPending || completionCode.length !== 6 || verifyingBookingId !== booking.id}
+                              onClick={() => handleVerifyCompletion(booking, isTraining)}
+                              disabled={completeBookingMutation.isPending || completionCode.length !== 6 || completingBooking?.id !== booking.id}
                               className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
                             >
                               Verify & Release Payment

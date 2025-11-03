@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, DollarSign, CreditCard, AlertCircle } from "lucide-react";
+import { Calendar, DollarSign, CreditCard, AlertCircle, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import TimeSlotPicker from "./TimeSlotPicker";
@@ -31,6 +32,25 @@ export default function BookingForm({ walker, trainer, onSubmit, onCancel, isPro
     payment_method: "credit_card",
   });
 
+  // NEW: Get owner subscription for discounts
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: ownerSubscription } = useQuery({
+    queryKey: ['ownerSubscription'],
+    queryFn: async () => {
+      if (!user?.email) return null; // Ensure user email is available
+      const subs = await base44.entities.OwnerSubscription.filter({
+        owner_email: user.email,
+        is_active: true
+      });
+      return subs[0];
+    },
+    enabled: !!user?.email, // Only enable if user email is present
+  });
+
   const { data: availability } = useQuery({
     queryKey: ['professionalAvailability', professional.created_by],
     queryFn: () => base44.entities.CalendarAvailability.filter({ 
@@ -53,9 +73,13 @@ export default function BookingForm({ walker, trainer, onSubmit, onCancel, isPro
     initialData: [],
   });
 
+  // Calculate amounts with subscription discount
   const serviceAmount = formData.duration_hours * professional.hourly_rate;
-  const platformFee = serviceAmount * (PLATFORM_FEE_PERCENTAGE / 100);
-  const totalAmount = serviceAmount + platformFee;
+  const discountPercentage = ownerSubscription?.booking_discount_percentage || 0;
+  const discountAmount = serviceAmount * (discountPercentage / 100);
+  const discountedServiceAmount = serviceAmount - discountAmount;
+  const platformFee = discountedServiceAmount * (PLATFORM_FEE_PERCENTAGE / 100);
+  const totalAmount = discountedServiceAmount + platformFee;
 
   const handleSlotSelect = (date, slot) => {
     setSelectedDate(date);
@@ -80,9 +104,11 @@ export default function BookingForm({ walker, trainer, onSubmit, onCancel, isPro
       session_date: format(selectedDate, 'yyyy-MM-dd'),
       walk_time: selectedSlot,
       session_time: selectedSlot,
-      service_amount: serviceAmount,
+      service_amount: discountedServiceAmount, // Pass the discounted amount
       platform_fee: platformFee,
       total_amount: totalAmount,
+      owner_subscription_discount: discountAmount,
+      owner_subscription_plan: ownerSubscription?.plan_type || 'free'
     });
   };
 
@@ -108,6 +134,14 @@ export default function BookingForm({ walker, trainer, onSubmit, onCancel, isPro
           <CardTitle className="text-2xl">
             {walker ? `Book a Walk with ${professional.walker_name}` : `Book Training with ${professional.trainer_name}`}
           </CardTitle>
+          {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
+            <div className="flex items-center gap-2 mt-2 bg-white/20 rounded-lg px-3 py-2">
+              <Crown className="w-5 h-5" />
+              <span className="text-sm font-semibold">
+                {discountPercentage}% {ownerSubscription.plan_type.toUpperCase()} Discount Applied!
+              </span>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-6">
           <Alert className="mb-6 border-blue-200 bg-blue-50">
@@ -221,6 +255,17 @@ export default function BookingForm({ walker, trainer, onSubmit, onCancel, isPro
                 <span>Service Amount (€{professional.hourly_rate}/hr × {formData.duration_hours}h)</span>
                 <span className="font-semibold">€{serviceAmount.toFixed(2)}</span>
               </div>
+              
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-green-600 font-semibold">
+                  <span className="flex items-center gap-2">
+                    <Crown className="w-4 h-4" />
+                    {ownerSubscription.plan_type.toUpperCase()} Discount ({discountPercentage}%)
+                  </span>
+                  <span>-€{discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between text-gray-700">
                 <span>Platform Fee ({PLATFORM_FEE_PERCENTAGE}%)</span>
                 <span className="font-semibold">€{platformFee.toFixed(2)}</span>
@@ -241,6 +286,15 @@ export default function BookingForm({ walker, trainer, onSubmit, onCancel, isPro
                 <span>Total Amount</span>
                 <span className="text-green-600">€{totalAmount.toFixed(2)}</span>
               </div>
+              
+              {discountAmount > 0 && (
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 mt-3">
+                  <p className="text-sm text-green-800 font-semibold text-center">
+                    🎉 You're saving €{discountAmount.toFixed(2)} with your {ownerSubscription?.plan_type.toUpperCase()} membership!
+                  </p>
+                </div>
+              )}
+              
               <p className="text-xs text-gray-600 mt-2">
                 * Payment will be held securely and released after {walker ? 'walk' : 'session'} completion
               </p>
