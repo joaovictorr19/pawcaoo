@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label"; // Added Label import
 import {
   Shield,
   Users,
@@ -49,6 +51,9 @@ import {
   AlertCircle,
   FileText,
   Download,
+  Trash2, // Added Trash2 icon
+  ShieldCheck, // Added ShieldCheck icon
+  User, // Added User icon
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -60,6 +65,9 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [userFormData, setUserFormData] = useState({});
 
   // Check if user is admin
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -128,14 +136,61 @@ export default function AdminDashboard() {
     },
   });
 
-  // Update User
+  // Update User Mutation
   const updateUserMutation = useMutation({
-    mutationFn: ({ email, data }) => base44.entities.User.update(email, data),
+    mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-      toast.success("User updated!");
+      toast.success("Utilizador atualizado!");
+      setShowUserDialog(false);
+      setSelectedUser(null);
     },
+    onError: (error) => {
+      toast.error("Erro ao atualizar utilizador");
+      console.error(error);
+    }
   });
+
+  // Delete User Mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: (id) => base44.entities.User.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success("Utilizador eliminado!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao eliminar utilizador");
+      console.error(error);
+    }
+  });
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setUserFormData({
+      full_name: user.full_name || "",
+      role: user.role || "user",
+      account_type: user.account_type || "owner",
+      phone: user.phone || "",
+      city: user.city || "",
+      address: user.address || "",
+      postal_code: user.postal_code || "",
+    });
+    setShowUserDialog(true);
+  };
+
+  const handleSaveUser = () => {
+    if (!selectedUser) return;
+    updateUserMutation.mutate({
+      id: selectedUser.id,
+      data: userFormData
+    });
+  };
+
+  const handleDeleteUser = (user) => {
+    if (window.confirm(`Tem certeza que deseja eliminar o utilizador ${user.email}?`)) {
+      deleteUserMutation.mutate(user.id);
+    }
+  };
 
   // Handle application approval
   const handleApproveApplication = async (application, type) => {
@@ -383,11 +438,11 @@ export default function AdminDashboard() {
             <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <CardTitle className="text-2xl">User Management</CardTitle>
+                  <CardTitle className="text-2xl">Gestão de Utilizadores</CardTitle>
                   <div className="relative w-full md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
-                      placeholder="Search users..."
+                      placeholder="Pesquisar utilizadores..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -401,10 +456,11 @@ export default function AdminDashboard() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Email</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Tipo de Conta</TableHead>
+                        <TableHead>Função</TableHead>
+                        <TableHead>Registado</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -418,18 +474,34 @@ export default function AdminDashboard() {
                             <TableCell className="font-medium">{user.email}</TableCell>
                             <TableCell>{user.full_name || 'N/A'}</TableCell>
                             <TableCell>
-                              <Badge className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}>
-                                {user.role || 'user'}
+                              <Badge variant="outline" className="capitalize">
+                                {user.account_type || 'owner'}
                               </Badge>
                             </TableCell>
-                            <TableCell>{format(new Date(user.created_date), 'MMM d, yyyy')}</TableCell>
+                            <TableCell>
+                              <Badge className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}>
+                                {user.role === 'admin' ? 'Admin' : 'Utilizador'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{format(new Date(user.created_date), 'dd/MM/yyyy')}</TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline">
-                                  <Eye className="w-4 h-4" />
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleEditUser(user)}
+                                  className="hover:bg-blue-50"
+                                >
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Editar
                                 </Button>
-                                <Button size="sm" variant="outline">
-                                  <Edit className="w-4 h-4" />
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleDeleteUser(user)}
+                                  className="hover:bg-red-50 text-red-600 border-red-200"
+                                >
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -440,6 +512,164 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* User Edit Dialog */}
+            <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Editar Utilizador</DialogTitle>
+                  <DialogDescription>
+                    Edite as informações e permissões do utilizador {selectedUser?.email}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {selectedUser && (
+                  <div className="space-y-4 py-4">
+                    {/* Email (read-only) */}
+                    <div>
+                      <Label>Email</Label>
+                      <Input value={selectedUser.email} disabled className="bg-gray-50" />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Full Name */}
+                      <div>
+                        <Label>Nome Completo</Label>
+                        <Input
+                          value={userFormData.full_name}
+                          onChange={(e) => setUserFormData({...userFormData, full_name: e.target.value})}
+                          placeholder="Nome do utilizador"
+                        />
+                      </div>
+
+                      {/* Phone */}
+                      <div>
+                        <Label>Telefone</Label>
+                        <Input
+                          value={userFormData.phone}
+                          onChange={(e) => setUserFormData({...userFormData, phone: e.target.value})}
+                          placeholder="+351 912 345 678"
+                        />
+                      </div>
+
+                      {/* Role */}
+                      <div>
+                        <Label>Função no Sistema</Label>
+                        <Select 
+                          value={userFormData.role} 
+                          onValueChange={(value) => setUserFormData({...userFormData, role: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">
+                              <span className="flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                Utilizador
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="admin">
+                              <span className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4" />
+                                Administrador
+                              </span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {userFormData.role === 'admin' && (
+                          <p className="text-xs text-orange-600 mt-1">
+                            ⚠️ Administradores têm acesso total ao sistema
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Account Type */}
+                      <div>
+                        <Label>Tipo de Conta</Label>
+                        <Select 
+                          value={userFormData.account_type} 
+                          onValueChange={(value) => setUserFormData({...userFormData, account_type: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="owner">Dono de Cão</SelectItem>
+                            <SelectItem value="walker">Passeador</SelectItem>
+                            <SelectItem value="trainer">Treinador</SelectItem>
+                            <SelectItem value="both">Passeador & Treinador</SelectItem>
+                            <SelectItem value="company">Empresa</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* City */}
+                      <div>
+                        <Label>Cidade</Label>
+                        <Input
+                          value={userFormData.city}
+                          onChange={(e) => setUserFormData({...userFormData, city: e.target.value})}
+                          placeholder="Lisboa"
+                        />
+                      </div>
+
+                      {/* Postal Code */}
+                      <div>
+                        <Label>Código Postal</Label>
+                        <Input
+                          value={userFormData.postal_code}
+                          onChange={(e) => setUserFormData({...userFormData, postal_code: e.target.value})}
+                          placeholder="1000-001"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Address */}
+                    <div>
+                      <Label>Morada</Label>
+                      <Input
+                        value={userFormData.address}
+                        onChange={(e) => setUserFormData({...userFormData, address: e.target.value})}
+                        placeholder="Rua Principal, 123"
+                      />
+                    </div>
+
+                    {/* User Info Card */}
+                    <Card className="bg-gray-50 border-gray-200">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500">ID do Utilizador</p>
+                            <p className="font-mono text-xs">{selectedUser.id}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Data de Registo</p>
+                            <p>{format(new Date(selectedUser.created_date), 'dd/MM/yyyy HH:mm')}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowUserDialog(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleSaveUser}
+                    disabled={updateUserMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {updateUserMutation.isPending ? "A guardar..." : "Guardar Alterações"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* APPLICATIONS TAB */}
@@ -505,7 +735,7 @@ export default function AdminDashboard() {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <label className="text-sm font-medium">Verification Notes</label>
+                                        <Label className="text-sm font-medium">Verification Notes</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
@@ -562,7 +792,7 @@ export default function AdminDashboard() {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <label className="text-sm font-medium">Rejection Reason *</label>
+                                        <Label className="text-sm font-medium">Rejection Reason *</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
@@ -658,7 +888,7 @@ export default function AdminDashboard() {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <label className="text-sm font-medium">Verification Notes</label>
+                                        <Label className="text-sm font-medium">Verification Notes</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
@@ -717,7 +947,7 @@ export default function AdminDashboard() {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <div>
-                                        <label className="text-sm font-medium">Rejection Reason *</label>
+                                        <Label className="text-sm font-medium">Rejection Reason *</Label>
                                         <Textarea
                                           value={verificationNotes}
                                           onChange={(e) => setVerificationNotes(e.target.value)}
