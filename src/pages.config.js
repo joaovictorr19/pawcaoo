@@ -32,6 +32,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiesPolicy from './pages/CookiesPolicy';
+import PaymentMethods from './pages/PaymentMethods';
+import PaymentSetup from './pages/PaymentSetup';
 import Layout from './Layout.jsx';
 
 
@@ -70,6 +72,8 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "PrivacyPolicy": PrivacyPolicy,
     "CookiesPolicy": CookiesPolicy,
+    "PaymentMethods": PaymentMethods,
+    "PaymentSetup": PaymentSetup,
 }
 
 export const pagesConfig = {

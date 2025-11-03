@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -91,11 +91,13 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
     { title: t('accountSettings', language), url: createPageUrl("AccountSettings"), icon: Shield },
     { title: t('partnerDashboard', language), url: createPageUrl("PartnerDashboard"), icon: Store },
+    { title: "💳 " + (language === 'pt' ? 'Métodos de Pagamento' : 'Payment Methods'), url: createPageUrl("PaymentMethods"), icon: CreditCard },
   ];
 
   // Add Admin Dashboard if user is admin
   const adminItem = user?.role === 'admin' ? [
-    { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck }
+    { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
+    { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
   const allNavigationItems = [...navigationItems, ...adminItem];
