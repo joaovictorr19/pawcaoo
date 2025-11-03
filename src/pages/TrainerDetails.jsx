@@ -146,6 +146,18 @@ export default function TrainerDetails() {
     return labels[specialty] || specialty;
   };
 
+  const getMethodologyLabel = (methodName) => {
+    const labels = {
+      positive_reinforcement: "Positive Reinforcement",
+      clicker_training: "Clicker Training",
+      model_rival: "Model-Rival",
+      relationship_based: "Relationship-Based",
+      science_based: "Science-Based",
+      balanced_training: "Balanced Training"
+    };
+    return labels[methodName] || methodName;
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-6">
@@ -243,6 +255,35 @@ export default function TrainerDetails() {
               </div>
             )}
 
+            {/* Service Areas - NEW */}
+            {trainer.service_areas && trainer.service_areas.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-purple-600" />
+                  Service Areas
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {trainer.service_areas.map((area, idx) => (
+                    <div key={idx} className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">{area.area_name}</h4>
+                      {area.postal_codes && area.postal_codes.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {area.postal_codes.map(code => (
+                            <Badge key={code} className="bg-purple-600 text-white text-xs">
+                              {code}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-600">
+                        Radius: <span className="font-semibold">{area.radius_km} km</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Certifications */}
             {trainer.certifications && trainer.certifications.length > 0 && (
               <div className="mb-6">
@@ -276,6 +317,67 @@ export default function TrainerDetails() {
                     </Badge>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Training Methodologies - NEW */}
+            {trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  Training Methodologies
+                </h3>
+                <div className="space-y-3">
+                  {trainer.training_methodologies.map((method, idx) => (
+                    <div
+                      key={idx}
+                      className={`rounded-xl p-4 ${
+                        method.primary
+                          ? 'bg-purple-100 border-2 border-purple-500'
+                          : 'bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-semibold text-gray-900">
+                          {getMethodologyLabel(method.methodology_name)}
+                        </h4>
+                        {method.primary && (
+                          <Badge className="bg-purple-600 text-white">
+                            ★ Primary Method
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{method.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Dog Breeds - NEW */}
+            {trainer.dog_breeds_handled && trainer.dog_breeds_handled.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h3>
+                <div className="flex flex-wrap gap-2">
+                  {trainer.dog_breeds_handled.map(breed => (
+                    <Badge
+                      key={breed}
+                      className={`${
+                        trainer.breed_specialization?.includes(breed)
+                          ? 'bg-purple-600 text-white border-purple-700'
+                          : 'bg-gray-100 text-gray-700 border-gray-300'
+                      } text-sm px-3 py-1`}
+                    >
+                      {breed}
+                      {trainer.breed_specialization?.includes(breed) && " ★"}
+                    </Badge>
+                  ))}
+                </div>
+                {trainer.breed_specialization && trainer.breed_specialization.length > 0 && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    ★ = Specialization
+                  </p>
+                )}
               </div>
             )}
 

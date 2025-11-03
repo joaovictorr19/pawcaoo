@@ -282,6 +282,35 @@ export default function WalkerDetails() {
               )}
             </div>
 
+            {/* Service Areas - NEW */}
+            {walker.service_areas && walker.service_areas.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                  Service Areas
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {walker.service_areas.map((area, idx) => (
+                    <div key={idx} className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">{area.area_name}</h4>
+                      {area.postal_codes && area.postal_codes.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {area.postal_codes.map(code => (
+                            <Badge key={code} className="bg-green-600 text-white text-xs">
+                              {code}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-600">
+                        Radius: <span className="font-semibold">{area.radius_km} km</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {walker.dog_sizes && walker.dog_sizes.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Dog Sizes I Handle</h3>
@@ -295,6 +324,33 @@ export default function WalkerDetails() {
                     </Badge>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Dog Breeds - NEW */}
+            {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h3>
+                <div className="flex flex-wrap gap-2">
+                  {walker.dog_breeds_handled.map(breed => (
+                    <Badge
+                      key={breed}
+                      className={`${
+                        walker.breed_specialization?.includes(breed)
+                          ? 'bg-green-600 text-white border-green-700'
+                          : 'bg-gray-100 text-gray-700 border-gray-300'
+                      } text-sm px-3 py-1`}
+                    >
+                      {breed}
+                      {walker.breed_specialization?.includes(breed) && " ★"}
+                    </Badge>
+                  ))}
+                </div>
+                {walker.breed_specialization && walker.breed_specialization.length > 0 && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    ★ = Specialization
+                  </p>
+                )}
               </div>
             )}
 

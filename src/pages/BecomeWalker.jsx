@@ -20,6 +20,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
+import BreedSelector from "../components/professionals/BreedSelector";
+import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
@@ -38,10 +40,13 @@ export default function BecomeWalker() {
     photo_url: "",
     bio: "",
     location: "",
+    service_areas: [],
     hourly_rate: "",
     experience_years: "",
     phone: "",
     dog_sizes: [],
+    dog_breeds_handled: [],
+    breed_specialization: [],
     availability: [],
     id_document_url: "",
     background_check_url: "",
@@ -180,6 +185,7 @@ export default function BecomeWalker() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
                 >
                   {/* Profile Photo */}
                   <div className="space-y-2 mb-6">
@@ -294,7 +300,16 @@ export default function BecomeWalker() {
                     />
                   </div>
 
-                  {/* Dog Sizes & Availability */}
+                  {/* Service Areas - NEW */}
+                  <div className="space-y-2">
+                    <Label>Service Areas</Label>
+                    <ServiceAreaSelector
+                      serviceAreas={formData.service_areas}
+                      onChange={(areas) => setFormData({...formData, service_areas: areas})}
+                    />
+                  </div>
+
+                  {/* Dog Sizes */}
                   <div className="space-y-3">
                     <Label>Dog Sizes You Can Handle *</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -318,6 +333,18 @@ export default function BecomeWalker() {
                     </div>
                   </div>
 
+                  {/* Dog Breeds - NEW */}
+                  <div className="space-y-2">
+                    <Label>Dog Breeds You Have Experience With</Label>
+                    <BreedSelector
+                      selectedBreeds={formData.dog_breeds_handled}
+                      onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
+                      specializationBreeds={formData.breed_specialization}
+                      onSpecializationChange={(breeds) => setFormData({...formData, breed_specialization: breeds})}
+                    />
+                  </div>
+
+                  {/* Availability */}
                   <div className="space-y-3">
                     <Label>Your Availability *</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
