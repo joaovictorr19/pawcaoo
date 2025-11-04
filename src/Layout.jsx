@@ -148,9 +148,9 @@ function LayoutContent({ children, currentPageName }) {
   const unreadCount = notifications?.length || 0;
 
   const navigationItems = [
+    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home, featured: true },
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
     { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
-    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home, featured: true },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
@@ -198,8 +198,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 8; // Changed from 7 to 8, adoption moved back
-  const myActivityCount = 10; // Changed from 9 to 10 (added OwnerDashboard)
+  const mainMenuCount = 1; // Only "Adotar"
+  const myActivityCount = 17; // All other items (7 services + 10 activity items)
   const professionalServicesCount = 6;
   
   const mainMenuStartIndex = 0;
@@ -382,7 +382,7 @@ function LayoutContent({ children, currentPageName }) {
                           <item.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''} ${item.featured ? 'text-pink-600' : ''}`} />
                           <span className={`font-medium text-xs md:text-sm truncate ${item.featured ? 'font-bold text-pink-700' : ''}`}>{item.title}</span>
                           {item.featured && (
-                            <Badge className="ml-auto bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5">
+                            <Badge className="ml-auto bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[8px] px-1 py-0.5">
                               ⭐
                             </Badge>
                           )}
@@ -571,7 +571,7 @@ function LayoutContent({ children, currentPageName }) {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
                     <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
-                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
+                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors}>FAQ</Link></li>
                     <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
                     <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
                     <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
