@@ -8,9 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal, 
-  Image as ImageIcon, Video, Smile, MapPin, Tag, Shield,
-  ShieldCheck, CheckCircle, TrendingUp, Users, Camera,
-  Share2
+  Image as ImageIcon, MapPin, Shield, CheckCircle, Camera, Share2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,9 +16,6 @@ import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
-import StoriesBar from "../components/social/StoriesBar";
-import CreateStoryModal from "../components/social/CreateStoryModal";
-import SearchAndFilters from "../components/social/SearchAndFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SocialFeed() {
@@ -29,12 +24,6 @@ export default function SocialFeed() {
   const [newPostContent, setNewPostContent] = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaUrls, setMediaUrls] = useState([]);
-  const [showStoryModal, setShowStoryModal] = useState(false);
-  const [filters, setFilters] = useState({
-    search: "",
-    postType: "all",
-    sortBy: "recent"
-  });
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -49,14 +38,7 @@ export default function SocialFeed() {
     enabled: !!user,
     initialData: [],
     staleTime: 30000,
-  });
-
-  const { data: myDogs = [] } = useQuery({
-    queryKey: ['myDogs', user?.email],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
-    enabled: !!user,
-    initialData: [],
-    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: likedPosts = [] } = useQuery({
@@ -65,6 +47,7 @@ export default function SocialFeed() {
     enabled: !!user,
     initialData: [],
     staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: savedPostIds = [] } = useQuery({
@@ -76,6 +59,7 @@ export default function SocialFeed() {
     enabled: !!user,
     initialData: [],
     staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const createPostMutation = useMutation({
@@ -103,27 +87,20 @@ export default function SocialFeed() {
     },
     onMutate: async ({ postId, isLiked }) => {
       await queryClient.cancelQueries(['socialPosts']);
-      await queryClient.cancelQueries(['likedPosts']);
-      
       const previousPosts = queryClient.getQueryData(['socialPosts']);
-      const previousLikes = queryClient.getQueryData(['likedPosts', user?.email]);
-      
       queryClient.setQueryData(['socialPosts'], old => 
         old.map(post => post.id === postId ? {
           ...post,
           likes_count: (post.likes_count || 0) + (isLiked ? -1 : 1)
         } : post)
       );
-      
-      return { previousPosts, previousLikes };
+      return { previousPosts };
     },
     onError: (err, variables, context) => {
       queryClient.setQueryData(['socialPosts'], context.previousPosts);
-      queryClient.setQueryData(['likedPosts', user?.email], context.previousLikes);
     },
     onSettled: () => {
       queryClient.invalidateQueries(['likedPosts']);
-      queryClient.invalidateQueries(['socialPosts']);
     },
   });
 
@@ -171,42 +148,23 @@ export default function SocialFeed() {
       author_email: user?.email,
       author_name: user?.full_name,
       author_photo_url: user?.profile_photo_url,
+      author_role: user?.role,
       content: newPostContent,
       media_urls: mediaUrls,
       media_type: mediaUrls.length > 1 ? 'album' : mediaUrls.length === 1 ? 'photo' : undefined,
       is_verified_user: user?.is_verified,
-      is_adoption_advocate: user?.is_adoption_advocate
+      is_adoption_advocate: user?.is_adoption_advocate,
+      moderation_status: 'approved'
     });
   };
 
-  const filteredPosts = useMemo(() => {
-    let result = [...posts];
-
-    if (filters.search) {
-      result = result.filter(p => 
-        p.content?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        p.author_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        p.dog_name?.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    if (filters.postType !== "all") {
-      result = result.filter(p => p.post_type === filters.postType);
-    }
-
-    if (filters.sortBy === "popular") {
-      result.sort((a, b) => (b.engagement_score || 0) - (a.engagement_score || 0));
-    } else if (filters.sortBy === "trending") {
-      result.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
-    }
-
-    return result;
-  }, [posts, filters]);
-
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <Skeleton className="h-96 w-full max-w-2xl mx-auto" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600">A carregar Dog Connect...</p>
+        </div>
       </div>
     );
   }
@@ -214,12 +172,6 @@ export default function SocialFeed() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
       <div className="max-w-4xl mx-auto p-4 md:p-6">
-        {/* Stories */}
-        <StoriesBar onAddStory={() => setShowStoryModal(true)} />
-
-        {/* Search & Filters */}
-        <SearchAndFilters filters={filters} onFiltersChange={setFilters} />
-
         {/* Create Post */}
         <Card className="border-0 shadow-xl mb-6">
           <CardContent className="p-6">
@@ -289,7 +241,7 @@ export default function SocialFeed() {
               <Skeleton key={i} className="h-96 w-full rounded-2xl" />
             ))}
           </div>
-        ) : filteredPosts.length === 0 ? (
+        ) : posts.length === 0 ? (
           <Card className="border-0 shadow-xl">
             <CardContent className="p-12 text-center">
               <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -299,7 +251,7 @@ export default function SocialFeed() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {filteredPosts.map((post, idx) => (
+            {posts.map((post, idx) => (
               <PostCard
                 key={post.id}
                 post={post}
@@ -315,13 +267,6 @@ export default function SocialFeed() {
           </div>
         )}
       </div>
-
-      {showStoryModal && (
-        <CreateStoryModal
-          onClose={() => setShowStoryModal(false)}
-          dogs={myDogs}
-        />
-      )}
     </div>
   );
 }
@@ -377,7 +322,6 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
     >
       <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow">
         <CardContent className="p-6">
-          {/* Post Header */}
           <div className="flex items-center justify-between mb-4">
             <div 
               className="flex items-center gap-3 cursor-pointer"
@@ -409,14 +353,12 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
             </Button>
           </div>
 
-          {/* Post Content */}
           {post.content && (
             <p className="text-gray-800 mb-4 leading-relaxed whitespace-pre-wrap">
               {post.content}
             </p>
           )}
 
-          {/* Post Media */}
           {post.media_urls && post.media_urls.length > 0 && (
             <div className={`rounded-2xl overflow-hidden mb-4 ${
               post.media_urls.length === 1 ? '' : 'grid grid-cols-2 gap-2'
@@ -438,7 +380,6 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
             </div>
           )}
 
-          {/* Post Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
             <div className="flex gap-6">
               <Button
@@ -476,7 +417,6 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
             </Button>
           </div>
 
-          {/* Comments Section */}
           <AnimatePresence>
             {showComments && (
               <motion.div
