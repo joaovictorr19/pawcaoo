@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   ArrowLeft, Calendar as CalendarIcon, Clock, DollarSign,
-  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone, Mail, Building2, Globe
+  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone, Mail, Building2, Globe, Info
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -53,20 +53,19 @@ export default function BookService() {
     queryKey: ['partnerServices'],
     queryFn: () => base44.entities.PartnerService.list(),
     initialData: [],
-    staleTime: 300000, // 5 min cache
+    staleTime: 300000,
   });
 
   const service = services.find(s => s.id === serviceId);
 
-  const { data: partner } = useQuery({
-    queryKey: ['partner', service?.partner_id],
-    queryFn: async () => {
-      const partners = await base44.entities.PartnerCompany.list();
-      return partners.find(p => p.id === service?.partner_id);
-    },
-    enabled: !!service?.partner_id,
-    staleTime: 300000, // 5 min cache
+  const { data: partners } = useQuery({
+    queryKey: ['partnerCompanies'],
+    queryFn: () => base44.entities.PartnerCompany.list(),
+    initialData: [],
+    staleTime: 300000,
   });
+
+  const partner = partners.find(p => p.id === service?.partner_id);
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
@@ -106,7 +105,6 @@ export default function BookService() {
         payment_status: 'pending'
       });
 
-      // Award points
       const loyaltyPoints = await base44.entities.LoyaltyPoints.filter({ 
         user_email: user.email 
       });
@@ -118,7 +116,6 @@ export default function BookService() {
         });
       }
 
-      // Create notification
       await base44.entities.Notification.create({
         recipient_email: user.email,
         title: "Agendamento Confirmado! 🎉",
@@ -173,9 +170,26 @@ export default function BookService() {
     "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"
   ];
 
+  const getServiceTypeLabel = (type) => {
+    const labels = {
+      bath: '🛁 Banho',
+      grooming: '✂️ Grooming',
+      veterinary: '🏥 Veterinário',
+      vaccination: '💉 Vacinação',
+      checkup: '🩺 Check-up',
+      emergency: '🚨 Emergência',
+      training: '🎓 Treino',
+      daycare: '🏠 Creche',
+      surgery: '⚕️ Cirurgia',
+      pharmacy: '💊 Farmácia',
+      boarding: '🏡 Hospedagem'
+    };
+    return labels[type] || type;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
         <Button
           variant="outline"
           className="mb-6"
@@ -185,101 +199,129 @@ export default function BookService() {
           Voltar aos Serviços
         </Button>
 
-        <div className="grid md:grid-cols-5 gap-6">
-          {/* Service & Partner Info - 3 columns */}
-          <div className="md:col-span-3 space-y-6">
-            {/* Service Info */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left Column - Service & Partner Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Service Info Card */}
             <Card className="border-0 shadow-2xl">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Info className="w-6 h-6" />
+                  Detalhes do Serviço
+                </CardTitle>
+              </CardHeader>
               <CardContent className="p-6">
                 {service.image_url && (
                   <img
                     src={service.image_url}
                     alt={service.service_name}
-                    className="w-full h-64 object-cover rounded-2xl mb-6"
+                    className="w-full h-64 object-cover rounded-2xl mb-6 shadow-lg"
                   />
                 )}
 
-                <div className="mb-6">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                    {service.service_name}
-                  </h1>
-                  <Badge className="text-lg px-4 py-2">
-                    {service.service_type === 'bath' && '🛁 Banho'}
-                    {service.service_type === 'grooming' && '✂️ Grooming'}
-                    {service.service_type === 'veterinary' && '🏥 Veterinário'}
-                    {service.service_type === 'vaccination' && '💉 Vacinação'}
-                    {service.service_type === 'checkup' && '🩺 Check-up'}
-                    {service.service_type === 'emergency' && '🚨 Emergência'}
-                    {service.service_type === 'training' && '🎓 Treino'}
-                    {service.service_type === 'daycare' && '🏠 Creche'}
-                  </Badge>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4 mb-6">
-                  <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
-                    <Clock className="w-6 h-6 text-blue-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">Duração</p>
-                      <p className="font-bold text-gray-900">{service.duration_minutes} minutos</p>
-                    </div>
+                <div className="space-y-6">
+                  {/* Service Title & Type */}
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                      {service.service_name}
+                    </h1>
+                    <Badge className="text-base px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                      {getServiceTypeLabel(service.service_type)}
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl">
-                    <DollarSign className="w-6 h-6 text-green-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">A partir de</p>
-                      <p className="font-bold text-gray-900 text-2xl">€{service.base_price}</p>
+
+                  {/* Quick Info Grid */}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border-2 border-blue-100">
+                      <Clock className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-600 font-semibold">Duração</p>
+                        <p className="font-bold text-gray-900">{service.duration_minutes} min</p>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <p className="text-gray-700 mb-6 text-lg leading-relaxed">{service.description}</p>
+                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border-2 border-green-100">
+                      <DollarSign className="w-6 h-6 text-green-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-600 font-semibold">A partir de</p>
+                        <p className="font-bold text-gray-900 text-xl">€{service.base_price}</p>
+                      </div>
+                    </div>
 
-                {service.includes?.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="font-bold text-gray-900 mb-3 text-lg">✅ Incluído no Serviço:</h4>
-                    <div className="grid md:grid-cols-2 gap-2">
-                      {service.includes.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-gray-700">
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                          {item}
+                    {service.average_rating > 0 && (
+                      <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-xl border-2 border-yellow-100">
+                        <Star className="w-6 h-6 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-gray-600 font-semibold">Avaliação</p>
+                          <p className="font-bold text-gray-900">{service.average_rating.toFixed(1)} / 5.0</p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
-                )}
 
-                {service.requirements?.length > 0 && (
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                    <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5" />
-                      Requisitos Necessários:
-                    </h4>
-                    <ul className="space-y-1">
-                      {service.requirements.map((req, idx) => (
-                        <li key={idx} className="text-sm text-blue-800">• {req}</li>
-                      ))}
-                    </ul>
+                  <Separator />
+
+                  {/* Description */}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Descrição</h3>
+                    <p className="text-gray-700 leading-relaxed">{service.description}</p>
                   </div>
-                )}
+
+                  {/* Included */}
+                  {service.includes?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        O que está incluído
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {service.includes.map((item, idx) => (
+                          <div key={idx} className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <span className="text-gray-800">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Requirements */}
+                  {service.requirements?.length > 0 && (
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
+                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" />
+                        Requisitos Necessários
+                      </h4>
+                      <ul className="space-y-2">
+                        {service.requirements.map((req, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-blue-600 font-bold">•</span>
+                            <span className="text-blue-800">{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Partner Info */}
+            {/* Partner Info Card */}
             {partner && (
-              <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 to-blue-50">
-                <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+              <Card className="border-0 shadow-2xl">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
                   <CardTitle className="text-2xl flex items-center gap-2">
                     <Building2 className="w-6 h-6" />
                     Informações do Parceiro
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-6 space-y-6">
                   <div>
                     <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {service.partner_name}
+                      {partner.company_name || service.partner_name}
                     </h3>
                     {partner.company_type && (
-                      <Badge className="capitalize">
+                      <Badge className="capitalize bg-indigo-100 text-indigo-700">
                         {partner.company_type.replace('_', ' ')}
                       </Badge>
                     )}
@@ -288,12 +330,12 @@ export default function BookService() {
                   <Separator />
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    {partner.address && (
-                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
-                        <MapPin className="w-5 h-5 text-purple-600 mt-1" />
+                    {(partner.address || partner.city) && (
+                      <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                        <MapPin className="w-5 h-5 text-purple-600 mt-1 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-gray-600 font-semibold">Endereço</p>
-                          <p className="text-gray-900">{partner.address}</p>
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Localização</p>
+                          {partner.address && <p className="text-gray-900 font-medium">{partner.address}</p>}
                           {partner.city && partner.postal_code && (
                             <p className="text-gray-700 text-sm">{partner.postal_code} {partner.city}</p>
                           )}
@@ -302,11 +344,11 @@ export default function BookService() {
                     )}
 
                     {partner.phone && (
-                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
-                        <Phone className="w-5 h-5 text-green-600 mt-1" />
+                      <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
+                        <Phone className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-gray-600 font-semibold">Telefone</p>
-                          <a href={`tel:${partner.phone}`} className="text-gray-900 hover:text-green-600 transition-colors">
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Telefone</p>
+                          <a href={`tel:${partner.phone}`} className="text-gray-900 font-medium hover:text-green-600 transition-colors">
                             {partner.phone}
                           </a>
                         </div>
@@ -314,11 +356,11 @@ export default function BookService() {
                     )}
 
                     {partner.company_email && (
-                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
-                        <Mail className="w-5 h-5 text-blue-600 mt-1" />
+                      <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <Mail className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-gray-600 font-semibold">Email</p>
-                          <a href={`mailto:${partner.company_email}`} className="text-gray-900 hover:text-blue-600 transition-colors">
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Email</p>
+                          <a href={`mailto:${partner.company_email}`} className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all">
                             {partner.company_email}
                           </a>
                         </div>
@@ -326,29 +368,23 @@ export default function BookService() {
                     )}
 
                     {partner.website && (
-                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
-                        <Globe className="w-5 h-5 text-indigo-600 mt-1" />
+                      <div className="flex items-start gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                        <Globe className="w-5 h-5 text-indigo-600 mt-1 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-gray-600 font-semibold">Website</p>
-                          <a href={partner.website} target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-indigo-600 transition-colors">
-                            Visitar site
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Website</p>
+                          <a href={partner.website} target="_blank" rel="noopener noreferrer" className="text-gray-900 font-medium hover:text-indigo-600 transition-colors">
+                            Visitar site →
                           </a>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {service.average_rating > 0 && (
-                    <div className="flex items-center gap-2 p-4 bg-yellow-50 rounded-xl">
-                      <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                      <div>
-                        <p className="font-bold text-gray-900 text-lg">
-                          {service.average_rating.toFixed(1)} / 5.0
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {service.total_bookings || 0} agendamentos realizados
-                        </p>
-                      </div>
+                  {service.total_bookings > 0 && (
+                    <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 text-center">
+                      <p className="text-amber-900 font-semibold">
+                        ✨ {service.total_bookings} clientes já agendaram este serviço
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -356,25 +392,27 @@ export default function BookService() {
             )}
           </div>
 
-          {/* Booking Form - 2 columns */}
-          <div className="md:col-span-2">
+          {/* Right Column - Booking Form */}
+          <div className="lg:col-span-1">
             <Card className="border-0 shadow-2xl sticky top-6">
-              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                <CardTitle className="text-2xl">Agendar Serviço</CardTitle>
+              <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                <CardTitle className="text-xl">Agendar Este Serviço</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Select Dog */}
                   <div>
-                    <Label>Selecione o Pet *</Label>
+                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                      Selecione o Pet *
+                    </Label>
                     <Select value={selectedDog} onValueChange={setSelectedDog}>
-                      <SelectTrigger className="mt-2">
+                      <SelectTrigger>
                         <SelectValue placeholder="Escolha seu pet" />
                       </SelectTrigger>
                       <SelectContent>
                         {userDogs.map(dog => (
                           <SelectItem key={dog.id} value={dog.id}>
-                            {dog.dog_name} ({dog.breed}) - {dog.size}
+                            🐕 {dog.dog_name} ({dog.breed}) - {dog.size}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -383,12 +421,14 @@ export default function BookService() {
 
                   {/* Select Date */}
                   <div>
-                    <Label>Data do Agendamento *</Label>
+                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                      Data do Agendamento *
+                    </Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full mt-2 justify-start text-left font-normal"
+                          className="w-full justify-start text-left font-normal"
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {selectedDate ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Escolha a data"}
@@ -407,24 +447,26 @@ export default function BookService() {
 
                   {/* Select Time */}
                   <div>
-                    <Label>Horário *</Label>
+                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                      Horário *
+                    </Label>
                     <Select value={selectedTime} onValueChange={setSelectedTime}>
-                      <SelectTrigger className="mt-2">
+                      <SelectTrigger>
                         <SelectValue placeholder="Escolha o horário" />
                       </SelectTrigger>
                       <SelectContent>
                         {timeSlots.map(time => (
                           <SelectItem key={time} value={time}>
-                            {time}
+                            🕐 {time}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Emergency Checkbox (for vet services) */}
+                  {/* Emergency Checkbox */}
                   {(service.service_type === 'veterinary' || service.is_emergency) && (
-                    <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                    <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -433,11 +475,11 @@ export default function BookService() {
                           className="mt-1"
                         />
                         <div>
-                          <p className="font-semibold text-orange-900">
-                            <Zap className="w-4 h-4 inline mr-1" />
+                          <p className="font-bold text-orange-900 flex items-center gap-1">
+                            <Zap className="w-4 h-4" />
                             É uma emergência?
                           </p>
-                          <p className="text-sm text-orange-700">
+                          <p className="text-sm text-orange-700 mt-1">
                             Atendimento prioritário (+€{service.emergency_surcharge || 0})
                           </p>
                         </div>
@@ -445,64 +487,77 @@ export default function BookService() {
                     </div>
                   )}
 
-                  {/* Symptoms (for vet) */}
-                  {service.service_type === 'veterinary' && (
+                  {/* Symptoms */}
+                  {service.service_type === 'veterinary' && isEmergency && (
                     <div>
-                      <Label>Sintomas / Motivo da Consulta {isEmergency && '*'}</Label>
+                      <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                        Sintomas / Motivo da Consulta *
+                      </Label>
                       <Textarea
                         value={symptoms}
                         onChange={(e) => setSymptoms(e.target.value)}
                         placeholder="Descreva os sintomas ou motivo da visita..."
-                        rows={4}
-                        className="mt-2"
-                        required={isEmergency}
+                        rows={3}
+                        required
                       />
                     </div>
                   )}
 
                   {/* Special Requests */}
                   <div>
-                    <Label>Pedidos Especiais (opcional)</Label>
+                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                      Pedidos Especiais (opcional)
+                    </Label>
                     <Textarea
                       value={specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
                       placeholder="Algum pedido especial ou informação importante..."
-                      rows={3}
-                      className="mt-2"
+                      rows={2}
                     />
                   </div>
 
                   {/* Price Summary */}
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-700">Serviço:</span>
-                        <span className="font-bold text-gray-900">€{price.toFixed(2)}</span>
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700 font-medium">Serviço:</span>
+                        <span className="font-bold text-gray-900 text-lg">€{price.toFixed(2)}</span>
                       </div>
                       {isEmergency && emergencyFee > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-orange-700">Taxa Emergência:</span>
-                          <span className="font-bold text-orange-700">€{emergencyFee.toFixed(2)}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-orange-700 font-medium">Taxa Emergência:</span>
+                          <span className="font-bold text-orange-700 text-lg">€{emergencyFee.toFixed(2)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between pt-2 border-t-2 border-green-300">
-                        <span className="font-bold text-gray-900">Total:</span>
+                      <Separator />
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="font-bold text-gray-900 text-lg">Total:</span>
                         <span className="font-bold text-3xl text-green-600">€{totalAmount.toFixed(2)}</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2 text-purple-600 pt-2">
+                      <div className="flex items-center justify-center gap-2 text-purple-600 pt-2 bg-purple-50 rounded-lg p-3">
                         <Star className="w-5 h-5 fill-purple-500" />
-                        <span className="font-bold">+{pointsToEarn} PawPoints</span>
+                        <span className="font-bold text-lg">+{pointsToEarn} PawPoints</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Submit */}
+                  {/* Submit Button */}
                   <Button
                     type="submit"
                     disabled={!selectedDog || !selectedDate || !selectedTime || createBookingMutation.isPending}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 h-14 text-lg font-semibold"
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-14 text-lg font-bold shadow-lg"
                   >
-                    {createBookingMutation.isPending ? "Agendando..." : "Confirmar Agendamento"}
+                    {createBookingMutation.isPending ? (
+                      <>
+                        <Clock className="w-5 h-5 mr-2 animate-spin" />
+                        Agendando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Confirmar Agendamento
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
