@@ -331,16 +331,16 @@ function LayoutContent({ children, currentPageName }) {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       asChild 
-                      className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-3 ${
-                        location.pathname === createPageUrl("MyProfile") ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
-                      } border-2 border-purple-200 bg-purple-50`}
+                      className={`hover:bg-slate-100 hover:text-slate-800 transition-all duration-200 rounded-xl mb-3 ${
+                        location.pathname === createPageUrl("MyProfile") ? 'bg-slate-700 text-white shadow-lg' : ''
+                      } border-2 border-slate-300 bg-slate-50`}
                     >
                       <a 
                         href={createPageUrl("MyProfile")} 
                         className="flex items-center gap-3 px-4 py-3"
                         onClick={handleNavigation(createPageUrl("MyProfile"))}
                       >
-                        <User className="w-5 h-5 text-purple-600" />
+                        <User className="w-5 h-5 text-slate-700" />
                         <span className="font-semibold">{t('myProfile', language)} & {language === 'pt' ? 'Config.' : 'Settings'}</span>
                       </a>
                     </SidebarMenuButton>
@@ -437,12 +437,12 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-2 ${
-                            location.pathname === item.url ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
-                          } border-2 border-purple-200 bg-purple-50`}
+                          className={`hover:bg-cyan-100 hover:text-cyan-800 transition-all duration-200 rounded-xl mb-2 ${
+                            location.pathname === item.url ? 'bg-cyan-600 text-white shadow-lg' : ''
+                          } border-2 border-cyan-300 bg-cyan-50`}
                         >
                           <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                            <item.icon className="w-5 h-5 text-purple-600" />
+                            <item.icon className="w-5 h-5 text-cyan-700" />
                             <span className="font-medium">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
