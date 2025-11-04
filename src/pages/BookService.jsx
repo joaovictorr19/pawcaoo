@@ -7,211 +7,154 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  ArrowLeft, Calendar as CalendarIcon, Clock, DollarSign,
-  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone, Mail,
-  CreditCard, Package, Shield, Info, Dog as DogIcon, Home
+import { 
+  ArrowLeft, Calendar, Clock, DollarSign, Dog as DogIcon,
+  Phone, Mail, MapPin, Star, Shield, Zap, CheckCircle,
+  AlertCircle, Info
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { useLanguage } from "@/components/LanguageContext";
+import { motion } from "framer-motion";
 
 export default function BookService() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   
   const urlParams = new URLSearchParams(window.location.search);
-  const serviceId = urlParams.get('serviceId');
+  const companyId = urlParams.get('company_id');
 
-  const [selectedDog, setSelectedDog] = useState("");
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState("");
-  const [needsTransport, setNeedsTransport] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedDogProfile, setSelectedDogProfile] = useState(null);
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingTime, setBookingTime] = useState("");
   const [isEmergency, setIsEmergency] = useState(false);
-  const [symptoms, setSymptoms] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("credit_card");
+  const [symptoms, setSymptoms] = useState("");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: userDogs } = useQuery({
-    queryKey: ['userDogs'],
+  const { data: company } = useQuery({
+    queryKey: ['company', companyId],
+    queryFn: async () => {
+      const companies = await base44.entities.PartnerCompany.filter({ id: companyId });
+      return companies[0];
+    },
+    enabled: !!companyId,
+  });
+
+  const { data: services = [] } = useQuery({
+    queryKey: ['companyServices', companyId],
+    queryFn: () => base44.entities.PartnerService.filter({ 
+      partner_id: companyId,
+      is_active: true
+    }),
+    enabled: !!companyId,
+  });
+
+  const { data: dogProfiles = [] } = useQuery({
+    queryKey: ['userDogs', user?.email],
     queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
     enabled: !!user,
-    initialData: [],
   });
-
-  const { data: services } = useQuery({
-    queryKey: ['partnerServices'],
-    queryFn: () => base44.entities.PartnerService.list(),
-    initialData: [],
-    staleTime: 300000,
-  });
-
-  const service = services.find(s => s.id === serviceId);
-
-  const { data: partners } = useQuery({
-    queryKey: ['partnerCompanies'],
-    queryFn: () => base44.entities.PartnerCompany.list(),
-    initialData: [],
-    staleTime: 300000,
-  });
-
-  const partner = partners.find(p => p.id === service?.partner_id);
-
-  React.useEffect(() => {
-    if (!serviceId) {
-      toast.error("ID do serviço não fornecido!");
-      setTimeout(() => navigate(createPageUrl('PartnerServices')), 2000);
-    }
-  }, [serviceId, navigate]);
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
-      const dog = userDogs.find(d => d.id === selectedDog);
-      
-      if (!dog) {
-        throw new Error("Pet não encontrado");
-      }
+      const booking = await base44.entities.ServiceBooking.create(bookingData);
 
-      if (!partner) {
-        throw new Error("Parceiro não encontrado");
-      }
-      
-      const price = service.price_by_size?.[dog.size] || service.base_price;
-      const emergencyFee = isEmergency ? (service.emergency_surcharge || 0) : 0;
-      const transportFee = needsTransport ? 25 : 0;
-      const totalAmount = price + emergencyFee + transportFee;
-      const commission = totalAmount * 0.10;
-
-      const booking = await base44.entities.ServiceBooking.create({
-        partner_id: service.partner_id,
-        partner_name: service.partner_name,
-        partner_company_email: partner.company_email,
-        service_id: service.id,
-        service_name: service.service_name,
-        service_type: service.service_type,
-        owner_email: user.email,
-        owner_name: user.full_name,
-        owner_phone: user.phone || '',
-        dog_profile_id: dog.id,
-        dog_name: dog.dog_name,
-        dog_breed: dog.breed || 'Não especificado',
-        dog_size: dog.size,
-        dog_weight: dog.weight || 0,
-        booking_date: format(selectedDate, 'yyyy-MM-dd'),
-        booking_time: selectedTime,
-        duration_minutes: service.duration_minutes || 60,
-        is_emergency: isEmergency,
-        urgency_level: isEmergency ? 'urgent' : 'normal',
-        symptoms: symptoms || '',
-        special_requests: specialRequests || '',
-        service_price: price,
-        emergency_surcharge: emergencyFee,
-        total_amount: totalAmount,
-        platform_commission: commission,
-        points_earned: Math.floor(totalAmount * 15),
-        status: 'confirmed',
-        payment_status: 'paid',
-        payment_method: paymentMethod
+      // Notify company
+      await base44.entities.Notification.create({
+        recipient_email: company.company_email,
+        title: language === 'pt' ? `Nova Reserva ${isEmergency ? '🚨 EMERGÊNCIA' : ''}` : `New Booking ${isEmergency ? '🚨 EMERGENCY' : ''}`,
+        message: `${user.full_name} agendou ${selectedService.service_name} para ${selectedDogProfile.dog_name}`,
+        type: isEmergency ? "emergency" : "booking",
+        related_id: booking.id,
+        priority: isEmergency ? "urgent" : "high",
+        action_url: `PartnerDashboard`
       });
 
-      // Update loyalty points
-      const loyaltyPoints = await base44.entities.LoyaltyPoints.filter({ 
-        user_email: user.email 
-      });
-      
-      if (loyaltyPoints[0]) {
-        await base44.entities.LoyaltyPoints.update(loyaltyPoints[0].id, {
-          points_balance: (loyaltyPoints[0].points_balance || 0) + Math.floor(totalAmount * 15),
-          total_earned: (loyaltyPoints[0].total_earned || 0) + Math.floor(totalAmount * 15)
-        });
-      } else {
-        await base44.entities.LoyaltyPoints.create({
-          user_email: user.email,
-          points_balance: Math.floor(totalAmount * 15),
-          total_earned: Math.floor(totalAmount * 15),
-          tier: 'bronze'
-        });
-      }
-
-      // Create notification
+      // Notify user
       await base44.entities.Notification.create({
         recipient_email: user.email,
-        title: "🎉 Agendamento Confirmado!",
-        message: `Seu agendamento de ${service.service_name} para ${dog.dog_name} foi confirmado! Data: ${format(selectedDate, "d 'de' MMMM", { locale: ptBR })} às ${selectedTime}`,
+        title: language === 'pt' ? 'Reserva Confirmada' : 'Booking Confirmed',
+        message: `Sua reserva de ${selectedService.service_name} foi enviada para ${company.company_name}`,
         type: "booking",
         related_id: booking.id,
-        priority: isEmergency ? 'urgent' : 'normal'
+        priority: "high"
       });
 
       return booking;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['myServiceBookings']);
-      queryClient.invalidateQueries(['loyaltyPoints']);
-      toast.success("🎉 Agendamento confirmado com sucesso!");
-      setTimeout(() => {
-        navigate(createPageUrl('MyBookings'));
-      }, 2000);
+      queryClient.invalidateQueries({ queryKey: ['serviceBookings'] });
+      toast.success(language === 'pt' ? 'Reserva criada com sucesso!' : 'Booking created successfully!');
+      navigate(createPageUrl('OwnerDashboard'));
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao criar agendamento");
+      toast.error(error.message || 'Erro ao criar reserva');
     }
   });
 
-  const handleConfirmBooking = () => {
-    if (userDogs.length === 0) {
-      toast.error("Você precisa cadastrar um pet primeiro!");
-      setTimeout(() => navigate(createPageUrl('MyProfile')), 1000);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!selectedService || !selectedDogProfile || !bookingDate || !bookingTime) {
+      toast.error(language === 'pt' ? 'Preencha todos os campos' : 'Fill all fields');
       return;
     }
 
-    if (!selectedDog || !selectedDate || !selectedTime) {
-      toast.error("Preencha todos os campos obrigatórios");
-      return;
-    }
+    const dogSize = selectedDogProfile.size;
+    const basePrice = selectedService.price_by_size?.[dogSize] || selectedService.base_price || 0;
+    const emergencySurcharge = isEmergency ? (selectedService.emergency_surcharge || 0) : 0;
+    const totalAmount = basePrice + emergencySurcharge;
 
-    if (service.service_type === 'veterinary' && isEmergency && !symptoms) {
-      toast.error("Descreva os sintomas para emergência veterinária");
-      return;
-    }
-
-    if (!paymentMethod) {
-      toast.error("Selecione um método de pagamento");
-      return;
-    }
-
-    createBookingMutation.mutate();
+    createBookingMutation.mutate({
+      partner_id: company.id,
+      partner_name: company.company_name,
+      partner_company_email: company.company_email,
+      service_id: selectedService.id,
+      service_name: selectedService.service_name,
+      service_type: selectedService.service_type,
+      owner_email: user.email,
+      owner_name: user.full_name,
+      owner_phone: user.phone,
+      dog_profile_id: selectedDogProfile.id,
+      dog_name: selectedDogProfile.dog_name,
+      dog_breed: selectedDogProfile.breed,
+      dog_size: dogSize,
+      dog_weight: selectedDogProfile.weight,
+      booking_date: bookingDate,
+      booking_time: bookingTime,
+      duration_minutes: selectedService.duration_minutes || 60,
+      is_emergency: isEmergency,
+      urgency_level: isEmergency ? "urgent" : "normal",
+      symptoms: symptoms || null,
+      special_requests: specialRequests || null,
+      service_price: basePrice,
+      emergency_surcharge: emergencySurcharge,
+      total_amount: totalAmount,
+      status: "pending",
+      payment_status: "pending"
+    });
   };
 
-  if (!serviceId) {
-    return null;
-  }
-
-  if (!service && services.length > 0) {
+  if (!company) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
-        <Card className="max-w-md border-0 shadow-2xl">
+        <Card className="max-w-md">
           <CardContent className="p-12 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Serviço não encontrado</h2>
-            <p className="text-gray-600 mb-6">O serviço que procura não existe ou foi removido.</p>
+            <AlertCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {language === 'pt' ? 'Empresa não encontrada' : 'Company not found'}
+            </h3>
             <Button onClick={() => navigate(createPageUrl('PartnerServices'))}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar aos Serviços
+              {language === 'pt' ? 'Voltar' : 'Go Back'}
             </Button>
           </CardContent>
         </Card>
@@ -219,484 +162,280 @@ export default function BookService() {
     );
   }
 
-  if (!service) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
-        <Skeleton className="h-96 w-full max-w-4xl rounded-2xl" />
-      </div>
-    );
-  }
-
-  const selectedDogData = userDogs.find(d => d.id === selectedDog);
-  const price = selectedDogData ? (service.price_by_size?.[selectedDogData.size] || service.base_price) : service.base_price;
-  const emergencyFee = isEmergency ? (service.emergency_surcharge || 0) : 0;
-  const transportFee = needsTransport ? 25 : 0;
-  const totalAmount = price + emergencyFee + transportFee;
-  const pointsToEarn = Math.floor(totalAmount * 15);
-
-  const timeSlots = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
-  ];
-
-  const getServiceIcon = (type) => {
-    const icons = {
-      bath: '🛁',
-      grooming: '✂️',
-      veterinary: '🏥',
-      vaccination: '💉',
-      checkup: '🩺',
-      emergency: '🚨',
-      training: '🎓',
-      daycare: '🏠',
-      surgery: '⚕️',
-      pharmacy: '💊',
-      boarding: '🏡',
-    };
-    return icons[type] || '📦';
-  };
+  const selectedServiceObj = selectedService ? services.find(s => s.id === selectedService) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
         <Button
           variant="outline"
-          className="mb-6"
           onClick={() => navigate(createPageUrl('PartnerServices'))}
+          className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar aos Serviços
+          {language === 'pt' ? 'Voltar' : 'Back'}
         </Button>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <Card className="border-0 shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <span className="text-4xl">{getServiceIcon(service.service_type)}</span>
-                  <div>
-                    <div>{service.service_name}</div>
-                    <div className="text-sm font-normal opacity-90">{service.partner_name}</div>
+          {/* Left: Company Info & Services */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Company Header */}
+            <Card className="border-0 shadow-xl">
+              <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100">
+                {company.logo_url ? (
+                  <img src={company.logo_url} alt={company.company_name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <MapPin className="w-16 h-16 text-gray-300" />
                   </div>
+                )}
+              </div>
+              <CardContent className="p-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  {company.city && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      {company.city}
+                    </div>
+                  )}
+                  {company.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      {company.phone}
+                    </div>
+                  )}
+                  {company.company_email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      {company.company_email}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Services List */}
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl">
+                  {language === 'pt' ? 'Selecione um Serviço' : 'Select a Service'}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                {/* Service Image & Description */}
-                {service.image_url && (
-                  <img
-                    src={service.image_url}
-                    alt={service.service_name}
-                    className="w-full h-64 object-cover rounded-xl shadow-lg"
-                  />
-                )}
-
-                <div>
-                  <p className="text-gray-700 leading-relaxed mb-4">{service.description}</p>
-                  {service.includes?.length > 0 && (
-                    <div className="grid md:grid-cols-2 gap-2">
-                      {service.includes.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 bg-green-50 p-2 rounded-lg">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Step 1: Select Pet */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                    <h3 className="text-xl font-bold text-gray-900">Selecione seu Pet</h3>
-                  </div>
-
-                  {userDogs.length === 0 ? (
-                    <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-bold text-amber-900 mb-2">
-                            Você precisa cadastrar um pet primeiro!
-                          </p>
-                          <Button
-                            onClick={() => navigate(createPageUrl('MyProfile'))}
-                            className="bg-amber-600 hover:bg-amber-700"
-                          >
-                            <DogIcon className="w-4 h-4 mr-2" />
-                            Cadastrar Pet Agora
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {userDogs.map(dog => {
-                        const dogPrice = service.price_by_size?.[dog.size] || service.base_price;
-                        const isSelected = selectedDog === dog.id;
-                        
-                        return (
-                          <button
-                            key={dog.id}
-                            type="button"
-                            onClick={() => setSelectedDog(dog.id)}
-                            className={`p-4 rounded-xl border-2 text-left transition-all ${
-                              isSelected 
-                                ? 'border-blue-600 bg-blue-50 shadow-lg' 
-                                : 'border-gray-200 hover:border-blue-300 bg-white'
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-16 h-16 rounded-lg object-cover" />
-                              ) : (
-                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  🐕
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                <h4 className="font-bold text-gray-900">{dog.dog_name}</h4>
-                                <p className="text-sm text-gray-600">{dog.breed}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge variant="outline" className="text-xs">{dog.size}</Badge>
-                                  <Badge className="bg-green-600 text-white text-xs">
-                                    €{dogPrice}
-                                  </Badge>
-                                </div>
-                              </div>
-                              {isSelected && (
-                                <CheckCircle className="w-6 h-6 text-blue-600" />
+              <CardContent className="space-y-4">
+                {services.map((service) => (
+                  <motion.div
+                    key={service.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        selectedService === service.id
+                          ? 'border-2 border-blue-500 bg-blue-50'
+                          : 'border hover:border-blue-300'
+                      }`}
+                      onClick={() => setSelectedService(service.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-bold text-lg">{service.service_name}</h3>
+                              {service.is_emergency && (
+                                <Badge className="bg-orange-500 text-white">
+                                  <Zap className="w-3 h-3 mr-1" />
+                                  24/7
+                                </Badge>
                               )}
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                            <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                            
+                            {service.includes && service.includes.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {service.includes.map((item, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    <CheckCircle className="w-3 h-3 mr-1 text-green-600" />
+                                    {item}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
 
-                <Separator />
-
-                {/* Step 2: Date & Time */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                    <h3 className="text-xl font-bold text-gray-900">Data e Horário</h3>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="mb-2 block">Data do Serviço *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal h-12"
-                            disabled={!selectedDog}
-                          >
-                            <CalendarIcon className="mr-2 h-5 w-5" />
-                            {selectedDate ? format(selectedDate, "d 'de' MMMM", { locale: ptBR }) : "Escolha a data"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            disabled={(date) => date < new Date()}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div>
-                      <Label className="mb-2 block">Horário *</Label>
-                      <Select value={selectedTime} onValueChange={setSelectedTime} disabled={!selectedDog}>
-                        <SelectTrigger className="h-12">
-                          <SelectValue placeholder="Escolha o horário" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeSlots.map(time => (
-                            <SelectItem key={time} value={time}>
-                              🕐 {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Step 3: Extras */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                    <h3 className="text-xl font-bold text-gray-900">Serviços Extras</h3>
-                  </div>
-
-                  {/* Transport */}
-                  <label className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    needsTransport ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
-                  }`}>
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={needsTransport}
-                        onChange={(e) => setNeedsTransport(e.target.checked)}
-                        className="mt-1"
-                        disabled={!selectedDog}
-                      />
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-900 flex items-center gap-2">
-                          🚗 Transporte (Busca e Entrega)
-                          <Badge className="bg-blue-600 text-white">+€25</Badge>
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Buscamos e entregamos seu pet no local
-                        </p>
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Emergency */}
-                  {(service.service_type === 'veterinary' || service.is_emergency) && (
-                    <label className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      isEmergency ? 'border-orange-600 bg-orange-50' : 'border-gray-200 hover:border-orange-300'
-                    }`}>
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          checked={isEmergency}
-                          onChange={(e) => setIsEmergency(e.target.checked)}
-                          className="mt-1"
-                          disabled={!selectedDog}
-                        />
-                        <div className="flex-1">
-                          <p className="font-bold text-gray-900 flex items-center gap-2">
-                            <Zap className="w-5 h-5 text-orange-600" />
-                            Atendimento de Emergência
-                            <Badge className="bg-orange-600 text-white">+€{service.emergency_surcharge || 0}</Badge>
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Atendimento prioritário imediato
-                          </p>
+                          <div className="text-right ml-4">
+                            <div className="text-2xl font-bold text-blue-600">
+                              €{service.base_price}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {service.duration_minutes}min
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </label>
-                  )}
 
-                  {/* Special Requests */}
-                  <div>
-                    <Label className="mb-2 block">Pedidos Especiais (opcional)</Label>
-                    <Textarea
-                      value={specialRequests}
-                      onChange={(e) => setSpecialRequests(e.target.value)}
-                      placeholder="Alguma informação importante sobre seu pet ou preferências..."
-                      rows={3}
-                      disabled={!selectedDog}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Step 4: Payment */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
-                    <h3 className="text-xl font-bold text-gray-900">Método de Pagamento</h3>
-                  </div>
-
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      paymentMethod === 'credit_card' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                    }`}>
-                      <RadioGroupItem value="credit_card" id="credit_card" />
-                      <div className="flex-1">
-                        <p className="font-bold">💳 Cartão de Crédito</p>
-                        <p className="text-sm text-gray-600">Visa, Mastercard, Amex</p>
-                      </div>
-                    </label>
-
-                    <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      paymentMethod === 'mbway' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                    }`}>
-                      <RadioGroupItem value="mbway" id="mbway" />
-                      <div className="flex-1">
-                        <p className="font-bold">📱 MB WAY</p>
-                        <p className="text-sm text-gray-600">Pagamento instantâneo</p>
-                      </div>
-                    </label>
-
-                    <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      paymentMethod === 'multibanco' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                    }`}>
-                      <RadioGroupItem value="multibanco" id="multibanco" />
-                      <div className="flex-1">
-                        <p className="font-bold">🏦 Multibanco</p>
-                        <p className="text-sm text-gray-600">Referência bancária</p>
-                      </div>
-                    </label>
-                  </RadioGroup>
-
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="font-bold text-blue-900">Pagamento 100% Seguro</p>
-                        <p className="text-sm text-blue-700">
-                          Dados protegidos com criptografia SSL de 256 bits
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Confirm Button */}
-                <Button
-                  onClick={handleConfirmBooking}
-                  disabled={createBookingMutation.isPending || !selectedDog || !selectedDate || !selectedTime}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-16 text-xl font-bold shadow-lg"
-                >
-                  {createBookingMutation.isPending ? (
-                    <>
-                      <Clock className="w-6 h-6 mr-2 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-6 h-6 mr-2" />
-                      Confirmar e Pagar €{totalAmount.toFixed(2)}
-                    </>
-                  )}
-                </Button>
+                        {selectedService === service.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="mt-4 pt-4 border-t"
+                          >
+                            <div className="bg-blue-50 rounded-lg p-3">
+                              <p className="text-sm font-semibold text-blue-900 mb-2">
+                                ✓ {language === 'pt' ? 'Serviço Selecionado' : 'Service Selected'}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar - Summary */}
+          {/* Right: Booking Form */}
           <div className="lg:col-span-1">
-            <div className="sticky top-6 space-y-6">
-              {/* Price Summary */}
-              <Card className="border-0 shadow-2xl">
-                <CardHeader className="bg-gradient-to-br from-gray-800 to-gray-900 text-white">
-                  <CardTitle className="text-lg">Resumo do Pedido</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  {/* Pet Selected */}
-                  {selectedDogData && (
-                    <>
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <div className="text-xs text-gray-600 mb-1">Pet Selecionado</div>
-                        <div className="font-bold text-gray-900">{selectedDogData.dog_name}</div>
-                        <div className="text-sm text-gray-600">{selectedDogData.breed} • {selectedDogData.size}</div>
-                      </div>
-                      <Separator />
-                    </>
-                  )}
-
-                  {/* Price Breakdown */}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Serviço {selectedDogData ? `(${selectedDogData.size})` : ''}:</span>
-                    <span className="font-bold text-gray-900">€{price.toFixed(2)}</span>
+            <Card className="border-0 shadow-xl sticky top-6">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <CardTitle>{language === 'pt' ? 'Agendar Serviço' : 'Book Service'}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Select Dog */}
+                  <div className="space-y-2">
+                    <Label>{language === 'pt' ? 'Selecione seu Pet' : 'Select your Pet'} *</Label>
+                    <Select
+                      value={selectedDogProfile?.id}
+                      onValueChange={(id) => setSelectedDogProfile(dogProfiles.find(d => d.id === id))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === 'pt' ? "Escolha um pet" : "Choose a pet"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dogProfiles.map(dog => (
+                          <SelectItem key={dog.id} value={dog.id}>
+                            🐕 {dog.dog_name} ({dog.breed})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {isEmergency && emergencyFee > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-orange-600">Emergência:</span>
-                      <span className="font-bold text-orange-600">€{emergencyFee.toFixed(2)}</span>
+                  {/* Date */}
+                  <div className="space-y-2">
+                    <Label>{language === 'pt' ? 'Data' : 'Date'} *</Label>
+                    <Input
+                      type="date"
+                      value={bookingDate}
+                      onChange={(e) => setBookingDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
+
+                  {/* Time */}
+                  <div className="space-y-2">
+                    <Label>{language === 'pt' ? 'Horário' : 'Time'} *</Label>
+                    <Input
+                      type="time"
+                      value={bookingTime}
+                      onChange={(e) => setBookingTime(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Emergency */}
+                  {selectedServiceObj?.is_emergency && (
+                    <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isEmergency}
+                          onChange={(e) => setIsEmergency(e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                        <div className="flex-1">
+                          <p className="font-semibold text-orange-900">
+                            <Zap className="w-4 h-4 inline mr-1" />
+                            {language === 'pt' ? 'Emergência' : 'Emergency'}
+                          </p>
+                          <p className="text-sm text-orange-700">
+                            +€{selectedServiceObj.emergency_surcharge || 0} {language === 'pt' ? 'taxa' : 'fee'}
+                          </p>
+                        </div>
+                      </label>
                     </div>
                   )}
 
-                  {needsTransport && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-blue-600">Transporte:</span>
-                      <span className="font-bold text-blue-600">€{transportFee.toFixed(2)}</span>
+                  {/* Symptoms (for vet) */}
+                  {selectedServiceObj?.service_type === 'veterinary' && (
+                    <div className="space-y-2">
+                      <Label>{language === 'pt' ? 'Sintomas' : 'Symptoms'}</Label>
+                      <Textarea
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        placeholder={language === 'pt' ? "Descreva os sintomas..." : "Describe symptoms..."}
+                        rows={3}
+                      />
                     </div>
                   )}
 
-                  <Separator />
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-xl text-gray-900">Total:</span>
-                    <span className="font-bold text-3xl text-green-600">€{totalAmount.toFixed(2)}</span>
+                  {/* Special Requests */}
+                  <div className="space-y-2">
+                    <Label>{language === 'pt' ? 'Pedidos Especiais' : 'Special Requests'}</Label>
+                    <Textarea
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder={language === 'pt' ? "Alguma informação adicional..." : "Any additional information..."}
+                      rows={3}
+                    />
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 text-purple-600 bg-purple-50 rounded-lg p-3">
-                    <Star className="w-5 h-5 fill-purple-500" />
-                    <span className="font-bold">+{pointsToEarn} PawPoints</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Location Info */}
-              {partner && (
-                <Card className="border-0 shadow-xl">
-                  <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-purple-600" />
-                      Localização do Serviço
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-3">
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">{partner.company_name || service.partner_name}</h4>
-                      {partner.address && (
-                        <>
-                          <p className="text-sm text-gray-700">{partner.address}</p>
-                          <p className="text-sm text-gray-700">{partner.city}, {partner.postal_code}</p>
-                        </>
-                      )}
-                    </div>
-                    
-                    {partner.phone && (
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <Phone className="w-4 h-4 text-green-600" />
-                        <a href={`tel:${partner.phone}`} className="hover:text-green-600 font-medium">
-                          {partner.phone}
-                        </a>
-                      </div>
-                    )}
-
-                    {partner.company_email && (
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                        <a href={`mailto:${partner.company_email}`} className="hover:text-blue-600 text-sm">
-                          {partner.company_email}
-                        </a>
-                      </div>
-                    )}
-
-                    {needsTransport && (
-                      <div className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-blue-900 font-semibold text-sm">
-                          <CheckCircle className="w-4 h-4" />
-                          Com transporte - não precisa ir à loja!
+                  {/* Summary */}
+                  {selectedService && selectedDogProfile && (
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <h4 className="font-semibold text-gray-900">
+                        {language === 'pt' ? 'Resumo' : 'Summary'}
+                      </h4>
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span>{language === 'pt' ? 'Serviço:' : 'Service:'}</span>
+                          <span className="font-semibold">{selectedServiceObj?.service_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{language === 'pt' ? 'Pet:' : 'Pet:'}</span>
+                          <span className="font-semibold">{selectedDogProfile.dog_name}</span>
+                        </div>
+                        {isEmergency && (
+                          <div className="flex justify-between text-orange-600">
+                            <span>{language === 'pt' ? 'Taxa Emergência:' : 'Emergency Fee:'}</span>
+                            <span className="font-semibold">+€{selectedServiceObj.emergency_surcharge || 0}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between pt-2 border-t text-lg font-bold text-blue-600">
+                          <span>Total:</span>
+                          <span>
+                            €{(selectedServiceObj.price_by_size?.[selectedDogProfile.size] || selectedServiceObj.base_price || 0) + (isEmergency ? (selectedServiceObj.emergency_surcharge || 0) : 0)}
+                          </span>
                         </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Service Details */}
-              <Card className="border-2 border-purple-200 bg-purple-50">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-purple-900">
-                      <p className="font-semibold mb-1">Duração: {service.duration_minutes} minutos</p>
-                      <p>Você receberá uma confirmação por email e notificação no app</p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 h-12 text-lg font-semibold"
+                    disabled={createBookingMutation.isPending || !selectedService || !selectedDogProfile}
+                  >
+                    {createBookingMutation.isPending
+                      ? (language === 'pt' ? 'Agendando...' : 'Booking...')
+                      : (language === 'pt' ? 'Confirmar Agendamento' : 'Confirm Booking')
+                    }
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
