@@ -3,11 +3,12 @@ export const translations = {
   pt: {
     // Navigation
     dashboard: "Painel",
-    findWalkers: "Encontrar Passeadores",
-    findTrainers: "Encontrar Treinadores",
+    findWalkers: "Passeadores",
+    findTrainers: "Treinadores",
     postEmergency: "Passeio Emergência",
-    dogSitting: "Serviços de Dog Sitting",
+    dogSitting: "Dog Sitting",
     pawcaoShop: "Loja PawCão",
+    adoptAPet: "Adotar Pet",
     myFavorites: "Meus Favoritos",
     myBookings: "Minhas Reservas",
     scheduledWalks: "Passeios Agendados",
@@ -28,7 +29,7 @@ export const translations = {
     leaderboard: "Tabela de Classificação",
 
     // Notifications
-    notifications: "Notificações",
+    // notifications: "Notificações", // Duplicate key, keeping the first one in Navigation
     stayUpdated: "Fique atualizado com a sua atividade",
     markAllAsRead: "Marcar todas como lidas",
     allNotifications: "Todas",
@@ -129,7 +130,7 @@ export const translations = {
     premiumPayoff: "O plano Premium paga-se após apenas 3 reservas!",
     professionalProfiles: "Perfis Profissionais",
     totalWalks: "Total de Paseios",
-    noUpcomingBookings: "Sem reservas próximas",
+    // noUpcomingBookings: "Sem reservas próximas", // Duplicate key, keeping the one above
     bookWalk: "Reservar Passeio",
     viewAll: "Ver Todas",
     redeemPoints: "Resgatar Pontos",
@@ -351,7 +352,7 @@ export const translations = {
     partnersTitle: "Parceiros PawCão",
     partnersSubtitle: "O Mercado Oficial do Mundo Pet",
     partnersDescription: "Ofertas exclusivas de fornecedores e lojas de confiança",
-    pointsBalance: "Seu Saldo de PawPoints",
+    // pointsBalance: "Seu Saldo de PawPoints", // Duplicate key, keeping the one above
     viewRewards: "Ver Recompensas",
     allPartners: "Todos os Parceiros",
     petStores: "Lojas de Animais",
@@ -388,19 +389,19 @@ export const translations = {
     contactUs: "Contacte-nos",
 
     // Become Trainer translations
-    becomeTrainerTitle: "Torne-se um Treinador Certificado",
+    // becomeTrainerTitle: "Torne-se um Treinador Certificado", // Duplicate key, keeping the one below
     joinNetwork: "Junte-se à nossa rede de treinadores profissionais",
-    professionalStandards: "Padrões Profissionais",
+    // professionalStandards: "Padrões Profissionais", // Duplicate key, keeping the one below
     verificationRequired: "Todos os treinadores devem submeter certificações para verificação",
     createProfile: "Criar o Seu Perfil de Treinador",
-    uploadPhoto: "Carregar uma foto profissional",
+    // uploadPhoto: "Carregar uma foto profissional", // Duplicate key, keeping the one below
     yourNameLabel: "O Seu Nome",
     phoneNumberLabel: "Número de Telefone",
     // locationLabel: "Localização", // Reusing 'location'
     hourlyRateLabel: "Taxa Horária (€)",
     experienceYearsLabel: "Anos de Experiência",
-    professionalBio: "Biografia Profissional",
-    trainingSpecialties: "Especialidades de Treino",
+    // professionalBio: "Biografia Profissional", // Duplicate key, keeping the one below
+    // trainingSpecialties: "Especialidades de Treino", // Duplicate key, keeping the one below
     consultationMethods: "Métodos de Consulta",
     inPerson: "Presencial",
     online: "Online",
@@ -468,10 +469,9 @@ export const translations = {
     bathroomBreaks: "Pausas para necessidades",
     
     // Professional Dashboard
-    // This was already present, but the outline moved it. Keeping it as is.
-    // professionalDashboard: "Dashboard Profissional", 
+    professionalDashboard: "Painel Profissional", 
     totalEarned: "Total Ganho",
-    totalBookings: "Total Reservas",
+    // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
     averageRating: "Rating Médio",
     clientRetention: "Retenção de Clientes",
     weeklyPerformance: "Performance Semanal",
@@ -558,7 +558,6 @@ export const translations = {
     
     // Profile Step
     profilePhoto: "Foto de Perfil",
-    // uploadPhoto: "Carregar Foto", // Reusing existing
     uploadingPhoto: "A carregar...",
     uploadFriendlyPhoto: "Carregue uma foto amigável sua",
     videoIntroduction: "Vídeo de Apresentação (Opcional mas Recomendado)",
@@ -568,7 +567,6 @@ export const translations = {
     
     yourName: "O Seu Nome",
     phoneNumber: "Número de Telefone",
-    // location: "Localização", // Reusing existing
     hourlyRate: "Taxa Horária (€)",
     platformCommission: "Plataforma cobra 15% de comissão",
     yearsOfExperience: "Anos de Experiência",
@@ -580,7 +578,6 @@ export const translations = {
     addService: "Adicionar Serviço",
     serviceName: "Nome do Serviço",
     serviceNamePlaceholder: "ex: Passeio Normal",
-    // price: "Preço (€)", // Reusing existing
     description: "Descrição",
     descriptionPlaceholder: "Descreva o que está incluído neste serviço...",
     durationOptions: "Opções de Duração",
@@ -591,29 +588,18 @@ export const translations = {
     dogBreedsExperience: "Raças de Cães com Que Tem Experiência",
     yourAvailability: "A Sua Disponibilidade",
     
-    // morning: "Manhã", // Reusing existing
-    // afternoon: "Tarde", // Reusing existing
-    // evening: "Noite", // Reusing existing
-    // night: "Noite", // Reusing existing
-    
     // Documents Step
-    // verificationDocuments: "Documentos de Verificação", // Reusing existing
     governmentId: "Identificação Emitida pelo Governo",
     governmentIdDesc: "(Carta de Condução, Passaporte, etc.)",
     backgroundCheck: "Verificação de Antecedentes (Altamente Recomendado)",
     backgroundCheckTip: "✓ Perfis verificados obtêm colocação prioritária! Carregue uma verificação de antecedentes de um fornecedor confiável (Checkr, Sterling, etc.) para aumentar a confiança.",
     selectProvider: "Selecionar Fornecedor de Verificação",
-    // proofOfAddress: "Comprovativo de Morada", // Reusing existing
     proofOfAddressDesc: "(Conta de serviços, contrato de arrendamento, etc.)",
     documentUploaded: "✓ Documento carregado - verificação pendente",
     
     // Payment Step
-    // paymentInformation: "Informação de Pagamento", // Reusing existing
     paymentInfoDesc: "Onde receberá os seus ganhos (menos 15% de taxa da plataforma)",
-    // accountHolderName: "Nome do Titular da Conta", // Reusing existing
-    // bankAccountNumber: "Número de Conta Bancária", // Reusing existing
     swiftBicCode: "Código SWIFT/BIC",
-    // submitForVerification: "Submeter para Verificação", // Reusing existing
     applicationReceived: "🎉 Candidatura Recebida!",
     verificationTime: "A verificação geralmente leva 24–48 horas. Notificamo-lo quando aprovado!",
     
@@ -686,36 +672,26 @@ export const translations = {
     singleSessionPrice: "Preço de Sessão Única (€)",
     sessionDurationOptions: "Opções de Duração de Sessão",
     
-    // consultationMethods: "Métodos de Consulta", // Reusing existing, but note: new context implies a section label.
-    // inPerson: "Presencial", // Reusing existing
-    // online: "Online", // Reusing existing
-    // hybrid: "Híbrido", // Reusing existing
-    
     professionalCertifications: "Certificações Profissionais",
-    // addCertification: "Adicionar Certificação", // Reusing existing
     certificationName: "Nome da Certificação",
     issuingOrganization: "Organização Emissora",
     year: "Ano",
     
     buildTrustWithClients: "✓ Construa confiança com os clientes! Carregue uma verificação de antecedentes de um fornecedor confiável.",
     
-    // previous: "Anterior", // Reusing existing
-    // next: "Próximo", // Reusing existing
     submitting: "A submeter...",
-    
-    // cancel: "Cancelar", // Reusing existing
-    // save: "Guardar", // Reusing existing
     remove: "Remover",
   },
   
   en: {
     // Navigation
     dashboard: "Dashboard",
-    findWalkers: "Find Walkers",
-    findTrainers: "Find Trainers",
-    postEmergency: "Post Emergency Walk",
-    dogSitting: "Dog Sitting Services",
+    findWalkers: "Walkers",
+    findTrainers: "Trainers",
+    postEmergency: "Emergency Walk",
+    dogSitting: "Dog Sitting",
     pawcaoShop: "PawCão Shop",
+    adoptAPet: "Adopt Pet",
     myFavorites: "My Favorites",
     myBookings: "My Bookings",
     scheduledWalks: "Scheduled Walks",
@@ -736,7 +712,7 @@ export const translations = {
     leaderboard: "Leaderboard",
 
     // Notifications
-    notifications: "Notifications",
+    // notifications: "Notifications", // Duplicate key, keeping the first one in Navigation
     stayUpdated: "Stay updated with your activity",
     markAllAsRead: "Mark all as read",
     allNotifications: "All",
@@ -837,7 +813,7 @@ export const translations = {
     premiumPayoff: "Premium plan pays for itself after just 3 bookings!",
     professionalProfiles: "Professional Profiles",
     totalWalks: "Total Walks",
-    noUpcomingBookings: "No upcoming bookings",
+    // noUpcomingBookings: "No upcoming bookings", // Duplicate key, keeping the one above
     bookWalk: "Book Walk",
     viewAll: "View All",
     redeemPoints: "Redeem Points",
@@ -1059,7 +1035,7 @@ export const translations = {
     partnersTitle: "PawCão Partners",
     partnersSubtitle: "The Official Market of the Pet World",
     partnersDescription: "Exclusive offers from trusted pet care providers and stores",
-    pointsBalance: "Your PawPoints Balance",
+    // pointsBalance: "Your PawPoints Balance", // Duplicate key, keeping the one above
     viewRewards: "View Rewards",
     allPartners: "All Partners",
     petStores: "Pet Stores",
@@ -1096,19 +1072,19 @@ export const translations = {
     contactUs: "Contact Us",
 
     // Become Trainer translations
-    becomeTrainerTitle: "Become a Certified Trainer",
+    // becomeTrainerTitle: "Become a Certified Trainer", // Duplicate key, keeping the one below
     joinNetwork: "Join our network of professional dog trainers",
-    professionalStandards: "Professional Standards",
+    // professionalStandards: "Professional Standards", // Duplicate key, keeping the one below
     verificationRequired: "All trainers must submit certifications for verification",
     createProfile: "Create Your Trainer Profile",
-    uploadPhoto: "Upload a professional photo",
+    // uploadPhoto: "Upload a professional photo", // Duplicate key, keeping the one below
     yourNameLabel: "Your Name",
     phoneNumberLabel: "Phone Number",
     // locationLabel: "Location", // Reusing 'location'
     hourlyRateLabel: "Hourly Rate (€)",
     experienceYearsLabel: "Years of Experience",
-    professionalBio: "Professional Bio",
-    trainingSpecialties: "Training Specialties",
+    // professionalBio: "Professional Bio", // Duplicate key, keeping the one below
+    // trainingSpecialties: "Training Specialties", // Duplicate key, keeping the one below
     consultationMethods: "Consultation Methods",
     inPerson: "In-Person",
     online: "Online",
@@ -1176,10 +1152,9 @@ export const translations = {
     bathroomBreaks: "Bathroom breaks",
     
     // Professional Dashboard
-    // This was already present, but the outline moved it. Keeping it as is.
-    // professionalDashboard: "Professional Dashboard",
+    professionalDashboard: "Professional Dashboard",
     totalEarned: "Total Earned",
-    totalBookings: "Total Bookings",
+    // totalBookings: "Total Bookings", // Duplicate key, keeping the one above
     averageRating: "Average Rating",
     clientRetention: "Client Retention",
     weeklyPerformance: "Weekly Performance",
@@ -1263,7 +1238,6 @@ export const translations = {
     
     // Profile Step
     profilePhoto: "Profile Photo",
-    // uploadPhoto: "Upload Photo", // Reusing existing
     uploadingPhoto: "Uploading...",
     uploadFriendlyPhoto: "Upload a friendly photo of yourself",
     videoIntroduction: "Video Introduction (Optional but Recommended)",
@@ -1273,7 +1247,6 @@ export const translations = {
     
     yourName: "Your Name",
     phoneNumber: "Phone Number",
-    // location: "Location", // Reusing existing
     hourlyRate: "Hourly Rate (€)",
     platformCommission: "Platform charges 15% commission",
     yearsOfExperience: "Years of Experience",
@@ -1285,7 +1258,6 @@ export const translations = {
     addService: "Add Service",
     serviceName: "Service Name",
     serviceNamePlaceholder: "ex: Standard Walk",
-    // price: "Price (€)", // Reusing existing
     description: "Description",
     descriptionPlaceholder: "Describe what's included in this service...",
     durationOptions: "Duration Options",
@@ -1296,29 +1268,18 @@ export const translations = {
     dogBreedsExperience: "Dog Breeds You Have Experience With",
     yourAvailability: "Your Availability",
     
-    // morning: "Morning", // Reusing existing
-    // afternoon: "Afternoon", // Reusing existing
-    // evening: "Evening", // Reusing existing
-    // night: "Night", // Reusing existing
-    
     // Documents Step
-    // verificationDocuments: "Verification Documents", // Reusing existing
     governmentId: "Government-Issued ID",
     governmentIdDesc: "(Driver's License, Passport, Passport, etc.)",
     backgroundCheck: "Background Check (Highly Recommended)",
     backgroundCheckTip: "✓ Verified profiles get priority placement! Upload a background check from a trusted provider (Checkr, Sterling, etc.) to build trust.",
     selectProvider: "Select Verification Provider",
-    // proofOfAddress: "Proof of Address", // Reusing existing
     proofOfAddressDesc: "(Utility bill, lease agreement, etc.)",
     documentUploaded: "✓ Document uploaded - verification pending",
     
     // Payment Step
-    // paymentInformation: "Payment Information", // Reusing existing
     paymentInfoDesc: "Where you'll receive your earnings (less 15% platform fee)",
-    // accountHolderName: "Account Holder Name", // Reusing existing
-    // bankAccountNumber: "Bank Account Number", // Reusing existing
     swiftBicCode: "SWIFT/BIC Code",
-    // submitForVerification: "Submit for Verification", // Reusing existing
     applicationReceived: "🎉 Application Received!",
     verificationTime: "Verification usually takes 24–48 hours. We'll notify you when approved!",
     
@@ -1391,36 +1352,26 @@ export const translations = {
     singleSessionPrice: "Single Session Price (€)",
     sessionDurationOptions: "Session Duration Options",
     
-    // consultationMethods: "Consultation Methods", // Reusing existing, but note: new context implies a section label.
-    // inPerson: "In-Person", // Reusing existing
-    // online: "Online", // Reusing existing
-    // hybrid: "Hybrid", // Reusing existing
-    
     professionalCertifications: "Professional Certifications",
-    // addCertification: "Add Certification", // Reusing existing
     certificationName: "Certification Name",
     issuingOrganization: "Issuing Organization",
     year: "Year",
     
     buildTrustWithClients: "✓ Build trust with clients! Upload a background check from a trusted provider.",
     
-    // previous: "Previous", // Reusing existing
-    // next: "Next", // Reusing existing
     submitting: "Submitting...",
-    
-    // cancel: "Cancel", // Reusing existing
-    // save: "Save", // Reusing existing
     remove: "Remove",
   },
   
   es: {
     // Navigation
     dashboard: "Panel",
-    findWalkers: "Encontrar Paseadores",
-    findTrainers: "Encontrar Entrenadores",
-    postEmergency: "Paseo de Emergencia",
-    dogSitting: "Servicios de Cuidado de Perros",
+    findWalkers: "Paseadores",
+    findTrainers: "Entrenadores",
+    postEmergency: "Paseo Emergencia",
+    dogSitting: "Dog Sitting",
     pawcaoShop: "Tienda PawCão",
+    adoptAPet: "Adoptar Mascota",
     myFavorites: "Mis Favoritos",
     myBookings: "Mis Reservas",
     scheduledWalks: "Paseos Programados",
@@ -1441,7 +1392,7 @@ export const translations = {
     leaderboard: "Tabla de Clasificación",
     
     // Notifications
-    notifications: "Notificaciones",
+    // notifications: "Notificaciones", // Duplicate key, keeping the first one in Navigation
     stayUpdated: "Mantente actualizado con tu actividad",
     markAllAsRead: "Marcar todas como leídas",
     allNotifications: "Todas",
@@ -1542,7 +1493,7 @@ export const translations = {
     premiumPayoff: "¡El plan Premium se paga solo después de solo 3 reservas!",
     professionalProfiles: "Perfiles Profesionales",
     totalWalks: "Total de Paseos",
-    noUpcomingBookings: "No hay reservas próximas",
+    // noUpcomingBookings: "No hay reservas próximas", // Duplicate key, keeping the one above
     bookWalk: "Reservar Paseo",
     viewAll: "Ver Todas",
     redeemPoints: "Canjear Puntos",
@@ -1764,7 +1715,7 @@ export const translations = {
     partnersTitle: "Socios PawCão",
     partnersSubtitle: "El Mercado Oficial del Mundo de las Mascotas",
     partnersDescription: "Ofertas exclusivas de proveedores y tiendas de confianza",
-    pointsBalance: "Tu Saldo de PawPoints",
+    // pointsBalance: "Tu Saldo de PawPoints", // Duplicate key, keeping the one above
     viewRewards: "Ver Recompensas",
     allPartners: "Todos los Socios",
     petStores: "Tiendas de Mascotas",
@@ -1801,19 +1752,19 @@ export const translations = {
     contactUs: "Contáctanos",
 
     // Become Trainer translations
-    becomeTrainerTitle: "Conviértete en Entrenador Certificado",
+    // becomeTrainerTitle: "Conviértete en Entrenador Certificado", // Duplicate key, keeping the one below
     joinNetwork: "Únete a nuestra red de entrenadores profesionales",
-    professionalStandards: "Estándares Profesionales",
+    // professionalStandards: "Estándares Profesionales", // Duplicate key, keeping the one below
     verificationRequired: "Todos los entrenadores deben enviar certificaciones para verificación",
     createProfile: "Crear tu Perfil de Entrenador",
-    uploadPhoto: "Subir una foto profesional",
+    // uploadPhoto: "Subir una foto profesional", // Duplicate key, keeping the one below
     yourNameLabel: "Tu Nombre",
     phoneNumberLabel: "Número de Teléfono",
     // locationLabel: "Ubicación", // Reusing 'location'
     hourlyRateLabel: "Tarifa por Hora (€)",
     experienceYearsLabel: "Años de Experiencia",
-    professionalBio: "Biografía Profesional",
-    trainingSpecialties: "Especialidades de Entrenamiento",
+    // professionalBio: "Biografía Profesional", // Duplicate key, keeping the one below
+    // trainingSpecialties: "Especialidades de Entrenamiento", // Duplicate key, keeping the one below
     consultationMethods: "Métodos de Consulta",
     inPerson: "En Persona",
     online: "En Línea",
@@ -1881,10 +1832,9 @@ export const translations = {
     bathroomBreaks: "Pausas para necesidades",
     
     // Professional Dashboard
-    // This was already present, but the outline moved it. Keeping it as is.
-    // professionalDashboard: "Panel Profesional",
+    professionalDashboard: "Panel Profesional",
     totalEarned: "Total Ganado",
-    totalBookings: "Total Reservas",
+    // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
     averageRating: "Calificación Promedio",
     clientRetention: "Retención de Clientes",
     weeklyPerformance: "Rendimiento Semanal",
@@ -1968,7 +1918,6 @@ export const translations = {
     
     // Profile Step
     profilePhoto: "Foto de Perfil",
-    // uploadPhoto: "Subir Foto", // Reusing existing
     uploadingPhoto: "Subiendo...",
     uploadFriendlyPhoto: "Sube una foto amigable tuya",
     videoIntroduction: "Video de Presentación (Opcional pero Recomendado)",
@@ -1978,7 +1927,6 @@ export const translations = {
     
     yourName: "Tu Nombre",
     phoneNumber: "Número de Teléfono",
-    // location: "Ubicación", // Reusing existing
     hourlyRate: "Tarifa por Hora (€)",
     platformCommission: "La plataforma cobra 15% de comisión",
     yearsOfExperience: "Años de Experiencia",
@@ -1990,7 +1938,6 @@ export const translations = {
     addService: "Agregar Servicio",
     serviceName: "Nombre del Servicio",
     serviceNamePlaceholder: "ej: Paseo Estándar",
-    // price: "Precio (€)", // Reusing existing
     description: "Descripción",
     descriptionPlaceholder: "Describe lo que incluye este servicio...",
     durationOptions: "Opciones de Duración",
@@ -2001,29 +1948,18 @@ export const translations = {
     dogBreedsExperience: "Razas de Perros con las que Tienes Experiencia",
     yourAvailability: "Tu Disponibilidad",
     
-    // morning: "Mañana", // Reusing existing
-    // afternoon: "Tarde", // Reusing existing
-    // evening: "Noche", // Reusing existing
-    // night: "Noche", // Reusing existing
-    
     // Documents Step
-    // verificationDocuments: "Documentos de Verificación", // Reusing existing
     governmentId: "Identificación Emitida por el Gobierno",
     governmentIdDesc: "(Licencia de Conducir, Pasaporte, etc.)",
     backgroundCheck: "Verificación de Antecedentes (Altamente Recomendado)",
     backgroundCheckTip: "✓ ¡Los perfiles verificados obtienen una ubicación prioritaria! Sube una verificación de antecedentes de un proveedor de confianza (Checkr, Sterling, etc.) para generar confianza.",
     selectProvider: "Seleccionar Proveedor de Verificación",
-    // proofOfAddress: "Comprobante de Domicilio", // Reusing existing
     proofOfAddressDesc: "(Factura de servicios, contrato de arrendamiento, etc.)",
     documentUploaded: "✓ Documento subido - verificación pendiente",
     
     // Payment Step
-    // paymentInformation: "Información de Pago", // Reusing existing
     paymentInfoDesc: "Donde recibirás tus ganancias (menos 15% de tarifa de la plataforma)",
-    // accountHolderName: "Nombre del Titular de la Cuenta", // Reusing existing
-    // bankAccountNumber: "Número de Cuenta Bancaria", // Reusing existing
     swiftBicCode: "Código SWIFT/BIC",
-    // submitForVerification: "Enviar para Verificación", // Reusing existing
     applicationReceived: "🎉 ¡Solicitud Recibida!",
     verificationTime: "La verificación generalmente toma de 24 a 48 horas. ¡Te notificaremos cuando sea aprobado!",
     
@@ -2096,25 +2032,14 @@ export const translations = {
     singleSessionPrice: "Precio de Sesión Única (€)",
     sessionDurationOptions: "Opciones de Duración de Sesión",
     
-    // consultationMethods: "Métodos de Consulta", // Reusing existing, but note: new context implies a section label.
-    // inPerson: "En Persona", // Reusing existing
-    // online: "En Línea", // Reusing existing
-    // hybrid: "Híbrido", // Reusing existing
-    
     professionalCertifications: "Certificaciones Profesionales",
-    // addCertification: "Agregar Certificación", // Reusing existing
     certificationName: "Nombre de la Certificación",
     issuingOrganization: "Organización Emisora",
     year: "Año",
     
     buildTrustWithClients: "✓ ¡Genera confianza con los clientes! Sube una verificación de antecedentes de un proveedor de confianza.",
     
-    // previous: "Anterior", // Reusing existing
-    // next: "Siguiente", // Reusing existing
     submitting: "Enviando...",
-    
-    // cancel: "Cancelar", // Reusing existing
-    // save: "Guardar", // Reusing existing
     remove: "Eliminar",
   }
 };
@@ -2128,7 +2053,7 @@ export const adoptionTranslations = {
   everyPetDeservesHome: { pt: "Todo Pet Merece um Lar", en: "Every Pet Deserves a Home", es: "Toda Mascota Merece un Hogar" },
   adoptDontShop: { pt: "Adote, não compre! Cada adoção salva uma vida.", en: "Adopt, don't shop! Each adoption saves a life.", es: "¡Adopta, no compres! Cada adopción salva una vida." },
   searchAndFilter: { pt: "Buscar & Filtrar", en: "Search & Filter", es: "Buscar y Filtrar" },
-  searchByName: { pt: "Buscar por nome ou raça...", en: "Search by name or breed...", es: "Buscar por nombre o raza..." },
+  searchByName: { pt: "Buscar por nome ou raça...", en: "Search by name or breed...", es: "Search by name or breed..." },
   petType: { pt: "Tipo de Pet", en: "Pet Type", es: "Tipo de Mascota" },
   allTypes: { pt: "Todos os Tipos", en: "All Types", es: "Todos los Tipos" },
   allSizes: { pt: "Todos os Tamanhos", en: "All Sizes", es: "Todos los Tamaños" },

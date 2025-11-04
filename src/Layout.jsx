@@ -148,12 +148,12 @@ function LayoutContent({ children, currentPageName }) {
   const navigationItems = [
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
     { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
+    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home, featured: true },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
     { title: language === 'pt' ? 'Parceiros' : language === 'es' ? 'Socios' : 'Partners', url: createPageUrl("PartnerServices"), icon: Store },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
-    { title: language === 'pt' ? 'Adotar Pet' : language === 'es' ? 'Adoptar Mascota' : 'Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Home },
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
@@ -207,7 +207,7 @@ function LayoutContent({ children, currentPageName }) {
   const myActivityEndIndex = myActivityStartIndex + myActivityCount;
 
   const professionalServicesStartIndex = myActivityEndIndex;
-  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
+  const professionalServicesEndIndex = myActivityStartIndex + professionalServicesCount;
 
   const adminAndOtherStartIndex = professionalServicesEndIndex;
 
@@ -368,7 +368,8 @@ function LayoutContent({ children, currentPageName }) {
                         asChild 
                         className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
+                        } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}
+                        ${item.featured ? 'border-2 border-pink-300 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100' : ''}`}
                       >
                         <a 
                           href={item.url} 
@@ -376,8 +377,13 @@ function LayoutContent({ children, currentPageName }) {
                           onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
-                          <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
-                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                          <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''} ${item.featured ? 'text-pink-600' : ''}`} />
+                          <span className={`font-medium text-xs md:text-sm truncate ${item.featured ? 'font-bold text-pink-700' : ''}`}>{item.title}</span>
+                          {item.featured && (
+                            <Badge className="ml-auto bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5">
+                              ⭐
+                            </Badge>
+                          )}
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
