@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal, 
   Image as ImageIcon, MapPin, Shield, CheckCircle, Camera, Share2
@@ -68,14 +67,14 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       setNewPostContent("");
       setMediaUrls([]);
-      toast.success("Post publicado!");
+      toast.success("Post publicado");
     },
   });
 
   const likePostMutation = useMutation({
     mutationFn: async ({ postId, isLiked }) => {
       if (isLiked) {
-        const like = likedPosts.find(l => l.post_id === postId && l.user_email === user?.email);
+        const like = likedPosts.find(l => l.post_id === postId);
         if (like) await base44.entities.SocialLike.delete(like.id);
       } else {
         await base44.entities.SocialLike.create({
@@ -85,22 +84,9 @@ export default function SocialFeed() {
         });
       }
     },
-    onMutate: async ({ postId, isLiked }) => {
-      await queryClient.cancelQueries(['socialPosts']);
-      const previousPosts = queryClient.getQueryData(['socialPosts']);
-      queryClient.setQueryData(['socialPosts'], old => 
-        old.map(post => post.id === postId ? {
-          ...post,
-          likes_count: (post.likes_count || 0) + (isLiked ? -1 : 1)
-        } : post)
-      );
-      return { previousPosts };
-    },
-    onError: (err, variables, context) => {
-      queryClient.setQueryData(['socialPosts'], context.previousPosts);
-    },
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['likedPosts']);
+      queryClient.invalidateQueries(['socialPosts']);
     },
   });
 
@@ -118,7 +104,7 @@ export default function SocialFeed() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['savedPostIds']);
-      toast.success("Post salvo!");
+      toast.success("Post salvo");
     },
   });
 
@@ -136,11 +122,12 @@ export default function SocialFeed() {
 
     setMediaUrls([...mediaUrls, ...urls]);
     setUploadingMedia(false);
+    toast.success("Fotos carregadas");
   };
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim() && mediaUrls.length === 0) {
-      toast.error("Adicione texto ou mídia!");
+      toast.error("Adicione texto ou foto");
       return;
     }
 
@@ -160,23 +147,20 @@ export default function SocialFeed() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">A carregar Dog Connect...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <Skeleton className="w-16 h-16 rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
-      <div className="max-w-4xl mx-auto p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-4">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Create Post */}
-        <Card className="border-0 shadow-xl mb-6">
-          <CardContent className="p-6">
-            <div className="flex gap-4">
-              <Avatar className="w-12 h-12">
+        <Card className="shadow-xl">
+          <CardContent className="p-4">
+            <div className="flex gap-3">
+              <Avatar className="w-10 h-10 cursor-pointer" onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}>
                 <AvatarImage src={user?.profile_photo_url} />
                 <AvatarFallback>{user?.full_name?.[0]}</AvatarFallback>
               </Avatar>
@@ -185,17 +169,17 @@ export default function SocialFeed() {
                   placeholder="Compartilhe algo sobre seu pet..."
                   value={newPostContent}
                   onChange={(e) => setNewPostContent(e.target.value)}
-                  className="mb-3 min-h-[100px]"
+                  className="mb-2 min-h-[80px] text-sm"
                 />
 
                 {mediaUrls.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="grid grid-cols-3 gap-2 mb-2">
                     {mediaUrls.map((url, idx) => (
                       <div key={idx} className="relative">
-                        <img src={url} className="w-full h-32 object-cover rounded-lg" alt="Upload" />
+                        <img src={url} className="w-full h-24 object-cover rounded" alt="Upload" />
                         <button
                           onClick={() => setMediaUrls(mediaUrls.filter((_, i) => i !== idx))}
-                          className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs"
                         >
                           ×
                         </button>
@@ -204,28 +188,27 @@ export default function SocialFeed() {
                   </div>
                 )}
 
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <Button type="button" variant="ghost" size="sm" disabled={uploadingMedia}>
-                      <label className="cursor-pointer flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" />
-                        Foto
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                          onChange={handleMediaUpload}
-                        />
-                      </label>
-                    </Button>
-                  </div>
+                <div className="flex justify-between">
+                  <Button type="button" variant="ghost" size="sm" disabled={uploadingMedia}>
+                    <label className="cursor-pointer flex items-center gap-1">
+                      <ImageIcon className="w-4 h-4" />
+                      <span className="text-xs">Foto</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleMediaUpload}
+                      />
+                    </label>
+                  </Button>
                   <Button
                     onClick={handleCreatePost}
                     disabled={createPostMutation.isPending || uploadingMedia}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600"
+                    size="sm"
+                    className="bg-purple-600"
                   >
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-4 h-4 mr-1" />
                     Publicar
                   </Button>
                 </div>
@@ -236,16 +219,16 @@ export default function SocialFeed() {
 
         {/* Posts Feed */}
         {loadingPosts ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {[1,2,3].map(i => (
-              <Skeleton key={i} className="h-96 w-full rounded-2xl" />
+              <Skeleton key={i} className="h-96 w-full rounded-xl" />
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <Card className="border-0 shadow-xl">
+          <Card className="shadow-xl">
             <CardContent className="p-12 text-center">
               <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma publicação encontrada</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma publicação</h3>
               <p className="text-gray-600">Seja o primeiro a publicar!</p>
             </CardContent>
           </Card>
@@ -261,7 +244,6 @@ export default function SocialFeed() {
                 onLike={(isLiked) => likePostMutation.mutate({ postId: post.id, isLiked })}
                 onSave={(isSaved) => savePostMutation.mutate({ postId: post.id, isSaved })}
                 onNavigateToProfile={(email) => navigate(createPageUrl(`UserProfile?email=${email}`))}
-                delay={idx * 0.05}
               />
             ))}
           </div>
@@ -271,7 +253,7 @@ export default function SocialFeed() {
   );
 }
 
-function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToProfile, delay }) {
+function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToProfile }) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const queryClient = useQueryClient();
@@ -289,6 +271,7 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
       queryClient.invalidateQueries(['postComments', post.id]);
       queryClient.invalidateQueries(['socialPosts']);
       setCommentText("");
+      toast.success("Comentário adicionado");
     },
   });
 
@@ -303,170 +286,159 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
     });
   };
 
-  const getBadges = () => {
-    const badges = [];
-    if (post.author_role === 'admin') {
-      badges.push(<Shield key="admin" className="w-4 h-4 text-red-600" />);
-    }
-    if (post.is_verified_user) {
-      badges.push(<CheckCircle key="verified" className="w-4 h-4 text-blue-500" />);
-    }
-    return badges;
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-    >
-      <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div 
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => onNavigateToProfile(post.author_email)}
-            >
-              <Avatar className="w-12 h-12 ring-2 ring-purple-200">
-                <AvatarImage src={post.author_photo_url} />
-                <AvatarFallback>{post.author_name?.[0]}</AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-gray-900">{post.author_name}</h4>
-                  {getBadges()}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>{format(new Date(post.created_date), "d MMM 'às' HH:mm", { locale: ptBR })}</span>
-                  {post.location && (
-                    <>
-                      <span>•</span>
-                      <MapPin className="w-3 h-3" />
-                      <span>{post.location}</span>
-                    </>
-                  )}
-                </div>
+    <Card className="shadow-xl">
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div 
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => onNavigateToProfile(post.author_email)}
+          >
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={post.author_photo_url} />
+              <AvatarFallback>{post.author_name?.[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-1">
+                <h4 className="font-bold text-sm">{post.author_name}</h4>
+                {post.author_role === 'admin' && <Shield className="w-3 h-3 text-red-600" />}
+                {post.is_verified_user && <CheckCircle className="w-3 h-3 text-blue-500" />}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <span>{format(new Date(post.created_date), "d MMM 'às' HH:mm", { locale: ptBR })}</span>
+                {post.location && (
+                  <>
+                    <span>•</span>
+                    <MapPin className="w-3 h-3" />
+                    <span>{post.location}</span>
+                  </>
+                )}
               </div>
             </div>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="w-5 h-5" />
-            </Button>
           </div>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        </div>
 
-          {post.content && (
-            <p className="text-gray-800 mb-4 leading-relaxed whitespace-pre-wrap">
-              {post.content}
-            </p>
-          )}
+        {/* Content */}
+        {post.content && (
+          <p className="text-sm text-gray-800 mb-3 whitespace-pre-wrap">
+            {post.content}
+          </p>
+        )}
 
-          {post.media_urls && post.media_urls.length > 0 && (
-            <div className={`rounded-2xl overflow-hidden mb-4 ${
-              post.media_urls.length === 1 ? '' : 'grid grid-cols-2 gap-2'
-            }`}>
-              {post.media_urls.slice(0, 4).map((url, idx) => (
-                <div key={idx} className="relative">
-                  <img
-                    src={url}
-                    className={`w-full ${post.media_urls.length === 1 ? 'max-h-[600px]' : 'h-64'} object-cover`}
-                    alt="Post media"
-                  />
-                  {post.media_urls.length > 4 && idx === 3 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-3xl font-bold">
-                      +{post.media_urls.length - 4}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Media */}
+        {post.media_urls && post.media_urls.length > 0 && (
+          <div className={`rounded-lg overflow-hidden mb-3 ${
+            post.media_urls.length === 1 ? '' : 'grid grid-cols-2 gap-1'
+          }`}>
+            {post.media_urls.slice(0, 4).map((url, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={url}
+                  className={`w-full ${post.media_urls.length === 1 ? 'max-h-96' : 'h-48'} object-cover`}
+                  alt="Post"
+                />
+                {post.media_urls.length > 4 && idx === 3 && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-2xl font-bold">
+                    +{post.media_urls.length - 4}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-            <div className="flex gap-6">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onLike(isLiked)}
-                className={`gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'}`}
-              >
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500' : ''}`} />
-                <span className="font-semibold">{post.likes_count || 0}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowComments(!showComments)}
-                className="gap-2 text-gray-600"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span className="font-semibold">{post.comments_count || 0}</span>
-              </Button>
-
-              <Button variant="ghost" size="sm" className="gap-2 text-gray-600">
-                <Share2 className="w-5 h-5" />
-              </Button>
-            </div>
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-3 border-t">
+          <div className="flex gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onLike(isLiked)}
+              className={`gap-1 p-2 ${isLiked ? 'text-red-500' : 'text-gray-600'}`}
+            >
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500' : ''}`} />
+              <span className="text-sm font-semibold">{post.likes_count || 0}</span>
+            </Button>
 
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => onSave(isSaved)}
-              className={isSaved ? 'text-purple-600' : 'text-gray-600'}
+              size="sm"
+              onClick={() => setShowComments(!showComments)}
+              className="gap-1 p-2 text-gray-600"
             >
-              <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-purple-600' : ''}`} />
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-semibold">{post.comments_count || 0}</span>
+            </Button>
+
+            <Button variant="ghost" size="sm" className="gap-1 p-2 text-gray-600">
+              <Share2 className="w-5 h-5" />
             </Button>
           </div>
 
-          <AnimatePresence>
-            {showComments && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 pt-4 border-t border-gray-100"
-              >
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3 mb-4">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={comment.author_photo_url} />
-                      <AvatarFallback>{comment.author_name?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
-                      <p className="font-semibold text-sm text-gray-900">{comment.author_name}</p>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
-                    </div>
-                  </div>
-                ))}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onSave(isSaved)}
+            className={isSaved ? 'text-purple-600' : 'text-gray-600'}
+          >
+            <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-purple-600' : ''}`} />
+          </Button>
+        </div>
 
-                <div className="flex gap-3 mt-4">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user?.profile_photo_url} />
-                    <AvatarFallback>{user?.full_name?.[0]}</AvatarFallback>
+        {/* Comments */}
+        <AnimatePresence>
+          {showComments && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 pt-3 border-t"
+            >
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex gap-2 mb-3">
+                  <Avatar className="w-7 h-7">
+                    <AvatarImage src={comment.author_photo_url} />
+                    <AvatarFallback>{comment.author_name?.[0]}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Adicione um comentário..."
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                      className="flex-1 px-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-purple-400"
-                    />
-                    <Button
-                      size="icon"
-                      onClick={handleComment}
-                      disabled={!commentText.trim() || createCommentMutation.isPending}
-                      className="rounded-full bg-purple-600"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
+                  <div className="flex-1 bg-gray-100 rounded-xl px-3 py-2">
+                    <p className="font-semibold text-xs">{comment.author_name}</p>
+                    <p className="text-sm text-gray-700">{comment.content}</p>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
-    </motion.div>
+              ))}
+
+              <div className="flex gap-2 mt-3">
+                <Avatar className="w-7 h-7">
+                  <AvatarImage src={user?.profile_photo_url} />
+                  <AvatarFallback>{user?.full_name?.[0]}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Comentar..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+                    className="flex-1 px-3 py-2 text-sm rounded-full border focus:outline-none focus:border-purple-400"
+                  />
+                  <Button
+                    size="icon"
+                    onClick={handleComment}
+                    disabled={!commentText.trim()}
+                    className="rounded-full bg-purple-600 h-9 w-9"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </CardContent>
+    </Card>
   );
 }
