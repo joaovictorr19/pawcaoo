@@ -64,7 +64,8 @@ import {
   Sparkles, // Added for badges section
   Award, // Added for custom badges
   Upload, // Added for badge image upload
-  ExternalLink
+  ExternalLink,
+  Clock, // Added for pending state in button
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -106,7 +107,7 @@ export default function AdminDashboard() {
   });
 
   // Optimized queries - only load what's needed per tab
-  const { data: allUsers = [] } = useQuery({ // Removed isLoading: loadingUsers as per outline
+  const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
     queryFn: () => base44.entities.User.list(),
     enabled: user?.role === 'admin' && (activeTab === 'users' || activeTab === 'badges'),
@@ -258,13 +259,37 @@ export default function AdminDashboard() {
   });
 
   const updateUserBadgesMutation = useMutation({
-    mutationFn: ({ userId, badges }) => base44.entities.User.update(userId, badges),
+    mutationFn: ({ userId, badges }) => {
+      // Encontrar o usuário atual para preservar todos os campos
+      const currentUser = allUsers.find(u => u.id === userId);
+      if (!currentUser) {
+        throw new Error("Usuário não encontrado");
+      }
+
+      // Merge dos dados existentes com os novos badges
+      const updateData = {
+        ...currentUser, // Preserve all other fields
+        is_verified: badges.is_verified,
+        is_adoption_advocate: badges.is_adoption_advocate,
+        role: badges.role,
+        social_role: badges.social_role,
+        public_badges: badges.public_badges || []
+      };
+
+      return base44.entities.User.update(userId, updateData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       setShowBadgesDialog(false);
       setSelectedUserForBadges(null);
-      toast.success("Badges e funções atualizados com sucesso!");
+      setBadgesFormData({});
+      toast.success("✅ Badges e funções atualizados com sucesso!");
     },
+    onError: (error) => {
+      console.error("Error updating badges:", error);
+      toast.error("❌ Erro ao atualizar badges: " + error.message);
+    }
   });
 
   const handleEditUser = (user) => {
@@ -388,10 +413,10 @@ export default function AdminDashboard() {
         image_url: file_url,
         icon: "" // Clear emoji when image is uploaded
       });
-      toast.success("Imagem carregada!");
+      toast.success("✅ Imagem carregada!");
     } catch (error) {
       console.error("Error uploading badge image:", error);
-      toast.error("Erro ao carregar imagem");
+      toast.error("❌ Erro ao carregar imagem");
     } finally {
       setUploadingBadgeImage(false);
     }
@@ -399,30 +424,35 @@ export default function AdminDashboard() {
 
   const handleAddCustomBadge = () => {
     if (!newCustomBadge.name || !newCustomBadge.description) {
-      toast.error("Preencha nome e descrição do badge");
+      toast.error("❌ Preencha nome e descrição do badge");
       return;
     }
 
     if (!newCustomBadge.image_url && !newCustomBadge.icon) {
-      toast.error("Adicione uma imagem ou emoji para o badge");
+      toast.error("❌ Adicione uma imagem ou emoji para o badge");
       return;
     }
 
     const currentBadges = badgesFormData.public_badges || [];
-    const updatedBadges = [
-      ...currentBadges,
-      {
-        ...newCustomBadge,
-        badge_id: Date.now().toString(), // Simple unique ID for now
-        earned_date: new Date().toISOString()
-      }
-    ];
+    const badgeToAdd = {
+      badge_id: `custom_${Date.now()}`, // Simple unique ID for now
+      name: newCustomBadge.name,
+      description: newCustomBadge.description,
+      icon: newCustomBadge.icon || "",
+      image_url: newCustomBadge.image_url || "",
+      rarity: newCustomBadge.rarity,
+      category: newCustomBadge.category,
+      earned_date: new Date().toISOString()
+    };
+
+    const updatedBadges = [...currentBadges, badgeToAdd];
 
     setBadgesFormData({
       ...badgesFormData,
       public_badges: updatedBadges
     });
 
+    // Reset form
     setNewCustomBadge({
       name: "",
       description: "",
@@ -432,16 +462,64 @@ export default function AdminDashboard() {
       category: "special"
     });
 
-    toast.success("Emblema adicionado! Clique em Salvar para confirmar");
+    toast.success(`✨ Emblema "${badgeToAdd.name}" adicionado! Clique em 💾 Salvar para confirmar`);
   };
 
   const handleRemoveBadge = (badgeId) => {
     const currentBadges = badgesFormData.public_badges || [];
+    const updatedBadges = currentBadges.filter(b => b.badge_id !== badgeId);
+    
     setBadgesFormData({
       ...badgesFormData,
-      public_badges: currentBadges.filter(b => b.badge_id !== badgeId)
+      public_badges: updatedBadges
     });
-    toast.success("Emblema removido! Clique em Salvar para confirmar");
+    
+    toast.success("🗑️ Emblema removido! Clique em 💾 Salvar para confirmar");
+  };
+
+  const handleOpenBadgesDialog = (userItem) => {
+    setSelectedUserForBadges(userItem);
+    
+    // Carregar todos os dados atuais do usuário
+    const currentBadges = userItem.public_badges || [];
+    
+    setBadgesFormData({
+      is_verified: userItem.is_verified || false,
+      is_adoption_advocate: userItem.is_adoption_advocate || false,
+      role: userItem.role || 'user',
+      social_role: userItem.social_role || 'user',
+      public_badges: [...currentBadges] // Clone do array para evitar mutação direta
+    });
+    
+    setShowBadgesDialog(true);
+  };
+
+  const handleSaveBadges = () => {
+    if (!selectedUserForBadges) {
+      toast.error("❌ Nenhum usuário selecionado");
+      return;
+    }
+
+    // Validar que há pelo menos alguma mudança
+    const hasChanges = 
+      badgesFormData.is_verified !== selectedUserForBadges.is_verified ||
+      badgesFormData.is_adoption_advocate !== selectedUserForBadges.is_adoption_advocate ||
+      badgesFormData.role !== selectedUserForBadges.role ||
+      badgesFormData.social_role !== selectedUserForBadges.social_role ||
+      JSON.stringify(badgesFormData.public_badges) !== JSON.stringify(selectedUserForBadges.public_badges || []);
+
+    if (!hasChanges) {
+      toast.info("ℹ️ Nenhuma alteração detectada");
+      setShowBadgesDialog(false);
+      setSelectedUserForBadges(null);
+      setBadgesFormData({});
+      return;
+    }
+
+    updateUserBadgesMutation.mutate({
+      userId: selectedUserForBadges.id,
+      badges: badgesFormData
+    });
   };
 
   // Access control
@@ -1749,17 +1827,7 @@ export default function AdminDashboard() {
                           </div>
 
                           <Button
-                            onClick={() => {
-                              setSelectedUserForBadges(userItem);
-                              setBadgesFormData({
-                                is_verified: userItem.is_verified || false,
-                                is_adoption_advocate: userItem.is_adoption_advocate || false,
-                                role: userItem.role || 'user',
-                                social_role: userItem.social_role || 'user',
-                                public_badges: userItem.public_badges || []
-                              });
-                              setShowBadgesDialog(true);
-                            }}
+                            onClick={() => handleOpenBadgesDialog(userItem)}
                             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-xs h-8"
                           >
                             <Sparkles className="w-3 h-3 mr-1" />
@@ -1775,7 +1843,21 @@ export default function AdminDashboard() {
         </Tabs>
 
         {/* Badges Management Dialog - ENHANCED */}
-        <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
+        <Dialog open={showBadgesDialog} onOpenChange={(open) => {
+          if (!open) {
+            setShowBadgesDialog(false);
+            setSelectedUserForBadges(null);
+            setBadgesFormData({});
+            setNewCustomBadge({
+              name: "",
+              description: "",
+              icon: "⭐",
+              image_url: "",
+              rarity: "common",
+              category: "special"
+            });
+          }
+        }}>
           <DialogContent className="max-w-4xl dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="dark:text-gray-100 text-xl flex items-center gap-2">
@@ -2087,20 +2169,27 @@ export default function AdminDashboard() {
                 onClick={() => {
                   setShowBadgesDialog(false);
                   setSelectedUserForBadges(null);
+                  setBadgesFormData({});
                 }}
                 className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Cancelar
               </Button>
               <Button 
-                onClick={() => updateUserBadgesMutation.mutate({
-                  userId: selectedUserForBadges?.id,
-                  badges: badgesFormData
-                })}
+                onClick={handleSaveBadges}
                 disabled={updateUserBadgesMutation.isPending}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               >
-                {updateUserBadgesMutation.isPending ? "A guardar..." : "💾 Salvar Alterações"}
+                {updateUserBadgesMutation.isPending ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    A guardar...
+                  </>
+                ) : (
+                  <>
+                    💾 Salvar Alterações
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
