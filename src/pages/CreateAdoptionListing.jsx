@@ -60,6 +60,7 @@ export default function CreateAdoptionListing() {
     shelter_type: "individual",
     contact_email: user?.email || "",
     contact_phone: user?.phone || "",
+    contact_whatsapp: user?.phone || "", // Added WhatsApp field
     adoption_fee: 0,
     fee_includes: [],
     requirements: {},
@@ -87,7 +88,7 @@ export default function CreateAdoptionListing() {
   });
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevents default form submission if this was a form
     createListingMutation.mutate(formData);
   };
 
@@ -435,17 +436,20 @@ export default function CreateAdoptionListing() {
                   exit={{ opacity: 0, x: -20 }} // Added exit animation
                   className="space-y-6"
                 >
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      {language === 'pt' ? 'Detalhes de Contato' :
+                       language === 'es' ? 'Detalles de Contacto' :
+                       'Contact Details'}
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      {language === 'pt' ? 'Forneça seus dados de contato para que os interessados possam entrar em contato.' :
+                       language === 'es' ? 'Proporciona tus datos de contacto para que los interesados puedan comunicarse.' :
+                       'Provide your contact details so interested adopters can reach you.'}
+                    </p>
+                  </div>
+                  
                   <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label>Adoption Fee (€)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={formData.adoption_fee}
-                        onChange={(e) => setFormData({...formData, adoption_fee: parseFloat(e.target.value)})}
-                      />
-                    </div>
-
                     <div className="space-y-2">
                       <Label>Urgency Level</Label>
                       <Select value={formData.urgency_level} onValueChange={(v) => setFormData({...formData, urgency_level: v})}>
@@ -460,7 +464,7 @@ export default function CreateAdoptionListing() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2 md:col-span-2">
+                    <div className="space-y-2">
                       <Label>Organization Name (if applicable)</Label>
                       <Input
                         value={formData.shelter_name}
@@ -475,10 +479,25 @@ export default function CreateAdoptionListing() {
                         required
                         value={formData.contact_phone}
                         onChange={(e) => setFormData({...formData, contact_phone: e.target.value})}
+                        placeholder="+351 ..."
                       />
                     </div>
 
                     <div className="space-y-2">
+                      <Label>WhatsApp Number</Label>
+                      <Input
+                        value={formData.contact_whatsapp}
+                        onChange={(e) => setFormData({...formData, contact_whatsapp: e.target.value})}
+                        placeholder="+351 ... (same as phone if applicable)"
+                      />
+                      <p className="text-xs text-gray-500">
+                        {language === 'pt' ? 'Facilita o contacto direto com interessados' :
+                         language === 'es' ? 'Facilita el contacto directo con interesados' :
+                         'Makes it easier for interested people to contact you'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
                       <Label>Contact Email *</Label>
                       <Input
                         required
@@ -499,6 +518,25 @@ export default function CreateAdoptionListing() {
                     />
                   </div>
 
+                  {/* Info Box */}
+                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-green-900 mb-2">
+                          {language === 'pt' ? 'Adoção Responsável' :
+                           language === 'es' ? 'Adopción Responsable' :
+                           'Responsible Adoption'}
+                        </h4>
+                        <p className="text-sm text-green-800">
+                          {language === 'pt' ? 'Não cobramos taxa de adoção. O importante é encontrar o lar perfeito para cada pet. Os interessados devem contactá-lo diretamente para conhecer o pet e completar o processo de adoção.' :
+                           language === 'es' ? 'No cobramos tarifa de adopción. Lo importante es encontrar el hogar perfecto para cada mascota. Los interesados deben contactarte directamente para conocer a la mascota y completar el proceso de adopción.' :
+                           'We don\'t charge adoption fees. What matters is finding the perfect home for each pet. Interested people should contact you directly to meet the pet and complete the adoption process.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex gap-3 pt-6">
                     <Button
                       type="button"
@@ -512,6 +550,7 @@ export default function CreateAdoptionListing() {
                       type="submit"
                       disabled={createListingMutation.isPending}
                       className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white h-14 text-lg font-semibold"
+                      onClick={handleSubmit}
                     >
                       {createListingMutation.isPending ? "Posting..." : "Post for Adoption"}
                     </Button>

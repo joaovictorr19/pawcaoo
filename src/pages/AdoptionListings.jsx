@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label"; // New import
-import { Home, MapPin, Search, Filter, PlusCircle, Clock, AlertCircle, Shield } from "lucide-react"; // Shield added
+import { Label } from "@/components/ui/label";
+import { Home, MapPin, Search, Filter, PlusCircle, Clock, AlertCircle, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -26,9 +26,9 @@ export default function AdoptionListings() {
   const [filterGender, setFilterGender] = useState("all");
   const [filterLocation, setFilterLocation] = useState("");
   const [showUrgentOnly, setShowUrgentOnly] = useState(false);
-  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false); // New state
-  const [filterGoodWith, setFilterGoodWith] = useState([]); // New state
-  const [filterSpecialNeeds, setFilterSpecialNeeds] = useState(false); // New state
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [filterGoodWith, setFilterGoodWith] = useState([]);
+  const [filterSpecialNeeds, setFilterSpecialNeeds] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -61,18 +61,18 @@ export default function AdoptionListings() {
       listing.urgency_level === "urgent" || 
       listing.urgency_level === "critical";
 
-    const matchesVerified = !showVerifiedOnly || listing.is_verified === true; // New filter condition
+    const matchesVerified = !showVerifiedOnly || listing.is_verified === true;
     
-    const matchesGoodWith = filterGoodWith.length === 0 || // New filter condition
+    const matchesGoodWith = filterGoodWith.length === 0 || 
       filterGoodWith.every(type => listing.good_with?.[type] === true);
     
-    const matchesSpecialNeeds = !filterSpecialNeeds || // New filter condition
+    const matchesSpecialNeeds = !filterSpecialNeeds || 
       (listing.special_needs && listing.special_needs.length > 0) ||
       (listing.medical_conditions && listing.medical_conditions.length > 0);
     
     return matchesSearch && matchesPetType && matchesSize && matchesAge && 
            matchesGender && matchesLocation && matchesUrgency && matchesVerified &&
-           matchesGoodWith && matchesSpecialNeeds; // Updated return condition
+           matchesGoodWith && matchesSpecialNeeds;
   });
 
   const getAgeLabel = (listing) => {
@@ -154,9 +154,9 @@ export default function AdoptionListings() {
               <h3 className="text-lg font-semibold text-gray-900">{t('searchAndFilter', language)}</h3>
             </div>
             
-            <div className="space-y-4"> {/* Changed to space-y-4 for overall spacing */}
+            <div className="space-y-4">
               {/* Row 1 - Search & Main Filters */}
-              <div className="grid md:grid-cols-4 gap-4"> {/* Grid for first row of filters */}
+              <div className="grid md:grid-cols-4 gap-4">
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -212,7 +212,7 @@ export default function AdoptionListings() {
               </div>
 
               {/* Row 2 - Gender, Location, Special Filters */}
-              <div className="grid md:grid-cols-4 gap-4"> {/* Grid for second row of filters */}
+              <div className="grid md:grid-cols-4 gap-4">
                 {/* Gender */}
                 <Select value={filterGender} onValueChange={setFilterGender}>
                   <SelectTrigger>
@@ -254,8 +254,8 @@ export default function AdoptionListings() {
               </div>
 
               {/* Row 3 - Good With & Special Needs - New Section */}
-              <div className="flex flex-wrap items-center gap-2"> {/* Changed to flex-wrap with items-center */}
-                <Label className="text-sm font-semibold text-gray-700"> {/* Removed w-full mb-1, let it flow */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Label className="text-sm font-semibold text-gray-700">
                   {language === 'pt' ? 'Bom com:' : language === 'es' ? 'Bueno con:' : 'Good with:'}
                 </Label>
                 {[
@@ -318,9 +318,9 @@ export default function AdoptionListings() {
                 setFilterLocation("");
                 setSearchQuery("");
                 setShowUrgentOnly(false);
-                setShowVerifiedOnly(false); // Reset new state
-                setFilterGoodWith([]);     // Reset new state
-                setFilterSpecialNeeds(false); // Reset new state
+                setShowVerifiedOnly(false);
+                setFilterGoodWith([]);
+                setFilterSpecialNeeds(false);
               }}>
                 {t('clearAllFilters', language)}
               </Button>
@@ -358,7 +358,7 @@ export default function AdoptionListings() {
                     
                     {/* Verified Badge - New */}
                     {listing.is_verified && (
-                      <div className="absolute top-3 left-3 z-10"> {/* Added z-10 to ensure visibility */}
+                      <div className="absolute top-3 left-3 z-10">
                         <Badge className="bg-green-600 text-white shadow-lg">
                           <Shield className="w-3 h-3 mr-1" />
                           {language === 'pt' ? 'Verificado' : language === 'es' ? 'Verificado' : 'Verified'}
@@ -368,14 +368,14 @@ export default function AdoptionListings() {
 
                     {/* Urgency Badge */}
                     {(listing.urgency_level === "urgent" || listing.urgency_level === "critical") && (
-                      <div className="absolute top-3 right-3 z-10"> {/* Added z-10 to ensure visibility */}
+                      <div className="absolute top-3 right-3 z-10">
                         {getUrgencyBadge(listing.urgency_level)}
                       </div>
                     )}
 
                     {/* Featured Badge */}
                     {listing.featured && (
-                      <div className="absolute bottom-3 left-3 z-10"> {/* Changed position, added z-10 */}
+                      <div className="absolute bottom-3 left-3 z-10">
                         <Badge className="bg-yellow-400 text-gray-900">
                           ⭐ {language === 'pt' ? 'Destaque' : language === 'es' ? 'Destacado' : 'Featured'}
                         </Badge>
@@ -426,20 +426,16 @@ export default function AdoptionListings() {
                       ) : null}
                     </div>
 
-                    {/* Footer */}
+                    {/* Footer - Removed price section */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                       <div className="flex items-center text-gray-600 text-sm">
                         <MapPin className="w-4 h-4 mr-1" />
                         {listing.location_city}
                       </div>
-                      {listing.adoption_fee > 0 && (
-                        <div className="text-lg font-bold text-purple-600">
-                          €{listing.adoption_fee}
-                        </div>
-                      )}
-                      {listing.adoption_fee === 0 && (
-                        <Badge className="bg-green-500 text-white">{t('freeAdoption', language)}</Badge>
-                      )}
+                      {/* Always show free adoption badge */}
+                      <Badge className="bg-green-500 text-white">
+                        {t('freeAdoption', language)}
+                      </Badge>
                     </div>
 
                     {listing.shelter_name && (

@@ -383,25 +383,17 @@ export default function AdoptionListingDetails() {
             {/* Apply Card */}
             <Card className="border-2 border-purple-300 shadow-xl sticky top-6">
               <CardContent className="p-6">
-                {listing.adoption_fee > 0 ? (
-                  <div className="text-center mb-4">
-                    <div className="text-sm text-gray-600 mb-1">{t('adoptionFee', language)}</div>
-                    <div className="text-4xl font-bold text-purple-600">
-                      €{listing.adoption_fee}
-                    </div>
-                    {listing.fee_includes && listing.fee_includes.length > 0 && (
-                      <div className="mt-2 text-xs text-gray-600">
-                        {language === 'pt' ? 'Inclui' : language === 'es' ? 'Incluye' : 'Includes'}: {listing.fee_includes.join(', ')}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center mb-4">
-                    <Badge className="bg-green-500 text-white text-lg px-6 py-2">
-                      {t('freeAdoption', language)}
-                    </Badge>
-                  </div>
-                )}
+                {/* Removed price section - FREE ADOPTION */}
+                <div className="text-center mb-4">
+                  <Badge className="bg-green-500 text-white text-lg px-6 py-2">
+                    {t('freeAdoption', language)}
+                  </Badge>
+                  <p className="text-sm text-gray-600 mt-2">
+                    {language === 'pt' ? 'Entre em contacto para mais informações' :
+                     language === 'es' ? 'Contacta para más información' :
+                     'Contact for more information'}
+                  </p>
+                </div>
 
                 {!isOwnListing && (
                   <>
