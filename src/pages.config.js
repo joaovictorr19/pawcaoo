@@ -57,6 +57,7 @@ import ApplyForAdoption from './pages/ApplyForAdoption';
 import MyAdoptionApplications from './pages/MyAdoptionApplications';
 import CreateAdoptionListing from './pages/CreateAdoptionListing';
 import ManageAdoptionListings from './pages/ManageAdoptionListings';
+import OwnerDashboard from './pages/OwnerDashboard';
 import Layout from './Layout.jsx';
 
 
@@ -120,6 +121,7 @@ export const PAGES = {
     "MyAdoptionApplications": MyAdoptionApplications,
     "CreateAdoptionListing": CreateAdoptionListing,
     "ManageAdoptionListings": ManageAdoptionListings,
+    "OwnerDashboard": OwnerDashboard,
 }
 
 export const pagesConfig = {

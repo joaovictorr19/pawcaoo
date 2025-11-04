@@ -154,6 +154,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: language === 'pt' ? 'Serviços Parceiros' : language === 'es' ? 'Servicios Asociados' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: language === 'pt' ? 'Adotar Pet' : language === 'es' ? 'Adoptar Mascota' : 'Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Home },
+    { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -196,7 +197,7 @@ function LayoutContent({ children, currentPageName }) {
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
   const mainMenuCount = 8; // Changed from 7 to 8, adoption moved back
-  const myActivityCount = 9;
+  const myActivityCount = 10; // Changed from 9 to 10 (added OwnerDashboard)
   const professionalServicesCount = 6;
   
   const mainMenuStartIndex = 0;

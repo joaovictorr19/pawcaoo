@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card"; // Added import for Card
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
@@ -18,6 +19,8 @@ import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
+import InteractiveMap from "../components/search/InteractiveMap";
+import { Map as MapIcon, List } from "lucide-react";
 
 export default function Home() {
   const { language } = useLanguage();
@@ -49,6 +52,7 @@ export default function Home() {
     instantBooking: false // Added for new filter
   });
   const [userLocation, setUserLocation] = useState(null);
+  const [viewMode, setViewMode] = useState("list"); // "list" or "map"
 
   // Check authentication
   const { data: user, isLoading: userLoading } = useQuery({
@@ -355,8 +359,9 @@ export default function Home() {
 
       {/* Results Section */}
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
-        {/* Advanced Filters Toggle */}
-        <div className="flex justify-end mb-4">
+        {/* View Mode Toggle */}
+        <div className="flex justify-between items-center mb-4">
+          {/* Advanced Filters Toggle */}
           <Button
             variant="outline"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
@@ -365,6 +370,26 @@ export default function Home() {
             <Sliders className="w-4 h-4 mr-2" />
             {showAdvancedFilters ? 'Ocultar' : 'Mostrar'} Filtros Avançados
           </Button>
+          
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "list" ? "default" : "outline"}
+              onClick={() => setViewMode("list")}
+              size="sm"
+            >
+              <List className="w-4 h-4 mr-2" />
+              Lista
+            </Button>
+            <Button
+              variant={viewMode === "map" ? "default" : "outline"}
+              onClick={() => setViewMode("map")}
+              size="sm"
+              className={`bg-gradient-to-r from-purple-600 to-blue-600 text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'} `}
+            >
+              <MapIcon className="w-4 h-4 mr-2" />
+              Mapa
+            </Button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6 mb-6">
@@ -457,34 +482,48 @@ export default function Home() {
                     )}
                   </div>
 
-                  {loadingWalkers ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={`walker-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                  {/* Map View */}
+                  {viewMode === "map" ? (
+                    <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
+                      <InteractiveMap
+                        walkers={filteredWalkers}
+                        userLocation={userLocation}
+                        radiusKm={advancedFilters.radius || 50}
+                        onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                      />
+                    </div>
+                  ) : ( // List View
+                    <>
+                      {loadingWalkers ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                          {[1, 2, 3, 4, 5, 6].map(i => (
+                            <div key={`walker-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                              <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                              <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                              <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : filteredWalkers.length === 0 ? (
-                    <div className="text-center py-12 md:py-16">
-                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                        <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                      </div>
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
-                      <p className="text-sm md:text-base text-gray-600">Tente ajustar os filtros</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {filteredWalkers.map((walker) => (
-                        <WalkerCard 
-                          key={walker.id} 
-                          walker={walker}
-                          distance={walker.distance}
-                        />
-                      ))}
-                    </div>
+                      ) : filteredWalkers.length === 0 ? (
+                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center">
+                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                            <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
+                          <p className="text-sm md:text-base text-gray-600">Tente ajustar os filtros</p>
+                        </Card>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                          {filteredWalkers.map((walker) => (
+                            <WalkerCard 
+                              key={walker.id} 
+                              walker={walker}
+                              distance={walker.distance}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </TabsContent>
