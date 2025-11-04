@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -138,6 +139,11 @@ export default function BookService() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    if (userDogs.length === 0) {
+      toast.error("Você precisa cadastrar um pet primeiro!");
+      return;
+    }
+
     if (!selectedDog || !selectedDate || !selectedTime) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
@@ -400,14 +406,38 @@ export default function BookService() {
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* No Dogs Warning */}
+                  {userDogs.length === 0 && (
+                    <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-amber-900 mb-1">
+                            Você precisa cadastrar um pet primeiro!
+                          </p>
+                          <p className="text-sm text-amber-800 mb-3">
+                            Para agendar serviços, é necessário ter pelo menos um perfil de pet cadastrado.
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => navigate(createPageUrl('MyProfile'))}
+                            className="bg-amber-600 hover:bg-amber-700"
+                          >
+                            Cadastrar Pet Agora
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Select Dog */}
                   <div>
                     <Label className="text-sm font-semibold text-gray-700 mb-2 block">
                       Selecione o Pet *
                     </Label>
-                    <Select value={selectedDog} onValueChange={setSelectedDog}>
+                    <Select value={selectedDog} onValueChange={setSelectedDog} disabled={userDogs.length === 0}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Escolha seu pet" />
+                        <SelectValue placeholder={userDogs.length === 0 ? "Cadastre um pet primeiro" : "Escolha seu pet"} />
                       </SelectTrigger>
                       <SelectContent>
                         {userDogs.map(dog => (
@@ -429,6 +459,7 @@ export default function BookService() {
                         <Button
                           variant="outline"
                           className="w-full justify-start text-left font-normal"
+                          disabled={userDogs.length === 0}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {selectedDate ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Escolha a data"}
@@ -450,7 +481,7 @@ export default function BookService() {
                     <Label className="text-sm font-semibold text-gray-700 mb-2 block">
                       Horário *
                     </Label>
-                    <Select value={selectedTime} onValueChange={setSelectedTime}>
+                    <Select value={selectedTime} onValueChange={setSelectedTime} disabled={userDogs.length === 0}>
                       <SelectTrigger>
                         <SelectValue placeholder="Escolha o horário" />
                       </SelectTrigger>
@@ -473,6 +504,7 @@ export default function BookService() {
                           checked={isEmergency}
                           onChange={(e) => setIsEmergency(e.target.checked)}
                           className="mt-1"
+                          disabled={userDogs.length === 0}
                         />
                         <div>
                           <p className="font-bold text-orange-900 flex items-center gap-1">
@@ -499,6 +531,7 @@ export default function BookService() {
                         placeholder="Descreva os sintomas ou motivo da visita..."
                         rows={3}
                         required
+                        disabled={userDogs.length === 0}
                       />
                     </div>
                   )}
@@ -513,6 +546,7 @@ export default function BookService() {
                       onChange={(e) => setSpecialRequests(e.target.value)}
                       placeholder="Algum pedido especial ou informação importante..."
                       rows={2}
+                      disabled={userDogs.length === 0}
                     />
                   </div>
 
@@ -544,7 +578,7 @@ export default function BookService() {
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    disabled={!selectedDog || !selectedDate || !selectedTime || createBookingMutation.isPending}
+                    disabled={!selectedDog || !selectedDate || !selectedTime || createBookingMutation.isPending || userDogs.length === 0}
                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-14 text-lg font-bold shadow-lg"
                   >
                     {createBookingMutation.isPending ? (

@@ -60,6 +60,7 @@ import {
   CheckCircle, // Added CheckCircle icon for reviews
   X, // Added X icon for reviews
   Flag, // Added Flag icon for reviews
+  Heart, // Added Heart icon for badges
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -89,6 +90,9 @@ export default function AdminDashboard() {
   const [userFormData, setUserFormData] = useState({});
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
   const [companyFormData, setCompanyFormData] = useState({});
+  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+  const [selectedUserForBadges, setSelectedUserForBadges] = useState(null);
+  const [badgesFormData, setBadgesFormData] = useState({});
 
   // Check if user is admin
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -253,6 +257,20 @@ export default function AdminDashboard() {
     onError: (error) => {
       toast.error("Erro ao moderar avaliação");
       console.error("Error moderating review:", error);
+    }
+  });
+
+  const updateUserBadgesMutation = useMutation({
+    mutationFn: ({ userId, badges }) => base44.entities.User.update(userId, badges),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      setShowBadgesDialog(false);
+      setSelectedUserForBadges(null);
+      toast.success("Badges atualizados com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar badges");
+      console.error(error);
     }
   });
 
@@ -422,7 +440,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-8 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2 mb-8 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
               <BarChart3 className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Overview</span>
@@ -459,6 +477,10 @@ export default function AdminDashboard() {
                   {pendingReviews.length}
                 </Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-indigo-700">
+              <Shield className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Badges</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1662,7 +1684,241 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* BADGES TAB */}
+          <TabsContent value="badges">
+            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700 mb-6">
+              <CardHeader>
+                <CardTitle className="text-2xl dark:text-gray-100">Gestão de Badges e Selos</CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Gerencie badges especiais e selos de verificação dos utilizadores. Apenas administradores podem editar badges.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {/* Badge Types Info */}
+                <div className="grid md:grid-cols-3 gap-4 mb-8">
+                  <div className="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                    <CheckCircle className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-3" />
+                    <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2">Verificado</h4>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      Badge para utilizadores verificados pela plataforma
+                    </p>
+                  </div>
+
+                  <div className="p-5 bg-pink-50 dark:bg-pink-900/20 rounded-xl border-2 border-pink-200 dark:border-pink-700">
+                    <Heart className="w-8 h-8 text-pink-600 dark:text-pink-400 mb-3" />
+                    <h4 className="font-bold text-pink-900 dark:text-pink-300 mb-2">Defensor de Adoção</h4>
+                    <p className="text-sm text-pink-700 dark:text-pink-400">
+                      Badge especial para defensores de adoção de animais
+                    </p>
+                  </div>
+
+                  <div className="p-5 bg-purple-50 dark:bg-purple-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700">
+                    <Shield className="w-8 h-8 text-purple-600 dark:text-purple-400 mb-3" />
+                    <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-2">Funções Especiais</h4>
+                    <p className="text-sm text-purple-700 dark:text-purple-400">
+                      Admin, Moderador e outras funções especiais
+                    </p>
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="relative mb-6">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Pesquisar utilizadores para gerir badges..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-11 h-12 rounded-xl border-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  />
+                </div>
+
+                {/* Users List with Badges */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {allUsers
+                    .filter(u => 
+                      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .slice(0, 20)
+                    .map(user => (
+                      <Card key={user.id} className="border-2 border-indigo-100 dark:border-indigo-800 dark:bg-gray-800">
+                        <CardContent className="p-5">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">
+                                {user.full_name || 'Sem Nome'}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                {user.email}
+                              </p>
+                              
+                              {/* Current Badges */}
+                              <div className="flex flex-wrap gap-2">
+                                {user.role === 'admin' && (
+                                  <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
+                                    <Shield className="w-3 h-3 mr-1" />
+                                    Admin
+                                  </Badge>
+                                )}
+                                {user.social_role === 'moderator' && (
+                                  <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+                                    <ShieldCheck className="w-3 h-3 mr-1" />
+                                    Moderador
+                                  </Badge>
+                                )}
+                                {user.is_verified && (
+                                  <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    Verificado
+                                  </Badge>
+                                )}
+                                {user.is_adoption_advocate && (
+                                  <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
+                                    <Heart className="w-3 h-3 mr-1" />
+                                    Defensor Adoção
+                                  </Badge>
+                                )}
+                                {!user.is_verified && !user.is_adoption_advocate && user.role !== 'admin' && user.social_role !== 'moderator' && (
+                                  <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-400">
+                                    Sem badges
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <Button
+                            onClick={() => {
+                              setSelectedUserForBadges(user);
+                              setBadgesFormData({
+                                is_verified: user.is_verified || false,
+                                is_adoption_advocate: user.is_adoption_advocate || false,
+                              });
+                              setShowBadgesDialog(true);
+                            }}
+                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                          >
+                            <Shield className="w-4 h-4 mr-2" />
+                            Gerir Badges
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
+        {/* Badges Management Dialog */}
+        <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
+          <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="dark:text-gray-100">
+                Gerir Badges - {selectedUserForBadges?.full_name || selectedUserForBadges?.email}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedUserForBadges && (
+              <div className="space-y-6 py-4">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <strong>Email:</strong> {selectedUserForBadges.email}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <strong>Tipo de Conta:</strong> {selectedUserForBadges.account_type || 'owner'}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100">Atribuir Badges</h3>
+                  
+                  {/* Verified Badge */}
+                  <label className="flex items-start gap-4 p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={badgesFormData.is_verified || false}
+                      onChange={(e) => setBadgesFormData({...badgesFormData, is_verified: e.target.checked})}
+                      className="mt-1 w-5 h-5"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <h4 className="font-bold text-blue-900 dark:text-blue-300">Utilizador Verificado</h4>
+                      </div>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                        Este badge indica que o utilizador foi verificado pela plataforma PawCão.
+                        Aparece como um selo azul no perfil e posts.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Adoption Advocate Badge */}
+                  <label className="flex items-start gap-4 p-5 bg-pink-50 dark:bg-pink-900/20 rounded-xl border-2 border-pink-200 dark:border-pink-700 cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={badgesFormData.is_adoption_advocate || false}
+                      onChange={(e) => setBadgesFormData({...badgesFormData, is_adoption_advocate: e.target.checked})}
+                      className="mt-1 w-5 h-5"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                        <h4 className="font-bold text-pink-900 dark:text-pink-300">Defensor de Adoção</h4>
+                      </div>
+                      <p className="text-sm text-pink-700 dark:text-pink-400">
+                        Este badge especial é para utilizadores ativos na causa da adoção de animais.
+                        Aparece como um selo rosa com coração no perfil e posts.
+                      </p>
+                    </div>
+                  </label>
+
+                  <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl p-4">
+                    <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-2 flex items-center gap-2">
+                      <Shield className="w-5 h-5" />
+                      Funções do Sistema
+                    </h4>
+                    <p className="text-sm text-purple-700 dark:text-purple-400 mb-3">
+                      Para alterar funções do sistema (Admin, Moderador), use a aba "Users" → Editar utilizador.
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge className={selectedUserForBadges.role === 'admin' ? 'bg-red-600' : 'bg-gray-400'}>
+                        {selectedUserForBadges.role === 'admin' ? '✓ Admin' : '✗ Não Admin'}
+                      </Badge>
+                      <Badge className={selectedUserForBadges.social_role === 'moderator' ? 'bg-blue-600' : 'bg-gray-400'}>
+                        {selectedUserForBadges.social_role === 'moderator' ? '✓ Moderador' : '✗ Não Moderador'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowBadgesDialog(false);
+                  setSelectedUserForBadges(null);
+                }}
+                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => updateUserBadgesMutation.mutate({
+                  userId: selectedUserForBadges?.id,
+                  badges: badgesFormData
+                })}
+                disabled={updateUserBadgesMutation.isPending}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              >
+                {updateUserBadgesMutation.isPending ? "A guardar..." : "Salvar Badges"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
