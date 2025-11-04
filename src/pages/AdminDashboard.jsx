@@ -63,6 +63,7 @@ import {
   Heart, // Used for adoption advocate badge
   Sparkles, // Added for badges section
   Award, // Added for custom badges
+  Upload, // Added for badge image upload
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -101,9 +102,11 @@ export default function AdminDashboard() {
     name: "",
     description: "",
     icon: "⭐",
+    image_url: "", // Added image_url
     rarity: "common",
     category: "special"
   });
+  const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false); // Added new state
 
   // Check if user is admin
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -394,9 +397,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleBadgeImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingBadgeImage(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setNewCustomBadge({
+        ...newCustomBadge,
+        image_url: file_url,
+        icon: "" // Clear emoji when image is uploaded
+      });
+      toast.success("Imagem carregada!");
+    } catch (error) {
+      console.error("Error uploading badge image:", error);
+      toast.error("Erro ao carregar imagem");
+    } finally {
+      setUploadingBadgeImage(false);
+    }
+  };
+
   const handleAddCustomBadge = () => {
     if (!newCustomBadge.name || !newCustomBadge.description) {
       toast.error("Preencha nome e descrição do badge");
+      return;
+    }
+
+    if (!newCustomBadge.image_url && !newCustomBadge.icon) {
+      toast.error("Adicione uma imagem ou emoji para o badge");
       return;
     }
 
@@ -419,6 +448,7 @@ export default function AdminDashboard() {
       name: "",
       description: "",
       icon: "⭐",
+      image_url: "", // Clear image_url on add
       rarity: "common",
       category: "special"
     });
@@ -1978,6 +2008,47 @@ export default function AdminDashboard() {
                   <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700">
                     <CardContent className="p-4">
                       <h4 className="font-bold text-sm mb-3">➕ Adicionar Novo Emblema</h4>
+                      
+                      {/* Image Upload Section */}
+                      <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700">
+                        <Label className="text-xs font-bold mb-2 block dark:text-gray-300">Imagem do Emblema (Recomendado)</Label>
+                        <div className="flex items-center gap-4">
+                          {newCustomBadge.image_url ? (
+                            <div className="relative">
+                              <img
+                                src={newCustomBadge.image_url}
+                                alt="Badge preview"
+                                className="w-20 h-20 rounded-xl object-cover border-2 border-purple-500 shadow-lg"
+                                style={{imageRendering: 'pixelated'}}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setNewCustomBadge({...newCustomBadge, image_url: ""})}
+                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-300 dark:border-gray-600">
+                              <Upload className="w-8 h-8 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleBadgeImageUpload}
+                              disabled={uploadingBadgeImage}
+                              className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {uploadingBadgeImage ? "A carregar imagem..." : "PNG, JPG ou SVG recomendado (tamanho ideal: 64x64 ou 80x80px)"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="grid md:grid-cols-2 gap-3 mb-3">
                         <div>
                           <Label className="text-xs dark:text-gray-300">Nome do Emblema</Label>
@@ -1989,13 +2060,14 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs dark:text-gray-300">Ícone (Emoji)</Label>
+                          <Label className="text-xs dark:text-gray-300">Ícone Emoji (Alternativa à imagem)</Label>
                           <Input
                             value={newCustomBadge.icon}
                             onChange={(e) => setNewCustomBadge({...newCustomBadge, icon: e.target.value})}
                             placeholder="⭐"
                             className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                             maxLength={2}
+                            disabled={!!newCustomBadge.image_url}
                           />
                         </div>
                         <div>
@@ -2047,6 +2119,7 @@ export default function AdminDashboard() {
                       <Button 
                         onClick={handleAddCustomBadge}
                         className="w-full bg-purple-600 hover:bg-purple-700 h-9 text-sm"
+                        disabled={uploadingBadgeImage}
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Adicionar Emblema
@@ -2067,7 +2140,16 @@ export default function AdminDashboard() {
                           <CardContent className="p-3">
                             <div className="flex items-start justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="text-2xl">{badge.icon}</span>
+                                {badge.image_url ? (
+                                  <img 
+                                    src={badge.image_url} 
+                                    alt={badge.name}
+                                    className="w-12 h-12 rounded-lg object-cover border-2 border-white dark:border-gray-800 shadow-md"
+                                    style={{imageRendering: 'pixelated'}}
+                                  />
+                                ) : (
+                                  <span className="text-3xl">{badge.icon}</span>
+                                )}
                                 <div>
                                   <h5 className="font-bold text-sm dark:text-gray-100">{badge.name}</h5>
                                   <p className="text-xs text-gray-600 dark:text-gray-400">{badge.description}</p>

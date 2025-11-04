@@ -607,11 +607,20 @@ function BadgeItem({ badge, idx, getBadgeImage }) {
         }`}
       >
         <div className={`${showTransparent ? 'bg-transparent' : 'bg-white/90'} backdrop-blur-sm rounded-xl p-2 border-2 ${showTransparent ? 'border-white/30' : 'border-white/50'}`}>
-          <img 
-            src={getBadgeImage('community', badge, showTransparent)} 
-            alt={badge.name} 
-            className="w-full h-20 mx-auto drop-shadow-xl"
-          />
+          {badge.image_url ? (
+            <img 
+              src={badge.image_url} 
+              alt={badge.name} 
+              className="w-full h-20 mx-auto drop-shadow-xl object-contain"
+              style={{imageRendering: 'pixelated'}}
+            />
+          ) : (
+            <img 
+              src={getBadgeImage('community', badge, showTransparent)} 
+              alt={badge.name} 
+              className="w-full h-20 mx-auto drop-shadow-xl"
+            />
+          )}
         </div>
         <p className="text-center text-xs font-black mt-2 truncate text-white drop-shadow-lg">
           {badge.name}
@@ -629,7 +638,16 @@ function BadgeItem({ badge, idx, getBadgeImage }) {
       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-30 animate-in fade-in slide-in-from-bottom-2">
         <div className="bg-gray-900 text-white rounded-xl p-4 shadow-2xl border-2 border-gray-700 min-w-[200px]">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">{badge.icon}</span>
+            {badge.image_url ? (
+              <img 
+                src={badge.image_url} 
+                alt={badge.name}
+                className="w-8 h-8 rounded object-contain"
+                style={{imageRendering: 'pixelated'}}
+              />
+            ) : (
+              <span className="text-2xl">{badge.icon}</span>
+            )}
             <p className="font-bold text-sm">{badge.name}</p>
           </div>
           <p className="text-xs text-gray-300 mb-2">{badge.description}</p>
