@@ -1,17 +1,17 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardHeader, CardTitle
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
+import {
   MapPin, Users, Heart, MessageCircle, ArrowLeft,
   Link as LinkIcon, CheckCircle, Dog, Calendar,
   Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star,
-  Target, Zap, Flame, Sparkles, ChevronRight // Added Target, Zap, Flame, Sparkles, ChevronRight
+  Target, Zap, Flame, Sparkles, ChevronRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress"; // Added Progress
+import { Progress } from "@/components/ui/progress";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -36,19 +36,31 @@ export default function UserProfile() {
     staleTime: 300000,
   });
 
+  // Redirect to own profile if no email provided
+  useEffect(() => {
+    if (!profileEmail && currentUser?.email) {
+      navigate(createPageUrl(`UserProfile?email=${currentUser.email}`), { replace: true });
+    }
+  }, [profileEmail, currentUser, navigate]);
+
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', profileEmail],
     queryFn: async () => {
+      if (!profileEmail) return null;
       const users = await base44.entities.User.list();
       const user = users.find(u => u.email === profileEmail);
+      if (!user) {
+        throw new Error("Usuário não encontrado");
+      }
       return user;
     },
     enabled: !!profileEmail,
+    retry: 1,
   });
 
   const { data: userPosts, isLoading: loadingPosts } = useQuery({
     queryKey: ['userPosts', profileEmail],
-    queryFn: () => base44.entities.SocialPost.filter({ 
+    queryFn: () => base44.entities.SocialPost.filter({
       author_email: profileEmail,
       moderation_status: 'approved'
     }, '-created_date'),
@@ -83,12 +95,22 @@ export default function UserProfile() {
     queryFn: async () => {
       const saved = await base44.entities.SocialSavedPost.filter({ user_email: currentUser?.email });
       const postIds = saved.map(s => s.post_id);
+      if (postIds.length === 0) return [];
       const allPosts = await base44.entities.SocialPost.list();
       return allPosts.filter(p => postIds.includes(p.id));
     },
     enabled: !!currentUser && profileEmail === currentUser?.email,
     initialData: [],
     staleTime: 60000,
+  });
+
+  const { data: earnedBadges } = useQuery({
+    queryKey: ['userBadges', profileEmail],
+    queryFn: async () => {
+      return profileUser?.public_badges || [];
+    },
+    enabled: !!profileUser,
+    initialData: [],
   });
 
   const followMutation = useMutation({
@@ -133,15 +155,16 @@ export default function UserProfile() {
   const xpNeeded = xpForNextLevel(currentLevel);
   const xpProgress = ((currentLevelXP % xpNeeded) / xpNeeded) * 100;
 
-  // Daily quests (simplified for profile)
+  // Daily quests
   const dailyQuests = [
     { id: 1, title: "Publicar 1 foto", reward: 50, icon: "📸", completed: (profileUser?.profile_stats?.total_posts || 0) > 0 },
-    { id: 2, title: "Dar 5 curtidas", reward: 25, icon: "❤️", completed: false }, // Placeholder, real logic would involve tracking likes given
+    { id: 2, title: "Dar 5 curtidas", reward: 25, icon: "❤️", completed: false },
     { id: 3, title: "Escrever 3 comentários", reward: 30, icon: "💬", completed: (profileUser?.profile_stats?.total_comments_made || 0) >= 3 },
-    { id: 4, title: "Visitar o Dog Connect", reward: 20, icon: "🔥", completed: true }, // Always true for simplicity
+    { id: 4, title: "Visitar o Dog Connect", reward: 20, icon: "🔥", completed: true },
   ];
 
-  if (loadingUser || !profileUser) {
+  // Loading state
+  if (loadingUser || !profileEmail) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
         <div className="max-w-6xl mx-auto">
@@ -151,9 +174,42 @@ export default function UserProfile() {
     );
   }
 
+  // Error state - user not found
+  if (!profileUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+        <div className="max-w-6xl mx-auto">
+          <Button
+            variant="outline"
+            className="mb-6"
+            onClick={() => navigate(createPageUrl('SocialFeed'))}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar ao Dog Connect
+          </Button>
+
+          <Card className="border-0 shadow-xl">
+            <CardContent className="p-12 text-center">
+              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Usuário não encontrado
+              </h3>
+              <p className="text-gray-600 mb-6">
+                O perfil que você procura não existe ou foi removido.
+              </p>
+              <Button onClick={() => navigate(createPageUrl('SocialFeed'))}>
+                Voltar ao Dog Connect
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const getBadges = () => {
     const badges = [];
-    
+
     if (profileUser.role === 'admin') {
       badges.push(
         <Badge key="admin" className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-lg">
@@ -162,7 +218,7 @@ export default function UserProfile() {
         </Badge>
       );
     }
-    
+
     if (profileUser.social_role === 'moderator') {
       badges.push(
         <Badge key="mod" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg">
@@ -171,7 +227,7 @@ export default function UserProfile() {
         </Badge>
       );
     }
-    
+
     if (profileUser.is_verified) {
       badges.push(
         <Badge key="verified" className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg">
@@ -180,7 +236,7 @@ export default function UserProfile() {
         </Badge>
       );
     }
-    
+
     if (profileUser.is_adoption_advocate) {
       badges.push(
         <Badge key="advocate" className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-lg">
@@ -189,7 +245,7 @@ export default function UserProfile() {
         </Badge>
       );
     }
-    
+
     return badges;
   };
 
@@ -213,15 +269,15 @@ export default function UserProfile() {
           {/* Cover Photo */}
           <div className="relative h-48 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600">
             {profileUser.cover_photo_url && (
-              <img 
-                src={profileUser.cover_photo_url} 
-                alt="Cover" 
+              <img
+                src={profileUser.cover_photo_url}
+                alt="Cover"
                 className="w-full h-full object-cover"
               />
             )}
             <div className="absolute inset-0 bg-black/10" />
           </div>
-          
+
           <CardContent className="relative px-6 md:px-8 pb-8">
             {/* Avatar */}
             <div className="flex flex-col md:flex-row gap-6 -mt-16 relative">
@@ -240,14 +296,14 @@ export default function UserProfile() {
                     </h1>
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       {getBadges()}
-                      
+
                       {/* Gamification Level Badge */}
                       <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg">
                         <Zap className="w-4 h-4 mr-1" />
                         Nível {currentLevel}
                       </Badge>
                     </div>
-                    
+
                     {/* Public Badges */}
                     {profileUser.public_badges && profileUser.public_badges.length > 0 && (
                       <div className="flex flex-wrap gap-2">
@@ -276,14 +332,17 @@ export default function UserProfile() {
                       <Button
                         onClick={() => followMutation.mutate(followData.isFollowing)}
                         disabled={followMutation.isPending}
-                        className={followData.isFollowing 
+                        className={followData.isFollowing
                           ? 'bg-gray-200 text-gray-900 hover:bg-gray-300'
                           : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
                         }
                       >
                         {followData.isFollowing ? 'Seguindo' : 'Seguir'}
                       </Button>
-                      <Button variant="outline">
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(createPageUrl(`Messages?user=${profileEmail}`))}
+                      >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Mensagem
                       </Button>
@@ -334,7 +393,7 @@ export default function UserProfile() {
                   {profileUser.bio && (
                     <p className="text-gray-700 leading-relaxed">{profileUser.bio}</p>
                   )}
-                  
+
                   {/* Favorite Breeds */}
                   {profileUser.favorite_dog_breeds && profileUser.favorite_dog_breeds.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
@@ -360,7 +419,7 @@ export default function UserProfile() {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Location & Links */}
                   <div className="flex flex-wrap gap-4 text-sm">
                     {profileUser.city && (
@@ -370,9 +429,9 @@ export default function UserProfile() {
                       </div>
                     )}
                     {profileUser.website && (
-                      <a 
-                        href={profileUser.website} 
-                        target="_blank" 
+                      <a
+                        href={profileUser.website}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 text-blue-600 hover:underline"
                       >
@@ -381,7 +440,7 @@ export default function UserProfile() {
                       </a>
                     )}
                     {profileUser.instagram_handle && (
-                      <a 
+                      <a
                         href={`https://instagram.com/${profileUser.instagram_handle.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -391,7 +450,7 @@ export default function UserProfile() {
                       </a>
                     )}
                     {profileUser.facebook_handle && (
-                      <a 
+                      <a
                         href={`https://facebook.com/${profileUser.facebook_handle.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -401,7 +460,7 @@ export default function UserProfile() {
                       </a>
                     )}
                     {profileUser.twitter_handle && (
-                      <a 
+                      <a
                         href={`https://twitter.com/${profileUser.twitter_handle.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -411,7 +470,7 @@ export default function UserProfile() {
                       </a>
                     )}
                     {profileUser.tiktok_handle && (
-                      <a 
+                      <a
                         href={`https://tiktok.com/@${profileUser.tiktok_handle.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -421,7 +480,7 @@ export default function UserProfile() {
                       </a>
                     )}
                     {profileUser.youtube_handle && (
-                      <a 
+                      <a
                         href={`https://youtube.com/@${profileUser.youtube_handle.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -445,8 +504,8 @@ export default function UserProfile() {
                       <CardContent className="p-4">
                         <div className="relative mb-3">
                           {dog.photo_url ? (
-                            <img 
-                              src={dog.photo_url} 
+                            <img
+                              src={dog.photo_url}
                               alt={dog.dog_name}
                               className="w-full h-32 object-cover rounded-xl"
                             />
@@ -478,7 +537,7 @@ export default function UserProfile() {
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-2 h-14 mb-6"> {/* grid-cols-5 for new tab */}
+          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-2 h-14 mb-6">
             <TabsTrigger value="posts" className="rounded-lg">
               <Grid className="w-4 h-4 mr-2" />
               Posts
@@ -546,7 +605,7 @@ export default function UserProfile() {
                             <MessageCircle className="w-16 h-16 text-gray-300" />
                           </div>
                         )}
-                        
+
                         {/* Overlay with stats */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-4">
                           <div className="flex gap-4 text-white w-full justify-between">
@@ -561,7 +620,7 @@ export default function UserProfile() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <CardContent className="p-4">
                         <p className="text-sm text-gray-700 line-clamp-2">{post.content}</p>
                         <p className="text-xs text-gray-500 mt-2">
@@ -598,9 +657,9 @@ export default function UserProfile() {
                       <div className="text-white/80 text-sm">Pontos Totais</div>
                     </div>
                   </div>
-                  
+
                   <Progress value={xpProgress} className="h-4 bg-white/20 mb-6" />
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
                       <div className="text-2xl font-bold">{(profileUser.public_badges?.length || 0)}</div>
