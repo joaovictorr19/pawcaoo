@@ -6,15 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Removed DialogTrigger as it's not used
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Store, Calendar, DollarSign, Package, TrendingUp,
   Clock, User, PawPrint, CheckCircle, X, AlertCircle,
   Bell, Phone, MapPin, Pill, MessageCircle, Send,
-  Shield, RefreshCw, Camera, Image as ImageIcon, // Renamed Image to ImageIcon to avoid conflict with HTML <img>
-  CalendarClock, FileText, Download, Upload
+  Shield, RefreshCw, Camera, Image as ImageIcon,
+  CalendarClock, FileText, Megaphone // Added Megaphone
 } from "lucide-react";
-import { motion } from "framer-motion"; // Removed AnimatePresence as it's not used for simple Dialog open/close
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,8 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select components
+import { Checkbox } from "@/components/ui/checkbox"; // Added Checkbox
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
@@ -39,6 +41,12 @@ export default function PartnerDashboard() {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [currentModalBooking, setCurrentModalBooking] = useState(null);
 
+  // NEW: Service and Announcement modals
+  const [showCreateServiceModal, setShowCreateServiceModal] = useState(false);
+  const [showCreateAnnouncementModal, setShowCreateAnnouncementModal] = useState(false);
+  const [showServicesListModal, setShowServicesListModal] = useState(false);
+  const [showAnnouncementsListModal, setShowAnnouncementsListModal] = useState(false);
+
   // Form states for Schedule Modal
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
@@ -51,6 +59,34 @@ export default function PartnerDashboard() {
   // Form states for Photos Modal
   const [beforePhotos, setBeforePhotos] = useState([]);
   const [afterPhotos, setAfterPhotos] = useState([]);
+
+  // NEW: Service form
+  const [newService, setNewService] = useState({
+    service_name: "",
+    service_type: "bath",
+    description: "",
+    duration_minutes: 60,
+    base_price: 0,
+    price_by_size: { small: 0, medium: 0, large: 0, extra_large: 0 },
+    includes: [],
+    is_emergency: false,
+    emergency_surcharge: 0,
+    available_days: [],
+    image_url: ""
+  });
+
+  // NEW: Announcement form
+  const [newAnnouncement, setNewAnnouncement] = useState({
+    title: "",
+    message: "",
+    promotion_type: "discount",
+    discount_percentage: 0,
+    target_subscription_tier: ["free", "basic", "premium", "vip"],
+    start_date: "",
+    end_date: "",
+    image_url: "",
+    is_featured: false
+  });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -111,6 +147,25 @@ export default function PartnerDashboard() {
     enabled: !!user,
     initialData: [],
   });
+
+  // NEW: Query for partner's own services (by partner_id)
+  const { data: myServices = [] } = useQuery({
+    queryKey: ['myPartnerServices', company?.id],
+    queryFn: () => base44.entities.PartnerService.filter({
+      partner_id: company?.id
+    }),
+    enabled: !!company,
+  });
+
+  // NEW: Query for partner's own announcements
+  const { data: myAnnouncements = [] } = useQuery({
+    queryKey: ['myAnnouncements', company?.id],
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({
+      company_id: company?.id
+    }),
+    enabled: !!company,
+  });
+
 
   const updateBookingMutation = useMutation({
     mutationFn: async ({ bookingId, status, additionalData }) => {
@@ -363,6 +418,124 @@ export default function PartnerDashboard() {
     }
   });
 
+  // NEW: Create Service Mutation
+  const createServiceMutation = useMutation({
+    mutationFn: async (serviceData) => {
+      return await base44.entities.PartnerService.create({
+        ...serviceData,
+        partner_id: company.id,
+        partner_name: company.company_name,
+        partner_company_email: company.company_email,
+        moderation_status: 'pending',
+        is_active: false
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] });
+      toast.success(language === 'pt' ? 'Serviço criado! Aguardando aprovação.' : 'Service created! Awaiting approval.');
+      setShowCreateServiceModal(false);
+      setNewService({
+        service_name: "",
+        service_type: "bath",
+        description: "",
+        duration_minutes: 60,
+        base_price: 0,
+        price_by_size: { small: 0, medium: 0, large: 0, extra_large: 0 },
+        includes: [],
+        is_emergency: false,
+        emergency_surcharge: 0,
+        available_days: [],
+        image_url: ""
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao criar serviço' : 'Failed to create service'));
+    }
+  });
+
+  // NEW: Create Announcement Mutation
+  const createAnnouncementMutation = useMutation({
+    mutationFn: async (announcementData) => {
+      return await base44.entities.CompanyAnnouncement.create({
+        ...announcementData,
+        company_id: company.id,
+        company_name: company.company_name,
+        company_email: company.company_email,
+        moderation_status: 'pending',
+        is_active: false
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] });
+      toast.success(language === 'pt' ? 'Anúncio criado! Aguardando aprovação.' : 'Announcement created! Awaiting approval.');
+      setShowCreateAnnouncementModal(false);
+      setNewAnnouncement({
+        title: "",
+        message: "",
+        promotion_type: "discount",
+        discount_percentage: 0,
+        target_subscription_tier: ["free", "basic", "premium", "vip"],
+        start_date: "",
+        end_date: "",
+        image_url: "",
+        is_featured: false
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao criar anúncio' : 'Failed to create announcement'));
+    }
+  });
+
+  // NEW: Upload Service Image Mutation
+  const uploadServiceImageMutation = useMutation({
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return file_url;
+    },
+    onSuccess: (url) => {
+      setNewService({ ...newService, image_url: url });
+      toast.success(language === 'pt' ? 'Imagem carregada!' : 'Image uploaded!');
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao carregar imagem do serviço' : 'Failed to upload service image'));
+    }
+  });
+
+  // NEW: Upload Announcement Image Mutation
+  const uploadAnnouncementImageMutation = useMutation({
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return file_url;
+    },
+    onSuccess: (url) => {
+      setNewAnnouncement({ ...newAnnouncement, image_url: url });
+      toast.success(language === 'pt' ? 'Imagem carregada!' : 'Image uploaded!');
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao carregar imagem do anúncio' : 'Failed to upload announcement image'));
+    }
+  });
+
+  const toggleInclude = (item) => {
+    const includes = newService.includes || [];
+    setNewService({
+      ...newService,
+      includes: includes.includes(item)
+        ? includes.filter(i => i !== item)
+        : [...includes, item]
+    });
+  };
+
+  const toggleDay = (day) => {
+    const days = newService.available_days || [];
+    setNewService({
+      ...newService,
+      available_days: days.includes(day)
+        ? days.filter(d => d !== day)
+        : [...days, day]
+    });
+  };
+
   const handleFileUpload = async (e, type) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -572,6 +745,42 @@ export default function PartnerDashboard() {
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* NEW: Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Button
+            onClick={() => setShowCreateServiceModal(true)}
+            className="bg-gradient-to-r from-blue-600 to-cyan-600 h-16 font-semibold"
+          >
+            <Package className="w-5 h-5 mr-2" />
+            {language === 'pt' ? 'Criar Serviço' : 'Create Service'}
+          </Button>
+          <Button
+            onClick={() => setShowCreateAnnouncementModal(true)}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 h-16 font-semibold"
+          >
+            <Megaphone className="w-5 h-5 mr-2" />
+            {language === 'pt' ? 'Criar Anúncio' : 'Create Ad'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowServicesListModal(true)}
+            className="border-blue-300 text-blue-600 h-16 font-semibold"
+          >
+            <Package className="w-5 h-5 mr-2" />
+            {language === 'pt' ? 'Meus Serviços' : 'My Services'}
+            <Badge className="ml-2 bg-blue-100 text-blue-600">{myServices.length}</Badge>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowAnnouncementsListModal(true)}
+            className="border-purple-300 text-purple-600 h-16 font-semibold"
+          >
+            <Megaphone className="w-5 h-5 mr-2" />
+            {language === 'pt' ? 'Meus Anúncios' : 'My Ads'}
+            <Badge className="ml-2 bg-purple-100 text-purple-600">{myAnnouncements.length}</Badge>
+          </Button>
         </div>
 
         {/* Bookings Tabs */}
@@ -1014,7 +1223,7 @@ export default function PartnerDashboard() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label className="mb-2 block">{language === 'pt' ? 'Fotos Antes' : 'Before Photos'}</Label>
+              <Label htmlFor="before_photos_upload" className="mb-2 block">{language === 'pt' ? 'Fotos Antes' : 'Before Photos'}</Label>
               <div className="grid grid-cols-3 gap-2 mb-2">
                 {beforePhotos.map((url, idx) => (
                   <img key={idx} src={url} alt={`Before ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
@@ -1029,7 +1238,7 @@ export default function PartnerDashboard() {
               />
             </div>
             <div>
-              <Label className="mb-2 block">{language === 'pt' ? 'Fotos Depois' : 'After Photos'}</Label>
+              <Label htmlFor="after_photos_upload" className="mb-2 block">{language === 'pt' ? 'Fotos Depois' : 'After Photos'}</Label>
               <div className="grid grid-cols-3 gap-2 mb-2">
                 {afterPhotos.map((url, idx) => (
                   <img key={idx} src={url} alt={`After ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
@@ -1077,6 +1286,393 @@ export default function PartnerDashboard() {
             >
               {saveNotesMutation.isPending ? (language === 'pt' ? 'Salvando...' : 'Saving...') : (language === 'pt' ? 'Salvar Notas' : 'Save Notes')}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Create Service Modal */}
+      <Dialog open={showCreateServiceModal} onOpenChange={setShowCreateServiceModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Package className="w-6 h-6 text-blue-600" />
+              {language === 'pt' ? 'Criar Novo Serviço' : 'Create New Service'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Nome do Serviço' : 'Service Name'} *</Label>
+                <Input
+                  value={newService.service_name}
+                  onChange={(e) => setNewService({ ...newService, service_name: e.target.value })}
+                  placeholder={language === 'pt' ? "Banho Completo" : "Complete Bath"}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Tipo de Serviço' : 'Service Type'} *</Label>
+                <Select
+                  value={newService.service_type}
+                  onValueChange={(value) => setNewService({ ...newService, service_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bath">🛁 Banho</SelectItem>
+                    <SelectItem value="grooming">✂️ Grooming</SelectItem>
+                    <SelectItem value="veterinary">🏥 Veterinário</SelectItem>
+                    <SelectItem value="vaccination">💉 Vacinação</SelectItem>
+                    <SelectItem value="checkup">🩺 Check-up</SelectItem>
+                    <SelectItem value="emergency">🚨 Emergência</SelectItem>
+                    <SelectItem value="daycare">🏠 Daycare</SelectItem>
+                    <SelectItem value="boarding">🛏️ Alojamento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Descrição' : 'Description'}</Label>
+              <Textarea
+                value={newService.description}
+                onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                rows={3}
+                placeholder={language === 'pt' ? "Descreva o serviço..." : "Describe the service..."}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Duração (minutos)' : 'Duration (minutes)'}</Label>
+                <Input
+                  type="number"
+                  value={newService.duration_minutes}
+                  onChange={(e) => setNewService({ ...newService, duration_minutes: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Preço Base (€)' : 'Base Price (€)'}</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={newService.base_price}
+                  onChange={(e) => setNewService({ ...newService, base_price: parseFloat(e.target.value) })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Preços por Tamanho (€)' : 'Prices by Size (€)'}</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {['small', 'medium', 'large', 'extra_large'].map(size => (
+                  <div key={size}>
+                    <Label className="text-xs capitalize">{size.replace('_', ' ')}</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={newService.price_by_size[size]}
+                      onChange={(e) => setNewService({
+                        ...newService,
+                        price_by_size: { ...newService.price_by_size, [size]: parseFloat(e.target.value) || 0 }
+                      })}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'O que está incluído?' : 'What\'s included?'}</Label>
+              <div className="flex flex-wrap gap-2">
+                {['Shampoo', 'Condicionador', 'Secagem', 'Corte de Unhas', 'Limpeza de Ouvidos', 'Escovagem'].map(item => (
+                  <label key={item} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={newService.includes?.includes(item)}
+                      onCheckedChange={() => toggleInclude(item)}
+                    />
+                    <span className="text-sm">{item}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+              <Checkbox
+                checked={newService.is_emergency}
+                onCheckedChange={(checked) => setNewService({ ...newService, is_emergency: checked })}
+              />
+              <div className="flex-1">
+                <Label className="text-orange-900">
+                  🚨 {language === 'pt' ? 'Serviço de Emergência 24/7' : 'Emergency Service 24/7'}
+                </Label>
+                {newService.is_emergency && (
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={newService.emergency_surcharge}
+                    onChange={(e) => setNewService({ ...newService, emergency_surcharge: parseFloat(e.target.value) })}
+                    placeholder={language === 'pt' ? "Taxa adicional (€)" : "Additional fee (€)"}
+                    className="mt-2"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Imagem do Serviço' : 'Service Image'}</Label>
+              {newService.image_url && (
+                <img src={newService.image_url} className="w-full h-32 object-cover rounded-lg mb-2" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadServiceImageMutation.mutate(file);
+                }}
+                disabled={uploadServiceImageMutation.isPending}
+              />
+            </div>
+
+            <Button
+              onClick={() => createServiceMutation.mutate(newService)}
+              disabled={createServiceMutation.isPending || !newService.service_name || !newService.base_price}
+              className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-bold"
+            >
+              {createServiceMutation.isPending ? (language === 'pt' ? 'Criando...' : 'Creating...') : (language === 'pt' ? 'Criar Serviço' : 'Create Service')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Create Announcement Modal */}
+      <Dialog open={showCreateAnnouncementModal} onOpenChange={setShowCreateAnnouncementModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Megaphone className="w-6 h-6 text-purple-600" />
+              {language === 'pt' ? 'Criar Novo Anúncio' : 'Create New Announcement'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Título' : 'Title'} *</Label>
+              <Input
+                value={newAnnouncement.title}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                placeholder={language === 'pt' ? "Super Desconto de Verão!" : "Summer Super Discount!"}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Mensagem' : 'Message'} *</Label>
+              <Textarea
+                value={newAnnouncement.message}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, message: e.target.value })}
+                rows={4}
+                placeholder={language === 'pt' ? "Descreva a promoção..." : "Describe the promotion..."}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Tipo de Promoção' : 'Promotion Type'}</Label>
+                <Select
+                  value={newAnnouncement.promotion_type}
+                  onValueChange={(value) => setNewAnnouncement({ ...newAnnouncement, promotion_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discount">🏷️ Desconto</SelectItem>
+                    <SelectItem value="flash_sale">⚡ Flash Sale</SelectItem>
+                    <SelectItem value="new_product">🆕 Novo Produto</SelectItem>
+                    <SelectItem value="points_bonus">⭐ Bónus Pontos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Desconto (%)' : 'Discount (%)'}</Label>
+                <Input
+                  type="number"
+                  value={newAnnouncement.discount_percentage}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, discount_percentage: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Data Início' : 'Start Date'} *</Label>
+                <Input
+                  type="date"
+                  value={newAnnouncement.start_date}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, start_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Data Fim' : 'End Date'} *</Label>
+                <Input
+                  type="date"
+                  value={newAnnouncement.end_date}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Imagem da Promoção' : 'Promotion Image'}</Label>
+              {newAnnouncement.image_url && (
+                <img src={newAnnouncement.image_url} className="w-full h-48 object-cover rounded-lg mb-2" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadAnnouncementImageMutation.mutate(file);
+                }}
+                disabled={uploadAnnouncementImageMutation.isPending}
+              />
+            </div>
+
+            <Button
+              onClick={() => createAnnouncementMutation.mutate(newAnnouncement)}
+              disabled={createAnnouncementMutation.isPending || !newAnnouncement.title || !newAnnouncement.start_date || !newAnnouncement.end_date}
+              className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-lg font-bold"
+            >
+              {createAnnouncementMutation.isPending ? (language === 'pt' ? 'Criando...' : 'Creating...') : (language === 'pt' ? 'Criar Anúncio' : 'Create Announcement')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Services List Modal */}
+      <Dialog open={showServicesListModal} onOpenChange={setShowServicesListModal}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Package className="w-6 h-6 text-blue-600" />
+              {language === 'pt' ? 'Meus Serviços' : 'My Services'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {myServices.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">{language === 'pt' ? 'Nenhum serviço criado' : 'No services created'}</p>
+              </div>
+            ) : (
+              myServices.map(service => (
+                <Card key={service.id} className={`border-2 ${
+                  service.moderation_status === 'approved' ? 'border-green-300 bg-green-50' :
+                  service.moderation_status === 'rejected' ? 'border-red-300 bg-red-50' :
+                  'border-yellow-300 bg-yellow-50'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-bold text-lg">{service.service_name}</h3>
+                          {service.is_emergency && (
+                            <Badge className="bg-orange-500 text-white">24/7</Badge>
+                          )}
+                        </div>
+                        <Badge className={
+                          service.moderation_status === 'approved' ? 'bg-green-600 text-white' :
+                          service.moderation_status === 'rejected' ? 'bg-red-600 text-white' :
+                          'bg-yellow-600 text-white'
+                        }>
+                          {service.moderation_status === 'approved' ? '✓ Aprovado' :
+                           service.moderation_status === 'rejected' ? '✗ Rejeitado' :
+                           '⏳ Pendente Aprovação'}
+                        </Badge>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-blue-600">€{service.base_price}</div>
+                        <div className="text-sm text-gray-600">{service.duration_minutes}min</div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700">{service.description}</p>
+                    {service.rejection_reason && (
+                      <div className="mt-3 bg-red-100 border border-red-300 rounded-lg p-3">
+                        <p className="text-sm text-red-800">
+                          <strong>{language === 'pt' ? 'Motivo da rejeição:' : 'Rejection reason:'}</strong> {service.rejection_reason}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Announcements List Modal */}
+      <Dialog open={showAnnouncementsListModal} onOpenChange={setShowAnnouncementsListModal}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Megaphone className="w-6 h-6 text-purple-600" />
+              {language === 'pt' ? 'Meus Anúncios' : 'My Announcements'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {myAnnouncements.length === 0 ? (
+              <div className="text-center py-12">
+                <Megaphone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">{language === 'pt' ? 'Nenhum anúncio criado' : 'No announcements created'}</p>
+              </div>
+            ) : (
+              myAnnouncements.map(announcement => (
+                <Card key={announcement.id} className={`border-2 ${
+                  announcement.moderation_status === 'approved' ? 'border-green-300 bg-green-50' :
+                  announcement.moderation_status === 'rejected' ? 'border-red-300 bg-red-50' :
+                  'border-yellow-300 bg-yellow-50'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {announcement.image_url && (
+                        <img src={announcement.image_url} className="w-24 h-24 object-cover rounded-lg" />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-bold text-lg">{announcement.title}</h3>
+                          {announcement.discount_percentage > 0 && (
+                            <Badge className="bg-red-500 text-white">-{announcement.discount_percentage}%</Badge>
+                          )}
+                        </div>
+                        <Badge className={
+                          announcement.moderation_status === 'approved' ? 'bg-green-600 text-white' :
+                          announcement.moderation_status === 'rejected' ? 'bg-red-600 text-white' :
+                          'bg-yellow-600 text-white'
+                        }>
+                          {announcement.moderation_status === 'approved' ? '✓ Aprovado' :
+                           announcement.moderation_status === 'rejected' ? '✗ Rejeitado' :
+                           '⏳ Pendente Aprovação'}
+                        </Badge>
+                        <p className="text-sm text-gray-700 mt-2">{announcement.message}</p>
+                        <div className="flex gap-3 text-xs text-gray-600 mt-2">
+                          <span>📅 {announcement.start_date} → {announcement.end_date}</span>
+                          <span>👁️ {announcement.views_count || 0} views</span>
+                          <span>🖱️ {announcement.clicks_count || 0} clicks</span>
+                        </div>
+                        {announcement.moderation_notes && (
+                          <div className="mt-3 bg-blue-100 border border-blue-300 rounded-lg p-3">
+                            <p className="text-sm text-blue-800">
+                              <strong>{language === 'pt' ? 'Notas do Admin:' : 'Admin Notes:'}</strong> {announcement.moderation_notes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
