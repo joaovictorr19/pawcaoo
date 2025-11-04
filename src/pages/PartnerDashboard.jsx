@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -91,6 +92,7 @@ export default function PartnerDashboard() {
         ...data,
         partner_id: company.id,
         partner_name: company.company_name,
+        partner_company_email: user.email,
         moderation_status: 'approved'
       });
     },
@@ -98,10 +100,11 @@ export default function PartnerDashboard() {
       queryClient.invalidateQueries(['partnerServices']);
       setShowServiceForm(false);
       setEditingService(null);
-      toast.success(editingService ? "Alterações enviadas para aprovação" : "Serviço criado com sucesso");
+      toast.success(editingService ? "Alterações enviadas para aprovação" : "✅ Serviço criado com sucesso!");
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao salvar serviço");
+      console.error("Error saving service:", error);
     }
   });
 
