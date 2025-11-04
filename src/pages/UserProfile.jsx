@@ -144,25 +144,64 @@ export default function UserProfile() {
     { id: 4, title: "Visitar Dog Connect", reward: 20, completed: true },
   ];
 
-  // Pixel Art Badge Generator
-  const getPixelBadge = (type) => {
+  // Pixel Art Badge Generator - Habbo Style
+  const getPixelBadge = (type, data = {}) => {
     const badges = {
-      admin: `data:image/svg+xml,%3Csvg width='48' height='48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='%23dc2626'/%3E%3Crect x='8' y='8' width='32' height='32' fill='%23991b1b'/%3E%3Crect x='12' y='12' width='24' height='24' fill='%23fca5a5'/%3E%3Crect x='16' y='16' width='16' height='16' fill='%23dc2626'/%3E%3Crect x='20' y='20' width='8' height='8' fill='%23fef2f2'/%3E%3C/svg%3E`,
-      moderator: `data:image/svg+xml,%3Csvg width='48' height='48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='%232563eb'/%3E%3Crect x='8' y='8' width='32' height='32' fill='%231e40af'/%3E%3Crect x='12' y='12' width='24' height='24' fill='%2393c5fd'/%3E%3Crect x='16' y='16' width='16' height='16' fill='%232563eb'/%3E%3Crect x='20' y='20' width='8' height='8' fill='%23eff6ff'/%3E%3C/svg%3E`,
-      verified: `data:image/svg+xml,%3Csvg width='48' height='48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='%2310b981'/%3E%3Crect x='8' y='8' width='32' height='32' fill='%23059669'/%3E%3Crect x='12' y='12' width='24' height='24' fill='%236ee7b7'/%3E%3Crect x='18' y='20' width='4' height='12' fill='%23fff'/%3E%3Crect x='22' y='16' width='4' height='8' fill='%23fff'/%3E%3C/svg%3E`,
-      adoption: `data:image/svg+xml,%3Csvg width='48' height='48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='%23ec4899'/%3E%3Crect x='8' y='8' width='32' height='32' fill='%23be185d'/%3E%3Crect x='12' y='12' width='24' height='24' fill='%23fbcfe8'/%3E%3Crect x='14' y='18' width='8' height='8' fill='%23ec4899'/%3E%3Crect x='26' y='18' width='8' height='8' fill='%23ec4899'/%3E%3Crect x='18' y='26' width='12' height='8' fill='%23ec4899'/%3E%3C/svg%3E`,
-      level: (level) => `data:image/svg+xml,%3Csvg width='48' height='48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='%23f59e0b'/%3E%3Crect x='8' y='8' width='32' height='32' fill='%23d97706'/%3E%3Crect x='12' y='12' width='24' height='24' fill='%23fef3c7'/%3E%3Ctext x='24' y='32' font-family='monospace' font-size='20' font-weight='bold' fill='%23f59e0b' text-anchor='middle'%3E${level}%3C/text%3E%3C/svg%3E`,
+      admin: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%23DC2626'/%3E%3Crect x='4' width='56' height='4' fill='%23FF6B6B'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23991B1B'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23991B1B'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FF6B6B'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FCA5A5'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EF4444'/%3E%3Cpath d='M24 20h16v4h-16z M28 24h8v8h-8z M24 32h4v4h-4z M36 32h4v4h-4z' fill='%23FEF2F2'/%3E%3Crect x='28' y='28' width='8' height='4' fill='%23FECACA'/%3E%3C/g%3E%3C/svg%3E`,
+      
+      moderator: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%232563EB'/%3E%3Crect x='4' width='56' height='4' fill='%2360A5FA'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%231E40AF'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%231E40AF'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2360A5FA'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%2393C5FD'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%233B82F6'/%3E%3Cpath d='M24 22h4v12h-4z M36 22h4v12h-4z M28 26h8v4h-8z M28 34h8v4h-8z' fill='%23DBEAFE'/%3E%3C/g%3E%3C/svg%3E`,
+      
+      verified: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%2310B981'/%3E%3Crect x='4' width='56' height='4' fill='%2334D399'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23059669'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23059669'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2334D399'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%236EE7B7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%2310B981'/%3E%3Cpath d='M24 28h4v8h-4z M28 24h4v12h-4z M32 20h4v16h-4z M36 24h4v8h-4z' fill='%23FFF'/%3E%3C/g%3E%3C/svg%3E`,
+      
+      adoption: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%23EC4899'/%3E%3Crect x='4' width='56' height='4' fill='%23F9A8D4'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23BE185D'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23BE185D'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23F9A8D4'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FBCFE8'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EC4899'/%3E%3Cpath d='M20 20h8v4h-8z M36 20h8v4h-8z M20 24h4v4h-4z M40 24h4v4h-4z M24 28h16v4h-16z M20 32h24v4h-20z M24 36h16v4h-16z' fill='%23FDF2F8'/%3E%3C/g%3E%3C/svg%3E`,
+      
+      level: (level) => {
+        const lvl = level || 1;
+        return `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%23F59E0B'/%3E%3Crect x='4' width='56' height='4' fill='%23FCD34D'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23D97706'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23D97706'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FCD34D'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FEF3C7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23FBBF24'/%3E%3Cpath d='M28 20h8v4h-8z M24 24h16v4h-16z M20 28h24v4h-24z M24 32h16v4h-16z M28 36h8v4h-8z' fill='%23FEF9C3'/%3E%3Ctext x='32' y='38' font-family='monospace' font-size='18' font-weight='bold' fill='%23713F12' text-anchor='middle'%3E${lvl}%3C/text%3E%3C/g%3E%3C/svg%3E`;
+      },
+      
       community: (badge) => {
+        const rarity = badge?.rarity || 'common';
+        const icon = badge?.icon || '⭐';
+        
         const colors = {
-          legendary: { bg: '#eab308', mid: '#ca8a04', light: '#fef9c3', text: '#713f12' },
-          epic: { bg: '#a855f7', mid: '#7c3aed', light: '#f3e8ff', text: '#581c87' },
-          rare: { bg: '#3b82f6', mid: '#1d4ed8', light: '#dbeafe', text: '#1e3a8a' },
-          common: { bg: '#6b7280', mid: '#4b5563', light: '#e5e7eb', text: '#1f2937' }
+          legendary: { 
+            main: '%23FBBF24', 
+            light: '%23FEF3C7', 
+            dark: '%23D97706',
+            glow: '%23FCD34D'
+          },
+          epic: { 
+            main: '%23A855F7', 
+            light: '%23F3E8FF', 
+            dark: '%237C3AED',
+            glow: '%23C084FC'
+          },
+          rare: { 
+            main: '%233B82F6', 
+            light: '%23DBEAFE', 
+            dark: '%231D4ED8',
+            glow: '%2393C5FD'
+          },
+          common: { 
+            main: '%236B7280', 
+            light: '%23E5E7EB', 
+            dark: '%234B5563',
+            glow: '%239CA3AF'
+          }
         };
-        const c = colors[badge.rarity] || colors.common;
-        return `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='64' height='64' fill='${encodeURIComponent(c.bg)}'/%3E%3Crect x='8' y='8' width='48' height='48' fill='${encodeURIComponent(c.mid)}'/%3E%3Crect x='12' y='12' width='40' height='40' fill='${encodeURIComponent(c.light)}'/%3E%3Ctext x='32' y='40' font-family='monospace' font-size='32' text-anchor='middle'%3E${badge.icon || '?'}%3C/text%3E%3C/svg%3E`;
+        
+        const c = colors[rarity];
+        
+        return `data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='80' height='80' fill='%23000' opacity='0.3' y='6'/%3E%3Crect width='80' height='68' fill='${c.main}'/%3E%3Crect x='6' width='68' height='6' fill='${c.glow}'/%3E%3Crect x='6' y='62' width='68' height='6' fill='${c.dark}'/%3E%3Crect x='68' y='6' width='6' height='56' fill='${c.dark}'/%3E%3Crect x='6' y='6' width='6' height='56' fill='${c.glow}'/%3E%3Crect x='16' y='16' width='48' height='36' fill='${c.light}'/%3E%3Crect x='20' y='20' width='40' height='28' fill='${c.main}'/%3E%3Cpath d='M28 24h24v4h-24z M24 28h32v4h-32z M20 32h40v4h-40z M24 36h32v4h-32z M28 40h24v4h-24z' fill='${c.glow}'/%3E%3Ctext x='40' y='46' font-size='28' text-anchor='middle'%3E${icon}%3C/text%3E%3C/g%3E%3C/svg%3E`;
       }
     };
+    
+    if (type === 'level') {
+      return badges.level(data);
+    } else if (type === 'community') {
+      return badges.community(data);
+    }
     return badges[type] || null;
   };
 
@@ -202,29 +241,69 @@ export default function UserProfile() {
     const badges = [];
     if (profileUser.role === 'admin') {
       badges.push(
-        <div key="admin" className="relative w-8 h-8">
-          <img src={getPixelBadge('admin')} alt="Admin" className="w-8 h-8 pixelated" style={{imageRendering: 'pixelated'}} />
+        <div key="admin" className="relative group cursor-pointer">
+          <img 
+            src={getPixelBadge('admin')} 
+            alt="Admin" 
+            className="w-12 h-12 hover:scale-110 transition-transform" 
+            style={{imageRendering: 'pixelated'}}
+          />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+              🛡️ Administrador
+            </div>
+          </div>
         </div>
       );
     }
     if (profileUser.social_role === 'moderator') {
       badges.push(
-        <div key="mod" className="relative w-8 h-8">
-          <img src={getPixelBadge('moderator')} alt="Moderator" className="w-8 h-8 pixelated" style={{imageRendering: 'pixelated'}} />
+        <div key="mod" className="relative group cursor-pointer">
+          <img 
+            src={getPixelBadge('moderator')} 
+            alt="Moderator" 
+            className="w-12 h-12 hover:scale-110 transition-transform" 
+            style={{imageRendering: 'pixelated'}}
+          />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+              🛡️ Moderador
+            </div>
+          </div>
         </div>
       );
     }
     if (profileUser.is_verified) {
       badges.push(
-        <div key="verified" className="relative w-8 h-8">
-          <img src={getPixelBadge('verified')} alt="Verificado" className="w-8 h-8 pixelated" style={{imageRendering: 'pixelated'}} />
+        <div key="verified" className="relative group cursor-pointer">
+          <img 
+            src={getPixelBadge('verified')} 
+            alt="Verificado" 
+            className="w-12 h-12 hover:scale-110 transition-transform" 
+            style={{imageRendering: 'pixelated'}}
+          />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+              ✓ Verificado
+            </div>
+          </div>
         </div>
       );
     }
     if (profileUser.is_adoption_advocate) {
       badges.push(
-        <div key="advocate" className="relative w-8 h-8">
-          <img src={getPixelBadge('adoption')} alt="Adoção" className="w-8 h-8 pixelated" style={{imageRendering: 'pixelated'}} />
+        <div key="advocate" className="relative group cursor-pointer">
+          <img 
+            src={getPixelBadge('adoption')} 
+            alt="Adoção" 
+            className="w-12 h-12 hover:scale-110 transition-transform" 
+            style={{imageRendering: 'pixelated'}}
+          />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+              💖 Defensor de Adoção
+            </div>
+          </div>
         </div>
       );
     }
@@ -260,17 +339,25 @@ export default function UserProfile() {
               <div className="flex-1 md:mt-16">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{profileUser.full_name}</h1>
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-3">{profileUser.full_name}</h1>
+                    
+                    {/* Badges Pixel Art */}
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
                       {getBadges()}
                       
-                      <div className="relative w-10 h-10">
+                      {/* Level Badge */}
+                      <div className="relative group cursor-pointer">
                         <img 
-                          src={getPixelBadge('level')(currentLevel)} 
+                          src={getPixelBadge('level', currentLevel)} 
                           alt={`Nível ${currentLevel}`} 
-                          className="w-10 h-10 pixelated" 
+                          className="w-14 h-14 hover:scale-110 transition-transform" 
                           style={{imageRendering: 'pixelated'}}
                         />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+                          <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+                            ⚡ Nível {currentLevel} • {currentLevelXP % xpNeeded}/{xpNeeded} XP
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -389,21 +476,22 @@ export default function UserProfile() {
             <div className="space-y-4">
               <Card className="bg-gradient-to-br from-purple-600 to-blue-600 text-white">
                 <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center overflow-hidden">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-20 h-20 bg-white/10 rounded-xl flex items-center justify-center p-2 backdrop-blur-sm border-2 border-white/20">
                       <img 
-                        src={getPixelBadge('level')(currentLevel)} 
+                        src={getPixelBadge('level', currentLevel)} 
                         alt={`Nível ${currentLevel}`} 
-                        className="w-16 h-16 pixelated"
+                        className="w-full h-full"
                         style={{imageRendering: 'pixelated'}}
                       />
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold">Nível {currentLevel}</h2>
-                      <p className="text-white/80 text-sm">{currentLevelXP % xpNeeded} / {xpNeeded} XP</p>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold mb-1">Nível {currentLevel}</h2>
+                      <p className="text-white/90 text-sm">{currentLevelXP % xpNeeded} / {xpNeeded} XP para próximo nível</p>
+                      <Progress value={xpProgress} className="h-3 bg-white/20 mt-2" />
                     </div>
                   </div>
-                  <Progress value={xpProgress} className="h-3 bg-white/20 mb-4" />
+                  
                   <div className="grid grid-cols-4 gap-2">
                     <div className="text-center p-2 bg-white/10 rounded">
                       <div className="text-lg font-bold">{profileUser?.public_badges?.length || 0}</div>
@@ -456,44 +544,78 @@ export default function UserProfile() {
           </TabsContent>
 
           <TabsContent value="badges">
-            <Card>
-              <CardHeader><CardTitle className="text-base">Coleção de Badges Pixel Art</CardTitle></CardHeader>
+            <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Award className="w-6 h-6 text-yellow-400" />
+                  Coleção de Badges - Estilo Habbo Hotel
+                </CardTitle>
+              </CardHeader>
               <CardContent>
                 {(!profileUser.public_badges || profileUser.public_badges.length === 0) ? (
-                  <div className="text-center py-8"><Award className="w-12 h-12 text-gray-300 mx-auto mb-3" /><p className="text-sm text-gray-600">Nenhuma badge</p></div>
+                  <div className="text-center py-12">
+                    <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-4 border-2 border-white/20">
+                      <Award className="w-12 h-12 text-gray-500" />
+                    </div>
+                    <p className="text-gray-400">Nenhuma badge conquistada</p>
+                    <p className="text-sm text-gray-500 mt-2">Participe da comunidade para ganhar badges!</p>
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {profileUser.public_badges.map((badge, idx) => (
                       <motion.div
                         key={idx}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.05 }}
+                        initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        transition={{ 
+                          delay: idx * 0.08,
+                          type: "spring",
+                          stiffness: 200
+                        }}
                         className="relative group"
                       >
-                        <div className={`p-3 bg-white rounded-xl border-4 ${
-                          badge.rarity === 'legendary' ? 'border-yellow-400' :
-                          badge.rarity === 'epic' ? 'border-purple-400' :
-                          badge.rarity === 'rare' ? 'border-blue-400' :
-                          'border-gray-300'
-                        } hover:scale-110 transition-transform cursor-pointer shadow-lg`}>
-                          <img 
-                            src={getPixelBadge('community')(badge)} 
-                            alt={badge.name} 
-                            className="w-full h-16 pixelated mx-auto"
-                            style={{imageRendering: 'pixelated'}}
-                          />
-                          <p className="text-center text-xs font-bold mt-2 truncate">{badge.name}</p>
+                        <div className={`p-2 bg-gradient-to-br rounded-2xl border-4 hover:scale-110 transition-all cursor-pointer shadow-2xl ${
+                          badge.rarity === 'legendary' ? 'from-yellow-400 to-orange-500 border-yellow-300 shadow-yellow-500/50' :
+                          badge.rarity === 'epic' ? 'from-purple-500 to-pink-500 border-purple-400 shadow-purple-500/50' :
+                          badge.rarity === 'rare' ? 'from-blue-400 to-cyan-500 border-blue-300 shadow-blue-500/50' :
+                          'from-gray-600 to-gray-700 border-gray-500 shadow-gray-500/50'
+                        }`}>
+                          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-2 border-2 border-white/50">
+                            <img 
+                              src={getPixelBadge('community', badge)} 
+                              alt={badge.name} 
+                              className="w-full h-16 mx-auto"
+                              style={{imageRendering: 'pixelated'}}
+                            />
+                          </div>
+                          <p className="text-center text-xs font-black mt-2 truncate text-white drop-shadow-lg">
+                            {badge.name}
+                          </p>
                         </div>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 whitespace-nowrap shadow-xl">
-                            <p className="font-bold">{badge.name}</p>
-                            <p className="text-gray-300">{badge.description}</p>
-                            {badge.earned_date && (
-                              <p className="text-gray-400 mt-1">
-                                {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
-                              </p>
-                            )}
+                        
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-30 animate-in fade-in slide-in-from-bottom-2">
+                          <div className="bg-gray-900 text-white rounded-xl p-4 shadow-2xl border-2 border-gray-700 min-w-[200px]">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl">{badge.icon}</span>
+                              <p className="font-bold text-sm">{badge.name}</p>
+                            </div>
+                            <p className="text-xs text-gray-300 mb-2">{badge.description}</p>
+                            <div className="flex items-center justify-between">
+                              <Badge className={`text-xs ${
+                                badge.rarity === 'legendary' ? 'bg-yellow-500' :
+                                badge.rarity === 'epic' ? 'bg-purple-500' :
+                                badge.rarity === 'rare' ? 'bg-blue-500' :
+                                'bg-gray-500'
+                              }`}>
+                                {badge.rarity?.toUpperCase()}
+                              </Badge>
+                              {badge.earned_date && (
+                                <p className="text-xs text-gray-400">
+                                  {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </motion.div>
