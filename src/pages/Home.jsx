@@ -121,27 +121,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      {/* Floating Animated Logo - Top Right Corner */}
-      <motion.div
-        className="fixed top-20 right-4 z-50 hidden md:block"
-        animate={{
-          y: [0, -20, 0],
-          rotate: [0, 10, -10, 0],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      >
-        <motion.div
-          whileHover={{ scale: 1.2, rotate: 360 }}
-          transition={{ duration: 0.6 }}
-        >
-          <PawCaoLogo size="default" animated={true} />
-        </motion.div>
-      </motion.div>
-
       {/* Hero Section - Enhanced with Logo */}
       <div className="relative overflow-hidden">
         {/* Animated Background Blobs */}
@@ -582,34 +561,6 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Bottom Floating Logo */}
-      <motion.div
-        className="fixed bottom-8 left-4 z-50 hidden lg:block"
-        animate={{
-          y: [0, 15, 0],
-          x: [0, 10, 0],
-          rotate: [0, -5, 5, 0]
-        }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1
-        }}
-      >
-        <motion.div
-          whileHover={{ 
-            scale: 1.3,
-            rotate: 180,
-            transition: { duration: 0.4 }
-          }}
-          whileTap={{ scale: 0.9 }}
-          className="cursor-pointer"
-        >
-          <PawCaoLogo size="default" animated={true} />
-        </motion.div>
-      </motion.div>
     </div>
   );
 }
