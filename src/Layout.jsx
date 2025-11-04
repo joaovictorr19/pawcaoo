@@ -84,7 +84,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: "🐾 Comunidade", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "📸 Rede Social", url: createPageUrl("SocialFeed"), icon: Camera },
-    { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar }, // Added item
+    { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar }, 
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -236,7 +236,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(0, 8).map((item) => ( {/* Changed slice to (0, 8) to include new item */}
+                  {allNavigationItems.slice(0, 8).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -263,7 +263,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(8, 16).map((item) => ( {/* Changed slice to (8, 16) */}
+                  {allNavigationItems.slice(8, 16).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -291,7 +291,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(16, 22).map((item) => ( {/* Changed slice to (16, 22) */}
+                  {allNavigationItems.slice(16, 22).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -310,12 +310,12 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {allNavigationItems.length > 22 && ( {/* Changed condition to > 22 */}
+            {allNavigationItems.length > 22 && ( 
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(22).map((item) => ( {/* Changed slice to (22) */}
+                    {allNavigationItems.slice(22).map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
