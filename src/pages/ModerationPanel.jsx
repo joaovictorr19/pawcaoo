@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Shield, AlertTriangle, CheckCircle, X, Flag, Ban,
-  MessageCircle, Users, TrendingUp, Eye, Clock
+  MessageCircle, Users, TrendingUp, Eye, Clock, Heart, Star, ShieldCheck
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -26,8 +27,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function ModerationPanel() {
   const queryClient = useQueryClient();
   const [selectedReport, setSelectedReport] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [moderationNotes, setModerationNotes] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [showBadgeDialog, setShowBadgeDialog] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -55,6 +58,26 @@ export default function ModerationPanel() {
     queryFn: () => base44.entities.SocialPost.filter({ moderation_status: 'flagged' }),
     enabled: isModeratorOrAdmin,
     initialData: [],
+  });
+
+  const { data: allPosts } = useQuery({
+    queryKey: ['allPostsForModeration'],
+    queryFn: () => base44.entities.SocialPost.list('-created_date'),
+    enabled: isModeratorOrAdmin,
+    initialData: [],
+  });
+
+  const updateBadgesMutation = useMutation({
+    mutationFn: async ({ postId, badges }) => {
+      return base44.entities.SocialPost.update(postId, badges);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allPostsForModeration']);
+      queryClient.invalidateQueries(['socialPosts']);
+      setShowBadgeDialog(false);
+      setSelectedPost(null);
+      toast.success("Badges atualizados!");
+    },
   });
 
   const moderateReportMutation = useMutation({
@@ -142,7 +165,7 @@ export default function ModerationPanel() {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14">
+          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-2 h-14">
             <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-orange-600 data-[state=active]:text-white">
               <Flag className="w-4 h-4 mr-2" />
               Pendentes ({pendingReports.length})
@@ -154,6 +177,10 @@ export default function ModerationPanel() {
             <TabsTrigger value="flagged" className="rounded-lg data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
               <AlertTriangle className="w-4 h-4 mr-2" />
               Posts Sinalizados ({flaggedPosts.length})
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <Shield className="w-4 h-4 mr-2" />
+              Gerir Badges
             </TabsTrigger>
           </TabsList>
 
@@ -320,6 +347,129 @@ export default function ModerationPanel() {
               ))
             )}
           </TabsContent>
+
+          {/* Badges Management Tab */}
+          <TabsContent value="badges" className="space-y-4">
+            <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-purple-50 to-blue-50">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Tipos de Badges Disponíveis</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-white rounded-xl border-2 border-blue-200">
+                    <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg mb-2">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      VERIFICADO
+                    </Badge>
+                    <p className="text-xs text-gray-600">Para usuários verificados</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border-2 border-green-200">
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg mb-2">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      CÃO VERIFICADO
+                    </Badge>
+                    <p className="text-xs text-gray-600">Para cães verificados</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border-2 border-red-200">
+                    <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-lg mb-2">
+                      <Shield className="w-3 h-3 mr-1" />
+                      ADMIN
+                    </Badge>
+                    <p className="text-xs text-gray-600">Para administradores</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border-2 border-cyan-200">
+                    <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg mb-2">
+                      <ShieldCheck className="w-3 h-3 mr-1" />
+                      MODERADOR
+                    </Badge>
+                    <p className="text-xs text-gray-600">Para moderadores</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border-2 border-pink-200">
+                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-lg mb-2">
+                      <Heart className="w-3 h-3 mr-1" />
+                      DEFENSOR DE ADOÇÃO
+                    </Badge>
+                    <p className="text-xs text-gray-600">Para defensores de adoção</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border-2 border-orange-200">
+                    <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg mb-2">
+                      <Star className="w-3 h-3 mr-1" />
+                      ANÚNCIO VERIFICADO
+                    </Badge>
+                    <p className="text-xs text-gray-600">Para anúncios oficiais</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Posts Recentes</h3>
+            <div className="grid gap-4">
+              {allPosts.slice(0, 10).map((post) => (
+                <Card key={post.id} className="border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={post.author_photo_url} />
+                            <AvatarFallback className="bg-purple-600 text-white">
+                              {post.author_name?.[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h4 className="font-bold text-gray-900">{post.author_name}</h4>
+                            <p className="text-xs text-gray-600">
+                              {format(new Date(post.created_date), "d 'de' MMMM", { locale: ptBR })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {post.is_verified_user && (
+                            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              VERIFICADO
+                            </Badge>
+                          )}
+                          {post.is_verified_dog && (
+                            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              CÃO VERIFICADO
+                            </Badge>
+                          )}
+                          {post.is_adoption_advocate && (
+                            <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
+                              <Heart className="w-3 h-3 mr-1" />
+                              DEFENSOR DE ADOÇÃO
+                            </Badge>
+                          )}
+                          {post.is_verified_announcement && (
+                            <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+                              <Star className="w-3 h-3 mr-1" />
+                              ANÚNCIO VERIFICADO
+                            </Badge>
+                          )}
+                        </div>
+
+                        <p className="text-gray-700 mb-2 line-clamp-2">{post.content}</p>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setShowBadgeDialog(true);
+                        }}
+                        className="ml-4"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Gerir Badges
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
         </Tabs>
 
         {/* Moderation Dialog */}
@@ -426,6 +576,118 @@ export default function ModerationPanel() {
                 }}
               >
                 Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Badge Management Dialog */}
+        <Dialog open={showBadgeDialog} onOpenChange={setShowBadgeDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Gerir Badges - {selectedPost?.author_name}</DialogTitle>
+            </DialogHeader>
+
+            {selectedPost && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="font-semibold text-gray-900 mb-2">{selectedPost.content}</p>
+                  <p className="text-sm text-gray-600">
+                    Por: {selectedPost.author_name} • {format(new Date(selectedPost.created_date), "d 'de' MMMM", { locale: ptBR })}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-3 p-4 bg-white border-2 border-blue-200 rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedPost.is_verified_user || false}
+                      onChange={(e) => setSelectedPost({...selectedPost, is_verified_user: e.target.checked})}
+                      className="w-5 h-5"
+                    />
+                    <div>
+                      <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 mb-1">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        VERIFICADO
+                      </Badge>
+                      <p className="text-xs text-gray-600">Usuário verificado</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-4 bg-white border-2 border-green-200 rounded-xl cursor-pointer hover:bg-green-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedPost.is_verified_dog || false}
+                      onChange={(e) => setSelectedPost({...selectedPost, is_verified_dog: e.target.checked})}
+                      className="w-5 h-5"
+                    />
+                    <div>
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 mb-1">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        CÃO VERIFICADO
+                      </Badge>
+                      <p className="text-xs text-gray-600">Cão verificado</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-4 bg-white border-2 border-pink-200 rounded-xl cursor-pointer hover:bg-pink-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedPost.is_adoption_advocate || false}
+                      onChange={(e) => setSelectedPost({...selectedPost, is_adoption_advocate: e.target.checked})}
+                      className="w-5 h-5"
+                    />
+                    <div>
+                      <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 mb-1">
+                        <Heart className="w-3 h-3 mr-1" />
+                        DEFENSOR DE ADOÇÃO
+                      </Badge>
+                      <p className="text-xs text-gray-600">Defensor de adoção</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-4 bg-white border-2 border-orange-200 rounded-xl cursor-pointer hover:bg-orange-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedPost.is_verified_announcement || false}
+                      onChange={(e) => setSelectedPost({...selectedPost, is_verified_announcement: e.target.checked})}
+                      className="w-5 h-5"
+                    />
+                    <div>
+                      <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 mb-1">
+                        <Star className="w-3 h-3 mr-1" />
+                        ANÚNCIO VERIFICADO
+                      </Badge>
+                      <p className="text-xs text-gray-600">Anúncio oficial</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowBadgeDialog(false);
+                  setSelectedPost(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => updateBadgesMutation.mutate({
+                  postId: selectedPost?.id,
+                  badges: {
+                    is_verified_user: selectedPost?.is_verified_user || false,
+                    is_verified_dog: selectedPost?.is_verified_dog || false,
+                    is_adoption_advocate: selectedPost?.is_adoption_advocate || false,
+                    is_verified_announcement: selectedPost?.is_verified_announcement || false,
+                  }
+                })}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Salvar Badges
               </Button>
             </DialogFooter>
           </DialogContent>
