@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  MapPin, Users, Calendar, Heart, MessageCircle, 
-  UserPlus, UserCheck, Grid, Bookmark, Shield, ArrowLeft
+  MapPin, Users, Heart, MessageCircle, 
+  UserPlus, UserCheck, Grid, Bookmark, Shield, ArrowLeft,
+  Link as LinkIcon, CheckCircle, Instagram
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -17,12 +18,20 @@ import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function UserProfile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmail = urlParams.get('email');
+  const [showFollowersDialog, setShowFollowersDialog] = useState(false);
+  const [showFollowingDialog, setShowFollowingDialog] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -58,8 +67,8 @@ export default function UserProfile() {
   const { data: followData } = useQuery({
     queryKey: ['followData', profileEmail],
     queryFn: async () => {
-      const followers = await base44.entities.SocialFollow.filter({ following_email: profileEmail });
-      const following = await base44.entities.SocialFollow.filter({ follower_email: profileEmail });
+      const followers = await base44.entities.SocialFollow.filter({ following_email: profileEmail, status: 'accepted' });
+      const following = await base44.entities.SocialFollow.filter({ follower_email: profileEmail, status: 'accepted' });
       const isFollowing = followers.some(f => f.follower_email === currentUser?.email);
       return { followers, following, isFollowing };
     },
@@ -81,7 +90,13 @@ export default function UserProfile() {
     mutationFn: async (isFollowing) => {
       if (isFollowing) {
         const follow = followData.followers.find(f => f.follower_email === currentUser.email);
-        if (follow) await base44.entities.SocialFollow.delete(follow.id);
+        if (follow) {
+          await base44.entities.SocialFollow.delete(follow.id);
+          // Update counts
+          await base44.entities.User.update(profileUser.id, {
+            followers_count: Math.max(0, (profileUser.followers_count || 0) - 1)
+          });
+        }
       } else {
         await base44.entities.SocialFollow.create({
           follower_email: currentUser.email,
@@ -91,10 +106,25 @@ export default function UserProfile() {
           following_name: profileUser.full_name,
           status: 'accepted'
         });
+        // Update counts
+        await base44.entities.User.update(profileUser.id, {
+          followers_count: (profileUser.followers_count || 0) + 1
+        });
+
+        // Create notification
+        await base44.entities.SocialNotification.create({
+          recipient_email: profileEmail,
+          sender_email: currentUser.email,
+          sender_name: currentUser.full_name,
+          sender_photo_url: currentUser.profile_photo_url,
+          notification_type: 'new_follower',
+          related_content_type: 'user'
+        });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['followData']);
+      queryClient.invalidateQueries(['profileUser']);
       toast.success(followData.isFollowing ? "Deixou de seguir" : "Agora você segue este usuário!");
     },
   });
@@ -106,7 +136,6 @@ export default function UserProfile() {
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-6">
         <div className="max-w-5xl mx-auto">
           <Skeleton className="h-64 w-full rounded-2xl mb-6" />
-          <Skeleton className="h-96 w-full rounded-2xl" />
         </div>
       </div>
     );
@@ -114,6 +143,24 @@ export default function UserProfile() {
 
   const getRoleBadge = () => {
     const role = profileUser.social_role || profileUser.role;
+    
+    if (profileUser.is_verified) {
+      return (
+        <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          VERIFICADO
+        </Badge>
+      );
+    }
+    
+    if (profileUser.is_adoption_advocate) {
+      return (
+        <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-lg">
+          <Heart className="w-3 h-3 mr-1" />
+          DEFENSOR DE ADOÇÃO
+        </Badge>
+      );
+    }
     
     if (role === 'admin') {
       return (
@@ -136,178 +183,227 @@ export default function UserProfile() {
     return null;
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50">
-      <div className="max-w-5xl mx-auto px-4 md:px-6 py-6">
-        <Button
-          variant="outline"
-          className="mb-6 border-purple-200 hover:bg-purple-50"
-          onClick={() => navigate(createPageUrl('SocialFeed'))}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar ao Feed
-        </Button>
+  const getPetIcon = (petType) => {
+    const icons = {
+      dog: "🐕",
+      cat: "🐱",
+      bird: "🦜",
+      rabbit: "🐰",
+      hamster: "🐹",
+      guinea_pig: "🐹",
+      turtle: "🐢",
+      fish: "🐠",
+      other: "🐾"
+    };
+    return icons[petType] || "🐾";
+  };
 
-        {/* Profile Header */}
-        <Card className="border-0 shadow-2xl mb-6 bg-gradient-to-br from-white to-purple-50">
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <Avatar className="w-32 h-32 border-4 border-purple-200 shadow-xl">
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto">
+        {/* Header - Instagram Style */}
+        <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(createPageUrl('SocialFeed'))}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="font-semibold text-gray-900">{profileUser.full_name}</h2>
+            <div className="w-10" />
+          </div>
+        </div>
+
+        {/* Profile Header - Instagram Style */}
+        <div className="px-4 py-8">
+          <div className="flex items-start gap-8 mb-6">
+            {/* Avatar */}
+            <div className="flex-shrink-0">
+              <Avatar className="w-32 h-32 border border-gray-200">
                 <AvatarImage src={profileUser.profile_photo_url} />
                 <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-4xl font-bold">
                   {profileUser.full_name?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+            </div>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    {profileUser.full_name}
-                  </h1>
-                  {getRoleBadge()}
-                </div>
-
-                <div className="flex items-center gap-2 text-gray-600 mb-4">
-                  <MapPin className="w-4 h-4" />
-                  <span>{profileUser.city || 'Localização não informada'}</span>
-                </div>
-
-                <div className="flex gap-6 mb-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{userPosts.length}</div>
-                    <div className="text-sm text-gray-600">Posts</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{followData.followers.length}</div>
-                    <div className="text-sm text-gray-600">Seguidores</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{followData.following.length}</div>
-                    <div className="text-sm text-gray-600">Seguindo</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{userDogs.length}</div>
-                    <div className="text-sm text-gray-600">Pets</div>
-                  </div>
-                </div>
-
-                {!isOwnProfile && (
-                  <div className="flex gap-3">
+            {/* Stats & Actions */}
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <h1 className="text-xl font-normal text-gray-900">
+                  {profileUser.full_name}
+                </h1>
+                
+                {!isOwnProfile ? (
+                  <>
                     <Button
                       onClick={() => followMutation.mutate(followData.isFollowing)}
-                      className={`${
-                        followData.isFollowing
-                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          : 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700'
-                      } rounded-xl shadow-lg`}
+                      size="sm"
+                      className={followData.isFollowing 
+                        ? 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-semibold'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white font-semibold'
+                      }
                     >
-                      {followData.isFollowing ? (
-                        <>
-                          <UserCheck className="w-4 h-4 mr-2" />
-                          Seguindo
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Seguir
-                        </>
-                      )}
+                      {followData.isFollowing ? 'Seguindo' : 'Seguir'}
                     </Button>
                     <Button
+                      size="sm"
                       variant="outline"
-                      className="rounded-xl border-2 border-purple-300 hover:bg-purple-50"
+                      className="font-semibold"
                     >
-                      <MessageCircle className="w-4 h-4 mr-2" />
                       Mensagem
                     </Button>
-                  </div>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl('MyProfile'))}
+                    className="font-semibold"
+                  >
+                    Editar perfil
+                  </Button>
                 )}
 
-                {isOwnProfile && (
-                  <Button
-                    onClick={() => navigate(createPageUrl('MyProfile'))}
-                    className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl shadow-lg"
+                {getRoleBadge()}
+              </div>
+
+              {/* Stats */}
+              <div className="flex gap-10 mb-4">
+                <div>
+                  <span className="font-semibold text-gray-900">{userPosts.length}</span>
+                  <span className="text-gray-900 ml-1">publicações</span>
+                </div>
+                <button
+                  onClick={() => setShowFollowersDialog(true)}
+                  className="hover:opacity-70"
+                >
+                  <span className="font-semibold text-gray-900">{profileUser.followers_count || followData.followers.length}</span>
+                  <span className="text-gray-900 ml-1">seguidores</span>
+                </button>
+                <button
+                  onClick={() => setShowFollowingDialog(true)}
+                  className="hover:opacity-70"
+                >
+                  <span className="font-semibold text-gray-900">{profileUser.following_count || followData.following.length}</span>
+                  <span className="text-gray-900 ml-1">seguindo</span>
+                </button>
+              </div>
+
+              {/* Bio */}
+              <div className="space-y-1">
+                <p className="font-semibold text-gray-900">{profileUser.full_name}</p>
+                {profileUser.bio && (
+                  <p className="text-gray-900 whitespace-pre-wrap">{profileUser.bio}</p>
+                )}
+                {profileUser.city && (
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">{profileUser.city}</span>
+                  </div>
+                )}
+                {profileUser.website && (
+                  <a 
+                    href={profileUser.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-semibold"
                   >
-                    Editar Perfil
-                  </Button>
+                    <LinkIcon className="w-4 h-4" />
+                    {profileUser.website.replace(/^https?:\/\//, '')}
+                  </a>
+                )}
+                {profileUser.instagram_handle && (
+                  <a 
+                    href={`https://instagram.com/${profileUser.instagram_handle.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm font-semibold"
+                  >
+                    <Instagram className="w-4 h-4" />
+                    @{profileUser.instagram_handle.replace('@', '')}
+                  </a>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Dogs Section */}
-            {userDogs.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-purple-100">
-                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  🐾 Pets de {isOwnProfile ? 'você' : profileUser.full_name?.split(' ')[0]}
-                </h3>
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {userDogs.map(dog => (
-                    <div key={dog.id} className="flex-shrink-0">
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-200 shadow-lg">
-                        {dog.photo_url ? (
-                          <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+          {/* Pets Highlights - Instagram Story Style */}
+          {userDogs.length > 0 && (
+            <div className="mb-8">
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {userDogs.map(pet => (
+                  <div key={pet.id} className="flex-shrink-0 text-center">
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200 mb-2">
+                        {pet.photo_url ? (
+                          <img src={pet.photo_url} alt={pet.dog_name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-2xl">
-                            🐕
+                          <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-3xl">
+                            {getPetIcon(pet.pet_type)}
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-center mt-1 font-semibold text-gray-700">{dog.dog_name}</p>
+                      {pet.is_adopted && (
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white">
+                          <Heart className="w-3 h-3 text-white fill-white" />
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <p className="text-xs font-normal text-gray-900 truncate w-20">
+                      {pet.dog_name}
+                    </p>
+                  </div>
+                ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </div>
 
-        {/* Tabs */}
+        {/* Tabs - Instagram Style */}
         <Tabs defaultValue="posts" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl h-14 p-2">
-            <TabsTrigger value="posts" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
-              <Grid className="w-5 h-5 mr-2" />
-              <span className="font-bold">Posts</span>
+          <TabsList className="w-full grid grid-cols-2 border-t border-gray-200 bg-white h-auto p-0">
+            <TabsTrigger 
+              value="posts" 
+              className="data-[state=active]:border-t data-[state=active]:border-t-black border-t border-t-transparent h-14 rounded-none"
+            >
+              <Grid className="w-6 h-6" />
             </TabsTrigger>
             {isOwnProfile && (
-              <TabsTrigger value="saved" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
-                <Bookmark className="w-5 h-5 mr-2" />
-                <span className="font-bold">Salvos</span>
+              <TabsTrigger 
+                value="saved" 
+                className="data-[state=active]:border-t data-[state=active]:border-t-black border-t border-t-transparent h-14 rounded-none"
+              >
+                <Bookmark className="w-6 h-6" />
               </TabsTrigger>
             )}
           </TabsList>
 
           {/* Posts Grid */}
-          <TabsContent value="posts" className="mt-6">
+          <TabsContent value="posts" className="mt-0">
             {loadingPosts ? (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1">
                 {[1,2,3,4,5,6].map(i => (
-                  <Skeleton key={i} className="aspect-square rounded-xl" />
+                  <Skeleton key={i} className="aspect-square" />
                 ))}
               </div>
             ) : userPosts.length === 0 ? (
-              <Card className="border-0 shadow-xl">
-                <CardContent className="p-12 text-center">
-                  <Grid className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {isOwnProfile ? 'Você ainda não publicou nada' : 'Nenhum post ainda'}
-                  </h3>
-                  <p className="text-gray-600">
-                    {isOwnProfile && 'Compartilhe momentos especiais do seu pet!'}
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="py-24 text-center">
+                <div className="w-16 h-16 border-2 border-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Grid className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-light text-gray-900 mb-1">
+                  Sem publicações ainda
+                </h3>
+              </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {userPosts.map((post, idx) => (
-                  <motion.div
+              <div className="grid grid-cols-3 gap-1">
+                {userPosts.map((post) => (
+                  <div
                     key={post.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="aspect-square relative group cursor-pointer overflow-hidden rounded-xl"
-                    onClick={() => {
-                      // Navigate to post details or open modal
-                    }}
+                    className="aspect-square relative group cursor-pointer overflow-hidden bg-gray-100"
                   >
                     {post.media_urls?.[0] ? (
                       <img
@@ -320,24 +416,26 @@ export default function UserProfile() {
                         <span className="text-4xl">📝</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="flex gap-4 text-white">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-5 h-5 fill-white" />
-                          <span className="font-bold">{post.likes_count || 0}</span>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="flex gap-6 text-white">
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-6 h-6 fill-white" />
+                          <span className="font-semibold">{post.likes_count || 0}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageCircle className="w-5 h-5" />
-                          <span className="font-bold">{post.comments_count || 0}</span>
+                        <div className="flex items-center gap-2">
+                          <MessageCircle className="w-6 h-6 fill-white" />
+                          <span className="font-semibold">{post.comments_count || 0}</span>
                         </div>
                       </div>
                     </div>
                     {post.media_urls?.length > 1 && (
-                      <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-lg text-xs font-bold">
-                        📷 {post.media_urls.length}
+                      <div className="absolute top-2 right-2">
+                        <div className="w-6 h-6 bg-black/60 rounded-sm flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">▢</span>
+                        </div>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}
@@ -345,37 +443,110 @@ export default function UserProfile() {
 
           {/* Saved Posts */}
           {isOwnProfile && (
-            <TabsContent value="saved" className="mt-6">
+            <TabsContent value="saved" className="mt-0">
               {savedPosts.length === 0 ? (
-                <Card className="border-0 shadow-xl">
-                  <CardContent className="p-12 text-center">
-                    <Bookmark className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      Nenhum post salvo
-                    </h3>
-                    <p className="text-gray-600">
-                      Salve posts que você gosta para ver mais tarde
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="py-24 text-center">
+                  <div className="w-16 h-16 border-2 border-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bookmark className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-light text-gray-900 mb-1">
+                    Guardar
+                  </h3>
+                  <p className="text-gray-600">
+                    Guarde fotos e vídeos que queira ver novamente
+                  </p>
+                </div>
               ) : (
-                <div className="grid grid-cols-3 gap-2">
-                  {savedPosts.map((saved, idx) => (
-                    <motion.div
-                      key={saved.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="aspect-square bg-gray-200 rounded-xl"
-                    >
-                      {/* Load post details here */}
-                    </motion.div>
-                  ))}
+                <div className="grid grid-cols-3 gap-1">
+                  {/* Render saved posts grid */}
                 </div>
               )}
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Followers Dialog */}
+        <Dialog open={showFollowersDialog} onOpenChange={setShowFollowersDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Seguidores</DialogTitle>
+            </DialogHeader>
+            <div className="max-h-96 overflow-y-auto">
+              {followData.followers.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Nenhum seguidor ainda</p>
+              ) : (
+                <div className="space-y-3">
+                  {followData.followers.map((follower) => (
+                    <div key={follower.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-11 h-11">
+                          <AvatarImage src={follower.follower_photo_url} />
+                          <AvatarFallback className="bg-gray-200">
+                            {follower.follower_name?.[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-sm text-gray-900">
+                            {follower.follower_name}
+                          </p>
+                          <p className="text-xs text-gray-500">{follower.follower_email}</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(createPageUrl(`UserProfile?email=${follower.follower_email}`))}
+                      >
+                        Ver perfil
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Following Dialog */}
+        <Dialog open={showFollowingDialog} onOpenChange={setShowFollowingDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Seguindo</DialogTitle>
+            </DialogHeader>
+            <div className="max-h-96 overflow-y-auto">
+              {followData.following.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Não segue ninguém ainda</p>
+              ) : (
+                <div className="space-y-3">
+                  {followData.following.map((following) => (
+                    <div key={following.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-11 h-11">
+                          <AvatarImage src={following.following_photo_url} />
+                          <AvatarFallback className="bg-gray-200">
+                            {following.following_name?.[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-sm text-gray-900">
+                            {following.following_name}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-gray-200 text-gray-900 hover:bg-gray-300 font-semibold"
+                        onClick={() => followMutation.mutate(true)}
+                      >
+                        Seguindo
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

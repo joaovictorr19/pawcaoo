@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,12 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dog, Upload, X, Plus, Save } from "lucide-react";
+import { Dog, Upload, X, Plus, Save, Heart } from "lucide-react"; // Added Heart icon
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export default function AddEditDogForm({ dog, onCancel, onSuccess }) {
+export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess }) {
   const queryClient = useQueryClient();
   const isEditing = !!dog;
 
@@ -20,18 +21,54 @@ export default function AddEditDogForm({ dog, onCancel, onSuccess }) {
     queryFn: () => base44.auth.me(),
   });
 
-  const [formData, setFormData] = useState(dog || {
+  // Define default values for all possible fields
+  const defaultFormData = {
     dog_name: "",
+    pet_type: "dog", // New field
     breed: "",
     age: "",
+    date_of_birth: "", // New field
+    weight: "",
     size: "medium",
     gender: "male",
-    weight: "",
-    is_vaccinated: true,
+    color: "",
+    photo_url: "",
+    bio: "",
+    is_adopted: false, // New field
+    adoption_date: "", // New field
+    adoption_story: "", // New field
+    microchip_number: "",
     is_neutered: false,
+    is_vaccinated: false, // Changed default from true to false based on outline
+    vaccination_date: "", // New field
+    vet_name: "",
+    vet_phone: "",
+    vet_clinic_name: "",
+    vet_address: "",
+    medical_conditions: "",
+    allergies: "",
     energy_level: "normal",
-    socialization: "friendly"
-  });
+    socialization: "friendly",
+    gets_along_with: { dogs: true, cats: true, children: true, strangers: true },
+    behavioral_notes: "",
+    favorite_toys: "",
+    favorite_treats: "",
+    emergency_contact_name: "",
+    emergency_contact_phone: "",
+    emergency_contact_relationship: "",
+    insurance_provider: "",
+    insurance_policy_number: "",
+    vaccination_records: [], // Existing field, ensure default
+    medical_records: [], // Existing field, ensure default
+  };
+
+  // Initialize formData: if editing, merge existing dog data with defaults,
+  // ensuring nested objects like gets_along_with are also merged.
+  const [formData, setFormData] = useState(dog ? {
+    ...defaultFormData,
+    ...dog,
+    gets_along_with: { ...defaultFormData.gets_along_with, ...(dog.gets_along_with || {}) },
+  } : defaultFormData);
 
   const [uploading, setUploading] = useState(false);
   const [uploadingVet, setUploadingVet] = useState(false);
@@ -40,7 +77,7 @@ export default function AddEditDogForm({ dog, onCancel, onSuccess }) {
     mutationFn: async (data) => {
       const payload = {
         ...data,
-        owner_email: user.email
+        owner_email: ownerEmail || user?.email // Use ownerEmail prop if provided, else user's email
       };
       
       if (isEditing) {
@@ -117,13 +154,25 @@ export default function AddEditDogForm({ dog, onCancel, onSuccess }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.dog_name || !formData.size) {
-      toast.error("Preencha os campos obrigatórios");
+    if (!formData.dog_name || !formData.size || !formData.pet_type) {
+      toast.error("Preencha os campos obrigatórios (Nome do Pet, Tipo de Animal, Tamanho)");
       return;
     }
 
     saveDogMutation.mutate(formData);
   };
+
+  const petTypeOptions = [
+    { value: "dog", label: "🐕 Cão", icon: "🐕" },
+    { value: "cat", label: "🐱 Gato", icon: "🐱" },
+    { value: "bird", label: "🦜 Pássaro", icon: "🦜" },
+    { value: "rabbit", label: "🐰 Coelho", icon: "🐰" },
+    { value: "hamster", label: "🐹 Hamster", icon: "🐹" },
+    { value: "guinea_pig", label: "🐹 Porquinho da Índia", icon: "🐹" },
+    { value: "turtle", label: "🐢 Tartaruga", icon: "🐢" },
+    { value: "fish", label: "🐠 Peixe", icon: "🐠" },
+    { value: "other", label: "🐾 Outro", icon: "🐾" }
+  ];
 
   return (
     <form onSubmit={handleSubmit}>
@@ -145,138 +194,216 @@ export default function AddEditDogForm({ dog, onCancel, onSuccess }) {
 
             {/* BASIC INFO TAB */}
             <TabsContent value="basic" className="space-y-4">
-              <div className="flex justify-center mb-4">
-                <div className="relative">
-                  {formData.photo_url ? (
-                    <img
-                      src={formData.photo_url}
-                      alt="Pet"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-green-200"
+              <div className="space-y-6"> {/* Added wrapper div for outline's space-y-6 */}
+                <div className="flex justify-center mb-4">
+                  <div className="relative">
+                    {formData.photo_url ? (
+                      <img
+                        src={formData.photo_url}
+                        alt="Pet"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-green-200"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-200">
+                        <Dog className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    <label className="absolute bottom-0 right-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-green-700 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                        disabled={uploading}
+                      />
+                      {uploading ? (
+                        <div className="animate-spin">⏳</div>
+                      ) : (
+                        <Upload className="w-5 h-5 text-white" />
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dog_name">Nome do Pet *</Label>
+                    <Input
+                      id="dog_name"
+                      value={formData.dog_name}
+                      onChange={(e) => setFormData({ ...formData, dog_name: e.target.value })}
+                      placeholder="Ex: Rex, Luna..."
+                      required
                     />
-                  ) : (
-                    <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-200">
-                      <Dog className="w-16 h-16 text-gray-400" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pet_type">Tipo de Animal *</Label>
+                    <Select
+                      value={formData.pet_type}
+                      onValueChange={(value) => setFormData({ ...formData, pet_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {petTypeOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="breed">Raça</Label>
+                    <Input
+                      id="breed"
+                      value={formData.breed}
+                      onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
+                      placeholder={formData.pet_type === 'dog' ? "Ex: Labrador, SRD..." : "Raça ou espécie"}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Idade (anos)</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || "" })}
+                      placeholder="0"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date_of_birth">Data de Nascimento</Label>
+                    <Input
+                      id="date_of_birth"
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Peso (kg)</Label>
+                    <Input
+                      id="weight"
+                      type="number"
+                      value={formData.weight}
+                      onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) || "" })}
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="size">Tamanho *</Label>
+                    <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Pequeno</SelectItem>
+                        <SelectItem value="medium">Médio</SelectItem>
+                        <SelectItem value="large">Grande</SelectItem>
+                        <SelectItem value="extra_large">Extra Grande</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Sexo</Label>
+                    <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Macho ♂️</SelectItem>
+                        <SelectItem value="female">Fêmea ♀️</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="color">Cor</Label>
+                    <Input
+                      id="color"
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      placeholder="Ex: Preto, Dourado..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="microchip_number">Número do Microchip</Label>
+                    <Input
+                      id="microchip_number"
+                      value={formData.microchip_number}
+                      onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
+                      placeholder="Ex: 123456789012345"
+                    />
+                  </div>
+                </div>
+
+                {/* Adoption Section */}
+                <div className="border-2 border-pink-200 rounded-xl p-4 bg-pink-50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <input
+                      type="checkbox"
+                      id="is_adopted"
+                      checked={formData.is_adopted}
+                      onChange={(e) => setFormData({ ...formData, is_adopted: e.target.checked })}
+                      className="w-4 h-4 text-pink-600"
+                    />
+                    <Label htmlFor="is_adopted" className="cursor-pointer font-semibold text-pink-900">
+                      <Heart className="w-4 h-4 inline mr-1 fill-pink-500 text-pink-500" />
+                      Este pet foi adotado
+                    </Label>
+                  </div>
+
+                  {formData.is_adopted && (
+                    <div className="space-y-3 mt-3">
+                      <div>
+                        <Label htmlFor="adoption_date" className="text-sm">Data de Adoção</Label>
+                        <Input
+                          type="date"
+                          id="adoption_date"
+                          value={formData.adoption_date}
+                          onChange={(e) => setFormData({ ...formData, adoption_date: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="adoption_story" className="text-sm">História de Adoção</Label>
+                        <Textarea
+                          id="adoption_story"
+                          value={formData.adoption_story}
+                          onChange={(e) => setFormData({ ...formData, adoption_story: e.target.value })}
+                          placeholder="Conte a história de como adotou este pet..."
+                          rows={3}
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                   )}
-                  <label className="absolute bottom-0 right-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-green-700 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                      disabled={uploading}
-                    />
-                    {uploading ? (
-                      <div className="animate-spin">⏳</div>
-                    ) : (
-                      <Upload className="w-5 h-5 text-white" />
-                    )}
-                  </label>
                 </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+                {/* Bio Section */}
                 <div>
-                  <Label htmlFor="dog_name">Nome do Pet *</Label>
-                  <Input
-                    id="dog_name"
-                    value={formData.dog_name}
-                    onChange={(e) => setFormData({ ...formData, dog_name: e.target.value })}
-                    placeholder="Ex: Rex, Luna..."
-                    required
+                  <Label htmlFor="bio">Bio do Pet</Label>
+                  <Textarea
+                    id="bio"
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    placeholder="Conte sobre a personalidade do seu pet..."
+                    rows={3}
+                    className="mt-2"
+                    maxLength={200}
                   />
+                  <p className="text-xs text-gray-500 mt-1">{formData.bio?.length || 0}/200</p>
                 </div>
-
-                <div>
-                  <Label htmlFor="breed">Raça</Label>
-                  <Input
-                    id="breed"
-                    value={formData.breed}
-                    onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
-                    placeholder="Ex: Labrador, SRD..."
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="age">Idade (anos)</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) })}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="weight">Peso (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) })}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="size">Tamanho *</Label>
-                  <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Pequeno</SelectItem>
-                      <SelectItem value="medium">Médio</SelectItem>
-                      <SelectItem value="large">Grande</SelectItem>
-                      <SelectItem value="extra_large">Extra Grande</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="gender">Sexo</Label>
-                  <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Macho ♂️</SelectItem>
-                      <SelectItem value="female">Fêmea ♀️</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="color">Cor</Label>
-                  <Input
-                    id="color"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    placeholder="Ex: Preto, Dourado..."
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="microchip_number">Número do Microchip</Label>
-                  <Input
-                    id="microchip_number"
-                    value={formData.microchip_number}
-                    onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
-                    placeholder="Ex: 123456789012345"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="bio">Biografia / Personalidade</Label>
-                <Textarea
-                  id="bio"
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="Conte-nos sobre a personalidade do seu pet..."
-                  rows={3}
-                />
               </div>
             </TabsContent>
 
@@ -309,6 +436,19 @@ export default function AddEditDogForm({ dog, onCancel, onSuccess }) {
                   </Label>
                 </div>
               </div>
+
+              {formData.is_vaccinated && ( // Show vaccination date if vaccinated
+                <div>
+                  <Label htmlFor="vaccination_date">Data da Última Vacinação</Label>
+                  <Input
+                    id="vaccination_date"
+                    type="date"
+                    value={formData.vaccination_date}
+                    onChange={(e) => setFormData({ ...formData, vaccination_date: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+              )}
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
