@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +29,10 @@ import {
   Bell,
   User,
   MapPin,
-  Calendar
+  Calendar,
+  Crown, // New import for crown icon
+  Sparkles, // New import for sparkles icon
+  ChevronRight // New import for chevron right icon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +42,7 @@ import StoriesBar from "../components/social/StoriesBar";
 import CreateStoryModal from "../components/social/CreateStoryModal";
 import SearchAndFilters from "../components/social/SearchAndFilters";
 import DogConnectLogo from "../components/social/DogConnectLogo";
+import NotificationService from "../components/NotificationService"; // New import
 
 export default function SocialFeed() {
   const navigate = useNavigate();
@@ -51,6 +56,32 @@ export default function SocialFeed() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+  });
+
+  const { data: socialSubscription } = useQuery({
+    queryKey: ['socialSubscription', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const subs = await base44.entities.SocialSubscription.filter({
+        user_email: user.email,
+        is_active: true
+      });
+      return subs[0];
+    },
+    enabled: !!user,
+  });
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: ['loyaltyPoints', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return { points_balance: 0 };
+      const points = await base44.entities.LoyaltyPoints.filter({
+        user_email: user.email
+      });
+      return points[0] || { points_balance: 0 };
+    },
+    enabled: !!user,
+    staleTime: 0,
   });
 
   const { data: posts = [], isLoading } = useQuery({
@@ -83,22 +114,81 @@ export default function SocialFeed() {
 
   const createPostMutation = useMutation({
     mutationFn: (postData) => base44.entities.SocialPost.create(postData),
-    onSuccess: () => {
+    onSuccess: async (newPost) => {
       queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
       setNewPostContent("");
       setSelectedImage(null);
-      toast.success('Post publicado! 🎉');
+      
+      // Award PawPoints for posting
+      const pointsMultiplier = socialSubscription?.features?.points_multiplier || 1;
+      const basePoints = 10;
+      const pointsEarned = basePoints * pointsMultiplier;
+      
+      if (loyaltyPoints) {
+        const newBalance = loyaltyPoints.points_balance + pointsEarned;
+        
+        await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
+          points_balance: newBalance,
+          total_earned: loyaltyPoints.total_earned + pointsEarned
+        });
+        
+        await base44.entities.PointsTransaction.create({
+          user_email: user.email,
+          transaction_type: 'earned',
+          points_amount: pointsEarned,
+          description: `Post publicado no Dog Connect (${pointsMultiplier}x)`,
+          balance_after: newBalance
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
+        toast.success(`Post publicado! +${pointsEarned} PawPoints 🎉`);
+      } else {
+        toast.success('Post publicado! 🎉');
+      }
     },
   });
 
   const likeMutation = useMutation({
-    mutationFn: ({ postId }) => 
-      base44.entities.SocialLike.create({
+    mutationFn: async ({ postId }) => {
+      // Award points to post author
+      const post = posts.find(p => p.id === postId);
+      if (post && post.author_email !== user.email) {
+        const authorLoyaltyPoints = await base44.entities.LoyaltyPoints.filter({
+          user_email: post.author_email
+        });
+        
+        if (authorLoyaltyPoints[0]) {
+          const authorSubscription = await base44.entities.SocialSubscription.filter({
+            user_email: post.author_email,
+            is_active: true
+          });
+          const pointsMultiplier = authorSubscription[0]?.features?.points_multiplier || 1;
+          const basePoints = 2;
+          const pointsEarned = basePoints * pointsMultiplier;
+          const newBalance = authorLoyaltyPoints[0].points_balance + pointsEarned;
+          
+          await base44.entities.LoyaltyPoints.update(authorLoyaltyPoints[0].id, {
+            points_balance: newBalance,
+            total_earned: authorLoyaltyPoints[0].total_earned + pointsEarned
+          });
+          
+          await base44.entities.PointsTransaction.create({
+            user_email: post.author_email,
+            transaction_type: 'earned',
+            points_amount: pointsEarned,
+            description: `Like recebido no Dog Connect`,
+            balance_after: newBalance
+          });
+        }
+      }
+      
+      return await base44.entities.SocialLike.create({
         post_id: postId,
         user_email: user.email,
         user_name: user.full_name,
         reaction_type: 'like'
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
     },
@@ -117,7 +207,7 @@ export default function SocialFeed() {
       author_photo_url: user.profile_photo_url,
       media_urls: selectedImage ? [selectedImage] : [],
       is_public: true,
-      post_type: 'photo'
+      post_type: selectedImage ? 'photo' : 'text'
     });
   };
 
@@ -133,6 +223,9 @@ export default function SocialFeed() {
       toast.success('Imagem carregada! 📸');
     }
   };
+
+  const isPremium = socialSubscription?.plan_type === 'premium' || socialSubscription?.plan_type === 'pro';
+  const isPro = socialSubscription?.plan_type === 'pro';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -183,21 +276,77 @@ export default function SocialFeed() {
               </Button>
             </div>
 
-            {/* Create Story Button */}
-            <Button
-              onClick={() => setShowCreateStory(true)}
-              className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Story
-            </Button>
+            {/* PawPoints & Premium */}
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-lg px-3 py-1.5">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                <span className="font-semibold text-purple-600">
+                  {loyaltyPoints?.points_balance?.toLocaleString() || 0}
+                </span>
+              </div>
+              
+              {!isPremium && (
+                <Button
+                  onClick={() => navigate(createPageUrl('DogConnectPremium'))}
+                  className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 text-white shadow-lg"
+                  size="sm"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Premium
+                </Button>
+              )}
+
+              {isPremium && (
+                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                  <Crown className="w-3 h-3 mr-1" />
+                  {socialSubscription.plan_type.toUpperCase()}
+                </Badge>
+              )}
+
+              <Button
+                onClick={() => setShowCreateStory(true)}
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 text-white shadow-lg"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Story
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content - Centered */}
       <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Premium Banner (for free users) */}
+        {!isPremium && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card 
+              className="border-2 border-purple-300 shadow-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white cursor-pointer hover:scale-[1.02] transition-transform"
+              onClick={() => navigate(createPageUrl('DogConnectPremium'))}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Crown className="w-5 h-5" />
+                      <h3 className="font-bold text-lg">Upgrade para Premium</h3>
+                    </div>
+                    <p className="text-sm text-white/90">
+                      Ganhe 2-3x mais PawPoints e desbloqueie recursos exclusivos!
+                    </p>
+                  </div>
+                  <ChevronRight className="w-6 h-6" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Stories Bar */}
         <StoriesBar />
 
@@ -301,14 +450,21 @@ export default function SocialFeed() {
                       <Smile className="w-5 h-5" />
                     </Button>
                   </div>
-                  <Button
-                    onClick={handleCreatePost}
-                    disabled={createPostMutation.isPending}
-                    className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    {createPostMutation.isPending ? 'Publicando...' : 'Publicar'}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {socialSubscription?.features?.points_multiplier > 1 && (
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                        +{10 * socialSubscription.features.points_multiplier} pts
+                      </Badge>
+                    )}
+                    <Button
+                      onClick={handleCreatePost}
+                      disabled={createPostMutation.isPending}
+                      className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {createPostMutation.isPending ? 'Publicando...' : 'Publicar'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

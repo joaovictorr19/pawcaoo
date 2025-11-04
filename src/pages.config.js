@@ -49,6 +49,8 @@ import BookService from './pages/BookService';
 import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import ApproveAnnouncements from './pages/ApproveAnnouncements';
 import Gamification from './pages/Gamification';
+import DogConnectPremium from './pages/DogConnectPremium';
+import DogConnectRewards from './pages/DogConnectRewards';
 import Layout from './Layout.jsx';
 
 
@@ -104,6 +106,8 @@ export const PAGES = {
     "VeterinaryDashboard": VeterinaryDashboard,
     "ApproveAnnouncements": ApproveAnnouncements,
     "Gamification": Gamification,
+    "DogConnectPremium": DogConnectPremium,
+    "DogConnectRewards": DogConnectRewards,
 }
 
 export const pagesConfig = {
