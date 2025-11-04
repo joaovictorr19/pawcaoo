@@ -105,11 +105,16 @@ function LayoutContent({ children, currentPageName }) {
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: "🏢 " + (language === 'pt' ? 'Painel Parceiros' : 'Partner Dashboard'), url: createPageUrl("PartnerDashboard"), icon: Store },
+    { title: "📢 " + (language === 'pt' ? 'Aprovar Anúncios' : 'Approve Ads'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
   const moderatorItem = (user?.role === 'admin' || user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
     { title: "🛡️ " + (language === 'pt' ? 'Moderação' : 'Moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
+  ] : [];
+
+  const companyItem = user?.account_type === 'company' ? [
+    { title: "🏢 " + (language === 'pt' ? 'Minha Empresa' : 'My Company'), url: createPageUrl("CompanyDashboard"), icon: Store } // Changed to CompanyDashboard
   ] : [];
 
   const veterinaryItem = user?.account_type === 'company' && user?.company_type === 'veterinary' ? [
@@ -120,7 +125,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: "💰 Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
   ] : [];
 
-  const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...veterinaryItem, ...stripeConnectItem];
+  const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
   const languageFlags = {
     pt: "🇵🇹",
