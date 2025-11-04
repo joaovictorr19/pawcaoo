@@ -359,7 +359,7 @@ export default function Home() {
                   {loadingWalkers ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                       {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md" key={`walker-skeleton-${i}`}>
+                        <div key={`walker-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
                           <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
                           <Skeleton className="h-5 w-3/4 bg-gray-200" />
                           <Skeleton className="h-4 w-1/2 bg-gray-200" />
@@ -406,7 +406,7 @@ export default function Home() {
                   {loadingEmergency ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md" key={`emergency-skeleton-${i}`}>
+                        <div key={`emergency-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
                           <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
                           <Skeleton className="h-5 w-3/4 bg-gray-200" />
                           <Skeleton className="h-4 w-1/2 bg-gray-200" />
