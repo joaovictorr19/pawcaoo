@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   ArrowLeft, Calendar as CalendarIcon, Clock, DollarSign,
-  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone
+  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone, Mail, Building2, Globe
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export default function BookService() {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ export default function BookService() {
     queryKey: ['partnerServices'],
     queryFn: () => base44.entities.PartnerService.list(),
     initialData: [],
+    staleTime: 300000, // 5 min cache
   });
 
   const service = services.find(s => s.id === serviceId);
@@ -63,6 +65,7 @@ export default function BookService() {
       return partners.find(p => p.id === service?.partner_id);
     },
     enabled: !!service?.partner_id,
+    staleTime: 300000, // 5 min cache
   });
 
   const createBookingMutation = useMutation({
@@ -172,7 +175,7 @@ export default function BookService() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <Button
           variant="outline"
           className="mb-6"
@@ -182,54 +185,74 @@ export default function BookService() {
           Voltar aos Serviços
         </Button>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Service Info */}
-          <Card className="border-0 shadow-xl">
-            <CardContent className="p-6">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {service.service_name}
-                </h1>
-                <p className="text-lg text-gray-600 mb-4">{service.partner_name}</p>
-                
-                {partner && (
-                  <div className="space-y-2 text-sm text-gray-600 mb-6">
-                    {partner.city && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-blue-600" />
-                        {partner.city}
-                      </div>
-                    )}
-                    {partner.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-green-600" />
-                        {partner.phone}
-                      </div>
-                    )}
-                  </div>
+        <div className="grid md:grid-cols-5 gap-6">
+          {/* Service & Partner Info - 3 columns */}
+          <div className="md:col-span-3 space-y-6">
+            {/* Service Info */}
+            <Card className="border-0 shadow-2xl">
+              <CardContent className="p-6">
+                {service.image_url && (
+                  <img
+                    src={service.image_url}
+                    alt={service.service_name}
+                    className="w-full h-64 object-cover rounded-2xl mb-6"
+                  />
                 )}
 
-                <p className="text-gray-700 mb-6">{service.description}</p>
+                <div className="mb-6">
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    {service.service_name}
+                  </h1>
+                  <Badge className="text-lg px-4 py-2">
+                    {service.service_type === 'bath' && '🛁 Banho'}
+                    {service.service_type === 'grooming' && '✂️ Grooming'}
+                    {service.service_type === 'veterinary' && '🏥 Veterinário'}
+                    {service.service_type === 'vaccination' && '💉 Vacinação'}
+                    {service.service_type === 'checkup' && '🩺 Check-up'}
+                    {service.service_type === 'emergency' && '🚨 Emergência'}
+                    {service.service_type === 'training' && '🎓 Treino'}
+                    {service.service_type === 'daycare' && '🏠 Creche'}
+                  </Badge>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
+                    <Clock className="w-6 h-6 text-blue-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Duração</p>
+                      <p className="font-bold text-gray-900">{service.duration_minutes} minutos</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl">
+                    <DollarSign className="w-6 h-6 text-green-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">A partir de</p>
+                      <p className="font-bold text-gray-900 text-2xl">€{service.base_price}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-gray-700 mb-6 text-lg leading-relaxed">{service.description}</p>
 
                 {service.includes?.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-2">Incluído:</h4>
-                    <ul className="space-y-1">
+                    <h4 className="font-bold text-gray-900 mb-3 text-lg">✅ Incluído no Serviço:</h4>
+                    <div className="grid md:grid-cols-2 gap-2">
                       {service.includes.map((item, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        <div key={idx} className="flex items-center gap-2 text-gray-700">
+                          <CheckCircle className="w-5 h-5 text-green-500" />
                           {item}
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
 
                 {service.requirements?.length > 0 && (
                   <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
                     <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      Requisitos:
+                      <AlertCircle className="w-5 h-5" />
+                      Requisitos Necessários:
                     </h4>
                     <ul className="space-y-1">
                       {service.requirements.map((req, idx) => (
@@ -238,160 +261,253 @@ export default function BookService() {
                     </ul>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Booking Form */}
-          <Card className="border-0 shadow-xl">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              <CardTitle className="text-2xl">Agendar Serviço</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Select Dog */}
-                <div>
-                  <Label>Selecione o Pet *</Label>
-                  <Select value={selectedDog} onValueChange={setSelectedDog}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Escolha seu pet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {userDogs.map(dog => (
-                        <SelectItem key={dog.id} value={dog.id}>
-                          {dog.dog_name} ({dog.breed}) - {dog.size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Select Date */}
-                <div>
-                  <Label>Data do Agendamento *</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full mt-2 justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Escolha a data"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        disabled={(date) => date < new Date() || date < new Date().setHours(0,0,0,0)}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Select Time */}
-                <div>
-                  <Label>Horário *</Label>
-                  <Select value={selectedTime} onValueChange={setSelectedTime}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Escolha o horário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map(time => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Emergency Checkbox (for vet services) */}
-                {(service.service_type === 'veterinary' || service.is_emergency) && (
-                  <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isEmergency}
-                        onChange={(e) => setIsEmergency(e.target.checked)}
-                        className="mt-1"
-                      />
-                      <div>
-                        <p className="font-semibold text-orange-900">
-                          <Zap className="w-4 h-4 inline mr-1" />
-                          É uma emergência?
-                        </p>
-                        <p className="text-sm text-orange-700">
-                          Atendimento prioritário (+€{service.emergency_surcharge || 0})
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                {/* Symptoms (for vet) */}
-                {service.service_type === 'veterinary' && (
+            {/* Partner Info */}
+            {partner && (
+              <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Building2 className="w-6 h-6" />
+                    Informações do Parceiro
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
                   <div>
-                    <Label>Sintomas / Motivo da Consulta {isEmergency && '*'}</Label>
-                    <Textarea
-                      value={symptoms}
-                      onChange={(e) => setSymptoms(e.target.value)}
-                      placeholder="Descreva os sintomas ou motivo da visita..."
-                      rows={4}
-                      className="mt-2"
-                      required={isEmergency}
-                    />
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                      {service.partner_name}
+                    </h3>
+                    {partner.company_type && (
+                      <Badge className="capitalize">
+                        {partner.company_type.replace('_', ' ')}
+                      </Badge>
+                    )}
                   </div>
-                )}
 
-                {/* Special Requests */}
-                <div>
-                  <Label>Pedidos Especiais (opcional)</Label>
-                  <Textarea
-                    value={specialRequests}
-                    onChange={(e) => setSpecialRequests(e.target.value)}
-                    placeholder="Algum pedido especial ou informação importante..."
-                    rows={3}
-                    className="mt-2"
-                  />
-                </div>
+                  <Separator />
 
-                {/* Price Summary */}
-                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Serviço:</span>
-                      <span className="font-bold text-gray-900">€{price.toFixed(2)}</span>
-                    </div>
-                    {isEmergency && emergencyFee > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-orange-700">Taxa Emergência:</span>
-                        <span className="font-bold text-orange-700">€{emergencyFee.toFixed(2)}</span>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {partner.address && (
+                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
+                        <MapPin className="w-5 h-5 text-purple-600 mt-1" />
+                        <div>
+                          <p className="text-sm text-gray-600 font-semibold">Endereço</p>
+                          <p className="text-gray-900">{partner.address}</p>
+                          {partner.city && partner.postal_code && (
+                            <p className="text-gray-700 text-sm">{partner.postal_code} {partner.city}</p>
+                          )}
+                        </div>
                       </div>
                     )}
-                    <div className="flex justify-between pt-2 border-t-2 border-green-300">
-                      <span className="font-bold text-gray-900">Total:</span>
-                      <span className="font-bold text-2xl text-green-600">€{totalAmount.toFixed(2)}</span>
+
+                    {partner.phone && (
+                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
+                        <Phone className="w-5 h-5 text-green-600 mt-1" />
+                        <div>
+                          <p className="text-sm text-gray-600 font-semibold">Telefone</p>
+                          <a href={`tel:${partner.phone}`} className="text-gray-900 hover:text-green-600 transition-colors">
+                            {partner.phone}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {partner.company_email && (
+                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
+                        <Mail className="w-5 h-5 text-blue-600 mt-1" />
+                        <div>
+                          <p className="text-sm text-gray-600 font-semibold">Email</p>
+                          <a href={`mailto:${partner.company_email}`} className="text-gray-900 hover:text-blue-600 transition-colors">
+                            {partner.company_email}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {partner.website && (
+                      <div className="flex items-start gap-3 p-4 bg-white rounded-xl">
+                        <Globe className="w-5 h-5 text-indigo-600 mt-1" />
+                        <div>
+                          <p className="text-sm text-gray-600 font-semibold">Website</p>
+                          <a href={partner.website} target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-indigo-600 transition-colors">
+                            Visitar site
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {service.average_rating > 0 && (
+                    <div className="flex items-center gap-2 p-4 bg-yellow-50 rounded-xl">
+                      <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                      <div>
+                        <p className="font-bold text-gray-900 text-lg">
+                          {service.average_rating.toFixed(1)} / 5.0
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {service.total_bookings || 0} agendamentos realizados
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-purple-600 pt-2">
-                      <Star className="w-5 h-5 fill-purple-500" />
-                      <span className="font-bold">+{pointsToEarn} PawPoints</span>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Booking Form - 2 columns */}
+          <div className="md:col-span-2">
+            <Card className="border-0 shadow-2xl sticky top-6">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <CardTitle className="text-2xl">Agendar Serviço</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Select Dog */}
+                  <div>
+                    <Label>Selecione o Pet *</Label>
+                    <Select value={selectedDog} onValueChange={setSelectedDog}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Escolha seu pet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userDogs.map(dog => (
+                          <SelectItem key={dog.id} value={dog.id}>
+                            {dog.dog_name} ({dog.breed}) - {dog.size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Select Date */}
+                  <div>
+                    <Label>Data do Agendamento *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full mt-2 justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {selectedDate ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Escolha a data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          disabled={(date) => date < new Date() || date < new Date().setHours(0,0,0,0)}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Select Time */}
+                  <div>
+                    <Label>Horário *</Label>
+                    <Select value={selectedTime} onValueChange={setSelectedTime}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Escolha o horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timeSlots.map(time => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Emergency Checkbox (for vet services) */}
+                  {(service.service_type === 'veterinary' || service.is_emergency) && (
+                    <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isEmergency}
+                          onChange={(e) => setIsEmergency(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <div>
+                          <p className="font-semibold text-orange-900">
+                            <Zap className="w-4 h-4 inline mr-1" />
+                            É uma emergência?
+                          </p>
+                          <p className="text-sm text-orange-700">
+                            Atendimento prioritário (+€{service.emergency_surcharge || 0})
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Symptoms (for vet) */}
+                  {service.service_type === 'veterinary' && (
+                    <div>
+                      <Label>Sintomas / Motivo da Consulta {isEmergency && '*'}</Label>
+                      <Textarea
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        placeholder="Descreva os sintomas ou motivo da visita..."
+                        rows={4}
+                        className="mt-2"
+                        required={isEmergency}
+                      />
+                    </div>
+                  )}
+
+                  {/* Special Requests */}
+                  <div>
+                    <Label>Pedidos Especiais (opcional)</Label>
+                    <Textarea
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder="Algum pedido especial ou informação importante..."
+                      rows={3}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Price Summary */}
+                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Serviço:</span>
+                        <span className="font-bold text-gray-900">€{price.toFixed(2)}</span>
+                      </div>
+                      {isEmergency && emergencyFee > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-orange-700">Taxa Emergência:</span>
+                          <span className="font-bold text-orange-700">€{emergencyFee.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between pt-2 border-t-2 border-green-300">
+                        <span className="font-bold text-gray-900">Total:</span>
+                        <span className="font-bold text-3xl text-green-600">€{totalAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-purple-600 pt-2">
+                        <Star className="w-5 h-5 fill-purple-500" />
+                        <span className="font-bold">+{pointsToEarn} PawPoints</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Submit */}
-                <Button
-                  type="submit"
-                  disabled={!selectedDog || !selectedDate || !selectedTime || createBookingMutation.isPending}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 h-14 text-lg font-semibold"
-                >
-                  {createBookingMutation.isPending ? "Agendando..." : "Confirmar Agendamento"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  {/* Submit */}
+                  <Button
+                    type="submit"
+                    disabled={!selectedDog || !selectedDate || !selectedTime || createBookingMutation.isPending}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 h-14 text-lg font-semibold"
+                  >
+                    {createBookingMutation.isPending ? "Agendando..." : "Confirmar Agendamento"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

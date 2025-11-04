@@ -12,25 +12,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Store, TrendingUp, DollarSign, Package, Megaphone,
-  Calendar, Upload, PlusCircle, Edit, Trash2, BarChart3, Users
+  Store, TrendingUp, DollarSign, Package, Calendar, Upload,
+  PlusCircle, Edit, Trash2, Users, ArrowUp, ArrowDown, Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
-  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
   const [showServiceForm, setShowServiceForm] = useState(false);
-  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
   const [editingService, setEditingService] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 300000, // 5 min cache
   });
 
   const { data: company } = useQuery({
@@ -40,13 +40,7 @@ export default function PartnerDashboard() {
       return companies[0];
     },
     enabled: !!user,
-  });
-
-  const { data: announcements } = useQuery({
-    queryKey: ['companyAnnouncements', user?.email],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ company_email: user?.email }, '-created_date'),
-    enabled: !!user,
-    initialData: [],
+    staleTime: 300000, // 5 min cache
   });
 
   const { data: services } = useQuery({
@@ -54,45 +48,15 @@ export default function PartnerDashboard() {
     queryFn: () => base44.entities.PartnerService.filter({ partner_id: company?.id }),
     enabled: !!company,
     initialData: [],
+    staleTime: 60000, // 1 min cache
   });
 
   const { data: bookings } = useQuery({
     queryKey: ['serviceBookings', company?.id],
-    queryFn: () => base44.entities.ServiceBooking.filter({ partner_id: company?.id }),
+    queryFn: () => base44.entities.ServiceBooking.filter({ partner_id: company?.id }, '-created_date'),
     enabled: !!company,
     initialData: [],
-  });
-
-  const saveAnnouncementMutation = useMutation({
-    mutationFn: async (data) => {
-      if (editingAnnouncement) {
-        return await base44.entities.CompanyAnnouncement.update(editingAnnouncement.id, data);
-      }
-      return await base44.entities.CompanyAnnouncement.create({
-        ...data,
-        company_id: company?.id || user?.company_id,
-        company_name: company?.company_name || user?.full_name,
-        company_email: user?.email,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyAnnouncements'] });
-      toast.success(editingAnnouncement ? "Anúncio atualizado!" : "Anúncio criado! Aguardando aprovação do admin.");
-      setShowAnnouncementForm(false);
-      setEditingAnnouncement(null);
-    },
-    onError: (error) => {
-      console.error("Error saving announcement:", error);
-      toast.error("Erro ao salvar anúncio: " + error.message);
-    }
-  });
-
-  const deleteAnnouncementMutation = useMutation({
-    mutationFn: (id) => base44.entities.CompanyAnnouncement.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyAnnouncements'] });
-      toast.success("Anúncio eliminado!");
-    },
+    staleTime: 30000, // 30s cache
   });
 
   const saveServiceMutation = useMutation({
@@ -107,7 +71,7 @@ export default function PartnerDashboard() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
+      queryClient.invalidateQueries(['partnerServices']);
       setShowServiceForm(false);
       setEditingService(null);
       toast.success(editingService ? "Serviço atualizado!" : "Serviço criado com sucesso!");
@@ -117,7 +81,7 @@ export default function PartnerDashboard() {
   const deleteServiceMutation = useMutation({
     mutationFn: (serviceId) => base44.entities.PartnerService.delete(serviceId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
+      queryClient.invalidateQueries(['partnerServices']);
       toast.success("Serviço removido!");
     },
   });
@@ -136,11 +100,94 @@ export default function PartnerDashboard() {
     );
   }
 
+  // Analytics Calculations
+  const totalRevenue = bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
+  const completedBookings = bookings.filter(b => b.status === 'completed');
+  const pendingBookings = bookings.filter(b => b.status === 'pending');
+  const thisMonthBookings = bookings.filter(b => {
+    const bookingDate = new Date(b.created_date);
+    const now = new Date();
+    return bookingDate.getMonth() === now.getMonth() && bookingDate.getFullYear() === now.getFullYear();
+  });
+
+  const lastMonthBookings = bookings.filter(b => {
+    const bookingDate = new Date(b.created_date);
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return bookingDate.getMonth() === lastMonth.getMonth() && bookingDate.getFullYear() === lastMonth.getFullYear();
+  });
+
+  const currentMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
+  const lastMonthRevenue = lastMonthBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
+
+  const revenueChange = lastMonthRevenue > 0
+    ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1)
+    : (currentMonthRevenue > 0 ? 100 : 0); // If last month was 0, but current is > 0, it's 100% growth or 0 if both 0.
+
+
+  const bookingsChange = lastMonthBookings.length > 0
+    ? ((thisMonthBookings.length - lastMonthBookings.length) / lastMonthBookings.length * 100).toFixed(1)
+    : (thisMonthBookings.length > 0 ? 100 : 0);
+
+
+  // Chart Data
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    return format(date, 'EEE', { locale: ptBR });
+  });
+
+  const revenueChartData = last7Days.map((day, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - index));
+    const dayBookings = bookings.filter(b => {
+      const bookingDate = new Date(b.created_date);
+      return bookingDate.toDateString() === date.toDateString();
+    });
+    return {
+      name: day,
+      receita: dayBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0),
+      agendamentos: dayBookings.length
+    };
+  });
+
+  const serviceTypeData = services.map(s => ({
+    name: s.service_name,
+    value: bookings.filter(b => b.service_id === s.id).length,
+    revenue: bookings.filter(b => b.service_id === s.id).reduce((sum, b) => sum + (b.total_amount || 0), 0)
+  })).filter(d => d.value > 0);
+
+  const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+
   const stats = [
-    { icon: Package, value: services.length, label: "Serviços", color: "from-blue-600 to-cyan-600" },
-    { icon: Calendar, value: bookings.length, label: "Agendamentos", color: "from-green-600 to-emerald-600" },
-    { icon: DollarSign, value: `€${bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0).toFixed(0)}`, label: "Receita", color: "from-purple-600 to-pink-600" },
-    { icon: Users, value: bookings.filter(b => b.status === 'completed').length, label: "Completados", color: "from-orange-600 to-red-600" },
+    {
+      icon: Package,
+      value: services.length,
+      label: "Serviços Ativos",
+      color: "from-blue-600 to-cyan-600",
+      change: null
+    },
+    {
+      icon: Calendar,
+      value: bookings.length,
+      label: "Total Agendamentos",
+      color: "from-green-600 to-emerald-600",
+      change: `${bookingsChange >= 0 ? '+' : ''}${bookingsChange}% este mês`
+    },
+    {
+      icon: DollarSign,
+      value: `€${totalRevenue.toFixed(0)}`,
+      label: "Receita Total",
+      color: "from-purple-600 to-pink-600",
+      change: `${revenueChange >= 0 ? '+' : ''}${revenueChange}% este mês`
+    },
+    {
+      icon: Users,
+      value: completedBookings.length,
+      label: "Completados",
+      color: "from-orange-600 to-red-600",
+      change: `${pendingBookings.length} pendentes`
+    },
   ];
 
   return (
@@ -148,7 +195,7 @@ export default function PartnerDashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-6">
             <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
               <Store className="w-7 h-7 text-white" />
             </div>
@@ -158,17 +205,39 @@ export default function PartnerDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, idx) => (
-              <Card key={idx} className="border-0 shadow-lg">
-                <CardContent className="p-6 text-center">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <Card className="border-0 shadow-lg hover:shadow-2xl transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center shadow-lg`}>
+                        <stat.icon className="w-6 h-6 text-white" />
+                      </div>
+                      {stat.change && (
+                        <Badge className={`${
+                          stat.change.includes('+')
+                            ? 'bg-green-100 text-green-700'
+                            : stat.change.includes('-')
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {stat.change.includes('+') ? <ArrowUp className="w-3 h-3 mr-1" /> : stat.change.includes('-') ? <ArrowDown className="w-3 h-3 mr-1" /> : null}
+                          {stat.change}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                    <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -177,10 +246,75 @@ export default function PartnerDashboard() {
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14 mb-6">
             <TabsTrigger value="overview">📊 Visão Geral</TabsTrigger>
             <TabsTrigger value="services">🏥 Serviços ({services.length})</TabsTrigger>
-            <TabsTrigger value="announcements">📢 Anúncios ({announcements.length})</TabsTrigger>
+            <TabsTrigger value="bookings">📅 Agendamentos ({bookings.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview">
+          <TabsContent value="overview" className="space-y-6">
+            {/* Charts Row */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Revenue Chart */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-purple-600" />
+                    Receita dos Últimos 7 Dias
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={revenueChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `€${value.toFixed(2)}`}/>
+                      <Legend />
+                      <Line type="monotone" dataKey="receita" stroke="#8b5cf6" strokeWidth={3} name="Receita (€)" />
+                      <Line type="monotone" dataKey="agendamentos" stroke="#3b82f6" strokeWidth={2} name="Agendamentos" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Service Distribution */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5 text-blue-600" />
+                    Distribuição por Serviço
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {serviceTypeData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={serviceTypeData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, value }) => `${name} (${value})`}
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {serviceTypeData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value, name, props) => [`€${props.payload.revenue.toFixed(2)}`, name]} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] text-gray-400">
+                      Sem dados suficientes
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Bookings */}
             <Card className="border-0 shadow-xl">
               <CardHeader>
                 <CardTitle>Agendamentos Recentes</CardTitle>
@@ -193,22 +327,34 @@ export default function PartnerDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {bookings.slice(0, 5).map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                        <div>
-                          <p className="font-semibold">{booking.dog_name} - {booking.service_name}</p>
-                          <p className="text-sm text-gray-600">{booking.owner_name}</p>
+                    {bookings.slice(0, 10).map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-semibold text-gray-900">{booking.dog_name}</p>
+                            <Badge className="text-xs">
+                              {booking.service_name}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
                           <p className="text-xs text-gray-500">
-                            {format(new Date(booking.booking_date), "d 'de' MMM", { locale: ptBR })} às {booking.booking_time}
+                            {format(new Date(booking.booking_date), "d 'de' MMM 'de' yyyy", { locale: ptBR })} às {booking.booking_time}
                           </p>
                         </div>
-                        <Badge className={
-                          booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-orange-100 text-orange-800'
-                        }>
-                          {booking.status}
-                        </Badge>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-green-600">€{booking.total_amount?.toFixed(2)}</p>
+                          <Badge className={
+                            booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                            booking.status === 'pending' ? 'bg-orange-100 text-orange-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {booking.status === 'completed' ? '✅ Completado' :
+                             booking.status === 'confirmed' ? '📋 Confirmado' :
+                             booking.status === 'pending' ? '⏳ Pendente' :
+                             '❌ Cancelado'}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -264,7 +410,7 @@ export default function PartnerDashboard() {
                             <Badge className="bg-gray-100 text-gray-800">Inativo</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{service.description}</p>
                         <div className="text-2xl font-bold text-green-600 mb-4">
                           €{service.base_price}
                         </div>
@@ -302,118 +448,51 @@ export default function PartnerDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="announcements">
-            <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Gerir Anúncios & Promoções</h2>
-              <Button onClick={() => {
-                  setEditingAnnouncement(null);
-                  setShowAnnouncementForm(true);
-                }} className="bg-purple-600">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Criar Anúncio
-              </Button>
-            </div>
-            
-            {showAnnouncementForm && <AnnouncementForm />}
-            
-            <p className="text-gray-600 mb-4">Gerencie seus anúncios promocionais aqui.</p>
-
-            <div className="space-y-4">
-                  {announcements.map((announcement) => (
-                    <Card key={announcement.id} className={`p-4 hover:shadow-lg transition-shadow ${
-                      announcement.is_featured ? 'border-2 border-yellow-400' : ''
-                    }`}>
-                      <div className="flex justify-between items-start">
+          <TabsContent value="bookings">
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle>Todos os Agendamentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {bookings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhum agendamento ainda</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {bookings.map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            {announcement.is_featured && (
-                              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
-                                <TrendingUp className="w-3 h-3 mr-1" /> {/* Using TrendingUp as a generic 'featured' icon */}
-                                {announcement.featured_tier?.toUpperCase()}
-                              </Badge>
-                            )}
-                            <h3 className="font-bold text-lg text-gray-900">{announcement.title}</h3>
-                            <Badge>{announcement.promotion_type}</Badge>
-                            {announcement.discount_percentage > 0 && (
-                              <Badge className="bg-red-500 text-white">
-                                -{announcement.discount_percentage}%
-                              </Badge>
-                            )}
-                            <Badge className={
-                                announcement.moderation_status === 'approved' ? 'bg-green-500' :
-                                announcement.moderation_status === 'rejected' ? 'bg-red-500' :
-                                announcement.moderation_status === 'changes_requested' ? 'bg-yellow-500' :
-                                'bg-orange-500'
-                              }>
-                                {announcement.moderation_status === 'approved' ? '✅ Aprovado' :
-                                 announcement.moderation_status === 'rejected' ? '❌ Rejeitado' :
-                                 announcement.moderation_status === 'changes_requested' ? '⚠️ Mudanças Solicitadas' :
-                                 '⏳ Pendente'}
-                              </Badge>
+                            <p className="font-semibold text-gray-900">{booking.dog_name}</p>
+                            <Badge className="text-xs">{booking.service_name}</Badge>
                           </div>
-                          
-                          {announcement.image_url && (
-                            <img src={announcement.image_url} alt="" className="w-full max-w-md h-32 object-cover rounded-lg mb-3" />
-                          )}
-
-                          <p className="text-gray-600 mb-3">{announcement.message}</p>
-
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-gray-50 rounded-lg">
-                            <div>
-                              <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                                <TrendingUp className="w-4 h-4" /> {/* Reusing TrendingUp for views */}
-                                Visualizações
-                              </div>
-                              <p className="text-xl font-bold text-gray-900">{announcement.views_count || 0}</p>
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                                <Megaphone className="w-4 h-4" /> {/* Reusing Megaphone for clicks */}
-                                Cliques
-                              </div>
-                              <p className="text-xl font-bold text-gray-900">{announcement.clicks_count || 0}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500 mb-1">Taxa de Cliques</p>
-                              <p className="text-xl font-bold text-green-600">
-                                {announcement.views_count > 0 
-                                  ? ((announcement.clicks_count / announcement.views_count) * 100).toFixed(1)
-                                  : 0}%
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500 mb-1">Conversões</p>
-                              <p className="text-xl font-bold text-purple-600">{announcement.conversions_count || 0}</p>
-                            </div>
-                          </div>
-
-                          {announcement.is_featured && (
-                            <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
-                              <p className="text-sm font-semibold text-gray-900">
-                                Em destaque até: {new Date(announcement.featured_end_date).toLocaleDateString('pt-PT')}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                Valor pago: €{announcement.featured_payment_amount}
-                              </p>
-                            </div>
-                          )}
+                          <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
+                          <p className="text-xs text-gray-500">
+                            {format(new Date(booking.booking_date), "d 'de' MMM 'de' yyyy", { locale: ptBR })} às {booking.booking_time}
+                          </p>
                         </div>
-
-                        <div className="flex gap-2">
-                          <Button size="icon" variant="ghost" onClick={() => {
-                            setEditingAnnouncement(announcement);
-                            setShowAnnouncementForm(true);
-                          }}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}>
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </Button>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-green-600">€{booking.total_amount?.toFixed(2)}</p>
+                          <Badge className={
+                            booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                            booking.status === 'pending' ? 'bg-orange-100 text-orange-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {booking.status === 'completed' ? '✅ Completado' :
+                             booking.status === 'confirmed' ? '📋 Confirmado' :
+                             booking.status === 'pending' ? '⏳ Pendente' :
+                             '❌ Cancelado'}
+                          </Badge>
                         </div>
                       </div>
-                    </Card>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
@@ -717,272 +796,6 @@ export default function PartnerDashboard() {
               disabled={!formData.service_name || !formData.description || formData.base_price <= 0}
             >
               {editingService ? 'Atualizar' : 'Criar'} Serviço
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  function AnnouncementForm() {
-    const [formData, setFormData] = useState(editingAnnouncement || {
-      title: "",
-      message: "",
-      promotion_type: "discount",
-      discount_percentage: 0,
-      image_url: "",
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: "",
-      is_active: true,
-      is_featured: false,
-      featured_tier: "none",
-      moderation_status: "pending", // Added
-      company_email: user?.email // Added
-    });
-
-    const [uploadingImage, setUploadingImage] = useState(false);
-
-    const handleImageUpload = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      setUploadingImage(true);
-      try {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setFormData({ ...formData, image_url: file_url });
-        toast.success("Imagem carregada!");
-      } catch (error) {
-        toast.error("Erro ao carregar imagem");
-      }
-      setUploadingImage(false);
-    };
-
-    const featuredPricing = {
-      basic: 49,
-      premium: 99,
-      exclusive: 199
-    };
-
-    return (
-      <Card className="bg-purple-50 border-2 border-purple-200 mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">
-              {editingAnnouncement ? 'Editar Anúncio' : 'Criar Novo Anúncio'}
-            </h3>
-            {editingAnnouncement?.moderation_status && (
-              <Badge className={
-                editingAnnouncement.moderation_status === 'approved' ? 'bg-green-500' :
-                editingAnnouncement.moderation_status === 'rejected' ? 'bg-red-500' :
-                editingAnnouncement.moderation_status === 'changes_requested' ? 'bg-yellow-500' :
-                'bg-orange-500'
-              }>
-                {editingAnnouncement.moderation_status === 'approved' ? '✅ Aprovado' :
-                 editingAnnouncement.moderation_status === 'rejected' ? '❌ Rejeitado' :
-                 editingAnnouncement.moderation_status === 'changes_requested' ? '⚠️ Mudanças Solicitadas' :
-                 '⏳ Aguardando Aprovação'}
-              </Badge>
-            )}
-          </div>
-
-          {editingAnnouncement?.moderation_status === 'rejected' && editingAnnouncement?.rejection_reason && (
-            <div className="bg-red-100 border-2 border-red-300 rounded-lg p-4 mb-4">
-              <p className="font-semibold text-red-900 mb-1">Motivo da Rejeição:</p>
-              <p className="text-sm text-red-800">{editingAnnouncement.rejection_reason}</p>
-            </div>
-          )}
-
-          {editingAnnouncement?.moderation_notes && (
-            <div className="bg-blue-100 border-2 border-blue-300 rounded-lg p-4 mb-4">
-              <p className="font-semibold text-blue-900 mb-1">Notas do Admin:</p>
-              <p className="text-sm text-blue-800">{editingAnnouncement.moderation_notes}</p>
-            </div>
-          )}
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <Label>Título do Anúncio *</Label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                placeholder="Ex: 25% de Desconto em Toda a Loja!"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label>Mensagem *</Label>
-              <Textarea
-                value={formData.message}
-                onChange={(e) => setFormData({...formData, message: e.target.value})}
-                rows={3}
-                placeholder="Descreva a sua promoção..."
-              />
-            </div>
-            <div>
-              <Label>Tipo de Promoção *</Label>
-              <Select value={formData.promotion_type} onValueChange={(v) => setFormData({...formData, promotion_type: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="flash_sale">Flash Sale</SelectItem>
-                  <SelectItem value="discount">Desconto</SelectItem>
-                  <SelectItem value="new_product">Novo Produto</SelectItem>
-                  <SelectItem value="points_bonus">Bónus de Pontos</SelectItem>
-                  <SelectItem value="free_gift">Oferta Grátis</SelectItem>
-                  <SelectItem value="seasonal">Sazonal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Desconto (%)</Label>
-              <Input
-                type="number"
-                value={formData.discount_percentage}
-                onChange={(e) => setFormData({...formData, discount_percentage: parseFloat(e.target.value)})}
-              />
-            </div>
-            <div>
-              <Label>Data Início *</Label>
-              <Input
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label>Data Fim</Label>
-              <Input
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData({...formData, end_date: e.target.value})}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label>Imagem do Anúncio</Label>
-              <div className="flex gap-2">
-                <label className="cursor-pointer flex-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                    disabled={uploadingImage}
-                  />
-                  <Button type="button" variant="outline" className="w-full" disabled={uploadingImage} asChild>
-                    <span>
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploadingImage ? "A carregar..." : "Carregar Imagem"}
-                    </span>
-                  </Button>
-                </label>
-              </div>
-              {formData.image_url && (
-                <img src={formData.image_url} alt="" className="mt-2 w-full h-32 object-cover rounded-lg" />
-              )}
-            </div>
-
-            {/* Featured Options */}
-            <div className="md:col-span-2 border-t pt-4 mt-4">
-              <Label className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-yellow-600" />
-                Opções de Destaque (Pago)
-              </Label>
-              <Select 
-                value={formData.featured_tier} 
-                onValueChange={(v) => setFormData({
-                  ...formData, 
-                  featured_tier: v,
-                  is_featured: v !== 'none',
-                  featured_payment_amount: v !== 'none' ? featuredPricing[v] : 0
-                })}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem Destaque (Grátis - Sujeito a aprovação)</SelectItem>
-                  <SelectItem value="basic">⭐ Basic - €49/mês</SelectItem>
-                  <SelectItem value="premium">⭐⭐ Premium - €99/mês</SelectItem>
-                  <SelectItem value="exclusive">⭐⭐⭐ Exclusive - €199/mês</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {formData.featured_tier !== 'none' && (
-                <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="font-semibold text-gray-900 mb-2">
-                    💰 Valor: €{featuredPricing[formData.featured_tier]}/mês
-                  </p>
-                  <div className="grid md:grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-xs">Data Início Destaque</Label>
-                      <Input
-                        type="date"
-                        value={formData.featured_start_date || formData.start_date}
-                        onChange={(e) => setFormData({...formData, featured_start_date: e.target.value})}
-                        className="h-9"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Data Fim Destaque</Label>
-                      <Input
-                        type="date"
-                        value={formData.featured_end_date}
-                        onChange={(e) => setFormData({...formData, featured_end_date: e.target.value})}
-                        className="h-9"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-900 font-semibold mb-1">📋 Benefícios do {formData.featured_tier}:</p>
-                    <ul className="text-xs text-blue-800 space-y-1">
-                      {formData.featured_tier === 'basic' && (
-                        <>
-                          <li>✓ Aparece no topo da sua categoria</li>
-                          <li>✓ Badge "Em Destaque"</li>
-                          <li>✓ 3x mais visibilidade</li>
-                        </>
-                      )}
-                      {formData.featured_tier === 'premium' && (
-                        <>
-                          <li>✓ Topo de TODAS as páginas</li>
-                          <li>✓ Banner grande na homepage</li>
-                          <li>✓ Badge "Premium Partner"</li>
-                          <li>✓ 10x mais visibilidade</li>
-                          <li>✓ Email marketing dedicado</li>
-                        </>
-                      )}
-                      {formData.featured_tier === 'exclusive' && (
-                        <>
-                          <li>✓ Posição #1 garantida</li>
-                          <li>✓ Banner exclusivo homepage</li>
-                          <li>✓ Push notifications para usuários</li>
-                          <li>✓ Email marketing VIP</li>
-                          <li>✓ Visibilidade máxima</li>
-                        </>
-                      )}
-                    </ul>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-2">
-                    ⚠️ O pagamento será processado após aprovação do admin
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
-            <p className="text-sm text-blue-900 font-semibold mb-1">
-              📋 Processo de Aprovação
-            </p>
-            <p className="text-xs text-blue-800">
-              Todos os anúncios passam por aprovação do admin PawCão antes de ficarem visíveis na loja. 
-              Você receberá uma notificação quando seu anúncio for aprovado ou se houver algum problema.
-            </p>
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <Button onClick={() => setShowAnnouncementForm(false)} variant="outline">
-              Cancelar
-            </Button>
-            <Button onClick={() => saveAnnouncementMutation.mutate(formData)} className="bg-purple-600">
-              {editingAnnouncement ? 'Atualizar' : 'Submeter'} Anúncio
-              {!editingAnnouncement && ' para Aprovação'}
             </Button>
           </div>
         </CardContent>

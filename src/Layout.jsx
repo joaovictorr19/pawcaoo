@@ -86,10 +86,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: "🏥 " + (language === 'pt' ? 'Serviços' : 'Services'), url: createPageUrl("PartnerServices"), icon: Award },
-    { title: "🐾 Comunidade", url: createPageUrl("Community"), icon: MessageCircle },
+    { title: "🏥 " + (language === 'pt' ? 'Serviços Parceiros' : 'Partner Services'), url: createPageUrl("PartnerServices"), icon: Award },
     { title: "🐕 Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
-    { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -112,7 +110,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
-  const moderatorItem = (user?.role === 'admin' || user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
+  const moderatorItem = (user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
     { title: "🛡️ " + (language === 'pt' ? 'Moderação' : 'Moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
@@ -129,6 +127,23 @@ function LayoutContent({ children, currentPageName }) {
   ] : [];
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
+
+  // Define the counts for each section from the base navigationItems
+  const mainMenuCount = 7; // findWalkers to Dog Connect
+  const myActivityCount = 8; // myFavorites to leaderboard
+  const professionalServicesCount = 6; // professionalDashboard to ownerMembership
+  
+  // Calculate start and end indices for slicing allNavigationItems
+  const mainMenuStartIndex = 0;
+  const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount; // 7
+
+  const myActivityStartIndex = mainMenuEndIndex; // 7
+  const myActivityEndIndex = myActivityStartIndex + myActivityCount; // 7 + 8 = 15
+
+  const professionalServicesStartIndex = myActivityEndIndex; // 15
+  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount; // 15 + 6 = 21
+
+  const adminAndOtherStartIndex = professionalServicesEndIndex; // 21
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -249,7 +264,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(0, 9).map((item) => ( 
+                  {allNavigationItems.slice(mainMenuStartIndex, mainMenuEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -276,7 +291,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(9, 17).map((item) => ( 
+                  {allNavigationItems.slice(myActivityStartIndex, myActivityEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -304,7 +319,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(17, 23).map((item) => ( 
+                  {allNavigationItems.slice(professionalServicesStartIndex, professionalServicesEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -323,12 +338,12 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {allNavigationItems.length > 23 && ( 
+            {allNavigationItems.slice(adminAndOtherStartIndex).length > 0 && ( 
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(23).map((item) => ( 
+                    {allNavigationItems.slice(adminAndOtherStartIndex).map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
