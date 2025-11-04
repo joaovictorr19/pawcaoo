@@ -11,8 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Heart, MessageCircle, Share2, Camera, Video, MapPin, Send,
   TrendingUp, Sparkles, ShoppingBag, Zap, Gift, Award,
-  Star, ChevronRight, Clock, Users, Eye, Flame, Store, // Added Store icon
-  Shield, ShieldCheck, Trash2 // Added Shield, ShieldCheck, Trash2 icons
+  Star, ChevronRight, Clock, Users, Eye, Flame, Store,
+  Shield, ShieldCheck, X // Changed Trash2 to X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -98,6 +98,24 @@ export default function SocialFeed() {
     },
   });
 
+  const toggleLikeMutation = useMutation({
+    mutationFn: async ({ postId, isLiked }) => {
+      if (isLiked) {
+        const likes = await base44.entities.SocialLike.filter({ post_id: postId, user_email: user.email });
+        if (likes[0]) await base44.entities.SocialLike.delete(likes[0].id);
+      } else {
+        await base44.entities.SocialLike.create({
+          post_id: postId,
+          user_email: user.email,
+          user_name: user.full_name
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['socialPosts']);
+    },
+  });
+
   const togglePinMutation = useMutation({
     mutationFn: async ({ postId, isPinned }) => {
       return base44.entities.SocialPost.update(postId, {
@@ -118,24 +136,6 @@ export default function SocialFeed() {
     onSuccess: () => {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Post removido!");
-    },
-  });
-
-  const toggleLikeMutation = useMutation({
-    mutationFn: async ({ postId, isLiked }) => {
-      if (isLiked) {
-        const likes = await base44.entities.SocialLike.filter({ post_id: postId, user_email: user.email });
-        if (likes[0]) await base44.entities.SocialLike.delete(likes[0].id);
-      } else {
-        await base44.entities.SocialLike.create({
-          post_id: postId,
-          user_email: user.email,
-          user_name: user.full_name
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['socialPosts']);
     },
   });
 
@@ -234,7 +234,7 @@ export default function SocialFeed() {
               <Camera className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-black text-gray-900 bg-clip-text">
+              <h1 className="text-4xl md:text-5xl font-black text-gray-900">
                 PawCão Social
               </h1>
               <p className="text-gray-600 font-medium">Conecte-se com outros donos e descubra novidades</p>
@@ -392,7 +392,7 @@ export default function SocialFeed() {
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
                                   <h4 className="font-bold text-gray-900">{post.author_name}</h4>
                                   {getRoleBadge(post.author_role, post.author_email)}
                                   {post.dog_name && (
@@ -415,7 +415,7 @@ export default function SocialFeed() {
                                     onClick={() => togglePinMutation.mutate({ postId: post.id, isPinned: post.is_pinned })}
                                     className={`rounded-xl ${post.is_pinned ? 'bg-amber-100 border-amber-300 text-amber-700 hover:bg-amber-200' : ''}`}
                                   >
-                                    {post.is_pinned ? <TrendingUp className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
+                                    <TrendingUp className="w-4 h-4" />
                                   </Button>
                                   {(user?.role === 'admin' || post.author_email === user?.email) && (
                                     <Button
@@ -428,7 +428,7 @@ export default function SocialFeed() {
                                       }}
                                       className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <X className="w-4 h-4" /> {/* Changed Trash2 to X */}
                                     </Button>
                                   )}
                                 </div>
