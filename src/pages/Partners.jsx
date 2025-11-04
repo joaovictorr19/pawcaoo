@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Megaphone, X, Sliders } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } => from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedShopFilters from "../components/search/AdvancedShopFilters";
-import { useLanguage } from "@/context/LanguageContext"; // Assuming this context exists
+import { useLanguage } from "@/components/LanguageContext"; // Updated import path
 
 export default function Partners() {
   const { language } = useLanguage();
