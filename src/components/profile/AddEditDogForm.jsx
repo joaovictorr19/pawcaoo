@@ -7,14 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dog, Upload, X, Plus, Save, Heart } from "lucide-react"; // Added Heart icon
+import { Dog, Upload, X, Plus, Save, Heart, Camera } from "lucide-react"; // Added Heart and Camera icons
+import { Separator } from "@/components/ui/separator"; // Added Separator
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import OptimizedImageUpload from "../adoption/OptimizedImageUpload"; // Added OptimizedImageUpload
 
-export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess }) {
+export default function AddEditDogForm({ dog, onClose, onSave }) {
   const queryClient = useQueryClient();
-  const isEditing = !!dog;
+  // `isEditing` is not explicitly used anymore, but its logic is implied by `!!dog` for conditional rendering/text.
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -24,23 +26,24 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
   // Define default values for all possible fields
   const defaultFormData = {
     dog_name: "",
-    pet_type: "dog", // New field
+    pet_type: "dog",
     breed: "",
     age: "",
-    date_of_birth: "", // New field
+    date_of_birth: "",
     weight: "",
     size: "medium",
     gender: "male",
     color: "",
     photo_url: "",
+    gallery_photos: [], // New field
     bio: "",
-    is_adopted: false, // New field
-    adoption_date: "", // New field
-    adoption_story: "", // New field
+    is_adopted: false,
+    adoption_date: "",
+    adoption_story: "",
     microchip_number: "",
     is_neutered: false,
-    is_vaccinated: false, // Changed default from true to false based on outline
-    vaccination_date: "", // New field
+    is_vaccinated: true, // Changed default from false to true based on outline
+    vaccination_date: "",
     vet_name: "",
     vet_phone: "",
     vet_clinic_name: "",
@@ -58,8 +61,7 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
     emergency_contact_relationship: "",
     insurance_provider: "",
     insurance_policy_number: "",
-    vaccination_records: [], // Existing field, ensure default
-    medical_records: [], // Existing field, ensure default
+    // vaccination_records and medical_records are removed as UI for them is gone.
   };
 
   // Initialize formData: if editing, merge existing dog data with defaults,
@@ -71,16 +73,16 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
   } : defaultFormData);
 
   const [uploading, setUploading] = useState(false);
-  const [uploadingVet, setUploadingVet] = useState(false);
+  // uploadingVet is removed as its related UI is removed.
 
   const saveDogMutation = useMutation({
     mutationFn: async (data) => {
       const payload = {
         ...data,
-        owner_email: ownerEmail || user?.email // Use ownerEmail prop if provided, else user's email
+        owner_email: user?.email // Use user's email, ownerEmail prop is removed
       };
-      
-      if (isEditing) {
+
+      if (dog) { // Renamed `isEditing` check to `dog`
         return base44.entities.DogProfile.update(dog.id, payload);
       } else {
         return base44.entities.DogProfile.create(payload);
@@ -88,8 +90,8 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myDogs']);
-      toast.success(isEditing ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!");
-      if (onSuccess) onSuccess();
+      toast.success(dog ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!"); // Renamed `isEditing` check to `dog`
+      if (onSave) onSave(); // Changed from onSuccess to onSave
     },
     onError: () => {
       toast.error("Erro ao salvar pet");
@@ -112,48 +114,11 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
     }
   };
 
-  const handleVetDocumentUpload = async (e, recordType) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setUploadingVet(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      if (recordType === 'vaccination') {
-        const newRecord = {
-          vaccine_name: "Nova Vacina",
-          date_administered: new Date().toISOString().split('T')[0],
-          document_url: file_url
-        };
-        setFormData({
-          ...formData,
-          vaccination_records: [...(formData.vaccination_records || []), newRecord]
-        });
-      } else {
-        const newRecord = {
-          record_type: "other",
-          date: new Date().toISOString().split('T')[0],
-          title: "Novo Registo",
-          document_url: file_url
-        };
-        setFormData({
-          ...formData,
-          medical_records: [...(formData.medical_records || []), newRecord]
-        });
-      }
-      
-      toast.success("Documento carregado!");
-    } catch (error) {
-      toast.error("Erro ao carregar documento");
-    } finally {
-      setUploadingVet(false);
-    }
-  };
+  // handleVetDocumentUpload is removed as its related UI is removed.
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.dog_name || !formData.size || !formData.pet_type) {
       toast.error("Preencha os campos obrigatórios (Nome do Pet, Tipo de Animal, Tamanho)");
       return;
@@ -175,15 +140,85 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
   ];
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Card className="border-2 border-green-200">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
-          <CardTitle className="flex items-center gap-2">
-            <Dog className="w-5 h-5 text-green-600" />
-            {isEditing ? `Editar ${dog.dog_name}` : "Adicionar Novo Pet"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
+    <Card className="border-0 shadow-2xl">
+      <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
+        <CardTitle className="text-xl flex items-center gap-2">
+          <Dog className="w-6 h-6" />
+          {dog ? 'Editar Pet' : 'Adicionar Novo Pet'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-6"> {/* Added form tag here */}
+          {/* Photo Principal */}
+          <div>
+            <Label className="mb-3 block text-base font-semibold">Foto Principal *</Label>
+            <div className="flex items-start gap-4">
+              {formData.photo_url ? (
+                <div className="relative">
+                  <img
+                    src={formData.photo_url}
+                    alt="Pet"
+                    className="w-32 h-32 rounded-2xl object-cover border-4 border-green-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, photo_url: "" })}
+                    className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="cursor-pointer">
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors">
+                    {uploading ? (
+                      <Upload className="w-8 h-8 text-gray-400 animate-bounce" />
+                    ) : (
+                      <div className="text-center">
+                        <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                        <p className="text-xs text-gray-500">Upload</p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={uploading}
+                  />
+                </label>
+              )}
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">
+                  Foto principal do seu pet que aparecerá no perfil
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Otimizada automaticamente para &lt;500KB
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Gallery Photos - Using Optimized Component */}
+          <div>
+            <Label className="mb-3 block text-base font-semibold flex items-center gap-2">
+              🖼️ Galeria de Fotos
+              <span className="text-sm font-normal text-gray-500">(opcional)</span>
+            </Label>
+            <OptimizedImageUpload
+              onImagesChange={(urls) => setFormData({ ...formData, gallery_photos: urls })}
+              currentImages={formData.gallery_photos}
+              maxImages={10}
+              maxSizeKB={500}
+              showPreview={true}
+            />
+          </div>
+
+          <Separator />
+
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="basic">Básico</TabsTrigger>
@@ -194,37 +229,7 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
 
             {/* BASIC INFO TAB */}
             <TabsContent value="basic" className="space-y-4">
-              <div className="space-y-6"> {/* Added wrapper div for outline's space-y-6 */}
-                <div className="flex justify-center mb-4">
-                  <div className="relative">
-                    {formData.photo_url ? (
-                      <img
-                        src={formData.photo_url}
-                        alt="Pet"
-                        className="w-32 h-32 rounded-full object-cover border-4 border-green-200"
-                      />
-                    ) : (
-                      <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-200">
-                        <Dog className="w-16 h-16 text-gray-400" />
-                      </div>
-                    )}
-                    <label className="absolute bottom-0 right-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-green-700 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoUpload}
-                        disabled={uploading}
-                      />
-                      {uploading ? (
-                        <div className="animate-spin">⏳</div>
-                      ) : (
-                        <Upload className="w-5 h-5 text-white" />
-                      )}
-                    </label>
-                  </div>
-                </div>
-
+              <div className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="dog_name">Nome do Pet *</Label>
@@ -276,7 +281,7 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
                       placeholder="0"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="date_of_birth">Data de Nascimento</Label>
                     <Input
@@ -492,40 +497,7 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
                 </div>
               </div>
 
-              <div>
-                <Label>Carregar Registos Veterinários</Label>
-                <div className="grid md:grid-cols-2 gap-3 mt-2">
-                  <label className="cursor-pointer">
-                    <div className="border-2 border-dashed border-green-300 rounded-lg p-4 hover:bg-green-50 transition-colors text-center">
-                      <Upload className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-green-700">Registo de Vacinação</p>
-                      <p className="text-xs text-gray-500">PDF, PNG, JPG</p>
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      className="hidden"
-                      onChange={(e) => handleVetDocumentUpload(e, 'vaccination')}
-                      disabled={uploadingVet}
-                    />
-                  </label>
-
-                  <label className="cursor-pointer">
-                    <div className="border-2 border-dashed border-blue-300 rounded-lg p-4 hover:bg-blue-50 transition-colors text-center">
-                      <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-blue-700">Registo Médico</p>
-                      <p className="text-xs text-gray-500">PDF, PNG, JPG</p>
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      className="hidden"
-                      onChange={(e) => handleVetDocumentUpload(e, 'medical')}
-                      disabled={uploadingVet}
-                    />
-                  </label>
-                </div>
-              </div>
+              {/* "Carregar Registos Veterinários" section removed */}
 
               <div>
                 <Label htmlFor="medical_conditions">Condições Médicas</Label>
@@ -714,7 +686,7 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onClose} // Changed from onCancel to onClose
               className="flex-1"
             >
               Cancelar
@@ -725,11 +697,11 @@ export default function AddEditDogForm({ dog, ownerEmail, onCancel, onSuccess })
               className="flex-1 bg-gradient-to-r from-green-600 to-blue-600"
             >
               <Save className="w-4 h-4 mr-2" />
-              {saveDogMutation.isPending ? "Salvando..." : isEditing ? "Salvar Alterações" : "Adicionar Pet"}
+              {saveDogMutation.isPending ? "Salvando..." : dog ? "Salvar Alterações" : "Adicionar Pet"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </form>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,7 @@ import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // Added import
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
@@ -67,6 +69,7 @@ export default function BecomeWalker() {
     bank_account_holder: "",
     bank_account_number: "",
     bank_routing_number: "",
+    portfolio: [], // Added portfolio field
   });
 
   const createWalkerMutation = useMutation({
@@ -143,7 +146,7 @@ export default function BecomeWalker() {
   const progress = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
@@ -216,529 +219,560 @@ export default function BecomeWalker() {
           </CardHeader>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
-              {/* STEP 1: PROFILE */}
-              {currentStep === 1 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  {/* Profile Photo */}
-                  <div className="space-y-2 mb-6">
-                    <Label htmlFor="photo">{t('profilePhoto', language)} *</Label>
-                    <div className="flex items-center gap-4">
-                      {formData.photo_url ? (
-                        <img
-                          src={formData.photo_url}
-                          alt="Preview"
-                          className="w-32 h-32 rounded-xl object-cover border-4 border-green-100"
-                        />
-                      ) : (
-                        <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200">
-                          <Upload className="w-8 h-8 text-gray-400" />
+              <AnimatePresence mode="wait">
+                {/* STEP 1: PROFILE */}
+                {currentStep === 1 && (
+                  <motion.div
+                    key="step1" // Added key for AnimatePresence
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    {/* Profile Photo */}
+                    <div className="space-y-2 mb-6">
+                      <Label htmlFor="photo">{t('profilePhoto', language)} *</Label>
+                      <div className="flex items-center gap-4">
+                        {formData.photo_url ? (
+                          <img
+                            src={formData.photo_url}
+                            alt="Preview"
+                            className="w-32 h-32 rounded-xl object-cover border-4 border-green-100"
+                          />
+                        ) : (
+                          <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200">
+                            <Upload className="w-8 h-8 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <Input
+                            id="photo"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, 'photo_url', 'photo')}
+                            disabled={uploading.photo}
+                            required
+                          />
+                          <p className="text-sm text-gray-500 mt-2">
+                            {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-1">
+                      </div>
+                    </div>
+
+                    {/* Video Introduction */}
+                    <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
+                      <Label htmlFor="video">{t('videoIntroduction', language)} 📹</Label>
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-3">
+                        <p className="text-sm text-blue-900">
+                          {t('videoIntroTip', language)}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-start gap-4">
+                        {formData.video_intro_url ? (
+                          <video
+                            src={formData.video_intro_url}
+                            controls
+                            className="w-full max-w-md rounded-xl border-4 border-green-100"
+                          />
+                        ) : (
+                          <div className="w-full max-w-md bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200 h-48">
+                            <Upload className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
                         <Input
-                          id="photo"
+                          id="video"
                           type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(e, 'photo_url', 'photo')}
-                          disabled={uploading.photo}
-                          required
+                          accept="video/*"
+                          onChange={(e) => handleFileUpload(e, 'video_intro_url', 'video')}
+                          disabled={uploading.video}
+                          className="mt-3"
                         />
-                        <p className="text-sm text-gray-500 mt-2">
-                          {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
+                        <p className="text-sm text-gray-500">
+                          {uploading.video ? t('uploadingVideo', language) : t('videoFormats', language)}
                         </p>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Video Introduction */}
-                  <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
-                    <Label htmlFor="video">{t('videoIntroduction', language)} 📹</Label>
-                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-3">
-                      <p className="text-sm text-blue-900">
-                        {t('videoIntroTip', language)}
+                    {/* Portfolio Photos - Using Optimized Component */}
+                    <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
+                      <Label className="block text-base font-semibold flex items-center gap-2">
+                        🖼️ {t('portfolioPhotos', language)}
+                      </Label>
+                      <p className="text-sm text-gray-600 mb-4">
+                        {t('portfolioPhotosTip', language)}
                       </p>
+                      <OptimizedImageUpload
+                        onImagesChange={(urls) => {
+                          const portfolio = urls.map(url => ({
+                            media_url: url,
+                            media_type: 'photo',
+                            title: 'Passeio', // Default title, can be made configurable if needed
+                            category: 'walk', // Default category
+                            is_featured: false
+                          }));
+                          setFormData({ ...formData, portfolio });
+                        }}
+                        currentImages={formData.portfolio?.map(p => p.media_url) || []}
+                        maxImages={12}
+                        maxSizeKB={500}
+                        showPreview={true}
+                      />
                     </div>
-                    <div className="flex flex-col items-start gap-4">
-                      {formData.video_intro_url ? (
-                        <video
-                          src={formData.video_intro_url}
-                          controls
-                          className="w-full max-w-md rounded-xl border-4 border-green-100"
+
+                    {/* Basic Info */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="walker_name">{t('yourName', language)} *</Label>
+                        <Input
+                          id="walker_name"
+                          required
+                          value={formData.walker_name}
+                          onChange={(e) => setFormData({...formData, walker_name: e.target.value})}
+                          placeholder="João Silva"
                         />
-                      ) : (
-                        <div className="w-full max-w-md bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200 h-48">
-                          <Upload className="w-12 h-12 text-gray-400" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">{t('phoneNumber', language)} *</Label>
+                        <Input
+                          id="phone"
+                          required
+                          value={formData.phone}
+                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          placeholder="+351 21 123 4567"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="location">{t('location', language)} *</Label>
+                        <Input
+                          id="location"
+                          required
+                          value={formData.location}
+                          onChange={(e) => setFormData({...formData, location: e.target.value})}
+                          placeholder="Lisboa, Portugal"
+                        />
+                      </div>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="space-y-2">
+                              <Label htmlFor="hourly_rate">{t('hourlyRate', language)} *</Label>
+                              <Input
+                                id="hourly_rate"
+                                type="number"
+                                step="0.01"
+                                required
+                                value={formData.hourly_rate}
+                                onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
+                                placeholder="25"
+                              />
+                              <p className="text-xs text-gray-500">{t('platformCommission', language)}</p>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Exemplo: €25/hora = Recebe €21.25 por passeio (após 15% comissão)</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="experience_years">{t('yearsOfExperience', language)}</Label>
+                        <Input
+                          id="experience_years"
+                          type="number"
+                          value={formData.experience_years}
+                          onChange={(e) => setFormData({...formData, experience_years: e.target.value})}
+                          placeholder="3"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bio */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">{t('aboutYou', language)}</Label>
+                      <Textarea
+                        id="bio"
+                        value={formData.bio}
+                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                        placeholder={t('aboutYouPlaceholder', language)}
+                        rows={5}
+                      />
+                    </div>
+
+                    {/* Services Offered */}
+                    <div className="border-t-2 border-green-100 pt-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-xl font-bold">{t('servicesOffered', language)}</Label>
+                          <p className="text-sm text-gray-600 mt-1">{t('servicesOfferedDesc', language)}</p>
                         </div>
-                      )}
-                      <Input
-                        id="video"
-                        type="file"
-                        accept="video/*"
-                        onChange={(e) => handleFileUpload(e, 'video_intro_url', 'video')}
-                        disabled={uploading.video}
-                        className="mt-3"
-                      />
-                      <p className="text-sm text-gray-500">
-                        {uploading.video ? t('uploadingVideo', language) : t('videoFormats', language)}
-                      </p>
-                    </div>
-                  </div>
+                        <Button type="button" variant="outline" onClick={addService}>
+                          <PlusCircle className="w-4 h-4 mr-2" />
+                          {t('addService', language)}
+                        </Button>
+                      </div>
 
-                  {/* Basic Info */}
-                  <div className="grid md:grid-cols-2 gap-6">
+                      {formData.services_offered.map((service, index) => (
+                        <Card key={index} className="p-4 bg-green-50 border-2 border-green-200">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold text-gray-900">{t('serviceNumber', language).replace('#', `#${index + 1}`)}</h4>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeService(index)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                {t('removeService', language)}
+                              </Button>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>{t('serviceName', language)}</Label>
+                                <Input
+                                  placeholder={t('serviceNamePlaceholder', language)}
+                                  value={service.service_name}
+                                  onChange={(e) => updateService(index, 'service_name', e.target.value)}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>{t('price', language)} (€)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="25.00"
+                                  value={service.price || ""}
+                                  onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>{t('description', language)}</Label>
+                              <Textarea
+                                placeholder={t('descriptionPlaceholder', language)}
+                                value={service.description}
+                                onChange={(e) => updateService(index, 'description', e.target.value)}
+                                rows={3}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>{t('durationOptions', language)}</Label>
+                              <div className="flex flex-wrap gap-2">
+                                {['30min', '1hr', '1.5hr', '2hr'].map(duration => (
+                                  <label key={duration} className="flex items-center gap-2 cursor-pointer">
+                                    <Checkbox
+                                      checked={service.duration_options?.includes(duration)}
+                                      onCheckedChange={() => {
+                                        const current = service.duration_options || [];
+                                        const updated = current.includes(duration)
+                                          ? current.filter(d => d !== duration)
+                                          : [...current, duration];
+                                        updateService(index, 'duration_options', updated);
+                                      }}
+                                    />
+                                    <span className="text-sm">{duration}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Service Areas */}
                     <div className="space-y-2">
-                      <Label htmlFor="walker_name">{t('yourName', language)} *</Label>
-                      <Input
-                        id="walker_name"
-                        required
-                        value={formData.walker_name}
-                        onChange={(e) => setFormData({...formData, walker_name: e.target.value})}
-                        placeholder="João Silva"
+                      <Label>{t('serviceAreas', language)}</Label>
+                      <ServiceAreaSelector
+                        serviceAreas={formData.service_areas}
+                        onChange={(areas) => setFormData({...formData, service_areas: areas})}
                       />
                     </div>
 
+                    {/* Dog Sizes */}
+                    <div className="space-y-3">
+                      <Label>{t('dogSizesYouHandle', language)} *</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { value: "small", label: t('small', language) },
+                          { value: "medium", label: t('medium', language) },
+                          { value: "large", label: t('large', language) },
+                          { value: "extra_large", label: t('extraLarge', language) },
+                        ].map(size => (
+                          <div key={size.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`size-${size.value}`}
+                              checked={formData.dog_sizes.includes(size.value)}
+                              onCheckedChange={() => toggleArrayItem('dog_sizes', size.value)}
+                            />
+                            <label htmlFor={`size-${size.value}`} className="text-sm font-medium cursor-pointer">
+                              {size.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Dog Breeds */}
                     <div className="space-y-2">
-                      <Label htmlFor="phone">{t('phoneNumber', language)} *</Label>
-                      <Input
-                        id="phone"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        placeholder="+351 21 123 4567"
+                      <Label>{t('dogBreedsExperience', language)}</Label>
+                      <BreedSelector
+                        selectedBreeds={formData.dog_breeds_handled}
+                        onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
+                        specializationBreeds={formData.breed_specialization}
+                        onSpecializationChange={(breeds) => setFormData({...formData, breed_specialization: breeds})}
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="location">{t('location', language)} *</Label>
-                      <Input
-                        id="location"
-                        required
-                        value={formData.location}
-                        onChange={(e) => setFormData({...formData, location: e.target.value})}
-                        placeholder="Lisboa, Portugal"
-                      />
+                    {/* Availability */}
+                    <div className="space-y-3">
+                      <Label>{t('yourAvailability', language)} *</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { value: "morning", label: t('morning', language) },
+                          { value: "afternoon", label: t('afternoon', language) },
+                          { value: "evening", label: t('evening', language) },
+                          { value: "night", label: t('night', language) },
+                        ].map(time => (
+                          <div key={time.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`time-${time.value}`}
+                              checked={formData.availability.includes(time.value)}
+                              onCheckedChange={() => toggleArrayItem('availability', time.value)}
+                            />
+                            <label htmlFor={`time-${time.value}`} className="text-sm font-medium cursor-pointer">
+                              {time.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        onClick={() => setCurrentStep(2)}
+                        disabled={!canProceedToStep2}
+                        className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
+                      >
+                        {t('next', language)}: {t('step2Documents', language).split(':')[1]} →
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* STEP 2: DOCUMENTS */}
+                {currentStep === 2 && (
+                  <motion.div
+                    key="step2" // Added key for AnimatePresence
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="space-y-2">
+                            <Label>{t('governmentId', language)} *</Label>
+                            <Input
+                              type="file"
+                              accept="image/*,.pdf"
+                              onChange={(e) => handleFileUpload(e, 'id_document_url', 'id')}
+                              disabled={uploading.id}
+                              required
+                            />
+                            {formData.id_document_url && (
+                              <div className="flex items-center gap-2 text-sm text-green-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                {t('documentUploaded', language)}
+                              </div>
+                            )}
+                            {uploading.id && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Necessário para verificar a sua identidade</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="space-y-2">
-                            <Label htmlFor="hourly_rate">{t('hourlyRate', language)} *</Label>
+                            <Label>{t('backgroundCheck', language)} 🛡️</Label>
+                            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-3">
+                              <p className="text-sm text-green-900">
+                                {t('backgroundCheckTip', language)}
+                              </p>
+                            </div>
+                            <Select
+                              value={formData.background_check_provider}
+                              onValueChange={(value) => setFormData({...formData, background_check_provider: value})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('selectProvider', language)} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="checkr">Checkr</SelectItem>
+                                <SelectItem value="sterling">Sterling</SelectItem>
+                                <SelectItem value="goodhire">GoodHire</SelectItem>
+                                <SelectItem value="certn">Certn</SelectItem>
+                                <SelectItem value="other">Outro</SelectItem>
+                              </SelectContent>
+                            </Select>
                             <Input
-                              id="hourly_rate"
-                              type="number"
-                              step="0.01"
-                              required
-                              value={formData.hourly_rate}
-                              onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
-                              placeholder="25"
+                              type="file"
+                              accept="image/*,.pdf"
+                              onChange={(e) => handleFileUpload(e, 'background_check_url', 'background')}
+                              disabled={uploading.background}
+                              className="mt-2"
                             />
-                            <p className="text-xs text-gray-500">{t('platformCommission', language)}</p>
+                            {formData.background_check_url && (
+                              <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+                                <CheckCircle2 className="w-4 h-4" />
+                                {t('documentUploaded', language)}
+                              </div>
+                            )}
+                            {uploading.background && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Exemplo: €25/hora = Recebe €21.25 por passeio (após 15% comissão)</p>
+                          <p>Verificação de antecedentes aumenta significativamente as taxas de reserva</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="experience_years">{t('yearsOfExperience', language)}</Label>
-                      <Input
-                        id="experience_years"
-                        type="number"
-                        value={formData.experience_years}
-                        onChange={(e) => setFormData({...formData, experience_years: e.target.value})}
-                        placeholder="3"
-                      />
-                    </div>
-                  </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="space-y-2">
+                            <Label>{t('proofOfAddress', language)} *</Label>
+                            <Input
+                              type="file"
+                              accept="image/*,.pdf"
+                              onChange={(e) => handleFileUpload(e, 'proof_of_address_url', 'address')}
+                              disabled={uploading.address}
+                              required
+                            />
+                            {formData.proof_of_address_url && (
+                              <div className="flex items-center gap-2 text-sm text-green-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                {t('documentUploaded', language)}
+                              </div>
+                            )}
+                            {uploading.address && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Obrigatório para verificação - deve corresponder à sua localização</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-                  {/* Bio */}
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">{t('aboutYou', language)}</Label>
-                    <Textarea
-                      id="bio"
-                      value={formData.bio}
-                      onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                      placeholder={t('aboutYouPlaceholder', language)}
-                      rows={5}
-                    />
-                  </div>
-
-                  {/* Services Offered */}
-                  <div className="border-t-2 border-green-100 pt-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-xl font-bold">{t('servicesOffered', language)}</Label>
-                        <p className="text-sm text-gray-600 mt-1">{t('servicesOfferedDesc', language)}</p>
-                      </div>
-                      <Button type="button" variant="outline" onClick={addService}>
-                        <PlusCircle className="w-4 h-4 mr-2" />
-                        {t('addService', language)}
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setCurrentStep(1)}
+                        className="flex-1"
+                      >
+                        ← {t('previous', language)}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setCurrentStep(3)}
+                        disabled={!canProceedToStep3}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
+                      >
+                        {t('next', language)}: Info de Pagamento →
                       </Button>
                     </div>
+                  </motion.div>
+                )}
 
-                    {formData.services_offered.map((service, index) => (
-                      <Card key={index} className="p-4 bg-green-50 border-2 border-green-200">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-gray-900">{t('serviceNumber', language).replace('#', `#${index + 1}`)}</h4>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeService(index)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              {t('removeService', language)}
-                            </Button>
-                          </div>
-                          
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>{t('serviceName', language)}</Label>
-                              <Input
-                                placeholder={t('serviceNamePlaceholder', language)}
-                                value={service.service_name}
-                                onChange={(e) => updateService(index, 'service_name', e.target.value)}
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label>{t('price', language)} (€)</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="25.00"
-                                value={service.price || ""}
-                                onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
-                              />
-                            </div>
-                          </div>
+                {/* STEP 3: PAYMENT */}
+                {currentStep === 3 && (
+                  <motion.div
+                    key="step3" // Added key for AnimatePresence
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    <p className="text-gray-600">{t('paymentInfoDesc', language)}</p>
 
-                          <div className="space-y-2">
-                            <Label>{t('description', language)}</Label>
-                            <Textarea
-                              placeholder={t('descriptionPlaceholder', language)}
-                              value={service.description}
-                              onChange={(e) => updateService(index, 'description', e.target.value)}
-                              rows={3}
-                            />
-                          </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="bank_account_holder">{t('accountHolderName', language)} *</Label>
+                        <Input
+                          id="bank_account_holder"
+                          required
+                          value={formData.bank_account_holder}
+                          onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                          placeholder="João Silva"
+                        />
+                      </div>
 
-                          <div className="space-y-2">
-                            <Label>{t('durationOptions', language)}</Label>
-                            <div className="flex flex-wrap gap-2">
-                              {['30min', '1hr', '1.5hr', '2hr'].map(duration => (
-                                <label key={duration} className="flex items-center gap-2 cursor-pointer">
-                                  <Checkbox
-                                    checked={service.duration_options?.includes(duration)}
-                                    onCheckedChange={() => {
-                                      const current = service.duration_options || [];
-                                      const updated = current.includes(duration)
-                                        ? current.filter(d => d !== duration)
-                                        : [...current, duration];
-                                      updateService(index, 'duration_options', updated);
-                                    }}
-                                  />
-                                  <span className="text-sm">{duration}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)} *</Label>
+                        <Input
+                          id="bank_account_number"
+                          required
+                          value={formData.bank_account_number}
+                          onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                          placeholder="PT50000201231234567890154"
+                        />
+                      </div>
 
-                  {/* Service Areas */}
-                  <div className="space-y-2">
-                    <Label>{t('serviceAreas', language)}</Label>
-                    <ServiceAreaSelector
-                      serviceAreas={formData.service_areas}
-                      onChange={(areas) => setFormData({...formData, service_areas: areas})}
-                    />
-                  </div>
-
-                  {/* Dog Sizes */}
-                  <div className="space-y-3">
-                    <Label>{t('dogSizesYouHandle', language)} *</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { value: "small", label: t('small', language) },
-                        { value: "medium", label: t('medium', language) },
-                        { value: "large", label: t('large', language) },
-                        { value: "extra_large", label: t('extraLarge', language) },
-                      ].map(size => (
-                        <div key={size.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`size-${size.value}`}
-                            checked={formData.dog_sizes.includes(size.value)}
-                            onCheckedChange={() => toggleArrayItem('dog_sizes', size.value)}
-                          />
-                          <label htmlFor={`size-${size.value}`} className="text-sm font-medium cursor-pointer">
-                            {size.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Dog Breeds */}
-                  <div className="space-y-2">
-                    <Label>{t('dogBreedsExperience', language)}</Label>
-                    <BreedSelector
-                      selectedBreeds={formData.dog_breeds_handled}
-                      onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
-                      specializationBreeds={formData.breed_specialization}
-                      onSpecializationChange={(breeds) => setFormData({...formData, breed_specialization: breeds})}
-                    />
-                  </div>
-
-                  {/* Availability */}
-                  <div className="space-y-3">
-                    <Label>{t('yourAvailability', language)} *</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { value: "morning", label: t('morning', language) },
-                        { value: "afternoon", label: t('afternoon', language) },
-                        { value: "evening", label: t('evening', language) },
-                        { value: "night", label: t('night', language) },
-                      ].map(time => (
-                        <div key={time.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`time-${time.value}`}
-                            checked={formData.availability.includes(time.value)}
-                            onCheckedChange={() => toggleArrayItem('availability', time.value)}
-                          />
-                          <label htmlFor={`time-${time.value}`} className="text-sm font-medium cursor-pointer">
-                            {time.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentStep(2)}
-                      disabled={!canProceedToStep2}
-                      className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
-                    >
-                      {t('next', language)}: {t('step2Documents', language).split(':')[1]} →
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* STEP 2: DOCUMENTS */}
-              {currentStep === 2 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="space-y-2">
-                          <Label>{t('governmentId', language)} *</Label>
-                          <Input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => handleFileUpload(e, 'id_document_url', 'id')}
-                            disabled={uploading.id}
-                            required
-                          />
-                          {formData.id_document_url && (
-                            <div className="flex items-center gap-2 text-sm text-green-600">
-                              <CheckCircle2 className="w-4 h-4" />
-                              {t('documentUploaded', language)}
-                            </div>
-                          )}
-                          {uploading.id && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Necessário para verificar a sua identidade</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="space-y-2">
-                          <Label>{t('backgroundCheck', language)} 🛡️</Label>
-                          <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-3">
-                            <p className="text-sm text-green-900">
-                              {t('backgroundCheckTip', language)}
-                            </p>
-                          </div>
-                          <Select
-                            value={formData.background_check_provider}
-                            onValueChange={(value) => setFormData({...formData, background_check_provider: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('selectProvider', language)} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="checkr">Checkr</SelectItem>
-                              <SelectItem value="sterling">Sterling</SelectItem>
-                              <SelectItem value="goodhire">GoodHire</SelectItem>
-                              <SelectItem value="certn">Certn</SelectItem>
-                              <SelectItem value="other">Outro</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => handleFileUpload(e, 'background_check_url', 'background')}
-                            disabled={uploading.background}
-                            className="mt-2"
-                          />
-                          {formData.background_check_url && (
-                            <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
-                              <CheckCircle2 className="w-4 h-4" />
-                              {t('documentUploaded', language)}
-                            </div>
-                          )}
-                          {uploading.background && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Verificação de antecedentes aumenta significativamente as taxas de reserva</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="space-y-2">
-                          <Label>{t('proofOfAddress', language)} *</Label>
-                          <Input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => handleFileUpload(e, 'proof_of_address_url', 'address')}
-                            disabled={uploading.address}
-                            required
-                          />
-                          {formData.proof_of_address_url && (
-                            <div className="flex items-center gap-2 text-sm text-green-600">
-                              <CheckCircle2 className="w-4 h-4" />
-                              {t('documentUploaded', language)}
-                            </div>
-                          )}
-                          {uploading.address && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Obrigatório para verificação - deve corresponder à sua localização</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setCurrentStep(1)}
-                      className="flex-1"
-                    >
-                      ← {t('previous', language)}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setCurrentStep(3)}
-                      disabled={!canProceedToStep3}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
-                    >
-                      {t('next', language)}: Info de Pagamento →
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* STEP 3: PAYMENT */}
-              {currentStep === 3 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <p className="text-gray-600">{t('paymentInfoDesc', language)}</p>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="bank_account_holder">{t('accountHolderName', language)} *</Label>
-                      <Input
-                        id="bank_account_holder"
-                        required
-                        value={formData.bank_account_holder}
-                        onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
-                        placeholder="João Silva"
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)} *</Label>
+                        <Input
+                          id="bank_routing_number"
+                          required
+                          value={formData.bank_routing_number}
+                          onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
+                          placeholder="BOFAPORTXXX"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)} *</Label>
-                      <Input
-                        id="bank_account_number"
-                        required
-                        value={formData.bank_account_number}
-                        onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
-                        placeholder="PT50000201231234567890154"
-                      />
+                    <div className="flex gap-3 pt-6">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setCurrentStep(2)}
+                        className="flex-1"
+                      >
+                        ← {t('previous', language)}
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={createWalkerMutation.isPending || Object.values(uploading).some(v => v)}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white h-14 text-lg font-semibold shadow-xl"
+                      >
+                        {createWalkerMutation.isPending ? (
+                          t('submitting', language)
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-5 h-5 mr-2" />
+                            {t('submitForVerification', language)}
+                          </>
+                        )}
+                      </Button>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)} *</Label>
-                      <Input
-                        id="bank_routing_number"
-                        required
-                        value={formData.bank_routing_number}
-                        onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
-                        placeholder="BOFAPORTXXX"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-6">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setCurrentStep(2)}
-                      className="flex-1"
-                    >
-                      ← {t('previous', language)}
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={createWalkerMutation.isPending || Object.values(uploading).some(v => v)}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white h-14 text-lg font-semibold shadow-xl"
-                    >
-                      {createWalkerMutation.isPending ? (
-                        t('submitting', language)
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-5 h-5 mr-2" />
-                          {t('submitForVerification', language)}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </form>
           </CardContent>
         </Card>

@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Eye, Users, Calendar, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { motion } from "framer-motion";
+import { Heart, Eye, Users, Calendar, CheckCircle2, XCircle, Clock, Pencil, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -16,11 +16,26 @@ import { format } from "date-fns";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
+import OptimizedImageUpload from "@/components/adoption/OptimizedImageUpload";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+
 export default function ManageAdoptionListings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { language } = useLanguage();
   const [selectedListing, setSelectedListing] = useState(null);
+  const [editingListing, setEditingListing] = useState(null); // State for the listing being edited
+  const [isSubmitting, setIsSubmitting] = useState(false); // State for form submission loading
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -55,16 +70,28 @@ export default function ManageAdoptionListings() {
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['adoptionApplications'] });
-      toast.success(`Application ${variables.status}!`); // Consider translating this toast message too
+      toast.success(t(`application${variables.status.charAt(0).toUpperCase() + variables.status.slice(1)}`, language));
     },
+    onError: (error) => {
+      console.error("Error updating application:", error);
+      toast.error(t('applicationUpdateError', language));
+    }
   });
 
   const updateListingMutation = useMutation({
-    mutationFn: ({ listingId, status }) => 
-      base44.entities.AdoptionListing.update(listingId, { status }),
+    mutationFn: ({ listingId, updates }) => 
+      base44.entities.AdoptionListing.update(listingId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAdoptionListings'] });
-      toast.success("Listing updated!"); // Consider translating this toast message too
+      toast.success(t('listingUpdatedSuccess', language));
+      setEditingListing(null); // Close modal on success
+    },
+    onError: (error) => {
+      console.error("Failed to update listing:", error);
+      toast.error(t('listingUpdatedError', language));
+    },
+    onSettled: () => {
+      setIsSubmitting(false); // Reset submitting state
     },
   });
 
@@ -76,31 +103,81 @@ export default function ManageAdoptionListings() {
     const configs = {
       available: { 
         color: "bg-green-500", 
-        text: language === 'pt' ? "Disponível" : language === 'es' ? "Disponible" : "Available" 
+        text: t('available', language)
       },
       pending: { 
         color: "bg-yellow-500", 
-        text: language === 'pt' ? "Pendente" : language === 'es' ? "Pendiente" : "Pending" 
+        text: t('pending', language)
       },
       adopted: { 
         color: "bg-blue-500", 
-        text: language === 'pt' ? "Adotado!" : language === 'es' ? "¡Adoptado!" : "Adopted!" 
+        text: t('adopted', language)
       },
       on_hold: { 
         color: "bg-orange-500", 
-        text: language === 'pt' ? "Em Espera" : language === 'es' ? "En Espera" : "On Hold" 
+        text: t('onHold', language)
       },
       removed: { 
         color: "bg-gray-500", 
-        text: language === 'pt' ? "Removido" : language === 'es' ? "Eliminado" : "Removed" 
+        text: t('removed', language)
       }
     };
     const config = configs[status] || configs.available;
     return <Badge className={`${config.color} text-white`}>{config.text}</Badge>;
   };
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditingListing((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleSelectChange = (name, value) => {
+    setEditingListing((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    if (!editingListing) return;
+
+    setIsSubmitting(true);
+    try {
+      const updates = {
+        pet_name: editingListing.pet_name,
+        breed: editingListing.breed,
+        age: parseInt(editingListing.age) || 0, // Ensure age is number
+        gender: editingListing.gender,
+        size: editingListing.size,
+        description: editingListing.description,
+        medical_history: editingListing.medical_history,
+        temperament: editingListing.temperament,
+        house_trained: editingListing.house_trained,
+        gets_along_with_children: editingListing.gets_along_with_children,
+        gets_along_with_other_pets: editingListing.gets_along_with_other_pets,
+        fee_amount: parseFloat(editingListing.fee_amount) || 0, // Ensure number
+        status: editingListing.status,
+        location: editingListing.location,
+        contact_phone: editingListing.contact_phone,
+        contact_email: editingListing.contact_email,
+        photos: editingListing.photos,
+      };
+
+      await updateListingMutation.mutateAsync({ listingId: editingListing.id, updates });
+    } catch (error) {
+      console.error("Failed to update listing:", error);
+      toast.error(t('listingUpdatedError', language));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -119,86 +196,111 @@ export default function ManageAdoptionListings() {
 
           {/* My Listings Tab */}
           <TabsContent value="listings">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myListings.map((listing, index) => {
-                const applications = getApplicationsForListing(listing.id);
-                
-                return (
-                  <motion.div
-                    key={listing.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className="border-0 shadow-xl">
-                      <div className="relative h-48 bg-gray-200">
-                        {listing.photos && listing.photos[0] ? (
-                          <img
-                            src={listing.photos[0]}
-                            alt={listing.pet_name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-6xl">
-                            {listing.pet_type === 'dog' ? '🐕' : '🐾'}
+            {myListings.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                    {t('noListingsYet', language)}
+                  </h3>
+                  <p className="text-gray-600">
+                    {t('createListingPrompt', language)}
+                  </p>
+                  <Button className="mt-4" onClick={() => navigate(createPageUrl('AdoptionListingForm'))}>
+                    {t('createListing', language)}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {myListings.map((listing, index) => {
+                  const applications = getApplicationsForListing(listing.id);
+                  
+                  return (
+                    <motion.div
+                      key={listing.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Card className="border-0 shadow-xl">
+                        <div className="relative h-48 bg-gray-200">
+                          {listing.photos && listing.photos[0] ? (
+                            <img
+                              src={listing.photos[0]}
+                              alt={listing.pet_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-6xl">
+                              {listing.pet_type === 'dog' ? '🐕' : '🐾'}
+                            </div>
+                          )}
+                          <div className="absolute top-3 right-3">
+                            {getStatusBadge(listing.status)}
                           </div>
-                        )}
-                        <div className="absolute top-3 right-3">
-                          {getStatusBadge(listing.status)}
                         </div>
-                      </div>
-                      
-                      <CardContent className="p-5">
-                        <h3 className="text-2xl font-bold mb-2">{listing.pet_name}</h3>
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                          {listing.breed} • {listing.gender}
-                        </p>
+                        
+                        <CardContent className="p-5">
+                          <h3 className="text-2xl font-bold mb-2">{listing.pet_name}</h3>
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                            {listing.breed} • {listing.gender}
+                          </p>
 
-                        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-                          <div className="bg-purple-50 rounded-lg p-2">
-                            <Eye className="w-4 h-4 mx-auto mb-1 text-purple-600" />
-                            <div className="text-xs text-gray-600">{listing.views_count || 0}</div>
-                          </div>
-                          <div className="bg-blue-50 rounded-lg p-2">
-                            <Users className="w-4 h-4 mx-auto mb-1 text-blue-600" />
-                            <div className="text-xs text-gray-600">{applications.length}</div>
-                          </div>
-                          <div className="bg-green-50 rounded-lg p-2">
-                            <Calendar className="w-4 h-4 mx-auto mb-1 text-green-600" />
-                            <div className="text-xs text-gray-600">
-                              {format(new Date(listing.created_date), 'MMM d')}
+                          <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                            <div className="bg-purple-50 rounded-lg p-2">
+                              <Eye className="w-4 h-4 mx-auto mb-1 text-purple-600" />
+                              <div className="text-xs text-gray-600">{listing.views_count || 0}</div>
+                            </div>
+                            <div className="bg-blue-50 rounded-lg p-2">
+                              <Users className="w-4 h-4 mx-auto mb-1 text-blue-600" />
+                              <div className="text-xs text-gray-600">{applications.length}</div>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-2">
+                              <Calendar className="w-4 h-4 mx-auto mb-1 text-green-600" />
+                              <div className="text-xs text-gray-600">
+                                {format(new Date(listing.created_date), 'MMM d')}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
-                          >
-                            {t('view', language)}
-                          </Button>
-                          {listing.status === 'available' && applications.length > 0 && (
+                          <div className="flex gap-2">
                             <Button
+                              variant="outline"
                               size="sm"
-                              className="flex-1 bg-purple-600"
-                              onClick={() => {
-                                setSelectedListing(listing);
-                                document.querySelector('[value="applications"]').click();
-                              }}
+                              className="flex-1"
+                              onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
                             >
-                              {applications.length} {t('appsShort', language)}{applications.length !== 1 && 's'}
+                              {t('view', language)}
                             </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
+                            {listing.status === 'available' && applications.length > 0 && (
+                              <Button
+                                size="sm"
+                                className="flex-1 bg-purple-600"
+                                onClick={() => {
+                                  setSelectedListing(listing);
+                                  document.querySelector('[value="applications"]').click();
+                                }}
+                              >
+                                {applications.length} {t('appsShort', language)}{applications.length !== 1 && 's'}
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingListing(listing)}
+                              className="flex-1"
+                            >
+                              <Pencil className="w-4 h-4 mr-1" /> {t('edit', language)}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           {/* Applications Tab */}
@@ -264,7 +366,7 @@ export default function ManageAdoptionListings() {
                               onClick={() => updateApplicationMutation.mutate({
                                 appId: app.id,
                                 status: 'approved',
-                                notes: 'Application approved' // Consider translating this note
+                                notes: t('applicationApprovedNote', language)
                               })}
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -276,7 +378,7 @@ export default function ManageAdoptionListings() {
                               onClick={() => updateApplicationMutation.mutate({
                                 appId: app.id,
                                 status: 'rejected',
-                                notes: 'Application rejected' // Consider translating this note
+                                notes: t('applicationRejectedNote', language)
                               })}
                             >
                               <XCircle className="w-4 h-4 mr-2" />
@@ -292,6 +394,324 @@ export default function ManageAdoptionListings() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Edit Modal */}
+        <AnimatePresence>
+          {editingListing && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setEditingListing(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl p-6 max-w-4xl w-full my-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {t('editListing', language)}: {editingListing.pet_name}
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditingListing(null)}
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                  {/* Photos - Using Optimized Component */}
+                  <div>
+                    <Label className="text-lg font-semibold mb-3 block">
+                      📸 {t('petPhotos', language)}
+                    </Label>
+                    <OptimizedImageUpload
+                      onImagesChange={(urls) => setEditingListing({ ...editingListing, photos: urls })}
+                      currentImages={editingListing.photos || []}
+                      maxImages={8}
+                      maxSizeKB={500}
+                      showPreview={true}
+                    />
+                  </div>
+
+                  {/* Pet Name */}
+                  <div>
+                    <Label htmlFor="pet_name" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('petName', language)}
+                    </Label>
+                    <Input
+                      id="pet_name"
+                      name="pet_name"
+                      value={editingListing?.pet_name || ''}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Breed */}
+                  <div>
+                    <Label htmlFor="breed" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('breed', language)}
+                    </Label>
+                    <Input
+                      id="breed"
+                      name="breed"
+                      value={editingListing?.breed || ''}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Age, Gender, Size */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Age */}
+                    <div>
+                      <Label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('age', language)}
+                      </Label>
+                      <Input
+                        id="age"
+                        name="age"
+                        type="number"
+                        value={editingListing?.age || ''}
+                        onChange={handleInputChange}
+                        className="w-full"
+                      />
+                    </div>
+                    {/* Gender */}
+                    <div>
+                      <Label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('gender', language)}
+                      </Label>
+                      <Select
+                        name="gender"
+                        value={editingListing?.gender || ''}
+                        onValueChange={(value) => handleSelectChange('gender', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('selectGender', language)} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">{t('male', language)}</SelectItem>
+                          <SelectItem value="female">{t('female', language)}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {/* Size */}
+                    <div>
+                      <Label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('size', language)}
+                      </Label>
+                      <Select
+                        name="size"
+                        value={editingListing?.size || ''}
+                        onValueChange={(value) => handleSelectChange('size', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('selectSize', language)} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">{t('small', language)}</SelectItem>
+                          <SelectItem value="medium">{t('medium', language)}</SelectItem>
+                          <SelectItem value="large">{t('large', language)}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('description', language)}
+                    </Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={editingListing?.description || ''}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Medical History */}
+                  <div>
+                    <Label htmlFor="medical_history" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('medicalHistory', language)}
+                    </Label>
+                    <Textarea
+                      id="medical_history"
+                      name="medical_history"
+                      value={editingListing?.medical_history || ''}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Temperament */}
+                  <div>
+                    <Label htmlFor="temperament" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('temperament', language)}
+                    </Label>
+                    <Input
+                      id="temperament"
+                      name="temperament"
+                      value={editingListing?.temperament || ''}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Boolean fields: House Trained, Gets Along with Children, Gets Along with Other Pets */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="house_trained"
+                        name="house_trained"
+                        checked={editingListing?.house_trained || false}
+                        onCheckedChange={(checked) => handleSelectChange('house_trained', checked)}
+                      />
+                      <Label htmlFor="house_trained" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        {t('houseTrained', language)}
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="gets_along_with_children"
+                        name="gets_along_with_children"
+                        checked={editingListing?.gets_along_with_children || false}
+                        onCheckedChange={(checked) => handleSelectChange('gets_along_with_children', checked)}
+                      />
+                      <Label htmlFor="gets_along_with_children" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        {t('goodWithChildren', language)}
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="gets_along_with_other_pets"
+                        name="gets_along_with_other_pets"
+                        checked={editingListing?.gets_along_with_other_pets || false}
+                        onCheckedChange={(checked) => handleSelectChange('gets_along_with_other_pets', checked)}
+                      />
+                      <Label htmlFor="gets_along_with_other_pets" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        {t('goodWithOtherPets', language)}
+                      </Label>
+                    </div>
+                  </div>
+
+                  {/* Fee Amount and Status */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Fee Amount */}
+                    <div>
+                      <Label htmlFor="fee_amount" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('adoptionFee', language)} ($)
+                      </Label>
+                      <Input
+                        id="fee_amount"
+                        name="fee_amount"
+                        type="number"
+                        value={editingListing?.fee_amount || 0}
+                        onChange={handleInputChange}
+                        className="w-full"
+                      />
+                    </div>
+                    {/* Status */}
+                    <div>
+                      <Label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('status', language)}
+                      </Label>
+                      <Select
+                        name="status"
+                        value={editingListing?.status || 'available'}
+                        onValueChange={(value) => handleSelectChange('status', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('selectStatus', language)} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="available">{t('available', language)}</SelectItem>
+                          <SelectItem value="pending">{t('pending', language)}</SelectItem>
+                          <SelectItem value="adopted">{t('adopted', language)}</SelectItem>
+                          <SelectItem value="on_hold">{t('onHold', language)}</SelectItem>
+                          <SelectItem value="removed">{t('removed', language)}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div>
+                    <Label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('location', language)}
+                    </Label>
+                    <Input
+                      id="location"
+                      name="location"
+                      value={editingListing?.location || ''}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Contact Phone and Email */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Contact Phone */}
+                    <div>
+                      <Label htmlFor="contact_phone" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('contactPhone', language)}
+                      </Label>
+                      <Input
+                        id="contact_phone"
+                        name="contact_phone"
+                        type="tel"
+                        value={editingListing?.contact_phone || ''}
+                        onChange={handleInputChange}
+                        className="w-full"
+                      />
+                    </div>
+                    {/* Contact Email */}
+                    <div>
+                      <Label htmlFor="contact_email" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('contactEmail', language)}
+                      </Label>
+                      <Input
+                        id="contact_email"
+                        name="contact_email"
+                        type="email"
+                        value={editingListing?.contact_email || ''}
+                        onChange={handleInputChange}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex justify-end gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditingListing(null)}
+                    disabled={isSubmitting}
+                  >
+                    {t('cancel', language)}
+                  </Button>
+                  <Button
+                    onClick={handleSubmitEdit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? t('saving', language) : t('saveChanges', language)}
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

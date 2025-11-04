@@ -32,7 +32,8 @@ import {
   Calendar,
   Crown, // New import for crown icon
   Sparkles, // New import for sparkles icon
-  ChevronRight // New import for chevron right icon
+  ChevronRight, // New import for chevron right icon
+  X // New import for close button in modal
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -43,15 +44,26 @@ import CreateStoryModal from "../components/social/CreateStoryModal";
 import SearchAndFilters from "../components/social/SearchAndFilters";
 import DogConnectLogo from "../components/social/DogConnectLogo";
 import NotificationService from "../components/NotificationService"; // New import
+import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // New import
+import { Label } from "@/components/ui/label"; // New import
 
 export default function SocialFeed() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [newPostContent, setNewPostContent] = useState("");
   const [selectedTab, setSelectedTab] = useState("feed");
   const [showCreateStory, setShowCreateStory] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+
+  // New states for Create Post Modal
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPostData, setNewPostData] = useState({
+    content: "",
+    media_urls: [],
+    dog_ids: [], // Placeholder for future feature
+    tags: [], // Placeholder for future feature
+    location: "", // Placeholder for future feature
+    post_type: "text", // Can be 'text', 'photo', 'video'
+  });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -94,9 +106,9 @@ export default function SocialFeed() {
           status: 'accepted'
         });
         const followingEmails = follows.map(f => f.following_email);
-        
+
         if (followingEmails.length === 0) return [];
-        
+
         return await base44.entities.SocialPost.filter({
           author_email: { $in: followingEmails },
           moderation_status: 'approved'
@@ -116,22 +128,29 @@ export default function SocialFeed() {
     mutationFn: (postData) => base44.entities.SocialPost.create(postData),
     onSuccess: async (newPost) => {
       queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
-      setNewPostContent("");
-      setSelectedImage(null);
-      
+      setNewPostData({ // Clear form data after successful post
+        content: "",
+        media_urls: [],
+        dog_ids: [],
+        tags: [],
+        location: "",
+        post_type: "text",
+      });
+      setShowCreatePost(false); // Close the modal
+
       // Award PawPoints for posting
       const pointsMultiplier = socialSubscription?.features?.points_multiplier || 1;
       const basePoints = 10;
       const pointsEarned = basePoints * pointsMultiplier;
-      
+
       if (loyaltyPoints) {
         const newBalance = loyaltyPoints.points_balance + pointsEarned;
-        
+
         await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
           points_balance: newBalance,
           total_earned: loyaltyPoints.total_earned + pointsEarned
         });
-        
+
         await base44.entities.PointsTransaction.create({
           user_email: user.email,
           transaction_type: 'earned',
@@ -139,7 +158,7 @@ export default function SocialFeed() {
           description: `Post publicado no Dog Connect (${pointsMultiplier}x)`,
           balance_after: newBalance
         });
-        
+
         queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
         toast.success(`Post publicado! +${pointsEarned} PawPoints 🎉`);
       } else {
@@ -156,7 +175,7 @@ export default function SocialFeed() {
         const authorLoyaltyPoints = await base44.entities.LoyaltyPoints.filter({
           user_email: post.author_email
         });
-        
+
         if (authorLoyaltyPoints[0]) {
           const authorSubscription = await base44.entities.SocialSubscription.filter({
             user_email: post.author_email,
@@ -166,12 +185,12 @@ export default function SocialFeed() {
           const basePoints = 2;
           const pointsEarned = basePoints * pointsMultiplier;
           const newBalance = authorLoyaltyPoints[0].points_balance + pointsEarned;
-          
+
           await base44.entities.LoyaltyPoints.update(authorLoyaltyPoints[0].id, {
             points_balance: newBalance,
             total_earned: authorLoyaltyPoints[0].total_earned + pointsEarned
           });
-          
+
           await base44.entities.PointsTransaction.create({
             user_email: post.author_email,
             transaction_type: 'earned',
@@ -181,7 +200,7 @@ export default function SocialFeed() {
           });
         }
       }
-      
+
       return await base44.entities.SocialLike.create({
         post_id: postId,
         user_email: user.email,
@@ -195,33 +214,27 @@ export default function SocialFeed() {
   });
 
   const handleCreatePost = () => {
-    if (!newPostContent.trim() && !selectedImage) {
-      toast.error('Adicione conteúdo ou uma imagem');
+    if (!newPostData.content.trim() && newPostData.media_urls.length === 0) {
+      toast.error('Adicione conteúdo ou uma imagem/vídeo para publicar.');
       return;
     }
 
     createPostMutation.mutate({
-      content: newPostContent,
+      content: newPostData.content,
       author_email: user.email,
       author_name: user.full_name,
       author_photo_url: user.profile_photo_url,
-      media_urls: selectedImage ? [selectedImage] : [],
+      media_urls: newPostData.media_urls,
       is_public: true,
-      post_type: selectedImage ? 'photo' : 'text'
+      post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text', // Simple logic for now
+      // dog_ids: newPostData.dog_ids, // To be added when UI exists
+      // tags: newPostData.tags, // To be added when UI exists
+      // location: newPostData.location, // To be added when UI exists
     });
   };
 
   const handleLike = (postId) => {
     likeMutation.mutate({ postId });
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setSelectedImage(file_url);
-      toast.success('Imagem carregada! 📸');
-    }
   };
 
   const isPremium = socialSubscription?.plan_type === 'premium' || socialSubscription?.plan_type === 'pro';
@@ -284,7 +297,7 @@ export default function SocialFeed() {
                   {loyaltyPoints?.points_balance?.toLocaleString() || 0}
                 </span>
               </div>
-              
+
               {!isPremium && (
                 <Button
                   onClick={() => navigate(createPageUrl('DogConnectPremium'))}
@@ -325,7 +338,7 @@ export default function SocialFeed() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <Card 
+            <Card
               className="border-2 border-purple-300 shadow-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white cursor-pointer hover:scale-[1.02] transition-transform"
               onClick={() => navigate(createPageUrl('DogConnectPremium'))}
             >
@@ -367,14 +380,14 @@ export default function SocialFeed() {
         {/* Feed Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
           <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
-            <TabsTrigger 
+            <TabsTrigger
               value="feed"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
             >
               <Compass className="w-4 h-4 mr-2" />
               Explorar
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="following"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
             >
@@ -384,89 +397,31 @@ export default function SocialFeed() {
           </TabsList>
         </Tabs>
 
-        {/* Create Post Card */}
+        {/* Simplified Create Post Card (triggers modal) */}
         <Card className="mb-6 border-0 shadow-xl bg-white">
           <CardContent className="p-4">
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <Avatar className="ring-2 ring-purple-200">
                 <AvatarImage src={user?.profile_photo_url} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
                   {user?.full_name?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  placeholder="Compartilhe um momento com seu pet... 🐾"
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  className="min-h-[80px] border-2 border-purple-100 focus:border-purple-300 rounded-xl resize-none"
-                />
-                {selectedImage && (
-                  <div className="relative mt-3">
-                    <img
-                      src={selectedImage}
-                      alt="Preview"
-                      className="w-full h-48 object-cover rounded-xl"
-                    />
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="absolute top-2 right-2"
-                      onClick={() => setSelectedImage(null)}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                )}
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => document.getElementById('image-upload').click()}
-                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                    >
-                      <ImageIcon className="w-5 h-5" />
-                    </Button>
-                    <input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    >
-                      <Video className="w-5 h-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-pink-600 hover:text-pink-700 hover:bg-pink-50"
-                    >
-                      <Smile className="w-5 h-5" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {socialSubscription?.features?.points_multiplier > 1 && (
-                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
-                        +{10 * socialSubscription.features.points_multiplier} pts
-                      </Badge>
-                    )}
-                    <Button
-                      onClick={handleCreatePost}
-                      disabled={createPostMutation.isPending}
-                      className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      {createPostMutation.isPending ? 'Publicando...' : 'Publicar'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <Button
+                variant="outline"
+                className="flex-1 justify-start text-left text-gray-500 hover:bg-gray-50 border-2 border-purple-100 hover:border-purple-300 rounded-full h-12"
+                onClick={() => setShowCreatePost(true)}
+              >
+                O que seu pet anda aprontando? 🐾
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowCreatePost(true)}
+                className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+              >
+                <ImageIcon className="w-6 h-6" />
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -488,7 +443,7 @@ export default function SocialFeed() {
                   Seja o primeiro a compartilhar um momento com seu pet!
                 </p>
                 <Button
-                  onClick={() => document.querySelector('textarea').focus()}
+                  onClick={() => setShowCreatePost(true)} // Opens the new post modal
                   className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white"
                 >
                   Criar Primeiro Post
@@ -632,6 +587,110 @@ export default function SocialFeed() {
         onClose={() => setShowCreateStory(false)}
       />
 
+      {/* Create Post Modal */}
+      <AnimatePresence>
+        {showCreatePost && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowCreatePost(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between pb-4 mb-4 border-b">
+                <h3 className="text-xl font-bold text-gray-900">Criar Novo Post</h3>
+                <Button variant="ghost" size="icon" onClick={() => setShowCreatePost(false)}>
+                  <X className="w-5 h-5 text-gray-500" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* User Info */}
+                <div className="flex items-center gap-3 mb-4">
+                  <Avatar className="ring-2 ring-purple-200">
+                    <AvatarImage src={user?.profile_photo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                      {user?.full_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-gray-900">{user?.full_name}</p>
+                    <p className="text-sm text-gray-500">Publicando como {user?.email}</p>
+                  </div>
+                </div>
+
+                {/* Content Textarea */}
+                <Textarea
+                  placeholder="Compartilhe um momento com seu pet... 🐾"
+                  value={newPostData.content}
+                  onChange={(e) => setNewPostData({ ...newPostData, content: e.target.value })}
+                  className="min-h-[120px] border-2 border-purple-100 focus:border-purple-300 rounded-xl resize-none"
+                />
+
+                {/* Media Upload - Using Optimized Component */}
+                <div>
+                  <Label className="mb-2 block text-gray-700 font-medium">📸 Fotos/Vídeos</Label>
+                  <OptimizedImageUpload
+                    onImagesChange={(urls) => setNewPostData({ ...newPostData, media_urls: urls })}
+                    currentImages={newPostData.media_urls}
+                    maxImages={10}
+                    maxSizeKB={500}
+                    showPreview={true}
+                  />
+                </div>
+
+                {/* Placeholder for other features (dog selection, tags, location, post type) */}
+                <div className="border-t border-gray-100 my-4"></div>
+
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      onClick={() => toast.info("Funcionalidade de vídeo em breve!")}
+                    >
+                      <Video className="w-5 h-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-pink-600 hover:text-pink-700 hover:bg-pink-50"
+                      onClick={() => toast.info("Seletor de emojis em breve!")}
+                    >
+                      <Smile className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {socialSubscription?.features?.points_multiplier > 1 && (
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                        +{10 * socialSubscription.features.points_multiplier} pts
+                      </Badge>
+                    )}
+                    <Button
+                      onClick={handleCreatePost}
+                      disabled={createPostMutation.isPending || (!newPostData.content.trim() && newPostData.media_urls.length === 0)}
+                      className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {createPostMutation.isPending ? 'Publicando...' : 'Publicar'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 z-50">
         <div className="flex items-center justify-around">
@@ -651,7 +710,7 @@ export default function SocialFeed() {
             <Search className="w-6 h-6" />
           </Button>
           <Button
-            onClick={() => setShowCreateStory(true)}
+            onClick={() => setShowCreatePost(true)} // Opens the new post modal
             className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-full w-12 h-12 p-0 shadow-lg"
           >
             <Plus className="w-6 h-6" />

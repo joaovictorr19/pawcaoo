@@ -12,13 +12,14 @@ import { Award, Upload, Shield, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // Import AnimatePresence
 import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // New import
 
 export default function BecomeTrainer() {
   const navigate = useNavigate();
@@ -63,6 +64,7 @@ export default function BecomeTrainer() {
     bank_account_holder: "",
     bank_account_number: "",
     bank_routing_number: "",
+    portfolio: [], // New field for trainer's portfolio
   });
 
   const trainingMethodologies = [
@@ -286,7 +288,7 @@ export default function BecomeTrainer() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -324,9 +326,10 @@ export default function BecomeTrainer() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <AnimatePresence mode="wait">
               {currentStep === 1 && (
                 <motion.div
+                  key="step1"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -395,6 +398,33 @@ export default function BecomeTrainer() {
                     <p className="text-sm text-gray-500">
                       {uploading.video ? t('uploadingVideo', language) : t('videoFormats', language)}
                     </p>
+                  </div>
+
+                  {/* Portfolio - Using Optimized Component */}
+                  <div className="space-y-2 border-t-2 border-purple-100 pt-6">
+                    <Label className="mb-3 block text-base font-semibold">
+                      {t('trainingPortfolio', language)} 🏆 {t('optionalRecommended', language)}
+                    </Label>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {t('portfolioDescription', language)}
+                    </p>
+                    <OptimizedImageUpload
+                      onImagesChange={(urls) => {
+                        const portfolio = urls.map(url => ({
+                          media_url: url,
+                          media_type: 'photo',
+                          title: t('trainingExample', language),
+                          category: 'training_session',
+                          is_featured: false
+                        }));
+                        setFormData({ ...formData, portfolio });
+                      }}
+                      currentImages={formData.portfolio?.map(p => p.media_url) || []}
+                      maxImages={15}
+                      maxSizeKB={500}
+                      showPreview={true}
+                      language={language}
+                    />
                   </div>
 
                   {/* Basic Info */}
@@ -727,6 +757,7 @@ export default function BecomeTrainer() {
 
               {currentStep === 2 && (
                 <motion.div
+                  key="step2"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -840,6 +871,7 @@ export default function BecomeTrainer() {
 
               {currentStep === 3 && (
                 <motion.div
+                  key="step3"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -883,8 +915,9 @@ export default function BecomeTrainer() {
                   </div>
                 </motion.div>
               )}
+            </AnimatePresence>
 
-              <div className="flex gap-4 pt-6">
+            <div className="flex gap-4 pt-6">
                 {currentStep > 1 && (
                   <Button
                     type="button"
@@ -914,7 +947,6 @@ export default function BecomeTrainer() {
                   </Button>
                 )}
               </div>
-            </form>
           </CardContent>
         </Card>
       </div>

@@ -9,21 +9,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, Upload, PlusCircle, Trash2, ArrowLeft, CheckCircle2, Home } from "lucide-react"; // Added Home icon
+import { Heart, Upload, PlusCircle, Trash2, ArrowLeft, CheckCircle2, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { useLanguage } from "@/components/LanguageContext";
+import { useLanguage } => "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // Added import
 
 export default function CreateAdoptionListing() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { language } = useLanguage();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [uploading, setUploading] = useState(false);
+  const [step, setStep] = useState(1); // Renamed currentStep to step
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: user } = useQuery({
@@ -81,39 +81,17 @@ export default function CreateAdoptionListing() {
         navigate(createPageUrl('AdoptionListings'));
       }, 2000);
     },
-  });
-
-  const handlePhotoUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-    
-    const uploadedUrls = [];
-    for (const file of files) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      uploadedUrls.push(file_url);
+    onError: (error) => {
+      toast.error("Failed to create listing: " + error.message);
     }
-    
-    setFormData({
-      ...formData,
-      photos: [...formData.photos, ...uploadedUrls]
-    });
-    setUploading(false);
-    toast.success(`${uploadedUrls.length} photo(s) uploaded!`);
-  };
-
-  const removePhoto = (index) => {
-    setFormData({
-      ...formData,
-      photos: formData.photos.filter((_, i) => i !== index)
-    });
-  };
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     createListingMutation.mutate(formData);
   };
 
-  const progress = (currentStep / 3) * 100;
+  const progress = (step / 3) * 100; // Updated currentStep to step
 
   const stepTitles = {
     1: { pt: "Passo 1: Informações Básicas", en: "Step 1: Basic Information", es: "Paso 1: Información Básica" },
@@ -128,7 +106,7 @@ export default function CreateAdoptionListing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-6"> {/* Updated padding */}
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
@@ -154,13 +132,13 @@ export default function CreateAdoptionListing() {
           <div className="max-w-2xl mx-auto mt-6">
             <Progress value={progress} className="h-3 mb-3" />
             <div className="flex justify-between text-sm">
-              <span className={`font-semibold ${currentStep >= 1 ? 'text-purple-600' : 'text-gray-400'}`}>
+              <span className={`font-semibold ${step >= 1 ? 'text-purple-600' : 'text-gray-400'}`}> {/* Updated currentStep to step */}
                 {progressLabels.basicInfo[language]}
               </span>
-              <span className={`font-semibold ${currentStep >= 2 ? 'text-purple-600' : 'text-gray-400'}`}>
+              <span className={`font-semibold ${step >= 2 ? 'text-purple-600' : 'text-gray-400'}`}> {/* Updated currentStep to step */}
                 {progressLabels.health[language]}
               </span>
-              <span className={`font-semibold ${currentStep >= 3 ? 'text-purple-600' : 'text-gray-400'}`}>
+              <span className={`font-semibold ${step >= 3 ? 'text-purple-600' : 'text-gray-400'}`}> {/* Updated currentStep to step */}
                 {progressLabels.adoption[language]}
               </span>
             </div>
@@ -170,44 +148,50 @@ export default function CreateAdoptionListing() {
         <Card className="border-0 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-pink-600 to-purple-600 text-white">
             <CardTitle className="text-2xl">
-              {stepTitles[currentStep][language]}
+              {stepTitles[step][language]} {/* Updated currentStep to step */}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit}>
+            <AnimatePresence mode="wait">
               {/* STEP 1 */}
-              {currentStep === 1 && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                  {/* Photos */}
-                  <div className="space-y-2">
-                    <Label>Photos * (Upload at least 1)</Label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handlePhotoUpload}
-                      disabled={uploading}
+              {step === 1 && ( // Updated currentStep to step
+                <motion.div
+                  key="step1" // Added key
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }} // Added exit animation
+                  className="space-y-6"
+                >
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                      {t('basicInfo', language)}
+                    </h3>
+                  </div>
+
+                  {/* Photos Upload - Using Optimized Component */}
+                  <div>
+                    <Label className="text-lg font-semibold mb-3 block flex items-center gap-2">
+                      📸 Fotos do Pet *
+                      <span className="text-sm font-normal text-gray-500">(mínimo 1, máximo 8)</span>
+                    </Label>
+                    <OptimizedImageUpload
+                      onImagesChange={(urls) => setFormData({ ...formData, photos: urls })}
+                      currentImages={formData.photos}
+                      maxImages={8}
+                      maxSizeKB={500}
+                      showPreview={true}
                     />
-                    {uploading && <p className="text-sm text-gray-500">Uploading...</p>}
-                    
-                    {formData.photos.length > 0 && (
-                      <div className="grid grid-cols-4 gap-3 mt-3">
-                        {formData.photos.map((photo, index) => (
-                          <div key={index} className="relative">
-                            <img src={photo} alt="" className="w-full h-24 object-cover rounded-lg" />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              className="absolute -top-2 -right-2 w-6 h-6"
-                              onClick={() => removePhoto(index)}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  </div>
+
+                  {/* Video URL */}
+                  <div className="space-y-2">
+                    <Label>Video URL (Optional)</Label>
+                    <Input
+                      type="url"
+                      value={formData.video_url}
+                      onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                      placeholder="Link to a YouTube or Vimeo video"
+                    />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
@@ -316,7 +300,7 @@ export default function CreateAdoptionListing() {
                   <div className="flex justify-end">
                     <Button
                       type="button"
-                      onClick={() => setCurrentStep(2)}
+                      onClick={() => setStep(2)} // Updated setCurrentStep to setStep
                       disabled={!formData.pet_name || !formData.description || formData.photos.length === 0}
                       className="bg-gradient-to-r from-pink-600 to-purple-600"
                     >
@@ -327,8 +311,14 @@ export default function CreateAdoptionListing() {
               )}
 
               {/* STEP 2 */}
-              {currentStep === 2 && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              {step === 2 && ( // Updated currentStep to step
+                <motion.div
+                  key="step2" // Added key
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }} // Added exit animation
+                  className="space-y-6"
+                >
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">Good With</Label>
                     <div className="grid grid-cols-2 gap-4">
@@ -420,14 +410,14 @@ export default function CreateAdoptionListing() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setCurrentStep(1)}
+                      onClick={() => setStep(1)} // Updated setCurrentStep to setStep
                       className="flex-1"
                     >
                       ← Previous
                     </Button>
                     <Button
                       type="button"
-                      onClick={() => setCurrentStep(3)}
+                      onClick={() => setStep(3)} // Updated setCurrentStep to setStep
                       className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600"
                     >
                       Next: Adoption Details →
@@ -437,8 +427,14 @@ export default function CreateAdoptionListing() {
               )}
 
               {/* STEP 3 */}
-              {currentStep === 3 && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              {step === 3 && ( // Updated currentStep to step
+                <motion.div
+                  key="step3" // Added key
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }} // Added exit animation
+                  className="space-y-6"
+                >
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label>Adoption Fee (€)</Label>
@@ -507,7 +503,7 @@ export default function CreateAdoptionListing() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setCurrentStep(2)}
+                      onClick={() => setStep(2)} // Updated setCurrentStep to setStep
                       className="flex-1"
                     >
                       ← Previous
@@ -522,7 +518,7 @@ export default function CreateAdoptionListing() {
                   </div>
                 </motion.div>
               )}
-            </form>
+            </AnimatePresence>
           </CardContent>
         </Card>
 
@@ -541,13 +537,13 @@ export default function CreateAdoptionListing() {
                     <CheckCircle2 className="w-12 h-12 text-green-600" />
                   </div>
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    {language === 'pt' ? 'Listagem Publicada!' : 
-                     language === 'es' ? '¡Anuncio Publicado!' : 
+                    {language === 'pt' ? 'Listagem Publicada!' :
+                     language === 'es' ? '¡Anuncio Publicado!' :
                      'Listing Posted!'}
                   </h2>
                   <p className="text-gray-600">
-                    {language === 'pt' ? 'Sua listagem está agora ativa e visível para potenciais adotantes.' : 
-                     language === 'es' ? 'Tu anuncio ya está activo y visible para posibles adoptantes.' : 
+                    {language === 'pt' ? 'Sua listagem está agora ativa e visível para potenciais adotantes.' :
+                     language === 'es' ? 'Tu anuncio ya está activo y visible para posibles adoptantes.' :
                      'Your listing is now live and visible to potential adopters.'}
                   </p>
                 </CardContent>
