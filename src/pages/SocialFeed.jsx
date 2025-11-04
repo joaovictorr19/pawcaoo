@@ -12,7 +12,7 @@ import {
   Heart, MessageCircle, Share2, Camera, Video, MapPin, Send,
   TrendingUp, Sparkles, ShoppingBag, Zap, Gift, Award,
   Star, ChevronRight, Clock, Users, Eye, Flame, Store,
-  Shield, ShieldCheck, X, Bookmark, UserPlus
+  Shield, ShieldCheck, X, Bookmark, UserPlus, CheckCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -365,6 +365,12 @@ export default function SocialFeed() {
 
       if (existing[0]) {
         await base44.entities.SocialSavedPost.delete(existing[0].id);
+        const post = allPosts.find(p => p.id === postId);
+        if (post) {
+          await base44.entities.SocialPost.update(postId, {
+            saves_count: Math.max(0, (post.saves_count || 0) - 1)
+          });
+        }
         return { action: 'unsaved' };
       } else {
         await base44.entities.SocialSavedPost.create({
@@ -372,15 +378,42 @@ export default function SocialFeed() {
           post_id: postId,
           collection_name: 'Salvos'
         });
+        const post = allPosts.find(p => p.id === postId);
+        if (post) {
+          await base44.entities.SocialPost.update(postId, {
+            saves_count: (post.saves_count || 0) + 1
+          });
+        }
         return { action: 'saved' };
       }
     },
     onSuccess: ({ action }) => {
       queryClient.invalidateQueries(['socialPosts']);
-      toast.success(action === 'saved' ? "Post salvo!" : "Post removido dos salvos");
+      toast.success(action === 'saved' ? "Post salvo! 📌" : "Post removido dos salvos");
     },
     onError: (error) => {
       toast.error("Erro ao salvar post: " + error.message);
+    }
+  });
+
+  const sharePostMutation = useMutation({
+    mutationFn: async (postId) => {
+      const post = allPosts.find(p => p.id === postId);
+      if (post) {
+        await base44.entities.SocialPost.update(postId, {
+          shares_count: (post.shares_count || 0) + 1
+        });
+        
+        const postUrl = `${window.location.origin}${createPageUrl('SocialFeed')}?post=${postId}`;
+        await navigator.clipboard.writeText(postUrl);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['socialPosts']);
+      toast.success("Link copiado! 🔗 Partilhe com seus amigos!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao partilhar: " + error.message);
     }
   });
 
@@ -452,12 +485,14 @@ export default function SocialFeed() {
     return colors[tier] || colors.none;
   };
 
-  const getRoleBadge = (authorRole, authorEmail) => {
-    const role = authorRole || (authorEmail === user?.email ? (user?.social_role || user?.role) : 'user');
+  const getAllBadges = (post) => {
+    const badges = [];
     
+    // Admin/Moderador primeiro
+    const role = post.author_role || 'user';
     if (role === 'admin') {
-      return (
-        <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-lg">
+      badges.push(
+        <Badge key="admin" className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-lg">
           <Shield className="w-3 h-3 mr-1" />
           ADMIN
         </Badge>
@@ -465,15 +500,55 @@ export default function SocialFeed() {
     }
     
     if (role === 'moderator') {
-      return (
-        <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg">
+      badges.push(
+        <Badge key="mod" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg">
           <ShieldCheck className="w-3 h-3 mr-1" />
           MODERADOR
         </Badge>
       );
     }
     
-    return null;
+    // Verified user
+    if (post.is_verified_user) {
+      badges.push(
+        <Badge key="verified-user" className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          VERIFICADO
+        </Badge>
+      );
+    }
+    
+    // Verified dog
+    if (post.is_verified_dog) {
+      badges.push(
+        <Badge key="verified-dog" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          CÃO VERIFICADO
+        </Badge>
+      );
+    }
+    
+    // Adoption advocate
+    if (post.is_adoption_advocate) {
+      badges.push(
+        <Badge key="advocate" className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-lg">
+          <Heart className="w-3 h-3 mr-1" />
+          DEFENSOR DE ADOÇÃO
+        </Badge>
+      );
+    }
+    
+    // Verified announcement
+    if (post.is_verified_announcement) {
+      badges.push(
+        <Badge key="announcement" className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg">
+          <Star className="w-3 h-3 mr-1" />
+          ANÚNCIO VERIFICADO
+        </Badge>
+      );
+    }
+    
+    return badges.length > 0 ? badges : null;
   };
 
   const getReactionEmoji = (type) => {
@@ -753,7 +828,7 @@ export default function SocialFeed() {
                                     >
                                       <h4 className="font-bold text-gray-900">{post.author_name}</h4>
                                     </button>
-                                    {getRoleBadge(post.author_role, post.author_email)}
+                                    {getAllBadges(post)}
                                     {post.dog_name && (
                                       <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0">
                                         🐾 {post.dog_name}
@@ -862,7 +937,8 @@ export default function SocialFeed() {
                                           setSelectedReaction({ ...selectedReaction, [post.id]: type });
                                           toggleLikeMutation.mutate({ postId: post.id });
                                         }}
-                                        className="text-2xl hover:scale-125 transition-transform"
+                                        className="text-2xl hover:scale-125 transition-transform p-1"
+                                        title={type}
                                       >
                                         {getReactionEmoji(type)}
                                       </button>
@@ -886,12 +962,19 @@ export default function SocialFeed() {
                                   variant="ghost" 
                                   size="sm" 
                                   onClick={() => savePostMutation.mutate(post.id)}
+                                  disabled={savePostMutation.isPending}
                                   className="hover:text-purple-600 hover:bg-purple-50 rounded-xl"
                                 >
                                   <Bookmark className="w-5 h-5 mr-2" />
                                   <span className="font-semibold">Salvar</span>
                                 </Button>
-                                <Button variant="ghost" size="sm" className="hover:text-green-600 hover:bg-green-50 rounded-xl">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => sharePostMutation.mutate(post.id)}
+                                  disabled={sharePostMutation.isPending}
+                                  className="hover:text-green-600 hover:bg-green-50 rounded-xl"
+                                >
                                   <Share2 className="w-5 h-5 mr-2" />
                                   <span className="font-semibold">Partilhar</span>
                                 </Button>

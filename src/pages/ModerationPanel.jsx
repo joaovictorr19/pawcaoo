@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Shield, AlertTriangle, CheckCircle, X, Flag, Ban,
-  MessageCircle, Users, TrendingUp, Eye, Clock, Heart, Star, ShieldCheck
+  MessageCircle, Users, TrendingUp, Eye, Clock, Star, Heart, ShieldCheck
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
