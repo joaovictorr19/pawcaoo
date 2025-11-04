@@ -113,14 +113,18 @@ export default function SocialFeed() {
     } else if (feedMode === 'foryou') {
       // Sort by engagement score for "Para Você"
       filtered = filtered.sort((a, b) => (b.engagement_score || 0) - (a.engagement_score || 0));
+    } else if (feedMode === 'hashtags' && filterHashtag !== 'all') {
+      filtered = filtered.filter(p => p.tags?.includes(filterHashtag));
     }
+
 
     // Search Filter
     if (searchQuery) {
       filtered = filtered.filter(p =>
         p.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.author_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.dog_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        p.dog_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -134,8 +138,8 @@ export default function SocialFeed() {
       filtered = filtered.filter(p => p.author_city?.toLowerCase() === filterCity.toLowerCase());
     }
 
-    // Hashtag Filter
-    if (filterHashtag !== 'all') {
+    // Hashtag Filter (already handled if feedMode is hashtags)
+    if (feedMode !== 'hashtags' && filterHashtag !== 'all') {
       filtered = filtered.filter(p => p.tags?.includes(filterHashtag));
     }
 
@@ -179,6 +183,17 @@ export default function SocialFeed() {
     queryKey: ['activePartners'],
     queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
     initialData: [],
+  });
+
+  // Hashtags Query
+  const { data: trendingHashtags } = useQuery({
+    queryKey: ['trendingHashtags'],
+    queryFn: async () => {
+      const hashtags = await base44.entities.SocialHashtag.list('-usage_count');
+      return hashtags.slice(0, 10);
+    },
+    initialData: [],
+    staleTime: 300000,
   });
 
   const createPostMutation = useMutation({
@@ -463,6 +478,12 @@ export default function SocialFeed() {
     });
   };
 
+  const handleHashtagClick = (hashtag) => {
+    setFilterHashtag(hashtag);
+    setFeedMode('hashtags');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getAnnouncementIcon = (type) => {
     const icons = {
       flash_sale: Flame,
@@ -580,13 +601,13 @@ export default function SocialFeed() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <Camera className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -601,11 +622,11 @@ export default function SocialFeed() {
               <Button
                 variant="outline"
                 onClick={() => navigate(createPageUrl(`UserProfile?email=${user.email}`))}
-                className="flex items-center gap-2 border-2"
+                className="flex items-center gap-2 border-2 hover:border-indigo-300"
               >
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={user.profile_photo_url} />
-                  <AvatarFallback className="bg-purple-600 text-white">
+                  <AvatarFallback className="bg-indigo-600 text-white">
                     {user.full_name?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -617,14 +638,14 @@ export default function SocialFeed() {
           {/* Stats Bar */}
           <div className="grid grid-cols-4 gap-4">
             {[
-              { icon: Users, value: posts.length, label: "Posts Ativos", color: "from-blue-600 to-cyan-500" },
-              { icon: Heart, value: posts.reduce((sum, p) => sum + (p.likes_count || 0), 0), label: "Total Curtidas", color: "from-rose-600 to-pink-500" },
-              { icon: TrendingUp, value: announcements.length, label: "Promoções", color: "from-violet-600 to-purple-500" },
-              { icon: ShoppingBag, value: trendingProducts.length, label: "Produtos", color: "from-emerald-600 to-teal-500" }
+              { icon: Users, value: posts.length, label: "Posts Ativos", color: "from-blue-500 to-cyan-500" },
+              { icon: Heart, value: posts.reduce((sum, p) => sum + (p.likes_count || 0), 0), label: "Total Curtidas", color: "from-rose-500 to-pink-500" },
+              { icon: TrendingUp, value: announcements.length, label: "Promoções", color: "from-violet-500 to-purple-500" },
+              { icon: ShoppingBag, value: trendingProducts.length, label: "Produtos", color: "from-emerald-500 to-teal-500" }
             ].map((stat, idx) => (
-              <Card key={idx} className="border-0 shadow-lg">
+              <Card key={idx} className="border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-4 text-center">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg`}>
+                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md`}>
                     <stat.icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
@@ -637,15 +658,15 @@ export default function SocialFeed() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14">
-            <TabsTrigger value="feed" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="feed" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
               <Camera className="w-5 h-5 mr-2" />
               Feed
             </TabsTrigger>
-            <TabsTrigger value="trending" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white">
+            <TabsTrigger value="trending" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
               <TrendingUp className="w-5 h-5 mr-2" />
               Promoções
             </TabsTrigger>
-            <TabsTrigger value="shop" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white">
+            <TabsTrigger value="shop" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white">
               <ShoppingBag className="w-5 h-5 mr-2" />
               Produtos
             </TabsTrigger>
@@ -666,7 +687,7 @@ export default function SocialFeed() {
 
                 {/* Feed Mode Tabs */}
                 <Tabs value={feedMode} onValueChange={setFeedMode}>
-                  <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-1">
+                  <TabsList className="grid w-full grid-cols-3 bg-white shadow-md rounded-xl p-1">
                     <TabsTrigger value="foryou" className="rounded-lg">
                       Para Você
                     </TabsTrigger>
@@ -700,12 +721,12 @@ export default function SocialFeed() {
 
                 {/* Create Post */}
                 {user && (
-                  <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-purple-50">
+                  <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-indigo-50">
                     <CardContent className="p-6">
                       <div className="flex gap-4">
                         <Avatar className="w-12 h-12 border-2 border-purple-200">
                           <AvatarImage src={user.profile_photo_url} />
-                          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold">
                             {user.full_name?.[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -714,14 +735,14 @@ export default function SocialFeed() {
                             placeholder="Compartilhe um momento especial do seu pet... 🐾✨"
                             value={newPostContent}
                             onChange={(e) => setNewPostContent(e.target.value)}
-                            className="mb-3 resize-none border-2 border-purple-100 focus:border-purple-300 rounded-xl"
+                            className="mb-3 resize-none border-2 border-indigo-100 focus:border-indigo-300 rounded-xl"
                             rows={3}
                           />
                           <Input
                             placeholder="Nome do seu pet (opcional)"
                             value={newPostDogName}
                             onChange={(e) => setNewPostDogName(e.target.value)}
-                            className="mb-3 border-2 border-purple-100 focus:border-purple-300 rounded-xl"
+                            className="mb-3 border-2 border-indigo-100 focus:border-indigo-300 rounded-xl"
                           />
                           
                           {mediaUrls.length > 0 && (
@@ -742,7 +763,7 @@ export default function SocialFeed() {
                                 onChange={handleMediaUpload}
                                 disabled={uploadingMedia}
                               />
-                              <Button variant="outline" size="sm" disabled={uploadingMedia} type="button" className="rounded-xl border-2 hover:bg-purple-50">
+                              <Button variant="outline" size="sm" disabled={uploadingMedia} type="button" className="rounded-xl border-2 hover:bg-indigo-50">
                                 <Camera className="w-4 h-4 mr-2" />
                                 {uploadingMedia ? "Carregando..." : "Foto/Vídeo"}
                               </Button>
@@ -750,7 +771,7 @@ export default function SocialFeed() {
                             <Button
                               onClick={handleCreatePost}
                               disabled={createPostMutation.isPending || (!newPostContent.trim() && mediaUrls.length === 0)}
-                              className="ml-auto bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl shadow-lg"
+                              className="ml-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl shadow-lg"
                             >
                               <Send className="w-4 h-4 mr-2" />
                               Publicar
@@ -794,8 +815,8 @@ export default function SocialFeed() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.05 }}
                         >
-                          <Card className={`border-0 shadow-xl hover:shadow-2xl transition-all ${
-                            post.is_pinned ? 'border-2 border-amber-300 bg-amber-50' : 'bg-white'
+                          <Card className={`border-0 shadow-lg hover:shadow-xl transition-all ${
+                            post.is_pinned ? 'border-2 border-amber-400 bg-amber-50/50' : 'bg-white'
                           }`}>
                             <CardContent className="p-6">
                               {/* Pinned Badge */}
@@ -812,9 +833,9 @@ export default function SocialFeed() {
                                   onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
                                   className="hover:opacity-80 transition-opacity"
                                 >
-                                  <Avatar className="w-12 h-12 border-2 border-purple-200 cursor-pointer">
+                                  <Avatar className="w-12 h-12 border-2 border-purple-200">
                                     <AvatarImage src={post.author_photo_url} />
-                                    <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold">
                                       {post.author_name?.[0]?.toUpperCase()}
                                     </AvatarFallback>
                                   </Avatar>
@@ -889,6 +910,21 @@ export default function SocialFeed() {
                                 </div>
                               )}
 
+                              {/* Hashtags - Clickable */}
+                              {post.tags && post.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                  {post.tags.map((tag, tagIdx) => (
+                                    <button
+                                      key={tagIdx}
+                                      onClick={() => handleHashtagClick(tag)}
+                                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+                                    >
+                                      #{tag}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+
                               {/* Reactions Summary */}
                               {postLikes.length > 0 && (
                                 <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
@@ -927,7 +963,7 @@ export default function SocialFeed() {
                                   </Button>
 
                                   {/* Reaction Picker */}
-                                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:flex bg-white shadow-2xl rounded-full p-2 gap-1 border-2 border-purple-200 z-10">
+                                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:flex bg-white shadow-2xl rounded-full p-2 gap-1 border-2 border-indigo-200 z-10">
                                     {['like', 'love', 'haha', 'wow', 'sad', 'fire'].map(type => (
                                       <button
                                         key={type}
@@ -962,7 +998,7 @@ export default function SocialFeed() {
                                   size="sm" 
                                   onClick={() => savePostMutation.mutate(post.id)}
                                   disabled={savePostMutation.isPending}
-                                  className="rounded-xl hover:text-purple-600 hover:bg-purple-50"
+                                  className="rounded-xl hover:text-indigo-600 hover:bg-indigo-50"
                                 >
                                   <Bookmark className="w-5 h-5 mr-2" />
                                   <span className="font-semibold">Salvar</span>
@@ -986,7 +1022,7 @@ export default function SocialFeed() {
                                   <div className="flex gap-3">
                                     <Avatar className="w-10 h-10 flex-shrink-0">
                                       <AvatarImage src={user?.profile_photo_url} />
-                                      <AvatarFallback className="bg-purple-600 text-white">
+                                      <AvatarFallback className="bg-indigo-600 text-white">
                                         {user?.full_name?.[0]?.toUpperCase()}
                                       </AvatarFallback>
                                     </Avatar>
@@ -1006,7 +1042,7 @@ export default function SocialFeed() {
                                             });
                                           }
                                         }}
-                                        className="rounded-xl border-2 border-purple-100"
+                                        className="rounded-xl border-2 border-indigo-100"
                                       />
                                       <Button
                                         size="sm"
@@ -1019,7 +1055,7 @@ export default function SocialFeed() {
                                           }
                                         }}
                                         disabled={!commentTexts[post.id]?.trim()}
-                                        className="bg-purple-600 hover:bg-purple-700 rounded-xl"
+                                        className="bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                                       >
                                         <Send className="w-4 h-4" />
                                       </Button>
@@ -1053,10 +1089,10 @@ export default function SocialFeed() {
                                           <p className="text-gray-800 text-sm">{comment.content}</p>
                                         </div>
                                         <div className="flex items-center gap-4 mt-1 ml-4">
-                                          {/* <button className="text-xs text-gray-500 hover:text-purple-600 font-semibold">
+                                          {/* <button className="text-xs text-gray-500 hover:text-indigo-600 font-semibold">
                                             Curtir
                                           </button>
-                                          <button className="text-xs text-gray-500 hover:text-purple-600 font-semibold">
+                                          <button className="text-xs text-gray-500 hover:text-indigo-600 font-semibold">
                                             Responder
                                           </button> */}
                                           <span className="text-xs text-gray-500">
@@ -1096,20 +1132,24 @@ export default function SocialFeed() {
 
               {/* Sidebar */}
               <div className="space-y-6">
-                <Card className="border-0 shadow-xl">
+                <Card className="border-0 shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <TrendingUp className="w-5 h-5 text-purple-600" />
+                      <TrendingUp className="w-5 h-5 text-indigo-600" />
                       <h3 className="font-bold text-gray-900">Hashtags em Alta</h3>
                     </div>
                     <div className="space-y-2">
-                      {['#PawCãoFamily', '#PetLovers', '#DogLife', '#CãoFeliz', '#PetCare'].map((tag, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                          <span className="font-semibold text-purple-700">{tag}</span>
-                          <Badge className="bg-purple-600 text-white">
-                            {Math.floor(Math.random() * 500) + 100}
+                      {trendingHashtags.slice(0, 8).map((tag, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleHashtagClick(tag.hashtag)}
+                          className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition-colors"
+                        >
+                          <span className="font-semibold text-indigo-700">#{tag.hashtag}</span>
+                          <Badge className="bg-indigo-600 text-white">
+                            {tag.usage_count || 0}
                           </Badge>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </CardContent>
@@ -1143,7 +1183,7 @@ export default function SocialFeed() {
                         className="w-full justify-start"
                         onClick={() => navigate(createPageUrl('Home'))}
                       >
-                        <Users className="w-4 h-4 mr-2 text-purple-600" />
+                        <Users className="w-4 h-4 mr-2 text-indigo-600" />
                         Encontrar Passeadores
                       </Button>
                     </div>
