@@ -13,11 +13,12 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress"; // Added Progress component
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
   Globe, CreditCard, Upload, Save, Dog, PlusCircle, AtSign,
   Award, ShieldCheck, Heart, CheckCircle, Sparkles, Calendar,
-  ChevronRight, Star, Target, TrendingUp
+  ChevronRight, Star, Target, TrendingUp, Trophy, Crown // Added Trophy and Crown
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ import DogProfileCard from "../components/profile/DogProfileCard";
 import AddEditDogForm from "../components/profile/AddEditDogForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { motion } from "framer-motion"; // Added framer-motion
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
@@ -902,54 +904,186 @@ export default function MyProfile() {
 
             {/* Badges Tab */}
             {activeTab === "badges" && (
-              <Card className="border-0 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Award className="w-5 h-5 text-yellow-600" />
-                    Emblemas Conquistados
-                  </CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {user?.public_badges?.length || 0} emblemas desbloqueados
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  {(!user?.public_badges || user.public_badges.length === 0) ? (
-                    <div className="text-center py-12">
-                      <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">Nenhum emblema conquistado ainda</p>
-                      <p className="text-sm text-gray-500 mb-6">
-                        Participe da comunidade, complete desafios e ganhe emblemas exclusivos!
-                      </p>
-                      <Button onClick={() => navigate(createPageUrl('Gamification'))}>
-                        Ver Gamificação
+              <div className="space-y-6">
+                {/* XP & Level Card */}
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-sm opacity-90 mb-1">XP Total</div>
+                        <div className="text-4xl font-bold">{user?.gamification_xp || 0}</div>
+                      </div>
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-4 border-white/40">
+                        <span className="text-3xl font-black">{user?.gamification_level || 1}</span>
+                      </div>
+                    </div>
+                    <div className="text-sm opacity-90 mb-2">
+                      Nível {user?.gamification_level || 1} • {((user?.gamification_xp || 0) % 500)} / 500 XP para próximo nível
+                    </div>
+                    <Progress value={((user?.gamification_xp || 0) % 500) / 500 * 100} className="h-3 bg-white/20" />
+                  </CardContent>
+                </Card>
+
+                {/* Emblemas de Missões */}
+                <Card className="border-0 shadow-xl">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          <Trophy className="w-5 h-5 text-yellow-600" />
+                          Emblemas de Missões
+                        </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Ganhe completando desafios e atividades
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(createPageUrl('Gamification'))}
+                      >
+                        Ver Missões
+                        <ChevronRight className="w-4 h-4 ml-1" />
                       </Button>
                     </div>
-                  ) : (
-                    <div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {user.public_badges.map((badge, idx) => (
-                          <div
-                            key={idx}
-                            className="p-4 rounded-xl border-2 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200 text-center hover:scale-105 transition-transform"
-                          >
-                            <div className="text-4xl mb-2">{badge.icon}</div>
-                            <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
-                            <p className="text-xs text-gray-600 mb-2">{badge.description}</p>
-                            <Badge className="text-xs">{badge.rarity}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="mt-6 text-center">
-                        <Button variant="outline" onClick={() => navigate(createPageUrl('Gamification'))}>
+                  </CardHeader>
+                  <CardContent>
+                    {(!user?.public_badges || user.public_badges.filter(b => b.category !== 'special').length === 0) ? (
+                      <div className="text-center py-12">
+                        <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 mb-4">Nenhum emblema de missão ainda</p>
+                        <p className="text-sm text-gray-500 mb-6">
+                          Complete desafios diários e desbloqueie emblemas exclusivos!
+                        </p>
+                        <Button onClick={() => navigate(createPageUrl('Gamification'))}>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          Ver Todos os Desafios
+                          Explorar Missões
                         </Button>
                       </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {user.public_badges.filter(b => b.category !== 'special').map((badge, idx) => {
+                          const rarityColors = {
+                            common: "from-gray-400 to-gray-600 border-gray-400",
+                            rare: "from-blue-400 to-blue-600 border-blue-400",
+                            epic: "from-purple-400 to-purple-600 border-purple-400",
+                            legendary: "from-yellow-400 to-orange-600 border-yellow-400"
+                          };
+                          const colors = rarityColors[badge.rarity] || rarityColors.common;
+                          
+                          return (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className={`relative p-4 rounded-2xl border-4 bg-gradient-to-br ${colors} text-white text-center hover:scale-105 transition-transform cursor-pointer shadow-lg`}
+                              title={badge.description}
+                            >
+                              <div className="text-5xl mb-2">{badge.icon}</div>
+                              <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
+                              <Badge className="mt-2 bg-white/30 text-white text-xs backdrop-blur-sm">
+                                {badge.rarity?.toUpperCase()}
+                              </Badge>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Emblemas Raros (PNG) */}
+                <Card className="border-0 shadow-xl border-4 border-yellow-400">
+                  <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          <Sparkles className="w-5 h-5 text-yellow-600" />
+                          Emblemas Raros
+                        </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Concedidos por moderadores e administradores
+                        </p>
+                      </div>
+                      <Crown className="w-8 h-8 text-yellow-600" />
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    {(!user?.public_badges || user.public_badges.filter(b => b.category === 'special').length === 0) ? (
+                      <div className="text-center py-12 px-4">
+                        <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                          <Crown className="w-12 h-12 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                          Emblemas Especiais
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          Ainda não tem emblemas raros
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Participe ativamente da comunidade, ajude outros membros e destaque-se para ganhar reconhecimento especial dos moderadores!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        {user.public_badges.filter(b => b.category === 'special').map((badge, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
+                            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                            transition={{ delay: idx * 0.1, type: "spring" }}
+                            className="relative group"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                            <div className="relative p-6 rounded-2xl border-4 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 text-center hover:scale-110 transition-transform cursor-pointer shadow-2xl">
+                              {badge.image_url ? (
+                                <img 
+                                  src={badge.image_url} 
+                                  alt={badge.name}
+                                  className="w-20 h-20 mx-auto mb-3 rounded-xl object-cover shadow-lg ring-4 ring-yellow-300"
+                                  style={{imageRendering: 'crisp-edges'}}
+                                />
+                              ) : (
+                                <div className="text-6xl mb-3">{badge.icon || '🏆'}</div>
+                              )}
+                              <h4 className="font-bold text-sm mb-1 text-gray-900">{badge.name}</h4>
+                              <p className="text-xs text-gray-600 mb-2">{badge.description}</p>
+                              <Badge className="bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-xs shadow-lg">
+                                ⭐ {badge.rarity?.toUpperCase() || 'LENDÁRIO'}
+                              </Badge>
+                              {badge.earned_date && (
+                                <p className="text-xs text-gray-500 mt-2">
+                                  {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Info Card */}
+                <Card className="border-2 border-blue-300 bg-blue-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-blue-900 mb-2">Como Ganhar Emblemas Raros?</h4>
+                        <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                          <li>Seja ativo e útil na comunidade</li>
+                          <li>Ajude outros membros no fórum</li>
+                          <li>Participe de eventos especiais</li>
+                          <li>Contribua para adoções bem-sucedidas</li>
+                          <li>Destaque-se com conteúdo de qualidade</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
             {/* Settings Tab */}

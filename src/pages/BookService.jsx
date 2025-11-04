@@ -75,13 +75,6 @@ export default function BookService() {
 
   const partner = partners.find(p => p.id === service?.partner_id);
 
-  React.useEffect(() => {
-    if (!serviceId) {
-      toast.error("ID do serviço não fornecido!");
-      setTimeout(() => navigate(createPageUrl('PartnerServices')), 2000);
-    }
-  }, [serviceId, navigate]);
-
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
       const dog = userDogs.find(d => d.id === selectedDog);
@@ -180,6 +173,7 @@ export default function BookService() {
     if (step === 1) {
       if (userDogs.length === 0) {
         toast.error("Você precisa cadastrar um pet primeiro!");
+        setTimeout(() => navigate(createPageUrl('MyProfile')), 1000);
         return;
       }
 
@@ -205,8 +199,18 @@ export default function BookService() {
   };
 
   const handleConfirmBooking = () => {
+    if (!paymentMethod) {
+      toast.error("Selecione um método de pagamento");
+      return;
+    }
     createBookingMutation.mutate();
   };
+
+  if (!serviceId) {
+    toast.error("ID do serviço não fornecido!");
+    setTimeout(() => navigate(createPageUrl('PartnerServices')), 1500);
+    return null;
+  }
 
   if (!service && services.length > 0) {
     return (
@@ -268,15 +272,24 @@ export default function BookService() {
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-8">
       <div className="flex items-center gap-4">
-        {[1, 2, 3].map((s) => (
-          <React.Fragment key={s}>
-            <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${
-              step >= s ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'
-            }`}>
-              {step > s ? <CheckCircle className="w-5 h-5" /> : s}
+        {[
+          { num: 1, label: "Detalhes" },
+          { num: 2, label: "Revisão" },
+          { num: 3, label: "Pagamento" }
+        ].map((s, idx) => (
+          <React.Fragment key={s.num}>
+            <div className="text-center">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold mb-2 transition-all ${
+                step >= s.num ? 'bg-green-600 text-white scale-110 shadow-lg' : 'bg-gray-200 text-gray-500'
+              }`}>
+                {step > s.num ? <CheckCircle className="w-6 h-6" /> : s.num}
+              </div>
+              <span className={`text-xs font-medium ${step >= s.num ? 'text-green-600' : 'text-gray-400'}`}>
+                {s.label}
+              </span>
             </div>
-            {s < 3 && (
-              <div className={`w-16 h-1 ${step > s ? 'bg-green-600' : 'bg-gray-200'}`} />
+            {idx < 2 && (
+              <div className={`w-12 md:w-24 h-1 ${step > s.num ? 'bg-green-600' : 'bg-gray-200'}`} />
             )}
           </React.Fragment>
         ))}
@@ -776,6 +789,12 @@ export default function BookService() {
                     <span className="font-bold text-gray-900">€{price.toFixed(2)}</span>
                   </div>
 
+                  {selectedDogData && service.price_by_size && (
+                    <div className="text-xs text-gray-500 -mt-2">
+                      Tamanho: {selectedDogData.size}
+                    </div>
+                  )}
+
                   {isEmergency && emergencyFee > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-orange-600">Taxa Emergência:</span>
@@ -806,14 +825,27 @@ export default function BookService() {
                     <>
                       <Separator />
                       <div>
-                        <h4 className="font-bold text-sm text-gray-900 mb-2">Prestador:</h4>
-                        <p className="text-sm text-gray-700">{partner.company_name || service.partner_name}</p>
-                        {partner.address && (
-                          <div className="flex items-start gap-2 mt-2 text-xs text-gray-600">
-                            <MapPin className="w-3 h-3 mt-0.5" />
-                            <span>{partner.address}, {partner.city}</span>
-                          </div>
-                        )}
+                        <h4 className="font-bold text-sm text-gray-900 mb-3">📍 Localização do Serviço:</h4>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                          <p className="font-semibold text-gray-900">{partner.company_name || service.partner_name}</p>
+                          {partner.address && (
+                            <div className="flex items-start gap-2 text-sm text-gray-700">
+                              <MapPin className="w-4 h-4 mt-0.5 text-purple-600" />
+                              <div>
+                                <p>{partner.address}</p>
+                                <p>{partner.city}, {partner.postal_code}</p>
+                              </div>
+                            </div>
+                          )}
+                          {partner.phone && (
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <Phone className="w-4 h-4 text-green-600" />
+                              <a href={`tel:${partner.phone}`} className="hover:text-green-600">
+                                {partner.phone}
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </>
                   )}

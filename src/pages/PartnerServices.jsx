@@ -79,7 +79,7 @@ export default function PartnerServices() {
     { id: "pharmacy", name: "Farmácia", icon: Pill, color: "from-teal-500 to-cyan-500" },
   ];
 
-  const filteredServices = services.filter(service => {
+  const filteredListings = services.filter(service => {
     const matchesSearch = !searchQuery || 
       service.service_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       service.partner_name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -121,9 +121,8 @@ export default function PartnerServices() {
     return null;
   };
 
-  const handleServiceClick = (serviceId) => {
-    // Navigate com window.location para garantir que funciona
-    window.location.href = createPageUrl(`BookService?serviceId=${serviceId}`);
+  const handleServiceClick = (service) => {
+    navigate(createPageUrl(`BookService?serviceId=${service.id}`));
   };
 
   return (
@@ -252,14 +251,14 @@ export default function PartnerServices() {
           </Select>
         </div>
 
-        {/* Services Grid */}
+        {/* Listings Grid */}
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1,2,3,4,5,6].map(i => (
-              <Skeleton key={i} className="h-80 rounded-2xl" />
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Skeleton key={i} className="h-96 rounded-2xl" />
             ))}
           </div>
-        ) : filteredServices.length === 0 ? (
+        ) : filteredListings.length === 0 ? (
           <Card className="border-0 shadow-xl">
             <CardContent className="p-12 text-center">
               <PawPrint className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -272,7 +271,7 @@ export default function PartnerServices() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {filteredServices.map((service, idx) => {
+              {filteredListings.map((service, idx) => {
                 const ServiceIcon = getServiceIcon(service.service_type);
                 const partner = partners.find(p => p.id === service.partner_id);
                 const category = categories.find(c => c.id === service.service_type) || categories[0];
@@ -287,7 +286,7 @@ export default function PartnerServices() {
                   >
                     <Card 
                       className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden cursor-pointer"
-                      onClick={() => handleServiceClick(service.id)}
+                      onClick={() => handleServiceClick(service)}
                     >
                       {/* Service Image */}
                       <div className={`relative h-48 bg-gradient-to-br ${category.color} flex items-center justify-center`}>
@@ -310,7 +309,7 @@ export default function PartnerServices() {
                         )}
                       </div>
 
-                      <CardContent className="p-6">
+                      <CardContent className="p-5">
                         <div className="mb-4">
                           <h3 className="text-xl font-bold text-gray-900 mb-1">
                             {service.service_name}
@@ -365,7 +364,13 @@ export default function PartnerServices() {
                             </div>
                           )}
 
-                          <Button className={`w-full bg-gradient-to-r ${category.color} text-white shadow-lg`}>
+                          <Button 
+                            className={`w-full bg-gradient-to-r ${category.color} text-white shadow-lg h-12 text-base font-bold`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleServiceClick(service);
+                            }}
+                          >
                             <Calendar className="w-5 h-5 mr-2" />
                             Agendar Agora
                           </Button>
