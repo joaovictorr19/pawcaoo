@@ -379,7 +379,7 @@ function LayoutContent({ children, currentPageName }) {
                           onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
-                          <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''} ${item.featured ? 'text-pink-600' : ''}`} />
+                          <item.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''} ${item.featured ? 'text-pink-600' : ''}`} />
                           <span className={`font-medium text-xs md:text-sm truncate ${item.featured ? 'font-bold text-pink-700' : ''}`}>{item.title}</span>
                           {item.featured && (
                             <Badge className="ml-auto bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5">

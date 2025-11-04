@@ -1,14 +1,14 @@
 
 export const translations = {
   pt: {
-    // Navigation
+    // Navigation - Simplified
     dashboard: "Painel",
     findWalkers: "Passeadores",
     findTrainers: "Treinadores",
     postEmergency: "Passeio Emergência",
     dogSitting: "Dog Sitting",
     pawcaoShop: "Loja PawCão",
-    adoptAPet: "Adotar Pet",
+    adoptAPet: "Adotar",
     myFavorites: "Meus Favoritos",
     myBookings: "Minhas Reservas",
     scheduledWalks: "Passeios Agendados",
@@ -684,14 +684,14 @@ export const translations = {
   },
   
   en: {
-    // Navigation
+    // Navigation - Simplified
     dashboard: "Dashboard",
     findWalkers: "Walkers",
     findTrainers: "Trainers",
     postEmergency: "Emergency Walk",
     dogSitting: "Dog Sitting",
     pawcaoShop: "PawCão Shop",
-    adoptAPet: "Adopt Pet",
+    adoptAPet: "Adopt",
     myFavorites: "My Favorites",
     myBookings: "My Bookings",
     scheduledWalks: "Scheduled Walks",
@@ -1364,14 +1364,14 @@ export const translations = {
   },
   
   es: {
-    // Navigation
+    // Navigation - Simplified
     dashboard: "Panel",
     findWalkers: "Paseadores",
     findTrainers: "Entrenadores",
     postEmergency: "Paseo Emergencia",
     dogSitting: "Dog Sitting",
     pawcaoShop: "Tienda PawCão",
-    adoptAPet: "Adoptar Mascota",
+    adoptAPet: "Adoptar",
     myFavorites: "Mis Favoritos",
     myBookings: "Mis Reservas",
     scheduledWalks: "Paseos Programados",
@@ -2040,7 +2040,7 @@ export const translations = {
     buildTrustWithClients: "✓ ¡Genera confianza con los clientes! Sube una verificación de antecedentes de un proveedor de confianza.",
     
     submitting: "Enviando...",
-    remove: "Eliminar",
+    remove: "Remover",
   }
 };
 
@@ -2106,7 +2106,7 @@ export const adoptionTranslations = {
   basicInfo: { pt: "Informações Básicas", en: "Basic Info", es: "Información Básica" },
   healthAndPersonality: { pt: "Saúde & Personalidade", en: "Health & Personality", es: "Salud y Personalidad" },
   adoptionDetails: { pt: "Detalhes da Adoção", en: "Adoption Details", es: "Detalles de Adopción" },
-  manageAdoptionListings: { pt: "Gerir Listagens de Adoção", en: "Manage Adoption Listings", es: "Gestionar Anuncios de Adopción" },
+  manageAdoptionListings: { pt: "Gerir Listagens de Adoção", en: "Manage Adoption Listings", es: "Gestionar Anuncios de Adoção" },
   viewListingsAndApps: { pt: "Veja suas listagens e gerencie candidaturas", en: "View your listings and manage applications", es: "Ver tus anuncios y gestionar solicitudes" },
   myListings: { pt: "Minhas Listagens", en: "My Listings", es: "Mis Anuncios" },
 };
