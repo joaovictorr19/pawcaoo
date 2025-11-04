@@ -261,6 +261,7 @@ export default function AdminDashboard() {
     setUserFormData({
       full_name: user.full_name || "",
       role: user.role || "user",
+      social_role: user.social_role || "user", // Added social_role
       account_type: user.account_type || "owner",
       phone: user.phone || "",
       city: user.city || "",
@@ -683,13 +684,13 @@ export default function AdminDashboard() {
                             <SelectItem value="user" className="dark:hover:bg-gray-700">
                               <span className="flex items-center gap-2">
                                 <User className="w-4 h-4" />
-                                Utilizador
+                                Utilizador Normal
                               </span>
                             </SelectItem>
                             <SelectItem value="admin" className="dark:hover:bg-gray-700">
                               <span className="flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4" />
-                                Administrador
+                                Administrador Total
                               </span>
                             </SelectItem>
                           </SelectContent>
@@ -697,6 +698,48 @@ export default function AdminDashboard() {
                         {userFormData.role === 'admin' && (
                           <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                             ⚠️ Administradores têm acesso total ao sistema
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="dark:text-gray-300">Função Social (Dog Connect)</Label>
+                        <Select 
+                          value={userFormData.social_role} 
+                          onValueChange={(value) => setUserFormData({...userFormData, social_role: value})}
+                        >
+                          <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                            <SelectItem value="user" className="dark:hover:bg-gray-700">
+                              <span className="flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                Utilizador Normal
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="moderator" className="dark:hover:bg-gray-700">
+                              <span className="flex items-center gap-2">
+                                <Shield className="w-4 h-4 text-blue-600" />
+                                Moderador (Dog Connect)
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="admin" className="dark:hover:bg-gray-700">
+                              <span className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-purple-600" />
+                                Admin (Dog Connect)
+                              </span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {userFormData.social_role === 'moderator' && (
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                            🛡️ Moderadores podem revisar posts, gerir badges e fixar posts
+                          </p>
+                        )}
+                        {userFormData.social_role === 'admin' && (
+                          <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                            👑 Admin social tem controle total no Dog Connect
                           </p>
                         )}
                       </div>
