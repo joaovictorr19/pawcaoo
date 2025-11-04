@@ -47,6 +47,7 @@ import ModerationPanel from './pages/ModerationPanel';
 import PartnerServices from './pages/PartnerServices';
 import BookService from './pages/BookService';
 import VeterinaryDashboard from './pages/VeterinaryDashboard';
+import ApproveAnnouncements from './pages/ApproveAnnouncements';
 import Layout from './Layout.jsx';
 
 
@@ -100,6 +101,7 @@ export const PAGES = {
     "PartnerServices": PartnerServices,
     "BookService": BookService,
     "VeterinaryDashboard": VeterinaryDashboard,
+    "ApproveAnnouncements": ApproveAnnouncements,
 }
 
 export const pagesConfig = {

@@ -137,10 +137,14 @@ export default function PartnerDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyAnnouncements'] });
-      toast.success(editingAnnouncement ? "Anúncio atualizado!" : "Anúncio criado!");
+      toast.success(editingAnnouncement ? "Anúncio atualizado!" : "Anúncio submetido para aprovação!");
       setShowAnnouncementForm(false);
       setEditingAnnouncement(null);
     },
+    onError: (error) => {
+      console.error("Error saving announcement:", error);
+      toast.error("Erro ao salvar anúncio: " + error.message);
+    }
   });
 
   const deleteAnnouncementMutation = useMutation({
@@ -440,6 +444,17 @@ export default function PartnerDashboard() {
                                 -{announcement.discount_percentage}%
                               </Badge>
                             )}
+                            <Badge className={
+                                announcement.moderation_status === 'approved' ? 'bg-green-500' :
+                                announcement.moderation_status === 'rejected' ? 'bg-red-500' :
+                                announcement.moderation_status === 'changes_requested' ? 'bg-yellow-500' :
+                                'bg-orange-500'
+                              }>
+                                {announcement.moderation_status === 'approved' ? '✅ Aprovado' :
+                                 announcement.moderation_status === 'rejected' ? '❌ Rejeitado' :
+                                 announcement.moderation_status === 'changes_requested' ? '⚠️ Mudanças Solicitadas' :
+                                 '⏳ Pendente'}
+                              </Badge>
                           </div>
                           
                           {announcement.image_url && (
@@ -738,7 +753,9 @@ export default function PartnerDashboard() {
       end_date: "",
       is_active: true,
       is_featured: false,
-      featured_tier: "none"
+      featured_tier: "none",
+      moderation_status: "pending", // Added
+      company_email: user?.email // Added
     });
 
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -767,9 +784,39 @@ export default function PartnerDashboard() {
     return (
       <Card className="bg-purple-50 border-2 border-purple-200 mb-6">
         <CardContent className="p-6">
-          <h3 className="text-lg font-bold mb-4">
-            {editingAnnouncement ? 'Editar Anúncio' : 'Criar Novo Anúncio'}
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">
+              {editingAnnouncement ? 'Editar Anúncio' : 'Criar Novo Anúncio'}
+            </h3>
+            {editingAnnouncement?.moderation_status && (
+              <Badge className={
+                editingAnnouncement.moderation_status === 'approved' ? 'bg-green-500' :
+                editingAnnouncement.moderation_status === 'rejected' ? 'bg-red-500' :
+                editingAnnouncement.moderation_status === 'changes_requested' ? 'bg-yellow-500' :
+                'bg-orange-500'
+              }>
+                {editingAnnouncement.moderation_status === 'approved' ? '✅ Aprovado' :
+                 editingAnnouncement.moderation_status === 'rejected' ? '❌ Rejeitado' :
+                 editingAnnouncement.moderation_status === 'changes_requested' ? '⚠️ Mudanças Solicitadas' :
+                 '⏳ Aguardando Aprovação'}
+              </Badge>
+            )}
+          </div>
+
+          {editingAnnouncement?.moderation_status === 'rejected' && editingAnnouncement?.rejection_reason && (
+            <div className="bg-red-100 border-2 border-red-300 rounded-lg p-4 mb-4">
+              <p className="font-semibold text-red-900 mb-1">Motivo da Rejeição:</p>
+              <p className="text-sm text-red-800">{editingAnnouncement.rejection_reason}</p>
+            </div>
+          )}
+
+          {editingAnnouncement?.moderation_notes && (
+            <div className="bg-blue-100 border-2 border-blue-300 rounded-lg p-4 mb-4">
+              <p className="font-semibold text-blue-900 mb-1">Notas do Admin:</p>
+              <p className="text-sm text-blue-800">{editingAnnouncement.moderation_notes}</p>
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <Label>Título do Anúncio *</Label>
@@ -867,10 +914,10 @@ export default function PartnerDashboard() {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Sem Destaque (Grátis)</SelectItem>
-                  <SelectItem value="basic">Basic - €49/mês</SelectItem>
-                  <SelectItem value="premium">Premium - €99/mês</SelectItem>
-                  <SelectItem value="exclusive">Exclusive - €199/mês</SelectItem>
+                  <SelectItem value="none">Sem Destaque (Grátis - Sujeito a aprovação)</SelectItem>
+                  <SelectItem value="basic">⭐ Basic - €49/mês</SelectItem>
+                  <SelectItem value="premium">⭐⭐ Premium - €99/mês</SelectItem>
+                  <SelectItem value="exclusive">⭐⭐⭐ Exclusive - €199/mês</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -899,12 +946,52 @@ export default function PartnerDashboard() {
                       />
                     </div>
                   </div>
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-900 font-semibold mb-1">📋 Benefícios do {formData.featured_tier}:</p>
+                    <ul className="text-xs text-blue-800 space-y-1">
+                      {formData.featured_tier === 'basic' && (
+                        <>
+                          <li>✓ Aparece no topo da sua categoria</li>
+                          <li>✓ Badge "Em Destaque"</li>
+                          <li>✓ 3x mais visibilidade</li>
+                        </>
+                      )}
+                      {formData.featured_tier === 'premium' && (
+                        <>
+                          <li>✓ Topo de TODAS as páginas</li>
+                          <li>✓ Banner grande na homepage</li>
+                          <li>✓ Badge "Premium Partner"</li>
+                          <li>✓ 10x mais visibilidade</li>
+                          <li>✓ Email marketing dedicado</li>
+                        </>
+                      )}
+                      {formData.featured_tier === 'exclusive' && (
+                        <>
+                          <li>✓ Posição #1 garantida</li>
+                          <li>✓ Banner exclusivo homepage</li>
+                          <li>✓ Push notifications para usuários</li>
+                          <li>✓ Email marketing VIP</li>
+                          <li>✓ Visibilidade máxima</li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
                   <p className="text-xs text-gray-600 mt-2">
-                    ⚠️ O pagamento será processado após aprovação do anúncio
+                    ⚠️ O pagamento será processado após aprovação do admin
                   </p>
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
+            <p className="text-sm text-blue-900 font-semibold mb-1">
+              📋 Processo de Aprovação
+            </p>
+            <p className="text-xs text-blue-800">
+              Todos os anúncios passam por aprovação do admin PawCão antes de ficarem visíveis na loja. 
+              Você receberá uma notificação quando seu anúncio for aprovado ou se houver algum problema.
+            </p>
           </div>
 
           <div className="flex gap-3 mt-4">
@@ -912,7 +999,8 @@ export default function PartnerDashboard() {
               Cancelar
             </Button>
             <Button onClick={() => saveAnnouncementMutation.mutate(formData)} className="bg-purple-600">
-              {editingAnnouncement ? 'Atualizar' : 'Criar'} Anúncio
+              {editingAnnouncement ? 'Atualizar' : 'Submeter'} Anúncio
+              {!editingAnnouncement && ' para Aprovação'}
             </Button>
           </div>
         </CardContent>

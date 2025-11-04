@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -5,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Sparkles, X, TrendingUp, Crown, Award } from "lucide-react";
+import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Sparkles, X, TrendingUp, Crown, Award, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +39,25 @@ export default function Partners() {
     },
     enabled: !!user?.email,
     staleTime: 0,
+  });
+
+  const { data: featuredAnnouncements } = useQuery({
+    queryKey: ['featuredAnnouncements'],
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
+      is_featured: true,
+      is_active: true,
+      moderation_status: 'approved'
+    }, '-featured_position'),
+    initialData: [],
+  });
+
+  const { data: announcements } = useQuery({
+    queryKey: ['companyAnnouncements'],
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
+      is_active: true,
+      moderation_status: 'approved'
+    }, '-created_date'),
+    initialData: [],
   });
 
   const categories = [
@@ -132,6 +152,104 @@ export default function Partners() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
+        {/* Featured Announcements Banner */}
+        {featuredAnnouncements.length > 0 && (
+          <div className="mb-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredAnnouncements.slice(0, 3).map((announcement) => (
+                <motion.div
+                  key={announcement.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="cursor-pointer"
+                >
+                  <Card className={`border-0 shadow-2xl overflow-hidden ${
+                    announcement.featured_tier === 'exclusive' ? 'ring-4 ring-yellow-400' :
+                    announcement.featured_tier === 'premium' ? 'ring-2 ring-purple-400' :
+                    'ring-1 ring-orange-400'
+                  }`}>
+                    <div className="absolute top-4 right-4 z-10">
+                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-xl">
+                        <Crown className="w-3 h-3 mr-1" />
+                        {announcement.featured_tier?.toUpperCase()}
+                      </Badge>
+                    </div>
+
+                    <div className="relative h-56 bg-gradient-to-br from-purple-100 to-pink-100">
+                      {announcement.image_url ? (
+                        <img
+                          src={announcement.image_url}
+                          alt={announcement.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Megaphone className="w-20 h-20 text-purple-300" />
+                        </div>
+                      )}
+                      {announcement.discount_percentage > 0 && (
+                        <Badge className="absolute bottom-4 left-4 bg-red-500 text-white text-xl px-4 py-2 shadow-xl">
+                          -{announcement.discount_percentage}%
+                        </Badge>
+                      )}
+                    </div>
+
+                    <CardContent className="p-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                        {announcement.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">{announcement.company_name}</p>
+                      <p className="text-gray-700 mb-4">{announcement.message}</p>
+                      
+                      <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
+                        Ver Promoção
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Regular Announcements */}
+        {announcements.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Megaphone className="w-6 h-6 text-purple-600" />
+              Promoções Ativas
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {announcements.slice(0, 4).map((announcement) => (
+                <Card key={announcement.id} className="border-0 shadow-lg hover:shadow-xl transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {announcement.image_url && (
+                        <img
+                          src={announcement.image_url}
+                          alt=""
+                          className="w-24 h-24 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="capitalize">{announcement.promotion_type}</Badge>
+                          {announcement.discount_percentage > 0 && (
+                            <Badge className="bg-red-500">-{announcement.discount_percentage}%</Badge>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-gray-900 mb-1">{announcement.title}</h4>
+                        <p className="text-sm text-gray-600">{announcement.company_name}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Stats Banner */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[
