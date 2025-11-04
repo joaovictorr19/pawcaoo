@@ -144,59 +144,56 @@ export default function UserProfile() {
     { id: 4, title: "Visitar Dog Connect", reward: 20, completed: true },
   ];
 
-  // Pixel Art Badge Generator - Habbo Style with Transparent Background Option
+  // High-quality 3D Badge Generator - Twitter/X Style
   const getPixelBadge = (type, data = {}, transparent = false) => {
-    const opacity = transparent ? '0' : '0.2'; // Shadow opacity
-    const bgOpacity = transparent ? '0' : '1'; // Main background opacity
+    const bgColor = transparent ? 'none' : '%23ffffff';
     
     const badges = {
-      admin: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%23DC2626' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%23FF6B6B'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23991B1B'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23991B1B'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FF6B6B'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FCA5A5'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EF4444'/%3E%3Cpath d='M24 20h16v4h-16z M28 24h8v8h-8z M24 32h4v4h-4z M36 32h4v4h-4z' fill='%23FEF2F2'/%3E%3Crect x='28' y='28' width='8' height='4' fill='%23FECACA'/%3E%3C/g%3E%3C/svg%3E`,
+      // Twitter-style Blue Checkmark - Ultra High Quality 3D
+      verified: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='vgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%231D9BF0;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%230E7BBF;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%230A5A8F;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='vshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.6' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='vshadow' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4' result='offsetblur'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='40' cy='44' r='32' fill='%23000000' opacity='0.15'/%3E%3Ccircle cx='40' cy='40' r='35' fill='url(%23vgrad)' filter='url(%23vshadow)'/%3E%3Ccircle cx='40' cy='40' r='35' fill='url(%23vshine)' opacity='0.4'/%3E%3Cpath d='M 30 40 L 36 48 L 52 30' stroke='%23ffffff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round' fill='none' filter='url(%23vshadow)'/%3E%3C/svg%3E`,
       
-      moderator: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%232563EB' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%2360A5FA'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%231E40AF'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%231E40AF'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2360A5FA'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%2393C5FD'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%233B82F6'/%3E%3Cpath d='M24 22h4v12h-4z M36 22h4v12h-4z M28 26h8v4h-8z M28 34h8v4h-8z' fill='%23DBEAFE'/%3E%3C/g%3E%3C/svg%3E`,
+      // Premium Gold Admin Shield - 3D Isometric
+      admin: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='agrad1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFD700;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23FFA500;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF6347;stop-opacity:1' /%3E%3C/linearGradient%3E%3ClinearGradient id='agrad2' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFE55C;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FFA500;stop-opacity:1' /%3E%3C/linearGradient%3E%3Cfilter id='ashadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3CradialGradient id='ashine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M 40 12 L 60 25 L 60 50 L 40 68 L 20 50 L 20 25 Z' fill='%23000000' opacity='0.2' transform='translate(0,4)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23agrad1)' filter='url(%23ashadow)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23ashine)' opacity='0.4'/%3E%3Cpath d='M 40 18 L 54 26 L 54 44 L 40 56 L 26 44 L 26 26 Z' fill='url(%23agrad2)' opacity='0.7'/%3E%3Cpath d='M 36 34 L 34 38 L 38 42 L 42 42 L 46 38 L 44 34 L 40 32 Z' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='40' cy='38' r='3' fill='%23FFD700'/%3E%3C/svg%3E`,
       
-      verified: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%2310B981' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%2334D399'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23059669'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23059669'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2334D399'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%236EE7B7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%2310B981'/%3E%3Cpath d='M24 28h4v8h-4z M28 24h4v12h-4z M32 20h4v16h-4z M36 24h4v8h-4z' fill='%23FFF'/%3E%3C/g%3E%3C/svg%3E`,
+      // Elegant Blue Moderator Shield - 3D
+      moderator: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='mgrad1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%235B8DEE;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%233B82F6;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%232563EB;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='mshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.6' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='mshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M 40 12 L 60 25 L 60 50 L 40 68 L 20 50 L 20 25 Z' fill='%23000000' opacity='0.2' transform='translate(0,4)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23mgrad1)' filter='url(%23mshadow)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23mshine)' opacity='0.3'/%3E%3Cpath d='M 40 20 L 52 28 L 52 42 L 40 52 L 28 42 L 28 28 Z' fill='%23DBEAFE' opacity='0.5'/%3E%3Cpath d='M 36 34 L 38 38 L 42 38 L 44 34 L 42 30 L 38 30 Z' fill='%23ffffff' opacity='0.8'/%3E%3C/svg%3E`,
       
-      adoption: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%23EC4899' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%23F9A8D4'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23BE185D'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23BE185D'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23F9A8D4'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FBCFE8'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EC4899'/%3E%3Cpath d='M20 20h8v4h-8z M36 20h8v4h-8z M20 24h4v4h-4z M40 24h4v4h-4z M24 28h16v4h-16z M20 32h24v4h-20z M24 36h16v4h-16z' fill='%23FDF2F8'/%3E%3C/g%3E%3C/svg%3E`,
+      // Pink Heart Adoption Advocate - 3D
+      adoption: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='hgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF69B4;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23EC4899;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23DB2777;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='hshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.7' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='hshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M 28 26 Q 24 20 18 20 Q 10 20 10 30 Q 10 40 40 60 Q 70 40 70 30 Q 70 20 62 20 Q 56 20 52 26 Q 48 30 40 36 Q 32 30 28 26 Z' fill='%23000000' opacity='0.15' transform='translate(0,4)'/%3E%3Cpath d='M 28 24 Q 24 18 18 18 Q 10 18 10 28 Q 10 38 40 58 Q 70 38 70 28 Q 70 18 62 18 Q 56 18 52 24 Q 48 28 40 34 Q 32 28 28 24 Z' fill='url(%23hgrad)' filter='url(%23hshadow)'/%3E%3Cellipse cx='28' cy='28' rx='12' ry='10' fill='url(%23hshine)' opacity='0.5'/%3E%3C/svg%3E`,
       
+      // Golden Level Badge - 3D Coin Style
       level: (level) => {
         const lvl = level || 1;
-        return `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%23F59E0B' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%23FCD34D'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23D97706'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23D97706'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FCD34D'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FEF3C7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23FBBF24'/%3E%3Cpath d='M28 20h8v4h-8z M24 24h16v4h-16z M20 28h24v4h-24z M24 32h16v4h-16z M28 36h8v4h-8z' fill='%23FEF9C3'/%3E%3Ctext x='32' y='38' font-family='monospace' font-size='18' font-weight='bold' fill='%23713F12' text-anchor='middle'%3E${lvl}%3C/text%3E%3C/g%3E%3C/svg%3E`;
+        return `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='lgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFD700;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23FFA500;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF8C00;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='lshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='lshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='5'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.4'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='50' rx='28' ry='8' fill='%23000000' opacity='0.2'/%3E%3Ccircle cx='40' cy='40' r='30' fill='url(%23lgrad)' filter='url(%23lshadow)'/%3E%3Ccircle cx='40' cy='40' r='28' fill='%23B8860B' opacity='0.3'/%3E%3Ccircle cx='40' cy='40' r='25' fill='%23FFD700' opacity='0.5'/%3E%3Cellipse cx='35' cy='30' rx='15' ry='12' fill='url(%23lshine)' opacity='0.6'/%3E%3Ctext x='40' y='50' font-family='Arial,sans-serif' font-size='28' font-weight='bold' fill='%23ffffff' text-anchor='middle' stroke='%23B8860B' stroke-width='1'%3E${lvl}%3C/text%3E%3C/svg%3E`;
       },
       
+      // Community Badges - High Quality 3D
       community: (badge) => {
         const rarity = badge?.rarity || 'common';
         const icon = badge?.icon || '⭐';
         
         const colors = {
-          legendary: { 
-            main: '%23FBBF24', 
-            light: '%23FEF3C7', 
-            dark: '%23D97706',
-            glow: '%23FCD34D'
+          legendary: {
+            grad1: '%23FFD700', grad2: '%23FFA500', grad3: '%23FF8C00',
+            shine: '%23FFFACD', border: '%23B8860B'
           },
-          epic: { 
-            main: '%23A855F7', 
-            light: '%23F3E8FF', 
-            dark: '%237C3AED',
-            glow: '%23C084FC'
+          epic: {
+            grad1: '%23C084FC', grad2: '%23A855F7', grad3: '%238B5CF6',
+            shine: '%23F3E8FF', border: '%236B21A8'
           },
-          rare: { 
-            main: '%233B82F6', 
-            light: '%23DBEAFE', 
-            dark: '%231D4ED8',
-            glow: '%2393C5FD'
+          rare: {
+            grad1: '%2360A5FA', grad2: '%233B82F6', grad3: '%232563EB',
+            shine: '%23DBEAFE', border: '%231E40AF'
           },
-          common: { 
-            main: '%236B7280', 
-            light: '%23E5E7EB', 
-            dark: '%234B5563',
-            glow: '%239CA3AF'
+          common: {
+            grad1: '%239CA3AF', grad2: '%236B7280', grad3: '%234B5563',
+            shine: '%23E5E7EB', border: '%23374151'
           }
         };
         
         const c = colors[rarity];
         
-        return `data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='80' height='80' fill='%23000' opacity='${opacity}' y='6'/%3E%3Crect width='80' height='68' fill='${c.main}' opacity='${bgOpacity}'/%3E%3Crect x='6' width='68' height='6' fill='${c.glow}'/%3E%3Crect x='6' y='62' width='68' height='6' fill='${c.dark}'/%3E%3Crect x='68' y='6' width='6' height='56' fill='${c.dark}'/%3E%3Crect x='6' y='6' width='6' height='56' fill='${c.glow}'/%3E%3Crect x='16' y='16' width='48' height='36' fill='${c.light}'/%3E%3Crect x='20' y='20' width='40' height='28' fill='${c.main}'/%3E%3Cpath d='M28 24h24v4h-24z M24 28h32v4h-32z M20 32h40v4h-40z M24 36h32v4h-32z M28 40h24v4h-24z' fill='${c.glow}'/%3E%3Ctext x='40' y='46' font-size='28' text-anchor='middle'%3E${icon}%3C/text%3E%3C/g%3E%3C/svg%3E`;
+        return `data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='cgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:${c.grad1};stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:${c.grad2};stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:${c.grad3};stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='cshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.7' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='cshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='4'/%3E%3CfeOffset dx='0' dy='6'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.35'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Crect x='18' y='22' width='64' height='64' rx='16' fill='%23000000' opacity='0.15'/%3E%3Crect x='15' y='15' width='70' height='70' rx='18' fill='url(%23cgrad)' filter='url(%23cshadow)'/%3E%3Crect x='18' y='18' width='64' height='64' rx='16' fill='${c.border}' opacity='0.3'/%3E%3Crect x='22' y='22' width='56' height='56' rx='14' fill='url(%23cgrad)' opacity='0.6'/%3E%3Cellipse cx='38' cy='32' rx='20' ry='16' fill='url(%23cshine)' opacity='0.5'/%3E%3Ctext x='50' y='68' font-size='42' text-anchor='middle'%3E${icon}%3C/text%3E%3C/svg%3E`;
       }
     };
     
@@ -248,8 +245,7 @@ export default function UserProfile() {
           <img 
             src={getPixelBadge('admin', null, false)} 
             alt="Admin" 
-            className="w-12 h-12 hover:scale-110 transition-transform" 
-            style={{imageRendering: 'pixelated'}}
+            className="w-10 h-10 hover:scale-110 transition-transform drop-shadow-lg" 
           />
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
             <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
@@ -265,8 +261,7 @@ export default function UserProfile() {
           <img 
             src={getPixelBadge('moderator', null, false)} 
             alt="Moderator" 
-            className="w-12 h-12 hover:scale-110 transition-transform" 
-            style={{imageRendering: 'pixelated'}}
+            className="w-10 h-10 hover:scale-110 transition-transform drop-shadow-lg" 
           />
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
             <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
@@ -282,12 +277,11 @@ export default function UserProfile() {
           <img 
             src={getPixelBadge('verified', null, false)} 
             alt="Verificado" 
-            className="w-12 h-12 hover:scale-110 transition-transform" 
-            style={{imageRendering: 'pixelated'}}
+            className="w-8 h-8 hover:scale-110 transition-transform drop-shadow-lg" 
           />
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
             <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-              ✓ Verificado
+              ✓ Conta Verificada
             </div>
           </div>
         </div>
@@ -299,8 +293,7 @@ export default function UserProfile() {
           <img 
             src={getPixelBadge('adoption', null, false)} 
             alt="Adoção" 
-            className="w-12 h-12 hover:scale-110 transition-transform" 
-            style={{imageRendering: 'pixelated'}}
+            className="w-10 h-10 hover:scale-110 transition-transform drop-shadow-lg" 
           />
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
             <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
@@ -342,23 +335,24 @@ export default function UserProfile() {
               <div className="flex-1 md:mt-16">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-3">{profileUser.full_name}</h1>
-                    
-                    {/* Badges Pixel Art */}
-                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                      {getBadges()}
+                    <div className="flex items-center gap-3 mb-3">
+                      <h1 className="text-3xl font-bold text-gray-900">{profileUser.full_name}</h1>
                       
-                      {/* Level Badge */}
-                      <div className="relative group cursor-pointer">
-                        <img 
-                          src={getPixelBadge('level', currentLevel, false)} 
-                          alt={`Nível ${currentLevel}`} 
-                          className="w-14 h-14 hover:scale-110 transition-transform" 
-                          style={{imageRendering: 'pixelated'}}
-                        />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-                            ⚡ Nível {currentLevel} • {currentLevelXP % xpNeeded}/{xpNeeded} XP
+                      {/* High-Quality 3D Badges */}
+                      <div className="flex items-center gap-2">
+                        {getBadges()}
+                        
+                        {/* Level Badge */}
+                        <div className="relative group cursor-pointer">
+                          <img 
+                            src={getPixelBadge('level', currentLevel, false)} 
+                            alt={`Nível ${currentLevel}`} 
+                            className="w-12 h-12 hover:scale-110 transition-transform drop-shadow-xl" 
+                          />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
+                              ⚡ Nível {currentLevel} • {currentLevelXP % xpNeeded}/{xpNeeded} XP
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -484,8 +478,7 @@ export default function UserProfile() {
                       <img 
                         src={getPixelBadge('level', currentLevel, false)} 
                         alt={`Nível ${currentLevel}`} 
-                        className="w-full h-full"
-                        style={{imageRendering: 'pixelated'}}
+                        className="w-full h-full drop-shadow-2xl"
                       />
                     </div>
                     <div className="flex-1">
@@ -498,7 +491,7 @@ export default function UserProfile() {
                   <div className="grid grid-cols-4 gap-2">
                     <div className="text-center p-2 bg-white/10 rounded">
                       <div className="text-lg font-bold">{profileUser?.public_badges?.length || 0}</div>
-                      <div className="text-xs text-white/80">Emblemas</div>
+                      <div className="text-xs text-white/80">Badges</div>
                     </div>
                     <div className="text-center p-2 bg-white/10 rounded">
                       <div className="text-lg font-bold flex items-center justify-center">
@@ -554,7 +547,7 @@ export default function UserProfile() {
                   Emblemas
                 </CardTitle>
                 <p className="text-sm text-gray-400 mt-2">
-                  Clique no emblema para ver com fundo transparente
+                  Clique no emblema para alternar fundo transparente
                 </p>
               </CardHeader>
               <CardContent>
@@ -639,7 +632,7 @@ function BadgeItem({ badge, idx, getPixelBadge }) {
     >
       <div 
         onClick={() => setShowTransparent(!showTransparent)}
-        className={`p-2 bg-gradient-to-br rounded-2xl border-4 hover:scale-110 transition-all cursor-pointer shadow-2xl ${
+        className={`p-3 bg-gradient-to-br rounded-2xl border-4 hover:scale-110 transition-all cursor-pointer shadow-2xl ${
           badge.rarity === 'legendary' ? 'from-yellow-400 to-orange-500 border-yellow-300 shadow-yellow-500/50' :
           badge.rarity === 'epic' ? 'from-purple-500 to-pink-500 border-purple-400 shadow-purple-500/50' :
           badge.rarity === 'rare' ? 'from-blue-400 to-cyan-500 border-blue-300 shadow-blue-500/50' :
@@ -650,8 +643,7 @@ function BadgeItem({ badge, idx, getPixelBadge }) {
           <img 
             src={getPixelBadge('community', badge, showTransparent)} 
             alt={badge.name} 
-            className="w-full h-16 mx-auto"
-            style={{imageRendering: 'pixelated'}}
+            className="w-full h-20 mx-auto drop-shadow-xl"
           />
         </div>
         <p className="text-center text-xs font-black mt-2 truncate text-white drop-shadow-lg">
@@ -660,7 +652,7 @@ function BadgeItem({ badge, idx, getPixelBadge }) {
         
         {showTransparent && (
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-10">
-            <Badge className="bg-green-500 text-white text-xs whitespace-nowrap">
+            <Badge className="bg-green-500 text-white text-xs whitespace-nowrap shadow-lg">
               Transparente
             </Badge>
           </div>
@@ -691,7 +683,7 @@ function BadgeItem({ badge, idx, getPixelBadge }) {
             )}
           </div>
           <p className="text-xs text-gray-400 border-t border-gray-700 pt-2 mt-2">
-            💡 Clique para alternar fundo transparente
+            💡 Clique para alternar fundo
           </p>
         </div>
       </div>
