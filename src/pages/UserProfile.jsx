@@ -2,14 +2,14 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardHeader, CardTitle
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   MapPin, Users, Heart, MessageCircle, ArrowLeft,
-  Link as LinkIcon, CheckCircle, AtSign, Calendar, 
+  Link as LinkIcon, CheckCircle, Dog, Calendar, // Added Dog
   Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -193,7 +193,15 @@ export default function UserProfile() {
 
         {/* Profile Header Card */}
         <Card className="border-0 shadow-2xl mb-6 overflow-hidden">
+          {/* Cover Photo */}
           <div className="relative h-48 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600">
+            {profileUser.cover_photo_url && (
+              <img 
+                src={profileUser.cover_photo_url} 
+                alt="Cover" 
+                className="w-full h-full object-cover"
+              />
+            )}
             <div className="absolute inset-0 bg-black/10" />
           </div>
           
@@ -213,9 +221,31 @@ export default function UserProfile() {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
                       {profileUser.full_name}
                     </h1>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
                       {getBadges()}
                     </div>
+                    
+                    {/* Public Badges */}
+                    {profileUser.public_badges && profileUser.public_badges.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {profileUser.public_badges.slice(0, 4).map((badge, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className={`${
+                              badge.rarity === 'legendary' ? 'border-yellow-400 text-yellow-700 bg-yellow-50' :
+                              badge.rarity === 'epic' ? 'border-purple-400 text-purple-700 bg-purple-50' :
+                              badge.rarity === 'rare' ? 'border-blue-400 text-blue-700 bg-blue-50' :
+                              'border-gray-400 text-gray-700 bg-gray-50'
+                            }`}
+                            title={badge.description}
+                          >
+                            <span className="mr-1">{badge.icon}</span>
+                            {badge.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {!isOwnProfile && currentUser && (
@@ -275,6 +305,33 @@ export default function UserProfile() {
                     <p className="text-gray-700 leading-relaxed">{profileUser.bio}</p>
                   )}
                   
+                  {/* Favorite Breeds */}
+                  {profileUser.favorite_dog_breeds && profileUser.favorite_dog_breeds.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Dog className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-semibold text-gray-700">Raças Favoritas:</span>
+                      {profileUser.favorite_dog_breeds.map((breed, idx) => (
+                        <Badge key={idx} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+                          {breed}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Interests */}
+                  {profileUser.interests && profileUser.interests.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Star className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-semibold text-gray-700">Interesses:</span>
+                      {profileUser.interests.map((interest, idx) => (
+                        <Badge key={idx} variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 capitalize">
+                          {interest}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Location & Links */}
                   <div className="flex flex-wrap gap-4 text-sm">
                     {profileUser.city && (
                       <div className="flex items-center gap-2 text-gray-600">
@@ -298,10 +355,49 @@ export default function UserProfile() {
                         href={`https://instagram.com/${profileUser.instagram_handle.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-purple-600 hover:underline"
+                        className="flex items-center gap-2 text-pink-600 hover:underline"
                       >
-                        <AtSign className="w-4 h-4" />
-                        {profileUser.instagram_handle}
+                        📷 Instagram
+                      </a>
+                    )}
+                    {profileUser.facebook_handle && (
+                      <a 
+                        href={`https://facebook.com/${profileUser.facebook_handle.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-700 hover:underline"
+                      >
+                        📘 Facebook
+                      </a>
+                    )}
+                    {profileUser.twitter_handle && (
+                      <a 
+                        href={`https://twitter.com/${profileUser.twitter_handle.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sky-600 hover:underline"
+                      >
+                        🐦 Twitter
+                      </a>
+                    )}
+                    {profileUser.tiktok_handle && (
+                      <a 
+                        href={`https://tiktok.com/@${profileUser.tiktok_handle.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-gray-900 hover:underline"
+                      >
+                        🎵 TikTok
+                      </a>
+                    )}
+                    {profileUser.youtube_handle && (
+                      <a 
+                        href={`https://youtube.com/@${profileUser.youtube_handle.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-red-600 hover:underline"
+                      >
+                        📺 YouTube
                       </a>
                     )}
                   </div>
@@ -352,10 +448,14 @@ export default function UserProfile() {
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14 mb-6">
+          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-2 h-14 mb-6"> {/* grid-cols-4 added for new tab */}
             <TabsTrigger value="posts" className="rounded-lg">
               <Grid className="w-4 h-4 mr-2" />
-              Publicações
+              Posts
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="rounded-lg">
+              <Award className="w-4 h-4 mr-2" />
+              Badges
             </TabsTrigger>
             <TabsTrigger value="activity" className="rounded-lg">
               <TrendingUp className="w-4 h-4 mr-2" />
@@ -439,6 +539,150 @@ export default function UserProfile() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* NEW: Badges Tab */}
+          <TabsContent value="badges">
+            <div className="space-y-6">
+              {/* System Badges */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-purple-600" />
+                    Badges do Sistema
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {profileUser.role === 'admin' && (
+                      <div className="p-6 bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-2xl shadow-xl">
+                        <Shield className="w-12 h-12 mb-3" />
+                        <h4 className="font-bold text-2xl mb-2">Administrador</h4>
+                        <p className="text-sm text-white/90">Controle total do sistema PawCão</p>
+                      </div>
+                    )}
+                    {profileUser.social_role === 'moderator' && (
+                      <div className="p-6 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-2xl shadow-xl">
+                        <ShieldCheck className="w-12 h-12 mb-3" />
+                        <h4 className="font-bold text-2xl mb-2">Moderador</h4>
+                        <p className="text-sm text-white/90">Moderador do Dog Connect</p>
+                      </div>
+                    )}
+                    {profileUser.is_verified && (
+                      <div className="p-6 bg-gradient-to-br from-blue-400 to-cyan-400 text-white rounded-2xl shadow-xl">
+                        <CheckCircle className="w-12 h-12 mb-3" />
+                        <h4 className="font-bold text-2xl mb-2">Verificado</h4>
+                        <p className="text-sm text-white/90">Perfil verificado pela PawCão</p>
+                      </div>
+                    )}
+                    {profileUser.is_adoption_advocate && (
+                      <div className="p-6 bg-gradient-to-br from-pink-400 to-rose-500 text-white rounded-2xl shadow-xl">
+                        <Heart className="w-12 h-12 mb-3" />
+                        <h4 className="font-bold text-2xl mb-2">Defensor de Adoção</h4>
+                        <p className="text-sm text-white/90">Ativo na causa da adoção de pets</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Community Badges */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="w-5 h-5 text-yellow-600" />
+                    Conquistas da Comunidade
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {profileUser.public_badges && profileUser.public_badges.length > 0 ? (
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {profileUser.public_badges.map((badge, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className={`p-5 rounded-2xl border-2 shadow-lg ${
+                            badge.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-400' :
+                            badge.rarity === 'epic' ? 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-400' :
+                            badge.rarity === 'rare' ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-400' :
+                            'bg-gray-50 border-gray-300'
+                          }`}
+                        >
+                          <div className="text-5xl mb-3">{badge.icon}</div>
+                          <h4 className="font-bold text-lg mb-1">{badge.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{badge.description}</p>
+                          {badge.rarity && (
+                            <Badge className={`text-xs ${
+                              badge.rarity === 'legendary' ? 'bg-yellow-500' :
+                              badge.rarity === 'epic' ? 'bg-purple-500' :
+                              badge.rarity === 'rare' ? 'bg-blue-500' :
+                              'bg-gray-500'
+                            }`}>
+                              {badge.rarity.toUpperCase()}
+                            </Badge>
+                          )}
+                          {badge.earned_date && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Conquistado em {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
+                            </p>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-600">Nenhuma badge conquistada ainda</p>
+                      <p className="text-sm text-gray-500">Participe da comunidade para ganhar badges!</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Auto-earned Achievements based on stats */}
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-50 to-pink-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-purple-600" />
+                    Conquistas Automáticas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {userPosts.length >= 10 && (
+                      <div className="p-4 bg-white rounded-xl border-2 border-blue-200">
+                        <div className="text-3xl mb-2">📝</div>
+                        <h4 className="font-bold">Criador Ativo</h4>
+                        <p className="text-sm text-gray-600">10+ publicações</p>
+                      </div>
+                    )}
+                    {followData.followers.length >= 50 && (
+                      <div className="p-4 bg-white rounded-xl border-2 border-pink-200">
+                        <div className="text-3xl mb-2">👥</div>
+                        <h4 className="font-bold">Popular</h4>
+                        <p className="text-sm text-gray-600">50+ seguidores</p>
+                      </div>
+                    )}
+                    {totalLikes >= 100 && (
+                      <div className="p-4 bg-white rounded-xl border-2 border-rose-200">
+                        <div className="text-3xl mb-2">❤️</div>
+                        <h4 className="font-bold">Muito Curtido</h4>
+                        <p className="text-sm text-gray-600">100+ curtidas recebidas</p>
+                      </div>
+                    )}
+                    {userDogs.filter(d => d.is_adopted).length > 0 && (
+                      <div className="p-4 bg-white rounded-xl border-2 border-green-200">
+                        <div className="text-3xl mb-2">🏠</div>
+                        <h4 className="font-bold">Herói da Adoção</h4>
+                        <p className="text-sm text-gray-600">Adotou um pet</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Activity Tab */}

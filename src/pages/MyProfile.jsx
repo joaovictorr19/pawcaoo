@@ -15,18 +15,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
-  Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle, AtSign
+  Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle, AtSign,
+  Award, ShieldCheck, Heart, CheckCircle, Sparkles // New icons
 } from "lucide-react";
 import { toast } from "sonner";
 import DogProfileCard from "../components/profile/DogProfileCard";
 import AddEditDogForm from "../components/profile/AddEditDogForm";
+import { Badge } from "@/components/ui/badge"; // New component import
+import { format } from "date-fns"; // New date formatting import
+import { ptBR } from "date-fns/locale"; // New locale import
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
-  const [showAddDog, setShowAddDog] = useState(false); // New state for showing Add Dog form
-  const [editingDog, setEditingDog] = useState(null); // New state for editing a dog
+  const [showAddDog, setShowAddDog] = useState(false);
+  const [editingDog, setEditingDog] = useState(null);
+  const [uploadingCover, setUploadingCover] = useState(false); // New state for cover photo upload
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -42,6 +47,12 @@ export default function MyProfile() {
     bio: "",
     website: "",
     instagram_handle: "",
+    facebook_handle: "", // New
+    twitter_handle: "", // New
+    tiktok_handle: "", // New
+    youtube_handle: "", // New
+    favorite_dog_breeds: [], // New
+    interests: [], // New
   });
 
   const [preferences, setPreferences] = useState({
@@ -62,6 +73,12 @@ export default function MyProfile() {
         bio: user.bio || "",
         website: user.website || "",
         instagram_handle: user.instagram_handle || "",
+        facebook_handle: user.facebook_handle || "", // New
+        twitter_handle: user.twitter_handle || "", // New
+        tiktok_handle: user.tiktok_handle || "", // New
+        youtube_handle: user.youtube_handle || "", // New
+        favorite_dog_breeds: user.favorite_dog_breeds || [], // New
+        interests: user.interests || [], // New
       });
       setPreferences({
         language: user.preferences?.language || "pt",
@@ -107,10 +124,35 @@ export default function MyProfile() {
     }
   });
 
+  const uploadCoverMutation = useMutation({ // New mutation for cover photo
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ cover_photo_url: file_url });
+      return file_url;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success("Foto de capa atualizada!");
+      setUploadingCover(false);
+    },
+    onError: () => {
+      toast.error("Erro ao fazer upload da foto de capa.");
+      setUploadingCover(false);
+    }
+  });
+
   const handlePhotoUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       uploadPhotoMutation.mutate(file);
+    }
+  };
+
+  const handleCoverUpload = (e) => { // New handler for cover photo upload
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingCover(true);
+      uploadCoverMutation.mutate(file);
     }
   };
 
@@ -125,6 +167,56 @@ export default function MyProfile() {
   const handleLogout = () => {
     base44.auth.logout();
   };
+
+  const handleToggleBreed = (breed) => { // New handler for favorite breeds
+    const breeds = profileData.favorite_dog_breeds || [];
+    if (breeds.includes(breed)) {
+      setProfileData({
+        ...profileData,
+        favorite_dog_breeds: breeds.filter(b => b !== breed)
+      });
+    } else {
+      setProfileData({
+        ...profileData,
+        favorite_dog_breeds: [...breeds, breed]
+      });
+    }
+  };
+
+  const handleToggleInterest = (interest) => { // New handler for interests
+    const interests = profileData.interests || [];
+    if (interests.includes(interest)) {
+      setProfileData({
+        ...profileData,
+        interests: interests.filter(i => i !== interest)
+      });
+    } else {
+      setProfileData({
+        ...profileData,
+        interests: [...interests, interest]
+      });
+    }
+  };
+
+  const POPULAR_BREEDS = [ // New constant
+    "Labrador", "Golden Retriever", "Pastor Alemão", "Bulldog", "Beagle",
+    "Poodle", "Rottweiler", "Yorkshire", "Boxer", "Dachshund", "Husky",
+    "Chihuahua", "Pug", "Shih Tzu", "Border Collie", "Cocker Spaniel"
+  ];
+
+  const INTERESTS = [ // New constant
+    { value: "adoption", label: "Adoção", icon: "🏠" },
+    { value: "training", label: "Treino", icon: "🎓" },
+    { value: "health", label: "Saúde", icon: "🏥" },
+    { value: "nutrition", label: "Nutrição", icon: "🍖" },
+    { value: "exercise", label: "Exercício", icon: "🏃" },
+    { value: "grooming", label: "Grooming", icon: "✂️" },
+    { value: "travel", label: "Viagens", icon: "✈️" },
+    { value: "photography", label: "Fotografia", icon: "📸" },
+    { value: "competitions", label: "Competições", icon: "🏆" },
+    { value: "rescue", label: "Resgate", icon: "🆘" },
+    { value: "volunteering", label: "Voluntariado", icon: "❤️" },
+  ];
 
   if (isLoading) {
     return (
@@ -161,9 +253,29 @@ export default function MyProfile() {
           {/* Sidebar */}
           <Card className="lg:col-span-1 h-fit border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-6">
-              <div className="flex flex-col items-center mb-6">
+              {/* Cover Photo - NEW */}
+              <div className="relative -mx-6 -mt-6 mb-4">
+                <div className="relative h-24 bg-gradient-to-r from-green-500 to-blue-600 overflow-hidden">
+                  {user?.cover_photo_url && (
+                    <img src={user.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
+                  )}
+                  <label htmlFor="cover-upload" className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg cursor-pointer hover:bg-white">
+                    <Upload className="w-3 h-3 text-gray-700" />
+                  </label>
+                  <input
+                    id="cover-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverUpload}
+                    disabled={uploadingCover}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center -mt-12 mb-6">
                 <div className="relative">
-                  <Avatar className="w-24 h-24 mb-4">
+                  <Avatar className="w-24 h-24 mb-4 ring-4 ring-white"> {/* Updated avatar style */}
                     <AvatarImage src={user?.profile_photo_url} />
                     <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-2xl">
                       {user?.full_name?.[0]?.toUpperCase() || "U"}
@@ -181,13 +293,36 @@ export default function MyProfile() {
                     disabled={uploadPhotoMutation.isPending}
                   />
                 </div>
-                <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{user?.full_name}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{user?.email}</p>
-                {user?.role === 'admin' && (
-                  <span className="mt-2 px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded-full">
-                    ADMIN
-                  </span>
-                )}
+                <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 text-center">{user?.full_name}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{user?.email}</p>
+
+                {/* User Badges - NEW */}
+                <div className="flex flex-wrap gap-2 justify-center mb-3">
+                  {user?.role === 'admin' && (
+                    <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
+                      <Shield className="w-3 h-3 mr-1" />
+                      Admin
+                    </Badge>
+                  )}
+                  {user?.social_role === 'moderator' && (
+                    <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+                      <ShieldCheck className="w-3 h-3 mr-1" />
+                      Moderador
+                    </Badge>
+                  )}
+                  {user?.is_verified && (
+                    <Badge className="bg-blue-500 text-white">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Verificado
+                    </Badge>
+                  )}
+                  {user?.is_adoption_advocate && (
+                    <Badge className="bg-pink-500 text-white">
+                      <Heart className="w-3 h-3 mr-1" />
+                      Defensor Adoção
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <Separator className="my-4 dark:bg-gray-700" />
@@ -201,6 +336,22 @@ export default function MyProfile() {
                   <User className="w-4 h-4 mr-2" />
                   Perfil
                 </Button>
+                <Button // New tab for Social
+                  variant={activeTab === "social" ? "default" : "ghost"}
+                  className="w-full justify-start dark:hover:bg-gray-700"
+                  onClick={() => setActiveTab("social")}
+                >
+                  <AtSign className="w-4 h-4 mr-2" />
+                  Redes Sociais
+                </Button>
+                <Button // New tab for Badges
+                  variant={activeTab === "badges" ? "default" : "ghost"}
+                  className="w-full justify-start dark:hover:bg-gray-700"
+                  onClick={() => setActiveTab("badges")}
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Badges
+                </Button>
                 <Button
                   variant={activeTab === "settings" ? "default" : "ghost"}
                   className="w-full justify-start dark:hover:bg-gray-700"
@@ -210,7 +361,7 @@ export default function MyProfile() {
                   Preferências
                 </Button>
                 <Button
-                  variant={activeTab === "pets" ? "default" : "ghost"} // New tab for Pets
+                  variant={activeTab === "pets" ? "default" : "ghost"}
                   className="w-full justify-start dark:hover:bg-gray-700"
                   onClick={() => setActiveTab("pets")}
                 >
@@ -318,44 +469,17 @@ export default function MyProfile() {
                   </div>
 
                   <div>
-                    <Label htmlFor="bio" className="dark:text-gray-300">Bio (aparece no perfil social)</Label>
+                    <Label htmlFor="bio" className="dark:text-gray-300">Bio Pública</Label>
                     <Textarea
                       id="bio"
                       value={profileData.bio}
                       onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
                       className="mt-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-                      placeholder="Conte um pouco sobre você e seus pets..."
+                      placeholder="Conte um pouco sobre você e seus pets... Aparece no seu perfil público!"
                       rows={4}
-                      maxLength={150}
+                      maxLength={250} // Updated maxLength
                     />
-                    <p className="text-xs text-gray-500 mt-1">{profileData.bio?.length || 0}/150</p>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="website" className="dark:text-gray-300">Website / Link</Label>
-                      <Input
-                        id="website"
-                        value={profileData.website}
-                        onChange={(e) => setProfileData({ ...profileData, website: e.target.value })}
-                        className="mt-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-                        placeholder="https://..."
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="instagram" className="dark:text-gray-300">Instagram</Label>
-                      <div className="relative mt-2">
-                        <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <Input
-                          id="instagram"
-                          value={profileData.instagram_handle}
-                          onChange={(e) => setProfileData({ ...profileData, instagram_handle: e.target.value })}
-                          className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-                          placeholder="@seuperfil"
-                        />
-                      </div>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{profileData.bio?.length || 0}/250 caracteres</p>
                   </div>
 
                   <div>
@@ -394,6 +518,51 @@ export default function MyProfile() {
                     </div>
                   </div>
 
+                  {/* Favorite Breeds - NEW */}
+                  <div>
+                    <Label className="dark:text-gray-300 mb-2 block">Raças de Cães Favoritas</Label>
+                    <p className="text-xs text-gray-500 mb-3">Selecione suas raças favoritas (aparecem no perfil público)</p>
+                    <div className="flex flex-wrap gap-2">
+                      {POPULAR_BREEDS.map(breed => (
+                        <Badge
+                          key={breed}
+                          onClick={() => handleToggleBreed(breed)}
+                          className={`cursor-pointer transition-all ${
+                            (profileData.favorite_dog_breeds || []).includes(breed)
+                              ? 'bg-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {breed}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Interests - NEW */}
+                  <div>
+                    <Label className="dark:text-gray-300 mb-2 block">Interesses</Label>
+                    <p className="text-xs text-gray-500 mb-3">Marque seus interesses para conectar com pessoas parecidas</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {INTERESTS.map(interest => (
+                        <Button
+                          key={interest.value}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleInterest(interest.value)}
+                          className={`justify-start ${
+                            (profileData.interests || []).includes(interest.value)
+                              ? 'bg-purple-100 border-purple-400 text-purple-700'
+                              : ''
+                          }`}
+                        >
+                          <span className="mr-2">{interest.icon}</span>
+                          <span className="text-xs">{interest.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
                   <Button
                     onClick={handleSaveProfile}
                     disabled={updateProfileMutation.isPending}
@@ -402,6 +571,240 @@ export default function MyProfile() {
                     <Save className="w-4 h-4 mr-2" />
                     {updateProfileMutation.isPending ? "A guardar..." : "Guardar Alterações"}
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Social Media Tab - NEW */}
+            {activeTab === "social" && (
+              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <AtSign className="w-5 h-5" />
+                    Redes Sociais & Links
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Adicione suas redes sociais para conectar com outros donos de pets
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="website" className="dark:text-gray-300">Website / Blog Pessoal</Label>
+                    <div className="relative mt-2">
+                      <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="website"
+                        value={profileData.website}
+                        onChange={(e) => setProfileData({ ...profileData, website: e.target.value })}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        placeholder="https://seusite.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instagram" className="dark:text-gray-300">Instagram</Label>
+                    <div className="relative mt-2">
+                      <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="instagram"
+                        value={profileData.instagram_handle}
+                        onChange={(e) => setProfileData({ ...profileData, instagram_handle: e.target.value })}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        placeholder="@seuperfil"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="facebook" className="dark:text-gray-300">Facebook</Label>
+                    <div className="relative mt-2">
+                      <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="facebook"
+                        value={profileData.facebook_handle}
+                        onChange={(e) => setProfileData({ ...profileData, facebook_handle: e.target.value })}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        placeholder="@seuperfil"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="twitter" className="dark:text-gray-300">Twitter / X</Label>
+                    <div className="relative mt-2">
+                      <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="twitter"
+                        value={profileData.twitter_handle}
+                        onChange={(e) => setProfileData({ ...profileData, twitter_handle: e.target.value })}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        placeholder="@seuperfil"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="tiktok" className="dark:text-gray-300">TikTok</Label>
+                    <div className="relative mt-2">
+                      <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="tiktok"
+                        value={profileData.tiktok_handle}
+                        onChange={(e) => setProfileData({ ...profileData, tiktok_handle: e.target.value })}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        placeholder="@seuperfil"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="youtube" className="dark:text-gray-300">YouTube</Label>
+                    <div className="relative mt-2">
+                      <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="youtube"
+                        value={profileData.youtube_handle}
+                        onChange={(e) => setProfileData({ ...profileData, youtube_handle: e.target.value })}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        placeholder="@seucanal"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      💡 <strong>Dica:</strong> Seus links de redes sociais aparecem no seu perfil público e ajudam outros donos de pets a conectarem-se com você!
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfileMutation.isPending}
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateProfileMutation.isPending ? "A guardar..." : "Guardar Alterações"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Badges Tab - NEW */}
+            {activeTab === "badges" && (
+              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <Award className="w-5 h-5" />
+                    Minhas Badges & Conquistas
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Mostre suas conquistas e status especial na comunidade
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* System Badges */}
+                  <div>
+                    <h3 className="font-bold text-lg mb-4 dark:text-gray-100">Badges do Sistema</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {user?.role === 'admin' && (
+                        <div className="p-5 bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-xl shadow-lg">
+                          <Shield className="w-10 h-10 mb-3" />
+                          <h4 className="font-bold text-xl mb-1">Administrador</h4>
+                          <p className="text-sm text-white/90">Acesso total ao sistema</p>
+                        </div>
+                      )}
+                      {user?.social_role === 'moderator' && (
+                        <div className="p-5 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl shadow-lg">
+                          <ShieldCheck className="w-10 h-10 mb-3" />
+                          <h4 className="font-bold text-xl mb-1">Moderador</h4>
+                          <p className="text-sm text-white/90">Moderador do Dog Connect</p>
+                        </div>
+                      )}
+                      {user?.is_verified && (
+                        <div className="p-5 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-xl shadow-lg">
+                          <CheckCircle className="w-10 h-10 mb-3" />
+                          <h4 className="font-bold text-xl mb-1">Verificado</h4>
+                          <p className="text-sm text-white/90">Perfil verificado pela PawCão</p>
+                        </div>
+                      )}
+                      {user?.is_adoption_advocate && (
+                        <div className="p-5 bg-gradient-to-br from-pink-400 to-rose-500 text-white rounded-xl shadow-lg">
+                          <Heart className="w-10 h-10 mb-3" />
+                          <h4 className="font-bold text-xl mb-1">Defensor de Adoção</h4>
+                          <p className="text-sm text-white/90">Ativo na causa da adoção</p>
+                        </div>
+                      )}
+                      {!user?.role && !user?.is_verified && !user?.is_adoption_advocate && !user?.social_role && (
+                        <p className="text-gray-600 dark:text-gray-400 col-span-full">Nenhuma badge de sistema atribuída.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Community Badges */}
+                  <div>
+                    <h3 className="font-bold text-lg mb-4 dark:text-gray-100">Badges da Comunidade</h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {user?.public_badges?.map((badge, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-4 rounded-xl border-2 ${
+                            badge.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-yellow-400' :
+                            badge.rarity === 'epic' ? 'bg-gradient-to-br from-purple-100 to-pink-100 border-purple-400' :
+                            badge.rarity === 'rare' ? 'bg-gradient-to-br from-blue-100 to-cyan-100 border-blue-400' :
+                            'bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600'
+                          }`}
+                        >
+                          <div className="text-4xl mb-2">{badge.icon}</div>
+                          <h4 className="font-bold text-sm mb-1 dark:text-gray-100">{badge.name}</h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-300">{badge.description}</p>
+                          {badge.earned_date && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                              {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+
+                      {(!user?.public_badges || user.public_badges.length === 0) && (
+                        <div className="col-span-full text-center py-8">
+                          <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-600 dark:text-gray-400">Nenhuma badge ainda</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-500">Participe da comunidade para ganhar badges!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* How to Earn More - NEW */}
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl p-6">
+                    <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-4 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5" />
+                      Como Ganhar Mais Badges
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">📝</span>
+                        <p className="text-gray-700 dark:text-gray-300"><strong>Criador Ativo:</strong> Publique 10+ posts no Dog Connect</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">👥</span>
+                        <p className="text-gray-700 dark:text-gray-300"><strong>Popular:</strong> Tenha 50+ seguidores</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">⭐</span>
+                        <p className="text-gray-700 dark:text-gray-300"><strong>Super Ativo:</strong> Faça 20+ agendamentos</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">🏆</span>
+                        <p className="text-gray-700 dark:text-gray-300"><strong>Líder:</strong> Entre no top 10 do leaderboard</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">💬</span>
+                        <p className="text-gray-700 dark:text-gray-300"><strong>Comunicativo:</strong> Escreva 50+ comentários</p>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -584,7 +987,7 @@ export default function MyProfile() {
               </Card>
             )}
 
-            {/* NEW: My Pets Tab */}
+            {/* My Pets Tab */}
             {activeTab === "pets" && (
               <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
