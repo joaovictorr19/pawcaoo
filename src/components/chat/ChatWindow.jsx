@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import NotificationService from "../NotificationService"; // Added import
 
 export default function ChatWindow({ conversation, messages, currentUser, onMessagesUpdate }) {
   const [messageText, setMessageText] = useState("");
@@ -102,14 +104,11 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
       ) || [];
 
       for (const participant of otherParticipants) {
-        await base44.entities.Notification.create({
-          recipient_email: participant.email,
-          title: `Nova mensagem de ${currentUser?.full_name}`,
-          message: message.substring(0, 100),
-          type: "message",
-          related_id: conversation.id,
-          action_url: `/Messages?conversation_id=${conversation.id}`,
-          priority: "normal"
+        await NotificationService.newMessage({
+          conversation,
+          sender: currentUser,
+          message,
+          recipientEmail: participant.email
         });
       }
 

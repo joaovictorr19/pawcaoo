@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import NotificationService from "../components/NotificationService";
 
 export default function MyBookings() {
   const [activeTab, setActiveTab] = useState("all");
@@ -116,11 +117,31 @@ export default function MyBookings() {
         if (loyaltyRecords.length > 0) {
           const loyaltyPoints = loyaltyRecords[0];
           currentPointsBalance = loyaltyPoints.points_balance + totalPoints;
+          
+          // Check for tier upgrade
+          const oldTier = loyaltyPoints.tier;
+          let newTier = oldTier;
+          
+          if (currentPointsBalance >= 10000) newTier = 'platinum';
+          else if (currentPointsBalance >= 5000) newTier = 'gold';
+          else if (currentPointsBalance >= 2000) newTier = 'silver';
+          else newTier = 'bronze';
+          
           await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
             points_balance: currentPointsBalance,
             total_earned: loyaltyPoints.total_earned + totalPoints,
-            lifetime_bookings: (loyaltyPoints.lifetime_bookings || 0) + 1
+            lifetime_bookings: (loyaltyPoints.lifetime_bookings || 0) + 1,
+            tier: newTier
           });
+          
+          // Notify tier upgrade
+          if (newTier !== oldTier) {
+            await NotificationService.tierUpgraded({
+              userEmail: user?.email,
+              newTier,
+              oldTier
+            });
+          }
         } else {
           currentPointsBalance = totalPoints;
           await base44.entities.LoyaltyPoints.create({
@@ -141,16 +162,22 @@ export default function MyBookings() {
           description: `Earned ${totalPoints} points from booking with ${booking.walker_name || booking.trainer_name}${pointsMultiplier > 1 ? ` (${pointsMultiplier}x multiplier)` : ''}`,
           balance_after: currentPointsBalance
         });
+
+        // Notify about points earned
+        if (totalPoints > 0) {
+          await NotificationService.loyaltyPointsEarned({
+            userEmail: user?.email,
+            points: totalPoints,
+            source: `do agendamento com ${booking.walker_name || booking.trainer_name}`
+          });
+        }
       }
 
-      // Notify walker/trainer
-      await base44.entities.Notification.create({
-        recipient_email: booking.walker_email || booking.trainer_email,
-        title: `${isTraining ? 'Session' : 'Walk'} Completed & Payment Released`,
-        message: `Payment for ${booking.dog_name}'s ${isTraining ? 'session' : 'walk'} has been released!`,
-        type: "payment",
-        related_id: booking.id,
-        priority: "normal"
+      // Use NotificationService for completion
+      await NotificationService.bookingCompleted({
+        booking,
+        isTraining,
+        pointsEarned: totalPoints
       });
 
       return totalPoints; // Return points for toast message

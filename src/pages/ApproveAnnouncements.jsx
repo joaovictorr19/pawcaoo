@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import NotificationService from "../components/NotificationService";
 
 export default function ApproveAnnouncements() {
   const queryClient = useQueryClient();
@@ -34,76 +36,91 @@ export default function ApproveAnnouncements() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: pendingAnnouncements } = useQuery({
+  const { data: pendingAnnouncements = [] } = useQuery({
     queryKey: ['pendingAnnouncements'],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
-      moderation_status: 'pending' 
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({
+      moderation_status: 'pending'
     }, '-created_date'),
     enabled: user?.role === 'admin',
-    initialData: [],
   });
 
-  const { data: approvedAnnouncements } = useQuery({
+  const { data: approvedAnnouncements = [] } = useQuery({
     queryKey: ['approvedAnnouncements'],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
-      moderation_status: 'approved' 
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({
+      moderation_status: 'approved'
     }, '-created_date'),
     enabled: user?.role === 'admin',
-    initialData: [],
   });
 
-  const { data: rejectedAnnouncements } = useQuery({
+  const { data: rejectedAnnouncements = [] } = useQuery({
     queryKey: ['rejectedAnnouncements'],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
-      moderation_status: 'rejected' 
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({
+      moderation_status: 'rejected'
     }, '-created_date'),
     enabled: user?.role === 'admin',
-    initialData: [],
   });
+
+  // Combine all announcements for easy lookup within the mutation
+  const allAnnouncements = [...pendingAnnouncements, ...approvedAnnouncements, ...rejectedAnnouncements];
 
   const moderateAnnouncementMutation = useMutation({
-    mutationFn: async ({ announcementId, status, notes, rejectionReason }) => {
-      const announcement = [...pendingAnnouncements, ...approvedAnnouncements].find(a => a.id === announcementId);
-      
+    // Renamed parameters for better clarity between internal notes and public rejection reason
+    mutationFn: async ({ announcementId, status, internalModerationNotes, publicRejectionReason }) => {
+      const currentUser = await base44.auth.me(); // Fetch currentUser inside mutation for up-to-date info
+      const announcement = allAnnouncements.find(a => a.id === announcementId);
+
+      if (!announcement) {
+        throw new Error("Announcement not found.");
+      }
+
       const updateData = {
         moderation_status: status,
-        moderated_by: user.email,
-        moderation_notes: notes,
+        moderated_by: currentUser.email,
+        moderation_notes: internalModerationNotes, // Store internal admin notes
         moderated_date: new Date().toISOString()
       };
 
       if (status === 'rejected') {
-        updateData.rejection_reason = rejectionReason;
+        updateData.rejection_reason = publicRejectionReason; // Store public rejection reason
         updateData.is_active = false;
       }
 
       if (status === 'approved') {
         updateData.is_active = true;
+        // Optionally clear rejection_reason if an announcement is moved from rejected to approved
+        // For now, only updating explicitly stated fields.
       }
 
       await base44.entities.CompanyAnnouncement.update(announcementId, updateData);
 
-      // Send notification to company
-      await base44.entities.Notification.create({
-        recipient_email: announcement.company_email,
-        title: status === 'approved' ? "✅ Anúncio Aprovado!" : "❌ Anúncio Rejeitado",
-        message: status === 'approved' 
-          ? `Seu anúncio "${announcement.title}" foi aprovado e está ativo na loja PawCão!`
-          : `Seu anúncio "${announcement.title}" foi rejeitado. Motivo: ${rejectionReason}`,
-        type: "system",
-        priority: "high"
-      });
+      // Use NotificationService for sending notifications
+      if (status === 'approved') {
+        await NotificationService.announcementApproved({
+          announcement,
+          companyEmail: announcement.company_email || announcement.created_by
+        });
+      } else if (status === 'rejected') {
+        await NotificationService.announcementRejected({
+          announcement,
+          companyEmail: announcement.company_email || announcement.created_by,
+          reason: publicRejectionReason // Use the public rejection reason for the notification
+        });
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['pendingAnnouncements']);
-      queryClient.invalidateQueries(['approvedAnnouncements']);
-      queryClient.invalidateQueries(['rejectedAnnouncements']);
+      // Invalidate specific queries to refetch the latest data for all tabs
+      queryClient.invalidateQueries({ queryKey: ['pendingAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['approvedAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['rejectedAnnouncements'] });
       setShowDialog(false);
       setSelectedAnnouncement(null);
       setModerationNotes("");
       setRejectionReason("");
       toast.success("Anúncio moderado!");
     },
+    onError: (error) => {
+      toast.error(`Erro ao moderar anúncio: ${error.message}`);
+    }
   });
 
   if (user?.role !== 'admin') {
@@ -280,7 +297,8 @@ export default function ApproveAnnouncements() {
                           onClick={() => moderateAnnouncementMutation.mutate({
                             announcementId: announcement.id,
                             status: 'approved',
-                            notes: 'Aprovado por admin'
+                            internalModerationNotes: 'Aprovado por admin', // Internal notes
+                            publicRejectionReason: null // No public rejection reason for approval
                           })}
                           className="flex-1 bg-green-600 hover:bg-green-700"
                         >
@@ -337,7 +355,7 @@ export default function ApproveAnnouncements() {
                       </h3>
                       <p className="text-sm text-gray-600 mb-2">{announcement.company_name}</p>
                       <p className="text-gray-700">{announcement.message}</p>
-                      
+
                       <div className="grid grid-cols-3 gap-4 mt-4 p-3 bg-white rounded-lg">
                         <div>
                           <p className="text-xs text-gray-500">Visualizações</p>
@@ -353,13 +371,13 @@ export default function ApproveAnnouncements() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <Button
                       onClick={() => moderateAnnouncementMutation.mutate({
                         announcementId: announcement.id,
                         status: 'rejected',
-                        notes: 'Removido pelo admin',
-                        rejectionReason: 'Conteúdo inadequado'
+                        internalModerationNotes: 'Desativado pelo admin', // Internal note
+                        publicRejectionReason: 'Desativado por ação administrativa.' // Public reason for deactivation
                       })}
                       variant="outline"
                       className="text-red-600 border-red-300"
@@ -381,7 +399,7 @@ export default function ApproveAnnouncements() {
                   <h3 className="font-bold text-lg text-gray-900 mb-1">{announcement.title}</h3>
                   <p className="text-sm text-gray-600 mb-2">{announcement.company_name}</p>
                   <p className="text-gray-700 mb-3">{announcement.message}</p>
-                  
+
                   <div className="bg-white rounded-lg p-3">
                     <p className="text-sm font-semibold text-red-900 mb-1">Motivo da Rejeição:</p>
                     <p className="text-sm text-gray-700">{announcement.rejection_reason || 'N/A'}</p>
@@ -456,8 +474,8 @@ export default function ApproveAnnouncements() {
                 onClick={() => moderateAnnouncementMutation.mutate({
                   announcementId: selectedAnnouncement?.id,
                   status: 'rejected',
-                  notes: moderationNotes,
-                  rejectionReason: rejectionReason
+                  internalModerationNotes: moderationNotes, // Internal notes from state
+                  publicRejectionReason: rejectionReason // Public reason from state
                 })}
                 disabled={!rejectionReason}
               >

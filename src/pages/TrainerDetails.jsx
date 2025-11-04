@@ -5,13 +5,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck, MessageCircle, Target } from "lucide-react"; // Added Target icon
+import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck, MessageCircle, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import BookingForm from "../components/booking/BookingForm"; // Assuming BookingForm is located here
-import { format } from 'date-fns'; // Import format for date formatting
+import BookingForm from "../components/booking/BookingForm";
+import { format } from 'date-fns';
+import NotificationService from "../components/NotificationService"; // Added import
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
@@ -46,14 +47,14 @@ export default function TrainerDetails() {
     queryFn: () => base44.entities.CalendarAvailability.filter({
       professional_email: trainer?.created_by
     }),
-    enabled: !!trainer, // Only fetch if trainer data is available
+    enabled: !!trainer,
     initialData: [],
   });
 
   const { data: trainerBookings } = useQuery({
     queryKey: ['trainerBookings', trainerId],
     queryFn: () => base44.entities.TrainingBooking.filter({ trainer_id: trainerId }),
-    enabled: !!trainerId, // Only fetch if trainer ID is available
+    enabled: !!trainerId,
     initialData: [],
   });
 
@@ -68,6 +69,7 @@ export default function TrainerDetails() {
         ...bookingData,
         trainer_id: trainer.id,
         trainer_name: trainer.trainer_name,
+        trainer_email: trainer.created_by, // Added trainer_email
         owner_email: user?.email, // Use current user's email for the owner
         payment_status: "held", // Payment is held until confirmed by trainer
         completion_code: Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -89,25 +91,24 @@ export default function TrainerDetails() {
         held_date: new Date().toISOString()
       });
 
-      // Send confirmation notifications
-      await base44.entities.Notification.create({
-        recipient_email: user?.email,
-        title: "Training Session Confirmed!",
-        message: `Your training session with ${trainer.trainer_name} is confirmed for ${bookingData.session_date} at ${bookingData.session_time}.`,
-        type: "booking",
-        related_id: booking.id,
-        action_url: "/MyBookings",
-        priority: "high"
-      });
-
-      await base44.entities.Notification.create({
-        recipient_email: trainer.created_by,
-        title: "New Training Booking",
-        message: `${bookingData.owner_name} has booked a session for ${bookingData.dog_name} on ${bookingData.session_date} at ${bookingData.session_time}.`,
-        type: "booking",
-        related_id: booking.id,
-        action_url: "/MyBookings",
-        priority: "high"
+      // Use NotificationService
+      await NotificationService.bookingCreated({
+        booking: {
+          ...booking,
+          session_date: bookingData.session_date,
+          session_time: bookingData.session_time,
+          dog_name: bookingData.dog_name,
+          total_amount: bookingData.total_amount
+        },
+        walker: {
+          ...trainer,
+          walker_name: trainer.trainer_name // Map trainer_name to walker_name for consistency
+        },
+        owner: {
+          email: user?.email,
+          owner_name: bookingData.owner_name
+        },
+        isTraining: true
       });
 
       return booking;

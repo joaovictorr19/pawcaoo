@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { Zap, Upload, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
+import NotificationService from "../components/NotificationService";
 
 export default function PostEmergency() {
   const navigate = useNavigate();
@@ -33,12 +35,27 @@ export default function PostEmergency() {
   });
 
   const createEmergencyWalkMutation = useMutation({
-    mutationFn: (data) => base44.entities.EmergencyWalk.create(data),
+    mutationFn: async (walkData) => {
+      const walk = await base44.entities.EmergencyWalk.create({
+        ...walkData,
+        status: 'available',
+        payment_status: 'pending'
+      });
+
+      // Notify all active walkers about emergency
+      await NotificationService.emergencyWalkPosted({ walk });
+
+      return walk;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
-      toast.success("Emergency walk posted! Walkers will see it immediately.");
-      navigate(createPageUrl('Home'));
+      toast.success("Emergency walk posted! Nearby walkers are being notified.");
+      navigate(createPageUrl('MyBookings'));
     },
+    onError: (error) => {
+      console.error("Error posting emergency walk:", error);
+      toast.error("Failed to post emergency walk");
+    }
   });
 
   const handleFileUpload = async (e) => {

@@ -13,6 +13,7 @@ import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
+import NotificationService from "../components/NotificationService";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -69,6 +70,8 @@ export default function WalkerDetails() {
         ...bookingData,
         walker_id: walker.id,
         walker_name: walker.walker_name,
+        walker_email: walker.created_by,
+        owner_email: user?.email,
         payment_status: "held",
         completion_code: Math.random().toString(36).substring(2, 8).toUpperCase()
       });
@@ -89,26 +92,21 @@ export default function WalkerDetails() {
         held_date: new Date().toISOString()
       });
 
-      // Send confirmation notification to owner
-      await base44.entities.Notification.create({
-        recipient_email: user?.email,
-        title: "Booking Confirmed!",
-        message: `Your walk with ${walker.walker_name} is confirmed for ${bookingData.walk_date} at ${bookingData.walk_time}`,
-        type: "booking",
-        related_id: booking.id,
-        action_url: "/MyBookings",
-        priority: "high"
-      });
-
-      // Send notification to walker
-      await base44.entities.Notification.create({
-        recipient_email: walker.created_by,
-        title: "New Booking Request",
-        message: `${bookingData.owner_name} has booked a walk for ${bookingData.dog_name} on ${bookingData.walk_date} at ${bookingData.walk_time}`,
-        type: "booking",
-        related_id: booking.id,
-        action_url: "/MyBookings",
-        priority: "high"
+      // Use NotificationService for consistent notifications
+      await NotificationService.bookingCreated({
+        booking: {
+          ...booking,
+          walk_date: bookingData.walk_date,
+          walk_time: bookingData.walk_time,
+          dog_name: bookingData.dog_name,
+          total_amount: bookingData.total_amount
+        },
+        walker,
+        owner: {
+          email: user?.email,
+          owner_name: bookingData.owner_name
+        },
+        isTraining: false
       });
 
       return booking;

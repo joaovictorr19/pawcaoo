@@ -57,6 +57,7 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import NotificationService from "../components/NotificationService";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -324,24 +325,19 @@ export default function AdminDashboard() {
     if (type === 'walker') {
       await updateWalkerMutation.mutateAsync({ id: application.id, data: updateData });
       
-      // Send notification
-      await base44.entities.Notification.create({
-        recipient_email: application.created_by,
-        title: "🎉 Application Approved!",
-        message: "Your walker application has been approved. You can now start accepting bookings!",
-        type: "verification",
-        priority: "high"
+      // Use NotificationService
+      await NotificationService.applicationApproved({
+        applicationType: 'walker',
+        professional: application,
+        email: application.created_by
       });
     } else {
       await updateTrainerMutation.mutateAsync({ id: application.id, data: updateData });
       
-      // Send notification
-      await base44.entities.Notification.create({
-        recipient_email: application.created_by,
-        title: "🎉 Application Approved!",
-        message: "Your trainer application has been approved. You can now start accepting bookings!",
-        type: "verification",
-        priority: "high"
+      await NotificationService.applicationApproved({
+        applicationType: 'trainer',
+        professional: application,
+        email: application.created_by
       });
     }
   };
@@ -357,24 +353,20 @@ export default function AdminDashboard() {
     if (type === 'walker') {
       await updateWalkerMutation.mutateAsync({ id: application.id, data: updateData });
       
-      // Send notification
-      await base44.entities.Notification.create({
-        recipient_email: application.created_by,
-        title: "Application Rejected",
-        message: `Your walker application has been rejected. Reason: ${verificationNotes || "Please contact support for more information."}`,
-        type: "verification",
-        priority: "high"
+      await NotificationService.applicationRejected({
+        applicationType: 'walker',
+        professional: application,
+        email: application.created_by,
+        reason: verificationNotes || "Please contact support for more information."
       });
     } else {
       await updateTrainerMutation.mutateAsync({ id: application.id, data: updateData });
       
-      // Send notification
-      await base44.entities.Notification.create({
-        recipient_email: application.created_by,
-        title: "Application Rejected",
-        message: `Your trainer application has been rejected. Reason: ${verificationNotes || "Please contact support for more information."}`,
-        type: "verification",
-        priority: "high"
+      await NotificationService.applicationRejected({
+        applicationType: 'trainer',
+        professional: application,
+        email: application.created_by,
+        reason: verificationNotes || "Please contact support for more information."
       });
     }
   };
@@ -1204,12 +1196,9 @@ export default function AdminDashboard() {
                                         is_active: true
                                       });
                                       
-                                      await base44.entities.Notification.create({
-                                        recipient_email: service.created_by,
-                                        title: "✅ Serviço Aprovado!",
-                                        message: `Seu serviço "${service.service_name}" foi aprovado e está visível na plataforma!`,
-                                        type: "system",
-                                        priority: "normal"
+                                      await NotificationService.serviceApproved({
+                                        service,
+                                        partnerEmail: service.created_by
                                       });
                                       
                                       queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
@@ -1239,12 +1228,10 @@ export default function AdminDashboard() {
                                         rejection_reason: reason
                                       });
                                       
-                                      await base44.entities.Notification.create({
-                                        recipient_email: service.created_by,
-                                        title: "❌ Serviço Rejeitado",
-                                        message: `Seu serviço "${service.service_name}" foi rejeitado. Motivo: ${reason}`,
-                                        type: "system",
-                                        priority: "high"
+                                      await NotificationService.serviceRejected({
+                                        service,
+                                        partnerEmail: service.created_by,
+                                        reason
                                       });
                                       
                                       queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
@@ -2318,3 +2305,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import NotificationService from "../components/NotificationService";
 
 export default function EmergencyWalkDetails() {
   const navigate = useNavigate();
@@ -32,7 +34,15 @@ export default function EmergencyWalkDetails() {
   const walk = walks.find(w => w.id === walkId);
 
   const acceptWalkMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.EmergencyWalk.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      await base44.entities.EmergencyWalk.update(id, data);
+      
+      // Notify owner using NotificationService
+      await NotificationService.emergencyWalkAccepted({
+        walk,
+        walkerName: user?.full_name || user?.email
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
       toast.success("Walk accepted! The owner will contact you shortly.");
