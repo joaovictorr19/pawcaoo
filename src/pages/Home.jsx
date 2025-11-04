@@ -121,6 +121,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      {/* Floating Animated Logo - Top Right Corner */}
+      <motion.div
+        className="fixed top-20 right-4 z-50 hidden md:block"
+        animate={{
+          y: [0, -20, 0],
+          rotate: [0, 10, -10, 0],
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
+        <motion.div
+          whileHover={{ scale: 1.2, rotate: 360 }}
+          transition={{ duration: 0.6 }}
+        >
+          <PawCaoLogo size="default" animated={true} />
+        </motion.div>
+      </motion.div>
+
       {/* Hero Section - Enhanced with Logo */}
       <div className="relative overflow-hidden">
         {/* Animated Background Blobs */}
@@ -188,7 +209,23 @@ export default function Home() {
                 }}
                 className="flex justify-center mb-6"
               >
-                <PawCaoLogo size="large" animated={true} />
+                <motion.div
+                  animate={{
+                    scale: [1, 1.05, 1],
+                    filter: [
+                      "drop-shadow(0 0 0px rgba(34, 197, 94, 0))",
+                      "drop-shadow(0 0 20px rgba(34, 197, 94, 0.8))",
+                      "drop-shadow(0 0 0px rgba(34, 197, 94, 0))"
+                    ]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <PawCaoLogo size="large" animated={true} />
+                </motion.div>
               </motion.div>
 
               <motion.div
@@ -351,6 +388,29 @@ export default function Home() {
 
       {/* Results Section */}
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
+        {/* Decorative Animated Logo - Middle Section */}
+        <motion.div
+          initial={{ opacity: 0, x: -100 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          className="flex justify-center mb-8"
+        >
+          <motion.div
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="opacity-20"
+          >
+            <PawCaoLogo size="xlarge" showText={false} />
+          </motion.div>
+        </motion.div>
+
         <Tabs defaultValue="walkers" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
             <TabsTrigger 
@@ -522,6 +582,34 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Bottom Floating Logo */}
+      <motion.div
+        className="fixed bottom-8 left-4 z-50 hidden lg:block"
+        animate={{
+          y: [0, 15, 0],
+          x: [0, 10, 0],
+          rotate: [0, -5, 5, 0]
+        }}
+        transition={{
+          duration: 5,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1
+        }}
+      >
+        <motion.div
+          whileHover={{ 
+            scale: 1.3,
+            rotate: 180,
+            transition: { duration: 0.4 }
+          }}
+          whileTap={{ scale: 0.9 }}
+          className="cursor-pointer"
+        >
+          <PawCaoLogo size="default" animated={true} />
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
