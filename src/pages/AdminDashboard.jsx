@@ -57,13 +57,14 @@ import {
   Store, // Added Store icon
   Plus, // Added Plus icon
   Star, // Added Star icon for reviews
-  CheckCircle, // Added CheckCircle icon for reviews (different from CheckCircle2)
+  CheckCircle, // Added CheckCircle icon for reviews
+  X, // Added X icon for reviews
+  Flag, // Added Flag icon for reviews
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch"; // Added Switch import
-import PartnerReviewCard from "../components/partners/PartnerReviewCard";
 
 // Placeholder for createPageUrl function (if not already defined globally or in another utility)
 // In a real application, this would typically be a routing function or use Next.js/React Router hooks.
@@ -143,17 +144,10 @@ export default function AdminDashboard() {
   });
 
   const { data: pendingReviews = [] } = useQuery({
-    queryKey: ['pendingReviews'],
+    queryKey: ['pendingPartnerReviews'],
     queryFn: () => base44.entities.PartnerReview.filter({ status: 'pending' }, '-created_date'),
-    initialData: [],
     enabled: user?.role === 'admin',
-  });
-
-  const { data: flaggedReviews = [] } = useQuery({
-    queryKey: ['flaggedReviews'],
-    queryFn: () => base44.entities.PartnerReview.filter({ status: 'flagged' }, '-created_date'),
     initialData: [],
-    enabled: user?.role === 'admin',
   });
 
   // Update Walker Application
@@ -241,38 +235,24 @@ export default function AdminDashboard() {
     }
   });
 
-  const approveReviewMutation = useMutation({
-    mutationFn: (reviewId) => base44.entities.PartnerReview.update(reviewId, {
-      status: 'approved',
-      moderated_by: user.email,
-      moderated_date: new Date().toISOString()
-    }),
+  const moderateReviewMutation = useMutation({
+    mutationFn: async ({ reviewId, status, notes }) => {
+      const currentUser = await base44.auth.me(); // Fetch current user for moderator info
+      return base44.entities.PartnerReview.update(reviewId, {
+        status,
+        moderation_notes: notes,
+        moderated_by: currentUser.email,
+        moderated_date: new Date().toISOString()
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pendingReviews'] });
-      queryClient.invalidateQueries({ queryKey: ['flaggedReviews'] });
-      toast.success("Review aprovada!");
+      queryClient.invalidateQueries({ queryKey: ['pendingPartnerReviews'] });
+      queryClient.invalidateQueries({ queryKey: ['partnerReviews'] }); // Invalidate general partner reviews as well
+      toast.success("Avaliação moderada com sucesso");
     },
     onError: (error) => {
-      toast.error("Erro ao aprovar review");
-      console.error("Error approving review:", error);
-    }
-  });
-
-  const rejectReviewMutation = useMutation({
-    mutationFn: ({ reviewId, notes }) => base44.entities.PartnerReview.update(reviewId, {
-      status: 'rejected',
-      moderated_by: user.email,
-      moderated_date: new Date().toISOString(),
-      moderation_notes: notes
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pendingReviews'] });
-      queryClient.invalidateQueries({ queryKey: ['flaggedReviews'] });
-      toast.success("Review rejeitada!");
-    },
-    onError: (error) => {
-      toast.error("Erro ao rejeitar review");
-      console.error("Error rejecting review:", error);
+      toast.error("Erro ao moderar avaliação");
+      console.error("Error moderating review:", error);
     }
   });
 
@@ -425,8 +405,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 transition-colors">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -440,8 +420,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 mb-8 bg-white/80 backdrop-blur-lg dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-8 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
               <BarChart3 className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Overview</span>
@@ -466,12 +446,16 @@ export default function AdminDashboard() {
               <DollarSign className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Payments</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-red-700">
-              <Shield className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Moderação Reviews</span>
-              {(pendingReviews.length + flaggedReviews.length) > 0 && (
-                <Badge className="ml-2 bg-red-500 text-white">
-                  {pendingReviews.length + flaggedReviews.length}
+            <TabsTrigger value="support" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-red-700">
+              <AlertCircle className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Support</span>
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="relative data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-yellow-700">
+              <Star className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Avaliações</span>
+              {pendingReviews.length > 0 && (
+                <Badge className="ml-2 bg-red-500 dark:bg-red-700 dark:text-white absolute -top-1 -right-1 text-xs">
+                  {pendingReviews.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -880,8 +864,6 @@ export default function AdminDashboard() {
                             className="flex-1" 
                             variant="outline"
                             onClick={() => window.open(createPageUrl('PartnerDashboard'), '_blank')} // Use window.open for external link
-                            // Add dark mode classes for this button
-                            // Example: dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300
                             className="flex-1 dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300"
                           >
                             <Eye className="w-4 h-4 mr-2" />
@@ -1528,107 +1510,115 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* Reviews Moderation Tab */}
-          <TabsContent value="reviews">
-            <div className="space-y-6">
-              {/* Pending Reviews */}
-              <Card className="border-0 shadow-xl bg-white dark:bg-gray-800 dark:border-gray-700">
-                <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white dark:from-orange-700 dark:to-red-700">
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Star className="w-6 h-6" />
-                    Reviews Pendentes ({pendingReviews.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {pendingReviews.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Todas as reviews foram moderadas!</h3>
-                      <p className="text-gray-600 dark:text-gray-400">Não há reviews pendentes de aprovação</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {pendingReviews.map(review => (
-                        <div key={review.id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
-                          <PartnerReviewCard review={review} />
-                          <div className="flex gap-3 mt-4">
+          {/* REVIEWS TAB */}
+          <TabsContent value="reviews" className="space-y-6">
+            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-2xl dark:text-gray-100">Moderar Avaliações de Parceiros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pendingReviews.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">Nenhuma avaliação pendente</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingReviews.map(review => (
+                      <Card key={review.id} className="border-2 border-orange-200 dark:border-orange-700 dark:bg-gray-900/10">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-5 h-5 ${
+                                        star <= review.rating
+                                          ? "fill-yellow-400 text-yellow-400"
+                                          : "text-gray-300 dark:text-gray-600"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="font-bold dark:text-gray-100">{review.rating.toFixed(1)}</span>
+                              </div>
+                              <h4 className="font-semibold text-lg mb-1 dark:text-gray-100">{review.title}</h4>
+                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                <span>{review.reviewer_name}</span>
+                                <span>•</span>
+                                <span>{review.partner_name}</span>
+                                {review.product_name && (
+                                  <>
+                                    <span>•</span>
+                                    <span>Produto: {review.product_name}</span>
+                                  </>
+                                )}
+                              </div>
+                              <p className="text-gray-700 dark:text-gray-300 mb-4">{review.comment}</p>
+                              
+                              {review.photos && review.photos.length > 0 && (
+                                <div className="flex gap-2 mb-4">
+                                  {review.photos.map((photo, idx) => (
+                                    <img
+                                      key={idx}
+                                      src={photo}
+                                      alt={`Review ${idx + 1}`}
+                                      className="w-20 h-20 object-cover rounded-lg border dark:border-gray-700"
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3">
                             <Button
-                              onClick={() => approveReviewMutation.mutate(review.id)}
-                              disabled={approveReviewMutation.isPending}
-                              className="bg-green-500 hover:bg-green-600"
+                              onClick={() => moderateReviewMutation.mutate({
+                                reviewId: review.id,
+                                status: 'approved',
+                                notes: 'Approved by admin'
+                              })}
+                              className="bg-green-600 hover:bg-green-700"
+                              disabled={moderateReviewMutation.isPending}
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Aprovar
                             </Button>
                             <Button
-                              onClick={() => {
-                                const notes = prompt("Motivo da rejeição (opcional):");
-                                rejectReviewMutation.mutate({ reviewId: review.id, notes: notes || "" });
-                              }}
-                              disabled={rejectReviewMutation.isPending}
+                              onClick={() => moderateReviewMutation.mutate({
+                                reviewId: review.id,
+                                status: 'rejected',
+                                notes: 'Rejected by admin'
+                              })}
                               variant="destructive"
+                              disabled={moderateReviewMutation.isPending}
                             >
-                              <XCircle className="w-4 h-4 mr-2" />
+                              <X className="w-4 h-4 mr-2" />
                               Rejeitar
                             </Button>
                             <Button
-                              onClick={() => base44.entities.PartnerReview.update(review.id, { status: 'flagged' })}
+                              onClick={() => moderateReviewMutation.mutate({
+                                reviewId: review.id,
+                                status: 'flagged',
+                                notes: 'Flagged by admin for further review'
+                              })}
                               variant="outline"
                               className="dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                              disabled={moderateReviewMutation.isPending}
                             >
-                              <AlertCircle className="w-4 h-4 mr-2" />
+                              <Flag className="w-4 h-4 mr-2" />
                               Sinalizar
                             </Button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Flagged Reviews */}
-              {flaggedReviews.length > 0 && (
-                <Card className="border-0 shadow-xl bg-white dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white dark:from-yellow-700 dark:to-orange-700">
-                    <CardTitle className="flex items-center gap-2 text-white">
-                      <AlertCircle className="w-6 h-6" />
-                      Reviews Sinalizadas ({flaggedReviews.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      {flaggedReviews.map(review => (
-                        <div key={review.id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
-                          <PartnerReviewCard review={review} />
-                          <div className="flex gap-3 mt-4">
-                            <Button
-                              onClick={() => approveReviewMutation.mutate(review.id)}
-                              disabled={approveReviewMutation.isPending}
-                              className="bg-green-500 hover:bg-green-600"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Aprovar
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                const notes = prompt("Motivo da rejeição (opcional):");
-                                rejectReviewMutation.mutate({ reviewId: review.id, notes: notes || "" });
-                              }}
-                              disabled={rejectReviewMutation.isPending}
-                              variant="destructive"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Rejeitar
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

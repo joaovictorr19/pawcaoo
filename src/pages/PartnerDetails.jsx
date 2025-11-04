@@ -2,21 +2,22 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, MapPin, Phone, Globe, ShoppingBag, Star, Tag, 
-  ShoppingCart, Search, Filter, Grid, List, Plus, Minus, X
+  ShoppingCart, Search, Filter, Grid, List, Plus, Minus, X, Info // Added Info
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import PartnerReviewCard from "../components/partners/PartnerReviewCard";
-import PartnerReviewForm from "../components/partners/PartnerReviewForm";
+import PartnerReviewForm from "../components/reviews/PartnerReviewForm";
+import PartnerReviewCard from "../components/reviews/PartnerReviewCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PartnerDetails() {
   const navigate = useNavigate();
@@ -31,8 +32,6 @@ export default function PartnerDetails() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState("grid");
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -69,27 +68,17 @@ export default function PartnerDetails() {
   });
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
-    queryKey: ['partnerReviews', partner?.id],
-    queryFn: async () => {
-      const allReviews = await base44.entities.PartnerReview.filter({
-        partner_id: partner.id,
-        status: 'approved'
-      }, '-created_date');
-      return allReviews;
-    },
-    enabled: !!partner?.id,
+    queryKey: ['partnerReviews', partnerId],
+    queryFn: () => base44.entities.PartnerReview.filter({ 
+      partner_id: partnerId,
+      status: 'approved'
+    }, '-created_date'),
     initialData: [],
+    enabled: !!partnerId,
   });
 
-  const averageRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-    : 0;
-
-  const ratingDistribution = [5, 4, 3, 2, 1].map(stars => ({
-    stars,
-    count: reviews.filter(r => r.rating === stars).length,
-    percentage: reviews.length > 0 ? (reviews.filter(r => r.rating === stars).length / reviews.length) * 100 : 0
-  }));
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState('all');
 
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id);
@@ -144,6 +133,22 @@ export default function PartnerDetails() {
     );
   }
 
+  const filteredReviews = reviews.filter(review => {
+    if (reviewFilter === 'all') return true;
+    if (reviewFilter === 'with_photos') return review.photos && review.photos.length > 0;
+    if (reviewFilter === 'verified') return review.verified_purchase;
+    return true;
+  });
+
+  const averageRating = partner?.average_rating || 0;
+  const totalReviews = partner?.total_reviews || 0;
+
+  const ratingDistribution = [5, 4, 3, 2, 1].map(stars => ({
+    stars,
+    count: reviews.filter(r => Math.round(r.rating) === stars).length,
+    percentage: totalReviews > 0 ? (reviews.filter(r => Math.round(r.rating) === stars).length / totalReviews) * 100 : 0
+  }));
+
   if (loadingPartner) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
@@ -168,7 +173,7 @@ export default function PartnerDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 pb-12">
       {/* Fixed Header */}
       <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b dark:border-gray-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
@@ -176,7 +181,7 @@ export default function PartnerDetails() {
             <Button
               variant="outline"
               onClick={() => navigate(createPageUrl('Partners'))}
-              className="hover:bg-green-50 dark:hover:bg-gray-800"
+              className="hover:bg-green-50 dark:hover:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar
@@ -269,279 +274,380 @@ export default function PartnerDetails() {
             </CardContent>
           </Card>
         </motion.div>
-
-        {/* Products Section */}
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Produtos Disponíveis</h2>
-          <p className="text-gray-600 dark:text-gray-400">Resgate com PawPoints ou compre com desconto</p>
-        </div>
-
-        {/* Filters & Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              placeholder="Pesquisar produtos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 dark:bg-gray-800"
-            />
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {categories.map((cat) => (
-              <Button
-                key={cat}
-                variant={categoryFilter === cat ? "default" : "outline"}
-                onClick={() => setCategoryFilter(cat)}
-                className="capitalize"
-                size="sm"
-              >
-                {cat === "all" ? "Todos" : cat}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm"
-            >
-              <option value="featured">Destaque</option>
-              <option value="name">Nome A-Z</option>
-              <option value="price_asc">Preço: Baixo-Alto</option>
-              <option value="price_desc">Preço: Alto-Baixo</option>
-            </select>
-
-            <div className="flex border dark:border-gray-700 rounded-lg overflow-hidden">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="icon"
-                onClick={() => setViewMode("grid")}
-                className="rounded-none"
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="icon"
-                onClick={() => setViewMode("list")}
-                className="rounded-none"
-              >
-                <List className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Products Grid */}
-        {loadingProducts ? (
-          <div className={`grid ${viewMode === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"} gap-6`}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <Skeleton key={i} className="h-96 rounded-xl dark:bg-gray-800" />
-            ))}
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <Card className="border-0 shadow-xl dark:bg-gray-800">
-            <CardContent className="p-16 text-center">
-              <ShoppingBag className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum produto encontrado</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Tente ajustar os filtros</p>
-              <Button onClick={() => { setSearchQuery(""); setCategoryFilter("all"); }}>
-                Limpar Filtros
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className={`grid ${viewMode === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"} gap-6`}>
-            {filteredProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-              >
-                <Card className="border-0 shadow-lg hover:shadow-2xl transition-all overflow-hidden h-full dark:bg-gray-800">
-                  {/* Product Image */}
-                  <div className="relative h-56 bg-gray-100 dark:bg-gray-700">
-                    {product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.product_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="w-16 h-16 text-gray-400" />
-                      </div>
-                    )}
-                    {product.discount_percentage > 0 && (
-                      <Badge className="absolute top-3 right-3 bg-red-500 text-white font-bold shadow-lg">
-                        -{product.discount_percentage}%
-                      </Badge>
-                    )}
-                    {product.stock_quantity === 0 && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">Esgotado</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="p-4">
-                    <Badge variant="outline" className="mb-2 capitalize">
-                      {product.category}
-                    </Badge>
-                    <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-3 line-clamp-2">
-                      {product.product_name}
-                    </h3>
-
-                    {/* Price Display */}
-                    <div className="mb-4">
-                      {product.price_euro > 0 && (
-                        <div className="text-2xl font-bold text-green-600">
-                          €{product.price_euro.toFixed(2)}
-                        </div>
-                      )}
-                      {product.is_redeemable_with_points && product.points_cost > 0 && (
-                        <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-                          <Star className="w-5 h-5 fill-purple-500" />
-                          <span className="font-bold text-lg">{product.points_cost}</span>
-                          <span className="text-sm">pts</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {product.stock_quantity !== undefined && product.stock_quantity > 0 && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        {product.stock_quantity} em stock
-                      </p>
-                    )}
-
-                    <Button
-                      className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
-                      onClick={() => addToCart(product)}
-                      disabled={product.stock_quantity === 0}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Reviews Section */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-12">
-        <Card className="border-0 shadow-xl bg-white dark:bg-gray-800">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Avaliações de Clientes
-                </CardTitle>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
-                    <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">{averageRating}</span>
-                    <span className="text-gray-600 dark:text-gray-400">({reviews.length} {reviews.length === 1 ? 'avaliação' : 'avaliações'})</span>
-                  </div>
-                </div>
-              </div>
-              {user && (
-                <Button
-                  onClick={() => {
-                    setSelectedProduct(null);
-                    setShowReviewForm(!showReviewForm);
-                  }}
-                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg"
-                >
-                  <Star className="w-4 h-4 mr-2" />
-                  Escrever Review
-                </Button>
-              )}
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8 h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 dark:bg-gray-900/80 dark:border-gray-700">
+            <TabsTrigger value="products" className="text-sm font-semibold dark:text-gray-100 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
+              <ShoppingBag className="w-5 h-5 mr-2" />
+              Produtos
+            </TabsTrigger>
+            <TabsTrigger value="about" className="text-sm font-semibold dark:text-gray-100 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
+              <Info className="w-5 h-5 mr-2" />
+              Sobre
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="text-sm font-semibold dark:text-gray-100 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
+              <Star className="w-5 h-5 mr-2" />
+              Avaliações ({totalReviews})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products">
+            {/* Products Section */}
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Produtos Disponíveis</h2>
+              <p className="text-gray-600 dark:text-gray-400">Resgate com PawPoints ou compre com desconto</p>
             </div>
 
-            {/* Rating Distribution */}
-            {reviews.length > 0 && (
-              <div className="mt-6 space-y-2">
-                {ratingDistribution.map(({ stars, count, percentage }) => (
-                  <div key={stars} className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-12">{stars} {stars === 1 ? 'estrela' : 'estrelas'}</span>
-                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${percentage}%` }}
-                        transition={{ duration: 0.5 }}
-                        className="bg-yellow-400 h-full"
-                      />
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 w-16 text-right">{count} ({percentage.toFixed(0)}%)</span>
-                  </div>
+            {/* Filters & Search */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Pesquisar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                />
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                {categories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={categoryFilter === cat ? "default" : "outline"}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`capitalize ${categoryFilter === cat ? '' : 'dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700'}`}
+                    size="sm"
+                  >
+                    {cat === "all" ? "Todos" : cat}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm dark:text-gray-100"
+                >
+                  <option value="featured">Destaque</option>
+                  <option value="name">Nome A-Z</option>
+                  <option value="price_asc">Preço: Baixo-Alto</option>
+                  <option value="price_desc">Preço: Alto-Baixo</option>
+                </select>
+
+                <div className="flex border dark:border-gray-700 rounded-lg overflow-hidden">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                    className={`rounded-none ${viewMode === "grid" ? '' : 'dark:text-gray-100 dark:hover:bg-gray-700'}`}
+                  >
+                    <Grid className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                    className={`rounded-none ${viewMode === "list" ? '' : 'dark:text-gray-100 dark:hover:bg-gray-700'}`}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            {loadingProducts ? (
+              <div className={`grid ${viewMode === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"} gap-6`}>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                  <Skeleton key={i} className="h-96 rounded-xl dark:bg-gray-800" />
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <Card className="border-0 shadow-xl dark:bg-gray-800">
+                <CardContent className="p-16 text-center">
+                  <ShoppingBag className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum produto encontrado</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">Tente ajustar os filtros</p>
+                  <Button onClick={() => { setSearchQuery(""); setCategoryFilter("all"); }}
+                          className="dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
+                    Limpar Filtros
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className={`grid ${viewMode === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"} gap-6`}>
+                {filteredProducts.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                  >
+                    <Card className="border-0 shadow-lg hover:shadow-2xl transition-all overflow-hidden h-full dark:bg-gray-800">
+                      {/* Product Image */}
+                      <div className="relative h-56 bg-gray-100 dark:bg-gray-700">
+                        {product.image_url ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.product_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ShoppingBag className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+                          </div>
+                        )}
+                        {product.discount_percentage > 0 && (
+                          <Badge className="absolute top-3 right-3 bg-red-500 text-white font-bold shadow-lg">
+                            -{product.discount_percentage}%
+                          </Badge>
+                        )}
+                        {product.stock_quantity === 0 && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">Esgotado</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <CardContent className="p-4">
+                        <Badge variant="outline" className="mb-2 capitalize dark:border-gray-700 dark:text-gray-300">
+                          {product.category}
+                        </Badge>
+                        <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-3 line-clamp-2">
+                          {product.product_name}
+                        </h3>
+
+                        {/* Price Display */}
+                        <div className="mb-4">
+                          {product.price_euro > 0 && (
+                            <div className="text-2xl font-bold text-green-600">
+                              €{product.price_euro.toFixed(2)}
+                            </div>
+                          )}
+                          {product.is_redeemable_with_points && product.points_cost > 0 && (
+                            <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                              <Star className="w-5 h-5 fill-purple-500" />
+                              <span className="font-bold text-lg">{product.points_cost}</span>
+                              <span className="text-sm">pts</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {product.stock_quantity !== undefined && product.stock_quantity > 0 && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            {product.stock_quantity} em stock
+                          </p>
+                        )}
+
+                        <Button
+                          className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+                          onClick={() => addToCart(product)}
+                          disabled={product.stock_quantity === 0}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Adicionar
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </CardHeader>
+          </TabsContent>
 
-          <CardContent className="p-6">
+          <TabsContent value="about" className="space-y-4">
+            <Card className="border-0 shadow-xl dark:bg-gray-800">
+              <CardContent className="p-8">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Sobre {partner?.partner_name}</h3>
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  {partner?.description || "Nenhuma descrição disponível."}
+                </p>
+                <div className="grid md:grid-cols-2 gap-4 mt-6">
+                    {partner?.location && (
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                        <MapPin className="w-5 h-5 text-green-600" />
+                        <span>{partner.location}</span>
+                      </div>
+                    )}
+                    {partner?.phone && (
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                        <Phone className="w-5 h-5 text-green-600" />
+                        <span>{partner.phone}</span>
+                      </div>
+                    )}
+                    {partner?.website && (
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                        <Globe className="w-5 h-5 text-green-600" />
+                        <a href={partner.website} target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
+                          {partner.website}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-8">
+            {/* Reviews Summary */}
+            <Card className="border-0 shadow-xl dark:bg-gray-800">
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Overall Rating */}
+                  <div className="text-center">
+                    <div className="text-6xl font-black text-gray-900 dark:text-gray-100 mb-2">
+                      {averageRating.toFixed(1)}
+                    </div>
+                    <div className="flex justify-center mb-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-6 h-6 ${
+                            star <= Math.round(averageRating)
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300 dark:text-gray-600"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Baseado em {totalReviews} {totalReviews === 1 ? 'avaliação' : 'avaliações'}
+                    </p>
+                  </div>
+
+                  {/* Rating Distribution */}
+                  <div className="space-y-2">
+                    {ratingDistribution.map(({ stars, count, percentage }) => (
+                      <div key={stars} className="flex items-center gap-3">
+                        <span className="text-sm font-medium w-12 text-gray-900 dark:text-gray-100">{stars} ⭐</span>
+                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                          <div
+                            className="bg-yellow-400 h-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-right">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category Averages */}
+                {partner?.category_ratings && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t dark:border-gray-700">
+                    {[
+                      { key: "quality", label: "Qualidade" },
+                      { key: "value", label: "Custo-Benefício" },
+                      { key: "service", label: "Atendimento" },
+                      { key: "delivery", label: "Entrega" }
+                    ].map(({ key, label }) => (
+                      <div key={key} className="text-center">
+                        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+                          {partner.category_ratings[key]?.toFixed(1) || '0.0'}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Review Form */}
-            <AnimatePresence>
-              {showReviewForm && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-8 overflow-hidden" // Added overflow-hidden to help with animation
-                >
-                  <PartnerReviewForm
-                    partnerId={partner.id}
-                    partnerName={partner.partner_name}
-                    productId={selectedProduct?.id}
-                    productName={selectedProduct?.product_name}
-                    onSuccess={() => setShowReviewForm(false)}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {user && (
+              <div>
+                {!showReviewForm ? (
+                  <Button
+                    onClick={() => setShowReviewForm(true)}
+                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-14 text-base font-semibold"
+                  >
+                    <Star className="w-5 h-5 mr-2" />
+                    Escrever Avaliação
+                  </Button>
+                ) : (
+                  <div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowReviewForm(false)}
+                      className="mb-4 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Cancelar
+                    </Button>
+                    <PartnerReviewForm
+                      partnerId={partnerId}
+                      partnerName={partner?.partner_name}
+                      onSuccess={() => {
+                        setShowReviewForm(false);
+                        queryClient.invalidateQueries(['partnerReviews', partnerId]);
+                        queryClient.invalidateQueries(['partners']); // To update average_rating/total_reviews
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Review Filters */}
+            <div className="flex gap-3 flex-wrap">
+              <Button
+                variant={reviewFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setReviewFilter('all')}
+                size="sm"
+                className={reviewFilter === 'all' ? '' : 'dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700'}
+              >
+                Todas ({reviews.length})
+              </Button>
+              <Button
+                variant={reviewFilter === 'with_photos' ? 'default' : 'outline'}
+                onClick={() => setReviewFilter('with_photos')}
+                size="sm"
+                className={reviewFilter === 'with_photos' ? '' : 'dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700'}
+              >
+                Com Fotos ({reviews.filter(r => r.photos?.length > 0).length})
+              </Button>
+              <Button
+                variant={reviewFilter === 'verified' ? 'default' : 'outline'}
+                onClick={() => setReviewFilter('verified')}
+                size="sm"
+                className={reviewFilter === 'verified' ? '' : 'dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700'}
+              >
+                Compras Verificadas ({reviews.filter(r => r.verified_purchase).length})
+              </Button>
+            </div>
 
             {/* Reviews List */}
             {loadingReviews ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => (
-                  <Skeleton key={i} className="h-48 w-full rounded-xl dark:bg-gray-700" />
+                  <Skeleton key={i} className="h-64 rounded-2xl dark:bg-gray-800" />
                 ))}
               </div>
-            ) : reviews.length === 0 ? (
-              <div className="text-center py-12">
-                <Star className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Ainda sem avaliações</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Seja o primeiro a avaliar este parceiro!</p>
-                {user && (
-                  <Button
-                    onClick={() => setShowReviewForm(true)}
-                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg"
-                  >
-                    Escrever Primeira Review
-                  </Button>
-                )}
-              </div>
+            ) : filteredReviews.length === 0 ? (
+              <Card className="border-0 shadow-xl dark:bg-gray-800">
+                <CardContent className="p-12 text-center">
+                  <Star className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    Nenhuma avaliação ainda
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Seja o primeiro a avaliar este parceiro!
+                  </p>
+                </CardContent>
+              </Card>
             ) : (
-              <div className="space-y-6">
-                {reviews.map(review => (
-                  <PartnerReviewCard
-                    key={review.id}
-                    review={review}
-                    canRespond={user?.email === partner.created_by || user?.role === 'admin'}
-                  />
+              <div className="space-y-4">
+                {filteredReviews.map(review => (
+                  <PartnerReviewCard key={review.id} review={review} />
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Cart Sidebar */}
@@ -564,7 +670,7 @@ export default function PartnerDetails() {
             >
               <div className="p-6 border-b dark:border-gray-700 flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Carrinho</h3>
-                <Button variant="ghost" size="icon" onClick={() => setShowCart(false)}>
+                <Button variant="ghost" size="icon" onClick={() => setShowCart(false)} className="dark:text-gray-100 dark:hover:bg-gray-700">
                   <X className="w-5 h-5" />
                 </Button>
               </div>
@@ -578,7 +684,7 @@ export default function PartnerDetails() {
                 ) : (
                   <div className="space-y-4">
                     {cart.map((item) => (
-                      <Card key={item.id} className="dark:bg-gray-800">
+                      <Card key={item.id} className="dark:bg-gray-800 dark:border-gray-700">
                         <CardContent className="p-4">
                           <div className="flex gap-4">
                             {item.image_url && (
@@ -596,16 +702,16 @@ export default function PartnerDetails() {
                                   size="icon"
                                   variant="outline"
                                   onClick={() => updateQuantity(item.id, -1)}
-                                  className="h-8 w-8"
+                                  className="h-8 w-8 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700"
                                 >
                                   <Minus className="w-4 h-4" />
                                 </Button>
-                                <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{item.quantity}</span>
+                                <span className="font-bold text-lg dark:text-gray-100">{item.quantity}</span>
                                 <Button
                                   size="icon"
                                   variant="outline"
                                   onClick={() => updateQuantity(item.id, 1)}
-                                  className="h-8 w-8"
+                                  className="h-8 w-8 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700"
                                 >
                                   <Plus className="w-4 h-4" />
                                 </Button>
@@ -613,7 +719,7 @@ export default function PartnerDetails() {
                                   size="icon"
                                   variant="ghost"
                                   onClick={() => removeFromCart(item.id)}
-                                  className="h-8 w-8 ml-auto text-red-600"
+                                  className="h-8 w-8 ml-auto text-red-600 dark:hover:bg-gray-700"
                                 >
                                   <X className="w-4 h-4" />
                                 </Button>
