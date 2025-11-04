@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -196,11 +197,11 @@ export default function SocialFeed() {
     );
   }
 
-  // High-Quality 3D Badges
+  // High-Quality 3D Badges - NOVO ADMIN BADGE
   const getBadgeImage = (type) => {
     const badges = {
       verified: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='v' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231DA1F2'/%3E%3Cstop offset='1' stop-color='%230A66C2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='10' r='9' fill='url(%23v)'/%3E%3Cpath d='M7 10l2 2.5 4-5' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
-      admin: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23DC2626'/%3E%3Cstop offset='1' stop-color='%23991B1B'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M10 2l6 3v7c0 4-6 7-6 7s-6-3-6-7V5z' fill='url(%23a)'/%3E%3Cpath d='M8 9l1.5 2 3-3.5' stroke='%23FFD700' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E`,
+      admin: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='admin' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23EF4444'/%3E%3Cstop offset='0.5' stop-color='%23DC2626'/%3E%3Cstop offset='1' stop-color='%23B91C1C'/%3E%3C/linearGradient%3E%3CradialGradient id='shine' cx='0.3' cy='0.3' r='0.7'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='0.4'/%3E%3Cstop offset='1' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='shadow'%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1' flood-opacity='0.3'/%3E%3C/filter%3E%3C/defs%3E%3Cg filter='url(%23shadow)'%3E%3Cpath d='M10 1.5 L13 3.5 L13 7.5 C13 10.5 10 13 10 13 C10 13 7 10.5 7 7.5 L7 3.5 Z' fill='url(%23admin)' stroke='%23991B1B' stroke-width='0.5'/%3E%3C/g%3E%3Cellipse cx='10' cy='6' rx='4' ry='5' fill='url(%23shine)' opacity='0.6'/%3E%3Cpath d='M8.5 7.5 L9.5 8.5 L11.5 6' stroke='%23FFD700' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M10 1.5 L13 3.5' stroke='%23FF6B6B' stroke-width='0.3' opacity='0.5'/%3E%3Cpath d='M10 1.5 L7 3.5' stroke='%23FF6B6B' stroke-width='0.3' opacity='0.5'/%3E%3C/svg%3E`,
       moderator: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%233B82F6'/%3E%3Cstop offset='1' stop-color='%231D4ED8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M10 2l6 3v7c0 4-6 7-6 7s-6-3-6-7V5z' fill='url(%23m)'/%3E%3Crect x='8.5' y='7' width='3' height='6' fill='%23fff' rx='0.5'/%3E%3Crect x='7' y='9.5' width='6' height='3' fill='%23fff' rx='0.5'/%3E%3C/svg%3E`
     };
     return badges[type] || null;
