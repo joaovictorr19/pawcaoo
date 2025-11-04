@@ -47,6 +47,12 @@ export default function PartnerDashboard() {
   const [showServicesListModal, setShowServicesListModal] = useState(false);
   const [showAnnouncementsListModal, setShowAnnouncementsListModal] = useState(false);
 
+  // NEW: Edit modals
+  const [showEditServiceModal, setShowEditServiceModal] = useState(false);
+  const [showEditAnnouncementModal, setShowEditAnnouncementModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+
   // Form states for Schedule Modal
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
@@ -506,6 +512,131 @@ export default function PartnerDashboard() {
     }
   });
 
+  // NEW: Update Service Mutation
+  const updateServiceMutation = useMutation({
+    mutationFn: async ({ serviceId, serviceData }) => {
+      const service = myServices.find(s => s.id === serviceId);
+
+      // Convert string values to numbers
+      const processedData = {
+        ...serviceData,
+        base_price: parseFloat(serviceData.base_price) || 0,
+        duration_minutes: parseInt(serviceData.duration_minutes) || 60,
+        emergency_surcharge: parseFloat(serviceData.emergency_surcharge) || 0,
+        price_by_size: {
+          small: parseFloat(serviceData.price_by_size.small) || 0,
+          medium: parseFloat(serviceData.price_by_size.medium) || 0,
+          large: parseFloat(serviceData.price_by_size.large) || 0,
+          extra_large: parseFloat(serviceData.price_by_size.extra_large) || 0
+        }
+      };
+
+      // If service was approved, resubmit for moderation
+      if (service.moderation_status === 'approved') {
+        processedData.moderation_status = 'pending';
+        processedData.rejection_reason = null;
+
+        // Notify admin about the update
+        await base44.entities.Notification.create({
+          recipient_email: 'admin@pawcao.com', // You can make this dynamic
+          title: language === 'pt' ? 'Serviço Atualizado - Requer Aprovação' : 'Service Updated - Requires Approval',
+          message: `${company.company_name} atualizou o serviço "${serviceData.service_name}". Necessita nova aprovação.`,
+          type: "system",
+          related_id: serviceId,
+          priority: "normal"
+        });
+      } else if (service.moderation_status === 'rejected') {
+        // If resubmitting after rejection, set to pending
+        processedData.moderation_status = 'pending';
+        processedData.rejection_reason = null;
+      }
+
+      return await base44.entities.PartnerService.update(serviceId, processedData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] });
+      toast.success(language === 'pt' ? 'Serviço atualizado! Aguardando nova aprovação.' : 'Service updated! Awaiting new approval.');
+      setShowEditServiceModal(false);
+      setEditingService(null);
+      // Reset newService state to prevent carry-over if creating a new one next
+      setNewService({
+        service_name: "",
+        service_type: "bath",
+        description: "",
+        duration_minutes: 60,
+        base_price: "",
+        price_by_size: { small: "", medium: "", large: "", extra_large: "" },
+        includes: [],
+        is_emergency: false,
+        emergency_surcharge: "",
+        available_days: [],
+        image_url: ""
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao atualizar serviço' : 'Failed to update service'));
+    }
+  });
+
+  // NEW: Update Announcement Mutation
+  const updateAnnouncementMutation = useMutation({
+    mutationFn: async ({ announcementId, announcementData }) => {
+      const announcement = myAnnouncements.find(a => a.id === announcementId);
+
+      // Convert string values to numbers
+      const processedData = {
+        ...announcementData,
+        discount_percentage: parseInt(announcementData.discount_percentage) || 0
+      };
+
+      // If announcement was approved, resubmit for moderation
+      if (announcement.moderation_status === 'approved') {
+        processedData.moderation_status = 'pending';
+        processedData.is_active = false;
+        processedData.moderation_notes = null;
+
+        // Notify admin about the update
+        await base44.entities.Notification.create({
+          recipient_email: 'admin@pawcao.com',
+          title: language === 'pt' ? 'Anúncio Atualizado - Requer Aprovação' : 'Announcement Updated - Requires Approval',
+          message: `${company.company_name} atualizou o anúncio "${announcementData.title}". Necessita nova aprovação.`,
+          type: "system",
+          related_id: announcementId,
+          priority: "normal"
+        });
+      } else if (announcement.moderation_status === 'rejected') {
+        // If resubmitting after rejection, set to pending
+        processedData.moderation_status = 'pending';
+        processedData.moderation_notes = null;
+        processedData.is_active = false;
+      }
+
+      return await base44.entities.CompanyAnnouncement.update(announcementId, processedData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] });
+      toast.success(language === 'pt' ? 'Anúncio atualizado! Aguardando nova aprovação.' : 'Announcement updated! Awaiting new approval.');
+      setShowEditAnnouncementModal(false);
+      setEditingAnnouncement(null);
+      // Reset newAnnouncement state to prevent carry-over if creating a new one next
+      setNewAnnouncement({
+        title: "",
+        message: "",
+        promotion_type: "discount",
+        discount_percentage: "",
+        target_subscription_tier: ["free", "basic", "premium", "vip"],
+        start_date: "",
+        end_date: "",
+        image_url: "",
+        is_featured: false
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao atualizar anúncio' : 'Failed to update announcement'));
+    }
+  });
+
+
   // NEW: Upload Service Image Mutation
   const uploadServiceImageMutation = useMutation({
     mutationFn: async (file) => {
@@ -583,6 +714,47 @@ export default function PartnerDashboard() {
     setCurrentModalBooking(booking);
     setServiceNotes(booking.service_notes || "");
     setShowNotesModal(true);
+  };
+
+  // NEW: Function to open edit service modal
+  const openEditServiceModal = (service) => {
+    setEditingService(service);
+    setNewService({
+      service_name: service.service_name || "",
+      service_type: service.service_type || "bath",
+      description: service.description || "",
+      duration_minutes: service.duration_minutes || 60,
+      base_price: service.base_price?.toString() || "",
+      price_by_size: {
+        small: service.price_by_size?.small?.toString() || "",
+        medium: service.price_by_size?.medium?.toString() || "",
+        large: service.price_by_size?.large?.toString() || "",
+        extra_large: service.price_by_size?.extra_large?.toString() || ""
+      },
+      includes: service.includes || [],
+      is_emergency: service.is_emergency || false,
+      emergency_surcharge: service.emergency_surcharge?.toString() || "",
+      available_days: service.available_days || [],
+      image_url: service.image_url || ""
+    });
+    setShowEditServiceModal(true);
+  };
+
+  // NEW: Function to open edit announcement modal
+  const openEditAnnouncementModal = (announcement) => {
+    setEditingAnnouncement(announcement);
+    setNewAnnouncement({
+      title: announcement.title || "",
+      message: announcement.message || "",
+      promotion_type: announcement.promotion_type || "discount",
+      discount_percentage: announcement.discount_percentage?.toString() || "",
+      target_subscription_tier: announcement.target_subscription_tier || ["free", "basic", "premium", "vip"],
+      start_date: announcement.start_date || "",
+      end_date: announcement.end_date || "",
+      image_url: announcement.image_url || "",
+      is_featured: announcement.is_featured || false
+    });
+    setShowEditAnnouncementModal(true);
   };
 
   const filteredBookings = bookings.filter(b => {
@@ -1387,30 +1559,6 @@ export default function PartnerDashboard() {
             </div>
 
             <div className="space-y-2">
-              <Label>{language === 'pt' ? 'Preços por Tamanho (€)' : 'Prices by Size (€)'}</Label>
-              <p className="text-xs text-gray-600 mb-2">{language === 'pt' ? 'Opcional - se deixar vazio, usará o preço base' : 'Optional - if left empty, will use base price'}</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {['small', 'medium', 'large', 'extra_large'].map(size => (
-                  <div key={size}>
-                    <Label className="text-xs capitalize">{size.replace('_', ' ')}</Label>
-                    <Input
-                      type="text"
-                      value={newService.price_by_size[size]}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
-                        setNewService({
-                          ...newService,
-                          price_by_size: { ...newService.price_by_size, [size]: value }
-                        });
-                      }}
-                      placeholder="0"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
               <Label>{language === 'pt' ? 'O que está incluído?' : 'What\'s included?'}</Label>
               <div className="flex flex-wrap gap-2">
                 {['Shampoo', 'Condicionador', 'Secagem', 'Corte de Unhas', 'Limpeza de Ouvidos', 'Escovagem'].map(item => (
@@ -1640,32 +1788,44 @@ export default function PartnerDashboard() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3 className="font-bold text-lg">{service.service_name}</h3>
                           {service.is_emergency && (
                             <Badge className="bg-orange-500 text-white">24/7</Badge>
                           )}
+                          <Badge className={
+                            service.moderation_status === 'approved' ? 'bg-green-600 text-white' :
+                            service.moderation_status === 'rejected' ? 'bg-red-600 text-white' :
+                            'bg-yellow-600 text-white'
+                          }>
+                            {service.moderation_status === 'approved' ? '✓ Aprovado' :
+                             service.moderation_status === 'rejected' ? '✗ Rejeitado' :
+                             '⏳ Pendente Aprovação'}
+                          </Badge>
                         </div>
-                        <Badge className={
-                          service.moderation_status === 'approved' ? 'bg-green-600 text-white' :
-                          service.moderation_status === 'rejected' ? 'bg-red-600 text-white' :
-                          'bg-yellow-600 text-white'
-                        }>
-                          {service.moderation_status === 'approved' ? '✓ Aprovado' :
-                           service.moderation_status === 'rejected' ? '✗ Rejeitado' :
-                           '⏳ Pendente Aprovação'}
-                        </Badge>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-2xl font-bold text-blue-600">€{service.base_price}</div>
+                          <div className="text-sm text-gray-600">{service.duration_minutes}min</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">€{service.base_price}</div>
-                        <div className="text-sm text-gray-600">{service.duration_minutes}min</div>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditServiceModal(service)}
+                        className="border-blue-300 text-blue-600"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        {language === 'pt' ? 'Editar' : 'Edit'}
+                      </Button>
                     </div>
-                    <p className="text-sm text-gray-700">{service.description}</p>
+                    <p className="text-sm text-gray-700 mb-3">{service.description}</p>
                     {service.rejection_reason && (
                       <div className="mt-3 bg-red-100 border border-red-300 rounded-lg p-3">
                         <p className="text-sm text-red-800">
                           <strong>{language === 'pt' ? 'Motivo da rejeição:' : 'Rejection reason:'}</strong> {service.rejection_reason}
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">
+                          {language === 'pt' ? 'Edite o serviço e reenvie para aprovação.' : 'Edit the service and resubmit for approval.'}
                         </p>
                       </div>
                     )}
@@ -1702,26 +1862,26 @@ export default function PartnerDashboard() {
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       {announcement.image_url && (
-                        <img src={announcement.image_url} className="w-24 h-24 object-cover rounded-lg" alt="Announcement image" />
+                        <img src={announcement.image_url} className="w-24 h-24 object-cover rounded-lg flex-shrink-0" alt="Announcement" />
                       )}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3 className="font-bold text-lg">{announcement.title}</h3>
                           {announcement.discount_percentage > 0 && (
                             <Badge className="bg-red-500 text-white">-{announcement.discount_percentage}%</Badge>
                           )}
+                          <Badge className={
+                            announcement.moderation_status === 'approved' ? 'bg-green-600 text-white' :
+                            announcement.moderation_status === 'rejected' ? 'bg-red-600 text-white' :
+                            'bg-yellow-600 text-white'
+                          }>
+                            {announcement.moderation_status === 'approved' ? '✓ Aprovado' :
+                             announcement.moderation_status === 'rejected' ? '✗ Rejeitado' :
+                             '⏳ Pendente Aprovação'}
+                          </Badge>
                         </div>
-                        <Badge className={
-                          announcement.moderation_status === 'approved' ? 'bg-green-600 text-white' :
-                          announcement.moderation_status === 'rejected' ? 'bg-red-600 text-white' :
-                          'bg-yellow-600 text-white'
-                        }>
-                          {announcement.moderation_status === 'approved' ? '✓ Aprovado' :
-                           announcement.moderation_status === 'rejected' ? '✗ Rejeitado' :
-                           '⏳ Pendente Aprovação'}
-                        </Badge>
-                        <p className="text-sm text-gray-700 mt-2">{announcement.message}</p>
-                        <div className="flex gap-3 text-xs text-gray-600 mt-2">
+                        <p className="text-sm text-gray-700 mt-2 line-clamp-2">{announcement.message}</p>
+                        <div className="flex gap-3 text-xs text-gray-600 mt-2 flex-wrap">
                           <span>📅 {announcement.start_date} → {announcement.end_date}</span>
                           <span>👁️ {announcement.views_count || 0} views</span>
                           <span>🖱️ {announcement.clicks_count || 0} clicks</span>
@@ -1734,11 +1894,351 @@ export default function PartnerDashboard() {
                           </div>
                         )}
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditAnnouncementModal(announcement)}
+                        className="border-purple-300 text-purple-600 flex-shrink-0"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        {language === 'pt' ? 'Editar' : 'Edit'}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Edit Service Modal */}
+      <Dialog open={showEditServiceModal} onOpenChange={setShowEditServiceModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Package className="w-6 h-6 text-blue-600" />
+              {language === 'pt' ? 'Editar Serviço' : 'Edit Service'}
+            </DialogTitle>
+            {editingService?.moderation_status === 'approved' && (
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3 mt-2">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ {language === 'pt'
+                    ? 'Este serviço já está aprovado. Ao editar, será necessário nova aprovação do admin.'
+                    : 'This service is already approved. After editing, it will require new admin approval.'}
+                </p>
+              </div>
+            )}
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Same form fields as Create Service Modal */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Nome do Serviço' : 'Service Name'} *</Label>
+                <Input
+                  value={newService.service_name}
+                  onChange={(e) => setNewService({ ...newService, service_name: e.target.value })}
+                  placeholder={language === 'pt' ? "Banho Completo" : "Complete Bath"}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Tipo de Serviço' : 'Service Type'} *</Label>
+                <Select
+                  value={newService.service_type}
+                  onValueChange={(value) => setNewService({ ...newService, service_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bath">🛁 Banho</SelectItem>
+                    <SelectItem value="grooming">✂️ Grooming</SelectItem>
+                    <SelectItem value="veterinary">🏥 Veterinário</SelectItem>
+                    <SelectItem value="vaccination">💉 Vacinação</SelectItem>
+                    <SelectItem value="checkup">🩺 Check-up</SelectItem>
+                    <SelectItem value="emergency">🚨 Emergência</SelectItem>
+                    <SelectItem value="daycare">🏠 Daycare</SelectItem>
+                    <SelectItem value="boarding">🛏️ Alojamento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Descrição' : 'Description'}</Label>
+              <Textarea
+                value={newService.description}
+                onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                rows={3}
+                placeholder={language === 'pt' ? "Descreva o serviço..." : "Describe the service..."}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Duração (minutos)' : 'Duration (minutes)'}</Label>
+                <Input
+                  type="number"
+                  value={newService.duration_minutes}
+                  onChange={(e) => setNewService({ ...newService, duration_minutes: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Preço Base (€)' : 'Base Price (€)'} *</Label>
+                <Input
+                  type="text"
+                  value={newService.base_price}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                    setNewService({ ...newService, base_price: value });
+                  }}
+                  placeholder="25.00"
+                />
+                <p className="text-xs text-gray-500">{language === 'pt' ? 'Digite apenas números (ex: 25 ou 25.50)' : 'Enter numbers only (ex: 25 or 25.50)'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Preços por Tamanho (€)' : 'Prices by Size (€)'}</Label>
+              <p className="text-xs text-gray-600 mb-2">{language === 'pt' ? 'Opcional - se deixar vazio, usará o preço base' : 'Optional - if left empty, will use base price'}</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {['small', 'medium', 'large', 'extra_large'].map(size => (
+                  <div key={size}>
+                    <Label className="text-xs capitalize">{size.replace('_', ' ')}</Label>
+                    <Input
+                      type="text"
+                      value={newService.price_by_size[size]}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                        setNewService({
+                          ...newService,
+                          price_by_size: { ...newService.price_by_size, [size]: value }
+                        });
+                      }}
+                      placeholder="0"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'O que está incluído?' : 'What\'s included?'}</Label>
+              <div className="flex flex-wrap gap-2">
+                {['Shampoo', 'Condicionador', 'Secagem', 'Corte de Unhas', 'Limpeza de Ouvidos', 'Escovagem'].map(item => (
+                  <label key={item} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={newService.includes?.includes(item)}
+                      onCheckedChange={() => toggleInclude(item)}
+                    />
+                    <span className="text-sm">{item}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+              <Checkbox
+                checked={newService.is_emergency}
+                onCheckedChange={(checked) => setNewService({ ...newService, is_emergency: checked })}
+              />
+              <div className="flex-1">
+                <Label className="text-orange-900">
+                  🚨 {language === 'pt' ? 'Serviço de Emergência 24/7' : 'Emergency Service 24/7'}
+                </Label>
+                {newService.is_emergency && (
+                  <Input
+                    type="text"
+                    value={newService.emergency_surcharge}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                      setNewService({ ...newService, emergency_surcharge: value });
+                    }}
+                    placeholder={language === 'pt' ? "Taxa adicional (€)" : "Additional fee (€)"}
+                    className="mt-2"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Imagem do Serviço' : 'Service Image'}</Label>
+              {newService.image_url && (
+                <img src={newService.image_url} className="w-full h-32 object-cover rounded-lg mb-2" alt="Service" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadServiceImageMutation.mutate(file);
+                }}
+                disabled={uploadServiceImageMutation.isPending}
+              />
+            </div>
+
+            <Button
+              onClick={() => {
+                if (!newService.service_name || !newService.base_price) {
+                  toast.error(language === 'pt' ? 'Preencha o nome e preço do serviço!' : 'Fill in service name and price!');
+                  return;
+                }
+                updateServiceMutation.mutate({
+                  serviceId: editingService.id,
+                  serviceData: newService
+                });
+              }}
+              disabled={updateServiceMutation.isPending}
+              className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-bold"
+            >
+              {updateServiceMutation.isPending ? (
+                <>
+                  <Clock className="w-5 h-5 mr-2 animate-spin" />
+                  {language === 'pt' ? 'Atualizando...' : 'Updating...'}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {language === 'pt' ? 'Atualizar Serviço' : 'Update Service'}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Edit Announcement Modal */}
+      <Dialog open={showEditAnnouncementModal} onOpenChange={setShowEditAnnouncementModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Megaphone className="w-6 h-6 text-purple-600" />
+              {language === 'pt' ? 'Editar Anúncio' : 'Edit Announcement'}
+            </DialogTitle>
+            {editingAnnouncement?.moderation_status === 'approved' && (
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3 mt-2">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ {language === 'pt'
+                    ? 'Este anúncio já está aprovado. Ao editar, será necessário nova aprovação do admin.'
+                    : 'This announcement is already approved. After editing, it will require new admin approval.'}
+                </p>
+              </div>
+            )}
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Same form fields as Create Announcement Modal */}
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Título' : 'Title'} *</Label>
+              <Input
+                value={newAnnouncement.title}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                placeholder={language === 'pt' ? "Super Desconto de Verão!" : "Summer Super Discount!"}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Mensagem' : 'Message'} *</Label>
+              <Textarea
+                value={newAnnouncement.message}
+                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, message: e.target.value })}
+                rows={4}
+                placeholder={language === 'pt' ? "Descreva a promoção..." : "Describe the promotion..."}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Tipo de Promoção' : 'Promotion Type'}</Label>
+                <Select
+                  value={newAnnouncement.promotion_type}
+                  onValueChange={(value) => setNewAnnouncement({ ...newAnnouncement, promotion_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discount">🏷️ Desconto</SelectItem>
+                    <SelectItem value="flash_sale">⚡ Flash Sale</SelectItem>
+                    <SelectItem value="new_product">🆕 Novo Produto</SelectItem>
+                    <SelectItem value="points_bonus">⭐ Bónus Pontos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Desconto (%)' : 'Discount (%)'}</Label>
+                <Input
+                  type="text"
+                  value={newAnnouncement.discount_percentage}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setNewAnnouncement({ ...newAnnouncement, discount_percentage: value });
+                  }}
+                  placeholder="10"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Data Início' : 'Start Date'} *</Label>
+                <Input
+                  type="date"
+                  value={newAnnouncement.start_date}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, start_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === 'pt' ? 'Data Fim' : 'End Date'} *</Label>
+                <Input
+                  type="date"
+                  value={newAnnouncement.end_date}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Imagem da Promoção' : 'Promotion Image'}</Label>
+              {newAnnouncement.image_url && (
+                <img src={newAnnouncement.image_url} className="w-full h-48 object-cover rounded-lg mb-2" alt="Announcement" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadAnnouncementImageMutation.mutate(file);
+                }}
+                disabled={uploadAnnouncementImageMutation.isPending}
+              />
+            </div>
+
+            <Button
+              onClick={() => {
+                if (!newAnnouncement.title || !newAnnouncement.start_date || !newAnnouncement.end_date) {
+                  toast.error(language === 'pt' ? 'Preencha todos os campos obrigatórios!' : 'Fill in all required fields!');
+                  return;
+                }
+                updateAnnouncementMutation.mutate({
+                  announcementId: editingAnnouncement.id,
+                  announcementData: newAnnouncement
+                });
+              }}
+              disabled={updateAnnouncementMutation.isPending}
+              className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-lg font-bold"
+            >
+              {updateAnnouncementMutation.isPending ? (
+                <>
+                  <Clock className="w-5 h-5 mr-2 animate-spin" />
+                  {language === 'pt' ? 'Atualizando...' : 'Updating...'}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {language === 'pt' ? 'Atualizar Anúncio' : 'Update Announcement'}
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
