@@ -84,6 +84,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: "🐾 Comunidade", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "📸 Rede Social", url: createPageUrl("SocialFeed"), icon: Camera },
+    { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar }, // Added item
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -106,11 +107,15 @@ function LayoutContent({ children, currentPageName }) {
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
+  const moderatorItem = (user?.role === 'admin' || user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
+    { title: "🛡️ " + (language === 'pt' ? 'Moderação' : 'Moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
+  ] : [];
+
   const stripeConnectItem = (user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both') ? [
     { title: "💰 Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
   ] : [];
 
-  const allNavigationItems = [...navigationItems, ...adminItem, ...stripeConnectItem];
+  const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...stripeConnectItem];
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -231,7 +236,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(0, 7).map((item) => (
+                  {allNavigationItems.slice(0, 8).map((item) => ( {/* Changed slice to (0, 8) to include new item */}
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -258,7 +263,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(7, 15).map((item) => (
+                  {allNavigationItems.slice(8, 16).map((item) => ( {/* Changed slice to (8, 16) */}
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -286,7 +291,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(15, 21).map((item) => (
+                  {allNavigationItems.slice(16, 22).map((item) => ( {/* Changed slice to (16, 22) */}
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -305,12 +310,12 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {allNavigationItems.length > 21 && (
+            {allNavigationItems.length > 22 && ( {/* Changed condition to > 22 */}
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(21).map((item) => (
+                    {allNavigationItems.slice(22).map((item) => ( {/* Changed slice to (22) */}
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 

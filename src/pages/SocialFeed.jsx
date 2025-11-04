@@ -12,7 +12,7 @@ import {
   Heart, MessageCircle, Share2, Camera, Video, MapPin, Send,
   TrendingUp, Sparkles, ShoppingBag, Zap, Gift, Award,
   Star, ChevronRight, Clock, Users, Eye, Flame, Store,
-  Shield, ShieldCheck, X // Changed Trash2 to X
+  Shield, ShieldCheck, X, Bookmark, UserPlus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,15 +22,30 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import StoriesBar from "../components/social/StoriesBar";
+import StoriesViewer from "../components/social/StoriesViewer";
+import CreateStoryModal from "../components/social/CreateStoryModal";
+import SearchAndFilters from "../components/social/SearchAndFilters";
 
 export default function SocialFeed() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("feed");
+  const [feedMode, setFeedMode] = useState("foryou"); // foryou, following, hashtags
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostDogName, setNewPostDogName] = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaUrls, setMediaUrls] = useState([]);
+  
+  // Stories
+  const [viewingStories, setViewingStories] = useState(null);
+  const [showCreateStory, setShowCreateStory] = useState(false);
+  
+  // Search & Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterBreed, setFilterBreed] = useState("all");
+  const [filterCity, setFilterCity] = useState("all");
+  const [filterHashtag, setFilterHashtag] = useState("all");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -46,10 +61,76 @@ export default function SocialFeed() {
     initialData: [],
   });
 
-  // Separate pinned and regular posts
-  const pinnedPosts = allPosts.filter(p => p.is_pinned).sort((a, b) => (b.pin_priority || 0) - (a.pin_priority || 0));
-  const regularPosts = allPosts.filter(p => !p.is_pinned);
-  const posts = [...pinnedPosts, ...regularPosts];
+  // Stories Query
+  const { data: activeStories } = useQuery({
+    queryKey: ['activeStories'],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const stories = await base44.entities.SocialStory.filter({ 
+        is_active: true 
+      }, '-created_date');
+      return stories.filter(s => new Date(s.expires_at) > new Date());
+    },
+    initialData: [],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Following Query
+  const { data: following } = useQuery({
+    queryKey: ['myFollowing', user?.email],
+    queryFn: () => base44.entities.SocialFollow.filter({ 
+      follower_email: user?.email,
+      status: 'accepted'
+    }),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  // Filter posts based on feed mode and filters
+  const getFilteredPosts = () => {
+    let filtered = [...allPosts];
+
+    // Feed Mode Filter
+    if (feedMode === 'following') {
+      const followingEmails = following.map(f => f.following_email);
+      filtered = filtered.filter(p => followingEmails.includes(p.author_email));
+    } else if (feedMode === 'foryou') {
+      // Sort by engagement score for "Para Você"
+      filtered = filtered.sort((a, b) => (b.engagement_score || 0) - (a.engagement_score || 0));
+    }
+
+    // Search Filter
+    if (searchQuery) {
+      filtered = filtered.filter(p =>
+        p.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.author_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.dog_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Breed Filter
+    if (filterBreed !== 'all') {
+      filtered = filtered.filter(p => p.dog_breed?.toLowerCase() === filterBreed.toLowerCase());
+    }
+
+    // City Filter
+    if (filterCity !== 'all') {
+      filtered = filtered.filter(p => p.author_city?.toLowerCase() === filterCity.toLowerCase());
+    }
+
+    // Hashtag Filter
+    if (filterHashtag !== 'all') {
+      filtered = filtered.filter(p => p.tags?.includes(filterHashtag));
+    }
+
+    // Separate pinned and regular
+    const pinnedPosts = filtered.filter(p => p.is_pinned).sort((a, b) => (b.pin_priority || 0) - (a.pin_priority || 0));
+    const regularPosts = filtered.filter(p => !p.is_pinned);
+    
+    return [...pinnedPosts, ...regularPosts];
+  };
+
+  const posts = getFilteredPosts();
 
   const { data: myDogs } = useQuery({
     queryKey: ['myDogs', user?.email],
@@ -136,6 +217,31 @@ export default function SocialFeed() {
     onSuccess: () => {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Post removido!");
+    },
+  });
+
+  const savePostMutation = useMutation({
+    mutationFn: async (postId) => {
+      const existing = await base44.entities.SocialSavedPost.filter({
+        user_email: user.email,
+        post_id: postId
+      });
+
+      if (existing[0]) {
+        await base44.entities.SocialSavedPost.delete(existing[0].id);
+        return { action: 'unsaved' };
+      } else {
+        await base44.entities.SocialSavedPost.create({
+          user_email: user.email,
+          post_id: postId,
+          collection_name: 'Salvos'
+        });
+        return { action: 'saved' };
+      }
+    },
+    onSuccess: ({ action }) => {
+      queryClient.invalidateQueries(['socialPosts']);
+      toast.success(action === 'saved' ? "Post salvo!" : "Post removido dos salvos");
     },
   });
 
@@ -283,6 +389,48 @@ export default function SocialFeed() {
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Main Feed */}
               <div className="lg:col-span-2 space-y-6">
+                {/* Stories Bar */}
+                <StoriesBar
+                  stories={activeStories}
+                  onStoryClick={(stories, idx) => setViewingStories({ stories, index: idx })}
+                  onCreateStory={() => setShowCreateStory(true)}
+                  currentUser={user}
+                />
+
+                {/* Feed Mode Tabs */}
+                <Tabs value={feedMode} onValueChange={setFeedMode}>
+                  <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-1">
+                    <TabsTrigger value="foryou" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white">
+                      ✨ Para Você
+                    </TabsTrigger>
+                    <TabsTrigger value="following" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white">
+                      <UserPlus className="w-4 h-4 mr-1" />
+                      Seguindo
+                    </TabsTrigger>
+                    <TabsTrigger value="hashtags" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-600 data-[state=active]:to-rose-600 data-[state=active]:text-white">
+                      # Hashtags
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {/* Search and Filters */}
+                <SearchAndFilters
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  filterBreed={filterBreed}
+                  setFilterBreed={setFilterBreed}
+                  filterCity={filterCity}
+                  setFilterCity={setFilterCity}
+                  filterHashtag={filterHashtag}
+                  setFilterHashtag={setFilterHashtag}
+                  onClearFilters={() => {
+                    setSearchQuery("");
+                    setFilterBreed("all");
+                    setFilterCity("all");
+                    setFilterHashtag("all");
+                  }}
+                />
+
                 {/* Create Post */}
                 {user && (
                   <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-purple-50">
@@ -358,8 +506,10 @@ export default function SocialFeed() {
                   <Card className="border-0 shadow-xl">
                     <CardContent className="p-12 text-center">
                       <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum post ainda</h3>
-                      <p className="text-gray-600">Seja o primeiro a compartilhar!</p>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum post encontrado</h3>
+                      <p className="text-gray-600">
+                        {feedMode === 'following' ? 'Siga mais pessoas para ver posts aqui!' : 'Ajuste os filtros ou seja o primeiro a publicar!'}
+                      </p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -473,6 +623,15 @@ export default function SocialFeed() {
                               <Button variant="ghost" size="sm" className="hover:text-blue-600 hover:bg-blue-50 rounded-xl">
                                 <MessageCircle className="w-5 h-5 mr-2" />
                                 <span className="font-semibold">{post.comments_count || 0}</span>
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => savePostMutation.mutate(post.id)}
+                                className="hover:text-purple-600 hover:bg-purple-50 rounded-xl"
+                              >
+                                <Bookmark className="w-5 h-5 mr-2" />
+                                <span className="font-semibold">Salvar</span>
                               </Button>
                               <Button variant="ghost" size="sm" className="hover:text-green-600 hover:bg-green-50 rounded-xl">
                                 <Share2 className="w-5 h-5 mr-2" />
@@ -810,6 +969,26 @@ export default function SocialFeed() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Stories Viewer Modal */}
+      <AnimatePresence>
+        {viewingStories && (
+          <StoriesViewer
+            stories={viewingStories.stories}
+            initialIndex={viewingStories.index}
+            onClose={() => setViewingStories(null)}
+            currentUser={user}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Create Story Modal */}
+      <CreateStoryModal
+        isOpen={showCreateStory}
+        onClose={() => setShowCreateStory(false)}
+        currentUser={user}
+        onSuccess={() => queryClient.invalidateQueries(['activeStories'])}
+      />
     </div>
   );
 }

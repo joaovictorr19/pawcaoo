@@ -43,6 +43,7 @@ import FAQ from './pages/FAQ';
 import Landing from './pages/Landing';
 import UserProfile from './pages/UserProfile';
 import SocialEvents from './pages/SocialEvents';
+import ModerationPanel from './pages/ModerationPanel';
 import Layout from './Layout.jsx';
 
 
@@ -92,6 +93,7 @@ export const PAGES = {
     "Landing": Landing,
     "UserProfile": UserProfile,
     "SocialEvents": SocialEvents,
+    "ModerationPanel": ModerationPanel,
 }
 
 export const pagesConfig = {
