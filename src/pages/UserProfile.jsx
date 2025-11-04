@@ -318,22 +318,15 @@ export default function UserProfile() {
                     </div>
                   </div>
 
-                  {/* Level Badge - MOVED TO RIGHT CORNER */}
-                  <div className="flex items-start gap-3">
-                    <div className="relative group cursor-pointer">
-                      <img 
-                        src={getBadgeImage('level', currentLevel)} 
-                        alt={`Nível ${currentLevel}`} 
-                        className="w-14 h-14 hover:scale-110 transition-transform drop-shadow-2xl" 
-                      />
-                      <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
-                          ⚡ Nível {currentLevel} • {currentLevelXP % xpNeeded}/{xpNeeded} XP
-                        </div>
-                      </div>
-                    </div>
+                  {/* Action Buttons - Right Side */}
+                  <div className="flex items-center gap-3">
+                    {/* Level Badge Indicator - Smaller and more subtle */}
+                    {currentLevel > 1 && (
+                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 shadow-lg">
+                        ⚡ Nível {currentLevel}
+                      </Badge>
+                    )}
 
-                    {/* Action Buttons */}
                     {!isOwnProfile && currentUser && (
                       <Button
                         onClick={() => followMutation.mutate(followData.isFollowing)}
@@ -423,25 +416,6 @@ export default function UserProfile() {
             <TabsTrigger value="activity"><TrendingUp className="w-4 h-4 mr-1" />Stats</TabsTrigger>
             {isOwnProfile && <TabsTrigger value="saved"><Bookmark className="w-4 h-4 mr-1" />Salvos</TabsTrigger>}
           </TabsList>
-
-          <TabsContent value="posts">
-            {userPosts.length === 0 ? (
-              <Card><CardContent className="p-8 text-center"><Grid className="w-12 h-12 text-gray-300 mx-auto mb-3" /><p className="text-gray-600">Nenhum post</p></CardContent></Card>
-            ) : (
-              <div className="grid md:grid-cols-3 gap-3">
-                {userPosts.map((post) => (
-                  <Card key={post.id} className="hover:shadow-lg transition">
-                    <div className="h-48 bg-purple-100">
-                      {post.media_urls?.[0] && <img src={post.media_urls[0]} className="w-full h-full object-cover" alt="Post" />}
-                    </div>
-                    <CardContent className="p-3">
-                      <p className="text-xs text-gray-700 line-clamp-2">{post.content}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
 
           <TabsContent value="gamification">
             <div className="space-y-4">
@@ -542,6 +516,25 @@ export default function UserProfile() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="posts">
+            {userPosts.length === 0 ? (
+              <Card><CardContent className="p-8 text-center"><Grid className="w-12 h-12 text-gray-300 mx-auto mb-3" /><p className="text-gray-600">Nenhum post</p></CardContent></Card>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-3">
+                {userPosts.map((post) => (
+                  <Card key={post.id} className="hover:shadow-lg transition">
+                    <div className="h-48 bg-purple-100">
+                      {post.media_urls?.[0] && <img src={post.media_urls[0]} className="w-full h-full object-cover" alt="Post" />}
+                    </div>
+                    <CardContent className="p-3">
+                      <p className="text-xs text-gray-700 line-clamp-2">{post.content}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="activity">
