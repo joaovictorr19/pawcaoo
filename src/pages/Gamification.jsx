@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -9,17 +10,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Trophy, Star, Target, TrendingUp, Award, Zap, Crown, 
   Heart, Users, MessageCircle, Calendar, Gift, Shield,
-  Flame, CheckCircle, Lock, Sparkles, ChevronRight
+  Flame, CheckCircle, Lock, Sparkles, ChevronRight, Camera
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "@/components/ui/use-toast"; // Assuming toast comes from shadcn/ui or similar
 
 export default function Gamification() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("all");
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -75,6 +79,22 @@ export default function Gamification() {
     (activeCategory === "all" || b.category === activeCategory)
   );
 
+  // Photo Challenges - New!
+  const photoChallenges = [
+    { id: "beach_day", title: "Dia de Praia", desc: "Tire uma foto do seu cão na praia", icon: "🏖️", reward: 150, location: "beach", completed: false, category: "location" },
+    { id: "park_adventure", title: "Aventura no Parque", desc: "Capture um momento no parque", icon: "🌳", reward: 100, location: "park", completed: false, category: "location" },
+    { id: "mountain_hike", title: "Trilha na Montanha", desc: "Leve seu cão numa trilha", icon: "⛰️", reward: 200, location: "mountain", completed: false, category: "location" },
+    { id: "first_swim", title: "Primeiro Mergulho", desc: "Foto do cão nadando", icon: "🏊", reward: 150, activity: "swimming", completed: false, category: "activity" },
+    { id: "snow_fun", title: "Diversão na Neve", desc: "Brincando na neve", icon: "❄️", reward: 200, activity: "snow", completed: false, category: "seasonal" },
+    { id: "birthday_celebration", title: "Aniversário", desc: "Comemore o aniversário do seu cão", icon: "🎂", reward: 250, activity: "birthday", completed: false, category: "milestone" },
+    { id: "new_friend", title: "Novo Amigo", desc: "Foto com outro cão", icon: "🐕‍🦺", reward: 100, activity: "social", completed: false, category: "social" },
+    { id: "trick_master", title: "Truque Novo", desc: "Mostre um truque que ensinou", icon: "🎪", reward: 150, activity: "training", completed: false, category: "training" },
+    { id: "costume_party", title: "Fantasia Criativa", desc: "Vista seu cão com uma fantasia", icon: "🎭", reward: 100, activity: "costume", completed: false, category: "fun" },
+    { id: "sunset_walk", title: "Passeio ao Pôr do Sol", desc: "Capture o pôr do sol durante o passeio", icon: "🌅", reward: 120, activity: "sunset", completed: false, category: "scenic" },
+    { id: "rainy_day", title: "Dia de Chuva", desc: "Diversão mesmo com chuva", icon: "🌧️", reward: 130, activity: "rain", completed: false, category: "weather" },
+    { id: "cafe_visit", title: "Café Pet-Friendly", desc: "Visite um café com seu cão", icon: "☕", reward: 110, activity: "cafe", completed: false, category: "social" },
+  ];
+
   // Calculate daily quests
   const dailyQuests = [
     { id: 1, title: "Publicar 1 foto", desc: "Compartilhe um momento do seu pet", reward: 50, icon: "📸", completed: false },
@@ -101,6 +121,11 @@ export default function Gamification() {
       legendary: "border-yellow-400"
     };
     return colors[rarity] || colors.common;
+  };
+
+  const handlePhotoChallenge = (challenge) => {
+    setSelectedChallenge(challenge);
+    setShowPhotoUpload(true);
   };
 
   return (
@@ -219,6 +244,71 @@ export default function Gamification() {
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            {/* Photo Challenges - NEW! */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-pink-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Camera className="w-5 h-5 text-orange-600" />
+                      Desafios de Fotos
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Capture momentos especiais e ganhe XP!
+                    </p>
+                  </div>
+                  <Badge className="bg-orange-600 text-white">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Novo
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {photoChallenges.slice(0, 6).map((challenge) => (
+                    <motion.div
+                      key={challenge.id}
+                      whileHover={{ scale: 1.02 }}
+                      className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        challenge.completed
+                          ? 'bg-green-100 border-green-400'
+                          : 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-md'
+                      }`}
+                      onClick={() => !challenge.completed && handlePhotoChallenge(challenge)}
+                    >
+                      {challenge.completed && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle className="w-6 h-6 text-green-600" />
+                        </div>
+                      )}
+                      <div className="flex items-start gap-3">
+                        <div className="text-4xl">{challenge.icon}</div>
+                        <div className="flex-1">
+                          <h4 className={`font-bold text-sm mb-1 ${challenge.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                            {challenge.title}
+                          </h4>
+                          <p className="text-xs text-gray-600 mb-2">{challenge.desc}</p>
+                          {!challenge.completed && (
+                            <Badge className="bg-orange-600 text-white text-xs">
+                              +{challenge.reward} XP
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4 border-orange-300 text-orange-700 hover:bg-orange-50"
+                >
+                  Ver Todos os Desafios
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
               </CardContent>
             </Card>
 
@@ -451,6 +541,69 @@ export default function Gamification() {
           </div>
         </div>
       </div>
+
+      {/* Photo Upload Modal - Placeholder */}
+      <AnimatePresence>
+        {showPhotoUpload && selectedChallenge && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowPhotoUpload(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="text-center mb-4">
+                <div className="text-6xl mb-3">{selectedChallenge.icon}</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {selectedChallenge.title}
+                </h3>
+                <p className="text-gray-600 mb-4">{selectedChallenge.desc}</p>
+                <Badge className="bg-orange-600 text-white">
+                  Recompensa: +{selectedChallenge.reward} XP
+                </Badge>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition-colors cursor-pointer">
+                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Clique para fazer upload da foto</p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPhotoUpload(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      toast({
+                        title: "Desafio Completo!",
+                        description: `Você completou o desafio "${selectedChallenge.title}" e ganhou +${selectedChallenge.reward} XP! 🎉`,
+                        variant: "success", // Assuming a 'success' variant exists for toast
+                      });
+                      setShowPhotoUpload(false);
+                      setSelectedChallenge(null); // Clear selected challenge
+                    }}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  >
+                    Enviar Foto
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
