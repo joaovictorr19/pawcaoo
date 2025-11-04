@@ -41,7 +41,7 @@ import {
   DollarSign,
   BarChart3,
   Search,
-  CheckCircle2,
+  CheckCircle2, // Used for overview stats
   XCircle,
   Eye,
   Edit,
@@ -52,20 +52,21 @@ import {
   FileText,
   Download,
   Trash2,
-  ShieldCheck,
+  ShieldCheck, // Used for system admin roles
   User,
-  Store, // Added Store icon
-  Plus, // Added Plus icon
-  Star, // Added Star icon for reviews
-  CheckCircle, // Added CheckCircle icon for reviews
-  X, // Added X icon for reviews
-  Flag, // Added Flag icon for reviews
-  Heart, // Added Heart icon for badges
+  Store,
+  Plus,
+  Star,
+  CheckCircle, // Used for verified badge and reviews
+  X,
+  Flag,
+  Heart, // Used for adoption advocate badge
+  Sparkles, // Added for badges section
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch"; // Added Switch import
+import { Switch } from "@/components/ui/switch";
 
 // Placeholder for createPageUrl function (if not already defined globally or in another utility)
 // In a real application, this would typically be a routing function or use Next.js/React Router hooks.
@@ -266,7 +267,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
       setShowBadgesDialog(false);
       setSelectedUserForBadges(null);
-      toast.success("Badges atualizados com sucesso!");
+      toast.success("Badges e funções atualizados com sucesso!");
     },
     onError: (error) => {
       toast.error("Erro ao atualizar badges");
@@ -1183,6 +1184,7 @@ export default function AdminDashboard() {
                                             <Shield className="w-4 h-4 mr-2" />
                                             View Background Check
                                           </a>
+                                          </a>
                                         </Button>
                                       )}
                                     </div>
@@ -1691,16 +1693,32 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="text-2xl dark:text-gray-100">Gestão de Badges e Selos</CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Gerencie badges especiais e selos de verificação dos utilizadores. Apenas administradores podem editar badges.
+                  Gerencie badges especiais, selos de verificação e funções dos utilizadores. Apenas administradores podem editar.
                 </p>
               </CardHeader>
               <CardContent>
                 {/* Badge Types Info */}
-                <div className="grid md:grid-cols-3 gap-4 mb-8">
+                <div className="grid md:grid-cols-4 gap-4 mb-8">
+                  <div className="p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-700">
+                    <ShieldCheck className="w-8 h-8 text-red-600 dark:text-red-400 mb-3" />
+                    <h4 className="font-bold text-red-900 dark:text-red-300 mb-2">Admin Total</h4>
+                    <p className="text-sm text-red-700 dark:text-red-400">
+                      Acesso total ao sistema e todas as funcionalidades
+                    </p>
+                  </div>
+
                   <div className="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
-                    <CheckCircle className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-3" />
-                    <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2">Verificado</h4>
+                    <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-3" />
+                    <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2">Moderador Social</h4>
                     <p className="text-sm text-blue-700 dark:text-blue-400">
+                      Pode moderar posts, gerir badges e fixar conteúdo no Dog Connect
+                    </p>
+                  </div>
+
+                  <div className="p-5 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-700">
+                    <CheckCircle className="w-8 h-8 text-cyan-600 dark:text-cyan-400 mb-3" />
+                    <h4 className="font-bold text-cyan-900 dark:text-cyan-300 mb-2">Verificado</h4>
+                    <p className="text-sm text-cyan-700 dark:text-cyan-400">
                       Badge para utilizadores verificados pela plataforma
                     </p>
                   </div>
@@ -1710,14 +1728,6 @@ export default function AdminDashboard() {
                     <h4 className="font-bold text-pink-900 dark:text-pink-300 mb-2">Defensor de Adoção</h4>
                     <p className="text-sm text-pink-700 dark:text-pink-400">
                       Badge especial para defensores de adoção de animais
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-purple-50 dark:bg-purple-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700">
-                    <Shield className="w-8 h-8 text-purple-600 dark:text-purple-400 mb-3" />
-                    <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-2">Funções Especiais</h4>
-                    <p className="text-sm text-purple-700 dark:text-purple-400">
-                      Admin, Moderador e outras funções especiais
                     </p>
                   </div>
                 </div>
@@ -1757,18 +1767,24 @@ export default function AdminDashboard() {
                               <div className="flex flex-wrap gap-2">
                                 {user.role === 'admin' && (
                                   <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
-                                    <Shield className="w-3 h-3 mr-1" />
-                                    Admin
+                                    <ShieldCheck className="w-3 h-3 mr-1" />
+                                    Admin Total
                                   </Badge>
                                 )}
                                 {user.social_role === 'moderator' && (
                                   <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-                                    <ShieldCheck className="w-3 h-3 mr-1" />
+                                    <Shield className="w-3 h-3 mr-1" />
                                     Moderador
                                   </Badge>
                                 )}
+                                {user.social_role === 'admin' && (
+                                  <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+                                    <ShieldCheck className="w-3 h-3 mr-1" />
+                                    Admin Social
+                                  </Badge>
+                                )}
                                 {user.is_verified && (
-                                  <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
                                     <CheckCircle className="w-3 h-3 mr-1" />
                                     Verificado
                                   </Badge>
@@ -1779,7 +1795,7 @@ export default function AdminDashboard() {
                                     Defensor Adoção
                                   </Badge>
                                 )}
-                                {!user.is_verified && !user.is_adoption_advocate && user.role !== 'admin' && user.social_role !== 'moderator' && (
+                                {!user.is_verified && !user.is_adoption_advocate && user.role !== 'admin' && user.social_role !== 'moderator' && user.social_role !== 'admin' && (
                                   <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-400">
                                     Sem badges
                                   </Badge>
@@ -1794,13 +1810,15 @@ export default function AdminDashboard() {
                               setBadgesFormData({
                                 is_verified: user.is_verified || false,
                                 is_adoption_advocate: user.is_adoption_advocate || false,
+                                role: user.role || 'user',
+                                social_role: user.social_role || 'user',
                               });
                               setShowBadgesDialog(true);
                             }}
                             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                           >
                             <Shield className="w-4 h-4 mr-2" />
-                            Gerir Badges
+                            Gerir Badges e Funções
                           </Button>
                         </CardContent>
                       </Card>
@@ -1813,10 +1831,10 @@ export default function AdminDashboard() {
 
         {/* Badges Management Dialog */}
         <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
-          <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700">
+          <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="dark:text-gray-100">
-                Gerir Badges - {selectedUserForBadges?.full_name || selectedUserForBadges?.email}
+              <DialogTitle className="dark:text-gray-100 text-xl">
+                Gerir Badges e Funções - {selectedUserForBadges?.full_name || selectedUserForBadges?.email}
               </DialogTitle>
             </DialogHeader>
             
@@ -1831,11 +1849,92 @@ export default function AdminDashboard() {
                   </p>
                 </div>
 
+                {/* System Roles Section */}
                 <div className="space-y-4">
-                  <h3 className="font-bold text-gray-900 dark:text-gray-100">Atribuir Badges</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck className="w-6 h-6 text-red-600" />
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">Funções do Sistema</h3>
+                  </div>
                   
-                  {/* Verified Badge */}
+                  {/* Admin Role */}
+                  <label className="flex items-start gap-4 p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-700 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={badgesFormData.role === 'admin'}
+                      onChange={(e) => setBadgesFormData({
+                        ...badgesFormData, 
+                        role: e.target.checked ? 'admin' : 'user'
+                      })}
+                      className="mt-1 w-5 h-5"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ShieldCheck className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <h4 className="font-bold text-red-900 dark:text-red-300">Administrador Total</h4>
+                      </div>
+                      <p className="text-sm text-red-700 dark:text-red-400">
+                        ⚠️ <strong>PODER TOTAL:</strong> Acesso completo a todas as funcionalidades, dados e configurações.
+                        Pode aprovar anúncios, gerir pagamentos, configurar sistema, editar qualquer conteúdo.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Social Role - Moderator */}
                   <label className="flex items-start gap-4 p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={badgesFormData.social_role === 'moderator'}
+                      onChange={(e) => setBadgesFormData({
+                        ...badgesFormData, 
+                        social_role: e.target.checked ? 'moderator' : 'user'
+                      })}
+                      className="mt-1 w-5 h-5"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <h4 className="font-bold text-blue-900 dark:text-blue-300">Moderador (Dog Connect)</h4>
+                      </div>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                        🛡️ Pode moderar posts no Dog Connect, remover conteúdo inapropriado, fixar posts importantes,
+                        gerir reports e banir usuários problemáticos.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Social Role - Admin */}
+                  <label className="flex items-start gap-4 p-5 bg-purple-50 dark:bg-purple-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={badgesFormData.social_role === 'admin'}
+                      onChange={(e) => setBadgesFormData({
+                        ...badgesFormData, 
+                        social_role: e.target.checked ? 'admin' : 'user'
+                      })}
+                      className="mt-1 w-5 h-5"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <h4 className="font-bold text-purple-900 dark:text-purple-300">Admin Social (Dog Connect)</h4>
+                      </div>
+                      <p className="text-sm text-purple-700 dark:text-purple-400">
+                        👑 Controle total sobre o Dog Connect: tudo que o moderador pode + gerenciar outros moderadores,
+                        configurar regras, acessar analytics avançados.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Badges Section */}
+                <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-6 h-6 text-cyan-600" />
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">Badges Especiais</h3>
+                  </div>
+
+                  {/* Verified Badge */}
+                  <label className="flex items-start gap-4 p-5 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-700 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors">
                     <input
                       type="checkbox"
                       checked={badgesFormData.is_verified || false}
@@ -1844,12 +1943,12 @@ export default function AdminDashboard() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <h4 className="font-bold text-blue-900 dark:text-blue-300">Utilizador Verificado</h4>
+                        <CheckCircle className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                        <h4 className="font-bold text-cyan-900 dark:text-cyan-300">Utilizador Verificado</h4>
                       </div>
-                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                      <p className="text-sm text-cyan-700 dark:text-cyan-400">
                         Este badge indica que o utilizador foi verificado pela plataforma PawCão.
-                        Aparece como um selo azul no perfil e posts.
+                        Aparece como um selo azul ✓ no perfil e posts.
                       </p>
                     </div>
                   </label>
@@ -1868,27 +1967,24 @@ export default function AdminDashboard() {
                         <h4 className="font-bold text-pink-900 dark:text-pink-300">Defensor de Adoção</h4>
                       </div>
                       <p className="text-sm text-pink-700 dark:text-pink-400">
-                        Este badge especial é para utilizadores ativos na causa da adoção de animais.
-                        Aparece como um selo rosa com coração no perfil e posts.
+                        Badge especial para utilizadores ativos na causa da adoção de animais.
+                        Aparece como um selo rosa ❤️ no perfil e posts.
                       </p>
                     </div>
                   </label>
+                </div>
 
-                  <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl p-4">
-                    <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-2 flex items-center gap-2">
-                      <Shield className="w-5 h-5" />
-                      Funções do Sistema
-                    </h4>
-                    <p className="text-sm text-purple-700 dark:text-purple-400 mb-3">
-                      Para alterar funções do sistema (Admin, Moderador), use a aba "Users" → Editar utilizador.
-                    </p>
-                    <div className="flex gap-2">
-                      <Badge className={selectedUserForBadges.role === 'admin' ? 'bg-red-600' : 'bg-gray-400'}>
-                        {selectedUserForBadges.role === 'admin' ? '✓ Admin' : '✗ Não Admin'}
-                      </Badge>
-                      <Badge className={selectedUserForBadges.social_role === 'moderator' ? 'bg-blue-600' : 'bg-gray-400'}>
-                        {selectedUserForBadges.social_role === 'moderator' ? '✓ Moderador' : '✗ Não Moderador'}
-                      </Badge>
+                {/* Warning */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-amber-900 dark:text-amber-300 mb-2">⚠️ Atenção</h4>
+                      <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+                        <li>• <strong>Admin Total:</strong> Tenha cuidado ao dar este poder - não há restrições!</li>
+                        <li>• <strong>Moderador/Admin Social:</strong> Podem moderar conteúdo mas não têm acesso ao sistema geral</li>
+                        <li>• Badges podem ser combinados (ex: Verificado + Defensor Adoção)</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -1914,7 +2010,7 @@ export default function AdminDashboard() {
                 disabled={updateUserBadgesMutation.isPending}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               >
-                {updateUserBadgesMutation.isPending ? "A guardar..." : "Salvar Badges"}
+                {updateUserBadgesMutation.isPending ? "A guardar..." : "💾 Salvar Alterações"}
               </Button>
             </DialogFooter>
           </DialogContent>
