@@ -151,7 +151,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: language === 'pt' ? 'Serviços Parceiros' : language === 'es' ? 'Servicios Asociados' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
+    { title: language === 'pt' ? 'Parceiros' : language === 'es' ? 'Socios' : 'Partners', url: createPageUrl("PartnerServices"), icon: Award },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: language === 'pt' ? 'Adotar Pet' : language === 'es' ? 'Adoptar Mascota' : 'Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Home },
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },

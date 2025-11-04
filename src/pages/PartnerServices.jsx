@@ -1,43 +1,30 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Scissors, Droplet, Stethoscope, Syringe, Activity, Pill,
-  Calendar, Clock, MapPin, Star, Search, AlertCircle, CheckCircle,
-  Zap, Heart, Shield, PawPrint, Store
+import { 
+  Scissors, Droplet, Stethoscope, Syringe, Activity,
+  Calendar, Clock, MapPin, Star, Search, Store, 
+  PawPrint, Zap, Heart, Shield
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
-import { format, addDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useLanguage } from "@/components/LanguageContext";
 
 export default function PartnerServices() {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedCity, setSelectedCity] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-  });
-
-  const { data: userDogs } = useQuery({
-    queryKey: ['userDogs'],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
-    enabled: !!user,
-    initialData: [],
   });
 
   const { data: partners } = useQuery({
@@ -47,15 +34,11 @@ export default function PartnerServices() {
   });
 
   const { data: services, isLoading } = useQuery({
-    queryKey: ['partnerServices', selectedCategory],
-    queryFn: async () => {
-      const allServices = await base44.entities.PartnerService.filter({ 
-        is_active: true,
-        moderation_status: 'approved' 
-      });
-      if (selectedCategory === 'all') return allServices;
-      return allServices.filter(s => s.service_type === selectedCategory);
-    },
+    queryKey: ['partnerServices'],
+    queryFn: () => base44.entities.PartnerService.filter({ 
+      is_active: true,
+      moderation_status: 'approved' 
+    }),
     initialData: [],
   });
 
@@ -63,102 +46,89 @@ export default function PartnerServices() {
     queryKey: ['myServiceBookings'],
     queryFn: () => base44.entities.ServiceBooking.filter({ 
       owner_email: user?.email 
-    }, '-booking_date'),
+    }, '-booking_date', 10),
     enabled: !!user,
     initialData: [],
   });
 
   const categories = [
-    { id: "all", name: "Todos Serviços", icon: PawPrint, color: "from-gray-500 to-gray-600" },
-    { id: "bath", name: "Banho", icon: Droplet, color: "from-blue-500 to-cyan-500" },
+    { id: "all", name: language === 'pt' ? "Todos" : "All", icon: PawPrint, color: "from-gray-600 to-gray-700" },
+    { id: "bath", name: language === 'pt' ? "Banho" : "Bath", icon: Droplet, color: "from-blue-500 to-cyan-500" },
     { id: "grooming", name: "Grooming", icon: Scissors, color: "from-pink-500 to-rose-500" },
-    { id: "veterinary", name: "Veterinário", icon: Stethoscope, color: "from-red-500 to-orange-500" },
-    { id: "vaccination", name: "Vacinação", icon: Syringe, color: "from-purple-500 to-violet-500" },
+    { id: "veterinary", name: language === 'pt' ? "Veterinário" : "Vet", icon: Stethoscope, color: "from-red-500 to-orange-500" },
+    { id: "vaccination", name: language === 'pt' ? "Vacinação" : "Vaccines", icon: Syringe, color: "from-purple-500 to-violet-500" },
     { id: "checkup", name: "Check-up", icon: Activity, color: "from-green-500 to-emerald-500" },
-    { id: "emergency", name: "Emergência 24/7", icon: Zap, color: "from-orange-500 to-red-500" },
-    { id: "pharmacy", name: "Farmácia", icon: Pill, color: "from-teal-500 to-cyan-500" },
+    { id: "emergency", name: language === 'pt' ? "Emergência 24/7" : "Emergency 24/7", icon: Zap, color: "from-orange-600 to-red-600" },
   ];
 
-  const filteredListings = services.filter(service => {
+  const filteredServices = services.filter(service => {
     const matchesSearch = !searchQuery || 
       service.service_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       service.partner_name?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const partner = partners.find(p => p.id === service.partner_id);
-    const matchesCity = selectedCity === 'all' || partner?.city === selectedCity;
+    const matchesCategory = selectedCategory === "all" || service.service_type === selectedCategory;
 
-    return matchesSearch && matchesCity;
+    return matchesSearch && matchesCategory;
   });
 
   const upcomingBookings = myBookings.filter(b => 
     new Date(b.booking_date) >= new Date() && b.status !== 'cancelled'
-  );
+  ).slice(0, 3);
 
   const getServiceIcon = (type) => {
-    const icons = {
-      bath: Droplet,
-      grooming: Scissors,
-      veterinary: Stethoscope,
-      vaccination: Syringe,
-      checkup: Activity,
-      emergency: Zap,
-      pharmacy: Pill,
-      daycare: Heart,
-      boarding: Shield
-    };
-    return icons[type] || PawPrint;
+    const category = categories.find(c => c.id === type);
+    return category ? category.icon : PawPrint;
   };
 
-  const getUrgencyBadge = (service) => {
-    if (service.is_emergency) {
-      return (
-        <Badge className="bg-red-500 text-white animate-pulse absolute top-3 right-3">
-          <Zap className="w-3 h-3 mr-1" />
-          EMERGÊNCIA 24/7
-        </Badge>
-      );
-    }
-    return null;
-  };
-
-  const handleServiceClick = (service) => {
-    navigate(createPageUrl(`BookService?serviceId=${service.id}`));
+  const getCategoryColor = (type) => {
+    const category = categories.find(c => c.id === type);
+    return category ? category.color : "from-gray-500 to-gray-600";
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+        
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <Stethoscope className="w-8 h-8 text-white" />
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                <Store className="w-7 h-7 md:w-8 md:h-8 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-3xl md:text-5xl font-black text-gray-900 truncate">
+                  {language === 'pt' ? 'Parceiros' : language === 'es' ? 'Socios' : 'Partners'}
+                </h1>
+                <p className="text-sm md:text-lg text-gray-600 font-medium">
+                  {language === 'pt' ? 'Banho, Grooming, Veterinário e mais' : 'Bath, Grooming, Vet & more'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-black text-gray-900">
-                Serviços PawCão
-              </h1>
-              <p className="text-gray-600 font-medium text-lg">
-                Agende banho, grooming, veterinário e mais com nossos parceiros
-              </p>
-            </div>
+
+            {upcomingBookings.length > 0 && (
+              <Badge className="bg-blue-500 text-white px-3 md:px-4 py-2 text-xs md:text-sm flex-shrink-0">
+                <Calendar className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                {upcomingBookings.length} {language === 'pt' ? 'Agendados' : 'Scheduled'}
+              </Badge>
+            )}
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
-              { icon: Calendar, value: upcomingBookings.length, label: "Agendamentos", color: "from-blue-500 to-cyan-500" },
-              { icon: Store, value: partners.length, label: "Parceiros", color: "from-purple-500 to-violet-500" },
-              { icon: Activity, value: services.length, label: "Serviços", color: "from-green-500 to-emerald-500" },
-              { icon: CheckCircle, value: myBookings.filter(b => b.status === 'completed').length, label: "Concluídos", color: "from-pink-500 to-rose-500" }
+              { icon: Store, value: partners.length, label: language === 'pt' ? "Parceiros" : "Partners", color: "from-purple-500 to-violet-500" },
+              { icon: Activity, value: services.length, label: language === 'pt' ? "Serviços" : "Services", color: "from-green-500 to-emerald-500" },
+              { icon: Calendar, value: upcomingBookings.length, label: language === 'pt' ? "Próximos" : "Upcoming", color: "from-blue-500 to-cyan-500" },
+              { icon: Heart, value: myBookings.filter(b => b.status === 'completed').length, label: language === 'pt' ? "Completos" : "Completed", color: "from-pink-500 to-rose-500" }
             ].map((stat, idx) => (
               <Card key={idx} className="border-0 shadow-lg">
-                <CardContent className="p-4 text-center">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg`}>
-                    <stat.icon className="w-6 h-6 text-white" />
+                <CardContent className="p-3 md:p-4 text-center">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg`}>
+                    <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-xs text-gray-600 font-medium">{stat.label}</div>
+                  <div className="text-xl md:text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-[10px] md:text-xs text-gray-600 font-medium">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
@@ -168,27 +138,26 @@ export default function PartnerServices() {
         {/* Upcoming Bookings Alert */}
         {upcomingBookings.length > 0 && (
           <Card className="border-2 border-blue-300 bg-blue-50 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="font-bold text-blue-900 mb-2">
-                    Próximos Agendamentos ({upcomingBookings.length})
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-start gap-3 md:gap-4">
+                <Calendar className="w-5 h-5 md:w-6 md:h-6 text-blue-600 flex-shrink-0 mt-1" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-sm md:text-base text-blue-900 mb-3">
+                    {language === 'pt' ? 'Próximos Agendamentos' : 'Upcoming Bookings'} ({upcomingBookings.length})
                   </h3>
                   <div className="space-y-2">
-                    {upcomingBookings.slice(0, 3).map(booking => (
-                      <div key={booking.id} className="flex items-center justify-between bg-white rounded-lg p-3">
-                        <div>
-                          <p className="font-semibold text-gray-900">{booking.service_name}</p>
-                          <p className="text-sm text-gray-600">
-                            {booking.dog_name} • {format(new Date(booking.booking_date), "d MMM", { locale: ptBR })} às {booking.booking_time}
+                    {upcomingBookings.map(booking => (
+                      <div key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-lg p-3 gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm md:text-base text-gray-900 truncate">{booking.service_name}</p>
+                          <p className="text-xs md:text-sm text-gray-600">
+                            {booking.dog_name} • {new Date(booking.booking_date).toLocaleDateString()} às {booking.booking_time}
                           </p>
                         </div>
-                        <Badge className={
+                        <Badge className={`flex-shrink-0 ${
                           booking.status === 'confirmed' ? 'bg-green-500' :
-                          booking.status === 'in_progress' ? 'bg-blue-500' :
-                          'bg-yellow-500'
-                        }>
+                          booking.status === 'pending' ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`}>
                           {booking.status}
                         </Badge>
                       </div>
@@ -200,24 +169,24 @@ export default function PartnerServices() {
           </Card>
         )}
 
-        {/* Category Tabs */}
+        {/* Category Pills */}
         <div className="mb-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Categorias</h3>
-          <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
+          <div className="flex overflow-x-auto gap-2 md:gap-3 pb-2 scrollbar-hide">
             {categories.map(cat => {
               const Icon = cat.icon;
+              const isActive = selectedCategory === cat.id;
               return (
                 <Button
                   key={cat.id}
-                  variant={selectedCategory === cat.id ? "default" : "outline"}
+                  variant={isActive ? "default" : "outline"}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`whitespace-nowrap h-14 px-6 text-sm font-semibold shadow-md ${
-                    selectedCategory === cat.id
+                  className={`whitespace-nowrap h-10 md:h-12 px-4 md:px-6 text-xs md:text-sm font-semibold shadow-md flex-shrink-0 ${
+                    isActive
                       ? `bg-gradient-to-r ${cat.color} text-white border-0`
                       : 'bg-white'
                   }`}
                 >
-                  <Icon className="w-5 h-5 mr-2" />
+                  <Icon className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" />
                   {cat.name}
                 </Button>
               );
@@ -225,189 +194,188 @@ export default function PartnerServices() {
           </div>
         </div>
 
-        {/* Search & Filters */}
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
+        {/* Search */}
+        <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
             <Input
-              placeholder="Pesquisar serviços..."
+              placeholder={language === 'pt' ? "Pesquisar serviços ou parceiros..." : "Search services or partners..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-12 rounded-xl border-2"
+              className="pl-9 md:pl-11 h-10 md:h-12 rounded-xl border-2 text-sm md:text-base"
             />
           </div>
-          <Select value={selectedCity} onValueChange={setSelectedCity}>
-            <SelectTrigger className="h-12 rounded-xl border-2">
-              <MapPin className="w-5 h-5 mr-2" />
-              <SelectValue placeholder="Cidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Cidades</SelectItem>
-              <SelectItem value="lisboa">Lisboa</SelectItem>
-              <SelectItem value="porto">Porto</SelectItem>
-              <SelectItem value="braga">Braga</SelectItem>
-              <SelectItem value="coimbra">Coimbra</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
-        {/* Listings Grid */}
+        {/* Services Grid */}
         {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Skeleton key={i} className="h-96 rounded-2xl" />
+              <Skeleton key={i} className="h-80 md:h-96 rounded-2xl" />
             ))}
           </div>
-        ) : filteredListings.length === 0 ? (
+        ) : filteredServices.length === 0 ? (
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-12 text-center">
-              <PawPrint className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Nenhum serviço encontrado
+            <CardContent className="p-8 md:p-12 text-center">
+              <PawPrint className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                {language === 'pt' ? 'Nenhum serviço encontrado' : 'No services found'}
               </h3>
-              <p className="text-gray-600">Tente ajustar os filtros</p>
+              <p className="text-sm md:text-base text-gray-600">
+                {language === 'pt' ? 'Tente ajustar os filtros' : 'Try adjusting filters'}
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence>
-              {filteredListings.map((service, idx) => {
-                const ServiceIcon = getServiceIcon(service.service_type);
-                const partner = partners.find(p => p.id === service.partner_id);
-                const category = categories.find(c => c.id === service.service_type) || categories[0];
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {filteredServices.map((service, idx) => {
+              const ServiceIcon = getServiceIcon(service.service_type);
+              const partner = partners.find(p => p.id === service.partner_id);
+              const colorGradient = getCategoryColor(service.service_type);
 
-                return (
-                  <motion.div
-                    key={service.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ y: -5 }}
+              return (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  whileHover={{ y: -5 }}
+                >
+                  <Card 
+                    className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden cursor-pointer h-full"
+                    onClick={() => navigate(createPageUrl(`BookService?serviceId=${service.id}`))}
                   >
-                    <Card 
-                      className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden cursor-pointer"
-                      onClick={() => handleServiceClick(service)}
-                    >
-                      {/* Service Image */}
-                      <div className={`relative h-48 bg-gradient-to-br ${category.color} flex items-center justify-center`}>
-                        {service.image_url ? (
-                          <img
-                            src={service.image_url}
-                            className="w-full h-full object-cover"
-                            alt={service.service_name}
-                          />
-                        ) : (
-                          <ServiceIcon className="w-20 h-20 text-white opacity-50" />
-                        )}
-                        
-                        {getUrgencyBadge(service)}
-                        
-                        {partner?.logo_url && (
-                          <div className="absolute bottom-3 left-3 w-12 h-12 bg-white rounded-full p-1 shadow-lg">
-                            <img src={partner.logo_url} className="w-full h-full object-contain" alt="" />
-                          </div>
-                        )}
-                      </div>
+                    {/* Image Header */}
+                    <div className={`relative h-40 md:h-48 bg-gradient-to-br ${colorGradient} flex items-center justify-center`}>
+                      {service.image_url ? (
+                        <img
+                          src={service.image_url}
+                          className="w-full h-full object-cover"
+                          alt={service.service_name}
+                        />
+                      ) : (
+                        <ServiceIcon className="w-16 h-16 md:w-20 md:h-20 text-white opacity-50" />
+                      )}
+                      
+                      {service.is_emergency && (
+                        <Badge className="absolute top-2 md:top-3 right-2 md:right-3 bg-red-500 text-white animate-pulse text-xs">
+                          <Zap className="w-3 h-3 mr-1" />
+                          24/7
+                        </Badge>
+                      )}
+                      
+                      {partner?.logo_url && (
+                        <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3 w-10 h-10 md:w-12 md:h-12 bg-white rounded-full p-1 shadow-lg">
+                          <img src={partner.logo_url} className="w-full h-full object-contain" alt="" />
+                        </div>
+                      )}
+                    </div>
 
-                      <CardContent className="p-5">
-                        <div className="mb-4">
-                          <h3 className="text-xl font-bold text-gray-900 mb-1">
-                            {service.service_name}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-2">{service.partner_name}</p>
-                          
+                    <CardContent className="p-4 md:p-5">
+                      <div className="mb-4">
+                        <h3 className="text-base md:text-xl font-bold text-gray-900 mb-1 line-clamp-1">
+                          {service.service_name}
+                        </h3>
+                        <p className="text-xs md:text-sm text-gray-600 mb-2 truncate">{service.partner_name}</p>
+                        
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <Badge variant="outline" className="capitalize text-[10px] md:text-xs">
+                            {service.service_type.replace('_', ' ')}
+                          </Badge>
+                          {service.duration_minutes && (
+                            <div className="flex items-center gap-1 text-xs md:text-sm text-gray-600">
+                              <Clock className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                              {service.duration_minutes}min
+                            </div>
+                          )}
+                        </div>
+
+                        {service.average_rating > 0 && (
                           <div className="flex items-center gap-2 mb-3">
-                            <Badge variant="outline" className="capitalize">
-                              {service.service_type}
-                            </Badge>
-                            {service.duration_minutes && (
-                              <div className="flex items-center gap-1 text-sm text-gray-600">
-                                <Clock className="w-4 h-4" />
-                                {service.duration_minutes}min
-                              </div>
-                            )}
-                          </div>
-
-                          {service.average_rating > 0 && (
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="flex items-center gap-1">
-                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                <span className="font-semibold text-gray-900">
-                                  {service.average_rating.toFixed(1)}
-                                </span>
-                              </div>
-                              <span className="text-sm text-gray-600">
-                                ({service.total_bookings || 0} agendamentos)
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-semibold text-sm md:text-base text-gray-900">
+                                {service.average_rating.toFixed(1)}
                               </span>
                             </div>
-                          )}
+                            <span className="text-xs md:text-sm text-gray-600">
+                              ({service.total_bookings || 0})
+                            </span>
+                          </div>
+                        )}
 
-                          <p className="text-sm text-gray-700 mb-4 line-clamp-2">
-                            {service.description}
-                          </p>
-                        </div>
+                        <p className="text-xs md:text-sm text-gray-700 mb-4 line-clamp-2">
+                          {service.description}
+                        </p>
+                      </div>
 
-                        {/* Pricing */}
-                        <div className="border-t pt-4">
-                          {service.price_by_size ? (
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                              {Object.entries(service.price_by_size).map(([size, price]) => (
-                                <div key={size} className="text-center p-2 bg-gray-50 rounded-lg">
-                                  <p className="text-xs text-gray-600 capitalize">{size}</p>
-                                  <p className="text-lg font-bold text-green-600">€{price}</p>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-3xl font-bold text-green-600 mb-4">
-                              €{service.base_price}
-                            </div>
-                          )}
+                      {/* Pricing */}
+                      <div className="border-t pt-4">
+                        {service.price_by_size ? (
+                          <div className="grid grid-cols-2 gap-2 mb-4">
+                            {Object.entries(service.price_by_size).slice(0, 4).map(([size, price]) => (
+                              <div key={size} className="text-center p-2 bg-gray-50 rounded-lg">
+                                <p className="text-[10px] md:text-xs text-gray-600 capitalize truncate">
+                                  {size === 'small' ? (language === 'pt' ? 'Pequeno' : 'Small') :
+                                   size === 'medium' ? (language === 'pt' ? 'Médio' : 'Medium') :
+                                   size === 'large' ? (language === 'pt' ? 'Grande' : 'Large') :
+                                   size === 'extra_large' ? 'XL' : size}
+                                </p>
+                                <p className="text-base md:text-lg font-bold text-green-600">€{price}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-2xl md:text-3xl font-bold text-green-600 mb-4">
+                            €{service.base_price}
+                          </div>
+                        )}
 
-                          <Button 
-                            className={`w-full bg-gradient-to-r ${category.color} text-white shadow-lg h-12 text-base font-bold`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleServiceClick(service);
-                            }}
-                          >
-                            <Calendar className="w-5 h-5 mr-2" />
-                            Agendar Agora
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                        <Button 
+                          className={`w-full bg-gradient-to-r ${colorGradient} text-white shadow-lg h-10 md:h-12 text-xs md:text-base font-bold`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(createPageUrl(`BookService?serviceId=${service.id}`));
+                          }}
+                        >
+                          <Calendar className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                          {language === 'pt' ? 'Agendar' : language === 'es' ? 'Reservar' : 'Book Now'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         )}
 
-        {/* Emergency Services Banner */}
-        <Card className="mt-12 border-0 shadow-2xl bg-gradient-to-r from-orange-500 to-red-600 text-white">
-          <CardContent className="p-8 md:p-12">
+        {/* Emergency Banner */}
+        <Card className="mt-12 border-0 shadow-2xl bg-gradient-to-r from-orange-500 to-red-600 text-white overflow-hidden">
+          <CardContent className="p-6 md:p-12">
             <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
-                <Zap className="w-12 h-12 text-white" />
+              <div className="w-16 h-16 md:w-24 md:h-24 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <Zap className="w-8 h-8 md:w-12 md:h-12 text-white" />
               </div>
               <div className="flex-1 text-center md:text-left">
-                <h2 className="text-3xl md:text-4xl font-bold mb-3">
-                  Serviços de Emergência 24/7
+                <h2 className="text-2xl md:text-4xl font-bold mb-3">
+                  {language === 'pt' ? 'Emergência 24/7' : 'Emergency 24/7'}
                 </h2>
-                <p className="text-lg text-white/90 mb-4">
-                  Precisa de atendimento urgente? Nossos parceiros veterinários estão disponíveis 24 horas por dia.
+                <p className="text-sm md:text-lg text-white/90 mb-4">
+                  {language === 'pt' 
+                    ? 'Veterinários disponíveis 24 horas para urgências' 
+                    : 'Vets available 24/7 for emergencies'}
                 </p>
                 <Button
                   size="lg"
-                  className="bg-white text-red-600 hover:bg-red-50 font-bold shadow-xl"
+                  className="bg-white text-red-600 hover:bg-red-50 font-bold shadow-xl h-10 md:h-12 text-sm md:text-base"
                   onClick={() => {
                     setSelectedCategory('emergency');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 >
-                  <Zap className="w-5 h-5 mr-2" />
-                  Ver Serviços de Emergência
+                  <Zap className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                  {language === 'pt' ? 'Ver Emergências' : 'View Emergency'}
                 </Button>
               </div>
             </div>
