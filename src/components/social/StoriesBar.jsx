@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function StoriesBar({ stories, onStoryClick, onCreateStory, currentUser }) {
+export default function StoriesBar({ stories = [], onStoryClick, onCreateStory, currentUser }) {
+  // Guard against undefined stories
+  if (!stories || !Array.isArray(stories)) {
+    stories = [];
+  }
+
   // Group stories by author
   const groupedStories = stories.reduce((acc, story) => {
     if (!acc[story.author_email]) {
