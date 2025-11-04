@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -22,54 +24,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import {
-  Shield,
-  Users,
-  Briefcase,
-  Calendar,
-  DollarSign,
-  BarChart3,
-  Search,
+  Users, Shield, CheckCircle, X, Eye, Clock, Ban, Briefcase, Package,
+  Calendar, DollarSign, Star, AlertCircle, BarChart3, TrendingUp, Store,
+  Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   CheckCircle2, // Used for overview stats
-  XCircle,
-  Eye,
-  Edit,
-  Ban,
-  TrendingUp,
-  Activity,
-  AlertCircle,
   FileText,
   Download,
   Trash2,
-  ShieldCheck, // Used for system admin roles
   User,
-  Store,
   Plus,
-  Star,
-  CheckCircle, // Used for verified badge and reviews
-  X,
-  Flag,
-  Heart, // Used for adoption advocate badge
-  Sparkles, // Added for badges section
-  Award, // Added for custom badges
-  Upload, // Added for badge image upload
   ExternalLink,
-  Clock, // Added for pending state in button
-  Package, // NEW: Added for services tab
+  Edit,
 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,13 +61,13 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [verificationNotes, setVerificationNotes] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserDialog, setShowUserDialog] = useState(false);
-  const [userFormData, setUserFormData] = useState({});
-  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
-  const [companyFormData, setCompanyFormData] = useState({});
+  const [selectedApplication, setSelectedApplication] = useState(null); // Kept from original
+  const [verificationNotes, setVerificationNotes] = useState(""); // Kept from original
+  const [selectedUser, setSelectedUser] = useState(null); // Kept from original
+  const [showUserDialog, setShowUserDialog] = useState(false); // Kept from original
+  const [userFormData, setUserFormData] = useState({}); // Kept from original
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false); // Kept from original
+  const [companyFormData, setCompanyFormData] = useState({}); // Kept from original
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
   const [selectedUserForBadges, setSelectedUserForBadges] = useState(null);
   const [badgesFormData, setBadgesFormData] = useState({});
@@ -101,95 +81,84 @@ export default function AdminDashboard() {
   });
   const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false);
 
-  // Check if user is admin
-  const { data: user, isLoading: loadingUser } = useQuery({
+  const { data: user, isLoading: loadingUser } = useQuery({ // Kept isLoading
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  // Optimized queries - only load what's needed per tab
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
     queryFn: () => base44.entities.User.list(),
-    enabled: user?.role === 'admin' && (activeTab === 'users' || activeTab === 'badges'),
+    enabled: user?.role === 'admin',
+    initialData: [],
   });
 
   const { data: walkerApplications = [] } = useQuery({
     queryKey: ['walkerApplications'],
     queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'pending' }),
     enabled: user?.role === 'admin' && activeTab === 'applications',
+    initialData: [],
   });
 
   const { data: trainerApplications = [] } = useQuery({
     queryKey: ['trainerApplications'],
     queryFn: () => base44.entities.TrainerProfile.filter({ verification_status: 'pending' }),
     enabled: user?.role === 'admin' && activeTab === 'applications',
+    initialData: [],
   });
 
-  const { data: pendingApprovalServices = [] } = useQuery({
-    queryKey: ['allPartnerServices', 'pending'],
-    queryFn: () => base44.entities.PartnerService.filter({ moderation_status: 'pending' }),
+  // Query for pending services (as per new outline)
+  const { data: allPartnerServices = [] } = useQuery({
+    queryKey: ['allPartnerServices'],
+    queryFn: () => base44.entities.PartnerService.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'services',
+    initialData: [],
   });
+  const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
 
-  const { data: recentBookings = [] } = useQuery({
-    queryKey: ['recentBookings'],
-    queryFn: async () => {
-      const walkerBookings = await base44.entities.Booking.list('-created_date', 20);
-      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date', 20);
-      return [...walkerBookings, ...trainerBookings].slice(0, 20);
+  const { data: allBookings = [] } = useQuery({ // Renamed from recentBookings
+    queryKey: ['allBookings'],
+    queryFn: async () => { // Kept original logic for combining types of bookings
+      const walkerBookings = await base44.entities.Booking.list('-created_date', 100);
+      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date', 100);
+      return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: user?.role === 'admin' && activeTab === 'bookings',
+    initialData: [],
   });
 
-  const { data: recentPayments = [] } = useQuery({
-    queryKey: ['recentPayments'],
-    queryFn: () => base44.entities.Payment.list('-created_date', 20),
+  const { data: allPayments = [] } = useQuery({ // Renamed from recentPayments
+    queryKey: ['allPayments'],
+    queryFn: () => base44.entities.Payment.list('-held_date', 100), // Changed to -held_date based on outline's data for this query
     enabled: user?.role === 'admin' && activeTab === 'payments',
+    initialData: [],
   });
 
-  const { data: emergencies = [] } = useQuery({
-    queryKey: ['emergencies'],
-    queryFn: () => base44.entities.Emergency.filter({ status: 'reported' }),
+  const { data: supportTickets = [] } = useQuery({ // Renamed from emergencies
+    queryKey: ['supportTickets'],
+    queryFn: () => base44.entities.ChatConversation.filter({ tags: 'emergency' }), // New query for support tickets
     enabled: user?.role === 'admin' && activeTab === 'support',
+    initialData: [],
   });
 
+  // Kept from original: Partner Companies query
   const { data: partnerCompanies = [] } = useQuery({
     queryKey: ['allPartnerCompanies'],
     queryFn: () => base44.entities.PartnerCompany.list(),
     enabled: user?.role === 'admin' && activeTab === 'companies',
   });
 
-  const { data: pendingReviews = [] } = useQuery({
-    queryKey: ['pendingPartnerReviews'],
-    queryFn: () => base44.entities.PartnerReview.filter({ status: 'pending' }),
-    enabled: user?.role === 'admin',
+  const { data: allReviews = [] } = useQuery({ // New query for reviews
+    queryKey: ['allReviews'],
+    queryFn: () => base44.entities.Review.list('-created_date', 100),
+    enabled: user?.role === 'admin' && activeTab === 'reviews',
     initialData: [],
   });
+  const pendingReviews = allReviews.filter(r => !r.is_verified); // Filtered from allReviews
 
-  // Stats - lighter query for overview
-  const { data: stats } = useQuery({
-    queryKey: ['adminStats'],
-    queryFn: async () => {
-      const users = await base44.entities.User.list();
-      const walkers = await base44.entities.WalkerProfile.filter({ verification_status: 'verified' });
-      const trainers = await base44.entities.TrainerProfile.filter({ verification_status: 'verified' });
-      const pendingWalkers = await base44.entities.WalkerProfile.filter({ verification_status: 'pending' });
-      const pendingTrainers = await base44.entities.TrainerProfile.filter({ verification_status: 'pending' });
-      const pendingServices = await base44.entities.PartnerService.filter({ moderation_status: 'pending' }); // NEW: fetch pending services for stats
-      
-      return {
-        totalUsers: users.length,
-        totalWalkers: walkers.length,
-        totalTrainers: trainers.length,
-        pendingApplications: pendingWalkers.length + pendingTrainers.length,
-        pendingServices: pendingServices.length, // NEW: add to stats
-      };
-    },
-    enabled: user?.role === 'admin' && activeTab === 'overview',
-  });
+  // Mutations (Kept from original unless explicitly replaced by outline)
 
-  // Update Walker Application
+  // Update Walker Application (kept from original)
   const updateWalkerMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WalkerProfile.update(id, data),
     onSuccess: () => {
@@ -200,7 +169,7 @@ export default function AdminDashboard() {
     },
   });
 
-  // Update Trainer Application
+  // Update Trainer Application (kept from original)
   const updateTrainerMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TrainerProfile.update(id, data),
     onSuccess: () => {
@@ -211,7 +180,7 @@ export default function AdminDashboard() {
     },
   });
 
-  // Update User Mutation
+  // Update User Mutation (kept from original)
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
@@ -222,7 +191,7 @@ export default function AdminDashboard() {
     },
   });
 
-  // Delete User Mutation
+  // Delete User Mutation (kept from original)
   const deleteUserMutation = useMutation({
     mutationFn: (id) => base44.entities.User.delete(id),
     onSuccess: () => {
@@ -231,7 +200,7 @@ export default function AdminDashboard() {
     },
   });
 
-  // Company Mutations
+  // Company Mutations (kept from original)
   const createCompanyMutation = useMutation({
     mutationFn: (companyData) => base44.entities.PartnerCompany.create(companyData),
     onSuccess: () => {
@@ -250,34 +219,31 @@ export default function AdminDashboard() {
     },
   });
 
-  const moderateReviewMutation = useMutation({
+  const moderateReviewMutation = useMutation({ // Kept from original, but updated entity to 'Review'
     mutationFn: async ({ reviewId, status, notes }) => {
       const currentUser = await base44.auth.me(); // Fetch current user for moderator info
-      return base44.entities.PartnerReview.update(reviewId, {
-        status,
+      return base44.entities.Review.update(reviewId, { // Changed from PartnerReview to Review
+        is_verified: status === 'approved', // Review entity uses is_verified
         moderation_notes: notes,
         moderated_by: currentUser.email,
         moderated_date: new Date().toISOString()
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pendingPartnerReviews'] });
-      queryClient.invalidateQueries({ queryKey: ['partnerReviews'] }); // Invalidate general partner reviews as well
+      queryClient.invalidateQueries({ queryKey: ['allReviews'] }); // Invalidate allReviews
       toast.success("Avaliação moderada com sucesso");
     },
   });
 
-  const updateUserBadgesMutation = useMutation({
+  const updateUserBadgesMutation = useMutation({ // Updated based on outline
     mutationFn: ({ userId, badges }) => {
-      // Encontrar o usuário atual para preservar todos os campos
       const currentUser = allUsers.find(u => u.id === userId);
       if (!currentUser) {
         throw new Error("Usuário não encontrado");
       }
 
-      // Merge dos dados existentes com os novos badges
       const updateData = {
-        ...currentUser, // Preserve all other fields
+        ...currentUser,
         is_verified: badges.is_verified,
         is_adoption_advocate: badges.is_adoption_advocate,
         role: badges.role,
@@ -301,12 +267,13 @@ export default function AdminDashboard() {
     }
   });
 
+  // Handlers (Kept from original for existing tabs)
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setUserFormData({
       full_name: user.full_name || "",
       role: user.role || "user",
-      social_role: user.social_role || "user", // Added social_role
+      social_role: user.social_role || "user",
       account_type: user.account_type || "owner",
       phone: user.phone || "",
       city: user.city || "",
@@ -410,7 +377,8 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleBadgeImageUpload = async (e) => {
+
+  const handleBadgeImageUpload = async (e) => { // From outline
     const file = e.target.files[0];
     if (!file) return;
 
@@ -420,7 +388,7 @@ export default function AdminDashboard() {
       setNewCustomBadge({
         ...newCustomBadge,
         image_url: file_url,
-        icon: "" // Clear emoji when image is uploaded
+        icon: ""
       });
       toast.success("✅ Imagem carregada!");
     } catch (error) {
@@ -431,7 +399,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleAddCustomBadge = () => {
+  const handleAddCustomBadge = () => { // From outline
     if (!newCustomBadge.name || !newCustomBadge.description) {
       toast.error("❌ Preencha nome e descrição do badge");
       return;
@@ -444,7 +412,7 @@ export default function AdminDashboard() {
 
     const currentBadges = badgesFormData.public_badges || [];
     const badgeToAdd = {
-      badge_id: `custom_${Date.now()}`, // Simple unique ID for now
+      badge_id: `custom_${Date.now()}`,
       name: newCustomBadge.name,
       description: newCustomBadge.description,
       icon: newCustomBadge.icon || "",
@@ -461,12 +429,11 @@ export default function AdminDashboard() {
       public_badges: updatedBadges
     });
 
-    // Reset form
     setNewCustomBadge({
       name: "",
       description: "",
       icon: "⭐",
-      image_url: "", // Clear image_url on add
+      image_url: "",
       rarity: "common",
       category: "special"
     });
@@ -474,7 +441,7 @@ export default function AdminDashboard() {
     toast.success(`✨ Emblema "${badgeToAdd.name}" adicionado! Clique em 💾 Salvar para confirmar`);
   };
 
-  const handleRemoveBadge = (badgeId) => {
+  const handleRemoveBadge = (badgeId) => { // From outline
     const currentBadges = badgesFormData.public_badges || [];
     const updatedBadges = currentBadges.filter(b => b.badge_id !== badgeId);
     
@@ -486,10 +453,9 @@ export default function AdminDashboard() {
     toast.success("🗑️ Emblema removido! Clique em 💾 Salvar para confirmar");
   };
 
-  const handleOpenBadgesDialog = (userItem) => {
+  const handleOpenBadgesDialog = (userItem) => { // From outline
     setSelectedUserForBadges(userItem);
     
-    // Carregar todos os dados atuais do usuário
     const currentBadges = userItem.public_badges || [];
     
     setBadgesFormData({
@@ -497,19 +463,18 @@ export default function AdminDashboard() {
       is_adoption_advocate: userItem.is_adoption_advocate || false,
       role: userItem.role || 'user',
       social_role: userItem.social_role || 'user',
-      public_badges: [...currentBadges] // Clone do array para evitar mutação direta
+      public_badges: [...currentBadges]
     });
     
     setShowBadgesDialog(true);
   };
 
-  const handleSaveBadges = () => {
+  const handleSaveBadges = () => { // From outline
     if (!selectedUserForBadges) {
       toast.error("❌ Nenhum usuário selecionado");
       return;
     }
 
-    // Validar que há pelo menos alguma mudança
     const hasChanges = 
       badgesFormData.is_verified !== selectedUserForBadges.is_verified ||
       badgesFormData.is_adoption_advocate !== selectedUserForBadges.is_adoption_advocate ||
@@ -521,7 +486,6 @@ export default function AdminDashboard() {
       toast.info("ℹ️ Nenhuma alteração detectada");
       setShowBadgesDialog(false);
       setSelectedUserForBadges(null);
-      setBadgesFormData({});
       return;
     }
 
@@ -531,7 +495,6 @@ export default function AdminDashboard() {
     });
   };
 
-  // Access control
   if (loadingUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
@@ -542,38 +505,59 @@ export default function AdminDashboard() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
-        <Card className="max-w-md border-0 shadow-2xl dark:bg-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-6">
+        <Card className="max-w-md border-0 shadow-2xl">
           <CardContent className="p-12 text-center">
-            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Ban className="w-10 h-10 text-red-600 dark:text-red-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
-            <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+            <Ban className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
+            <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
+  // Stats array as per outline's new header
+  const stats = [
+    { icon: Users, value: allUsers.length, label: "Total Users", color: "from-blue-600 to-cyan-600" },
+    { icon: Briefcase, value: walkerApplications.length + trainerApplications.length, label: "Pending Apps", color: "from-purple-600 to-pink-600" },
+    { icon: Package, value: pendingApprovalServices.length, label: "Services Pending", color: "from-orange-600 to-red-600" },
+    { icon: Calendar, value: allBookings.length, label: "Total Bookings", color: "from-green-600 to-emerald-600" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        {/* Compact Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-600 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Shield className="w-5 h-5 md:w-7 md:h-7 text-white" />
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header (Updated from outline) */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <Shield className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Gerir plataforma PawCão</p>
+              <h1 className="text-4xl font-black text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Complete platform management</p>
             </div>
+          </div>
+
+          {/* Stats (Updated from outline) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((stat, idx) => (
+              <Card key={idx} className="border-0 shadow-lg dark:bg-gray-800">
+                <CardContent className="p-6 text-center">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stat.label}</div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-1 md:gap-2 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-1 md:gap-2 bg-white shadow-lg p-1 h-auto dark:bg-gray-800 transition-colors">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
               <BarChart3 className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden md:inline">Overview</span>
@@ -626,44 +610,19 @@ export default function AdminDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* OVERVIEW TAB - Optimized */}
+          {/* OVERVIEW TAB - Simplified as per outline */}
           <TabsContent value="overview">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                <CardContent className="p-4 md:p-6">
-                  <Users className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
-                  <div className="text-2xl md:text-3xl font-bold">{stats?.totalUsers || 0}</div>
-                  <div className="text-xs md:text-sm opacity-90">Total Users</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
-                <CardContent className="p-4 md:p-6">
-                  <Briefcase className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
-                  <div className="text-2xl md:text-3xl font-bold">{(stats?.totalWalkers || 0) + (stats?.totalTrainers || 0)}</div>
-                  <div className="text-xs md:text-sm opacity-90">Professionals</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                <CardContent className="p-4 md:p-6">
-                  <AlertCircle className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
-                  <div className="text-2xl md:text-3xl font-bold">{(stats?.pendingApplications || 0) + (stats?.pendingServices || 0)}</div> {/* Adjusted to include pending services */}
-                  <div className="text-xs md:text-sm opacity-90">Pending Apps/Services</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
-                <CardContent className="p-4 md:p-6">
-                  <Star className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
-                  <div className="text-2xl md:text-3xl font-bold">{pendingReviews.length}</div>
-                  <div className="text-xs md:text-sm opacity-90">Pending Reviews</div>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="dark:text-gray-100">Platform Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-400">Quick stats and insights coming soon...</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* USERS TAB */}
+          {/* USERS TAB - Kept original */}
           <TabsContent value="users">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -695,7 +654,7 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {allUsers
-                        .filter(u => 
+                        .filter(u =>
                           u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
                         )
@@ -716,8 +675,8 @@ export default function AdminDashboard() {
                             <TableCell className="dark:text-gray-300">{format(new Date(user.created_date), 'dd/MM/yyyy')}</TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   variant="outline"
                                   onClick={() => handleEditUser(user)}
                                   className="hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300"
@@ -725,8 +684,8 @@ export default function AdminDashboard() {
                                   <Edit className="w-4 h-4 mr-1" />
                                   Editar
                                 </Button>
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   variant="outline"
                                   onClick={() => handleDeleteUser(user)}
                                   className="hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
@@ -922,14 +881,14 @@ export default function AdminDashboard() {
                 )}
 
                 <DialogFooter>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowUserDialog(false)}
                     className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Cancelar
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSaveUser}
                     disabled={updateUserMutation.isPending}
                     className="bg-green-600 hover:bg-green-700"
@@ -941,7 +900,7 @@ export default function AdminDashboard() {
             </Dialog>
           </TabsContent>
 
-          {/* COMPANIES TAB - FIXED LINK */}
+          {/* COMPANIES TAB - Kept original */}
           <TabsContent value="companies">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -950,7 +909,7 @@ export default function AdminDashboard() {
                     <CardTitle className="text-xl md:text-2xl dark:text-gray-100">Gestão de Empresas Parceiras</CardTitle>
                     <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">Adicione e gira empresas parceiras no sistema</p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setCompanyFormData({
                         company_email: "",
@@ -986,7 +945,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{company.company_email}</p>
                         
                         <div className="flex flex-wrap gap-1.5 mb-3">
-                          <Badge className="text-xs capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type.replace('_', ' ')}</Badge>
+                          <Badge className="text-xs capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type?.replace('_', ' ')}</Badge>
                           <Badge className={`text-xs ${company.is_active ? "bg-green-500" : "bg-gray-500"}`}>
                             {company.is_active ? "Ativo" : "Inativo"}
                           </Badge>
@@ -1002,20 +961,19 @@ export default function AdminDashboard() {
                             <p className="text-gray-500 dark:text-gray-400">Vendas</p>
                             <p className="font-bold text-green-600 dark:text-green-400">€{(company.total_sales || 0).toFixed(0)}</p>
                           </div>
-                          {/* Commission and Monthly fee are not in outline's card content */}
                         </div>
 
                         <div className="flex gap-2">
-                          <Button 
-                            className="flex-1 h-8 text-xs" 
+                          <Button
+                            className="flex-1 h-8 text-xs"
                             variant="outline"
                             onClick={() => navigate(createPageUrl('PartnerDashboard'))}
                           >
                             <ExternalLink className="w-3 h-3 mr-1" />
                             Ver Painel
                           </Button>
-                          <Button 
-                            size="icon" 
+                          <Button
+                            size="icon"
                             variant="outline"
                             onClick={() => handleDeleteCompany(company)}
                             className="hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800 h-8 w-8"
@@ -1156,14 +1114,14 @@ export default function AdminDashboard() {
                 </div>
 
                 <DialogFooter>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowCompanyDialog(false)}
                     className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Cancelar
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleCreateCompany}
                     disabled={createCompanyMutation.isPending}
                     className="bg-green-600 hover:bg-green-700"
@@ -1175,7 +1133,7 @@ export default function AdminDashboard() {
             </Dialog>
           </TabsContent>
 
-          {/* ✅ NOVO: SERVICES TAB - Aprovar Serviços */}
+          {/* SERVICES TAB - COMPLETELY NEW FROM OUTLINE */}
           <TabsContent value="services">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1208,6 +1166,9 @@ export default function AdminDashboard() {
                                 <div>
                                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{service.service_name}</h3>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">{service.partner_name}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Criado em {format(new Date(service.created_date), "d 'de' MMM", { locale: ptBR })}
+                                  </p>
                                 </div>
                                 <Badge className="bg-orange-500 text-white dark:bg-orange-700">
                                   <Clock className="w-3 h-3 mr-1" />
@@ -1235,22 +1196,26 @@ export default function AdminDashboard() {
                               <div className="flex gap-3">
                                 <Button
                                   onClick={async () => {
-                                    await base44.entities.PartnerService.update(service.id, {
-                                      moderation_status: 'approved',
-                                      is_active: true
-                                    });
-                                    
-                                    await base44.entities.Notification.create({
-                                      recipient_email: service.created_by,
-                                      title: "✅ Serviço Aprovado!",
-                                      message: `Seu serviço "${service.service_name}" foi aprovado e está visível na plataforma!`,
-                                      type: "system",
-                                      priority: "normal"
-                                    });
-                                    
-                                    queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
-                                    queryClient.invalidateQueries({ queryKey: ['adminStats'] }); // Invalidate stats to update pending count
-                                    toast.success("Serviço aprovado!");
+                                    try {
+                                      await base44.entities.PartnerService.update(service.id, {
+                                        moderation_status: 'approved',
+                                        is_active: true
+                                      });
+                                      
+                                      await base44.entities.Notification.create({
+                                        recipient_email: service.created_by,
+                                        title: "✅ Serviço Aprovado!",
+                                        message: `Seu serviço "${service.service_name}" foi aprovado e está visível na plataforma!`,
+                                        type: "system",
+                                        priority: "normal"
+                                      });
+                                      
+                                      queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                      toast.success("✅ Serviço aprovado!");
+                                    } catch (error) {
+                                      toast.error("Erro ao aprovar serviço");
+                                      console.error(error);
+                                    }
                                   }}
                                   className="flex-1 bg-green-600 hover:bg-green-700"
                                 >
@@ -1265,23 +1230,27 @@ export default function AdminDashboard() {
                                       return;
                                     }
                                     
-                                    await base44.entities.PartnerService.update(service.id, {
-                                      moderation_status: 'rejected',
-                                      is_active: false,
-                                      rejection_reason: reason
-                                    });
-                                    
-                                    await base44.entities.Notification.create({
-                                      recipient_email: service.created_by,
-                                      title: "❌ Serviço Rejeitado",
-                                      message: `Seu serviço "${service.service_name}" foi rejeitado. Motivo: ${reason}`,
-                                      type: "system",
-                                      priority: "high"
-                                    });
-                                    
-                                    queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
-                                    queryClient.invalidateQueries({ queryKey: ['adminStats'] }); // Invalidate stats to update pending count
-                                    toast.success("Serviço rejeitado");
+                                    try {
+                                      await base44.entities.PartnerService.update(service.id, {
+                                        moderation_status: 'rejected',
+                                        is_active: false,
+                                        rejection_reason: reason
+                                      });
+                                      
+                                      await base44.entities.Notification.create({
+                                        recipient_email: service.created_by,
+                                        title: "❌ Serviço Rejeitado",
+                                        message: `Seu serviço "${service.service_name}" foi rejeitado. Motivo: ${reason}`,
+                                        type: "system",
+                                        priority: "high"
+                                      });
+                                      
+                                      queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                      toast.success("Serviço rejeitado");
+                                    } catch (error) {
+                                      toast.error("Erro ao rejeitar serviço");
+                                      console.error(error);
+                                    }
                                   }}
                                   variant="outline"
                                   className="flex-1 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
@@ -1301,7 +1270,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* APPLICATIONS TAB */}
+          {/* APPLICATIONS TAB - Kept original */}
           <TabsContent value="applications">
             <div className="space-y-6">
               {/* Walker Applications */}
@@ -1625,7 +1594,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* BOOKINGS TAB */}
+          {/* BOOKINGS TAB - Kept original, adapted to allBookings */}
           <TabsContent value="bookings">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1645,7 +1614,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {recentBookings.map(booking => (
+                      {allBookings.map(booking => (
                         <TableRow key={booking.id} className="dark:border-gray-700">
                           <TableCell className="font-mono text-xs dark:text-gray-300">{booking.id.slice(0, 8)}...</TableCell>
                           <TableCell className="dark:text-gray-300">{booking.owner_name}</TableCell>
@@ -1674,7 +1643,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* PAYMENTS TAB */}
+          {/* PAYMENTS TAB - Kept original, adapted to allPayments */}
           <TabsContent value="payments">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1701,7 +1670,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {recentPayments.map(payment => (
+                      {allPayments.map(payment => (
                         <TableRow key={payment.id} className="dark:border-gray-700">
                           <TableCell className="font-mono text-xs dark:text-gray-300">{payment.id.slice(0, 8)}...</TableCell>
                           <TableCell className="dark:text-gray-300">{payment.payer_name}</TableCell>
@@ -1728,7 +1697,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* SUPPORT TAB */}
+          {/* SUPPORT TAB - Kept original, adapted to supportTickets */}
           <TabsContent value="support">
             <div className="space-y-6">
               {/* Emergency Reports */}
@@ -1737,34 +1706,34 @@ export default function AdminDashboard() {
                   <CardTitle className="text-2xl text-red-600 dark:text-red-400">Emergency Reports</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {emergencies.length === 0 ? (
+                  {supportTickets.length === 0 ? (
                     <p className="text-center text-gray-500 dark:text-gray-400 py-8">No open emergency reports</p>
                   ) : (
                     <div className="space-y-4">
-                      {emergencies
-                        .map(emergency => (
-                          <Card key={emergency.id} className="border-2 border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-900/10">
+                      {supportTickets
+                        .map(ticket => ( // Renamed emergency to ticket
+                          <Card key={ticket.id} className="border-2 border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-900/10">
                             <CardContent className="p-6">
                               <div className="flex items-start gap-4">
                                 <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400 flex-shrink-0" />
                                 <div className="flex-1">
                                   <h3 className="font-bold text-lg text-red-900 dark:text-gray-100 mb-2">
-                                    {emergency.emergency_type.replace('_', ' ').toUpperCase()}
+                                    {ticket.subject || ticket.tags?.join(', ')}
                                   </h3>
-                                  <p className="text-gray-700 dark:text-gray-300 mb-2">{emergency.description}</p>
+                                  <p className="text-gray-700 dark:text-gray-300 mb-2">{ticket.last_message || "No specific message details available."}</p>
                                   <div className="grid md:grid-cols-2 gap-2 text-sm mb-3 dark:text-gray-300">
-                                    <div><span className="font-semibold dark:text-gray-400">Reported by:</span> {emergency.reported_by_name}</div>
-                                    <div><span className="font-semibold dark:text-gray-400">Severity:</span> {emergency.severity}</div>
-                                    {emergency.location_address && (
-                                      <div className="col-span-2"><span className="font-semibold dark:text-gray-400">Location:</span> {emergency.location_address}</div>
+                                    <div><span className="font-semibold dark:text-gray-400">Reported by:</span> {ticket.sender_id}</div> {/* Assuming sender_id for reporter */}
+                                    <div><span className="font-semibold dark:text-gray-400">Status:</span> {ticket.status || 'open'}</div>
+                                    {ticket.last_updated_date && (
+                                      <div className="col-span-2"><span className="font-semibold dark:text-gray-400">Last update:</span> {format(new Date(ticket.last_updated_date), 'MMM d, HH:mm')}</div>
                                     )}
                                   </div>
                                   <Badge className={
-                                    emergency.severity === 'critical' ? 'bg-red-600' :
-                                    emergency.severity === 'high' ? 'bg-orange-500' :
+                                    ticket.status === 'closed' ? 'bg-gray-600' :
+                                    ticket.tags?.includes('critical') ? 'bg-red-600' :
                                     'bg-yellow-500'
                                   }>
-                                    {emergency.severity} SEVERITY
+                                    {ticket.tags?.includes('critical') ? 'CRITICAL' : ticket.status || 'open'}
                                   </Badge>
                                 </div>
                               </div>
@@ -1778,7 +1747,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* REVIEWS TAB */}
+          {/* REVIEWS TAB - Kept original, adapted to allReviews */}
           <TabsContent value="reviews" className="space-y-6">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1810,13 +1779,13 @@ export default function AdminDashboard() {
                                     />
                                   ))}
                                 </div>
-                                <span className="font-bold dark:text-gray-100">{review.rating.toFixed(1)}</span>
+                                <span className="font-bold dark:text-gray-100">{review.rating?.toFixed(1)}</span>
                               </div>
                               <h4 className="font-semibold text-lg mb-1 dark:text-gray-100">{review.title}</h4>
                               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
                                 <span>{review.reviewer_name}</span>
                                 <span>•</span>
-                                <span>{review.partner_name}</span>
+                                <span>{review.partner_name || 'N/A'}</span> {/* Partner_name might be missing for generic reviews */}
                                 {review.product_name && (
                                   <>
                                     <span>•</span>
@@ -1876,7 +1845,7 @@ export default function AdminDashboard() {
                               className="dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
                               disabled={moderateReviewMutation.isPending}
                             >
-                              <Flag className="w-4 h-4 mr-2" />
+                              <Megaphone className="w-4 h-4 mr-2" /> {/* Changed icon from Flag to Megaphone based on outline's import */}
                               Sinalizar
                             </Button>
                           </div>
@@ -1889,7 +1858,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* BADGES TAB */}
+          {/* BADGES TAB - COMPLETELY NEW FROM OUTLINE */}
           <TabsContent value="badges">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700 mb-6">
               <CardHeader>
@@ -1920,7 +1889,7 @@ export default function AdminDashboard() {
                       u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
                     )
-                    .slice(0, 30)
+                    .slice(0, 30) // Limit to 30 users for display, or remove slice for all
                     .map(userItem => (
                       <Card key={userItem.id} className="border-2 border-indigo-100 dark:border-indigo-800 dark:bg-gray-800 hover:shadow-lg transition-shadow">
                         <CardContent className="p-4">
@@ -1958,6 +1927,11 @@ export default function AdminDashboard() {
                                 <Shield className="w-3 h-3" />Mod
                               </Badge>
                             )}
+                             {userItem.social_role === 'admin' && (
+                              <Badge className="bg-purple-600 text-white text-xs flex items-center gap-1">
+                                <Crown className="w-3 h-3" />Admin Social
+                              </Badge>
+                            )}
                             {userItem.is_adoption_advocate && (
                               <Badge className="bg-pink-500 text-white text-xs flex items-center gap-1">
                                 <Heart className="w-3 h-3" />Adoção
@@ -1986,7 +1960,7 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Badges Management Dialog - ENHANCED */}
+        {/* Badges Management Dialog - ENHANCED FROM OUTLINE */}
         <Dialog open={showBadgesDialog} onOpenChange={(open) => {
           if (!open) {
             setShowBadgesDialog(false);
@@ -2018,7 +1992,7 @@ export default function AdminDashboard() {
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={selectedUserForBadges.profile_photo_url} />
                       <AvatarFallback className="bg-purple-600 text-white">
-                        {selectedUserForBadges.full_name?.[0]?.toUpperCase()}
+                        {selectedUserForBadges.full_name?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
@@ -2152,7 +2126,7 @@ export default function AdminDashboard() {
                                 onClick={() => setNewCustomBadge({...newCustomBadge, image_url: ""})}
                                 className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
                               >
-                                ×
+                                &times;
                               </button>
                             </div>
                           ) : (
