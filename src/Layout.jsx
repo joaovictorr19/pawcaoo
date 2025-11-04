@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -38,10 +37,10 @@ const queryConfig = {
     refetchOnWindowFocus: false,
   },
   notifications: {
-    staleTime: 10 * 1000, // Reduced from 30s to 10s for faster updates
+    staleTime: 10 * 1000,
     cacheTime: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000, // Reduced from 60s to 30s for more real-time feel
+    refetchInterval: 30 * 1000,
   },
   static: {
     staleTime: 10 * 60 * 1000,
@@ -198,8 +197,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 1; // Only "Adotar"
-  const myActivityCount = 17; // All other items (7 services + 10 activity items)
+  const mainMenuCount = 1;
+  const myActivityCount = 17;
   const professionalServicesCount = 6;
   
   const mainMenuStartIndex = 0;
@@ -248,7 +247,6 @@ function LayoutContent({ children, currentPageName }) {
 
   const planBadge = getPlanBadge();
 
-  // Prefetch handlers
   const prefetchWalkers = usePrefetchOnHover(() => 
     prefetchQueries.walkers(queryClient, base44)
   );
@@ -288,7 +286,6 @@ function LayoutContent({ children, currentPageName }) {
           --accent-foreground: 142 76% 20%;
         }
         
-        /* Mobile optimizations */
         @media (max-width: 768px) {
           [data-sidebar="sidebar"] {
             width: 280px !important;
@@ -571,7 +568,7 @@ function LayoutContent({ children, currentPageName }) {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
                     <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
-                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors}>FAQ</Link></li>
+                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
                     <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
                     <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
                     <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
