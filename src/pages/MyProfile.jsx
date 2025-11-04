@@ -16,20 +16,21 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
   Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle, AtSign,
-  Award, ShieldCheck, Heart, CheckCircle, Sparkles, // Existing icons
-  Calendar, TrendingUp, Target, ChevronRight, Star // New icons
+  Award, ShieldCheck, Heart, CheckCircle, Sparkles, Calendar,
+  TrendingUp, Target, ChevronRight, Star
 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom"; // Updated import for navigation
+import { createPageUrl } from "@/utils"; // New import for page URL utility
 import DogProfileCard from "../components/profile/DogProfileCard";
 import AddEditDogForm from "../components/profile/AddEditDogForm";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useRouter } from 'next/navigation'; // Assuming Next.js for navigation
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
-  const router = useRouter(); // Initialize useRouter
+  const navigate = useNavigate(); // Initialize useNavigate
   const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
   const [showAddDog, setShowAddDog] = useState(false);
@@ -216,7 +217,7 @@ export default function MyProfile() {
 
   const handleLogout = () => {
     base44.auth.logout();
-    router.push('/'); // Redirect to home or login page after logout
+    navigate('/'); // Redirect to home or login page after logout
   };
 
   const handleToggleBreed = (breed) => {
@@ -268,9 +269,7 @@ export default function MyProfile() {
     return '📅 Agendamento';
   };
 
-  // Placeholder for navigation to other pages if needed. Replace with actual router logic.
-  const createPageUrl = (page) => `/app/${page.toLowerCase()}`;
-  const navigate = (path) => router.push(path);
+  // The local createPageUrl and navigate functions are removed as they are now imported/handled by useNavigate.
 
 
   const POPULAR_BREEDS = [
@@ -917,7 +916,7 @@ export default function MyProfile() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
+                        onClick={() => navigate(createPageUrl('loyalty-rewards'))} // Using the imported createPageUrl
                         className="text-white hover:bg-white/20"
                       >
                         Ver Recompensas
