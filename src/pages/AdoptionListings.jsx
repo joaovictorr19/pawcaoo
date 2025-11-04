@@ -112,8 +112,11 @@ export default function AdoptionListings() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">🏡 {t('adoptAPet', language)}</h1>
-              <p className="text-lg text-gray-600">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <Home className="w-8 h-8 md:w-10 md:h-10 text-pink-600" />
+                {t('adoptAPet', language)}
+              </h1>
+              <p className="text-base md:text-lg text-gray-600">
                 {t('adoptDontShop', language)} • {filteredListings.length} {t('petsWaiting', language)}
               </p>
             </div>
@@ -356,10 +359,10 @@ export default function AdoptionListings() {
                       </div>
                     )}
                     
-                    {/* Verified Badge - New */}
+                    {/* Verified Badge */}
                     {listing.is_verified && (
                       <div className="absolute top-3 left-3 z-10">
-                        <Badge className="bg-green-600 text-white shadow-lg">
+                        <Badge className="bg-green-600 text-white shadow-lg text-xs px-2 py-1">
                           <Shield className="w-3 h-3 mr-1" />
                           {language === 'pt' ? 'Verificado' : language === 'es' ? 'Verificado' : 'Verified'}
                         </Badge>
@@ -376,7 +379,7 @@ export default function AdoptionListings() {
                     {/* Featured Badge */}
                     {listing.featured && (
                       <div className="absolute bottom-3 left-3 z-10">
-                        <Badge className="bg-yellow-400 text-gray-900">
+                        <Badge className="bg-yellow-400 text-gray-900 text-xs px-2 py-1">
                           ⭐ {language === 'pt' ? 'Destaque' : language === 'es' ? 'Destacado' : 'Featured'}
                         </Badge>
                       </div>

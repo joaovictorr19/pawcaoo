@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -106,8 +107,8 @@ export default function WalkerCard({ walker, distance }) {
 
           {/* Distance Badge */}
           {distance !== null && distance !== undefined && (
-            <div className="flex items-center gap-0.5 md:gap-1 text-[10px] md:text-xs text-blue-600 mb-1.5 md:mb-2 bg-blue-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-lg w-fit">
-              <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3" />
+            <div className="flex items-center gap-1 text-xs text-blue-600 mb-2 bg-blue-50 px-2 py-1 rounded-lg w-fit">
+              <MapPin className="w-3 h-3" />
               <span className="font-semibold">{distance.toFixed(1)} km</span>
             </div>
           )}

@@ -198,9 +198,9 @@ export default function AdoptionListingDetails() {
                 {/* Verified Organization Badge */}
                 {listing.is_verified && (
                   <div className="absolute top-4 left-4">
-                    <Badge className="bg-green-600 text-white text-base px-4 py-2 shadow-xl">
-                      <Shield className="w-4 h-4 mr-2" />
-                      {language === 'pt' ? '✓ Organização Verificada' : language === 'es' ? '✓ Organización Verificada' : '✓ Verified Organization'}
+                    <Badge className="bg-green-600 text-white text-sm px-3 py-1.5 shadow-xl">
+                      <Shield className="w-4 h-4 mr-1.5" />
+                      {language === 'pt' ? '✓ Verificado' : language === 'es' ? '✓ Verificado' : '✓ Verified'}
                     </Badge>
                   </div>
                 )}
@@ -210,10 +210,10 @@ export default function AdoptionListingDetails() {
                   <div className="absolute top-4 right-4">
                     <Badge className={
                       listing.urgency_level === "critical" 
-                        ? "bg-red-600 text-white text-lg px-4 py-2"
-                        : "bg-orange-500 text-white text-lg px-4 py-2"
+                        ? "bg-red-600 text-white text-base px-3 py-1.5 shadow-xl"
+                        : "bg-orange-500 text-white text-base px-3 py-1.5 shadow-xl"
                     }>
-                      {listing.urgency_level === "critical" ? "🚨 CRITICAL" : "⚠️ URGENT"}
+                      {listing.urgency_level === "critical" ? "🚨 CRÍTICO" : "⚠️ URGENTE"}
                     </Badge>
                   </div>
                 )}
@@ -255,14 +255,14 @@ export default function AdoptionListingDetails() {
                   {listing.is_verified && (
                     <div className="text-right">
                       <div className="inline-flex items-center gap-2 bg-green-50 border-2 border-green-200 rounded-lg px-3 py-2">
-                        <Shield className="w-5 h-5 text-green-600" />
+                        <Shield className="w-4 h-4 text-green-600" />
                         <div className="text-left">
                           <p className="text-xs font-semibold text-green-900">
                             {language === 'pt' ? 'Verificado' : language === 'es' ? 'Verificado' : 'Verified'}
                           </p>
                           {listing.success_stories_count > 0 && (
                             <p className="text-xs text-green-700">
-                              {listing.success_stories_count} {language === 'pt' ? 'adoções bem-sucedidas' : language === 'es' ? 'adopciones exitosas' : 'successful adoptions'}
+                              {listing.success_stories_count} {language === 'pt' ? 'adoções' : language === 'es' ? 'adopciones' : 'adoptions'}
                             </p>
                           )}
                         </div>
