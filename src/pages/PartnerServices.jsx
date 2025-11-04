@@ -49,7 +49,10 @@ export default function PartnerServices() {
   const { data: services, isLoading } = useQuery({
     queryKey: ['partnerServices', selectedCategory],
     queryFn: async () => {
-      const allServices = await base44.entities.PartnerService.filter({ is_active: true });
+      const allServices = await base44.entities.PartnerService.filter({ 
+        is_active: true,
+        moderation_status: 'approved' 
+      });
       if (selectedCategory === 'all') return allServices;
       return allServices.filter(s => s.service_type === selectedCategory);
     },

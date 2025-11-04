@@ -5,15 +5,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift } from "lucide-react";
+import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Megaphone, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Partners() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -25,6 +27,42 @@ export default function Partners() {
     queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
     initialData: [],
     staleTime: 300000,
+  });
+
+  // ✅ NOVO: Buscar anúncios aprovados e ativos
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['activeAnnouncements', user?.email],
+    queryFn: async () => {
+      const now = new Date();
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.filter({
+        moderation_status: 'approved',
+        is_active: true
+      });
+      
+      // Filtrar por data e subscription tier do usuário
+      return allAnnouncements.filter(ann => {
+        const startDate = new Date(ann.start_date);
+        const endDate = new Date(ann.end_date);
+        
+        // Verificar se está dentro do período
+        if (now < startDate || now > endDate) return false;
+        
+        // Verificar se o tier do usuário está incluído
+        // Se não houver user, mostrar apenas para 'free'
+        const userTier = user?.subscription_tier || 'free';
+        return ann.target_subscription_tier?.includes(userTier);
+      }).sort((a, b) => {
+        // Ordenar por featured position, depois por data
+        if (a.is_featured && !b.is_featured) return -1;
+        if (!a.is_featured && b.is_featured) return 1;
+        if (a.is_featured && b.is_featured) {
+          return (a.featured_position || 999) - (b.featured_position || 999);
+        }
+        return new Date(b.created_date) - new Date(a.created_date);
+      });
+    },
+    initialData: [],
+    staleTime: 60000,
   });
 
   const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
@@ -57,6 +95,25 @@ export default function Partners() {
 
     return matchesSearch && matchesCategory;
   });
+
+  const getPromotionTypeLabel = (type) => {
+    const labels = {
+      flash_sale: "⚡ Flash Sale",
+      discount: "🏷️ Desconto",
+      points_bonus: "⭐ Bónus Pontos",
+      new_product: "🆕 Novo Produto"
+    };
+    return labels[type] || type;
+  };
+
+  const getFeaturedTierBadge = (tier) => {
+    const badges = {
+      basic: { color: "bg-blue-500", label: "Destaque" },
+      premium: { color: "bg-purple-500", label: "Premium" },
+      exclusive: { color: "bg-yellow-500", label: "⭐ Exclusivo" }
+    };
+    return badges[tier];
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -107,6 +164,74 @@ export default function Partners() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* ✅ NOVO: Anúncios Aprovados */}
+        {announcements.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Megaphone className="w-6 h-6 text-purple-600" />
+              <h2 className="text-2xl font-bold text-gray-900">Promoções em Destaque</h2>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {announcements.slice(0, 6).map((announcement) => {
+                const featuredBadge = announcement.is_featured ? getFeaturedTierBadge(announcement.featured_tier) : null;
+                
+                return (
+                  <motion.div
+                    key={announcement.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedAnnouncement(announcement)}
+                  >
+                    <Card className={`overflow-hidden hover:shadow-2xl transition-all ${
+                      featuredBadge ? 'border-2 border-purple-300 ring-2 ring-purple-200' : 'border-0 shadow-xl'
+                    }`}>
+                      {announcement.image_url && (
+                        <div className="relative h-40 bg-gradient-to-br from-purple-100 to-pink-100">
+                          <img
+                            src={announcement.image_url}
+                            alt={announcement.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {featuredBadge && (
+                            <Badge className={`absolute top-2 right-2 ${featuredBadge.color} text-white shadow-lg`}>
+                              {featuredBadge.label}
+                            </Badge>
+                          )}
+                          {announcement.discount_percentage > 0 && (
+                            <Badge className="absolute top-2 left-2 bg-red-500 text-white text-lg shadow-lg">
+                              -{announcement.discount_percentage}%
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                      <CardContent className="p-4">
+                        <Badge className="mb-2 text-xs">
+                          {getPromotionTypeLabel(announcement.promotion_type)}
+                        </Badge>
+                        <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
+                          {announcement.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                          {announcement.message}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {announcement.company_name}
+                          </span>
+                          <ChevronRight className="w-5 h-5 text-green-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Centered Categories */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
@@ -223,6 +348,92 @@ export default function Partners() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ✅ NOVO: Modal de Detalhes do Anúncio */}
+      <AnimatePresence>
+        {selectedAnnouncement && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-50"
+              onClick={() => setSelectedAnnouncement(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl shadow-2xl z-50 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="relative">
+                {selectedAnnouncement.image_url && (
+                  <div className="relative h-64 bg-gradient-to-br from-purple-100 to-pink-100">
+                    <img
+                      src={selectedAnnouncement.image_url}
+                      alt={selectedAnnouncement.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedAnnouncement(null)}
+                      className="absolute top-4 right-4 bg-white/90 hover:bg-white"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="p-8">
+                  <Badge className="mb-4 text-base">
+                    {getPromotionTypeLabel(selectedAnnouncement.promotion_type)}
+                  </Badge>
+                  
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    {selectedAnnouncement.title}
+                  </h2>
+                  
+                  <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                    {selectedAnnouncement.message}
+                  </p>
+
+                  {selectedAnnouncement.discount_percentage > 0 && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
+                      <p className="text-5xl font-black text-red-600 text-center">
+                        -{selectedAnnouncement.discount_percentage}%
+                      </p>
+                      <p className="text-center text-gray-600 mt-2">Desconto Especial</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-6 border-t">
+                    <div>
+                      <p className="text-sm text-gray-600">Parceiro:</p>
+                      <p className="font-bold text-gray-900">{selectedAnnouncement.company_name}</p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setSelectedAnnouncement(null);
+                        // Navegar para o parceiro ou produtos relacionados
+                        const partner = partners.find(p => p.partner_name === selectedAnnouncement.company_name);
+                        if (partner) {
+                          navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
+                        }
+                      }}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                      size="lg"
+                    >
+                      Ver Produtos
+                      <ChevronRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

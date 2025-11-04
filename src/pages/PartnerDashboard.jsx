@@ -88,19 +88,21 @@ export default function PartnerDashboard() {
         });
       }
 
+      // CORRIGIDO: Serviços novos devem ir para aprovação
       return await base44.entities.PartnerService.create({
         ...data,
         partner_id: company.id,
         partner_name: company.company_name,
         partner_company_email: user.email,
-        moderation_status: 'approved'
+        moderation_status: 'pending', // ✅ Agora vai para aprovação
+        is_active: false // ✅ Inativo até aprovação
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['partnerServices']);
       setShowServiceForm(false);
       setEditingService(null);
-      toast.success(editingService ? "Alterações enviadas para aprovação" : "✅ Serviço criado com sucesso!");
+      toast.success(editingService ? "Alterações enviadas para aprovação" : "✅ Serviço enviado para aprovação do admin!");
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao salvar serviço");

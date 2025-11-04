@@ -66,6 +66,7 @@ import {
   Upload, // Added for badge image upload
   ExternalLink,
   Clock, // Added for pending state in button
+  Package, // NEW: Added for services tab
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -125,6 +126,12 @@ export default function AdminDashboard() {
     enabled: user?.role === 'admin' && activeTab === 'applications',
   });
 
+  const { data: pendingApprovalServices = [] } = useQuery({
+    queryKey: ['allPartnerServices', 'pending'],
+    queryFn: () => base44.entities.PartnerService.filter({ moderation_status: 'pending' }),
+    enabled: user?.role === 'admin' && activeTab === 'services',
+  });
+
   const { data: recentBookings = [] } = useQuery({
     queryKey: ['recentBookings'],
     queryFn: async () => {
@@ -169,12 +176,14 @@ export default function AdminDashboard() {
       const trainers = await base44.entities.TrainerProfile.filter({ verification_status: 'verified' });
       const pendingWalkers = await base44.entities.WalkerProfile.filter({ verification_status: 'pending' });
       const pendingTrainers = await base44.entities.TrainerProfile.filter({ verification_status: 'pending' });
+      const pendingServices = await base44.entities.PartnerService.filter({ moderation_status: 'pending' }); // NEW: fetch pending services for stats
       
       return {
         totalUsers: users.length,
         totalWalkers: walkers.length,
         totalTrainers: trainers.length,
         pendingApplications: pendingWalkers.length + pendingTrainers.length,
+        pendingServices: pendingServices.length, // NEW: add to stats
       };
     },
     enabled: user?.role === 'admin' && activeTab === 'overview',
@@ -564,7 +573,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-1 md:gap-2 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-1 md:gap-2 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
               <BarChart3 className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden md:inline">Overview</span>
@@ -576,6 +585,15 @@ export default function AdminDashboard() {
             <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
               <Store className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Empresas</span>
+            </TabsTrigger>
+            <TabsTrigger value="services" className="relative data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-cyan-700">
+              <Package className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden sm:inline">Serviços</span>
+              {pendingApprovalServices.length > 0 && (
+                <Badge className="ml-1 bg-red-500 dark:bg-red-700 dark:text-white absolute -top-1 -right-1 text-xs h-4 min-w-4 px-1">
+                  {pendingApprovalServices.length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="applications" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-orange-700">
               <Briefcase className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
@@ -630,8 +648,8 @@ export default function AdminDashboard() {
               <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
                 <CardContent className="p-4 md:p-6">
                   <AlertCircle className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
-                  <div className="text-2xl md:text-3xl font-bold">{stats?.pendingApplications || 0}</div>
-                  <div className="text-xs md:text-sm opacity-90">Pending Apps</div>
+                  <div className="text-2xl md:text-3xl font-bold">{(stats?.pendingApplications || 0) + (stats?.pendingServices || 0)}</div> {/* Adjusted to include pending services */}
+                  <div className="text-xs md:text-sm opacity-90">Pending Apps/Services</div>
                 </CardContent>
               </Card>
 
@@ -1155,6 +1173,132 @@ export default function AdminDashboard() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          </TabsContent>
+
+          {/* ✅ NOVO: SERVICES TAB - Aprovar Serviços */}
+          <TabsContent value="services">
+            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-2xl dark:text-gray-100">Aprovar Serviços Parceiros</CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  {pendingApprovalServices.length} serviços aguardando aprovação
+                </p>
+              </CardHeader>
+              <CardContent>
+                {pendingApprovalServices.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">Nenhum serviço pendente</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingApprovalServices.map((service) => (
+                      <Card key={service.id} className="border-2 border-orange-200 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/10">
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            {service.image_url && (
+                              <img
+                                src={service.image_url}
+                                alt={service.service_name}
+                                className="w-32 h-32 object-cover rounded-lg"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between mb-3">
+                                <div>
+                                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{service.service_name}</h3>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">{service.partner_name}</p>
+                                </div>
+                                <Badge className="bg-orange-500 text-white dark:bg-orange-700">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  Pendente
+                                </Badge>
+                              </div>
+
+                              <p className="text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">{service.description}</p>
+
+                              <div className="grid md:grid-cols-3 gap-3 mb-4">
+                                <div className="bg-white rounded-lg p-3 border dark:bg-gray-700 dark:border-gray-600">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">Tipo</p>
+                                  <p className="font-bold capitalize dark:text-gray-100">{service.service_type}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-3 border dark:bg-gray-700 dark:border-gray-600">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">Preço Base</p>
+                                  <p className="font-bold text-green-600 dark:text-green-400">€{service.base_price}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-3 border dark:bg-gray-700 dark:border-gray-600">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">Duração</p>
+                                  <p className="font-bold dark:text-gray-100">{service.duration_minutes} min</p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-3">
+                                <Button
+                                  onClick={async () => {
+                                    await base44.entities.PartnerService.update(service.id, {
+                                      moderation_status: 'approved',
+                                      is_active: true
+                                    });
+                                    
+                                    await base44.entities.Notification.create({
+                                      recipient_email: service.created_by,
+                                      title: "✅ Serviço Aprovado!",
+                                      message: `Seu serviço "${service.service_name}" foi aprovado e está visível na plataforma!`,
+                                      type: "system",
+                                      priority: "normal"
+                                    });
+                                    
+                                    queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                    queryClient.invalidateQueries({ queryKey: ['adminStats'] }); // Invalidate stats to update pending count
+                                    toast.success("Serviço aprovado!");
+                                  }}
+                                  className="flex-1 bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Aprovar
+                                </Button>
+                                <Button
+                                  onClick={async () => {
+                                    const reason = prompt("Motivo da rejeição:");
+                                    if (!reason) {
+                                      toast.error("Rejeição cancelada: Motivo não fornecido.");
+                                      return;
+                                    }
+                                    
+                                    await base44.entities.PartnerService.update(service.id, {
+                                      moderation_status: 'rejected',
+                                      is_active: false,
+                                      rejection_reason: reason
+                                    });
+                                    
+                                    await base44.entities.Notification.create({
+                                      recipient_email: service.created_by,
+                                      title: "❌ Serviço Rejeitado",
+                                      message: `Seu serviço "${service.service_name}" foi rejeitado. Motivo: ${reason}`,
+                                      type: "system",
+                                      priority: "high"
+                                    });
+                                    
+                                    queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                    queryClient.invalidateQueries({ queryKey: ['adminStats'] }); // Invalidate stats to update pending count
+                                    toast.success("Serviço rejeitado");
+                                  }}
+                                  variant="outline"
+                                  className="flex-1 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  Rejeitar
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* APPLICATIONS TAB */}
