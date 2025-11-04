@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -7,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Megaphone, X, Sliders } from "lucide-react";
-import { useNavigate } => from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedShopFilters from "../components/search/AdvancedShopFilters";
-import { useLanguage } from "@/components/LanguageContext"; // Updated import path
+import { useLanguage } from "@/components/LanguageContext";
 
 export default function Partners() {
   const { language } = useLanguage();
@@ -27,7 +26,7 @@ export default function Partners() {
     maxPrice: 1000,
     brand: 'all',
     minRating: 0,
-    availability: null, // This field is included as per outline, but not actively used in filtering products below.
+    availability: null,
     discountOnly: false,
     pointsRedeemable: false,
     inStockOnly: false
@@ -45,7 +44,6 @@ export default function Partners() {
     staleTime: 300000,
   });
 
-  // ✅ NOVO: Buscar anúncios aprovados e ativos
   const { data: announcements = [] } = useQuery({
     queryKey: ['activeAnnouncements', user?.email],
     queryFn: async () => {
@@ -55,20 +53,15 @@ export default function Partners() {
         is_active: true
       });
       
-      // Filtrar por data e subscription tier do usuário
       return allAnnouncements.filter(ann => {
         const startDate = new Date(ann.start_date);
         const endDate = new Date(ann.end_date);
         
-        // Verificar se está dentro do período
         if (now < startDate || now > endDate) return false;
         
-        // Verificar se o tier do usuário está incluído
-        // Se não houver user, mostrar apenas para 'free'
         const userTier = user?.subscription_tier || 'free';
         return ann.target_subscription_tier?.includes(userTier);
       }).sort((a, b) => {
-        // Ordenar por featured position, depois por data
         if (a.is_featured && !b.is_featured) return -1;
         if (!a.is_featured && b.is_featured) return 1;
         if (a.is_featured && b.is_featured) {
@@ -110,7 +103,6 @@ export default function Partners() {
     { id: "training", name: "Treino", icon: Store },
   ];
 
-  // Real-time filtering - updates instantly as user types/selects
   const filteredPartners = React.useMemo(() => {
     return partners.filter(partner => {
       const matchesSearch = !searchQuery ||
@@ -118,18 +110,17 @@ export default function Partners() {
         partner.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = activeCategory === "all" || partner.partner_type === activeCategory;
 
-      // Advanced filters
       const matchesBrand = advancedFilters.brand === 'all' || 
                           partner.partner_name === advancedFilters.brand;
-      const matchesRating = (partner.average_rating || 0) >= advancedFilters.minRating; // Added || 0 for safety
+      const matchesRating = (partner.average_rating || 0) >= advancedFilters.minRating;
       const matchesDiscount = !advancedFilters.discountOnly || 
-                             (partner.discount_percentage && partner.discount_percentage > 0); // Ensure discount_percentage exists
+                             (partner.discount_percentage && partner.discount_percentage > 0);
+
       return matchesSearch && matchesCategory && matchesBrand && 
              matchesRating && matchesDiscount;
     });
   }, [partners, searchQuery, activeCategory, advancedFilters]);
 
-  // Real-time product filtering
   const filteredProducts = React.useMemo(() => {
     return allProducts.filter(product => {
       const matchesCategories = advancedFilters.categories.length === 0 ||
@@ -141,7 +132,7 @@ export default function Partners() {
       const matchesStock = !advancedFilters.inStockOnly ||
                           product.stock_quantity > 0;
       const matchesDiscount = !advancedFilters.discountOnly ||
-                             (product.discount_percentage && product.discount_percentage > 0); // Ensure discount_percentage exists
+                             (product.discount_percentage && product.discount_percentage > 0);
 
       return matchesCategories && matchesPrice && matchesPoints && 
              matchesStock && matchesDiscount;
@@ -183,7 +174,6 @@ export default function Partners() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Simplified Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -216,7 +206,6 @@ export default function Partners() {
             )}
           </div>
 
-          {/* Search */}
           <div className="relative max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
@@ -230,7 +219,6 @@ export default function Partners() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        {/* Advanced Filters Toggle */}
         <div className="flex justify-end mb-4">
           <Button
             variant="outline"
@@ -262,7 +250,6 @@ export default function Partners() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            {/* ✅ NOVO: Anúncios Aprovados */}
             {announcements.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
@@ -330,7 +317,6 @@ export default function Partners() {
               </div>
             )}
 
-            {/* Centered Categories */}
             <div className="flex justify-center mb-8">
               <div className="inline-flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
                 {categories.map((cat) => (
@@ -351,7 +337,6 @@ export default function Partners() {
               </div>
             </div>
 
-            {/* Results Count with real-time update */}
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm text-gray-600">
                 <span className="font-semibold text-green-600">{filteredPartners.length}</span> parceiros • 
@@ -361,7 +346,7 @@ export default function Partners() {
                 advancedFilters.discountOnly || 
                 advancedFilters.pointsRedeemable || 
                 advancedFilters.minPrice > 0 || 
-                advancedFilters.maxPrice < 1000 || // Assuming 1000 is default max
+                advancedFilters.maxPrice < 1000 ||
                 advancedFilters.brand !== 'all' ||
                 advancedFilters.minRating > 0 ||
                 advancedFilters.inStockOnly) && (
@@ -405,7 +390,6 @@ export default function Partners() {
               )}
             </div>
 
-            {/* Partners Grid */}
             {isLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
@@ -486,7 +470,6 @@ export default function Partners() {
               </div>
             )}
 
-            {/* Simple Benefits */}
             <Card className="mt-8 bg-green-600 text-white">
               <CardContent className="p-6">
                 <div className="text-center">
@@ -503,7 +486,6 @@ export default function Partners() {
         </div>
       </div>
 
-      {/* ✅ NOVO: Modal de Detalhes do Anúncio */}
       <AnimatePresence>
         {selectedAnnouncement && (
           <>
@@ -569,7 +551,6 @@ export default function Partners() {
                     <Button
                       onClick={() => {
                         setSelectedAnnouncement(null);
-                        // Navegar para o parceiro ou produtos relacionados
                         const partner = partners.find(p => p.partner_name === selectedAnnouncement.company_name);
                         if (partner) {
                           navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
