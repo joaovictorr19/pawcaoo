@@ -153,7 +153,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: language === 'pt' ? 'Serviços Parceiros' : language === 'es' ? 'Servicios Asociados' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
-    // { title: language === 'pt' ? '🏡 Adotar Pet' : '🏡 Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Heart }, // Moved to adminItem
+    { title: language === 'pt' ? 'Adotar Pet' : language === 'es' ? 'Adoptar Mascota' : 'Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Home },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -174,8 +174,7 @@ function LayoutContent({ children, currentPageName }) {
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: language === 'pt' ? 'Aprovar Anúncios' : language === 'es' ? 'Aprobar Anuncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
-    { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield },
-    { title: language === 'pt' ? '🏡 Adoções' : language === 'es' ? '🏡 Adopciones' : '🏡 Adoptions', url: createPageUrl("AdoptionListings"), icon: Home }
+    { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
   const moderatorItem = (user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
@@ -196,7 +195,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 7; // Changed from 8 to 7, adoption moved out
+  const mainMenuCount = 8; // Changed from 7 to 8, adoption moved back
   const myActivityCount = 9;
   const professionalServicesCount = 6;
   

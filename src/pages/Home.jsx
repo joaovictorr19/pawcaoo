@@ -22,10 +22,15 @@ import LocationSearch, { calculateDistance } from "../components/search/Location
 export default function Home() {
   const { language } = useLanguage();
   const navigate = useNavigate();
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const dogSittingServiceFilter = urlParams.get('dogSittingService');
+  
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSize, setFilterSize] = useState("all");
   const [filterTime, setFilterTime] = useState("all");
   const [filterAvailability, setFilterAvailability] = useState("all");
+  const [filterDogSitting, setFilterDogSitting] = useState(dogSittingServiceFilter || "all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
     radius: 50,
@@ -61,6 +66,13 @@ export default function Home() {
     enabled: !!user,
     staleTime: 30000,
   });
+
+  // Update filter when URL param changes
+  useEffect(() => {
+    if (dogSittingServiceFilter) {
+      setFilterDogSitting(dogSittingServiceFilter);
+    }
+  }, [dogSittingServiceFilter]);
 
   // Show loading while checking auth
   if (userLoading) {
@@ -114,6 +126,21 @@ export default function Home() {
         walker.availability?.includes(filterTime);
       const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
       
+      // Dog Sitting Service Filter
+      const matchesDogSitting = filterDogSitting === "all" || (() => {
+        const services = walker.services_offered || [];
+        if (filterDogSitting === "boarding") {
+          return services.some(s => s.service_name?.toLowerCase().includes('boarding') || s.service_name?.toLowerCase().includes('alojamento'));
+        }
+        if (filterDogSitting === "house_sitting") {
+          return services.some(s => s.service_name?.toLowerCase().includes('house sitting') || s.service_name?.toLowerCase().includes('casa'));
+        }
+        if (filterDogSitting === "drop_in") {
+          return services.some(s => s.service_name?.toLowerCase().includes('drop') || s.service_name?.toLowerCase().includes('visit') || s.service_name?.toLowerCase().includes('alimentação'));
+        }
+        return true;
+      })();
+      
       // Advanced filters
       const matchesRadius = !userLocation || walker.distance === null || 
         walker.distance <= advancedFilters.radius;
@@ -133,7 +160,7 @@ export default function Home() {
                                      walker.background_check_status === 'verified';
       
       return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
-             matchesRadius && matchesLanguages && matchesSpecializations &&
+             matchesDogSitting && matchesRadius && matchesLanguages && matchesSpecializations &&
              matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck;
     })
     .sort((a, b) => {
@@ -337,23 +364,50 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900">
-                        Passeadores Disponíveis
+                        {filterDogSitting !== "all" ? (
+                          <>
+                            {filterDogSitting === "boarding" && (language === 'pt' ? 'Passeadores com Alojamento' : language === 'es' ? 'Paseadores con Alojamiento' : 'Walkers with Boarding')}
+                            {filterDogSitting === "house_sitting" && (language === 'pt' ? 'Passeadores para Casa-Sitting' : language === 'es' ? 'Paseadores para Cuidado en Casa' : 'Walkers for House Sitting')}
+                            {filterDogSitting === "drop_in" && (language === 'pt' ? 'Passeadores para Visitas' : language === 'es' ? 'Paseadores para Visitas' : 'Walkers for Drop-in Visits')}
+                          </>
+                        ) : (
+                          language === 'pt' ? 'Passeadores Disponíveis' : language === 'es' ? 'Paseadores Disponibles' : 'Available Walkers'
+                        )}
                       </h2>
                       <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-                        {filteredWalkers.length} encontrados
+                        {filteredWalkers.length} {language === 'pt' ? 'encontrados' : language === 'es' ? 'encontrados' : 'found'}
+                        {filterDogSitting !== "all" && (
+                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                            {filterDogSitting === "boarding" && "🏠 Alojamento"}
+                            {filterDogSitting === "house_sitting" && "🏡 Casa-Sitting"}
+                            {filterDogSitting === "drop_in" && "🚪 Visitas"}
+                          </span>
+                        )}
                         {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
                           <span className="text-purple-600 font-semibold ml-2">
-                            (até {advancedFilters.radius}km)
+                            ({language === 'pt' ? 'até' : language === 'es' ? 'hasta' : 'up to'} {advancedFilters.radius}km)
                           </span>
                         )}
                         {filteredWalkers.some(w => w.distance !== null) && (
                           <span className="text-purple-600 font-semibold ml-2">
-                            (ordenado por distância)
+                            ({language === 'pt' ? 'ordenado por distância' : language === 'es' ? 'ordenado por distancia' : 'sorted by distance'})
                           </span>
                         )}
                       </p>
                     </div>
+                    {filterDogSitting !== "all" && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setFilterDogSitting("all");
+                          navigate(createPageUrl("Home"));
+                        }}
+                        className="text-sm"
+                      >
+                        {language === 'pt' ? 'Ver Todos' : language === 'es' ? 'Ver Todos' : 'View All'}
+                      </Button>
+                    )}
                   </div>
 
                   {loadingWalkers ? (

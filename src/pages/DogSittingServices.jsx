@@ -24,7 +24,8 @@ export default function DogSittingServices() {
         t('boardingFeature3', language),
         t('boardingFeature4', language),
         t('boardingFeature5', language)
-      ]
+      ],
+      filterType: "boarding"
     },
     {
       id: "house_sitting",
@@ -38,7 +39,8 @@ export default function DogSittingServices() {
         t('houseSittingFeature3', language),
         t('houseSittingFeature4', language),
         t('houseSittingFeature5', language)
-      ]
+      ],
+      filterType: "house_sitting"
     },
     {
       id: "drop_in_feeding",
@@ -52,9 +54,15 @@ export default function DogSittingServices() {
         t('dropInFeature3', language),
         t('dropInFeature4', language),
         t('dropInFeature5', language)
-      ]
+      ],
+      filterType: "drop_in"
     }
   ];
+
+  const handleRequestService = (serviceType) => {
+    // Redirect to Home with filter for walkers offering this service
+    navigate(createPageUrl(`Home?dogSittingService=${serviceType}`));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
@@ -91,7 +99,7 @@ export default function DogSittingServices() {
                 </ul>
                 <Button
                   className={`w-full bg-gradient-to-r ${service.color} hover:opacity-90 text-white shadow-lg h-12`}
-                  onClick={() => navigate(createPageUrl(`RequestDogSitting?type=${service.id}`))}
+                  onClick={() => handleRequestService(service.filterType)}
                 >
                   {t('requestService', language)}
                 </Button>
