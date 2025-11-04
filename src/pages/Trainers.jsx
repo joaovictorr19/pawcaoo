@@ -1,23 +1,39 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Award, Star } from "lucide-react";
-import { motion } from "framer-motion";
+import { Search, MapPin, Award, Star, Sliders } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import TrainerCard from "../components/trainers/TrainerCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters"; // Assuming this is general purpose for 'walkers' and 'trainers'
+import { Button } from "@/components/ui/button";
+import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 
 export default function Trainers() {
   const { language } = useLanguage();
-  const [searchLocation, setSearchLocation] = useState("");
+  // Removed searchLocation state as it's replaced by LocationSearch and userLocation for geo-filtering
   const [filterSpecialty, setFilterSpecialty] = useState("all");
   const [filterMethodology, setFilterMethodology] = useState("all");
   const [filterMethod, setFilterMethod] = useState("all");
   const [filterRating, setFilterRating] = useState("all");
   const [filterSuccessRate, setFilterSuccessRate] = useState("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [userLocation, setUserLocation] = useState(null); // Added userLocation state for geolocation
+  const [advancedFilters, setAdvancedFilters] = useState({
+    radius: 50,
+    languages: [],
+    specializations: [],
+    minExperience: 0,
+    minRating: 0,
+    minPrice: 0,
+    maxPrice: 150,
+    backgroundCheck: false
+  });
 
   const { data: trainers, isLoading } = useQuery({
     queryKey: ['trainers'],
@@ -44,26 +60,96 @@ export default function Trainers() {
     };
   });
 
-  const filteredTrainers = trainersWithRatings.filter(trainer => {
-    const matchesLocation = !searchLocation ||
-      trainer.location?.toLowerCase().includes(searchLocation.toLowerCase());
-    const matchesSpecialty = filterSpecialty === "all" ||
-      trainer.training_specialties?.includes(filterSpecialty);
-    const matchesMethodology = filterMethodology === "all" ||
-      trainer.training_methodologies?.some(m => m.methodology_name === filterMethodology);
-    const matchesMethod = filterMethod === "all" ||
-      trainer.consultation_options?.includes(filterMethod);
-    const matchesRating = filterRating === "all" ||
-      (filterRating === "4+" && trainer.average_rating >= 4) ||
-      (filterRating === "4.5+" && trainer.average_rating >= 4.5) ||
-      (filterRating === "5" && trainer.average_rating === 5);
-    const matchesSuccessRate = filterSuccessRate === "all" ||
-      (filterSuccessRate === "90+" && trainer.success_rate >= 90) ||
-      (filterSuccessRate === "95+" && trainer.success_rate >= 95) ||
-      (filterSuccessRate === "98+" && trainer.success_rate >= 98);
+  // Calculate distance for trainers
+  const getTrainerDistance = (trainer) => {
+    if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
+    
+    // Assuming trainer.latitude and trainer.longitude are available
+    // Defaulting to a central Lisbon coordinate if trainer's geo-data is missing for demonstration
+    const trainerLat = trainer.latitude || 38.7223; 
+    const trainerLng = trainer.longitude || -9.1393;
+    
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      trainerLat,
+      trainerLng
+    );
+  };
 
-    return matchesLocation && matchesSpecialty && matchesMethodology && matchesMethod && matchesRating && matchesSuccessRate;
-  });
+  const filteredTrainers = trainersWithRatings
+    .map(trainer => ({
+      ...trainer,
+      distance: getTrainerDistance(trainer) // Add calculated distance to each trainer
+    }))
+    .filter(trainer => {
+      // The original searchLocation filter is removed, as LocationSearch now handles geo-location.
+      // The matchesRadius filter below will cover location-based filtering.
+      
+      const matchesSpecialty = filterSpecialty === "all" ||
+        trainer.training_specialties?.includes(filterSpecialty);
+      const matchesMethodology = filterMethodology === "all" ||
+        trainer.training_methodologies?.some(m => m.methodology_name === filterMethodology);
+      const matchesMethod = filterMethod === "all" ||
+        trainer.consultation_options?.includes(filterMethod);
+      const matchesRating = filterRating === "all" ||
+        (filterRating === "4+" && trainer.average_rating >= 4) ||
+        (filterRating === "4.5+" && trainer.average_rating >= 4.5) ||
+        (filterRating === "5" && trainer.average_rating === 5);
+      const matchesSuccessRate = filterSuccessRate === "all" ||
+        (filterSuccessRate === "90+" && trainer.success_rate >= 90) ||
+        (filterSuccessRate === "95+" && trainer.success_rate >= 95) ||
+        (filterSuccessRate === "98+" && trainer.success_rate >= 98);
+
+      // Advanced filters
+      // matchesRadius now considers if userLocation is available and if trainer's distance is within radius
+      const matchesRadius = !userLocation || trainer.distance === null || 
+        trainer.distance <= advancedFilters.radius;
+      
+      const matchesLanguages = advancedFilters.languages.length === 0 ||
+        advancedFilters.languages.some(lang => trainer.languages?.includes(lang));
+      
+      // Assuming trainer has a 'specializations' array, similar to 'training_specialties'
+      const matchesSpecializations = advancedFilters.specializations.length === 0 ||
+        advancedFilters.specializations.some(spec => trainer.specializations?.includes(spec));
+      
+      const matchesExperience = trainer.experience_years >= advancedFilters.minExperience;
+      const matchesAdvRating = trainer.average_rating >= advancedFilters.minRating;
+      
+      // Assuming trainer has an 'hourly_rate' property
+      const matchesPrice = trainer.hourly_rate >= advancedFilters.minPrice && 
+                           trainer.hourly_rate <= advancedFilters.maxPrice;
+      
+      // Assuming trainer has a 'background_check_status' property
+      const matchesBackgroundCheck = !advancedFilters.backgroundCheck || 
+                                     trainer.background_check_status === 'verified';
+
+      return matchesSpecialty && matchesMethodology && matchesMethod && 
+             matchesRating && matchesSuccessRate && matchesRadius && matchesLanguages && 
+             matchesSpecializations && matchesExperience && matchesAdvRating && 
+             matchesPrice && matchesBackgroundCheck;
+    })
+    .sort((a, b) => {
+      // Sort by distance if user location is available and distances are calculated
+      if (userLocation && a.distance !== null && b.distance !== null) {
+        return a.distance - b.distance;
+      }
+      // Otherwise, sort by average rating (descending) as a default
+      return b.average_rating - a.average_rating;
+    });
+
+  const resetAdvancedFilters = () => {
+    setAdvancedFilters({
+      radius: 50,
+      languages: [],
+      specializations: [],
+      minExperience: 0,
+      minRating: 0,
+      minPrice: 0,
+      maxPrice: 150,
+      backgroundCheck: false
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50">
@@ -109,16 +195,11 @@ export default function Trainers() {
             >
               <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-3 md:p-6 border border-white/50">
                 <div className="flex flex-col gap-2 md:gap-3">
-                  {/* Location Search */}
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 w-4 h-4 md:w-5 md:h-5" />
-                    <Input
-                      placeholder={language === 'pt' ? 'Localização...' : language === 'es' ? 'Ubicación...' : 'Location...'}
-                      value={searchLocation}
-                      onChange={(e) => setSearchLocation(e.target.value)}
-                      className="pl-9 md:pl-11 h-10 md:h-12 text-sm md:text-base border-2 border-transparent focus:border-purple-500 rounded-xl bg-white shadow-sm"
-                    />
-                  </div>
+                  {/* Location Search with Geolocation */}
+                  <LocationSearch
+                    onLocationChange={setUserLocation}
+                    currentLocation={userLocation}
+                  />
                   
                   {/* Filters - Stack on Mobile */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -130,7 +211,7 @@ export default function Trainers() {
                       <SelectContent>
                         <SelectItem value="all">{language === 'pt' ? 'Todas' : language === 'es' ? 'Todas' : 'All'}</SelectItem>
                         <SelectItem value="basic_obedience">{language === 'pt' ? 'Obediência Básica' : language === 'es' ? 'Obediencia Básica' : 'Basic Obedience'}</SelectItem>
-                        <SelectItem value="advanced_obedience">{language === 'pt' ? 'Obediência Avançada' : language === 'es' ? 'Obediencia Avanzada' : 'Advanced Obedience'}</SelectItem>
+                        <SelectItem value="advanced_obedience">{language === 'pt' ? 'Obediência Avançada' : language === 'es' ? 'Obediência Avanzada' : 'Advanced Obedience'}</SelectItem>
                         <SelectItem value="behavior_modification">{language === 'pt' ? 'Modificação de Comportamento' : language === 'es' ? 'Modificación de Comportamiento' : 'Behavior Modification'}</SelectItem>
                         <SelectItem value="puppy_training">{language === 'pt' ? 'Treino de Cachorros' : language === 'es' ? 'Entrenamiento de Cachorros' : 'Puppy Training'}</SelectItem>
                         <SelectItem value="aggression">{language === 'pt' ? 'Agressão' : language === 'es' ? 'Agresión' : 'Aggression'}</SelectItem>
@@ -221,54 +302,96 @@ export default function Trainers() {
 
       {/* Trainers List */}
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-12">
-        <div className="flex items-center justify-between mb-4 md:mb-8">
-          <div>
-            <h2 className="text-xl md:text-3xl font-bold text-gray-900">
-              {language === 'pt' ? 'Treinadores Disponíveis' : language === 'es' ? 'Entrenadores Disponibles' : 'Available Trainers'}
-            </h2>
-            <p className="text-xs md:text-base text-gray-600 mt-1">
-              {filteredTrainers.length} {language === 'pt' ? 'certificados encontrados' : language === 'es' ? 'certificados encontrados' : 'certified trainers found'}
-            </p>
-          </div>
+        {/* Advanced Filters Toggle */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="border-2 border-purple-200 hover:bg-purple-50"
+          >
+            <Sliders className="w-4 h-4 mr-2" />
+            {showAdvancedFilters 
+              ? (language === 'pt' ? 'Ocultar Filtros Avançados' : language === 'es' ? 'Ocultar Filtros Avanzados' : 'Hide Advanced Filters') 
+              : (language === 'pt' ? 'Mostrar Filtros Avançados' : language === 'es' ? 'Mostrar Filtros Avanzados' : 'Show Advanced Filters')}
+          </Button>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-white rounded-2xl p-4 space-y-4">
-                <Skeleton className="w-full h-48 md:h-64 rounded-xl" />
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-8 w-full" />
-              </div>
-            ))}
-          </div>
-        ) : filteredTrainers.length === 0 ? (
-          <div className="text-center py-12 md:py-16">
-            <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
-              <Search className="w-8 h-8 md:w-12 md:h-12 text-gray-400" />
-            </div>
-            <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-              {language === 'pt' ? 'Nenhum treinador encontrado' : language === 'es' ? 'No se encontraron entrenadores' : 'No trainers found'}
-            </h3>
-            <p className="text-sm md:text-base text-gray-600">
-              {language === 'pt' ? 'Tente ajustar os filtros' : language === 'es' ? 'Intenta ajustar los filtros' : 'Try adjusting your filters'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {filteredTrainers.map((trainer, index) => (
+        <div className="grid lg:grid-cols-4 gap-6">
+          <AnimatePresence>
+            {showAdvancedFilters && (
               <motion.div
-                key={trainer.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="lg:col-span-1"
               >
-                <TrainerCard trainer={trainer} />
+                <AdvancedWalkerFilters
+                  filters={advancedFilters}
+                  onFiltersChange={setAdvancedFilters}
+                  onReset={resetAdvancedFilters}
+                  language={language} // Pass language prop to AdvancedWalkerFilters
+                />
               </motion.div>
-            ))}
+            )}
+          </AnimatePresence>
+
+          <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
+            <div className="flex items-center justify-between mb-4 md:mb-8">
+              <div>
+                <h2 className="text-xl md:text-3xl font-bold text-gray-900">
+                  {language === 'pt' ? 'Treinadores Disponíveis' : language === 'es' ? 'Entrenadores Disponibles' : 'Available Trainers'}
+                </h2>
+                <p className="text-xs md:text-base text-gray-600 mt-1">
+                  {filteredTrainers.length} {language === 'pt' ? 'certificados encontrados' : language === 'es' ? 'certificados encontrados' : 'certified trainers found'}
+                  {userLocation && advancedFilters.radius < 50 && (
+                    <span className="text-purple-600 font-semibold ml-2">
+                      ({language === 'pt' ? 'até' : language === 'es' ? 'hasta' : 'up to'} {advancedFilters.radius}km)
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="bg-white rounded-2xl p-4 space-y-4">
+                    <Skeleton className="w-full h-48 md:h-64 rounded-xl" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-8 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredTrainers.length === 0 ? (
+              <div className="text-center py-12 md:py-16">
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <Search className="w-8 h-8 md:w-12 md:h-12 text-gray-400" />
+                </div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                  {language === 'pt' ? 'Nenhum treinador encontrado' : language === 'es' ? 'No se encontraron entrenadores' : 'No trainers found'}
+                </h3>
+                <p className="text-sm md:text-base text-gray-600">
+                  {language === 'pt' ? 'Tente ajustar os filtros' : language === 'es' ? 'Intenta ajustar los filtros' : 'Try adjusting your filters'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+                {filteredTrainers.map((trainer, index) => (
+                  <motion.div
+                    key={trainer.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                  >
+                    <TrainerCard trainer={trainer} distance={trainer.distance} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Info Section - Compact */}

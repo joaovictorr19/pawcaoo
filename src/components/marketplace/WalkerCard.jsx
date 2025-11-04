@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 
-export default function WalkerCard({ walker }) {
+export default function WalkerCard({ walker, distance }) {
   const navigate = useNavigate();
 
   const handleViewProfile = (e) => {
@@ -22,14 +23,14 @@ export default function WalkerCard({ walker }) {
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.02, y: -5 }}
       transition={{ duration: 0.2 }}
+      onClick={handleCardClick}
+      className="cursor-pointer group"
     >
-      <Card 
-        className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white group"
-        onClick={handleCardClick}
-      >
+      <Card className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full">
         <div className="relative h-56 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden">
           {walker.photo_url ? (
             <img
@@ -91,29 +92,41 @@ export default function WalkerCard({ walker }) {
           </motion.button>
         </div>
 
-        <CardContent className="p-5">
-          <div className="mb-3">
-            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
               {walker.walker_name}
             </h3>
-            <div className="flex items-center text-gray-600 text-sm mb-2">
-              <MapPin className="w-4 h-4 mr-1 text-green-600" />
-              {walker.location}
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
+            {walker.rating && (
+              <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold text-gray-900">
-                  {walker.rating?.toFixed(1) || '5.0'}
-                </span>
-                <span className="text-gray-500 text-sm">
-                  ({walker.total_walks || 0})
-                </span>
+                <span className="font-bold text-sm">{walker.rating.toFixed(1)}</span>
               </div>
-              <div className="flex items-center gap-1 text-green-600 font-bold text-lg">
-                <DollarSign className="w-5 h-5" />
-                {walker.hourly_rate}/h
-              </div>
+            )}
+          </div>
+
+          {/* Distance Badge */}
+          {distance !== null && distance !== undefined && (
+            <div className="flex items-center gap-1 text-xs text-blue-600 mb-2 bg-blue-50 px-2 py-1 rounded-lg w-fit">
+              <MapPin className="w-3 h-3" />
+              <span className="font-semibold">{distance.toFixed(1)} km away</span>
+            </div>
+          )}
+
+          <div className="flex items-center text-gray-600 text-sm mb-2">
+            <MapPin className="w-4 h-4 mr-1 text-green-600" />
+            {walker.location}
+          </div>
+
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1 text-gray-500 text-sm">
+              <span className="font-semibold text-gray-900">
+                {walker.total_walks || 0} walks
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-green-600 font-bold text-lg">
+              <DollarSign className="w-5 h-5" />
+              {walker.hourly_rate}/h
             </div>
           </div>
 

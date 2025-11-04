@@ -1,18 +1,23 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
+import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { motion, AnimatePresence } from "framer-motion";
+import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 
 export default function Home() {
   const { language } = useLanguage();
@@ -21,6 +26,18 @@ export default function Home() {
   const [filterSize, setFilterSize] = useState("all");
   const [filterTime, setFilterTime] = useState("all");
   const [filterAvailability, setFilterAvailability] = useState("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    radius: 50,
+    languages: [],
+    specializations: [],
+    minExperience: 0,
+    minRating: 0,
+    minPrice: 0,
+    maxPrice: 100,
+    backgroundCheck: false
+  });
+  const [userLocation, setUserLocation] = useState(null);
 
   // Check authentication
   const { data: user, isLoading: userLoading } = useQuery({
@@ -45,12 +62,6 @@ export default function Home() {
     staleTime: 30000,
   });
 
-  const getWalkerAvailability = () => true;
-
-  useEffect(() => {
-    return () => {};
-  }, []);
-
   // Show loading while checking auth
   if (userLoading) {
     return (
@@ -69,17 +80,70 @@ export default function Home() {
     return null;
   }
 
-  const filteredWalkers = walkers.filter(walker => {
-    const matchesLocation = !searchLocation || 
-      walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
-    const matchesSize = filterSize === "all" || 
-      walker.dog_sizes?.includes(filterSize);
-    const matchesTime = filterTime === "all" || 
-      walker.availability?.includes(filterTime);
-    const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
+  // Distance calculation using actual coordinates
+  const getWalkerDistance = (walker) => {
+    if (!userLocation || !userLocation.lat || !userLocation.lng) {
+      return null;
+    }
     
-    return matchesLocation && matchesSize && matchesTime && matchesAvailability;
-  });
+    // Assume walker has coordinates in service_areas or location
+    // For demo, we'll use a simplified approach or default to Lisbon if coordinates aren't explicitly in the walker object.
+    // In production, you'd store lat/lng directly in the walker profile or fetch from their service_areas.
+    const walkerLat = walker.latitude || 38.7223; // Default to Lisbon if not set
+    const walkerLng = walker.longitude || -9.1393;
+    
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      walkerLat,
+      walkerLng
+    );
+  };
+
+  const filteredWalkers = walkers
+    .map(walker => ({
+      ...walker,
+      distance: getWalkerDistance(walker)
+    }))
+    .filter(walker => {
+      const matchesLocation = !searchLocation || 
+        walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
+      const matchesSize = filterSize === "all" || 
+        walker.dog_sizes?.includes(filterSize);
+      const matchesTime = filterTime === "all" || 
+        walker.availability?.includes(filterTime);
+      const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
+      
+      // Advanced filters
+      const matchesRadius = !userLocation || walker.distance === null || 
+        walker.distance <= advancedFilters.radius;
+      
+      const matchesLanguages = advancedFilters.languages.length === 0 ||
+        advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));
+      
+      const matchesSpecializations = advancedFilters.specializations.length === 0 ||
+        advancedFilters.specializations.some(spec => walker.specializations?.includes(spec));
+      
+      const matchesExperience = walker.experience_years >= advancedFilters.minExperience;
+      const matchesRating = walker.rating >= advancedFilters.minRating;
+      const matchesPrice = walker.hourly_rate >= advancedFilters.minPrice && 
+                           walker.hourly_rate <= advancedFilters.maxPrice;
+      
+      const matchesBackgroundCheck = !advancedFilters.backgroundCheck || 
+                                     walker.background_check_status === 'verified';
+      
+      return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
+             matchesRadius && matchesLanguages && matchesSpecializations &&
+             matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck;
+    })
+    .sort((a, b) => {
+      // Sort by distance if user location is available and distances are calculated
+      if (userLocation && a.distance !== null && b.distance !== null) {
+        return a.distance - b.distance;
+      }
+      // Otherwise sort by rating (descending)
+      return b.rating - a.rating;
+    });
 
   const filteredEmergencyWalks = emergencyWalks.filter(walk => {
     const matchesLocation = !searchLocation || 
@@ -88,6 +152,19 @@ export default function Home() {
     
     return matchesLocation && matchesSize;
   });
+
+  const resetAdvancedFilters = () => {
+    setAdvancedFilters({
+      radius: 50,
+      languages: [],
+      specializations: [],
+      minExperience: 0,
+      minRating: 0,
+      minPrice: 0,
+      maxPrice: 100,
+      backgroundCheck: false
+    });
+  };
 
   const stats = [
     { icon: Users, value: walkers.length, label: "Profissionais", color: "from-blue-500 to-blue-600" },
@@ -144,19 +221,19 @@ export default function Home() {
           </div>
 
           {/* Simple Search Bar */}
-          <div className="relative max-w-5xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-3 md:p-6 border-2 border-white/50">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative max-w-5xl mx-auto"
+          >
+            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-3 md:p-6 border border-white/50">
               <div className="flex flex-col gap-2 md:gap-3">
-                {/* Location Search */}
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 w-4 h-4 md:w-5 md:h-5" />
-                  <Input
-                    placeholder="Localização..."
-                    value={searchLocation}
-                    onChange={(e) => setSearchLocation(e.target.value)}
-                    className="pl-9 md:pl-11 h-10 md:h-12 text-sm md:text-base border-2 border-transparent focus:border-green-500 rounded-xl bg-white shadow-sm"
-                  />
-                </div>
+                {/* Location Search with Geolocation */}
+                <LocationSearch
+                  onLocationChange={setUserLocation}
+                  currentLocation={userLocation}
+                />
                 
                 {/* Filters */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -198,116 +275,164 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Results Section */}
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
-        <Tabs defaultValue="walkers" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
-            <TabsTrigger 
-              value="walkers" 
-              className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
-            >
-              <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-              Buscar Passeadores
-            </TabsTrigger>
-            <TabsTrigger 
-              value="emergency" 
-              className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
-            >
-              <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-              Passeios Urgentes
-            </TabsTrigger>
-          </TabsList>
+        {/* Advanced Filters Toggle */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="border-2 border-green-200 hover:bg-green-50"
+          >
+            <Sliders className="w-4 h-4 mr-2" />
+            {showAdvancedFilters ? 'Ocultar' : 'Mostrar'} Filtros Avançados
+          </Button>
+        </div>
 
-          {/* Regular Walkers Tab */}
-          <TabsContent value="walkers">
-            <div>
-              <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="grid lg:grid-cols-4 gap-6 mb-6">
+          <AnimatePresence>
+            {showAdvancedFilters && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="lg:col-span-1"
+              >
+                <AdvancedWalkerFilters
+                  filters={advancedFilters}
+                  onFiltersChange={setAdvancedFilters}
+                  onReset={resetAdvancedFilters}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
+            <Tabs defaultValue="walkers" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
+                <TabsTrigger 
+                  value="walkers" 
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
+                >
+                  <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                  Buscar Passeadores
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="emergency" 
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
+                >
+                  <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                  Passeios Urgentes
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Regular Walkers Tab */}
+              <TabsContent value="walkers">
                 <div>
-                  <h2 className="text-xl md:text-3xl font-bold text-gray-900">
-                    Passeadores Disponíveis
-                  </h2>
-                  <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-                    {filteredWalkers.length} encontrados
-                  </p>
-                </div>
-              </div>
-
-              {loadingWalkers ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                  {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                      <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                      <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                      <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">
+                        Passeadores Disponíveis
+                      </h2>
+                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+                        {filteredWalkers.length} encontrados
+                        {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
+                          <span className="text-purple-600 font-semibold ml-2">
+                            (até {advancedFilters.radius}km)
+                          </span>
+                        )}
+                        {filteredWalkers.some(w => w.distance !== null) && (
+                          <span className="text-purple-600 font-semibold ml-2">
+                            (ordenado por distância)
+                          </span>
+                        )}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              ) : filteredWalkers.length === 0 ? (
-                <div className="text-center py-12 md:py-16">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                    <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
-                  <p className="text-sm md:text-base text-gray-600">Tente ajustar os filtros</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                  {filteredWalkers.map((walker) => (
-                    <WalkerCard key={walker.id} walker={walker} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
 
-          {/* Emergency Walks Tab */}
-          <TabsContent value="emergency">
-            <div>
-              <div className="flex items-center justify-between mb-4 md:mb-6">
+                  {loadingWalkers ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md" key={`walker-skeleton-${i}`}>
+                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : filteredWalkers.length === 0 ? (
+                    <div className="text-center py-12 md:py-16">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
+                      <p className="text-sm md:text-base text-gray-600">Tente ajustar os filtros</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {filteredWalkers.map((walker) => (
+                        <WalkerCard 
+                          key={walker.id} 
+                          walker={walker}
+                          distance={walker.distance}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Emergency Walks Tab */}
+              <TabsContent value="emergency">
                 <div>
-                  <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                    <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
-                    Cães Precisando Urgente
-                  </h2>
-                  <p className="text-xs md:text-base text-gray-600 mt-1">
-                    {filteredEmergencyWalks.length} cães precisam de ajuda
-                  </p>
-                </div>
-              </div>
-
-              {loadingEmergency ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                      <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                      <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                      <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
+                        Cães Precisando Urgente
+                      </h2>
+                      <p className="text-xs md:text-base text-gray-600 mt-1">
+                        {filteredEmergencyWalks.length} cães precisam de ajuda
+                      </p>
                     </div>
-                  ))}
-                </div>
-              ) : filteredEmergencyWalks.length === 0 ? (
-                <div className="text-center py-12 md:py-16">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                    <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Sem emergências no momento</h3>
-                  <p className="text-sm md:text-base text-gray-600">Verifique mais tarde</p>
+
+                  {loadingEmergency ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md" key={`emergency-skeleton-${i}`}>
+                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : filteredEmergencyWalks.length === 0 ? (
+                    <div className="text-center py-12 md:py-16">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Sem emergências no momento</h3>
+                      <p className="text-sm md:text-base text-gray-600">Verifique mais tarde</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {filteredEmergencyWalks.map((walk) => (
+                        <EmergencyDogCard key={walk.id} walk={walk} />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                  {filteredEmergencyWalks.map((walk) => (
-                    <EmergencyDogCard key={walk.id} walk={walk} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
-  Image as ImageIcon, MapPin, Camera, Share2, Flame, Award, Users
+  Image as ImageIcon, MapPin, Camera, Share2, Flame, Award, Users,
+  Clock, TrendingUp // New imports for tabs
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,6 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import AdvancedSocialFilters from "../components/search/AdvancedSocialFilters";
+import { Sliders } from "lucide-react";
 
 export default function SocialFeed() {
   const queryClient = useQueryClient();
@@ -25,6 +28,18 @@ export default function SocialFeed() {
   const [newPostContent, setNewPostContent] = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaUrls, setMediaUrls] = useState([]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeTab, setActiveTab] = useState("recent"); // New state for tabs
+  const [advancedFilters, setAdvancedFilters] = useState({
+    hashtag: "",
+    postTypes: [],
+    userRoles: [],
+    dogBreed: "all",
+    dogSize: null,
+    mediaType: null,
+    sortBy: "recent",
+    location: ""
+  });
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -185,7 +200,152 @@ export default function SocialFeed() {
       media_type: mediaUrls.length > 1 ? 'album' : mediaUrls.length === 1 ? 'photo' : undefined,
       is_verified_user: user?.is_verified,
       is_adoption_advocate: user?.is_adoption_advocate,
-      moderation_status: 'approved'
+      moderation_status: 'approved',
+      // Assuming post_type can be set for filtering purposes, default to 'general' if not specific
+      post_type: 'general', 
+      // Assuming dog_breed and dog_size can be inferred or added to post form later
+      // dog_breed: 'some_breed',
+      // dog_size: 'some_size',
+      // location: 'some_location',
+    });
+  };
+
+  // Calculate trending score for posts
+  const calculateTrendingScore = (post) => {
+    const hoursOld = (Date.now() - new Date(post.created_date).getTime()) / (1000 * 60 * 60);
+    const ageWeight = Math.max(0, 1 - (hoursOld / 48)); // Decay over 48 hours
+    
+    const likesScore = (post.likes_count || 0) * 1;
+    const commentsScore = (post.comments_count || 0) * 2; // Comments worth more
+    const sharesScore = (post.shares_count || 0) * 3; // Shares worth even more
+    const viewsScore = (post.views_count || 0) * 0.1;
+    
+    // Boost for verified users and special roles
+    let roleBoost = 1;
+    if (post.is_verified_user || post.is_verified_dog) roleBoost = 1.2;
+    if (post.author_role === 'admin' || post.author_social_role === 'moderator') roleBoost = 1.3;
+    if (post.is_adoption_advocate) roleBoost = 1.4;
+    
+    // Boost for pinned posts
+    const pinnedBoost = post.is_pinned ? 2 : 1;
+    
+    const engagementScore = (likesScore + commentsScore + sharesScore + viewsScore) * roleBoost * pinnedBoost;
+    
+    return engagementScore * ageWeight;
+  };
+
+  // Get trending posts (updated in last 48 hours with high engagement)
+  const trendingPosts = useMemo(() => {
+    const last48Hours = Date.now() - (48 * 60 * 60 * 1000);
+    
+    return posts
+      .filter(post => new Date(post.created_date).getTime() > last48Hours)
+      .map(post => ({
+        ...post,
+        trendingScore: calculateTrendingScore(post)
+      }))
+      .sort((a, b) => b.trendingScore - a.trendingScore)
+      .slice(0, 20); // Top 20 trending posts
+  }, [posts]);
+
+  // Apply advanced filters
+  let filteredPosts = (activeTab === "trending" ? trendingPosts : posts).filter(post => {
+    // Hashtag search
+    if (advancedFilters.hashtag) {
+      const searchTerm = advancedFilters.hashtag.toLowerCase().replace('#', '');
+      const matchesHashtag = post.tags?.some(tag => 
+        tag.toLowerCase().includes(searchTerm)
+      ) || post.content?.toLowerCase().includes(searchTerm);
+      if (!matchesHashtag) return false;
+    }
+
+    // Post types
+    if (advancedFilters.postTypes.length > 0) {
+      if (!post.post_type || !advancedFilters.postTypes.includes(post.post_type)) return false;
+    }
+
+    // User roles
+    if (advancedFilters.userRoles.length > 0) {
+      const matchesRole = advancedFilters.userRoles.some(role => {
+        if (role === 'verified' && post.is_verified_user) return true;
+        if (role === 'admin' && post.author_role === 'admin') return true;
+        if (role === 'moderator' && post.author_social_role === 'moderator') return true;
+        if (role === 'adoption_advocate' && post.is_adoption_advocate) return true;
+        return false;
+      });
+      if (!matchesRole) return false;
+    }
+
+    // Dog breed
+    if (advancedFilters.dogBreed && advancedFilters.dogBreed !== 'all') {
+      if (post.dog_breed !== advancedFilters.dogBreed) return false;
+    }
+
+    // Dog size
+    if (advancedFilters.dogSize) {
+      if (post.dog_size !== advancedFilters.dogSize) return false;
+    }
+
+    // Media type
+    if (advancedFilters.mediaType) {
+      // If media_type filter is 'none', check if post has no media_urls or media_type is undefined/null
+      if (advancedFilters.mediaType === 'none') {
+        if (post.media_urls && post.media_urls.length > 0) return false;
+      } else {
+        if (post.media_type !== advancedFilters.mediaType) return false;
+      }
+    }
+
+    // Location
+    if (advancedFilters.location) {
+      const matchesLocation = post.location?.toLowerCase().includes(advancedFilters.location.toLowerCase()) ||
+                             post.author_city?.toLowerCase().includes(advancedFilters.location.toLowerCase());
+      if (!matchesLocation) return false;
+    }
+
+    return true;
+  });
+
+  // Apply sorting (only if not on trending tab)
+  if (activeTab !== "trending") {
+    if (advancedFilters.sortBy === 'popular') {
+      filteredPosts = [...filteredPosts].sort((a, b) => 
+        (b.engagement_score || 0) - (a.engagement_score || 0)
+      );
+    } else if (advancedFilters.sortBy === 'most_liked') {
+      filteredPosts = [...filteredPosts].sort((a, b) => 
+        (b.likes_count || 0) - (a.likes_count || 0)
+      );
+    } else if (advancedFilters.sortBy === 'most_commented') {
+      filteredPosts = [...filteredPosts].sort((a, b) => 
+        (b.comments_count || 0) - (a.comments_count || 0)
+      );
+    } else if (advancedFilters.sortBy === 'trending') {
+      filteredPosts = [...filteredPosts].sort((a, b) => {
+        const aScore = calculateTrendingScore(a);
+        const bScore = calculateTrendingScore(b);
+        return bScore - aScore;
+      });
+    } else { // 'recent' by default or if sorting is not 'trending', 'popular', etc.
+      // The initial query already sorts by created_date descending, so no extra sort needed for 'recent' if `posts` is used directly.
+      // However, since we are working with `filteredPosts`, ensure it respects the 'recent' sort.
+      filteredPosts = [...filteredPosts].sort((a, b) => 
+        new Date(b.created_date).getTime() - new Date(a.created_date).getTime()
+      );
+    }
+  }
+
+
+  const resetAdvancedFilters = () => {
+    setAdvancedFilters({
+      hashtag: "",
+      postTypes: [],
+      userRoles: [],
+      dogBreed: "all",
+      dogSize: null,
+      mediaType: null,
+      sortBy: "recent",
+      location: ""
     });
   };
 
@@ -241,150 +401,306 @@ export default function SocialFeed() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 space-y-6 pb-8">
-        {/* Create Post Card - Enhanced */}
-        <Card className="shadow-2xl border-2 border-purple-200">
-          <CardContent className="p-5">
-            <div className="flex gap-3 mb-4">
-              <Avatar 
-                className="w-12 h-12 cursor-pointer ring-2 ring-purple-200 hover:ring-purple-400 transition-all" 
-                onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}
+      <div className="max-w-7xl mx-auto px-4 space-y-6 pb-8">
+        {/* Tabs for Recent vs Trending */}
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-2 bg-white rounded-lg p-1 shadow-lg">
+            <Button
+              variant={activeTab === "recent" ? "default" : "ghost"}
+              onClick={() => setActiveTab("recent")}
+              className={`transition-all ${
+                activeTab === "recent" 
+                  ? 'bg-purple-600 text-white shadow-sm hover:bg-purple-700' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Recent Posts
+            </Button>
+            <Button
+              variant={activeTab === "trending" ? "default" : "ghost"}
+              onClick={() => setActiveTab("trending")}
+              className={`transition-all ${
+                activeTab === "trending" 
+                  ? 'bg-orange-600 text-white shadow-sm hover:bg-orange-700' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Trending 🔥
+            </Button>
+          </div>
+        </div>
+
+        {/* Advanced Filters Toggle */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="border-2 border-pink-200 hover:bg-pink-50"
+          >
+            <Sliders className="w-4 h-4 mr-2" />
+            {showAdvancedFilters ? 'Ocultar' : 'Mostrar'} Filtros
+          </Button>
+        </div>
+
+        <div className="grid lg:grid-cols-4 gap-6">
+          <AnimatePresence>
+            {showAdvancedFilters && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="lg:col-span-1"
               >
-                <AvatarImage src={user?.profile_photo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white font-bold">
-                  {user?.full_name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="mb-2">
-                  <p className="font-bold text-sm text-gray-900">{user?.full_name}</p>
-                  <p className="text-xs text-gray-500">O que há de novo?</p>
-                </div>
-                <Textarea
-                  placeholder="Compartilhe algo sobre seu pet... 🐕✨"
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  className="mb-3 min-h-[100px] text-sm resize-none border-2 focus:border-purple-400"
+                <AdvancedSocialFilters
+                  filters={advancedFilters}
+                  onFiltersChange={setAdvancedFilters}
+                  onReset={resetAdvancedFilters}
                 />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                {/* Media Preview Grid */}
-                {mediaUrls.length > 0 && (
-                  <div className={`mb-3 rounded-xl overflow-hidden ${
-                    mediaUrls.length === 1 ? '' : 'grid grid-cols-2 gap-2'
-                  }`}>
-                    {mediaUrls.map((url, idx) => (
-                      <div key={idx} className="relative group">
-                        <img 
-                          src={url} 
-                          className={`w-full ${mediaUrls.length === 1 ? 'max-h-96' : 'h-48'} object-cover`} 
-                          alt="Upload" 
-                        />
-                        <button
-                          onClick={() => setMediaUrls(mediaUrls.filter((_, i) => i !== idx))}
-                          className="absolute top-2 right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          ×
-                        </button>
+          <div className={showAdvancedFilters ? "lg:col-span-3 space-y-6" : "max-w-2xl mx-auto space-y-6"}>
+            {/* Create Post Card - Enhanced */}
+            <Card className="shadow-2xl border-2 border-purple-200">
+              <CardContent className="p-5">
+                <div className="flex gap-3 mb-4">
+                  <Avatar 
+                    className="w-12 h-12 cursor-pointer ring-2 ring-purple-200 hover:ring-purple-400 transition-all" 
+                    onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}
+                  >
+                    <AvatarImage src={user?.profile_photo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white font-bold">
+                      {user?.full_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="mb-2">
+                      <p className="font-bold text-sm text-gray-900">{user?.full_name}</p>
+                      <p className="text-xs text-gray-500">O que há de novo?</p>
+                    </div>
+                    <Textarea
+                      placeholder="Compartilhe algo sobre seu pet... 🐕✨"
+                      value={newPostContent}
+                      onChange={(e) => setNewPostContent(e.target.value)}
+                      className="mb-3 min-h-[100px] text-sm resize-none border-2 focus:border-purple-400"
+                    />
+
+                    {/* Media Preview Grid */}
+                    {mediaUrls.length > 0 && (
+                      <div className={`mb-3 rounded-xl overflow-hidden ${
+                        mediaUrls.length === 1 ? '' : 'grid grid-cols-2 gap-2'
+                      }`}>
+                        {mediaUrls.map((url, idx) => (
+                          <div key={idx} className="relative group">
+                            <img 
+                              src={url} 
+                              className={`w-full ${mediaUrls.length === 1 ? 'max-h-96' : 'h-48'} object-cover`} 
+                              alt="Upload" 
+                            />
+                            <button
+                              onClick={() => setMediaUrls(mediaUrls.filter((_, i) => i !== idx))}
+                              className="absolute top-2 right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                {/* Action Bar */}
-                <div className="flex justify-between items-center pt-3 border-t-2 border-gray-100">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    disabled={uploadingMedia}
-                    className="hover:bg-purple-50"
-                  >
-                    <label className="cursor-pointer flex items-center gap-2">
-                      <ImageIcon className="w-5 h-5 text-purple-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {uploadingMedia ? "Carregando..." : "Adicionar Fotos"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={handleMediaUpload}
-                      />
-                    </label>
-                  </Button>
-                  <Button
-                    onClick={handleCreatePost}
-                    disabled={createPostMutation.isPending || uploadingMedia || (!newPostContent.trim() && mediaUrls.length === 0)}
-                    size="sm"
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 shadow-lg"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Publicar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Posts Feed */}
-        {loadingPosts ? (
-          <div className="space-y-6">
-            {[1,2,3].map(i => (
-              <Card key={i} className="shadow-xl">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Skeleton className="w-12 h-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-24" />
+                    {/* Action Bar */}
+                    <div className="flex justify-between items-center pt-3 border-t-2 border-gray-100">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        disabled={uploadingMedia}
+                        className="hover:bg-purple-50"
+                      >
+                        <label className="cursor-pointer flex items-center gap-2">
+                          <ImageIcon className="w-5 h-5 text-purple-600" />
+                          <span className="text-sm font-medium text-gray-700">
+                            {uploadingMedia ? "Carregando..." : "Adicionar Fotos"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handleMediaUpload}
+                          />
+                        </label>
+                      </Button>
+                      <Button
+                        onClick={handleCreatePost}
+                        disabled={createPostMutation.isPending || uploadingMedia || (!newPostContent.trim() && mediaUrls.length === 0)}
+                        size="sm"
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 shadow-lg"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Publicar
+                      </Button>
                     </div>
                   </div>
-                  <Skeleton className="h-96 w-full rounded-xl mb-4" />
-                  <div className="flex gap-4">
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="h-8 w-16" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Active Filters Display */}
+            {(advancedFilters.hashtag || advancedFilters.postTypes.length > 0 || advancedFilters.userRoles.length > 0 || advancedFilters.dogBreed !== 'all' || advancedFilters.dogSize || advancedFilters.mediaType || advancedFilters.location) && (
+              <Card className="border-2 border-blue-200 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-gray-700">Filtrando por:</span>
+                    {advancedFilters.hashtag && (
+                      <Badge className="bg-blue-600 text-white">
+                        #{advancedFilters.hashtag}
+                      </Badge>
+                    )}
+                    {advancedFilters.postTypes.map(type => (
+                      <Badge key={type} variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        {type}
+                      </Badge>
+                    ))}
+                    {advancedFilters.userRoles.map(role => (
+                      <Badge key={role} variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        {role === 'verified' ? 'Verificado' : 
+                         role === 'admin' ? 'Admin' : 
+                         role === 'moderator' ? 'Moderador' : 
+                         'Apoio Adoção'}
+                      </Badge>
+                    ))}
+                    {advancedFilters.dogBreed && advancedFilters.dogBreed !== 'all' && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        🐕 {advancedFilters.dogBreed}
+                      </Badge>
+                    )}
+                    {advancedFilters.dogSize && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        Tamanho: {advancedFilters.dogSize}
+                      </Badge>
+                    )}
+                    {advancedFilters.mediaType && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        Mídia: {advancedFilters.mediaType === 'photo' ? 'Foto' : 
+                                 advancedFilters.mediaType === 'album' ? 'Álbum' : 'Nenhuma Mídia'}
+                      </Badge>
+                    )}
+                    {advancedFilters.location && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        📍 {advancedFilters.location}
+                      </Badge>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={resetAdvancedFilters} className="text-red-500 hover:bg-red-50 ml-auto">
+                      Limpar Filtros
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        ) : posts.length === 0 ? (
-          <Card className="shadow-2xl border-2 border-purple-200">
-            <CardContent className="p-12 text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Camera className="w-12 h-12 text-purple-400" />
+            )}
+
+            {/* Results count with tab indicator */}
+            {!loadingPosts && posts.length > 0 && (
+              <div className="text-center text-sm text-gray-600">
+                <p>
+                  {activeTab === "trending" ? (
+                    <>
+                      <span className="text-orange-600 font-bold">🔥 {filteredPosts.length}</span> posts em alta
+                      <span className="text-gray-500 ml-2 text-xs">(últimas 48 horas)</span>
+                    </>
+                  ) : (
+                    <>
+                      {filteredPosts.length} {filteredPosts.length === 1 ? 'post encontrado' : 'posts encontrados'}
+                      {advancedFilters.sortBy !== 'recent' && (
+                        <span className="text-purple-600 font-semibold ml-2">
+                          • Ordenado por: {advancedFilters.sortBy === 'trending' ? 'Em Alta 🔥' : 
+                          advancedFilters.sortBy === 'popular' ? 'Popular' :
+                          advancedFilters.sortBy === 'most_liked' ? 'Mais Curtidos' : 
+                          advancedFilters.sortBy === 'most_commented' ? 'Mais Comentados' : 'Recente'}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Seja o primeiro!</h3>
-              <p className="text-gray-600 mb-6">Nenhuma publicação ainda. Compartilhe o primeiro momento! 🐾</p>
-              <Button 
-                onClick={() => setNewPostContent("Olá comunidade! 🐕")}
-                className="bg-gradient-to-r from-purple-600 to-pink-600"
-              >
-                Criar Primeiro Post
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {posts.map((post, idx) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                user={user}
-                isLiked={likedPosts.some(l => l.post_id === post.id)}
-                isSaved={savedPostIds.includes(post.id)}
-                onLike={(isLiked) => likePostMutation.mutate({ postId: post.id, isLiked })}
-                onSave={(isSaved) => savePostMutation.mutate({ postId: post.id, isSaved })}
-                onNavigateToProfile={(email) => navigate(createPageUrl(`UserProfile?email=${email}`))}
-                getBadgeImage={getBadgeImage}
-                index={idx}
-              />
-            ))}
+            )}
+
+            {/* Posts Feed */}
+            {loadingPosts ? (
+              <div className="space-y-6">
+                {[1,2,3].map(i => (
+                  <Card key={i} className="shadow-xl">
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Skeleton className="w-12 h-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-96 w-full rounded-xl mb-4" />
+                      <div className="flex gap-4">
+                        <Skeleton className="h-8 w-16" />
+                        <Skeleton className="h-8 w-16" />
+                        <Skeleton className="h-8 w-16" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : posts.length === 0 ? ( // No posts ever fetched
+              <Card className="shadow-2xl border-2 border-purple-200">
+                <CardContent className="p-12 text-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Camera className="w-12 h-12 text-purple-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Seja o primeiro!</h3>
+                  <p className="text-gray-600 mb-6">Nenhuma publicação ainda. Compartilhe o primeiro momento! 🐾</p>
+                  <Button 
+                    onClick={() => setNewPostContent("Olá comunidade! 🐕")}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600"
+                  >
+                    Criar Primeiro Post
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : filteredPosts.length === 0 ? ( // Posts fetched, but none match filters
+              <Card className="shadow-2xl border-2 border-blue-200">
+                <CardContent className="p-12 text-center">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Nenhum resultado encontrado</h3>
+                  <p className="text-gray-600 mb-6">Tente ajustar seus filtros ou redefini-los. 🧐</p>
+                  <Button 
+                    onClick={resetAdvancedFilters}
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600"
+                  >
+                    Redefinir Filtros
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : ( // Posts fetched, and some match filters
+              <div className="space-y-6">
+                {filteredPosts.map((post, idx) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    user={user}
+                    isLiked={likedPosts.some(l => l.post_id === post.id)}
+                    isSaved={savedPostIds.includes(post.id)}
+                    onLike={(isLiked) => likePostMutation.mutate({ postId: post.id, isLiked })}
+                    onSave={(isSaved) => savePostMutation.mutate({ postId: post.id, isSaved })}
+                    onNavigateToProfile={(email) => navigate(createPageUrl(`UserProfile?email=${email}`))}
+                    getBadgeImage={getBadgeImage}
+                    index={idx}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -393,7 +709,7 @@ export default function SocialFeed() {
 function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToProfile, getBadgeImage, index }) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [imageExpanded, setImageExpanded] = useState(false);
+  const [imageExpanded, setImageExpanded] = useState(false); // This state is defined but not used in the provided code
   const queryClient = useQueryClient();
 
   const { data: comments = [] } = useQuery({
@@ -538,7 +854,7 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
                   className={`relative bg-gray-100 cursor-pointer group ${
                     post.media_urls.length === 3 && idx === 0 ? 'col-span-2' : ''
                   }`}
-                  onClick={() => setImageExpanded(true)}
+                  onClick={() => setImageExpanded(true)} // This function is not implemented
                 >
                   <img
                     src={url}
@@ -636,6 +952,7 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
                 className="px-5 py-4 bg-gray-50 border-t"
               >
                 {/* Comments List */}
