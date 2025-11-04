@@ -37,7 +37,7 @@ export default function PartnerDashboard() {
     queryKey: ['partnerCompany', user?.email],
     queryFn: async () => {
       const companies = await base44.entities.PartnerCompany.filter({ company_email: user?.email });
-      return companies[0];
+      return companies[0] || null;
     },
     enabled: !!user,
     staleTime: 300000, // 5 min cache
@@ -46,7 +46,7 @@ export default function PartnerDashboard() {
   const { data: services } = useQuery({
     queryKey: ['partnerServices', company?.id],
     queryFn: () => base44.entities.PartnerService.filter({ partner_id: company?.id }),
-    enabled: !!company,
+    enabled: !!company?.id,
     initialData: [],
     staleTime: 60000, // 1 min cache
   });
@@ -54,20 +54,25 @@ export default function PartnerDashboard() {
   const { data: bookings } = useQuery({
     queryKey: ['serviceBookings', company?.id],
     queryFn: () => base44.entities.ServiceBooking.filter({ partner_id: company?.id }, '-created_date'),
-    enabled: !!company,
+    enabled: !!company?.id,
     initialData: [],
     staleTime: 30000, // 30s cache
   });
 
   const saveServiceMutation = useMutation({
     mutationFn: async (data) => {
+      if (!company?.id) {
+        throw new Error("Empresa não encontrada. Contacte o administrador.");
+      }
+
       if (editingService) {
         return await base44.entities.PartnerService.update(editingService.id, data);
       }
+
       return await base44.entities.PartnerService.create({
         ...data,
-        partner_id: company?.id || user?.company_id || 'temp-' + Date.now(),
-        partner_name: company?.company_name || user?.full_name,
+        partner_id: company.id,
+        partner_name: company.company_name,
       });
     },
     onSuccess: () => {
@@ -76,6 +81,10 @@ export default function PartnerDashboard() {
       setEditingService(null);
       toast.success(editingService ? "Serviço atualizado!" : "Serviço criado com sucesso!");
     },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao salvar serviço");
+      console.error(error);
+    }
   });
 
   const deleteServiceMutation = useMutation({
@@ -93,7 +102,27 @@ export default function PartnerDashboard() {
           <CardContent className="p-12 text-center">
             <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h2>
-            <p className="text-gray-600">Apenas empresas parceiras podem acessar esta página.</p>
+            <p className="text-gray-600 mb-4">Apenas empresas parceiras podem acessar esta página.</p>
+            <p className="text-sm text-gray-500">Tipo de conta atual: {user?.account_type || 'não definido'}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!company) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100 p-6 flex items-center justify-center">
+        <Card className="max-w-md border-0 shadow-2xl">
+          <CardContent className="p-12 text-center">
+            <Store className="w-16 h-16 text-orange-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Empresa Não Encontrada</h2>
+            <p className="text-gray-600 mb-4">
+              Não encontramos uma empresa associada ao seu email: <strong>{user.email}</strong>
+            </p>
+            <p className="text-sm text-gray-500">
+              Por favor, contacte o administrador para configurar sua empresa parceira.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -512,6 +541,7 @@ export default function PartnerDashboard() {
       available_days: [],
       is_active: true,
       is_emergency: false,
+      emergency_surcharge: 0,
       image_url: "",
     });
 
@@ -533,6 +563,14 @@ export default function PartnerDashboard() {
       setUploadingImage(false);
     };
 
+    const handleSubmit = () => {
+      if (!formData.service_name || !formData.description || formData.base_price <= 0) {
+        toast.error("Preencha todos os campos obrigatórios (*, preço > 0)");
+        return;
+      }
+      saveServiceMutation.mutate(formData);
+    };
+
     return (
       <Card className="bg-blue-50 border-2 border-blue-200 mb-6">
         <CardContent className="p-6">
@@ -548,6 +586,7 @@ export default function PartnerDashboard() {
                   value={formData.service_name}
                   onChange={(e) => setFormData({...formData, service_name: e.target.value})}
                   placeholder="Ex: Banho Completo Premium"
+                  required
                 />
               </div>
 
@@ -564,9 +603,13 @@ export default function PartnerDashboard() {
                     <SelectItem value="veterinary">🏥 Veterinário</SelectItem>
                     <SelectItem value="vaccination">💉 Vacinação</SelectItem>
                     <SelectItem value="checkup">🩺 Check-up</SelectItem>
+                    <SelectItem value="surgery">⚕️ Cirurgia</SelectItem>
                     <SelectItem value="emergency">🚨 Emergência</SelectItem>
+                    <SelectItem value="pharmacy">💊 Farmácia</SelectItem>
                     <SelectItem value="training">🎓 Treino</SelectItem>
                     <SelectItem value="daycare">🏠 Creche</SelectItem>
+                    <SelectItem value="boarding">🏡 Hospedagem</SelectItem>
+                    <SelectItem value="transport">🚗 Transporte</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -577,8 +620,9 @@ export default function PartnerDashboard() {
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Descreva o serviço..."
+                placeholder="Descreva o serviço em detalhes..."
                 rows={3}
+                required
               />
             </div>
 
@@ -588,7 +632,9 @@ export default function PartnerDashboard() {
                 <Input
                   type="number"
                   value={formData.duration_minutes}
-                  onChange={(e) => setFormData({...formData, duration_minutes: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, duration_minutes: parseInt(e.target.value) || 60})}
+                  min="15"
+                  step="15"
                 />
               </div>
 
@@ -597,60 +643,66 @@ export default function PartnerDashboard() {
                 <Input
                   type="number"
                   step="0.01"
+                  min="0"
                   value={formData.base_price}
-                  onChange={(e) => setFormData({...formData, base_price: parseFloat(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, base_price: parseFloat(e.target.value) || 0})}
+                  required
                 />
               </div>
             </div>
 
             <div>
-              <Label className="mb-2 block">Preços por Tamanho</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <Label className="mb-2 block">Preços por Tamanho (deixe 0 para usar preço base)</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <Label className="text-xs">Pequeno (€)</Label>
+                  <Label className="text-xs text-gray-600">🐕 Pequeno (€)</Label>
                   <Input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.price_by_size?.small || 0}
                     onChange={(e) => setFormData({
                       ...formData,
-                      price_by_size: {...formData.price_by_size, small: parseFloat(e.target.value) || 0}
+                      price_by_size: {...(formData.price_by_size || {}), small: parseFloat(e.target.value) || 0}
                     })}
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Médio (€)</Label>
+                  <Label className="text-xs text-gray-600">🐕 Médio (€)</Label>
                   <Input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.price_by_size?.medium || 0}
                     onChange={(e) => setFormData({
                       ...formData,
-                      price_by_size: {...formData.price_by_size, medium: parseFloat(e.target.value) || 0}
+                      price_by_size: {...(formData.price_by_size || {}), medium: parseFloat(e.target.value) || 0}
                     })}
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Grande (€)</Label>
+                  <Label className="text-xs text-gray-600">🐕 Grande (€)</Label>
                   <Input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.price_by_size?.large || 0}
                     onChange={(e) => setFormData({
                       ...formData,
-                      price_by_size: {...formData.price_by_size, large: parseFloat(e.target.value) || 0}
+                      price_by_size: {...(formData.price_by_size || {}), large: parseFloat(e.target.value) || 0}
                     })}
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Extra Grande (€)</Label>
+                  <Label className="text-xs text-gray-600">🐕 Extra Grande (€)</Label>
                   <Input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.price_by_size?.extra_large || 0}
                     onChange={(e) => setFormData({
                       ...formData,
-                      price_by_size: {...formData.price_by_size, extra_large: parseFloat(e.target.value) || 0}
+                      price_by_size: {...(formData.price_by_size || {}), extra_large: parseFloat(e.target.value) || 0}
                     })}
                   />
                 </div>
@@ -658,12 +710,12 @@ export default function PartnerDashboard() {
             </div>
 
             <div>
-              <Label>O que está incluído</Label>
+              <Label>O que está incluído no serviço</Label>
               <div className="flex gap-2 mb-2">
                 <Input
                   value={newInclude}
                   onChange={(e) => setNewInclude(e.target.value)}
-                  placeholder="Ex: Shampoo premium"
+                  placeholder="Ex: Shampoo premium, Secagem, Corte de unhas..."
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -688,12 +740,12 @@ export default function PartnerDashboard() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {(formData.includes || []).map((item, idx) => (
-                  <Badge key={idx} className="bg-green-100 text-green-800">
-                    {item}
+                  <Badge key={idx} className="bg-green-100 text-green-800 text-sm px-3 py-1">
+                    ✓ {item}
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, includes: formData.includes.filter((_, i) => i !== idx)})}
-                      className="ml-2"
+                      className="ml-2 hover:text-red-600 font-bold"
                     >×</button>
                   </Badge>
                 ))}
@@ -701,12 +753,12 @@ export default function PartnerDashboard() {
             </div>
 
             <div>
-              <Label>Requisitos</Label>
+              <Label>Requisitos Necessários</Label>
               <div className="flex gap-2 mb-2">
                 <Input
                   value={newRequirement}
                   onChange={(e) => setNewRequirement(e.target.value)}
-                  placeholder="Ex: Vacinas em dia"
+                  placeholder="Ex: Vacinas em dia, Certificado de saúde..."
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -731,12 +783,12 @@ export default function PartnerDashboard() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {(formData.requirements || []).map((item, idx) => (
-                  <Badge key={idx} className="bg-orange-100 text-orange-800">
-                    {item}
+                  <Badge key={idx} className="bg-orange-100 text-orange-800 text-sm px-3 py-1">
+                    ⚠️ {item}
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, requirements: formData.requirements.filter((_, i) => i !== idx)})}
-                      className="ml-2"
+                      className="ml-2 hover:text-red-600 font-bold"
                     >×</button>
                   </Badge>
                 ))}
@@ -746,19 +798,27 @@ export default function PartnerDashboard() {
             <div>
               <Label className="mb-2 block">Dias Disponíveis</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
-                  <label key={day} className="flex items-center gap-2 cursor-pointer">
+                {[
+                  { value: 'monday', label: 'Segunda' },
+                  { value: 'tuesday', label: 'Terça' },
+                  { value: 'wednesday', label: 'Quarta' },
+                  { value: 'thursday', label: 'Quinta' },
+                  { value: 'friday', label: 'Sexta' },
+                  { value: 'saturday', label: 'Sábado' },
+                  { value: 'sunday', label: 'Domingo' }
+                ].map(day => (
+                  <label key={day.value} className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-lg border hover:bg-blue-50 transition-colors">
                     <Checkbox
-                      checked={(formData.available_days || []).includes(day)}
+                      checked={(formData.available_days || []).includes(day.value)}
                       onCheckedChange={() => {
                         const days = formData.available_days || [];
                         setFormData({
                           ...formData,
-                          available_days: days.includes(day) ? days.filter(d => d !== day) : [...days, day]
+                          available_days: days.includes(day.value) ? days.filter(d => d !== day.value) : [...days, day.value]
                         });
                       }}
                     />
-                    <span className="text-sm capitalize">{day}</span>
+                    <span className="text-sm font-medium">{day.label}</span>
                   </label>
                 ))}
               </div>
@@ -771,31 +831,66 @@ export default function PartnerDashboard() {
                 accept="image/*"
                 onChange={handleImageUpload}
                 disabled={uploadingImage}
+                className="mb-2"
               />
+              {uploadingImage && <p className="text-sm text-gray-500">Carregando imagem...</p>}
               {formData.image_url && (
-                <img src={formData.image_url} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded-lg" />
+                <div className="mt-3">
+                  <img src={formData.image_url} alt="Preview" className="w-full h-48 object-cover rounded-lg border-2 border-gray-200" />
+                </div>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-xl border-2 border-orange-200">
               <Checkbox
                 checked={formData.is_emergency}
                 onCheckedChange={(checked) => setFormData({...formData, is_emergency: checked})}
               />
-              <Label>Serviço de Emergência (24/7)</Label>
+              <div className="flex-1">
+                <Label className="font-bold">Serviço de Emergência (24/7)</Label>
+                <p className="text-xs text-gray-600">Disponível a qualquer hora, incluindo fins de semana</p>
+              </div>
+              {formData.is_emergency && (
+                <div className="w-32">
+                  <Label className="text-xs">Taxa Extra (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.emergency_surcharge || 0}
+                    onChange={(e) => setFormData({...formData, emergency_surcharge: parseFloat(e.target.value) || 0})}
+                    placeholder="0.00"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border-2 border-green-200">
+              <Checkbox
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+              />
+              <div className="flex-1">
+                <Label className="font-bold">Serviço Ativo</Label>
+                <p className="text-xs text-gray-600">Visível para clientes no site</p>
+              </div>
             </div>
           </div>
 
           <div className="flex gap-3 mt-6">
-            <Button onClick={() => { setShowServiceForm(false); setEditingService(null); }} variant="outline">
+            <Button
+              onClick={() => { setShowServiceForm(false); setEditingService(null); }}
+              variant="outline"
+              className="flex-1"
+            >
               Cancelar
             </Button>
             <Button
-              onClick={() => saveServiceMutation.mutate(formData)}
-              className="bg-blue-600"
-              disabled={!formData.service_name || !formData.description || formData.base_price <= 0}
+              onClick={handleSubmit}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={saveServiceMutation.isPending || uploadingImage}
             >
-              {editingService ? 'Atualizar' : 'Criar'} Serviço
+              {saveServiceMutation.isPending ? "A salvar..." : editingService ? '💾 Atualizar Serviço' : '✨ Criar Serviço'}
             </Button>
           </div>
         </CardContent>
