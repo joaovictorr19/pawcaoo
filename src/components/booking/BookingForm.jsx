@@ -21,7 +21,7 @@ import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import AvailabilityCalendar from "../calendar/AvailabilityCalendar";
-import { toast } from "react-hot-toast"; // Assuming react-hot-toast for toasts
+import { toast } from "sonner"; // Changed from react-hot-toast to sonner
 
 const PLATFORM_FEE_PERCENTAGE = 15;
 
