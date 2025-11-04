@@ -95,12 +95,12 @@ export default function Partners() {
   });
 
   const categories = [
-    { id: "all", name: "Todos", icon: Store },
+    { id: "all", name: language === 'pt' ? "Todos" : "All", icon: Store },
     { id: "pet_store", name: "Pet Shops", icon: ShoppingBag },
-    { id: "veterinary", name: "Veterinários", icon: Store },
+    { id: "veterinary", name: language === 'pt' ? "Veterinários" : "Vets", icon: Store },
     { id: "grooming", name: "Grooming", icon: Store },
-    { id: "insurance", name: "Seguros", icon: Store },
-    { id: "training", name: "Treino", icon: Store },
+    { id: "insurance", name: language === 'pt' ? "Seguros" : "Insurance", icon: Store },
+    { id: "training", name: language === 'pt' ? "Treino" : "Training", icon: Store },
   ];
 
   const filteredPartners = React.useMemo(() => {
@@ -179,17 +179,17 @@ export default function Partners() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                PawCão Marketplace
+                🛍️ {language === 'pt' ? 'Loja PawCão' : language === 'es' ? 'Tienda PawCão' : 'PawCão Shop'}
               </h1>
               <p className="text-gray-600">
-                Produtos exclusivos com <span className="font-semibold text-green-600">PawPoints</span>
+                {language === 'pt' ? 'Produtos exclusivos com' : language === 'es' ? 'Productos exclusivos con' : 'Exclusive products with'} <span className="font-semibold text-green-600">PawPoints</span>
               </p>
             </div>
 
             {user && (
               <div className="hidden md:flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-4 py-2">
                 <div className="text-right">
-                  <p className="text-xs text-gray-600">Seus PawPoints</p>
+                  <p className="text-xs text-gray-600">{language === 'pt' ? 'Seus PawPoints' : 'Your PawPoints'}</p>
                   <p className="text-lg font-bold text-green-600">
                     {loadingPoints ? "..." : (loyaltyPoints?.points_balance || 0).toLocaleString()}
                   </p>
@@ -200,7 +200,7 @@ export default function Partners() {
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <Gift className="w-4 h-4 mr-1" />
-                  Resgatar
+                  {language === 'pt' ? 'Resgatar' : 'Redeem'}
                 </Button>
               </div>
             )}
@@ -209,7 +209,7 @@ export default function Partners() {
           <div className="relative max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
-              placeholder="Pesquisar parceiros..."
+              placeholder={language === 'pt' ? "Pesquisar produtos e marcas..." : "Search products and brands..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-11 bg-white"
@@ -226,7 +226,7 @@ export default function Partners() {
             className="border-2 border-purple-200 hover:bg-purple-50"
           >
             <Sliders className="w-4 h-4 mr-2" />
-            {showAdvancedFilters ? 'Ocultar' : 'Mostrar'} Filtros Avançados
+            {showAdvancedFilters ? (language === 'pt' ? 'Ocultar' : 'Hide') : (language === 'pt' ? 'Mostrar' : 'Show')} {language === 'pt' ? 'Filtros Avançados' : 'Advanced Filters'}
           </Button>
         </div>
 
@@ -254,7 +254,7 @@ export default function Partners() {
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
                   <Megaphone className="w-6 h-6 text-purple-600" />
-                  <h2 className="text-2xl font-bold text-gray-900">Promoções em Destaque</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{language === 'pt' ? 'Promoções em Destaque' : 'Featured Promotions'}</h2>
                 </div>
                 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -339,8 +339,8 @@ export default function Partners() {
 
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                <span className="font-semibold text-green-600">{filteredPartners.length}</span> parceiros • 
-                <span className="font-semibold text-purple-600 ml-1">{filteredProducts.length}</span> produtos encontrados
+                <span className="font-semibold text-green-600">{filteredPartners.length}</span> {language === 'pt' ? 'marcas' : 'brands'} • 
+                <span className="font-semibold text-purple-600 ml-1">{filteredProducts.length}</span> {language === 'pt' ? 'produtos encontrados' : 'products found'}
               </p>
               {(advancedFilters.categories.length > 0 || 
                 advancedFilters.discountOnly || 
@@ -358,7 +358,7 @@ export default function Partners() {
                   ))}
                   {advancedFilters.discountOnly && (
                     <Badge variant="outline" className="text-xs bg-red-50">
-                      🏷️ Com Desconto
+                      🏷️ {language === 'pt' ? 'Com Desconto' : 'On Sale'}
                     </Badge>
                   )}
                   {advancedFilters.pointsRedeemable && (
@@ -368,22 +368,22 @@ export default function Partners() {
                   )}
                   {advancedFilters.inStockOnly && (
                     <Badge variant="outline" className="text-xs bg-blue-50">
-                      ✅ Em Stock
+                      ✅ {language === 'pt' ? 'Em Stock' : 'In Stock'}
                     </Badge>
                   )}
                   {advancedFilters.minRating > 0 && (
                     <Badge variant="outline" className="text-xs bg-yellow-50">
-                      ⭐ {advancedFilters.minRating}+ Estrelas
+                      ⭐ {advancedFilters.minRating}+ {language === 'pt' ? 'Estrelas' : 'Stars'}
                     </Badge>
                   )}
                   {advancedFilters.brand !== 'all' && (
                     <Badge variant="outline" className="text-xs bg-green-50">
-                      Parceiro: {advancedFilters.brand}
+                      {language === 'pt' ? 'Marca' : 'Brand'}: {advancedFilters.brand}
                     </Badge>
                   )}
                   {(advancedFilters.minPrice > 0 || advancedFilters.maxPrice < 1000) && (
                     <Badge variant="outline" className="text-xs bg-gray-50">
-                      Preço: €{advancedFilters.minPrice} - €{advancedFilters.maxPrice}
+                      {language === 'pt' ? 'Preço' : 'Price'}: €{advancedFilters.minPrice} - €{advancedFilters.maxPrice}
                     </Badge>
                   )}
                 </div>
@@ -400,10 +400,10 @@ export default function Partners() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum parceiro ou produto encontrado</h3>
-                  <p className="text-gray-600 mb-4">Tente ajustar os filtros ou pesquisa</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{language === 'pt' ? 'Nenhuma marca ou produto encontrado' : 'No brands or products found'}</h3>
+                  <p className="text-gray-600 mb-4">{language === 'pt' ? 'Tente ajustar os filtros ou pesquisa' : 'Try adjusting filters or search'}</p>
                   <Button onClick={() => { setSearchQuery(""); setActiveCategory("all"); resetAdvancedFilters(); }}>
-                    Limpar Filtros
+                    {language === 'pt' ? 'Limpar Filtros' : 'Clear Filters'}
                   </Button>
                 </CardContent>
               </Card>
@@ -452,7 +452,7 @@ export default function Partners() {
 
                         {partner.promo_code && (
                           <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
-                            <p className="text-[9px] text-gray-600">Código</p>
+                            <p className="text-[9px] text-gray-600">{language === 'pt' ? 'Código' : 'Code'}</p>
                             <p className="text-xs font-bold text-green-700 font-mono truncate">
                               {partner.promo_code}
                             </p>
@@ -460,7 +460,7 @@ export default function Partners() {
                         )}
 
                         <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-8 text-xs font-semibold">
-                          Ver Loja
+                          {language === 'pt' ? 'Ver Loja' : 'View Shop'}
                           <ChevronRight className="w-3 h-3 ml-1" />
                         </Button>
                       </CardContent>
@@ -474,10 +474,10 @@ export default function Partners() {
               <CardContent className="p-6">
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">
-                    Ganhe 10-20 PawPoints por cada €1
+                    {language === 'pt' ? 'Ganhe 10-20 PawPoints por cada €1' : 'Earn 10-20 PawPoints per €1'}
                   </h3>
                   <p className="text-green-100">
-                    Acumule pontos em cada compra e troque por recompensas
+                    {language === 'pt' ? 'Acumule pontos em cada compra e troque por recompensas' : 'Accumulate points on every purchase and redeem for rewards'}
                   </p>
                 </div>
               </CardContent>
@@ -539,13 +539,13 @@ export default function Partners() {
                       <p className="text-5xl font-black text-red-600 text-center">
                         -{selectedAnnouncement.discount_percentage}%
                       </p>
-                      <p className="text-center text-gray-600 mt-2">Desconto Especial</p>
+                      <p className="text-center text-gray-600 mt-2">{language === 'pt' ? 'Desconto Especial' : 'Special Discount'}</p>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between pt-6 border-t">
                     <div>
-                      <p className="text-sm text-gray-600">Parceiro:</p>
+                      <p className="text-sm text-gray-600">{language === 'pt' ? 'Marca:' : 'Brand:'}</p>
                       <p className="font-bold text-gray-900">{selectedAnnouncement.company_name}</p>
                     </div>
                     <Button
@@ -559,7 +559,7 @@ export default function Partners() {
                       className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                       size="lg"
                     >
-                      Ver Produtos
+                      {language === 'pt' ? 'Ver Produtos' : 'View Products'}
                       <ChevronRight className="w-5 h-5 ml-2" />
                     </Button>
                   </div>

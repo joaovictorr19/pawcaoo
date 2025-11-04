@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -150,8 +150,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
-    { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: language === 'pt' ? 'Parceiros' : language === 'es' ? 'Socios' : 'Partners', url: createPageUrl("PartnerServices"), icon: Award },
+    { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
+    { title: language === 'pt' ? 'Parceiros' : language === 'es' ? 'Socios' : 'Partners', url: createPageUrl("PartnerServices"), icon: Store },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: language === 'pt' ? 'Adotar Pet' : language === 'es' ? 'Adoptar Mascota' : 'Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Home },
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
@@ -530,7 +530,7 @@ function LayoutContent({ children, currentPageName }) {
                     <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
                     <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
                     <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
-                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{t('pawcaoShop', language)}</Link></li>
+                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
                   </ul>
                 </div>
                 <div>
