@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -259,44 +260,8 @@ export default function PartnerDashboard() {
             {[
               { icon: AlertCircle, value: stats.pending, label: language === 'pt' ? "Pendentes" : "Pending", color: "from-yellow-500 to-orange-500" },
               { icon: CheckCircle, value: stats.confirmed, label: language === 'pt' ? "Confirmados" : "Confirmed", color: "from-blue-500 to-cyan-500" },
-              { icon: Heart, value: stats.completed, label: language === 'pt' ? "Completos" : "Completed", color: "from-green-500 to-emerald-500" },
+              { icon: CheckCircle, value: stats.completed, label: language === 'pt' ? "Completos" : "Completed", color: "from-green-500 to-emerald-500" },
               { icon: DollarSign, value: `€${stats.revenue.toFixed(0)}`, label: language === 'pt' ? "Receita" : "Revenue", color: "from-purple-500 to-pink-500" }
-            ].map((stat, idx) => (
-              <Card key={idx} className="border-0 shadow-lg">
-                <CardContent className="p-3 md:p-4 text-center">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg`}>
-                    <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                  </div>
-                  <div className="text-xl md:text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium">{stat.label}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Bookings Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-5 bg-white shadow-lg rounded-xl p-1 md:p-2 gap-1">
-            <TabsTrigger value="pending" className="rounded-lg text-xs md:text-sm">
-              <AlertCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-              <span className="hidden sm:inline">{language === 'pt' ? 'Pendentes' : 'Pending'}</span>
-              <span className="sm:hidden">({stats.pending})</span>
-              {stats.pending > 0 && <Badge className="ml-1 md:ml-2 bg-red-500 text-white text-[10px] px-1">
-                {stats.pending}
-              </Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="confirmed" className="rounded-lg text-xs md:text-sm">
-              <CheckCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-              <span className="hidden sm:inline">{language === 'pt' ? 'Confirmados' : 'Confirmed'}</span>
-              <span className="sm:hidden">({stats.confirmed})</span>
-            </TabsTrigger>
-            <TabsTrigger value="in_progress" className="rounded-lg text-xs md:text-sm">
-              <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-              <span className="hidden sm:inline">{language === 'pt' ? 'Em Progresso' : 'Progress'}</span>
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-lg text-xs md:text-sm">
-              <Heart, value: stats.completed, label: language === 'pt' ? "Completos" : "Completed", color: "from-green-500 to-emerald-500" }
             ].map((stat, idx) => (
               <Card key={idx} className="border-0 shadow-lg">
                 <CardContent className="p-3 md:p-4 text-center">
@@ -645,7 +610,7 @@ export default function PartnerDashboard() {
               <Button
                 size="lg"
                 className="bg-white text-purple-600 hover:bg-purple-50 font-bold shadow-xl h-10 md:h-12 text-sm md:text-base"
-                onClick={() => navigate(createPageUrl('Messages'))}
+                onClick={() => navigate('/messages')} // Assuming '/messages' is the correct path for messages
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {language === 'pt' ? 'Ver Mensagens' : 'View Messages'}
