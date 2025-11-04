@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Removed DialogTrigger as it's not used
+import {
   Store, Calendar, DollarSign, Package, TrendingUp,
   Clock, User, PawPrint, CheckCircle, X, AlertCircle,
   Bell, Phone, MapPin, Pill, MessageCircle, Send,
-  Shield, RefreshCw // New imports for Shield and RefreshCw
+  Shield, RefreshCw, Camera, Image as ImageIcon, // Renamed Image to ImageIcon to avoid conflict with HTML <img>
+  CalendarClock, FileText, Download, Upload
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; // Removed AnimatePresence as it's not used for simple Dialog open/close
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +22,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
@@ -28,32 +31,51 @@ export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [messageText, setMessageText] = useState("");
-  const [showDebug, setShowDebug] = useState(false); // New state for debug info
+  const [showDebug, setShowDebug] = useState(false);
+
+  // Modal states
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showPhotosModal, setShowPhotosModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [currentModalBooking, setCurrentModalBooking] = useState(null);
+
+  // Form states for Schedule Modal
+  const [pickupDate, setPickupDate] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
+  const [dropoffDate, setDropoffDate] = useState("");
+  const [dropoffTime, setDropoffTime] = useState("");
+
+  // Form states for Notes Modal
+  const [serviceNotes, setServiceNotes] = useState("");
+
+  // Form states for Photos Modal
+  const [beforePhotos, setBeforePhotos] = useState([]);
+  const [afterPhotos, setAfterPhotos] = useState([]);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: company, isLoading: loadingCompany } = useQuery({ // Added isLoading: loadingCompany
+  const { data: company, isLoading: loadingCompany } = useQuery({
     queryKey: ['myCompany'],
     queryFn: async () => {
       if (!user?.email) return null;
-      
+
       // Try multiple filters to find the company
-      const byEmail = await base44.entities.PartnerCompany.filter({ 
+      const byEmail = await base44.entities.PartnerCompany.filter({
         company_email: user.email
       });
-      
+
       if (byEmail.length > 0) return byEmail[0];
-      
+
       // Try by created_by as fallback
-      const byCreator = await base44.entities.PartnerCompany.filter({ 
+      const byCreator = await base44.entities.PartnerCompany.filter({
         created_by: user.email
       });
-      
+
       if (byCreator.length > 0) return byCreator[0];
-      
+
       return null;
     },
     enabled: !!user,
@@ -61,8 +83,8 @@ export default function PartnerDashboard() {
 
   const { data: services } = useQuery({
     queryKey: ['myServices'],
-    queryFn: () => base44.entities.PartnerService.filter({ 
-      partner_company_email: user?.email 
+    queryFn: () => base44.entities.PartnerService.filter({
+      partner_company_email: user?.email
     }),
     enabled: !!user,
     initialData: [],
@@ -70,8 +92,8 @@ export default function PartnerDashboard() {
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['companyBookings'],
-    queryFn: () => base44.entities.ServiceBooking.filter({ 
-      partner_company_email: user?.email 
+    queryFn: () => base44.entities.ServiceBooking.filter({
+      partner_company_email: user?.email
     }, '-booking_date'),
     enabled: !!user && !!company,
     initialData: [],
@@ -82,7 +104,7 @@ export default function PartnerDashboard() {
     queryFn: async () => {
       if (!user?.email) return [];
       const allConvos = await base44.entities.ChatConversation.list('-last_message_date');
-      return allConvos.filter(c => 
+      return allConvos.filter(c =>
         c.participants?.some(p => p.email === user?.email)
       );
     },
@@ -91,24 +113,28 @@ export default function PartnerDashboard() {
   });
 
   const updateBookingMutation = useMutation({
-    mutationFn: async ({ bookingId, status }) => {
-      await base44.entities.ServiceBooking.update(bookingId, { 
+    mutationFn: async ({ bookingId, status, additionalData }) => {
+      const updateData = {
         status,
-        confirmed_date: status === 'confirmed' ? new Date().toISOString() : undefined
-      });
+        confirmed_date: status === 'confirmed' ? new Date().toISOString() : undefined,
+        ...additionalData
+      };
+
+      await base44.entities.ServiceBooking.update(bookingId, updateData);
 
       const booking = bookings.find(b => b.id === bookingId);
       if (booking) {
         const statusMessages = {
           confirmed: language === 'pt' ? 'confirmado' : 'confirmed',
           cancelled: language === 'pt' ? 'cancelado' : 'cancelled',
-          completed: language === 'pt' ? 'concluído' : 'completed'
+          completed: language === 'pt' ? 'concluído' : 'completed',
+          in_progress: language === 'pt' ? 'em progresso' : 'in progress'
         };
 
         await base44.entities.Notification.create({
           recipient_email: booking.owner_email,
           title: language === 'pt' ? `Agendamento ${statusMessages[status]}` : `Booking ${statusMessages[status]}`,
-          message: language === 'pt' 
+          message: language === 'pt'
             ? `Seu agendamento de ${booking.service_name} para ${booking.dog_name} foi ${statusMessages[status]}.`
             : `Your ${booking.service_name} booking for ${booking.dog_name} has been ${statusMessages[status]}.`,
           type: "booking",
@@ -128,14 +154,153 @@ export default function PartnerDashboard() {
     }
   });
 
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async ({ file, type }) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return { url: file_url, type };
+    },
+    onSuccess: (data) => {
+      if (data.type === 'before') {
+        setBeforePhotos(prev => [...prev, data.url]);
+      } else {
+        setAfterPhotos(prev => [...prev, data.url]);
+      }
+      toast.success(language === 'pt' ? 'Foto carregada!' : 'Photo uploaded!');
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao carregar foto' : 'Failed to upload photo'));
+    }
+  });
+
+  const saveScheduleMutation = useMutation({
+    mutationFn: async (bookingId) => {
+      const checkInDateTime = pickupDate && pickupTime ? `${pickupDate}T${pickupTime}` : undefined;
+      const checkOutDateTime = dropoffDate && dropoffTime ? `${dropoffDate}T${dropoffTime}` : undefined;
+
+      const updateData = {
+        check_in_time: checkInDateTime,
+        check_out_time: checkOutDateTime
+      };
+
+      await base44.entities.ServiceBooking.update(bookingId, updateData);
+
+      // Notify owner
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking && (checkInDateTime || checkOutDateTime)) {
+        let message = '';
+        if (checkInDateTime && checkOutDateTime) {
+            message = language === 'pt'
+                ? `Recolha: ${format(new Date(checkInDateTime), "dd/MM/yyyy 'às' HH:mm")}\nEntrega: ${format(new Date(checkOutDateTime), "dd/MM/yyyy 'às' HH:mm")}`
+                : `Pickup: ${format(new Date(checkInDateTime), "MM/dd/yyyy 'at' HH:mm")}\nDropoff: ${format(new Date(checkOutDateTime), "MM/dd/yyyy 'at' HH:mm")}`;
+        } else if (checkInDateTime) {
+            message = language === 'pt'
+                ? `Recolha agendada para ${format(new Date(checkInDateTime), "dd/MM/yyyy 'às' HH:mm")}.`
+                : `Pickup scheduled for ${format(new Date(checkInDateTime), "MM/dd/yyyy 'at' HH:mm")}.`;
+        } else if (checkOutDateTime) {
+            message = language === 'pt'
+                ? `Entrega agendada para ${format(new Date(checkOutDateTime), "dd/MM/yyyy 'às' HH:mm")}.`
+                : `Dropoff scheduled for ${format(new Date(checkOutDateTime), "MM/dd/yyyy 'at' HH:mm")}.`;
+        }
+
+
+        await base44.entities.Notification.create({
+          recipient_email: booking.owner_email,
+          title: language === 'pt' ? '📅 Horários Agendados' : '📅 Schedule Set',
+          message: message,
+          type: "booking",
+          related_id: bookingId,
+          priority: "normal"
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyBookings'] });
+      setShowScheduleModal(false);
+      toast.success(language === 'pt' ? 'Horários salvos!' : 'Schedule saved!');
+      setPickupDate("");
+      setPickupTime("");
+      setDropoffDate("");
+      setDropoffTime("");
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao salvar horários' : 'Failed to save schedule'));
+    }
+  });
+
+  const savePhotosMutation = useMutation({
+    mutationFn: async (bookingId) => {
+      const updateData = {
+        before_photos: beforePhotos,
+        after_photos: afterPhotos
+      };
+
+      await base44.entities.ServiceBooking.update(bookingId, updateData);
+
+      // Notify owner
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking && (beforePhotos.length > 0 || afterPhotos.length > 0)) {
+        await base44.entities.Notification.create({
+          recipient_email: booking.owner_email,
+          title: language === 'pt' ? '📸 Fotos do Serviço' : '📸 Service Photos',
+          message: language === 'pt'
+            ? `${company.company_name} adicionou fotos do serviço de ${booking.service_name}`
+            : `${company.company_name} added photos of ${booking.service_name} service`,
+          type: "booking",
+          related_id: bookingId,
+          priority: "normal"
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyBookings'] });
+      setShowPhotosModal(false);
+      toast.success(language === 'pt' ? 'Fotos salvas!' : 'Photos saved!');
+      setBeforePhotos([]);
+      setAfterPhotos([]);
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao salvar fotos' : 'Failed to save photos'));
+    }
+  });
+
+  const saveNotesMutation = useMutation({
+    mutationFn: async (bookingId) => {
+      await base44.entities.ServiceBooking.update(bookingId, {
+        service_notes: serviceNotes
+      });
+
+      // Notify owner
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking && serviceNotes) {
+        await base44.entities.Notification.create({
+          recipient_email: booking.owner_email,
+          title: language === 'pt' ? '📝 Notas do Serviço' : '📝 Service Notes',
+          message: language === 'pt'
+            ? `${company.company_name} adicionou notas sobre o serviço`
+            : `${company.company_name} added notes about the service`,
+          type: "booking",
+          related_id: bookingId,
+          priority: "normal"
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyBookings'] });
+      setShowNotesModal(false);
+      toast.success(language === 'pt' ? 'Notas salvas!' : 'Notes saved!');
+      setServiceNotes("");
+    },
+    onError: (error) => {
+      toast.error(error.message || (language === 'pt' ? 'Erro ao salvar notas' : 'Failed to save notes'));
+    }
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async ({ ownerEmail, ownerName, bookingId }) => {
-      // Check if conversation exists
-      let conversation = conversations.find(c => 
+      let conversation = conversations.find(c =>
         c.participants?.some(p => p.email === ownerEmail)
       );
 
-      // Create conversation if doesn't exist
       if (!conversation) {
         conversation = await base44.entities.ChatConversation.create({
           conversation_type: 'one_on_one',
@@ -160,7 +325,6 @@ export default function PartnerDashboard() {
         });
       }
 
-      // Send message
       await base44.entities.ChatMessage.create({
         conversation_id: conversation.id,
         sender_email: user.email,
@@ -170,14 +334,12 @@ export default function PartnerDashboard() {
         message_type: 'text'
       });
 
-      // Update conversation
       await base44.entities.ChatConversation.update(conversation.id, {
         last_message: messageText,
         last_message_sender: user.email,
         last_message_date: new Date().toISOString()
       });
 
-      // Notify owner
       await base44.entities.Notification.create({
         recipient_email: ownerEmail,
         title: `${company.company_name} enviou uma mensagem`,
@@ -200,6 +362,35 @@ export default function PartnerDashboard() {
       toast.error(error.message || "Erro ao enviar mensagem");
     }
   });
+
+  const handleFileUpload = async (e, type) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadPhotoMutation.mutate({ file, type });
+    }
+  };
+
+  const openScheduleModal = (booking) => {
+    setCurrentModalBooking(booking);
+    setPickupDate(booking.check_in_time ? booking.check_in_time.split('T')[0] : "");
+    setPickupTime(booking.check_in_time ? booking.check_in_time.split('T')[1]?.substring(0, 5) : ""); // Ensure HH:mm format
+    setDropoffDate(booking.check_out_time ? booking.check_out_time.split('T')[0] : "");
+    setDropoffTime(booking.check_out_time ? booking.check_out_time.split('T')[1]?.substring(0, 5) : ""); // Ensure HH:mm format
+    setShowScheduleModal(true);
+  };
+
+  const openPhotosModal = (booking) => {
+    setCurrentModalBooking(booking);
+    setBeforePhotos(booking.before_photos || []);
+    setAfterPhotos(booking.after_photos || []);
+    setShowPhotosModal(true);
+  };
+
+  const openNotesModal = (booking) => {
+    setCurrentModalBooking(booking);
+    setServiceNotes(booking.service_notes || "");
+    setShowNotesModal(true);
+  };
 
   const filteredBookings = bookings.filter(b => {
     if (activeTab === "all") return true;
@@ -226,7 +417,7 @@ export default function PartnerDashboard() {
     return colors[status] || colors.pending;
   };
 
-  if (loadingCompany) { // Loading state for company data
+  if (loadingCompany) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
         <Card className="max-w-md border-0 shadow-2xl">
@@ -252,13 +443,12 @@ export default function PartnerDashboard() {
                 {language === 'pt' ? 'Empresa Não Encontrada' : 'Company Not Found'}
               </h2>
               <p className="text-gray-600 mb-4">
-                {language === 'pt' 
-                  ? 'Não encontramos uma empresa associada à sua conta.' 
+                {language === 'pt'
+                  ? 'Não encontramos uma empresa associada à sua conta.'
                   : 'We could not find a company associated with your account.'}
               </p>
             </div>
 
-            {/* Debug Info */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
               <Button
                 variant="ghost"
@@ -268,7 +458,7 @@ export default function PartnerDashboard() {
               >
                 {showDebug ? '▼' : '▶'} {language === 'pt' ? 'Informações de Debug' : 'Debug Info'}
               </Button>
-              
+
               {showDebug && (
                 <div className="text-sm space-y-2 mt-2">
                   <div>
@@ -287,7 +477,6 @@ export default function PartnerDashboard() {
               )}
             </div>
 
-            {/* Solutions */}
             <div className="space-y-3">
               <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
                 <h3 className="font-bold text-gray-900 mb-2">
@@ -295,19 +484,19 @@ export default function PartnerDashboard() {
                 </h3>
                 <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
                   <li>
-                    {language === 'pt' 
-                      ? 'Verifique se criou a empresa com o email correto:' 
+                    {language === 'pt'
+                      ? 'Verifique se criou a empresa com o email correto:'
                       : 'Check if you created the company with the correct email:'}{' '}
                     <code className="bg-white px-2 py-1 rounded text-gray-900">{user?.email || 'N/A'}</code>
                   </li>
                   <li>
-                    {language === 'pt' 
-                      ? 'A empresa deve ser criada através do painel de Admin (Dashboard → Dados → PartnerCompany)' 
+                    {language === 'pt'
+                      ? 'A empresa deve ser criada através do painel de Admin (Dashboard → Dados → PartnerCompany)'
                       : 'The company must be created through Admin panel (Dashboard → Data → PartnerCompany)'}
                   </li>
                   <li>
-                    {language === 'pt' 
-                      ? 'Ao criar, use este email no campo "company_email" e "created_by"' 
+                    {language === 'pt'
+                      ? 'Ao criar, use este email no campo "company_email" e "created_by"'
                       : 'When creating, use this email in the "company_email" and "created_by" fields'}
                   </li>
                 </ol>
@@ -341,7 +530,7 @@ export default function PartnerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
@@ -429,7 +618,7 @@ export default function PartnerDashboard() {
                     {language === 'pt' ? 'Nenhum agendamento' : 'No bookings'}
                   </h3>
                   <p className="text-sm md:text-base text-gray-600">
-                    {activeTab === 'pending' 
+                    {activeTab === 'pending'
                       ? (language === 'pt' ? 'Sem pedidos pendentes' : 'No pending requests')
                       : (language === 'pt' ? 'Nenhum agendamento nesta categoria' : 'No bookings in this category')
                     }
@@ -446,7 +635,7 @@ export default function PartnerDashboard() {
                 >
                   <Card className={`border-2 shadow-lg ${
                     booking.is_emergency ? 'border-red-300 bg-red-50' :
-                    booking.status === 'pending' ? 'border-yellow-300 bg-yellow-50' : 
+                    booking.status === 'pending' ? 'border-yellow-300 bg-yellow-50' :
                     'border-blue-200 bg-blue-50'
                   }`}>
                     <CardHeader className="pb-3 md:pb-4 p-4 md:p-6">
@@ -621,13 +810,43 @@ export default function PartnerDashboard() {
                         </Button>
                       )}
 
-                      {/* Actions */}
+                      {/* Additional Actions Section */}
+                      {(booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'completed') && (
+                          <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2 md:gap-3 justify-between mt-4">
+                              <Button
+                                  variant="outline"
+                                  className="flex-1 min-w-0 md:min-w-[150px] border-blue-300 text-blue-600 hover:bg-blue-50 h-10 md:h-12 text-xs md:text-sm"
+                                  onClick={() => openScheduleModal(booking)}
+                              >
+                                  <CalendarClock className="w-4 h-4 mr-2" />
+                                  {language === 'pt' ? 'Horários' : 'Schedule'}
+                              </Button>
+                              <Button
+                                  variant="outline"
+                                  className="flex-1 min-w-0 md:min-w-[150px] border-purple-300 text-purple-600 hover:bg-purple-50 h-10 md:h-12 text-xs md:text-sm"
+                                  onClick={() => openPhotosModal(booking)}
+                              >
+                                  <Camera className="w-4 h-4 mr-2" />
+                                  {language === 'pt' ? 'Fotos' : 'Photos'}
+                              </Button>
+                              <Button
+                                  variant="outline"
+                                  className="flex-1 min-w-0 md:min-w-[150px] border-green-300 text-green-600 hover:bg-green-50 h-10 md:h-12 text-xs md:text-sm"
+                                  onClick={() => openNotesModal(booking)}
+                              >
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  {language === 'pt' ? 'Notas' : 'Notes'}
+                              </Button>
+                          </div>
+                      )}
+
+                      {/* Status-specific Actions */}
                       {booking.status === 'pending' && (
                         <div className="flex gap-2 md:gap-3 pt-4 border-t">
                           <Button
-                            onClick={() => updateBookingMutation.mutate({ 
-                              bookingId: booking.id, 
-                              status: 'confirmed' 
+                            onClick={() => updateBookingMutation.mutate({
+                              bookingId: booking.id,
+                              status: 'confirmed'
                             })}
                             disabled={updateBookingMutation.isPending}
                             className="flex-1 bg-gradient-to-r from-green-600 to-green-500 h-10 md:h-12 text-xs md:text-sm"
@@ -637,9 +856,9 @@ export default function PartnerDashboard() {
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => updateBookingMutation.mutate({ 
-                              bookingId: booking.id, 
-                              status: 'cancelled' 
+                            onClick={() => updateBookingMutation.mutate({
+                              bookingId: booking.id,
+                              status: 'cancelled'
                             })}
                             disabled={updateBookingMutation.isPending}
                             className="flex-1 border-red-200 text-red-600 hover:bg-red-50 h-10 md:h-12 text-xs md:text-sm"
@@ -653,9 +872,9 @@ export default function PartnerDashboard() {
                       {booking.status === 'confirmed' && (
                         <div className="flex gap-2 md:gap-3 pt-4 border-t">
                           <Button
-                            onClick={() => updateBookingMutation.mutate({ 
-                              bookingId: booking.id, 
-                              status: 'in_progress' 
+                            onClick={() => updateBookingMutation.mutate({
+                              bookingId: booking.id,
+                              status: 'in_progress'
                             })}
                             disabled={updateBookingMutation.isPending}
                             className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 h-10 md:h-12 text-xs md:text-sm"
@@ -669,9 +888,9 @@ export default function PartnerDashboard() {
                       {booking.status === 'in_progress' && (
                         <div className="flex gap-2 md:gap-3 pt-4 border-t">
                           <Button
-                            onClick={() => updateBookingMutation.mutate({ 
-                              bookingId: booking.id, 
-                              status: 'completed' 
+                            onClick={() => updateBookingMutation.mutate({
+                              bookingId: booking.id,
+                              status: 'completed'
                             })}
                             disabled={updateBookingMutation.isPending}
                             className="flex-1 bg-gradient-to-r from-green-600 to-green-500 h-10 md:h-12 text-xs md:text-sm"
@@ -683,7 +902,7 @@ export default function PartnerDashboard() {
                       )}
 
                       {booking.status === 'completed' && (
-                        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-3 md:p-4">
+                        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-3 md:p-4 mt-4">
                           <p className="text-green-700 font-semibold flex items-center gap-2 text-xs md:text-sm">
                             <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
                             {language === 'pt' ? 'Serviço concluído!' : 'Service completed!'}
@@ -710,7 +929,7 @@ export default function PartnerDashboard() {
                   {language === 'pt' ? 'Seus Serviços' : 'Your Services'}
                 </h3>
                 <p className="text-sm md:text-base text-white/90">
-                  {language === 'pt' 
+                  {language === 'pt'
                     ? `${services.length} ${services.length === 1 ? 'serviço cadastrado' : 'serviços cadastrados'}`
                     : `${services.length} ${services.length === 1 ? 'service listed' : 'services listed'}`
                   }
@@ -719,7 +938,7 @@ export default function PartnerDashboard() {
               <Button
                 size="lg"
                 className="bg-white text-purple-600 hover:bg-purple-50 font-bold shadow-xl h-10 md:h-12 text-sm md:text-base"
-                onClick={() => navigate('/messages')} // Assuming '/messages' is the correct path for messages
+                onClick={() => navigate('/messages')}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {language === 'pt' ? 'Ver Mensagens' : 'View Messages'}
@@ -728,6 +947,139 @@ export default function PartnerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Schedule Modal */}
+      <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-blue-600" />
+              {language === 'pt' ? 'Agendar Recolha/Entrega' : 'Schedule Pickup/Dropoff'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Recolha do Animal' : 'Pickup'}</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="time"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Entrega do Animal' : 'Dropoff'}</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={dropoffDate}
+                  onChange={(e) => setDropoffDate(e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="time"
+                  value={dropoffTime}
+                  onChange={(e) => setDropoffTime(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <Button
+              onClick={() => saveScheduleMutation.mutate(currentModalBooking?.id)}
+              disabled={saveScheduleMutation.isPending || (pickupDate === "" && pickupTime === "" && dropoffDate === "" && dropoffTime === "")}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {saveScheduleMutation.isPending ? (language === 'pt' ? 'Salvando...' : 'Saving...') : (language === 'pt' ? 'Salvar Horários' : 'Save Schedule')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Photos Modal */}
+      <Dialog open={showPhotosModal} onOpenChange={setShowPhotosModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Camera className="w-5 h-5 text-purple-600" />
+              {language === 'pt' ? 'Fotos do Serviço' : 'Service Photos'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="mb-2 block">{language === 'pt' ? 'Fotos Antes' : 'Before Photos'}</Label>
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {beforePhotos.map((url, idx) => (
+                  <img key={idx} src={url} alt={`Before ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                ))}
+              </div>
+              <Input
+                id="before_photos_upload" // Added ID for label association
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload(e, 'before')}
+                disabled={uploadPhotoMutation.isPending}
+              />
+            </div>
+            <div>
+              <Label className="mb-2 block">{language === 'pt' ? 'Fotos Depois' : 'After Photos'}</Label>
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {afterPhotos.map((url, idx) => (
+                  <img key={idx} src={url} alt={`After ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                ))}
+              </div>
+              <Input
+                id="after_photos_upload" // Added ID for label association
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload(e, 'after')}
+                disabled={uploadPhotoMutation.isPending}
+              />
+            </div>
+            <Button
+              onClick={() => savePhotosMutation.mutate(currentModalBooking?.id)}
+              disabled={savePhotosMutation.isPending || (beforePhotos.length === 0 && afterPhotos.length === 0 && (currentModalBooking?.before_photos?.length || 0) === 0 && (currentModalBooking?.after_photos?.length || 0) === 0)}
+              className="w-full bg-purple-600 hover:bg-purple-700"
+            >
+              {savePhotosMutation.isPending ? (language === 'pt' ? 'Salvando...' : 'Saving...') : (language === 'pt' ? 'Salvar Fotos' : 'Save Photos')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Modal */}
+      <Dialog open={showNotesModal} onOpenChange={setShowNotesModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-green-600" />
+              {language === 'pt' ? 'Notas do Serviço' : 'Service Notes'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Textarea
+              value={serviceNotes}
+              onChange={(e) => setServiceNotes(e.target.value)}
+              placeholder={language === 'pt' ? "Adicione observações sobre o serviço..." : "Add observations about the service..."}
+              rows={6}
+            />
+            <Button
+              onClick={() => saveNotesMutation.mutate(currentModalBooking?.id)}
+              disabled={saveNotesMutation.isPending}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              {saveNotesMutation.isPending ? (language === 'pt' ? 'Salvando...' : 'Saving...') : (language === 'pt' ? 'Salvar Notas' : 'Save Notes')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
