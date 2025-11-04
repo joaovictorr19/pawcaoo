@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -36,6 +37,7 @@ function LayoutContent({ children, currentPageName }) {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 300000, // 5 minutes
   });
 
   const { data: notifications } = useQuery({
@@ -49,6 +51,7 @@ function LayoutContent({ children, currentPageName }) {
     },
     enabled: !!user,
     initialData: [],
+    staleTime: 60000, // 1 minute
   });
 
   const { data: ownerSubscription } = useQuery({
@@ -61,7 +64,15 @@ function LayoutContent({ children, currentPageName }) {
       return subs[0];
     },
     enabled: !!user,
+    staleTime: 300000, // 5 minutes
   });
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      // Cleanup
+    };
+  }, []);
 
   const unreadCount = notifications?.length || 0;
 
@@ -136,6 +147,11 @@ function LayoutContent({ children, currentPageName }) {
 
   const planBadge = getPlanBadge();
 
+  const handleNavigation = (url) => (e) => {
+    e.preventDefault();
+    window.location.href = url;
+  };
+
   return (
     <SidebarProvider>
       <style>{`
@@ -149,9 +165,13 @@ function LayoutContent({ children, currentPageName }) {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         <Sidebar className="border-r border-green-100 bg-white">
           <SidebarHeader className="border-b border-green-100 p-6">
-            <Link to={createPageUrl("Home")} className="block hover:opacity-80 transition-opacity">
+            <a 
+              href={createPageUrl("Home")} 
+              className="block hover:opacity-80 transition-opacity"
+              onClick={handleNavigation(createPageUrl("Home"))}
+            >
               <PawCaoLogo size="default" />
-            </Link>
+            </a>
             
             {planBadge && (
               <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
@@ -193,10 +213,14 @@ function LayoutContent({ children, currentPageName }) {
                         location.pathname === createPageUrl("MyProfile") ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
                       } border-2 border-purple-200 bg-purple-50`}
                     >
-                      <Link to={createPageUrl("MyProfile")} className="flex items-center gap-3 px-4 py-3">
+                      <a 
+                        href={createPageUrl("MyProfile")} 
+                        className="flex items-center gap-3 px-4 py-3"
+                        onClick={handleNavigation(createPageUrl("MyProfile"))}
+                      >
                         <User className="w-5 h-5 text-purple-600" />
                         <span className="font-semibold">{t('myProfile', language)} & {language === 'pt' ? 'Config.' : 'Settings'}</span>
-                      </Link>
+                      </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -215,10 +239,14 @@ function LayoutContent({ children, currentPageName }) {
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
                         } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
                       >
-                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                        <a 
+                          href={item.url} 
+                          className="flex items-center gap-3 px-4 py-3"
+                          onClick={handleNavigation(item.url)}
+                        >
                           <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
                           <span className="font-medium">{item.title}</span>
-                        </Link>
+                        </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
