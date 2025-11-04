@@ -142,6 +142,45 @@ export default function UserProfile() {
     },
   });
 
+  // Auto-detect and award XP for "Visit Dog Connect" quest
+  useEffect(() => {
+    const awardVisitXP = async () => {
+      if (!currentUser || !profileEmail || profileEmail !== currentUser.email) return;
+      
+      const today = new Date().toISOString().split('T')[0];
+      const lastActivity = currentUser.last_activity_date;
+      
+      // Only award once per day
+      if (lastActivity === today) return;
+      
+      // Award 20 XP for daily visit
+      const newXP = (currentUser.gamification_xp || 0) + 20;
+      const newLevel = Math.floor(newXP / 500) + 1; // Assuming 500 XP per level
+      
+      try {
+        await base44.auth.updateMe({
+          gamification_xp: newXP,
+          gamification_level: newLevel,
+          last_activity_date: today,
+          daily_streak: lastActivity === format(new Date(Date.now() - 86400000), 'yyyy-MM-dd') ? (currentUser.daily_streak || 0) + 1 : 1 // Increment streak if last visit was yesterday, else reset
+        });
+        
+        queryClient.invalidateQueries(['currentUser']);
+        queryClient.invalidateQueries(['profileUser', profileEmail]); // Invalidate specific profile if it's the current user's
+        
+        toast.success("✅ Missão Diária Completa! +20 XP por visitar o Dog Connect! 🎉");
+      } catch (error) {
+        console.error("Failed to update user for daily visit XP:", error);
+        toast.error("Erro ao conceder XP diário. Tente novamente.");
+      }
+    };
+    
+    // Only run this effect if currentUser is available and it's their own profile
+    if (currentUser?.email === profileEmail) {
+      awardVisitXP();
+    }
+  }, [currentUser, profileEmail, queryClient]); // Depend on queryClient to ensure it's stable
+
   const isOwnProfile = currentUser?.email === profileEmail;
 
   // Gamification
@@ -466,7 +505,7 @@ export default function UserProfile() {
                     </div>
                     <div className="flex-1">
                       <h2 className="text-2xl font-bold mb-1">Nível {currentLevel}</h2>
-                      <p className="text-white/90 text-sm">{currentLevelXP % xpNeeded} / {xpNeeded} XP para próximo nível</p>
+                      <p className="text-white/90 text-sm">{xpNeeded - (currentLevelXP % xpNeeded)} / {xpNeeded} XP para próximo nível</p>
                       <Progress value={xpProgress} className="h-3 bg-white/20 mt-2" />
                     </div>
                   </div>

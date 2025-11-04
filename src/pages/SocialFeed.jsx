@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +31,48 @@ export default function SocialFeed() {
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
+
+  // Auto-detect and award XP for "Visit Dog Connect" quest
+  useEffect(() => {
+    const awardVisitXP = async () => {
+      if (!user) return;
+      
+      const today = new Date().toISOString().split('T')[0];
+      const lastActivity = user.last_activity_date;
+      
+      // Only award once per day
+      if (lastActivity === today) return;
+      
+      // Award 20 XP for daily visit
+      const newXP = (user.gamification_xp || 0) + 20;
+      // Levels every 500 XP
+      const newLevel = Math.floor(newXP / 500) + 1;
+      
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      // Calculate streak: if last activity was yesterday, increment. Otherwise, reset to 1.
+      const newStreak = lastActivity === yesterdayStr ? (user.daily_streak || 0) + 1 : 1;
+      
+      // Update user profile
+      await base44.auth.updateMe({
+        gamification_xp: newXP,
+        gamification_level: newLevel,
+        last_activity_date: today,
+        daily_streak: newStreak,
+        longest_streak: Math.max(newStreak, user.longest_streak || 0) // Update longest streak if current is greater
+      });
+      
+      // Invalidate query to refresh user data across the app
+      queryClient.invalidateQueries(['currentUser']);
+      
+      toast.success(`✅ Missão Diária! +20 XP 🎉 Streak: ${newStreak} dias 🔥`);
+    };
+    
+    // Call the function when user data is available
+    awardVisitXP();
+  }, [user, queryClient]); // Depend on user and queryClient
 
   const { data: posts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ['socialPosts'],
