@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -88,6 +89,10 @@ export default function BookService() {
       if (!dog) {
         throw new Error("Pet não encontrado");
       }
+
+      if (!partner) {
+        throw new Error("Parceiro não encontrado");
+      }
       
       const price = service.price_by_size?.[dog.size] || service.base_price;
       const emergencyFee = isEmergency ? (service.emergency_surcharge || 0) : 0;
@@ -98,6 +103,7 @@ export default function BookService() {
       const booking = await base44.entities.ServiceBooking.create({
         partner_id: service.partner_id,
         partner_name: service.partner_name,
+        partner_company_email: partner.company_email,
         service_id: service.id,
         service_name: service.service_name,
         service_type: service.service_type,

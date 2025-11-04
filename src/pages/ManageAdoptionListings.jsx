@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,9 +13,13 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
+
 export default function ManageAdoptionListings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [selectedListing, setSelectedListing] = useState(null);
 
   const { data: user } = useQuery({
@@ -50,7 +55,7 @@ export default function ManageAdoptionListings() {
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['adoptionApplications'] });
-      toast.success(`Application ${variables.status}!`);
+      toast.success(`Application ${variables.status}!`); // Consider translating this toast message too
     },
   });
 
@@ -59,7 +64,7 @@ export default function ManageAdoptionListings() {
       base44.entities.AdoptionListing.update(listingId, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAdoptionListings'] });
-      toast.success("Listing updated!");
+      toast.success("Listing updated!"); // Consider translating this toast message too
     },
   });
 
@@ -69,11 +74,26 @@ export default function ManageAdoptionListings() {
 
   const getStatusBadge = (status) => {
     const configs = {
-      available: { color: "bg-green-500", text: "Available" },
-      pending: { color: "bg-yellow-500", text: "Pending" },
-      adopted: { color: "bg-blue-500", text: "Adopted!" },
-      on_hold: { color: "bg-orange-500", text: "On Hold" },
-      removed: { color: "bg-gray-500", text: "Removed" }
+      available: { 
+        color: "bg-green-500", 
+        text: language === 'pt' ? "Disponível" : language === 'es' ? "Disponible" : "Available" 
+      },
+      pending: { 
+        color: "bg-yellow-500", 
+        text: language === 'pt' ? "Pendente" : language === 'es' ? "Pendiente" : "Pending" 
+      },
+      adopted: { 
+        color: "bg-blue-500", 
+        text: language === 'pt' ? "Adotado!" : language === 'es' ? "¡Adoptado!" : "Adopted!" 
+      },
+      on_hold: { 
+        color: "bg-orange-500", 
+        text: language === 'pt' ? "Em Espera" : language === 'es' ? "En Espera" : "On Hold" 
+      },
+      removed: { 
+        color: "bg-gray-500", 
+        text: language === 'pt' ? "Removido" : language === 'es' ? "Eliminado" : "Removed" 
+      }
     };
     const config = configs[status] || configs.available;
     return <Badge className={`${config.color} text-white`}>{config.text}</Badge>;
@@ -84,17 +104,17 @@ export default function ManageAdoptionListings() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Manage Adoption Listings
+            {t('manageAdoptionListings', language)}
           </h1>
           <p className="text-lg text-gray-600">
-            View your listings and manage applications
+            {t('viewListingsAndApps', language)}
           </p>
         </div>
 
         <Tabs defaultValue="listings" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-white shadow-lg">
-            <TabsTrigger value="listings">My Listings ({myListings.length})</TabsTrigger>
-            <TabsTrigger value="applications">Applications ({allApplications.length})</TabsTrigger>
+            <TabsTrigger value="listings">{t('myListings', language)} ({myListings.length})</TabsTrigger>
+            <TabsTrigger value="applications">{t('applications', language)} ({allApplications.length})</TabsTrigger>
           </TabsList>
 
           {/* My Listings Tab */}
@@ -158,7 +178,7 @@ export default function ManageAdoptionListings() {
                             className="flex-1"
                             onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
                           >
-                            View
+                            {t('view', language)}
                           </Button>
                           {listing.status === 'available' && applications.length > 0 && (
                             <Button
@@ -169,7 +189,7 @@ export default function ManageAdoptionListings() {
                                 document.querySelector('[value="applications"]').click();
                               }}
                             >
-                              {applications.length} App{applications.length !== 1 && 's'}
+                              {applications.length} {t('appsShort', language)}{applications.length !== 1 && 's'}
                             </Button>
                           )}
                         </div>
@@ -183,21 +203,21 @@ export default function ManageAdoptionListings() {
 
           {/* Applications Tab */}
           <TabsContent value="applications">
-            <div className="space-y-6">
-              {allApplications.length === 0 ? (
-                <Card>
-                  <CardContent className="p-12 text-center">
-                    <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                      No applications yet
-                    </h3>
-                    <p className="text-gray-600">
-                      Applications will appear here when people apply
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                allApplications.map((app, index) => (
+            {allApplications.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                    {t('noApplicationsYet', language)}
+                  </h3>
+                  <p className="text-gray-600">
+                    {t('applicationsWillAppearHere', language)}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {allApplications.map((app, index) => (
                   <motion.div
                     key={app.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -212,7 +232,7 @@ export default function ManageAdoptionListings() {
                               {app.applicant_name}
                             </CardTitle>
                             <p className="text-sm text-gray-600 mt-1">
-                              Wants to adopt {app.pet_name}
+                              {t('wantsToAdopt', language)} {app.pet_name}
                             </p>
                           </div>
                           {getStatusBadge(app.application_status)}
@@ -221,18 +241,18 @@ export default function ManageAdoptionListings() {
                       <CardContent className="p-6 space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>
-                            <p className="text-sm text-gray-600">Contact</p>
+                            <p className="text-sm text-gray-600">{t('contact', language)}</p>
                             <p className="font-semibold">{app.applicant_phone}</p>
                             <p className="text-sm">{app.applicant_email}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Location</p>
+                            <p className="text-sm text-gray-600">{t('location', language)}</p>
                             <p className="font-semibold">{app.applicant_city}</p>
                           </div>
                         </div>
 
                         <div>
-                          <p className="text-sm text-gray-600 mb-1">Why They Want to Adopt</p>
+                          <p className="text-sm text-gray-600 mb-1">{t('reasonForAdoption', language)}</p>
                           <p className="text-gray-800">{app.reason_for_adoption}</p>
                         </div>
 
@@ -244,11 +264,11 @@ export default function ManageAdoptionListings() {
                               onClick={() => updateApplicationMutation.mutate({
                                 appId: app.id,
                                 status: 'approved',
-                                notes: 'Application approved'
+                                notes: 'Application approved' // Consider translating this note
                               })}
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Approve
+                              {t('approve', language)}
                             </Button>
                             <Button
                               variant="outline"
@@ -256,20 +276,20 @@ export default function ManageAdoptionListings() {
                               onClick={() => updateApplicationMutation.mutate({
                                 appId: app.id,
                                 status: 'rejected',
-                                notes: 'Application rejected'
+                                notes: 'Application rejected' // Consider translating this note
                               })}
                             >
                               <XCircle className="w-4 h-4 mr-2" />
-                              Reject
+                              {t('reject', language)}
                             </Button>
                           </div>
                         )}
                       </CardContent>
                     </Card>
                   </motion.div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

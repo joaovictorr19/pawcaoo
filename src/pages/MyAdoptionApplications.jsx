@@ -1,17 +1,22 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Calendar, MapPin, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Heart, Calendar, MapPin, Clock, CheckCircle2, XCircle, AlertCircle, Home } from "lucide-react"; // Added Home icon import
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
+
 export default function MyAdoptionApplications() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -27,12 +32,36 @@ export default function MyAdoptionApplications() {
 
   const getStatusBadge = (status) => {
     const configs = {
-      pending: { color: "bg-yellow-500", icon: Clock, text: "Pending Review" },
-      under_review: { color: "bg-blue-500", icon: AlertCircle, text: "Under Review" },
-      approved: { color: "bg-green-500", icon: CheckCircle2, text: "Approved!" },
-      rejected: { color: "bg-red-500", icon: XCircle, text: "Not Approved" },
-      on_hold: { color: "bg-orange-500", icon: AlertCircle, text: "On Hold" },
-      withdrawn: { color: "bg-gray-500", icon: XCircle, text: "Withdrawn" }
+      pending: { 
+        color: "bg-yellow-500", 
+        icon: Clock, 
+        text: language === 'pt' ? "Pendente" : language === 'es' ? "Pendiente" : "Pending Review" 
+      },
+      under_review: { 
+        color: "bg-blue-500", 
+        icon: AlertCircle, 
+        text: language === 'pt' ? "Em Revisão" : language === 'es' ? "En Revisión" : "Under Review" 
+      },
+      approved: { 
+        color: "bg-green-500", 
+        icon: CheckCircle2, 
+        text: language === 'pt' ? "Aprovado!" : language === 'es' ? "¡Aprobado!" : "Approved!" 
+      },
+      rejected: { 
+        color: "bg-red-500", 
+        icon: XCircle, 
+        text: language === 'pt' ? "Não Aprovado" : language === 'es' ? "No Aprobado" : "Not Approved" 
+      },
+      on_hold: { 
+        color: "bg-orange-500", 
+        icon: AlertCircle, 
+        text: language === 'pt' ? "Em Espera" : language === 'es' ? "En Espera" : "On Hold" 
+      },
+      withdrawn: { 
+        color: "bg-gray-500", 
+        icon: XCircle, 
+        text: language === 'pt' ? "Retirado" : language === 'es' ? "Retirado" : "Withdrawn" 
+      }
     };
     
     const config = configs[status] || configs.pending;
@@ -50,9 +79,9 @@ export default function MyAdoptionApplications() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Adoption Applications</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('myAdoptionApplications', language)}</h1>
           <p className="text-lg text-gray-600">
-            Track the status of your adoption applications
+            {t('trackApplicationStatus', language)}
           </p>
         </div>
 
@@ -63,18 +92,20 @@ export default function MyAdoptionApplications() {
         ) : applications.length === 0 ? (
           <Card className="border-0 shadow-xl">
             <CardContent className="p-12 text-center">
-              <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <Home className="w-16 h-16 text-gray-300 mx-auto mb-4" /> {/* Changed from Heart to Home */}
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                No applications yet
+                {t('noApplicationsYet', language)}
               </h3>
               <p className="text-gray-600 mb-6">
-                Browse available pets and start your adoption journey!
+                {language === 'pt' ? 'Navegue nos pets disponíveis e comece sua jornada de adoção!' : 
+                 language === 'es' ? '¡Explora las mascotas disponibles y comienza tu viaje de adopción!' : 
+                 'Browse available pets and start your adoption journey!'}
               </p>
               <Button
                 onClick={() => navigate(createPageUrl('AdoptionListings'))}
                 className="bg-gradient-to-r from-pink-600 to-purple-600"
               >
-                Browse Pets
+                {t('browsePets', language)}
               </Button>
             </CardContent>
           </Card>
@@ -92,11 +123,11 @@ export default function MyAdoptionApplications() {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-2xl mb-2">
-                          Application for {app.pet_name}
+                          {t('applicationFor', language)} {app.pet_name}
                         </CardTitle>
                         <div className="flex items-center gap-2 text-gray-600 text-sm">
                           <Calendar className="w-4 h-4" />
-                          Applied {format(new Date(app.created_date), 'MMM d, yyyy')}
+                          {t('applied', language)} {format(new Date(app.created_date), 'MMM d, yyyy')}
                         </div>
                       </div>
                       {getStatusBadge(app.application_status)}
@@ -105,18 +136,18 @@ export default function MyAdoptionApplications() {
                   <CardContent className="p-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-2">Your Information</h4>
+                        <h4 className="font-semibold mb-2">{t('yourInformation', language)}</h4>
                         <div className="space-y-1 text-sm text-gray-700">
-                          <p><strong>Phone:</strong> {app.applicant_phone}</p>
-                          <p><strong>City:</strong> {app.applicant_city}</p>
-                          <p><strong>Home:</strong> {app.home_type} ({app.home_ownership})</p>
+                          <p><strong>{t('phone', language)}:</strong> {app.applicant_phone}</p>
+                          <p><strong>{t('city', language)}:</strong> {app.applicant_city}</p>
+                          <p><strong>{t('home', language)}:</strong> {app.home_type} ({app.home_ownership})</p>
                         </div>
                       </div>
 
                       {app.interview_scheduled && (
                         <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
                           <h4 className="font-semibold text-blue-900 mb-2">
-                            Interview Scheduled
+                            {t('interviewScheduled', language)}
                           </h4>
                           <p className="text-sm text-blue-700">
                             {format(new Date(app.interview_date), 'PPP p')}
@@ -129,11 +160,11 @@ export default function MyAdoptionApplications() {
                           <div className="flex items-center gap-2 mb-2">
                             <CheckCircle2 className="w-6 h-6 text-green-600" />
                             <h4 className="font-semibold text-green-900">
-                              Congratulations! 🎉
+                              {t('congratulations', language)} 🎉
                             </h4>
                           </div>
                           <p className="text-sm text-green-700">
-                            Your application has been approved! The shelter will contact you soon to arrange the adoption.
+                            {t('applicationApprovedMessage', language)}
                           </p>
                         </div>
                       )}
@@ -141,7 +172,7 @@ export default function MyAdoptionApplications() {
                       {app.application_status === 'rejected' && app.rejection_reason && (
                         <div className="md:col-span-2 bg-red-50 rounded-lg p-4 border-2 border-red-200">
                           <h4 className="font-semibold text-red-900 mb-2">
-                            Application Status
+                            {t('applicationStatus', language)}
                           </h4>
                           <p className="text-sm text-red-700">{app.rejection_reason}</p>
                         </div>
@@ -154,7 +185,7 @@ export default function MyAdoptionApplications() {
                         onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${app.listing_id}`))}
                         className="flex-1"
                       >
-                        View Pet
+                        {t('viewPet', language)}
                       </Button>
                     </div>
                   </CardContent>

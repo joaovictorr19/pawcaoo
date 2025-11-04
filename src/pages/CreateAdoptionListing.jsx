@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -8,16 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, Upload, PlusCircle, Trash2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Heart, Upload, PlusCircle, Trash2, ArrowLeft, CheckCircle2, Home } from "lucide-react"; // Added Home icon
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function CreateAdoptionListing() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -111,6 +115,18 @@ export default function CreateAdoptionListing() {
 
   const progress = (currentStep / 3) * 100;
 
+  const stepTitles = {
+    1: { pt: "Passo 1: Informações Básicas", en: "Step 1: Basic Information", es: "Paso 1: Información Básica" },
+    2: { pt: "Passo 2: Saúde & Personalidade", en: "Step 2: Health & Personality", es: "Paso 2: Salud y Personalidad" },
+    3: { pt: "Passo 3: Detalhes da Adoção", en: "Step 3: Adoption Details", es: "Paso 3: Detalles de Adopción" }
+  };
+
+  const progressLabels = {
+    basicInfo: { pt: "Info Básica", en: "Basic Info", es: "Info Básica" },
+    health: { pt: "Saúde", en: "Health", es: "Salud" },
+    adoption: { pt: "Adoção", en: "Adoption", es: "Adopción" }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
@@ -120,32 +136,32 @@ export default function CreateAdoptionListing() {
           onClick={() => navigate(createPageUrl('AdoptionListings'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          {language === 'pt' ? 'Voltar' : language === 'es' ? 'Volver' : 'Back'}
         </Button>
 
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-pink-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-10 h-10 text-white fill-current" />
+            <Home className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Post a Pet for Adoption
+            {t('createAdoptionListing', language)}
           </h1>
           <p className="text-lg text-gray-600">
-            Help find a loving home for a pet in need
+            {t('helpFindHome', language)}
           </p>
 
           <div className="max-w-2xl mx-auto mt-6">
             <Progress value={progress} className="h-3 mb-3" />
             <div className="flex justify-between text-sm">
               <span className={`font-semibold ${currentStep >= 1 ? 'text-purple-600' : 'text-gray-400'}`}>
-                Basic Info
+                {progressLabels.basicInfo[language]}
               </span>
               <span className={`font-semibold ${currentStep >= 2 ? 'text-purple-600' : 'text-gray-400'}`}>
-                Health & Personality
+                {progressLabels.health[language]}
               </span>
               <span className={`font-semibold ${currentStep >= 3 ? 'text-purple-600' : 'text-gray-400'}`}>
-                Adoption Details
+                {progressLabels.adoption[language]}
               </span>
             </div>
           </div>
@@ -154,9 +170,7 @@ export default function CreateAdoptionListing() {
         <Card className="border-0 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-pink-600 to-purple-600 text-white">
             <CardTitle className="text-2xl">
-              {currentStep === 1 && "Step 1: Basic Information"}
-              {currentStep === 2 && "Step 2: Health & Personality"}
-              {currentStep === 3 && "Step 3: Adoption Details"}
+              {stepTitles[currentStep][language]}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -527,10 +541,14 @@ export default function CreateAdoptionListing() {
                     <CheckCircle2 className="w-12 h-12 text-green-600" />
                   </div>
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    Listing Posted!
+                    {language === 'pt' ? 'Listagem Publicada!' : 
+                     language === 'es' ? '¡Anuncio Publicado!' : 
+                     'Listing Posted!'}
                   </h2>
                   <p className="text-gray-600">
-                    Your listing is now live and visible to potential adopters.
+                    {language === 'pt' ? 'Sua listagem está agora ativa e visível para potenciais adotantes.' : 
+                     language === 'es' ? 'Tu anuncio ya está activo y visible para posibles adoptantes.' : 
+                     'Your listing is now live and visible to potential adopters.'}
                   </p>
                 </CardContent>
               </Card>

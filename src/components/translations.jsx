@@ -227,7 +227,7 @@ export const translations = {
 
     // Subscription translations
     subscriptionPlansTitle: "PawCão Subscription Plans",
-    choosePlan: "Escolha o plano que se adequa ao seu negócio",
+    choosePlan: "Escolha o plan que se adequa ao seu negócio",
     freeCommission: "€0 comissão",
     onlyCommission: "Apenas",
     unlimitedBookings: "Reservas Ilimitadas",
@@ -2141,7 +2141,7 @@ export const adoptionTranslations = {
   goodWithKids: { pt: "Bom com crianças", en: "Good with kids", es: "Bueno con niños" },
   goodWithDogs: { pt: "Bom com cães", en: "Good with dogs", es: "Bueno con perros" },
   goodWithCats: { pt: "Bom com gatos", en: "Good with cats", es: "Bueno con gatos" },
-  freeAdoption: { pt: "ADOÇÃO GRÁTIS", en: "FREE ADOPTION", es: "ADOPCIÓN GRATIS" },
+  freeAdoption: { pt: "GRÁTIS", en: "FREE", es: "GRATIS" },
   adoptionFee: { pt: "Taxa de Adoção", en: "Adoption Fee", es: "Tarifa de Adopción" },
   applyToAdopt: { pt: "Candidatar-se para Adotar", en: "Apply to Adopt", es: "Solicitar Adopción" },
   backToListings: { pt: "Voltar às Listagens", en: "Back to Listings", es: "Volver a Listados" },
@@ -2176,6 +2176,14 @@ export const adoptionTranslations = {
   applicationApproved: { pt: "Sua candidatura foi aprovada! O abrigo entrará em contato em breve para arranjar a adoção.", en: "Your application has been approved! The shelter will contact you soon to arrange the adoption.", es: "¡Tu solicitud ha sido aprobada! El refugio se pondrá en contacto contigo pronto para organizar la adopción." },
   applicationStatus: { pt: "Status da Candidatura", en: "Application Status", es: "Estado de la Solicitud" },
   viewPet: { pt: "Ver Pet", en: "View Pet", es: "Ver Mascota" },
+  createAdoptionListing: { pt: "Publicar Pet para Adoção", en: "Post a Pet for Adoption", es: "Publicar Mascota para Adopción" },
+  helpFindHome: { pt: "Ajude a encontrar um lar para um pet necessitado", en: "Help find a loving home for a pet in need", es: "Ayuda a encontrar un hogar para una mascota necesitada" },
+  basicInfo: { pt: "Informações Básicas", en: "Basic Info", es: "Información Básica" },
+  healthAndPersonality: { pt: "Saúde & Personalidade", en: "Health & Personality", es: "Salud y Personalidad" },
+  adoptionDetails: { pt: "Detalhes da Adoção", en: "Adoption Details", es: "Detalles de Adopción" },
+  manageAdoptionListings: { pt: "Gerir Listagens de Adoção", en: "Manage Adoption Listings", es: "Gestionar Anuncios de Adopción" },
+  viewListingsAndApps: { pt: "Veja suas listagens e gerencie candidaturas", en: "View your listings and manage applications", es: "Ver tus anuncios y gestionar solicitudes" },
+  myListings: { pt: "Minhas Listagens", en: "My Listings", es: "Mis Anuncios" },
 };
 
 export const t = (key, lang = 'pt') => {
