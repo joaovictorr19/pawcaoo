@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -474,6 +475,125 @@ export default function MyProfile() {
           </Card>
 
           <div className="lg:col-span-3">
+            {/* Profile Tab */}
+            {activeTab === "profile" && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <User className="w-5 h-5 text-green-600" />
+                    Informações Pessoais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Nome Completo *</Label>
+                      <Input
+                        value={profileData.full_name}
+                        onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
+                        placeholder="Seu nome completo"
+                      />
+                    </div>
+                    <div>
+                      <Label>Email</Label>
+                      <Input value={user?.email} disabled className="bg-gray-100" />
+                    </div>
+                    <div>
+                      <Label>Telefone *</Label>
+                      <Input
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                        placeholder="+351 123 456 789"
+                      />
+                    </div>
+                    <div>
+                      <Label>Cidade *</Label>
+                      <Input
+                        value={profileData.city}
+                        onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                        placeholder="Lisboa"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Morada *</Label>
+                    <Input
+                      value={profileData.address}
+                      onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                      placeholder="Rua, número, andar"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Código Postal *</Label>
+                    <Input
+                      value={profileData.postal_code}
+                      onChange={(e) => setProfileData({...profileData, postal_code: e.target.value})}
+                      placeholder="0000-000"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Bio</Label>
+                    <Textarea
+                      value={profileData.bio}
+                      onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                      placeholder="Conte um pouco sobre você e seus pets..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Website</Label>
+                    <Input
+                      value={profileData.website}
+                      onChange={(e) => setProfileData({...profileData, website: e.target.value})}
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="mb-3 block">Raças Favoritas</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {POPULAR_BREEDS.map(breed => (
+                        <Badge
+                          key={breed}
+                          variant={profileData.favorite_dog_breeds?.includes(breed) ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => handleToggleBreed(breed)}
+                        >
+                          {breed}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="mb-3 block">Interesses</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {INTERESTS.map(interest => (
+                        <Badge
+                          key={interest.value}
+                          variant={profileData.interests?.includes(interest.value) ? "default" : "outline"}
+                          className="cursor-pointer justify-start"
+                          onClick={() => handleToggleInterest(interest.value)}
+                        >
+                          {interest.icon} {interest.label}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button onClick={handleSaveProfile} className="w-full bg-green-600 hover:bg-green-700">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Alterações
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Activity Tab */}
             {activeTab === "activity" && (
               <div className="space-y-6">
                 <Card className="border-0 shadow-xl">
@@ -641,7 +761,354 @@ export default function MyProfile() {
               </div>
             )}
             
-            {/* Other tabs remain the same as before... */}
+            {/* Pets Tab */}
+            {activeTab === "pets" && (
+              <div className="space-y-6">
+                <Card className="border-0 shadow-xl">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Dog className="w-5 h-5 text-green-600" />
+                      Meus Pets
+                    </CardTitle>
+                    <Button onClick={() => setShowAddDog(true)}>
+                      <PlusCircle className="w-4 h-4 mr-2" />
+                      Adicionar Pet
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingDogs ? (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {[1, 2].map(i => <Skeleton key={i} className="h-64 rounded-lg" />)}
+                      </div>
+                    ) : myDogs.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 mb-4">Nenhum pet cadastrado</p>
+                        <Button onClick={() => setShowAddDog(true)}>
+                          Adicionar Primeiro Pet
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {myDogs.map((dog) => (
+                          <DogProfileCard
+                            key={dog.id}
+                            dog={dog}
+                            onEdit={() => setEditingDog(dog)}
+                            onDelete={async () => {
+                              if (confirm(`Tem certeza que deseja remover ${dog.dog_name}?`)) {
+                                await base44.entities.DogProfile.delete(dog.id);
+                                queryClient.invalidateQueries(['myDogs']);
+                                toast.success("Pet removido");
+                              }
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {(showAddDog || editingDog) && (
+                  <AddEditDogForm
+                    dog={editingDog}
+                    onClose={() => {
+                      setShowAddDog(false);
+                      setEditingDog(null);
+                    }}
+                    onSave={() => {
+                      queryClient.invalidateQueries(['myDogs']);
+                      setShowAddDog(false);
+                      setEditingDog(null);
+                    }}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Social Tab */}
+            {activeTab === "social" && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <AtSign className="w-5 h-5 text-purple-600" />
+                    Redes Sociais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Instagram</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.instagram_handle}
+                        onChange={(e) => setProfileData({...profileData, instagram_handle: e.target.value})}
+                        placeholder="seu_instagram"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Facebook</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.facebook_handle}
+                        onChange={(e) => setProfileData({...profileData, facebook_handle: e.target.value})}
+                        placeholder="seu_facebook"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Twitter / X</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.twitter_handle}
+                        onChange={(e) => setProfileData({...profileData, twitter_handle: e.target.value})}
+                        placeholder="seu_twitter"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>TikTok</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.tiktok_handle}
+                        onChange={(e) => setProfileData({...profileData, tiktok_handle: e.target.value})}
+                        placeholder="seu_tiktok"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>YouTube</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.youtube_handle}
+                        onChange={(e) => setProfileData({...profileData, youtube_handle: e.target.value})}
+                        placeholder="seu_youtube"
+                      />
+                    </div>
+                  </div>
+
+                  <Button onClick={handleSaveProfile} className="w-full bg-purple-600 hover:bg-purple-700">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Redes Sociais
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Badges Tab */}
+            {activeTab === "badges" && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Award className="w-5 h-5 text-yellow-600" />
+                    Emblemas Conquistados
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {user?.public_badges?.length || 0} emblemas desbloqueados
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {(!user?.public_badges || user.public_badges.length === 0) ? (
+                    <div className="text-center py-12">
+                      <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-4">Nenhum emblema conquistado ainda</p>
+                      <p className="text-sm text-gray-500 mb-6">
+                        Participe da comunidade, complete desafios e ganhe emblemas exclusivos!
+                      </p>
+                      <Button onClick={() => navigate(createPageUrl('Gamification'))}>
+                        Ver Gamificação
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {user.public_badges.map((badge, idx) => (
+                          <div
+                            key={idx}
+                            className="p-4 rounded-xl border-2 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200 text-center hover:scale-105 transition-transform"
+                          >
+                            <div className="text-4xl mb-2">{badge.icon}</div>
+                            <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
+                            <p className="text-xs text-gray-600 mb-2">{badge.description}</p>
+                            <Badge className="text-xs">{badge.rarity}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-6 text-center">
+                        <Button variant="outline" onClick={() => navigate(createPageUrl('Gamification'))}>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Ver Todos os Desafios
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Settings Tab */}
+            {activeTab === "settings" && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-blue-600" />
+                    Preferências
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label className="mb-3 block">Idioma da Plataforma</Label>
+                    <Select 
+                      value={preferences.language} 
+                      onValueChange={(value) => setPreferences({...preferences, language: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pt">🇵🇹 Português</SelectItem>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                        <SelectItem value="es">🇪🇸 Español</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Notificações</Label>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Notificações Push</p>
+                        <p className="text-xs text-gray-600">Receba notificações no app</p>
+                      </div>
+                      <Switch
+                        checked={preferences.notifications_enabled}
+                        onCheckedChange={(checked) => setPreferences({...preferences, notifications_enabled: checked})}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Email de Notificações</p>
+                        <p className="text-xs text-gray-600">Receba atualizações por email</p>
+                      </div>
+                      <Switch
+                        checked={preferences.email_notifications}
+                        onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
+                      />
+                    </div>
+                  </div>
+
+                  <Button onClick={handleSavePreferences} className="w-full bg-blue-600 hover:bg-blue-700">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Preferências
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment Tab */}
+            {activeTab === "payment" && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-green-600" />
+                    Métodos de Pagamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Gerencie seus métodos de pagamento</p>
+                    <Button onClick={() => navigate(createPageUrl('PaymentMethods'))}>
+                      Ver Métodos de Pagamento
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Security Tab */}
+            {activeTab === "security" && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-red-600" />
+                    Segurança da Conta
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold text-blue-900 mb-1">Conta Protegida</h4>
+                        <p className="text-sm text-blue-700">
+                          Sua conta está protegida pela autenticação da plataforma Base44.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-base font-semibold mb-4 block">Ações de Segurança</Label>
+                    
+                    <div className="space-y-3">
+                      <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">Email da Conta</p>
+                            <p className="text-xs text-gray-600">{user?.email}</p>
+                          </div>
+                          <Badge variant="outline">Verificado</Badge>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">Autenticação</p>
+                            <p className="text-xs text-gray-600">Gerenciada pela Base44</p>
+                          </div>
+                          <Badge className="bg-green-500">Ativa</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                    <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
+                    <p className="text-sm text-red-700 mb-4">
+                      Ações irreversíveis que afetam sua conta
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                      onClick={() => {
+                        if (confirm("Tem certeza que deseja sair de todas as sessões?")) {
+                          handleLogout();
+                        }
+                      }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair de Todas as Sessões
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
