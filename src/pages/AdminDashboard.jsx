@@ -1960,8 +1960,9 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+        </Tabs>
 
-          {/* Badges Management Dialog - ENHANCED FROM OUTLINE */}
+        {/* Badges Management Dialog - Outside Tabs */}
         <Dialog open={showBadgesDialog} onOpenChange={(open) => {
           if (!open) {
             setShowBadgesDialog(false);
