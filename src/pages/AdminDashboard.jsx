@@ -863,8 +863,7 @@ export default function AdminDashboard() {
                           <Button 
                             className="flex-1" 
                             variant="outline"
-                            onClick={() => window.open(createPageUrl('PartnerDashboard'), '_blank')} // Use window.open for external link
-                            className="flex-1 dark:hover:bg-blue-900/20 dark:border-gray-600 dark:text-gray-300"
+                            onClick={() => window.open(createPageUrl('PartnerDashboard'), '_blank')}
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Painel
