@@ -86,7 +86,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: "🏥 " + (language === 'pt' ? 'Serviços Parceiros' : 'Partner Services'), url: createPageUrl("PartnerServices"), icon: Award },
+    { title: "🏥 " + (language === 'pt' ? 'Serviços' : 'Services'), url: createPageUrl("PartnerServices"), icon: Award },
     { title: "🐾 Comunidade", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "📸 Rede Social", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar },
@@ -108,7 +108,6 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
-    { title: "🏢 " + (language === 'pt' ? 'Painel Parceiros' : 'Partner Dashboard'), url: createPageUrl("PartnerDashboard"), icon: Store },
     { title: "📢 " + (language === 'pt' ? 'Aprovar Anúncios' : 'Approve Ads'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
     { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
@@ -118,7 +117,7 @@ function LayoutContent({ children, currentPageName }) {
   ] : [];
 
   const companyItem = user?.account_type === 'company' ? [
-    { title: "🏢 " + (language === 'pt' ? 'Minha Empresa' : 'My Company'), url: createPageUrl("CompanyDashboard"), icon: Store } // Changed to CompanyDashboard
+    { title: "🏢 " + (language === 'pt' ? 'Minha Empresa' : 'My Company'), url: createPageUrl("PartnerDashboard"), icon: Store } 
   ] : [];
 
   const veterinaryItem = user?.account_type === 'company' && user?.company_type === 'veterinary' ? [

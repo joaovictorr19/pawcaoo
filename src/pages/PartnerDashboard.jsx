@@ -10,134 +10,74 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Store, Package, TrendingUp, DollarSign, Plus, 
-  Edit, Trash2, Megaphone, BarChart3, ShoppingBag, 
-  Users, UserPlus, Mail, Phone, Calendar, Crown, Eye, MousePointer, Upload
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Store, TrendingUp, DollarSign, Package, Megaphone,
+  Calendar, Upload, PlusCircle, Edit, Trash2, BarChart3, Users
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [showEmployeeForm, setShowEmployeeForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [editingService, setEditingService] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  // Para admin: listar todas as empresas
-  const { data: allCompanies } = useQuery({
-    queryKey: ['allPartnerCompanies'],
-    queryFn: () => base44.entities.PartnerCompany.list(),
-    enabled: user?.role === 'admin',
-    initialData: [],
-  });
-
-  // Para empresa: buscar a própria empresa
-  const { data: company, isLoading: loadingCompany } = useQuery({
-    queryKey: ['partnerCompany', user?.role, selectedCompany?.id], // Add selectedCompany.id to queryKey for admin mode
+  const { data: company } = useQuery({
+    queryKey: ['partnerCompany', user?.email],
     queryFn: async () => {
-      if (user?.role === 'admin' && selectedCompany) {
-        return selectedCompany;
-      }
-      if (!user) return null; // Avoid running if user is not loaded
-      const companies = await base44.entities.PartnerCompany.filter({ 
-        company_email: user?.email 
-      });
+      const companies = await base44.entities.PartnerCompany.filter({ company_email: user?.email });
       return companies[0];
     },
-    enabled: !!user && (user?.role === 'admin' ? !!selectedCompany : true), // Enable if user is loaded, for admin only if selectedCompany is set
-  });
-
-  const { data: products } = useQuery({
-    queryKey: ['companyProducts', company?.id], // Add company?.id to invalidate on company change
-    queryFn: () => base44.entities.PartnerProduct.filter({ 
-      partner_id: company?.partnership_id 
-    }),
-    enabled: !!company,
-    initialData: [],
-  });
-
-  const { data: employees } = useQuery({
-    queryKey: ['companyEmployees', company?.id], // Add company?.id
-    queryFn: () => base44.entities.CompanyEmployee.filter({ 
-      company_id: company?.id 
-    }),
-    enabled: !!company,
-    initialData: [],
+    enabled: !!user,
   });
 
   const { data: announcements } = useQuery({
-    queryKey: ['companyAnnouncements', company?.id], // Add company?.id
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
-      company_id: company?.id 
-    }, '-created_date'),
+    queryKey: ['companyAnnouncements', user?.email],
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({ company_email: user?.email }, '-created_date'),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: services } = useQuery({
+    queryKey: ['partnerServices', company?.id],
+    queryFn: () => base44.entities.PartnerService.filter({ partner_id: company?.id }),
     enabled: !!company,
     initialData: [],
   });
 
-  const { data: redemptions } = useQuery({
-    queryKey: ['companyRedemptions', company?.id], // Add company?.id
-    queryFn: async () => {
-      const allRedemptions = await base44.entities.Redemption.list('-created_date');
-      return allRedemptions.filter(r => r.partner_id === company?.partnership_id);
-    },
+  const { data: bookings } = useQuery({
+    queryKey: ['serviceBookings', company?.id],
+    queryFn: () => base44.entities.ServiceBooking.filter({ partner_id: company?.id }),
     enabled: !!company,
     initialData: [],
-  });
-
-  const saveProductMutation = useMutation({
-    mutationFn: async (productData) => {
-      if (editingProduct) {
-        return await base44.entities.PartnerProduct.update(editingProduct.id, productData);
-      } else {
-        return await base44.entities.PartnerProduct.create({
-          ...productData,
-          partner_id: company.partnership_id,
-          partner_name: company.company_name
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyProducts'] });
-      toast.success(editingProduct ? "Produto atualizado!" : "Produto adicionado!");
-      setShowProductForm(false);
-      setEditingProduct(null);
-    },
-  });
-
-  const deleteProductMutation = useMutation({
-    mutationFn: (id) => base44.entities.PartnerProduct.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyProducts'] });
-      toast.success("Produto eliminado!");
-    },
   });
 
   const saveAnnouncementMutation = useMutation({
-    mutationFn: async (announcementData) => {
+    mutationFn: async (data) => {
       if (editingAnnouncement) {
-        return await base44.entities.CompanyAnnouncement.update(editingAnnouncement.id, announcementData);
-      } else {
-        return await base44.entities.CompanyAnnouncement.create({
-          ...announcementData,
-          company_id: company.id,
-          company_name: company.company_name
-        });
+        return await base44.entities.CompanyAnnouncement.update(editingAnnouncement.id, data);
       }
+      return await base44.entities.CompanyAnnouncement.create({
+        ...data,
+        company_id: company?.id || user?.company_id,
+        company_name: company?.company_name || user?.full_name,
+        company_email: user?.email,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyAnnouncements'] });
-      toast.success(editingAnnouncement ? "Anúncio atualizado!" : "Anúncio submetido para aprovação!");
+      toast.success(editingAnnouncement ? "Anúncio atualizado!" : "Anúncio criado! Aguardando aprovação do admin.");
       setShowAnnouncementForm(false);
       setEditingAnnouncement(null);
     },
@@ -155,275 +95,230 @@ export default function PartnerDashboard() {
     },
   });
 
-  const saveEmployeeMutation = useMutation({
-    mutationFn: async (employeeData) => {
-      if (editingEmployee) {
-        return await base44.entities.CompanyEmployee.update(editingEmployee.id, employeeData);
-      } else {
-        return await base44.entities.CompanyEmployee.create({
-          ...employeeData,
-          company_id: company.id,
-          company_name: company.company_name
-        });
+  const saveServiceMutation = useMutation({
+    mutationFn: async (data) => {
+      if (editingService) {
+        return await base44.entities.PartnerService.update(editingService.id, data);
       }
+      return await base44.entities.PartnerService.create({
+        ...data,
+        partner_id: company?.id || user?.company_id || 'temp-' + Date.now(),
+        partner_name: company?.company_name || user?.full_name,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
-      toast.success(editingEmployee ? "Funcionário atualizado!" : "Funcionário adicionado!");
-      setShowEmployeeForm(false);
-      setEditingEmployee(null);
+      queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
+      setShowServiceForm(false);
+      setEditingService(null);
+      toast.success(editingService ? "Serviço atualizado!" : "Serviço criado com sucesso!");
     },
   });
 
-  const deleteEmployeeMutation = useMutation({
-    mutationFn: (id) => base44.entities.CompanyEmployee.delete(id),
+  const deleteServiceMutation = useMutation({
+    mutationFn: (serviceId) => base44.entities.PartnerService.delete(serviceId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
-      toast.success("Funcionário removido!");
+      queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
+      toast.success("Serviço removido!");
     },
   });
 
-  if (loadingCompany) {
+  if (!user || user.account_type !== 'company') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-        <Skeleton className="h-64 rounded-3xl" />
-      </div>
-    );
-  }
-
-  // Admin sem empresa selecionada - mostrar lista de empresas
-  if (user?.role === 'admin' && !selectedCompany) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Store className="w-10 h-10 text-green-600" />
-              Painel de Empresas Parceiras - Admin
-            </h1>
-            <p className="text-gray-600 text-lg">Selecione uma empresa para gerir</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {allCompanies.map((comp) => (
-              <Card 
-                key={comp.id} 
-                className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer"
-                onClick={() => setSelectedCompany(comp)}
-              >
-                <CardContent className="p-6">
-                  {comp.logo_url && (
-                    <img src={comp.logo_url} alt={comp.company_name} className="w-full h-32 object-contain mb-4" />
-                  )}
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{comp.company_name}</h3>
-                  <Badge className="mb-2">{comp.company_type}</Badge>
-                  <div className="grid grid-cols-2 gap-2 text-sm mt-4">
-                    <div>
-                      <p className="text-gray-500">Produtos</p>
-                      <p className="font-bold">{comp.total_products || 0}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Vendas</p>
-                      <p className="font-bold">€{(comp.total_sales || 0).toFixed(0)}</p>
-                    </div>
-                  </div>
-                  <Button className="w-full mt-4" onClick={() => setSelectedCompany(comp)}>
-                    Gerir Empresa
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Empresa sem acesso
-  if (!company && user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100 p-6 flex items-center justify-center">
+        <Card className="max-w-md border-0 shadow-2xl">
           <CardContent className="p-12 text-center">
-            <Store className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Sem Acesso de Empresa</h2>
-            <p className="text-gray-600 mb-4">
-              Não tem acesso de empresa parceira. Contacte o admin do PawCão para configurar a sua conta de empresa.
-            </p>
-            <Button onClick={() => window.location.href = 'mailto:partners@pawcao.com'}>
-              Contactar Admin
-            </Button>
+            <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h2>
+            <p className="text-gray-600">Apenas empresas parceiras podem acessar esta página.</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const stats = {
-    totalProducts: products.length,
-    activeProducts: products.filter(p => p.is_available).length,
-    totalEmployees: employees.length,
-    activeEmployees: employees.filter(e => e.is_active).length,
-    totalSales: company?.total_sales || 0,
-    totalRedemptions: redemptions.length,
-    revenue: redemptions.reduce((sum, r) => sum + (r.euro_value || 0), 0),
-    totalAnnouncements: announcements.length,
-    featuredAnnouncements: announcements.filter(a => a.is_featured).length,
-    totalViews: announcements.reduce((sum, a) => sum + (a.views_count || 0), 0),
-    totalClicks: announcements.reduce((sum, a) => sum + (a.clicks_count || 0), 0)
-  };
+  const stats = [
+    { icon: Package, value: services.length, label: "Serviços", color: "from-blue-600 to-cyan-600" },
+    { icon: Calendar, value: bookings.length, label: "Agendamentos", color: "from-green-600 to-emerald-600" },
+    { icon: DollarSign, value: `€${bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0).toFixed(0)}`, label: "Receita", color: "from-purple-600 to-pink-600" },
+    { icon: Users, value: bookings.filter(b => b.status === 'completed').length, label: "Completados", color: "from-orange-600 to-red-600" },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Store className="w-10 h-10 text-green-600" />
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900">
-                  {company?.company_name} - Painel de Gestão
-                </h1>
-                <p className="text-gray-600 text-lg">Gira produtos, anúncios, funcionários e promoções</p>
-              </div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <Store className="w-7 h-7 text-white" />
             </div>
-            {user?.role === 'admin' && (
-              <Button variant="outline" onClick={() => setSelectedCompany(null)}>
-                ← Voltar à Lista de Empresas
-              </Button>
-            )}
+            <div>
+              <h1 className="text-4xl font-black text-gray-900">Painel Parceiro</h1>
+              <p className="text-gray-600 font-medium">{company?.company_name || user?.full_name}</p>
+            </div>
           </div>
-          {user?.role === 'admin' && company && (
-            <Badge className="bg-purple-600 text-white">
-              Modo Admin - A gerir {company.company_name}
-            </Badge>
-          )}
+
+          <div className="grid grid-cols-4 gap-4">
+            {stats.map((stat, idx) => (
+              <Card key={idx} className="border-0 shadow-lg">
+                <CardContent className="p-6 text-center">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Produtos Totais</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.totalProducts}</p>
-                </div>
-                <Package className="w-12 h-12 text-blue-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Anúncios Ativos</p>
-                  <p className="text-3xl font-bold text-purple-600">{stats.totalAnnouncements}</p>
-                </div>
-                <Megaphone className="w-12 h-12 text-purple-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Visualizações</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.totalViews}</p>
-                </div>
-                <Eye className="w-12 h-12 text-green-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Receita</p>
-                  <p className="text-3xl font-bold text-orange-600">€{stats.revenue.toFixed(2)}</p>
-                </div>
-                <DollarSign className="w-12 h-12 text-orange-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <Tabs defaultValue="announcements" className="space-y-6">
-          <TabsList className="bg-white shadow-lg">
-            <TabsTrigger value="announcements">Anúncios & Promoções</TabsTrigger>
-            <TabsTrigger value="products">Produtos</TabsTrigger>
-            <TabsTrigger value="employees">Funcionários</TabsTrigger>
-            <TabsTrigger value="analytics">Análises</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14 mb-6">
+            <TabsTrigger value="overview">📊 Visão Geral</TabsTrigger>
+            <TabsTrigger value="services">🏥 Serviços ({services.length})</TabsTrigger>
+            <TabsTrigger value="announcements">📢 Anúncios ({announcements.length})</TabsTrigger>
           </TabsList>
 
-          {/* Announcements Tab */}
-          <TabsContent value="announcements">
+          <TabsContent value="overview">
             <Card className="border-0 shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Gerir Anúncios na Loja PawCão</CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">Crie promoções e pague para ficar em destaque</p>
-                </div>
-                <Button onClick={() => {
+              <CardHeader>
+                <CardTitle>Agendamentos Recentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {bookings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhum agendamento ainda</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {bookings.slice(0, 5).map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div>
+                          <p className="font-semibold">{booking.dog_name} - {booking.service_name}</p>
+                          <p className="text-sm text-gray-600">{booking.owner_name}</p>
+                          <p className="text-xs text-gray-500">
+                            {format(new Date(booking.booking_date), "d 'de' MMM", { locale: ptBR })} às {booking.booking_time}
+                          </p>
+                        </div>
+                        <Badge className={
+                          booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                          'bg-orange-100 text-orange-800'
+                        }>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="services">
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Gerir Serviços</h2>
+              <Button
+                onClick={() => { setShowServiceForm(true); setEditingService(null); }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Criar Novo Serviço
+              </Button>
+            </div>
+
+            {showServiceForm && <ServiceForm />}
+
+            {services.length === 0 ? (
+              <Card className="border-0 shadow-xl">
+                <CardContent className="p-12 text-center">
+                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum serviço cadastrado</h3>
+                  <p className="text-gray-600">Crie seu primeiro serviço para começar a receber agendamentos!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {services.map((service) => (
+                  <motion.div
+                    key={service.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow">
+                      {service.image_url && (
+                        <img
+                          src={service.image_url}
+                          alt={service.service_name}
+                          className="w-full h-48 object-cover rounded-t-xl"
+                        />
+                      )}
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="font-bold text-lg">{service.service_name}</h3>
+                          {service.is_active ? (
+                            <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-800">Inativo</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                        <div className="text-2xl font-bold text-green-600 mb-4">
+                          €{service.base_price}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => {
+                              setEditingService(service);
+                              setShowServiceForm(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              if (confirm('Tem certeza que deseja remover este serviço?')) {
+                                deleteServiceMutation.mutate(service.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="announcements">
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Gerir Anúncios & Promoções</h2>
+              <Button onClick={() => {
                   setEditingAnnouncement(null);
                   setShowAnnouncementForm(true);
                 }} className="bg-purple-600">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Anúncio
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {showAnnouncementForm && <AnnouncementForm />}
-                
-                {/* Featured Pricing */}
-                <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 mb-6">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <Crown className="w-6 h-6 text-yellow-600" />
-                      Planos de Destaque
-                    </h3>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-bold text-gray-900 mb-2">Basic</h4>
-                        <p className="text-2xl font-bold text-blue-600 mb-2">€49/mês</p>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          <li>✓ Aparece no topo da categoria</li>
-                          <li>✓ Badge "Em Destaque"</li>
-                          <li>✓ 3x mais visibilidade</li>
-                        </ul>
-                      </div>
-                      <div className="bg-white p-4 rounded-lg shadow border-2 border-purple-400">
-                        <Badge className="bg-purple-500 mb-2">Popular</Badge>
-                        <h4 className="font-bold text-gray-900 mb-2">Premium</h4>
-                        <p className="text-2xl font-bold text-purple-600 mb-2">€99/mês</p>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          <li>✓ Topo de TODAS as páginas</li>
-                          <li>✓ Banner grande na homepage</li>
-                          <li>✓ Badge "Premium Partner"</li>
-                          <li>✓ 10x mais visibilidade</li>
-                        </ul>
-                      </div>
-                      <div className="bg-gradient-to-br from-yellow-400 to-orange-400 p-4 rounded-lg shadow text-white">
-                        <Badge className="bg-white text-orange-600 mb-2">VIP</Badge>
-                        <h4 className="font-bold mb-2">Exclusive</h4>
-                        <p className="text-2xl font-bold mb-2">€199/mês</p>
-                        <ul className="text-sm space-y-1">
-                          <li>✓ Posição #1 garantida</li>
-                          <li>✓ Banner exclusivo homepage</li>
-                          <li>✓ Email marketing dedicado</li>
-                          <li>✓ Visibilidade máxima</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Criar Anúncio
+              </Button>
+            </div>
+            
+            {showAnnouncementForm && <AnnouncementForm />}
+            
+            <p className="text-gray-600 mb-4">Gerencie seus anúncios promocionais aqui.</p>
 
-                <div className="space-y-4">
+            <div className="space-y-4">
                   {announcements.map((announcement) => (
                     <Card key={announcement.id} className={`p-4 hover:shadow-lg transition-shadow ${
                       announcement.is_featured ? 'border-2 border-yellow-400' : ''
@@ -433,7 +328,7 @@ export default function PartnerDashboard() {
                           <div className="flex items-center gap-3 mb-2">
                             {announcement.is_featured && (
                               <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
-                                <Crown className="w-3 h-3 mr-1" />
+                                <TrendingUp className="w-3 h-3 mr-1" /> {/* Using TrendingUp as a generic 'featured' icon */}
                                 {announcement.featured_tier?.toUpperCase()}
                               </Badge>
                             )}
@@ -466,14 +361,14 @@ export default function PartnerDashboard() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-gray-50 rounded-lg">
                             <div>
                               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                                <Eye className="w-4 h-4" />
+                                <TrendingUp className="w-4 h-4" /> {/* Reusing TrendingUp for views */}
                                 Visualizações
                               </div>
                               <p className="text-xl font-bold text-gray-900">{announcement.views_count || 0}</p>
                             </div>
                             <div>
                               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                                <MousePointer className="w-4 h-4" />
+                                <Megaphone className="w-4 h-4" /> {/* Reusing Megaphone for clicks */}
                                 Cliques
                               </div>
                               <p className="text-xl font-bold text-gray-900">{announcement.clicks_count || 0}</p>
@@ -519,228 +414,315 @@ export default function PartnerDashboard() {
                     </Card>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Products Tab */}
-          <TabsContent value="products">
-            <Card className="border-0 shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Seus Produtos</CardTitle>
-                <Button onClick={() => {
-                  setEditingProduct(null);
-                  setShowProductForm(true);
-                }}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Produto
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {showProductForm && <ProductForm />}
-                <div className="grid md:grid-cols-3 gap-6 mt-6">
-                  {products.map((product) => (
-                    <Card key={product.id} className="overflow-hidden">
-                      <div className="h-48 bg-gray-100">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.product_name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-16 h-16 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-bold text-gray-900 mb-2">{product.product_name}</h3>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-lg font-bold text-green-600">€{product.price_euro}</span>
-                          <Badge>{product.category}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Stock: {product.stock_quantity}</span>
-                          <div className="flex gap-2">
-                            <Button size="icon" variant="ghost" onClick={() => {
-                              setEditingProduct(product);
-                              setShowProductForm(true);
-                            }}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => deleteProductMutation.mutate(product.id)}>
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Employees Tab */}
-          <TabsContent value="employees">
-            <Card className="border-0 shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Gestão de Funcionários</CardTitle>
-                <Button onClick={() => {
-                  setEditingEmployee(null);
-                  setShowEmployeeForm(true);
-                }}>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Adicionar Funcionário
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {showEmployeeForm && <EmployeeForm />}
-                
-                <div className="space-y-4 mt-6">
-                  {employees.map((employee) => (
-                    <Card key={employee.id} className="p-4 hover:shadow-lg transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                              <Users className="w-6 h-6 text-green-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-lg text-gray-900">{employee.employee_name}</h3>
-                              <Badge className={employee.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                                {employee.is_active ? "Ativo" : "Inativo"}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="grid md:grid-cols-3 gap-4 mt-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Mail className="w-4 h-4" />
-                              {employee.employee_email}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Phone className="w-4 h-4" />
-                              {employee.employee_phone}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Calendar className="w-4 h-4" />
-                              {employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('pt-PT') : 'N/A'}
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2 mt-3">
-                            <Badge>{employee.employee_type === 'walker' ? 'Passeador' : employee.employee_type === 'trainer' ? 'Treinador' : 'Ambos'}</Badge>
-                            <Badge className="bg-blue-100 text-blue-700">
-                              €{employee.hourly_rate}/hora
-                            </Badge>
-                            <Badge className="bg-purple-100 text-purple-700">
-                              {employee.commission_split}% comissão
-                            </Badge>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-gray-50 rounded-lg">
-                            <div>
-                              <p className="text-xs text-gray-500">Total de Reservas</p>
-                              <p className="text-xl font-bold text-gray-900">{employee.total_bookings || 0}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Total Ganho</p>
-                              <p className="text-xl font-bold text-green-600">€{(employee.total_earnings || 0).toFixed(2)}</p>
-                            </div>
-                          </div>
-
-                          {employee.specialties && employee.specialties.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs text-gray-500 mb-2">Especialidades:</p>
-                              <div className="flex flex-wrap gap-2">
-                                {employee.specialties.map((spec, idx) => (
-                                  <Badge key={idx} variant="outline">{spec}</Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button size="icon" variant="ghost" onClick={() => {
-                            setEditingEmployee(employee);
-                            setShowEmployeeForm(true);
-                          }}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => deleteEmployeeMutation.mutate(employee.id)}>
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Analytics Tab */}
-          <TabsContent value="analytics">
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-6 h-6" />
-                  Análises de Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-bold text-lg mb-4">Performance dos Anúncios</h3>
-                    {announcements.map(announcement => (
-                      <div key={announcement.id} className="mb-4 p-4 bg-gray-50 rounded-lg">
-                        <p className="font-semibold text-gray-900">{announcement.title}</p>
-                        <div className="grid grid-cols-3 gap-2 mt-2">
-                          <div>
-                            <p className="text-xs text-gray-500">Visualizações</p>
-                            <p className="text-lg font-bold">{announcement.views_count || 0}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Cliques</p>
-                            <p className="text-lg font-bold">{announcement.clicks_count || 0}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">CTR</p>
-                            <p className="text-lg font-bold text-green-600">
-                              {announcement.views_count > 0 
-                                ? ((announcement.clicks_count / announcement.views_count) * 100).toFixed(1)
-                                : 0}%
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-4">ROI de Anúncios Pagos</h3>
-                    {announcements.filter(a => a.is_featured).map(announcement => (
-                      <div key={announcement.id} className="mb-4 p-4 bg-yellow-50 rounded-lg border-2 border-yellow-200">
-                        <p className="font-semibold text-gray-900">{announcement.title}</p>
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                          <div>
-                            <p className="text-xs text-gray-500">Investimento</p>
-                            <p className="text-lg font-bold text-red-600">€{announcement.featured_payment_amount}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Conversões</p>
-                            <p className="text-lg font-bold text-green-600">{announcement.conversions_count || 0}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
     </div>
   );
+
+  function ServiceForm() {
+    const [formData, setFormData] = useState(editingService || {
+      service_name: "",
+      service_type: "bath",
+      description: "",
+      duration_minutes: 60,
+      base_price: 0,
+      price_by_size: { small: 0, medium: 0, large: 0, extra_large: 0 },
+      includes: [],
+      requirements: [],
+      available_days: [],
+      is_active: true,
+      is_emergency: false,
+      image_url: "",
+    });
+
+    const [newInclude, setNewInclude] = useState("");
+    const [newRequirement, setNewRequirement] = useState("");
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    const handleImageUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      setUploadingImage(true);
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setFormData({ ...formData, image_url: file_url });
+        toast.success("Imagem carregada!");
+      } catch (error) {
+        toast.error("Erro ao carregar imagem");
+      }
+      setUploadingImage(false);
+    };
+
+    return (
+      <Card className="bg-blue-50 border-2 border-blue-200 mb-6">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-bold mb-4">
+            {editingService ? 'Editar Serviço' : 'Criar Novo Serviço'}
+          </h3>
+
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Nome do Serviço *</Label>
+                <Input
+                  value={formData.service_name}
+                  onChange={(e) => setFormData({...formData, service_name: e.target.value})}
+                  placeholder="Ex: Banho Completo Premium"
+                />
+              </div>
+
+              <div>
+                <Label>Tipo de Serviço *</Label>
+                <Select
+                  value={formData.service_type}
+                  onValueChange={(v) => setFormData({...formData, service_type: v})}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bath">🛁 Banho</SelectItem>
+                    <SelectItem value="grooming">✂️ Grooming</SelectItem>
+                    <SelectItem value="veterinary">🏥 Veterinário</SelectItem>
+                    <SelectItem value="vaccination">💉 Vacinação</SelectItem>
+                    <SelectItem value="checkup">🩺 Check-up</SelectItem>
+                    <SelectItem value="emergency">🚨 Emergência</SelectItem>
+                    <SelectItem value="training">🎓 Treino</SelectItem>
+                    <SelectItem value="daycare">🏠 Creche</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Descrição *</Label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Descreva o serviço..."
+                rows={3}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Duração (minutos)</Label>
+                <Input
+                  type="number"
+                  value={formData.duration_minutes}
+                  onChange={(e) => setFormData({...formData, duration_minutes: parseInt(e.target.value)})}
+                />
+              </div>
+
+              <div>
+                <Label>Preço Base (€) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.base_price}
+                  onChange={(e) => setFormData({...formData, base_price: parseFloat(e.target.value)})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Preços por Tamanho</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div>
+                  <Label className="text-xs">Pequeno (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.price_by_size?.small || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      price_by_size: {...formData.price_by_size, small: parseFloat(e.target.value) || 0}
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Médio (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.price_by_size?.medium || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      price_by_size: {...formData.price_by_size, medium: parseFloat(e.target.value) || 0}
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Grande (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.price_by_size?.large || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      price_by_size: {...formData.price_by_size, large: parseFloat(e.target.value) || 0}
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Extra Grande (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.price_by_size?.extra_large || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      price_by_size: {...formData.price_by_size, extra_large: parseFloat(e.target.value) || 0}
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label>O que está incluído</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={newInclude}
+                  onChange={(e) => setNewInclude(e.target.value)}
+                  placeholder="Ex: Shampoo premium"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newInclude.trim()) {
+                        setFormData({...formData, includes: [...(formData.includes || []), newInclude.trim()]});
+                        setNewInclude("");
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (newInclude.trim()) {
+                      setFormData({...formData, includes: [...(formData.includes || []), newInclude.trim()]});
+                      setNewInclude("");
+                    }
+                  }}
+                >
+                  Adicionar
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(formData.includes || []).map((item, idx) => (
+                  <Badge key={idx} className="bg-green-100 text-green-800">
+                    {item}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, includes: formData.includes.filter((_, i) => i !== idx)})}
+                      className="ml-2"
+                    >×</button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Requisitos</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={newRequirement}
+                  onChange={(e) => setNewRequirement(e.target.value)}
+                  placeholder="Ex: Vacinas em dia"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newRequirement.trim()) {
+                        setFormData({...formData, requirements: [...(formData.requirements || []), newRequirement.trim()]});
+                        setNewRequirement("");
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (newRequirement.trim()) {
+                      setFormData({...formData, requirements: [...(formData.requirements || []), newRequirement.trim()]});
+                      setNewRequirement("");
+                    }
+                  }}
+                >
+                  Adicionar
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(formData.requirements || []).map((item, idx) => (
+                  <Badge key={idx} className="bg-orange-100 text-orange-800">
+                    {item}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, requirements: formData.requirements.filter((_, i) => i !== idx)})}
+                      className="ml-2"
+                    >×</button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Dias Disponíveis</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                  <label key={day} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={(formData.available_days || []).includes(day)}
+                      onCheckedChange={() => {
+                        const days = formData.available_days || [];
+                        setFormData({
+                          ...formData,
+                          available_days: days.includes(day) ? days.filter(d => d !== day) : [...days, day]
+                        });
+                      }}
+                    />
+                    <span className="text-sm capitalize">{day}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Imagem do Serviço</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+              {formData.image_url && (
+                <img src={formData.image_url} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded-lg" />
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={formData.is_emergency}
+                onCheckedChange={(checked) => setFormData({...formData, is_emergency: checked})}
+              />
+              <Label>Serviço de Emergência (24/7)</Label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <Button onClick={() => { setShowServiceForm(false); setEditingService(null); }} variant="outline">
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => saveServiceMutation.mutate(formData)}
+              className="bg-blue-600"
+              disabled={!formData.service_name || !formData.description || formData.base_price <= 0}
+            >
+              {editingService ? 'Atualizar' : 'Criar'} Serviço
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   function AnnouncementForm() {
     const [formData, setFormData] = useState(editingAnnouncement || {
@@ -900,7 +882,7 @@ export default function PartnerDashboard() {
             {/* Featured Options */}
             <div className="md:col-span-2 border-t pt-4 mt-4">
               <Label className="flex items-center gap-2 mb-4">
-                <Crown className="w-5 h-5 text-yellow-600" />
+                <TrendingUp className="w-5 h-5 text-yellow-600" />
                 Opções de Destaque (Pago)
               </Label>
               <Select 
@@ -1001,230 +983,6 @@ export default function PartnerDashboard() {
             <Button onClick={() => saveAnnouncementMutation.mutate(formData)} className="bg-purple-600">
               {editingAnnouncement ? 'Atualizar' : 'Submeter'} Anúncio
               {!editingAnnouncement && ' para Aprovação'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  function EmployeeForm() {
-    const [formData, setFormData] = useState(editingEmployee || {
-      employee_name: "",
-      employee_email: "",
-      employee_phone: "",
-      employee_type: "walker",
-      hourly_rate: 0,
-      commission_split: 70,
-      specialties: [],
-      is_active: true,
-      hire_date: new Date().toISOString().split('T')[0]
-    });
-
-    const [specialtyInput, setSpecialtyInput] = useState("");
-
-    const addSpecialty = () => {
-      if (specialtyInput && !formData.specialties.includes(specialtyInput)) {
-        setFormData({
-          ...formData,
-          specialties: [...formData.specialties, specialtyInput]
-        });
-        setSpecialtyInput("");
-      }
-    };
-
-    const removeSpecialty = (spec) => {
-      setFormData({
-        ...formData,
-        specialties: formData.specialties.filter(s => s !== spec)
-      });
-    };
-
-    return (
-      <Card className="bg-green-50 border-2 border-green-200">
-        <CardContent className="p-6">
-          <h3 className="text-lg font-bold mb-4">
-            {editingEmployee ? 'Editar Funcionário' : 'Novo Funcionário'}
-          </h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label>Nome Completo *</Label>
-              <Input
-                value={formData.employee_name}
-                onChange={(e) => setFormData({...formData, employee_name: e.target.value})}
-                placeholder="João Silva"
-              />
-            </div>
-            <div>
-              <Label>Email *</Label>
-              <Input
-                type="email"
-                value={formData.employee_email}
-                onChange={(e) => setFormData({...formData, employee_email: e.target.value})}
-                placeholder="joao@email.com"
-              />
-            </div>
-            <div>
-              <Label>Telefone *</Label>
-              <Input
-                value={formData.employee_phone}
-                onChange={(e) => setFormData({...formData, employee_phone: e.target.value})}
-                placeholder="+351 912 345 678"
-              />
-            </div>
-            <div>
-              <Label>Tipo de Serviço *</Label>
-              <Select value={formData.employee_type} onValueChange={(v) => setFormData({...formData, employee_type: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="walker">Passeador</SelectItem>
-                  <SelectItem value="trainer">Treinador</SelectItem>
-                  <SelectItem value="both">Ambos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Taxa Horária (€) *</Label>
-              <Input
-                type="number"
-                value={formData.hourly_rate}
-                onChange={(e) => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})}
-              />
-            </div>
-            <div>
-              <Label>Comissão do Funcionário (%) *</Label>
-              <Input
-                type="number"
-                value={formData.commission_split}
-                onChange={(e) => setFormData({...formData, commission_split: parseFloat(e.target.value)})}
-                placeholder="70"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Empresa fica com {100 - formData.commission_split}%
-              </p>
-            </div>
-            <div>
-              <Label>Data de Contratação</Label>
-              <Input
-                type="date"
-                value={formData.hire_date}
-                onChange={(e) => setFormData({...formData, hire_date: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={formData.is_active.toString()} onValueChange={(v) => setFormData({...formData, is_active: v === 'true'})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Ativo</SelectItem>
-                  <SelectItem value="false">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-2">
-              <Label>Especialidades</Label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={specialtyInput}
-                  onChange={(e) => setSpecialtyInput(e.target.value)}
-                  placeholder="Ex: Cães grandes, Treino de obediência..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialty())}
-                />
-                <Button type="button" onClick={addSpecialty}>Adicionar</Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.specialties.map((spec, idx) => (
-                  <Badge key={idx} className="cursor-pointer" onClick={() => removeSpecialty(spec)}>
-                    {spec} ×
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-3 mt-4">
-            <Button onClick={() => setShowEmployeeForm(false)} variant="outline">Cancelar</Button>
-            <Button onClick={() => saveEmployeeMutation.mutate(formData)}>
-              {editingEmployee ? 'Atualizar' : 'Adicionar'} Funcionário
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  function ProductForm() {
-    const [formData, setFormData] = useState(editingProduct || {
-      product_name: "",
-      description: "",
-      category: "food",
-      price_euro: 0,
-      points_cost: 0,
-      stock_quantity: 0,
-      is_redeemable_with_points: true,
-      is_available: true
-    });
-
-    return (
-      <Card className="bg-gray-50">
-        <CardContent className="p-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label>Nome do Produto *</Label>
-              <Input
-                value={formData.product_name}
-                onChange={(e) => setFormData({...formData, product_name: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label>Categoria *</Label>
-              <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="food">Comida</SelectItem>
-                  <SelectItem value="toys">Brinquedos</SelectItem>
-                  <SelectItem value="accessories">Acessórios</SelectItem>
-                  <SelectItem value="grooming">Higiene</SelectItem>
-                  <SelectItem value="health">Saúde</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Preço (€) *</Label>
-              <Input
-                type="number"
-                value={formData.price_euro}
-                onChange={(e) => setFormData({...formData, price_euro: parseFloat(e.target.value)})}
-              />
-            </div>
-            <div>
-              <Label>Custo em Pontos *</Label>
-              <Input
-                type="number"
-                value={formData.points_cost}
-                onChange={(e) => setFormData({...formData, points_cost: parseFloat(e.target.value)})}
-              />
-            </div>
-            <div>
-              <Label>Quantidade em Stock *</Label>
-              <Input
-                type="number"
-                value={formData.stock_quantity}
-                onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value)})}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label>Descrição</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                rows={3}
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 mt-4">
-            <Button onClick={() => setShowProductForm(false)} variant="outline">Cancelar</Button>
-            <Button onClick={() => saveProductMutation.mutate(formData)}>
-              {editingProduct ? 'Atualizar' : 'Adicionar'} Produto
             </Button>
           </div>
         </CardContent>

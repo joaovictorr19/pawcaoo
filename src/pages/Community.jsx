@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -48,31 +49,22 @@ export default function Community() {
 
   const createTopicMutation = useMutation({
     mutationFn: async (topicData) => {
-      const topic = await base44.entities.ForumTopic.create({
+      return await base44.entities.ForumTopic.create({
         ...topicData,
-        author_email: user?.email,
-        author_name: user?.full_name,
-        last_activity_date: new Date().toISOString()
+        author_email: user.email,
+        author_name: user.full_name,
+        author_type: user.account_type || 'owner',
       });
-
-      // Create notification for all professionals if it's a question
-      await base44.entities.Notification.create({
-        recipient_email: "all_professionals", // This would need special handling
-        title: "New Community Question",
-        message: `${user?.full_name} asked: ${topicData.title}`,
-        type: "system",
-        related_id: topic.id,
-        action_url: `/ForumTopicDetails?id=${topic.id}`
-      });
-
-      return topic;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['forumTopics'] });
-      setShowNewTopic(false);
-      setNewTopic({ title: "", content: "", category: "general", tags: [] });
-      toast.success("Topic created successfully!");
+      setShowNewTopic(false); // Corrected from setShowCreateModal to setShowNewTopic
+      setNewTopic({ title: '', content: '', category: 'general', tags: [] });
+      toast.success('Tópico criado com sucesso!');
     },
+    onError: (error) => {
+      toast.error('Erro ao criar tópico: ' + error.message);
+    }
   });
 
   const filteredTopics = topics.filter(topic =>

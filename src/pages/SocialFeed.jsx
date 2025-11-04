@@ -166,17 +166,22 @@ export default function SocialFeed() {
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (postData) => base44.entities.SocialPost.create({
-      ...postData,
-      author_role: user?.social_role || user?.role || 'user'
-    }),
+    mutationFn: async (postData) => {
+      return await base44.entities.SocialPost.create({
+        ...postData,
+        author_role: user?.social_role || user?.role || 'user'
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['socialPosts']);
+      queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
       setNewPostContent("");
-      setNewPostDogName("");
       setMediaUrls([]);
+      setNewPostDogName("");
       toast.success("Post publicado com sucesso! 🎉");
     },
+    onError: (error) => {
+      toast.error("Erro ao publicar post: " + error.message);
+    }
   });
 
   const toggleLikeMutation = useMutation({
@@ -269,6 +274,11 @@ export default function SocialFeed() {
   const handleCreatePost = () => {
     if (!newPostContent.trim() && mediaUrls.length === 0) {
       toast.error("Adicione texto ou uma foto para publicar!");
+      return;
+    }
+
+    if (!user) {
+      toast.error("Você precisa estar logado para publicar!");
       return;
     }
 
