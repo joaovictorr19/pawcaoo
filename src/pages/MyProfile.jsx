@@ -96,14 +96,24 @@ export default function MyProfile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Meu Perfil & Configurações
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gerencie suas informações pessoais e preferências
-          </p>
+        {/* Header with Logout */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Meu Perfil & Configurações
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Gerencie suas informações pessoais e preferências
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6">
@@ -179,11 +189,11 @@ export default function MyProfile() {
 
                 <Button
                   variant="ghost"
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 dark:hover:text-red-300"
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                   onClick={handleLogout}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Sair
+                  Sair da Conta
                 </Button>
               </nav>
             </CardContent>
