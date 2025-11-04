@@ -8,18 +8,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Store, Calendar, DollarSign, Package, TrendingUp,
   Clock, User, PawPrint, CheckCircle, X, AlertCircle,
-  Bell, Phone, MapPin, Pill
+  Bell, Phone, MapPin, Pill, MessageCircle, Send
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
+import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState("pending");
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [messageText, setMessageText] = useState("");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -55,6 +61,19 @@ export default function PartnerDashboard() {
     initialData: [],
   });
 
+  const { data: conversations } = useQuery({
+    queryKey: ['companyConversations'],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const allConvos = await base44.entities.ChatConversation.list('-last_message_date');
+      return allConvos.filter(c => 
+        c.participants?.some(p => p.email === user?.email)
+      );
+    },
+    enabled: !!user,
+    initialData: [],
+  });
+
   const updateBookingMutation = useMutation({
     mutationFn: async ({ bookingId, status }) => {
       await base44.entities.ServiceBooking.update(bookingId, { 
@@ -62,7 +81,6 @@ export default function PartnerDashboard() {
         confirmed_date: status === 'confirmed' ? new Date().toISOString() : undefined
       });
 
-      // Notify owner
       const booking = bookings.find(b => b.id === bookingId);
       if (booking) {
         const statusMessages = {
@@ -91,6 +109,79 @@ export default function PartnerDashboard() {
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao atualizar");
+    }
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ ownerEmail, ownerName, bookingId }) => {
+      // Check if conversation exists
+      let conversation = conversations.find(c => 
+        c.participants?.some(p => p.email === ownerEmail)
+      );
+
+      // Create conversation if doesn't exist
+      if (!conversation) {
+        conversation = await base44.entities.ChatConversation.create({
+          conversation_type: 'one_on_one',
+          participants: [
+            {
+              email: user.email,
+              name: company.company_name,
+              photo_url: company.logo_url,
+              role: 'company',
+              last_read_at: new Date().toISOString()
+            },
+            {
+              email: ownerEmail,
+              name: ownerName,
+              role: 'owner',
+              last_read_at: new Date().toISOString()
+            }
+          ],
+          last_message: messageText,
+          last_message_sender: user.email,
+          last_message_date: new Date().toISOString()
+        });
+      }
+
+      // Send message
+      await base44.entities.ChatMessage.create({
+        conversation_id: conversation.id,
+        sender_email: user.email,
+        sender_name: company.company_name,
+        sender_photo_url: company.logo_url,
+        message: messageText,
+        message_type: 'text'
+      });
+
+      // Update conversation
+      await base44.entities.ChatConversation.update(conversation.id, {
+        last_message: messageText,
+        last_message_sender: user.email,
+        last_message_date: new Date().toISOString()
+      });
+
+      // Notify owner
+      await base44.entities.Notification.create({
+        recipient_email: ownerEmail,
+        title: `${company.company_name} enviou uma mensagem`,
+        message: messageText.substring(0, 100),
+        type: "message",
+        related_id: conversation.id,
+        action_url: `Messages?conversation_id=${conversation.id}`,
+        priority: "normal"
+      });
+
+      return conversation;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['companyConversations'] });
+      toast.success(language === 'pt' ? "Mensagem enviada!" : "Message sent!");
+      setMessageText("");
+      setSelectedBooking(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao enviar mensagem");
     }
   });
 
@@ -205,7 +296,43 @@ export default function PartnerDashboard() {
               <span className="hidden sm:inline">{language === 'pt' ? 'Em Progresso' : 'Progress'}</span>
             </TabsTrigger>
             <TabsTrigger value="completed" className="rounded-lg text-xs md:text-sm">
-              <Heart className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <Heart, value: stats.completed, label: language === 'pt' ? "Completos" : "Completed", color: "from-green-500 to-emerald-500" }
+            ].map((stat, idx) => (
+              <Card key={idx} className="border-0 shadow-lg">
+                <CardContent className="p-3 md:p-4 text-center">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg`}>
+                    <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  </div>
+                  <div className="text-xl md:text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-[10px] md:text-xs text-gray-600 font-medium">{stat.label}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Bookings Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-5 bg-white shadow-lg rounded-xl p-1 md:p-2 gap-1">
+            <TabsTrigger value="pending" className="rounded-lg text-xs md:text-sm">
+              <AlertCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <span className="hidden sm:inline">{language === 'pt' ? 'Pendentes' : 'Pending'}</span>
+              <span className="sm:hidden">({stats.pending})</span>
+              {stats.pending > 0 && <Badge className="ml-1 md:ml-2 bg-red-500 text-white text-[10px] px-1">
+                {stats.pending}
+              </Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="confirmed" className="rounded-lg text-xs md:text-sm">
+              <CheckCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <span className="hidden sm:inline">{language === 'pt' ? 'Confirmados' : 'Confirmed'}</span>
+              <span className="sm:hidden">({stats.confirmed})</span>
+            </TabsTrigger>
+            <TabsTrigger value="in_progress" className="rounded-lg text-xs md:text-sm">
+              <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <span className="hidden sm:inline">{language === 'pt' ? 'Em Progresso' : 'Progress'}</span>
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="rounded-lg text-xs md:text-sm">
+              <CheckCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
               <span className="hidden sm:inline">{language === 'pt' ? 'Completos' : 'Done'}</span>
             </TabsTrigger>
             <TabsTrigger value="all" className="rounded-lg text-xs md:text-sm">
@@ -367,6 +494,59 @@ export default function PartnerDashboard() {
                         </div>
                       )}
 
+                      {/* Quick Message Section */}
+                      {selectedBooking?.id === booking.id ? (
+                        <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 mb-4">
+                          <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                            <MessageCircle className="w-5 h-5" />
+                            {language === 'pt' ? 'Enviar Mensagem para Cliente' : 'Send Message to Client'}
+                          </h4>
+                          <Textarea
+                            placeholder={language === 'pt' ? "Digite sua mensagem..." : "Type your message..."}
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            rows={3}
+                            className="mb-3"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => {
+                                if (messageText.trim()) {
+                                  sendMessageMutation.mutate({
+                                    ownerEmail: booking.owner_email,
+                                    ownerName: booking.owner_name,
+                                    bookingId: booking.id
+                                  });
+                                }
+                              }}
+                              disabled={sendMessageMutation.isPending || !messageText.trim()}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Send className="w-4 h-4 mr-2" />
+                              {language === 'pt' ? 'Enviar' : 'Send'}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedBooking(null);
+                                setMessageText("");
+                              }}
+                            >
+                              {language === 'pt' ? 'Cancelar' : 'Cancel'}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="w-full mb-4 border-blue-300 text-blue-600 hover:bg-blue-50"
+                          onClick={() => setSelectedBooking(booking)}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          {language === 'pt' ? 'Enviar Mensagem ao Cliente' : 'Message Client'}
+                        </Button>
+                      )}
+
                       {/* Actions */}
                       {booking.status === 'pending' && (
                         <div className="flex gap-2 md:gap-3 pt-4 border-t">
@@ -465,9 +645,10 @@ export default function PartnerDashboard() {
               <Button
                 size="lg"
                 className="bg-white text-purple-600 hover:bg-purple-50 font-bold shadow-xl h-10 md:h-12 text-sm md:text-base"
-                onClick={() => toast.info(language === 'pt' ? "Gestão de serviços em desenvolvimento" : "Service management coming soon")}
+                onClick={() => navigate(createPageUrl('Messages'))}
               >
-                {language === 'pt' ? 'Gerir Serviços' : 'Manage Services'}
+                <MessageCircle className="w-5 h-5 mr-2" />
+                {language === 'pt' ? 'Ver Mensagens' : 'View Messages'}
               </Button>
             </div>
           </CardContent>
