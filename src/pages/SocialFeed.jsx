@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Heart, MessageCircle, Share2, Camera, Send,
   TrendingUp, Sparkles, Zap, Users, Eye, Bookmark,
-  UserPlus, CheckCircle, Shield, ShieldCheck, X, Hash
+  UserPlus, CheckCircle, Shield, ShieldCheck, X, Hash, ShoppingBag
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
