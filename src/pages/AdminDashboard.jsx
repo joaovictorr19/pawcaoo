@@ -34,7 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Users, Shield, CheckCircle, X, Eye, Clock, Ban, Briefcase, Package,
+  Users, Shield, CheckCircle, X, Clock, Ban, Briefcase, Package,
   Calendar, DollarSign, Star, AlertCircle, BarChart3, TrendingUp, Store,
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   CheckCircle2, // Used for overview stats
@@ -45,6 +45,8 @@ import {
   Plus,
   ExternalLink,
   Edit,
+  XCircle, // Added XCircle here
+  Upload, // Added Upload for badge image upload
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -1958,9 +1960,8 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
 
-        {/* Badges Management Dialog - ENHANCED FROM OUTLINE */}
+          {/* Badges Management Dialog - ENHANCED FROM OUTLINE */}
         <Dialog open={showBadgesDialog} onOpenChange={(open) => {
           if (!open) {
             setShowBadgesDialog(false);
