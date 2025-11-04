@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   MapPin, Users, Heart, MessageCircle, ArrowLeft,
-  Link as LinkIcon, CheckCircle, Dog, Calendar, // Added Dog
-  Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star
+  Link as LinkIcon, CheckCircle, Dog, Calendar,
+  Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star,
+  Target, Zap, Flame, Sparkles, ChevronRight // Added Target, Zap, Flame, Sparkles, ChevronRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress"; // Added Progress
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -124,6 +126,21 @@ export default function UserProfile() {
 
   const isOwnProfile = currentUser?.email === profileEmail;
 
+  // Gamification calculations
+  const xpForNextLevel = (level) => level * 500;
+  const currentLevelXP = profileUser?.gamification_xp || 0;
+  const currentLevel = profileUser?.gamification_level || 1;
+  const xpNeeded = xpForNextLevel(currentLevel);
+  const xpProgress = ((currentLevelXP % xpNeeded) / xpNeeded) * 100;
+
+  // Daily quests (simplified for profile)
+  const dailyQuests = [
+    { id: 1, title: "Publicar 1 foto", reward: 50, icon: "📸", completed: (profileUser?.profile_stats?.total_posts || 0) > 0 },
+    { id: 2, title: "Dar 5 curtidas", reward: 25, icon: "❤️", completed: false }, // Placeholder, real logic would involve tracking likes given
+    { id: 3, title: "Escrever 3 comentários", reward: 30, icon: "💬", completed: (profileUser?.profile_stats?.total_comments_made || 0) >= 3 },
+    { id: 4, title: "Visitar o Dog Connect", reward: 20, icon: "🔥", completed: true }, // Always true for simplicity
+  ];
+
   if (loadingUser || !profileUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
@@ -223,6 +240,12 @@ export default function UserProfile() {
                     </h1>
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       {getBadges()}
+                      
+                      {/* Gamification Level Badge */}
+                      <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg">
+                        <Zap className="w-4 h-4 mr-1" />
+                        Nível {currentLevel}
+                      </Badge>
                     </div>
                     
                     {/* Public Badges */}
@@ -278,7 +301,7 @@ export default function UserProfile() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-4 gap-6 mb-6">
+                <div className="grid grid-cols-5 gap-6 mb-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{userPosts.length}</div>
                     <div className="text-sm text-gray-600">Publicações</div>
@@ -294,6 +317,13 @@ export default function UserProfile() {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{totalLikes}</div>
                     <div className="text-sm text-gray-600">Curtidas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600 flex items-center justify-center">
+                      <Flame className="w-5 h-5 mr-1" />
+                      {profileUser.daily_streak || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Streak</div>
                   </div>
                 </div>
 
@@ -448,10 +478,14 @@ export default function UserProfile() {
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-2 h-14 mb-6"> {/* grid-cols-4 added for new tab */}
+          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-2 h-14 mb-6"> {/* grid-cols-5 for new tab */}
             <TabsTrigger value="posts" className="rounded-lg">
               <Grid className="w-4 h-4 mr-2" />
               Posts
+            </TabsTrigger>
+            <TabsTrigger value="gamification" className="rounded-lg">
+              <Zap className="w-4 h-4 mr-2" />
+              Gamificação
             </TabsTrigger>
             <TabsTrigger value="badges" className="rounded-lg">
               <Award className="w-4 h-4 mr-2" />
@@ -541,7 +575,208 @@ export default function UserProfile() {
             )}
           </TabsContent>
 
-          {/* NEW: Badges Tab */}
+          {/* NEW: Gamification Tab */}
+          <TabsContent value="gamification">
+            <div className="space-y-6">
+              {/* Level Progress */}
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-4 border-white/40">
+                        <span className="text-4xl font-black">{currentLevel}</span>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold mb-1">Nível {currentLevel}</h2>
+                        <p className="text-white/80 text-sm">
+                          {currentLevelXP % xpNeeded} / {xpNeeded} XP para Nível {currentLevel + 1}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right hidden md:block">
+                      <div className="text-3xl font-bold">{profileUser?.gamification_points || 0}</div>
+                      <div className="text-white/80 text-sm">Pontos Totais</div>
+                    </div>
+                  </div>
+                  
+                  <Progress value={xpProgress} className="h-4 bg-white/20 mb-6" />
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                      <div className="text-2xl font-bold">{(profileUser.public_badges?.length || 0)}</div>
+                      <div className="text-xs text-white/80">Badges</div>
+                    </div>
+                    <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                      <div className="text-2xl font-bold flex items-center justify-center">
+                        <Flame className="w-6 h-6 text-orange-300 mr-1" />
+                        {profileUser?.daily_streak || 0}
+                      </div>
+                      <div className="text-xs text-white/80">Dia Streak</div>
+                    </div>
+                    <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                      <div className="text-2xl font-bold">{profileUser?.profile_completion_percentage || 0}%</div>
+                      <div className="text-xs text-white/80">Perfil</div>
+                    </div>
+                    <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                      <div className="text-2xl font-bold">{profileUser?.gamification_xp || 0}</div>
+                      <div className="text-xs text-white/80">Total XP</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daily Quests (only for own profile) */}
+              {isOwnProfile && (
+                <Card className="border-0 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5 text-green-600" />
+                      Missões Diárias
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {dailyQuests.map((quest) => (
+                      <div
+                        key={quest.id}
+                        className={`p-4 rounded-xl border-2 transition-all ${
+                          quest.completed
+                            ? 'bg-green-50 border-green-300'
+                            : 'bg-white border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`text-3xl ${quest.completed ? 'opacity-50' : ''}`}>
+                              {quest.icon}
+                            </div>
+                            <div>
+                              <h4 className={`font-semibold ${quest.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                {quest.title}
+                              </h4>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {quest.completed ? (
+                              <CheckCircle className="w-8 h-8 text-green-600" />
+                            ) : (
+                              <Badge className="bg-purple-600 text-white">
+                                +{quest.reward} XP
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Gamification Stats Grid */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="border-0 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Estatísticas de Jogo</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-5 h-5 text-purple-600" />
+                        <span className="text-sm font-medium">Posts Publicados</span>
+                      </div>
+                      <span className="text-lg font-bold text-purple-600">
+                        {profileUser?.profile_stats?.total_posts || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-5 h-5 text-pink-600" />
+                        <span className="text-sm font-medium">Curtidas Recebidas</span>
+                      </div>
+                      <span className="text-lg font-bold text-pink-600">
+                        {profileUser?.profile_stats?.total_likes_received || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        <span className="text-sm font-medium">Seguidores</span>
+                      </div>
+                      <span className="text-lg font-bold text-blue-600">
+                        {followData.followers.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-green-600" />
+                        <span className="text-sm font-medium">Reservas Feitas</span>
+                      </div>
+                      <span className="text-lg font-bold text-green-600">
+                        {profileUser?.profile_stats?.total_bookings || 0}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Conquistas Rápidas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3">
+                      {userPosts.length >= 10 && (
+                        <div className="p-4 bg-yellow-50 rounded-xl text-center border-2 border-yellow-200">
+                          <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-gray-900">Criador Ativo</p>
+                          <p className="text-xs text-gray-600">10+ posts</p>
+                        </div>
+                      )}
+                      {followData.followers.length >= 50 && (
+                        <div className="p-4 bg-pink-50 rounded-xl text-center border-2 border-pink-200">
+                          <Users className="w-8 h-8 text-pink-500 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-gray-900">Popular</p>
+                          <p className="text-xs text-gray-600">50+ seguidores</p>
+                        </div>
+                      )}
+                      {totalLikes >= 100 && (
+                        <div className="p-4 bg-rose-50 rounded-xl text-center border-2 border-rose-200">
+                          <Heart className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-gray-900">Muito Curtido</p>
+                          <p className="text-xs text-gray-600">100+ curtidas</p>
+                        </div>
+                      )}
+                      {profileUser.is_adoption_advocate && (
+                        <div className="p-4 bg-rose-50 rounded-xl text-center border-2 border-rose-200">
+                          <Heart className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-gray-900">Defensor</p>
+                          <p className="text-xs text-gray-600">Adoção</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* CTA to Full Gamification Page */}
+              <Card className="border-0 shadow-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                <CardContent className="p-6 text-center">
+                  <Sparkles className="w-12 h-12 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold mb-2">Quer Mais Desafios?</h3>
+                  <p className="text-white/90 mb-4">
+                    Veja todos os desafios de foto, conquistas e suba no leaderboard!
+                  </p>
+                  <Button
+                    onClick={() => navigate(createPageUrl('Gamification'))}
+                    className="bg-white text-purple-600 hover:bg-gray-100"
+                  >
+                    Ver Gamificação Completa
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Badges Tab */}
           <TabsContent value="badges">
             <div className="space-y-6">
               {/* System Badges */}
