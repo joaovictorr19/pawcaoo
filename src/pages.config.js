@@ -41,6 +41,8 @@ import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import Landing from './pages/Landing';
+import UserProfile from './pages/UserProfile';
+import SocialEvents from './pages/SocialEvents';
 import Layout from './Layout.jsx';
 
 
@@ -88,6 +90,8 @@ export const PAGES = {
     "Contact": Contact,
     "FAQ": FAQ,
     "Landing": Landing,
+    "UserProfile": UserProfile,
+    "SocialEvents": SocialEvents,
 }
 
 export const pagesConfig = {
