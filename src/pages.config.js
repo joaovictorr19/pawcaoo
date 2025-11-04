@@ -53,6 +53,10 @@ import DogConnectPremium from './pages/DogConnectPremium';
 import DogConnectRewards from './pages/DogConnectRewards';
 import AdoptionListings from './pages/AdoptionListings';
 import AdoptionListingDetails from './pages/AdoptionListingDetails';
+import ApplyForAdoption from './pages/ApplyForAdoption';
+import MyAdoptionApplications from './pages/MyAdoptionApplications';
+import CreateAdoptionListing from './pages/CreateAdoptionListing';
+import ManageAdoptionListings from './pages/ManageAdoptionListings';
 import Layout from './Layout.jsx';
 
 
@@ -112,6 +116,10 @@ export const PAGES = {
     "DogConnectRewards": DogConnectRewards,
     "AdoptionListings": AdoptionListings,
     "AdoptionListingDetails": AdoptionListingDetails,
+    "ApplyForAdoption": ApplyForAdoption,
+    "MyAdoptionApplications": MyAdoptionApplications,
+    "CreateAdoptionListing": CreateAdoptionListing,
+    "ManageAdoptionListings": ManageAdoptionListings,
 }
 
 export const pagesConfig = {
