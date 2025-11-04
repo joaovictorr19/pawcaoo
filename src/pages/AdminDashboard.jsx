@@ -1184,7 +1184,6 @@ export default function AdminDashboard() {
                                             <Shield className="w-4 h-4 mr-2" />
                                             View Background Check
                                           </a>
-                                          </a>
                                         </Button>
                                       )}
                                     </div>
