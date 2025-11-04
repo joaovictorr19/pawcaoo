@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Store, TrendingUp, DollarSign, Package, Calendar, Upload,
-  PlusCircle, Edit, Trash2, Users, ArrowUp, ArrowDown, Activity
+  PlusCircle, Edit, Trash2, Users, ArrowUp, ArrowDown, Activity, Crown
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -26,6 +26,8 @@ export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -57,6 +59,14 @@ export default function PartnerDashboard() {
     enabled: !!company?.id,
     initialData: [],
     staleTime: 30000, // 30s cache
+  });
+
+  const { data: myAnnouncements } = useQuery({
+    queryKey: ['myAnnouncements', company?.id],
+    queryFn: () => base44.entities.CompanyAnnouncement.filter({ company_id: company?.id }, '-created_date'),
+    enabled: !!company?.id,
+    initialData: [],
+    staleTime: 60000,
   });
 
   const saveServiceMutation = useMutation({
@@ -92,6 +102,45 @@ export default function PartnerDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries(['partnerServices']);
       toast.success("Serviço removido!");
+    },
+  });
+
+  const saveAnnouncementMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!company?.id) {
+        throw new Error("Empresa não encontrada. Contacte o administrador.");
+      }
+
+      if (editingAnnouncement) {
+        return await base44.entities.CompanyAnnouncement.update(editingAnnouncement.id, data);
+      }
+
+      return await base44.entities.CompanyAnnouncement.create({
+        ...data,
+        company_id: company.id,
+        company_name: company.company_name,
+        company_email: user.email,
+        moderation_status: 'pending',
+        is_active: false,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myAnnouncements']);
+      setShowAnnouncementForm(false);
+      setEditingAnnouncement(null);
+      toast.success(editingAnnouncement ? "Anúncio atualizado!" : "Anúncio enviado para aprovação!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao salvar anúncio");
+      console.error(error);
+    }
+  });
+
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: (announcementId) => base44.entities.CompanyAnnouncement.delete(announcementId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myAnnouncements']);
+      toast.success("Anúncio removido!");
     },
   });
 
@@ -272,9 +321,10 @@ export default function PartnerDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14 mb-6">
+          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-2 h-14 mb-6">
             <TabsTrigger value="overview">📊 Visão Geral</TabsTrigger>
             <TabsTrigger value="services">🏥 Serviços ({services.length})</TabsTrigger>
+            <TabsTrigger value="announcements">📢 Anúncios ({myAnnouncements.length})</TabsTrigger>
             <TabsTrigger value="bookings">📅 Agendamentos ({bookings.length})</TabsTrigger>
           </TabsList>
 
@@ -477,6 +527,132 @@ export default function PartnerDashboard() {
             )}
           </TabsContent>
 
+          <TabsContent value="announcements">
+            <div className="mb-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Gerir Anúncios</h2>
+                <p className="text-sm text-gray-600">Crie promoções para aparecer na loja PawCão</p>
+              </div>
+              <Button
+                onClick={() => { setShowAnnouncementForm(true); setEditingAnnouncement(null); }}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Criar Novo Anúncio
+              </Button>
+            </div>
+
+            {showAnnouncementForm && <AnnouncementForm />}
+
+            {myAnnouncements.length === 0 ? (
+              <Card className="border-0 shadow-xl">
+                <CardContent className="p-12 text-center">
+                  <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum anúncio criado</h3>
+                  <p className="text-gray-600">Crie anúncios promocionais para atrair mais clientes!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {myAnnouncements.map((announcement) => (
+                  <Card key={announcement.id} className={`border-2 shadow-lg ${
+                    announcement.moderation_status === 'approved' ? 'border-green-200 bg-green-50' :
+                    announcement.moderation_status === 'rejected' ? 'border-red-200 bg-red-50' :
+                    'border-orange-200 bg-orange-50'
+                  }`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-bold text-xl text-gray-900">{announcement.title}</h3>
+                            <Badge className={
+                              announcement.moderation_status === 'approved' ? 'bg-green-600' :
+                              announcement.moderation_status === 'rejected' ? 'bg-red-600' :
+                              'bg-orange-600'
+                            }>
+                              {announcement.moderation_status === 'approved' ? '✅ Aprovado' :
+                               announcement.moderation_status === 'rejected' ? '❌ Rejeitado' :
+                               '⏳ Pendente Aprovação'}
+                            </Badge>
+                            {announcement.is_featured && (
+                              <Badge className="bg-yellow-500 text-yellow-50">
+                                <Crown className="w-3 h-3 mr-1" />
+                                Destaque
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-700 mb-3">{announcement.message}</p>
+                          
+                          {announcement.image_url && (
+                            <img
+                              src={announcement.image_url}
+                              alt={announcement.title}
+                              className="w-full md:w-64 h-40 object-cover rounded-lg mb-3"
+                            />
+                          )}
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div>
+                              <p className="text-gray-500">Tipo</p>
+                              <p className="font-bold capitalize">{announcement.promotion_type}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Desconto</p>
+                              <p className="font-bold text-red-600">{announcement.discount_percentage}%</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Visualizações</p>
+                              <p className="font-bold text-blue-600">{announcement.views_count || 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Cliques</p>
+                              <p className="font-bold text-green-600">{announcement.clicks_count || 0}</p>
+                            </div>
+                          </div>
+
+                          {announcement.moderation_status === 'rejected' && announcement.rejection_reason && (
+                            <div className="mt-4 p-3 bg-red-100 border-2 border-red-300 rounded-lg">
+                              <p className="text-sm font-bold text-red-900 mb-1">Motivo da Rejeição:</p>
+                              <p className="text-sm text-red-700">{announcement.rejection_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {announcement.moderation_status === 'pending' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingAnnouncement(announcement);
+                              setShowAnnouncementForm(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Editar
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja remover este anúncio?')) {
+                              deleteAnnouncementMutation.mutate(announcement.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="bookings">
             <Card className="border-0 shadow-xl">
               <CardHeader>
@@ -527,6 +703,256 @@ export default function PartnerDashboard() {
       </div>
     </div>
   );
+
+  function AnnouncementForm() {
+    const [formData, setFormData] = useState(editingAnnouncement ? {
+      ...editingAnnouncement,
+      start_date: editingAnnouncement.start_date ? new Date(editingAnnouncement.start_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      end_date: editingAnnouncement.end_date ? new Date(editingAnnouncement.end_date).toISOString().split('T')[0] : "",
+      featured_start_date: editingAnnouncement.featured_start_date ? new Date(editingAnnouncement.featured_start_date).toISOString().split('T')[0] : "",
+      featured_end_date: editingAnnouncement.featured_end_date ? new Date(editingAnnouncement.featured_end_date).toISOString().split('T')[0] : "",
+    } : {
+      title: "",
+      message: "",
+      promotion_type: "discount",
+      discount_percentage: 0,
+      bonus_points_multiplier: 1,
+      target_subscription_tier: ["free", "basic", "premium", "vip"],
+      image_url: "",
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: "",
+      is_featured: false,
+      featured_tier: "none",
+      featured_payment_amount: 0,
+    });
+
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    const handleImageUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      setUploadingImage(true);
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setFormData({ ...formData, image_url: file_url });
+        toast.success("Imagem carregada!");
+      } catch (error) {
+        toast.error("Erro ao carregar imagem");
+      }
+      setUploadingImage(false);
+    };
+
+    const handleSubmit = () => {
+      if (!formData.title || !formData.message || !formData.promotion_type) {
+        toast.error("Preencha todos os campos obrigatórios (*)");
+        return;
+      }
+      saveAnnouncementMutation.mutate(formData);
+    };
+
+    const featuredPrices = {
+      none: 0,
+      basic: 50,
+      premium: 150,
+      exclusive: 500
+    };
+
+    return (
+      <Card className="bg-purple-50 border-2 border-purple-200 mb-6">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-bold mb-4">
+            {editingAnnouncement ? 'Editar Anúncio' : 'Criar Novo Anúncio Promocional'}
+          </h3>
+
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-800">
+              <strong>ℹ️ Importante:</strong> Todos os anúncios passam por aprovação do administrador antes de ficarem visíveis na loja.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Título do Anúncio *</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="Ex: Mega Desconto de Verão!"
+                required
+              />
+            </div>
+
+            <div>
+              <Label>Mensagem/Descrição *</Label>
+              <Textarea
+                value={formData.message}
+                onChange={(e) => setFormData({...formData, message: e.target.value})}
+                placeholder="Descreva a promoção em detalhes..."
+                rows={4}
+                required
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo de Promoção *</Label>
+                <Select
+                  value={formData.promotion_type}
+                  onValueChange={(v) => setFormData({...formData, promotion_type: v})}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flash_sale">⚡ Flash Sale</SelectItem>
+                    <SelectItem value="new_product">🆕 Novo Produto</SelectItem>
+                    <SelectItem value="discount">🏷️ Desconto</SelectItem>
+                    <SelectItem value="points_bonus">⭐ Bónus de Pontos</SelectItem>
+                    <SelectItem value="free_gift">🎁 Oferta Grátis</SelectItem>
+                    <SelectItem value="seasonal">🌸 Promoção Sazonal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Percentagem de Desconto (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.discount_percentage}
+                  onChange={(e) => setFormData({...formData, discount_percentage: parseInt(e.target.value) || 0})}
+                  placeholder="Ex: 20"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Data de Início *</Label>
+                <Input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Data de Fim *</Label>
+                <Input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Imagem do Anúncio (recomendado)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+                className="mb-2"
+              />
+              {uploadingImage && <p className="text-sm text-gray-500">Carregando imagem...</p>}
+              {formData.image_url && (
+                <div className="mt-3">
+                  <img src={formData.image_url} alt="Preview" className="w-full h-48 object-cover rounded-lg border-2 border-gray-200" />
+                </div>
+              )}
+            </div>
+
+            {/* Featured Options */}
+            <div className="border-2 border-yellow-300 bg-yellow-50 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Crown className="w-5 h-5 text-yellow-600" />
+                <h4 className="font-bold text-yellow-900">Destacar Anúncio (Pago)</h4>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                {[
+                  { tier: 'none', name: 'Sem Destaque', price: 0, desc: 'Anúncio normal' },
+                  { tier: 'basic', name: 'Básico', price: 50, desc: 'Aparece na lista' },
+                  { tier: 'premium', name: 'Premium', price: 150, desc: 'Destaque no topo' },
+                  { tier: 'exclusive', name: 'Exclusivo', price: 500, desc: 'Banner principal' }
+                ].map(option => (
+                  <label
+                    key={option.tier}
+                    className={`flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      formData.featured_tier === option.tier
+                        ? 'border-yellow-500 bg-yellow-100'
+                        : 'border-gray-200 bg-white hover:border-yellow-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="featured_tier"
+                      value={option.tier}
+                      checked={formData.featured_tier === option.tier}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        featured_tier: e.target.value,
+                        featured_payment_amount: featuredPrices[e.target.value],
+                        is_featured: e.target.value !== 'none'
+                      })}
+                      className="mb-2"
+                    />
+                    <p className="font-bold text-gray-900">{option.name}</p>
+                    <p className="text-2xl font-black text-yellow-700 my-2">€{option.price}</p>
+                    <p className="text-xs text-gray-600">{option.desc}</p>
+                  </label>
+                ))}
+              </div>
+
+              {formData.is_featured && formData.featured_tier !== 'none' && (
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-700 mb-2">
+                    ⚠️ <strong>Pagamento:</strong> Após aprovação do admin, você receberá instruções de pagamento de <strong>€{formData.featured_payment_amount}</strong>.
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Início do Destaque</Label>
+                      <Input
+                        type="date"
+                        value={formData.featured_start_date || formData.start_date}
+                        onChange={(e) => setFormData({...formData, featured_start_date: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Fim do Destaque</Label>
+                      <Input
+                        type="date"
+                        value={formData.featured_end_date || formData.end_date}
+                        onChange={(e) => setFormData({...formData, featured_end_date: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <Button
+              onClick={() => { setShowAnnouncementForm(false); setEditingAnnouncement(null); }}
+              variant="outline"
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              disabled={saveAnnouncementMutation.isPending || uploadingImage}
+            >
+              {saveAnnouncementMutation.isPending ? "A enviar..." : editingAnnouncement ? '💾 Atualizar Anúncio' : '📤 Enviar para Aprovação'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   function ServiceForm() {
     const [formData, setFormData] = useState(editingService || {
