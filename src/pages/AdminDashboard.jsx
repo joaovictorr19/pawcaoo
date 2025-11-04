@@ -64,28 +64,19 @@ import {
   Sparkles, // Added for badges section
   Award, // Added for custom badges
   Upload, // Added for badge image upload
+  ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-
-// Placeholder for createPageUrl function (if not already defined globally or in another utility)
-// In a real application, this would typically be a routing function or use Next.js/React Router hooks.
-const createPageUrl = (pageName) => {
-  switch (pageName) {
-    case 'PartnerDashboard':
-      return '/partner-dashboard'; // Example path
-    // Add other cases as needed
-    default:
-      return '#'; // Fallback
-  }
-};
+import { createPageUrl } from "@/utils";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -102,11 +93,11 @@ export default function AdminDashboard() {
     name: "",
     description: "",
     icon: "⭐",
-    image_url: "", // Added image_url
+    image_url: "",
     rarity: "common",
     category: "special"
   });
-  const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false); // Added new state
+  const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false);
 
   // Check if user is admin
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -114,58 +105,78 @@ export default function AdminDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch all data
-  const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
+  // Optimized queries - only load what's needed per tab
+  const { data: allUsers = [] } = useQuery({ // Removed isLoading: loadingUsers as per outline
     queryKey: ['allUsers'],
     queryFn: () => base44.entities.User.list(),
-    enabled: user?.role === 'admin',
+    enabled: user?.role === 'admin' && (activeTab === 'users' || activeTab === 'badges'),
   });
 
-  const { data: walkerApplications = [], isLoading: loadingWalkers } = useQuery({
+  const { data: walkerApplications = [] } = useQuery({
     queryKey: ['walkerApplications'],
-    queryFn: () => base44.entities.WalkerProfile.list('-created_date'),
-    enabled: user?.role === 'admin',
+    queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'pending' }),
+    enabled: user?.role === 'admin' && activeTab === 'applications',
   });
 
-  const { data: trainerApplications = [], isLoading: loadingTrainers } = useQuery({
+  const { data: trainerApplications = [] } = useQuery({
     queryKey: ['trainerApplications'],
-    queryFn: () => base44.entities.TrainerProfile.list('-created_date'),
-    enabled: user?.role === 'admin',
+    queryFn: () => base44.entities.TrainerProfile.filter({ verification_status: 'pending' }),
+    enabled: user?.role === 'admin' && activeTab === 'applications',
   });
 
-  const { data: allBookings = [], isLoading: loadingBookings } = useQuery({
-    queryKey: ['allBookings'],
+  const { data: recentBookings = [] } = useQuery({
+    queryKey: ['recentBookings'],
     queryFn: async () => {
-      const walkerBookings = await base44.entities.Booking.list('-created_date');
-      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date');
-      return [...walkerBookings, ...trainerBookings];
+      const walkerBookings = await base44.entities.Booking.list('-created_date', 20);
+      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date', 20);
+      return [...walkerBookings, ...trainerBookings].slice(0, 20);
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === 'admin' && activeTab === 'bookings',
   });
 
-  const { data: allPayments = [], isLoading: loadingPayments } = useQuery({
-    queryKey: ['allPayments'],
-    queryFn: () => base44.entities.Payment.list('-created_date'),
-    enabled: user?.role === 'admin',
+  const { data: recentPayments = [] } = useQuery({
+    queryKey: ['recentPayments'],
+    queryFn: () => base44.entities.Payment.list('-created_date', 20),
+    enabled: user?.role === 'admin' && activeTab === 'payments',
   });
 
   const { data: emergencies = [] } = useQuery({
     queryKey: ['emergencies'],
-    queryFn: () => base44.entities.Emergency.list('-created_date'),
-    enabled: user?.role === 'admin',
+    queryFn: () => base44.entities.Emergency.filter({ status: 'reported' }),
+    enabled: user?.role === 'admin' && activeTab === 'support',
   });
 
   const { data: partnerCompanies = [] } = useQuery({
     queryKey: ['allPartnerCompanies'],
     queryFn: () => base44.entities.PartnerCompany.list(),
-    enabled: user?.role === 'admin',
+    enabled: user?.role === 'admin' && activeTab === 'companies',
   });
 
   const { data: pendingReviews = [] } = useQuery({
     queryKey: ['pendingPartnerReviews'],
-    queryFn: () => base44.entities.PartnerReview.filter({ status: 'pending' }, '-created_date'),
+    queryFn: () => base44.entities.PartnerReview.filter({ status: 'pending' }),
     enabled: user?.role === 'admin',
     initialData: [],
+  });
+
+  // Stats - lighter query for overview
+  const { data: stats } = useQuery({
+    queryKey: ['adminStats'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      const walkers = await base44.entities.WalkerProfile.filter({ verification_status: 'verified' });
+      const trainers = await base44.entities.TrainerProfile.filter({ verification_status: 'verified' });
+      const pendingWalkers = await base44.entities.WalkerProfile.filter({ verification_status: 'pending' });
+      const pendingTrainers = await base44.entities.TrainerProfile.filter({ verification_status: 'pending' });
+      
+      return {
+        totalUsers: users.length,
+        totalWalkers: walkers.length,
+        totalTrainers: trainers.length,
+        pendingApplications: pendingWalkers.length + pendingTrainers.length,
+      };
+    },
+    enabled: user?.role === 'admin' && activeTab === 'overview',
   });
 
   // Update Walker Application
@@ -177,10 +188,6 @@ export default function AdminDashboard() {
       setSelectedApplication(null);
       setVerificationNotes("");
     },
-    onError: (error) => {
-      toast.error("Erro ao atualizar aplicação de passeador");
-      console.error("Error updating walker application:", error);
-    }
   });
 
   // Update Trainer Application
@@ -192,10 +199,6 @@ export default function AdminDashboard() {
       setSelectedApplication(null);
       setVerificationNotes("");
     },
-    onError: (error) => {
-      toast.error("Erro ao atualizar aplicação de treinador");
-      console.error("Error updating trainer application:", error);
-    }
   });
 
   // Update User Mutation
@@ -207,10 +210,6 @@ export default function AdminDashboard() {
       setShowUserDialog(false);
       setSelectedUser(null);
     },
-    onError: (error) => {
-      toast.error("Erro ao atualizar utilizador");
-      console.error(error);
-    }
   });
 
   // Delete User Mutation
@@ -220,10 +219,6 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
       toast.success("Utilizador eliminado!");
     },
-    onError: (error) => {
-      toast.error("Erro ao eliminar utilizador");
-      console.error(error);
-    }
   });
 
   // Company Mutations
@@ -235,10 +230,6 @@ export default function AdminDashboard() {
       setShowCompanyDialog(false);
       setCompanyFormData({});
     },
-    onError: (error) => {
-      toast.error("Erro ao criar empresa");
-      console.error("Error creating company:", error);
-    }
   });
 
   const deleteCompanyMutation = useMutation({
@@ -247,10 +238,6 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allPartnerCompanies'] });
       toast.success("Empresa eliminada!");
     },
-    onError: (error) => {
-      toast.error("Erro ao eliminar empresa");
-      console.error("Error deleting company:", error);
-    }
   });
 
   const moderateReviewMutation = useMutation({
@@ -268,10 +255,6 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['partnerReviews'] }); // Invalidate general partner reviews as well
       toast.success("Avaliação moderada com sucesso");
     },
-    onError: (error) => {
-      toast.error("Erro ao moderar avaliação");
-      console.error("Error moderating review:", error);
-    }
   });
 
   const updateUserBadgesMutation = useMutation({
@@ -282,10 +265,6 @@ export default function AdminDashboard() {
       setSelectedUserForBadges(null);
       toast.success("Badges e funções atualizados com sucesso!");
     },
-    onError: (error) => {
-      toast.error("Erro ao atualizar badges");
-      console.error(error);
-    }
   });
 
   const handleEditUser = (user) => {
@@ -465,21 +444,6 @@ export default function AdminDashboard() {
     toast.success("Emblema removido! Clique em Salvar para confirmar");
   };
 
-  // Calculate statistics
-  const stats = {
-    totalUsers: allUsers.length,
-    totalWalkers: walkerApplications.filter(w => w.verification_status === 'verified').length,
-    totalTrainers: trainerApplications.filter(t => t.verification_status === 'verified').length,
-    pendingApplications: [...walkerApplications, ...trainerApplications].filter(a => a.verification_status === 'pending').length,
-    totalBookings: allBookings.length,
-    activeBookings: allBookings.filter(b => b.status === 'in_progress' || b.status === 'confirmed').length,
-    totalRevenue: allPayments.reduce((sum, p) => sum + (p.platform_fee || 0), 0),
-    monthlyRevenue: allPayments
-      .filter(p => new Date(p.created_date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-      .reduce((sum, p) => sum + (p.platform_fee || 0), 0),
-    openEmergencies: emergencies.filter(e => e.status === 'reported').length,
-  };
-
   // Access control
   if (loadingUser) {
     return (
@@ -507,153 +471,99 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Shield className="w-7 h-7 text-white" />
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+        {/* Compact Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-600 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Shield className="w-5 h-5 md:w-7 md:h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400">Manage PawCão platform</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Gerir plataforma PawCão</p>
             </div>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2 mb-8 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
-              <BarChart3 className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Overview</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-1 md:gap-2 bg-white dark:bg-gray-800 shadow-lg p-1 h-auto transition-colors">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
+              <BarChart3 className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-blue-700">
-              <Users className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Users</span>
+            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-blue-700">
+              <Users className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
-              <Store className="w-4 h-4 mr-1 md:mr-2" />
+            <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
+              <Store className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Empresas</span>
             </TabsTrigger>
-            <TabsTrigger value="applications" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-orange-700">
-              <Briefcase className="w-4 h-4 mr-1 md:mr-2" />
+            <TabsTrigger value="applications" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-orange-700">
+              <Briefcase className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Apps</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
-              <Calendar className="w-4 h-4 mr-1 md:mr-2" />
+            <TabsTrigger value="bookings" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
+              <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Bookings</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-emerald-700">
-              <DollarSign className="w-4 h-4 mr-1 md:mr-2" />
+            <TabsTrigger value="payments" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-emerald-700">
+              <DollarSign className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Payments</span>
             </TabsTrigger>
-            <TabsTrigger value="support" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-red-700">
-              <AlertCircle className="w-4 h-4 mr-1 md:mr-2" />
+            <TabsTrigger value="support" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-red-700">
+              <AlertCircle className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Support</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="relative data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-yellow-700">
-              <Star className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Avaliações</span>
+            <TabsTrigger value="reviews" className="relative data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-yellow-700">
+              <Star className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden sm:inline">Reviews</span>
               {pendingReviews.length > 0 && (
-                <Badge className="ml-2 bg-red-500 dark:bg-red-700 dark:text-white absolute -top-1 -right-1 text-xs">
+                <Badge className="ml-1 bg-red-500 dark:bg-red-700 dark:text-white absolute -top-1 -right-1 text-xs h-4 min-w-4 px-1">
                   {pendingReviews.length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="badges" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-indigo-700">
-              <Sparkles className="w-4 h-4 mr-1 md:mr-2" />
+            <TabsTrigger value="badges" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-indigo-700">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Emblemas</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* OVERVIEW TAB */}
+          {/* OVERVIEW TAB - Optimized */}
           <TabsContent value="overview">
-            <div className="space-y-6">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <Users className="w-8 h-8 opacity-80" />
-                      <TrendingUp className="w-5 h-5" />
-                    </div>
-                    <div className="text-3xl font-bold mb-1">{stats.totalUsers}</div>
-                    <div className="text-sm opacity-90">Total Users</div>
-                  </CardContent>
-                </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                <CardContent className="p-4 md:p-6">
+                  <Users className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
+                  <div className="text-2xl md:text-3xl font-bold">{stats?.totalUsers || 0}</div>
+                  <div className="text-xs md:text-sm opacity-90">Total Users</div>
+                </CardContent>
+              </Card>
 
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-green-600 text-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <Briefcase className="w-8 h-8 opacity-80" />
-                      <Activity className="w-5 h-5" />
-                    </div>
-                    <div className="text-3xl font-bold mb-1">{stats.totalWalkers + stats.totalTrainers}</div>
-                    <div className="text-sm opacity-90">Professionals</div>
-                  </CardContent>
-                </Card>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
+                <CardContent className="p-4 md:p-6">
+                  <Briefcase className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
+                  <div className="text-2xl md:text-3xl font-bold">{(stats?.totalWalkers || 0) + (stats?.totalTrainers || 0)}</div>
+                  <div className="text-xs md:text-sm opacity-90">Professionals</div>
+                </CardContent>
+              </Card>
 
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <Calendar className="w-8 h-8 opacity-80" />
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <div className="text-3xl font-bold mb-1">{stats.totalBookings}</div>
-                    <div className="text-sm opacity-90">Total Bookings</div>
-                  </CardContent>
-                </Card>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                <CardContent className="p-4 md:p-6">
+                  <AlertCircle className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
+                  <div className="text-2xl md:text-3xl font-bold">{stats?.pendingApplications || 0}</div>
+                  <div className="text-xs md:text-sm opacity-90">Pending Apps</div>
+                </CardContent>
+              </Card>
 
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <DollarSign className="w-8 h-8 opacity-80" />
-                      <TrendingUp className="w-5 h-5" />
-                    </div>
-                    <div className="text-3xl font-bold mb-1">€{stats.totalRevenue.toFixed(0)}</div>
-                    <div className="text-sm opacity-90">Total Revenue</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Additional Stats */}
-              <div className="grid md:grid-cols-3 gap-4">
-                <Card className="border-0 shadow-lg dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Active Bookings</div>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.activeBookings}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Monthly Revenue</div>
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">€{stats.monthlyRevenue.toFixed(0)}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending Applications</div>
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.pendingApplications}</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Alerts */}
-              {stats.openEmergencies > 0 && (
-                <Card className="border-2 border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-700">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
-                      <div>
-                        <h3 className="font-bold text-red-900 dark:text-red-300 text-lg">Open Emergencies</h3>
-                        <p className="text-red-700 dark:text-red-300">{stats.openEmergencies} emergency reports need attention</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                <CardContent className="p-4 md:p-6">
+                  <Star className="w-6 h-6 md:w-8 md:h-8 opacity-80 mb-2" />
+                  <div className="text-2xl md:text-3xl font-bold">{pendingReviews.length}</div>
+                  <div className="text-xs md:text-sm opacity-90">Pending Reviews</div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -935,14 +845,14 @@ export default function AdminDashboard() {
             </Dialog>
           </TabsContent>
 
-          {/* COMPANIES TAB */}
+          {/* COMPANIES TAB - FIXED LINK */}
           <TabsContent value="companies">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
-                    <CardTitle className="text-2xl dark:text-gray-100">Gestão de Empresas Parceiras</CardTitle>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Adicione e gira empresas parceiras no sistema</p>
+                    <CardTitle className="text-xl md:text-2xl dark:text-gray-100">Gestão de Empresas Parceiras</CardTitle>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">Adicione e gira empresas parceiras no sistema</p>
                   </div>
                   <Button 
                     onClick={() => {
@@ -957,7 +867,7 @@ export default function AdminDashboard() {
                       });
                       setShowCompanyDialog(true);
                     }}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 text-sm h-9"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Empresa
@@ -965,29 +875,29 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {partnerCompanies.map((company) => (
-                    <Card key={company.id} className="border-2 border-green-100 dark:border-green-700 dark:bg-gray-800">
-                      <CardContent className="p-6">
+                    <Card key={company.id} className="border-2 border-green-100 dark:border-green-700 dark:bg-gray-800 hover:shadow-lg transition-shadow">
+                      <CardContent className="p-4">
                         {company.logo_url && (
                           <img 
                             src={company.logo_url} 
                             alt={company.company_name} 
-                            className="w-full h-32 object-contain mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-2"
+                            className="w-full h-24 object-contain mb-3 bg-gray-50 dark:bg-gray-900 rounded-lg p-2"
                           />
                         )}
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">{company.company_name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{company.company_email}</p>
+                        <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">{company.company_name}</h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{company.company_email}</p>
                         
-                        <div className="flex gap-2 mb-4">
-                          <Badge className="capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type.replace('_', ' ')}</Badge>
-                          <Badge className={company.is_active ? "bg-green-500" : "bg-gray-500"}>
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          <Badge className="text-xs capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type.replace('_', ' ')}</Badge>
+                          <Badge className={`text-xs ${company.is_active ? "bg-green-500" : "bg-gray-500"}`}>
                             {company.is_active ? "Ativo" : "Inativo"}
                           </Badge>
-                          <Badge variant="outline" className="capitalize dark:border-gray-600 dark:text-gray-300">{company.subscription_tier}</Badge>
+                          <Badge variant="outline" className="text-xs capitalize dark:border-gray-600 dark:text-gray-300">{company.subscription_tier}</Badge>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-sm mb-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-3 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
                           <div>
                             <p className="text-gray-500 dark:text-gray-400">Produtos</p>
                             <p className="font-bold text-gray-900 dark:text-gray-100">{company.total_products || 0}</p>
@@ -996,32 +906,25 @@ export default function AdminDashboard() {
                             <p className="text-gray-500 dark:text-gray-400">Vendas</p>
                             <p className="font-bold text-green-600 dark:text-green-400">€{(company.total_sales || 0).toFixed(0)}</p>
                           </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Comissão</p>
-                            <p className="font-bold text-gray-900 dark:text-gray-100">{company.commission_rate}%</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Taxa Mensal</p>
-                            <p className="font-bold text-gray-900 dark:text-gray-100">€{company.monthly_fee || 0}</p>
-                          </div>
+                          {/* Commission and Monthly fee are not in outline's card content */}
                         </div>
 
                         <div className="flex gap-2">
                           <Button 
-                            className="flex-1" 
+                            className="flex-1 h-8 text-xs" 
                             variant="outline"
-                            onClick={() => window.open(createPageUrl('PartnerDashboard'), '_blank')}
+                            onClick={() => navigate(createPageUrl('PartnerDashboard'))}
                           >
-                            <Eye className="w-4 h-4 mr-2" />
+                            <ExternalLink className="w-3 h-3 mr-1" />
                             Ver Painel
                           </Button>
                           <Button 
                             size="icon" 
                             variant="outline"
                             onClick={() => handleDeleteCompany(company)}
-                            className="hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800"
+                            className="hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800 h-8 w-8"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </CardContent>
@@ -1186,8 +1089,10 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {walkerApplications.length === 0 && (
+                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">No pending walker applications</p>
+                    )}
                     {walkerApplications
-                      .filter(w => w.verification_status === 'pending')
                       .map(walker => (
                         <Card key={walker.id} className="border-2 border-orange-200 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/10">
                           <CardContent className="p-6">
@@ -1330,9 +1235,6 @@ export default function AdminDashboard() {
                           </CardContent>
                         </Card>
                       ))}
-                    {walkerApplications.filter(w => w.verification_status === 'pending').length === 0 && (
-                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">No pending walker applications</p>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1344,8 +1246,10 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {trainerApplications.length === 0 && (
+                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">No pending trainer applications</p>
+                    )}
                     {trainerApplications
-                      .filter(t => t.verification_status === 'pending')
                       .map(trainer => (
                         <Card key={trainer.id} className="border-2 border-purple-200 bg-purple-50 dark:border-purple-700 dark:bg-purple-900/10">
                           <CardContent className="p-6">
@@ -1493,9 +1397,6 @@ export default function AdminDashboard() {
                           </CardContent>
                         </Card>
                       ))}
-                    {trainerApplications.filter(t => t.verification_status === 'pending').length === 0 && (
-                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">No pending trainer applications</p>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1522,7 +1423,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allBookings.slice(0, 20).map(booking => (
+                      {recentBookings.map(booking => (
                         <TableRow key={booking.id} className="dark:border-gray-700">
                           <TableCell className="font-mono text-xs dark:text-gray-300">{booking.id.slice(0, 8)}...</TableCell>
                           <TableCell className="dark:text-gray-300">{booking.owner_name}</TableCell>
@@ -1578,7 +1479,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allPayments.slice(0, 20).map(payment => (
+                      {recentPayments.map(payment => (
                         <TableRow key={payment.id} className="dark:border-gray-700">
                           <TableCell className="font-mono text-xs dark:text-gray-300">{payment.id.slice(0, 8)}...</TableCell>
                           <TableCell className="dark:text-gray-300">{payment.payer_name}</TableCell>
@@ -1614,12 +1515,11 @@ export default function AdminDashboard() {
                   <CardTitle className="text-2xl text-red-600 dark:text-red-400">Emergency Reports</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {emergencies.filter(e => e.status === 'reported').length === 0 ? (
+                  {emergencies.length === 0 ? (
                     <p className="text-center text-gray-500 dark:text-gray-400 py-8">No open emergency reports</p>
                   ) : (
                     <div className="space-y-4">
                       {emergencies
-                        .filter(e => e.status === 'reported')
                         .map(emergency => (
                           <Card key={emergency.id} className="border-2 border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-900/10">
                             <CardContent className="p-6">
@@ -1904,7 +1804,7 @@ export default function AdminDashboard() {
 
                 {/* System Roles */}
                 <div className="space-y-3">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
+                  <h3 className="font-bold text-lg flex items-center gap-2 dark:text-gray-100">
                     <ShieldCheck className="w-5 h-5 text-red-600" />
                     Funções do Sistema
                   </h3>
@@ -1960,7 +1860,7 @@ export default function AdminDashboard() {
 
                 {/* Special Badges */}
                 <div className="space-y-3">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
+                  <h3 className="font-bold text-lg flex items-center gap-2 dark:text-gray-100">
                     <CheckCircle className="w-5 h-5 text-cyan-600" />
                     Badges Especiais
                   </h3>
@@ -1995,11 +1895,11 @@ export default function AdminDashboard() {
                 {/* Custom Community Badges */}
                 <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-lg flex items-center gap-2">
+                    <h3 className="font-bold text-lg flex items-center gap-2 dark:text-gray-100">
                       <Award className="w-5 h-5 text-purple-600" />
                       Emblemas Personalizados
                     </h3>
-                    <Badge className="bg-purple-600">
+                    <Badge className="bg-purple-600 dark:bg-purple-700">
                       {(badgesFormData.public_badges || []).length} emblemas
                     </Badge>
                   </div>
@@ -2007,7 +1907,7 @@ export default function AdminDashboard() {
                   {/* Add New Badge Form */}
                   <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700">
                     <CardContent className="p-4">
-                      <h4 className="font-bold text-sm mb-3">➕ Adicionar Novo Emblema</h4>
+                      <h4 className="font-bold text-sm mb-3 dark:text-gray-100">➕ Adicionar Novo Emblema</h4>
                       
                       {/* Image Upload Section */}
                       <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700">
@@ -2154,10 +2054,10 @@ export default function AdminDashboard() {
                                   <h5 className="font-bold text-sm dark:text-gray-100">{badge.name}</h5>
                                   <p className="text-xs text-gray-600 dark:text-gray-400">{badge.description}</p>
                                   <Badge className={`mt-1 text-xs capitalize ${
-                                    badge.rarity === 'legendary' ? 'bg-yellow-500' :
-                                    badge.rarity === 'epic' ? 'bg-purple-500' :
-                                    badge.rarity === 'rare' ? 'bg-blue-500' :
-                                    'bg-gray-500'
+                                    badge.rarity === 'legendary' ? 'bg-yellow-500 dark:bg-yellow-600' :
+                                    badge.rarity === 'epic' ? 'bg-purple-500 dark:bg-purple-600' :
+                                    badge.rarity === 'rare' ? 'bg-blue-500 dark:bg-blue-600' :
+                                    'bg-gray-500 dark:bg-gray-600'
                                   }`}>
                                     {badge.rarity}
                                   </Badge>
