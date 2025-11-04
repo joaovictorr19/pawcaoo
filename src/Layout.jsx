@@ -107,6 +107,7 @@ function LayoutContent({ children, currentPageName }) {
   const { language, setLanguage } = useLanguage();
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
+  const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -208,7 +209,7 @@ function LayoutContent({ children, currentPageName }) {
   const myActivityEndIndex = myActivityStartIndex + myActivityCount;
 
   const professionalServicesStartIndex = myActivityEndIndex;
-  const professionalServicesEndIndex = myActivityStartIndex + professionalServicesCount;
+  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
 
   const adminAndOtherStartIndex = professionalServicesEndIndex;
 
@@ -430,26 +431,34 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {allNavigationItems.slice(professionalServicesStartIndex, professionalServicesEndIndex).map((item) => ( 
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                          location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        }`}
-                      >
-                        <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
-                          <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
+              <SidebarGroupLabel 
+                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
+                onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
+              >
+                <span>{t('professionalServices', language)}</span>
+                <span className={`transition-transform duration-200 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
+              </SidebarGroupLabel>
+              {professionalServicesExpanded && (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {allNavigationItems.slice(professionalServicesStartIndex, professionalServicesEndIndex).map((item) => ( 
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
+                            location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
+                          }`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
+                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              )}
             </SidebarGroup>
 
             {allNavigationItems.slice(adminAndOtherStartIndex).length > 0 && ( 
