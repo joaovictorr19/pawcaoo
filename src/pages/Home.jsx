@@ -63,7 +63,7 @@ export default function Home() {
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
-    queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating'),
+    queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 50), // Added limit
     initialData: [],
     enabled: !!user,
     staleTime: 60000,
@@ -71,7 +71,7 @@ export default function Home() {
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
-    queryFn: () => base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date'),
+    queryFn: () => base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20), // Added limit
     initialData: [],
     enabled: !!user,
     staleTime: 30000,

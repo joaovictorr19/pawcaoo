@@ -1,96 +1,79 @@
+
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCard, Check, Loader2, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { base44 } from "@/api/base44Client";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function CheckoutModal({ 
-  isOpen, 
+  booking, 
   onClose, 
-  bookingData, 
   onSuccess 
 }) {
   const { language } = useLanguage();
-  const [selectedMethod, setSelectedMethod] = useState(null);
+  const { user, paymentMethods = [] } = booking;
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState(null);
 
-  const { user, paymentMethods = [] } = bookingData;
+  const handlePayment = async () => {
+    setProcessing(true);
+    setError(null);
 
-  const processPaymentMutation = useMutation({
-    mutationFn: async (paymentData) => {
-      setProcessing(true);
-      
+    try {
+      // Validate payment method
+      if (!selectedPaymentMethod) {
+        throw new Error(language === 'pt' ? "Selecione um método de pagamento" : "Select a payment method");
+      }
+
+      // In production, this would integrate with Stripe
+      // For now, simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       // Create payment record
       const payment = await base44.entities.Payment.create({
-        booking_id: paymentData.booking_id,
+        booking_id: booking.id,
         payer_email: user.email,
         payer_name: user.full_name,
-        recipient_email: paymentData.professional_email,
-        recipient_name: paymentData.professional_name,
-        service_amount: paymentData.service_amount,
-        platform_fee: paymentData.platform_fee,
+        recipient_email: booking.walker_email,
+        recipient_name: booking.walker_name,
+        service_amount: booking.service_amount,
+        platform_fee: booking.platform_fee,
         transaction_fee: 1, // €1 fixed
-        total_amount: paymentData.total_amount,
+        insurance_fee: booking.insurance_selected ? 2 : 0,
+        extra_services_fee: booking.extra_services_total || 0,
+        total_amount: booking.total_amount,
+        platform_fee_percentage: 15,
         status: "held", // Hold payment until service completion
-        payment_method: selectedMethod?.type || "credit_card",
+        payment_method: selectedPaymentMethod.type,
         held_date: new Date().toISOString()
       });
 
-      // In production, integrate with Stripe API here
-      // const stripePaymentIntent = await stripe.paymentIntents.create({...});
-      
       // Update booking with payment info
-      await base44.entities.Booking.update(bookingData.booking_id, {
-        payment_id: payment.id,
+      await base44.entities.Booking.update(booking.id, {
         payment_status: "held",
+        payment_id: payment.id,
         status: "confirmed"
       });
 
-      // Send notification to walker
-      await base44.entities.Notification.create({
-        recipient_email: paymentData.professional_email,
-        title: language === 'pt' ? 'Nova Reserva Confirmada!' : 'New Booking Confirmed!',
-        message: `${user.full_name} ${language === 'pt' ? 'fez uma reserva' : 'made a booking'} - €${paymentData.total_amount}`,
-        type: "booking",
-        related_id: bookingData.booking_id,
-        priority: "high"
-      });
-
-      return payment;
-    },
-    onSuccess: () => {
-      setProcessing(false);
-      toast.success(language === 'pt' ? 'Pagamento processado com sucesso!' : 'Payment processed successfully!');
-      onSuccess?.();
+      toast.success(language === 'pt' ? "Pagamento processado com sucesso!" : "Payment processed successfully!");
+      
+      if (onSuccess) {
+        onSuccess(payment);
+      }
+      
       onClose();
-    },
-    onError: (error) => {
+    } catch (err) {
+      console.error("Payment error:", err);
+      setError(err.message || (language === 'pt' ? "Erro ao processar pagamento" : "Payment processing failed"));
+      toast.error(err.message || (language === 'pt' ? "Erro ao processar pagamento" : "Payment processing failed"));
+    } finally {
       setProcessing(false);
-      toast.error(language === 'pt' ? 'Erro ao processar pagamento' : 'Payment processing failed');
-      console.error(error);
     }
-  });
-
-  const handlePayment = () => {
-    if (!selectedMethod) {
-      toast.error(language === 'pt' ? 'Selecione um método de pagamento' : 'Select a payment method');
-      return;
-    }
-
-    processPaymentMutation.mutate({
-      booking_id: bookingData.booking_id,
-      professional_email: bookingData.professional_email,
-      professional_name: bookingData.professional_name,
-      service_amount: bookingData.service_amount,
-      platform_fee: bookingData.platform_fee,
-      total_amount: bookingData.total_amount
-    });
   };
 
   const getCardBrand = (type) => {
@@ -104,14 +87,32 @@ export default function CheckoutModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl md:text-2xl flex items-center gap-2">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="bg-white rounded-2xl max-w-lg w-full p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-6">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-blue-600" />
             {language === 'pt' ? 'Confirmar Pagamento' : 'Confirm Payment'}
-          </DialogTitle>
-        </DialogHeader>
+          </h2>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
 
         <div className="space-y-4">
           {/* Booking Summary */}
@@ -122,20 +123,32 @@ export default function CheckoutModal({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">{language === 'pt' ? 'Serviço' : 'Service'}:</span>
-                <span className="font-medium">€{bookingData.service_amount?.toFixed(2)}</span>
+                <span className="font-medium">€{booking.service_amount?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">{language === 'pt' ? 'Taxa de Plataforma' : 'Platform Fee'}:</span>
-                <span className="font-medium">€{bookingData.platform_fee?.toFixed(2)}</span>
+                <span className="font-medium">€{booking.platform_fee?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">{language === 'pt' ? 'Taxa de Transação' : 'Transaction Fee'}:</span>
                 <span className="font-medium">€1.00</span>
               </div>
+              {booking.insurance_selected && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{language === 'pt' ? 'Seguro' : 'Insurance'}:</span>
+                  <span className="font-medium">€2.00</span>
+                </div>
+              )}
+              {booking.extra_services_total > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{language === 'pt' ? 'Serviços Extras' : 'Extra Services'}:</span>
+                  <span className="font-medium">€{booking.extra_services_total?.toFixed(2)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between text-base">
                 <span className="font-semibold">Total:</span>
-                <span className="font-bold text-green-600">€{bookingData.total_amount?.toFixed(2)}</span>
+                <span className="font-bold text-green-600">€{booking.total_amount?.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -154,11 +167,11 @@ export default function CheckoutModal({
                 >
                   <div
                     className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedMethod === method
+                      selectedPaymentMethod === method
                         ? 'border-blue-600 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                    onClick={() => setSelectedMethod(method)}
+                    onClick={() => setSelectedPaymentMethod(method)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -172,7 +185,7 @@ export default function CheckoutModal({
                           </div>
                         </div>
                       </div>
-                      {selectedMethod === method && (
+                      {selectedPaymentMethod === method && (
                         <Check className="w-5 h-5 text-blue-600" />
                       )}
                     </div>
@@ -211,8 +224,9 @@ export default function CheckoutModal({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-6">
             <Button
+              type="button"
               variant="outline"
               onClick={onClose}
               disabled={processing}
@@ -222,23 +236,23 @@ export default function CheckoutModal({
             </Button>
             <Button
               onClick={handlePayment}
-              disabled={processing || !selectedMethod || paymentMethods.length === 0}
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
+              disabled={processing || !selectedPaymentMethod}
+              className="flex-1 bg-gradient-to-r from-green-600 to-green-500 h-14 text-lg font-bold"
             >
               {processing ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   {language === 'pt' ? 'A processar...' : 'Processing...'}
                 </>
               ) : (
                 <>
-                  {language === 'pt' ? 'Confirmar Pagamento' : 'Confirm Payment'}
+                  {language === 'pt' ? 'Pagar' : 'Pay'} €{booking.total_amount?.toFixed(2)}
                 </>
               )}
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </motion.div>
+    </motion.div>
   );
 }

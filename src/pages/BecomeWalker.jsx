@@ -31,7 +31,8 @@ import BreedSelector from "../components/professionals/BreedSelector";
 import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // Added import
+import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
+import { toast } from "sonner"; // Added import for toast
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
@@ -69,11 +70,93 @@ export default function BecomeWalker() {
     bank_account_holder: "",
     bank_account_number: "",
     bank_routing_number: "",
-    portfolio: [], // Added portfolio field
+    portfolio: [],
   });
 
+  const [formErrors, setFormErrors] = useState({});
+
+  // Validation function
+  const validateStep1 = () => {
+    const errors = {};
+    
+    if (!formData.walker_name || formData.walker_name.length < 3) {
+      errors.name = t("nameMinLength", language) || "Nome deve ter pelo menos 3 caracteres";
+    }
+    
+    if (!formData.phone || !/^[+]?[\d\s-()]+$/.test(formData.phone)) {
+      errors.phone = t("invalidPhoneNumber", language) || "Telefone inválido";
+    }
+    
+    // Convert hourly_rate to a number for comparison
+    const hourlyRateNum = parseFloat(formData.hourly_rate);
+    if (isNaN(hourlyRateNum) || hourlyRateNum < 5 || hourlyRateNum > 100) {
+      errors.rate = t("hourlyRateRange", language) || "Taxa deve estar entre €5 e €100";
+    }
+    
+    if (!formData.photo_url) {
+      errors.photo = t("profilePhotoRequired", language) || "Foto de perfil obrigatória";
+    }
+    
+    if (formData.dog_sizes.length === 0) {
+      errors.sizes = t("selectDogSize", language) || "Selecione pelo menos um tamanho";
+    }
+    
+    if (formData.availability.length === 0) {
+      errors.availability = t("selectAvailability", language) || "Selecione pelo menos um horário";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const errors = {};
+    
+    if (!formData.id_document_url) {
+      errors.id = t("idDocumentRequired", language) || "Documento de identificação obrigatório";
+    }
+    
+    if (!formData.proof_of_address_url) {
+      errors.address = t("proofOfAddressRequired", language) || "Comprovante de morada obrigatório";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const errors = {};
+    
+    if (!formData.bank_account_holder || formData.bank_account_holder.length < 3) {
+      errors.holder = t("accountHolderRequired", language) || "Nome do titular obrigatório";
+    }
+    
+    if (!formData.bank_account_number) {
+      errors.account = t("ibanRequired", language) || "IBAN obrigatório";
+    }
+    
+    if (!formData.bank_routing_number) {
+      errors.routing = t("swiftBicRequired", language) || "SWIFT/BIC obrigatório";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const createWalkerMutation = useMutation({
-    mutationFn: (data) => base44.entities.WalkerProfile.create(data),
+    mutationFn: async (data) => {
+      // Remove sensitive data before creating
+      const sanitizedData = { ...data };
+      delete sanitizedData.id_document_url;
+      delete sanitizedData.background_check_url;
+      delete sanitizedData.background_check_provider;
+      delete sanitizedData.proof_of_address_url;
+      delete sanitizedData.bank_account_holder;
+      delete sanitizedData.bank_account_number;
+      delete sanitizedData.bank_routing_number;
+      
+      return await base44.entities.WalkerProfile.create(sanitizedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['walkers'] });
       setShowSuccess(true);
@@ -81,6 +164,10 @@ export default function BecomeWalker() {
         navigate(createPageUrl('Home'));
       }, 3000);
     },
+    onError: (error) => {
+      console.error("Error creating walker profile:", error);
+      toast.error(t("errorCreatingProfile", language) + ": " + error.message);
+    }
   });
 
   const handleFileUpload = async (e, fieldName, uploadingKey) => {
@@ -91,14 +178,23 @@ export default function BecomeWalker() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setFormData({ ...formData, [fieldName]: file_url });
+      // Clear specific error for the field after successful upload
+      setFormErrors(prev => ({ ...prev, [uploadingKey]: undefined }));
     } catch (error) {
       console.error("Error uploading file:", error);
+      toast.error(t("fileUploadError", language) || "Erro ao fazer upload do ficheiro.");
     }
     setUploading(prev => ({ ...prev, [uploadingKey]: false }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateStep3()) {
+      toast.error(t("pleaseCorrectErrors", language) || "Por favor corrija os erros para prosseguir.");
+      return;
+    }
+    
     await createWalkerMutation.mutateAsync({
       ...formData,
       hourly_rate: parseFloat(formData.hourly_rate),
@@ -113,6 +209,9 @@ export default function BecomeWalker() {
       ? current.filter(item => item !== value)
       : [...current, value];
     setFormData({ ...formData, [field]: updated });
+    // Clear specific errors related to these array fields if they exist
+    if (field === 'dog_sizes' && updated.length > 0) setFormErrors(prev => ({ ...prev, sizes: undefined }));
+    if (field === 'availability' && updated.length > 0) setFormErrors(prev => ({ ...prev, availability: undefined }));
   };
 
   const addService = () => {
@@ -141,8 +240,7 @@ export default function BecomeWalker() {
     });
   };
 
-  const canProceedToStep2 = formData.walker_name && formData.phone && formData.location && formData.hourly_rate && formData.photo_url && formData.dog_sizes.length > 0 && formData.availability.length > 0;
-  const canProceedToStep3 = canProceedToStep2 && formData.id_document_url && formData.proof_of_address_url;
+  // The `canProceedToStep` checks are now handled by `validateStepX` functions on button click.
   const progress = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
 
   return (
@@ -223,7 +321,7 @@ export default function BecomeWalker() {
                 {/* STEP 1: PROFILE */}
                 {currentStep === 1 && (
                   <motion.div
-                    key="step1" // Added key for AnimatePresence
+                    key="step1"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
@@ -252,12 +350,16 @@ export default function BecomeWalker() {
                             onChange={(e) => handleFileUpload(e, 'photo_url', 'photo')}
                             disabled={uploading.photo}
                             required
+                            className={formErrors.photo ? "border-red-500" : ""}
                           />
                           <p className="text-sm text-gray-500 mt-2">
                             {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
                           </p>
                         </div>
                       </div>
+                      {formErrors.photo && (
+                        <p className="text-sm text-red-600">{formErrors.photo}</p>
+                      )}
                     </div>
 
                     {/* Video Introduction */}
@@ -307,7 +409,7 @@ export default function BecomeWalker() {
                           const portfolio = urls.map(url => ({
                             media_url: url,
                             media_type: 'photo',
-                            title: 'Passeio', // Default title, can be made configurable if needed
+                            title: t('walk', language) || 'Passeio', // Default title, can be made configurable if needed
                             category: 'walk', // Default category
                             is_featured: false
                           }));
@@ -328,9 +430,16 @@ export default function BecomeWalker() {
                           id="walker_name"
                           required
                           value={formData.walker_name}
-                          onChange={(e) => setFormData({...formData, walker_name: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, walker_name: e.target.value});
+                            setFormErrors(prev => ({ ...prev, name: undefined })); // Clear error on change
+                          }}
                           placeholder="João Silva"
+                          className={formErrors.name ? "border-red-500" : ""}
                         />
+                        {formErrors.name && (
+                          <p className="text-sm text-red-600 mt-1">{formErrors.name}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -339,9 +448,16 @@ export default function BecomeWalker() {
                           id="phone"
                           required
                           value={formData.phone}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, phone: e.target.value});
+                            setFormErrors(prev => ({ ...prev, phone: undefined })); // Clear error on change
+                          }}
                           placeholder="+351 21 123 4567"
+                          className={formErrors.phone ? "border-red-500" : ""}
                         />
+                        {formErrors.phone && (
+                          <p className="text-sm text-red-600 mt-1">{formErrors.phone}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -366,10 +482,17 @@ export default function BecomeWalker() {
                                 step="0.01"
                                 required
                                 value={formData.hourly_rate}
-                                onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
+                                onChange={(e) => {
+                                  setFormData({...formData, hourly_rate: e.target.value});
+                                  setFormErrors(prev => ({ ...prev, rate: undefined })); // Clear error on change
+                                }}
                                 placeholder="25"
+                                className={formErrors.rate ? "border-red-500" : ""}
                               />
                               <p className="text-xs text-gray-500">{t('platformCommission', language)}</p>
+                              {formErrors.rate && (
+                                <p className="text-sm text-red-600 mt-1">{formErrors.rate}</p>
+                              )}
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -512,6 +635,7 @@ export default function BecomeWalker() {
                               id={`size-${size.value}`}
                               checked={formData.dog_sizes.includes(size.value)}
                               onCheckedChange={() => toggleArrayItem('dog_sizes', size.value)}
+                              className={formErrors.sizes && !formData.dog_sizes.includes(size.value) ? "border-red-500" : ""}
                             />
                             <label htmlFor={`size-${size.value}`} className="text-sm font-medium cursor-pointer">
                               {size.label}
@@ -519,6 +643,9 @@ export default function BecomeWalker() {
                           </div>
                         ))}
                       </div>
+                      {formErrors.sizes && (
+                        <p className="text-sm text-red-600">{formErrors.sizes}</p>
+                      )}
                     </div>
 
                     {/* Dog Breeds */}
@@ -547,6 +674,7 @@ export default function BecomeWalker() {
                               id={`time-${time.value}`}
                               checked={formData.availability.includes(time.value)}
                               onCheckedChange={() => toggleArrayItem('availability', time.value)}
+                              className={formErrors.availability && !formData.availability.includes(time.value) ? "border-red-500" : ""}
                             />
                             <label htmlFor={`time-${time.value}`} className="text-sm font-medium cursor-pointer">
                               {time.label}
@@ -554,13 +682,21 @@ export default function BecomeWalker() {
                           </div>
                         ))}
                       </div>
+                      {formErrors.availability && (
+                        <p className="text-sm text-red-600">{formErrors.availability}</p>
+                      )}
                     </div>
 
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        onClick={() => setCurrentStep(2)}
-                        disabled={!canProceedToStep2}
+                        onClick={() => {
+                          if (validateStep1()) {
+                            setCurrentStep(2);
+                          } else {
+                            toast.error(t("pleaseCorrectErrors", language) || "Por favor corrija os erros para prosseguir.");
+                          }
+                        }}
                         className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
                       >
                         {t('next', language)}: {t('step2Documents', language).split(':')[1]} →
@@ -572,7 +708,7 @@ export default function BecomeWalker() {
                 {/* STEP 2: DOCUMENTS */}
                 {currentStep === 2 && (
                   <motion.div
-                    key="step2" // Added key for AnimatePresence
+                    key="step2"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
@@ -589,6 +725,7 @@ export default function BecomeWalker() {
                               onChange={(e) => handleFileUpload(e, 'id_document_url', 'id')}
                               disabled={uploading.id}
                               required
+                              className={formErrors.id ? "border-red-500" : ""}
                             />
                             {formData.id_document_url && (
                               <div className="flex items-center gap-2 text-sm text-green-600">
@@ -597,6 +734,9 @@ export default function BecomeWalker() {
                               </div>
                             )}
                             {uploading.id && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
+                            {formErrors.id && (
+                              <p className="text-sm text-red-600 mt-1">{formErrors.id}</p>
+                            )}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -663,6 +803,7 @@ export default function BecomeWalker() {
                               onChange={(e) => handleFileUpload(e, 'proof_of_address_url', 'address')}
                               disabled={uploading.address}
                               required
+                              className={formErrors.address ? "border-red-500" : ""}
                             />
                             {formData.proof_of_address_url && (
                               <div className="flex items-center gap-2 text-sm text-green-600">
@@ -671,6 +812,9 @@ export default function BecomeWalker() {
                               </div>
                             )}
                             {uploading.address && <p className="text-sm text-gray-500">{t('uploadingPhoto', language)}</p>}
+                            {formErrors.address && (
+                              <p className="text-sm text-red-600 mt-1">{formErrors.address}</p>
+                            )}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -690,8 +834,13 @@ export default function BecomeWalker() {
                       </Button>
                       <Button
                         type="button"
-                        onClick={() => setCurrentStep(3)}
-                        disabled={!canProceedToStep3}
+                        onClick={() => {
+                          if (validateStep2()) {
+                            setCurrentStep(3);
+                          } else {
+                            toast.error(t("pleaseCorrectErrors", language) || "Por favor corrija os erros para prosseguir.");
+                          }
+                        }}
                         className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
                       >
                         {t('next', language)}: Info de Pagamento →
@@ -703,7 +852,7 @@ export default function BecomeWalker() {
                 {/* STEP 3: PAYMENT */}
                 {currentStep === 3 && (
                   <motion.div
-                    key="step3" // Added key for AnimatePresence
+                    key="step3"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
@@ -718,9 +867,16 @@ export default function BecomeWalker() {
                           id="bank_account_holder"
                           required
                           value={formData.bank_account_holder}
-                          onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, bank_account_holder: e.target.value});
+                            setFormErrors(prev => ({ ...prev, holder: undefined })); // Clear error on change
+                          }}
                           placeholder="João Silva"
+                          className={formErrors.holder ? "border-red-500" : ""}
                         />
+                        {formErrors.holder && (
+                          <p className="text-sm text-red-600 mt-1">{formErrors.holder}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -729,9 +885,16 @@ export default function BecomeWalker() {
                           id="bank_account_number"
                           required
                           value={formData.bank_account_number}
-                          onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, bank_account_number: e.target.value});
+                            setFormErrors(prev => ({ ...prev, account: undefined })); // Clear error on change
+                          }}
                           placeholder="PT50000201231234567890154"
+                          className={formErrors.account ? "border-red-500" : ""}
                         />
+                        {formErrors.account && (
+                          <p className="text-sm text-red-600 mt-1">{formErrors.account}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -740,9 +903,16 @@ export default function BecomeWalker() {
                           id="bank_routing_number"
                           required
                           value={formData.bank_routing_number}
-                          onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, bank_routing_number: e.target.value});
+                            setFormErrors(prev => ({ ...prev, routing: undefined })); // Clear error on change
+                          }}
                           placeholder="BOFAPORTXXX"
+                          className={formErrors.routing ? "border-red-500" : ""}
                         />
+                        {formErrors.routing && (
+                          <p className="text-sm text-red-600 mt-1">{formErrors.routing}</p>
+                        )}
                       </div>
                     </div>
 
