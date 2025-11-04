@@ -9,10 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Heart, MessageCircle, Share2, Camera, Video, MapPin, Send,
-  TrendingUp, Sparkles, ShoppingBag, Zap, Gift, Award,
-  Star, ChevronRight, Clock, Users, Eye, Flame, Store,
-  Shield, ShieldCheck, X, Bookmark, UserPlus, CheckCircle
+  Heart, MessageCircle, Share2, Camera, Send,
+  TrendingUp, Sparkles, Zap, Users, Eye, Bookmark,
+  UserPlus, CheckCircle, Shield, ShieldCheck, X, Hash
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,7 +24,9 @@ import { createPageUrl } from "@/utils";
 import StoriesBar from "../components/social/StoriesBar";
 import StoriesViewer from "../components/social/StoriesViewer";
 import CreateStoryModal from "../components/social/CreateStoryModal";
-import SearchAndFilters from "../components/social/SearchAndFilters";
+// SearchAndFilters component is removed from the outline
+// import SearchAndFilters from "../components/social/SearchAndFilters";
+
 
 export default function SocialFeed() {
   const queryClient = useQueryClient();
@@ -41,7 +42,7 @@ export default function SocialFeed() {
   const [viewingStories, setViewingStories] = useState(null);
   const [showCreateStory, setShowCreateStory] = useState(false);
   
-  // Search & Filters
+  // Search & Filters - SearchAndFilters component is removed but state vars for filtering persist.
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBreed, setFilterBreed] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
@@ -69,7 +70,6 @@ export default function SocialFeed() {
   const { data: activeStories } = useQuery({
     queryKey: ['activeStories'],
     queryFn: async () => {
-      const now = new Date().toISOString();
       const stories = await base44.entities.SocialStory.filter({ 
         is_active: true 
       }, '-created_date');
@@ -102,6 +102,17 @@ export default function SocialFeed() {
     initialData: [],
   });
 
+  // Hashtags Query
+  const { data: trendingHashtags } = useQuery({
+    queryKey: ['trendingHashtags'],
+    queryFn: async () => {
+      const hashtags = await base44.entities.SocialHashtag.list('-usage_count');
+      return hashtags.slice(0, 10);
+    },
+    initialData: [],
+    staleTime: 300000,
+  });
+
   // Filter posts based on feed mode and filters
   const getFilteredPosts = () => {
     let filtered = [...allPosts];
@@ -128,17 +139,17 @@ export default function SocialFeed() {
       );
     }
 
-    // Breed Filter
+    // Breed Filter - UI control removed but logic can still apply if filterBreed is set programmatically
     if (filterBreed !== 'all') {
       filtered = filtered.filter(p => p.dog_breed?.toLowerCase() === filterBreed.toLowerCase());
     }
 
-    // City Filter
+    // City Filter - UI control removed but logic can still apply if filterCity is set programmatically
     if (filterCity !== 'all') {
       filtered = filtered.filter(p => p.author_city?.toLowerCase() === filterCity.toLowerCase());
     }
 
-    // Hashtag Filter (already handled if feedMode is hashtags)
+    // Hashtag Filter (already handled if feedMode is hashtags or globally if not in hashtag mode)
     if (feedMode !== 'hashtags' && filterHashtag !== 'all') {
       filtered = filtered.filter(p => p.tags?.includes(filterHashtag));
     }
@@ -151,50 +162,6 @@ export default function SocialFeed() {
   };
 
   const posts = getFilteredPosts();
-
-  const { data: myDogs } = useQuery({
-    queryKey: ['myDogs', user?.email],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
-    enabled: !!user,
-    initialData: [],
-  });
-
-  const { data: announcements } = useQuery({
-    queryKey: ['featuredAnnouncements'],
-    queryFn: async () => {
-      const allAnnouncements = await base44.entities.CompanyAnnouncement.filter({ 
-        is_active: true 
-      }, '-featured_position');
-      return allAnnouncements.filter(a => a.is_featured);
-    },
-    initialData: [],
-  });
-
-  const { data: trendingProducts } = useQuery({
-    queryKey: ['trendingProducts'],
-    queryFn: async () => {
-      const products = await base44.entities.PartnerProduct.filter({ is_available: true });
-      return products.slice(0, 6);
-    },
-    initialData: [],
-  });
-
-  const { data: partners } = useQuery({
-    queryKey: ['activePartners'],
-    queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
-    initialData: [],
-  });
-
-  // Hashtags Query
-  const { data: trendingHashtags } = useQuery({
-    queryKey: ['trendingHashtags'],
-    queryFn: async () => {
-      const hashtags = await base44.entities.SocialHashtag.list('-usage_count');
-      return hashtags.slice(0, 10);
-    },
-    initialData: [],
-    staleTime: 300000,
-  });
 
   const createPostMutation = useMutation({
     mutationFn: async (postData) => {
@@ -210,9 +177,6 @@ export default function SocialFeed() {
       setNewPostDogName("");
       toast.success("Post publicado com sucesso! 🎉");
     },
-    onError: (error) => {
-      toast.error("Erro ao publicar post: " + error.message);
-    }
   });
 
   const toggleLikeMutation = useMutation({
@@ -265,9 +229,6 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       queryClient.invalidateQueries(['socialLikes']);
     },
-    onError: (error) => {
-      toast.error("Erro ao interagir com o post: " + error.message);
-    }
   });
 
   const createCommentMutation = useMutation({
@@ -313,9 +274,6 @@ export default function SocialFeed() {
       setCommentTexts({ ...commentTexts, [postId]: '' });
       toast.success("Comentário publicado! 💬");
     },
-    onError: (error) => {
-      toast.error("Erro ao publicar comentário: " + error.message);
-    }
   });
 
   const deleteCommentMutation = useMutation({
@@ -333,9 +291,6 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Comentário removido!");
     },
-    onError: (error) => {
-      toast.error("Erro ao remover comentário: " + error.message);
-    }
   });
 
   const togglePinMutation = useMutation({
@@ -351,9 +306,6 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Post atualizado!");
     },
-    onError: (error) => {
-      toast.error("Erro ao fixar/desafixar post: " + error.message);
-    }
   });
 
   const deletePostMutation = useMutation({
@@ -362,9 +314,6 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Post removido!");
     },
-    onError: (error) => {
-      toast.error("Erro ao remover post: " + error.message);
-    }
   });
 
   const savePostMutation = useMutation({
@@ -406,9 +355,6 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success(action === 'saved' ? "Post salvo! 📌" : "Post removido dos salvos");
     },
-    onError: (error) => {
-      toast.error("Erro ao salvar post: " + error.message);
-    }
   });
 
   const sharePostMutation = useMutation({
@@ -425,11 +371,8 @@ export default function SocialFeed() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['socialPosts']);
-      toast.success("Link copiado! 🔗 Partilhe com seus amigos!");
+      toast.success("Link copiado! 🔗");
     },
-    onError: (error) => {
-      toast.error("Erro ao partilhar: " + error.message);
-    }
   });
 
   const handleMediaUpload = async (e) => {
@@ -483,29 +426,7 @@ export default function SocialFeed() {
     setFeedMode('hashtags');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const getAnnouncementIcon = (type) => {
-    const icons = {
-      flash_sale: Flame,
-      new_product: Sparkles,
-      discount: Gift,
-      points_bonus: Star,
-      free_gift: Gift,
-      seasonal: Award
-    };
-    return icons[type] || ShoppingBag;
-  };
-
-  const getAnnouncementColor = (tier) => {
-    const colors = {
-      exclusive: "from-purple-600 via-pink-600 to-red-600",
-      premium: "from-yellow-500 via-orange-500 to-red-500",
-      basic: "from-blue-500 via-cyan-500 to-teal-500",
-      none: "from-gray-400 to-gray-500"
-    };
-    return colors[tier] || colors.none;
-  };
-
+  
   const getAllBadges = (post) => {
     const badges = [];
     
@@ -513,7 +434,7 @@ export default function SocialFeed() {
     const role = post.author_role || 'user';
     if (role === 'admin') {
       badges.push(
-        <Badge key="admin" className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-lg">
+        <Badge key="admin" className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-sm">
           <Shield className="w-3 h-3 mr-1" />
           ADMIN
         </Badge>
@@ -522,9 +443,9 @@ export default function SocialFeed() {
     
     if (role === 'moderator') {
       badges.push(
-        <Badge key="mod" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg">
+        <Badge key="mod" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-sm">
           <ShieldCheck className="w-3 h-3 mr-1" />
-          MODERADOR
+          MOD
         </Badge>
       );
     }
@@ -532,19 +453,9 @@ export default function SocialFeed() {
     // Verified user
     if (post.is_verified_user) {
       badges.push(
-        <Badge key="verified-user" className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg">
+        <Badge key="verified-user" className="bg-blue-500/10 text-blue-700 border border-blue-200">
           <CheckCircle className="w-3 h-3 mr-1" />
-          VERIFICADO
-        </Badge>
-      );
-    }
-    
-    // Verified dog
-    if (post.is_verified_dog) {
-      badges.push(
-        <Badge key="verified-dog" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          CÃO VERIFICADO
+          Verificado
         </Badge>
       );
     }
@@ -552,19 +463,9 @@ export default function SocialFeed() {
     // Adoption advocate
     if (post.is_adoption_advocate) {
       badges.push(
-        <Badge key="advocate" className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-lg">
+        <Badge key="advocate" className="bg-pink-500/10 text-pink-700 border border-pink-200">
           <Heart className="w-3 h-3 mr-1" />
-          DEFENSOR DE ADOÇÃO
-        </Badge>
-      );
-    }
-    
-    // Verified announcement
-    if (post.is_verified_announcement) {
-      badges.push(
-        <Badge key="announcement" className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg">
-          <Star className="w-3 h-3 mr-1" />
-          ANÚNCIO VERIFICADO
+          Adoção
         </Badge>
       );
     }
@@ -601,61 +502,43 @@ export default function SocialFeed() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
-                <Camera className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      {/* Modern Minimal Header */}
+      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-20 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                <Camera className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-gray-900">
-                  Dog Connect
-                </h1>
-                <p className="text-gray-600">Conecte-se com outros donos e seus pets</p>
+                <h1 className="text-xl font-bold text-gray-900">Dog Connect</h1>
+                <p className="text-xs text-gray-500">Comunidade de pets</p>
               </div>
             </div>
 
             {user && (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => navigate(createPageUrl(`UserProfile?email=${user.email}`))}
-                className="flex items-center gap-2 border-2 hover:border-indigo-300"
+                className="flex items-center gap-2 hover:bg-gray-100 rounded-xl"
               >
-                <Avatar className="w-8 h-8">
+                <Avatar className="w-8 h-8 ring-2 ring-gray-200">
                   <AvatarImage src={user.profile_photo_url} />
-                  <AvatarFallback className="bg-indigo-600 text-white">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-sm">
                     {user.full_name?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-semibold hidden md:inline">Meu Perfil</span>
+                <span className="text-sm font-semibold text-gray-700 hidden md:inline">
+                  {user.full_name?.split(' ')[0]}
+                </span>
               </Button>
             )}
           </div>
-
-          {/* Stats Bar */}
-          <div className="grid grid-cols-4 gap-4">
-            {[
-              { icon: Users, value: posts.length, label: "Posts Ativos", color: "from-blue-500 to-cyan-500" },
-              { icon: Heart, value: posts.reduce((sum, p) => sum + (p.likes_count || 0), 0), label: "Total Curtidas", color: "from-rose-500 to-pink-500" },
-              { icon: TrendingUp, value: announcements.length, label: "Promoções", color: "from-violet-500 to-purple-500" },
-              { icon: ShoppingBag, value: trendingProducts.length, label: "Produtos", color: "from-emerald-500 to-teal-500" }
-            ].map((stat, idx) => (
-              <Card key={idx} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-4 text-center">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-xs text-gray-600 font-medium">{stat.label}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-2 h-14">
             <TabsTrigger value="feed" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
@@ -676,7 +559,7 @@ export default function SocialFeed() {
           <TabsContent value="feed" className="space-y-6">
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Main Feed */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-4">
                 {/* Stories Bar */}
                 <StoriesBar
                   stories={activeStories}
@@ -685,95 +568,70 @@ export default function SocialFeed() {
                   currentUser={user}
                 />
 
-                {/* Feed Mode Tabs */}
-                <Tabs value={feedMode} onValueChange={setFeedMode}>
-                  <TabsList className="grid w-full grid-cols-3 bg-white shadow-md rounded-xl p-1">
-                    <TabsTrigger value="foryou" className="rounded-lg">
-                      Para Você
-                    </TabsTrigger>
-                    <TabsTrigger value="following" className="rounded-lg">
-                      <UserPlus className="w-4 h-4 mr-1" />
-                      Seguindo
-                    </TabsTrigger>
-                    <TabsTrigger value="hashtags" className="rounded-lg">
-                      Hashtags
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                {/* Search and Filters */}
-                <SearchAndFilters
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  filterBreed={filterBreed}
-                  setFilterBreed={setFilterBreed}
-                  filterCity={filterCity}
-                  setFilterCity={setFilterCity}
-                  filterHashtag={filterHashtag}
-                  setFilterHashtag={setFilterHashtag}
-                  onClearFilters={() => {
-                    setSearchQuery("");
-                    setFilterBreed("all");
-                    setFilterCity("all");
-                    setFilterHashtag("all");
-                  }}
-                />
-
-                {/* Create Post */}
+                {/* Create Post Card */}
                 {user && (
-                  <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-indigo-50">
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
-                        <Avatar className="w-12 h-12 border-2 border-purple-200">
+                  <Card className="border-0 shadow-sm bg-white">
+                    <CardContent className="p-4">
+                      <div className="flex gap-3">
+                        <Avatar className="w-10 h-10">
                           <AvatarImage src={user.profile_photo_url} />
-                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold">
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                             {user.full_name?.[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <Textarea
-                            placeholder="Compartilhe um momento especial do seu pet... 🐾✨"
+                            placeholder="Partilhe um momento do seu pet... 🐾"
                             value={newPostContent}
                             onChange={(e) => setNewPostContent(e.target.value)}
-                            className="mb-3 resize-none border-2 border-indigo-100 focus:border-indigo-300 rounded-xl"
-                            rows={3}
+                            className="mb-2 resize-none border-gray-200 focus:border-blue-300 rounded-xl min-h-[80px] text-sm"
+                            rows={2}
                           />
                           <Input
                             placeholder="Nome do seu pet (opcional)"
                             value={newPostDogName}
                             onChange={(e) => setNewPostDogName(e.target.value)}
-                            className="mb-3 border-2 border-indigo-100 focus:border-indigo-300 rounded-xl"
+                            className="mb-2 border-gray-200 focus:border-blue-300 rounded-xl text-sm"
                           />
                           
                           {mediaUrls.length > 0 && (
-                            <div className="grid grid-cols-4 gap-2 mb-3">
+                            <div className="grid grid-cols-4 gap-2 mb-2">
                               {mediaUrls.map((url, idx) => (
-                                <img key={idx} src={url} className="w-full h-20 object-cover rounded-xl border-2 border-purple-200" />
+                                <div key={idx} className="relative group">
+                                  <img src={url} className="w-full h-20 object-cover rounded-lg" />
+                                  <button
+                                    onClick={() => setMediaUrls(mediaUrls.filter((_, i) => i !== idx))}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="w-3 h-3 text-white" />
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           )}
 
-                          <div className="flex items-center gap-3">
-                            <label className="cursor-pointer">
-                              <input
-                                type="file"
-                                accept="image/*,video/*"
-                                multiple
-                                className="hidden"
-                                onChange={handleMediaUpload}
-                                disabled={uploadingMedia}
-                              />
-                              <Button variant="outline" size="sm" disabled={uploadingMedia} type="button" className="rounded-xl border-2 hover:bg-indigo-50">
-                                <Camera className="w-4 h-4 mr-2" />
-                                {uploadingMedia ? "Carregando..." : "Foto/Vídeo"}
-                              </Button>
-                            </label>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <label className="cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="image/*,video/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={handleMediaUpload}
+                                  disabled={uploadingMedia}
+                                />
+                                <Button variant="ghost" size="sm" disabled={uploadingMedia} type="button" className="text-gray-600 hover:text-blue-600 hover:bg-blue-50">
+                                  <Camera className="w-4 h-4" />
+                                </Button>
+                              </label>
+                            </div>
                             <Button
                               onClick={handleCreatePost}
                               disabled={createPostMutation.isPending || (!newPostContent.trim() && mediaUrls.length === 0)}
-                              className="ml-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl shadow-lg"
+                              size="sm"
+                              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl px-6"
                             >
-                              <Send className="w-4 h-4 mr-2" />
                               Publicar
                             </Button>
                           </div>
@@ -783,6 +641,22 @@ export default function SocialFeed() {
                   </Card>
                 )}
 
+                {/* Feed Mode Tabs */}
+                <Tabs value={feedMode} onValueChange={setFeedMode}>
+                  <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                    <TabsTrigger value="foryou" className="rounded-lg text-sm data-[state=active]:bg-gray-100">
+                      Para Você
+                    </TabsTrigger>
+                    <TabsTrigger value="following" className="rounded-lg text-sm data-[state=active]:bg-gray-100">
+                      <UserPlus className="w-4 h-4 mr-1" />
+                      Seguindo
+                    </TabsTrigger>
+                    <TabsTrigger value="hashtags" className="rounded-lg text-sm data-[state=active]:bg-gray-100">
+                      Hashtags
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
                 {/* Posts Feed */}
                 {isLoading ? (
                   <div className="space-y-4">
@@ -791,18 +665,18 @@ export default function SocialFeed() {
                     ))}
                   </div>
                 ) : posts.length === 0 ? (
-                  <Card className="border-0 shadow-xl">
+                  <Card className="border-0 shadow-sm">
                     <CardContent className="p-12 text-center">
                       <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum post encontrado</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum post encontrado</h3>
+                      <p className="text-gray-500 text-sm">
                         {feedMode === 'following' ? 'Siga mais pessoas para ver posts aqui!' : 'Seja o primeiro a publicar!'}
                       </p>
                     </CardContent>
                   </Card>
                 ) : (
-                  <AnimatePresence>
-                    {posts.map((post, idx) => {
+                  <div className="space-y-4">
+                    {posts.map((post) => {
                       const postLikes = getPostLikes(post.id);
                       const userLiked = hasUserLiked(post.id);
                       const postComments = getPostComments(post.id);
@@ -813,17 +687,17 @@ export default function SocialFeed() {
                           key={post.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.05 }}
+                          transition={{ delay: 0 }} // Removed idx * 0.05 for smoother list updates
                         >
-                          <Card className={`border-0 shadow-lg hover:shadow-xl transition-all ${
-                            post.is_pinned ? 'border-2 border-amber-400 bg-amber-50/50' : 'bg-white'
+                          <Card className={`border-0 shadow-sm hover:shadow-md transition-all bg-white ${
+                            post.is_pinned ? 'ring-2 ring-blue-200' : ''
                           }`}>
-                            <CardContent className="p-6">
+                            <CardContent className="p-5">
                               {/* Pinned Badge */}
                               {post.is_pinned && (
-                                <div className="flex items-center gap-2 mb-4 p-3 bg-amber-500 text-white rounded-xl">
-                                  <TrendingUp className="w-5 h-5" />
-                                  <span className="font-bold text-sm">Post Fixado</span>
+                                <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-blue-50 rounded-lg">
+                                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                                  <span className="font-semibold text-blue-700 text-sm">Post Fixado</span>
                                 </div>
                               )}
 
@@ -833,54 +707,54 @@ export default function SocialFeed() {
                                   onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
                                   className="hover:opacity-80 transition-opacity"
                                 >
-                                  <Avatar className="w-12 h-12 border-2 border-purple-200">
+                                  <Avatar className="w-11 h-11">
                                     <AvatarImage src={post.author_photo_url} />
-                                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold">
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
                                       {post.author_name?.[0]?.toUpperCase()}
                                     </AvatarFallback>
                                   </Avatar>
                                 </button>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
                                     <button
                                       onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
                                       className="hover:underline"
                                     >
-                                      <h4 className="font-bold text-gray-900">{post.author_name}</h4>
+                                      <h4 className="font-bold text-gray-900 text-sm">{post.author_name}</h4>
                                     </button>
                                     {getAllBadges(post)}
                                     {post.dog_name && (
-                                      <Badge className="bg-pink-100 text-pink-700 border border-pink-300">
+                                      <Badge variant="outline" className="text-xs border-pink-200 text-pink-700 bg-pink-50">
                                         {post.dog_name}
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm text-gray-600">
-                                    {format(new Date(post.created_date), "d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                                  <p className="text-xs text-gray-500">
+                                    {format(new Date(post.created_date), "d MMM 'às' HH:mm", { locale: ptBR })}
                                   </p>
                                 </div>
 
                                 {/* Action Menu */}
                                 {isModeratorOrAdmin && (
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1">
                                     <Button
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
                                       onClick={() => togglePinMutation.mutate({ postId: post.id, isPinned: post.is_pinned })}
-                                      className={`rounded-xl ${post.is_pinned ? 'bg-amber-100 border-amber-300' : ''}`}
+                                      className={`h-8 w-8 p-0 ${post.is_pinned ? 'text-blue-600' : 'text-gray-400'}`}
                                     >
                                       <TrendingUp className="w-4 h-4" />
                                     </Button>
                                     {(user?.role === 'admin' || post.author_email === user?.email) && (
                                       <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="sm"
                                         onClick={() => {
                                           if (confirm('Remover este post?')) {
                                             deletePostMutation.mutate(post.id);
                                           }
                                         }}
-                                        className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
+                                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-600"
                                       >
                                         <X className="w-4 h-4" />
                                       </Button>
@@ -890,11 +764,11 @@ export default function SocialFeed() {
                               </div>
 
                               {/* Post Content */}
-                              <p className="text-gray-800 mb-4 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+                              <p className="text-gray-800 mb-3 whitespace-pre-wrap leading-relaxed text-sm">{post.content}</p>
 
                               {/* Media */}
                               {post.media_urls && post.media_urls.length > 0 && (
-                                <div className={`grid gap-2 mb-4 ${
+                                <div className={`grid gap-1 mb-3 ${
                                   post.media_urls.length === 1 ? 'grid-cols-1' :
                                   post.media_urls.length === 2 ? 'grid-cols-2' :
                                   'grid-cols-2'
@@ -903,7 +777,7 @@ export default function SocialFeed() {
                                     <img
                                       key={idx}
                                       src={url}
-                                      className="w-full h-64 object-cover rounded-2xl border-2 border-purple-100"
+                                      className="w-full h-64 object-cover rounded-xl"
                                       alt={`Post media ${idx + 1}`}
                                     />
                                   ))}
@@ -912,12 +786,12 @@ export default function SocialFeed() {
 
                               {/* Hashtags - Clickable */}
                               {post.tags && post.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-3">
+                                <div className="flex flex-wrap gap-2 mb-3">
                                   {post.tags.map((tag, tagIdx) => (
                                     <button
                                       key={tagIdx}
                                       onClick={() => handleHashtagClick(tag)}
-                                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+                                      className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
                                     >
                                       #{tag}
                                     </button>
@@ -927,24 +801,24 @@ export default function SocialFeed() {
 
                               {/* Reactions Summary */}
                               {postLikes.length > 0 && (
-                                <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
+                                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100">
                                   <div className="flex -space-x-1">
                                     {['like', 'love', 'haha', 'wow', 'fire'].map(type => {
                                       const count = postLikes.filter(l => l.reaction_type === type).length;
                                       if (count === 0) return null;
                                       return (
-                                        <span key={type} className="text-lg">
+                                        <span key={type} className="text-base">
                                           {getReactionEmoji(type)}
                                         </span>
                                       );
                                     })}
                                   </div>
-                                  <span className="font-semibold">{postLikes.length}</span>
+                                  <span className="text-sm text-gray-600">{postLikes.length}</span>
                                 </div>
                               )}
 
                               {/* Post Actions */}
-                              <div className="flex items-center gap-6 pt-4 border-t-2 border-purple-100">
+                              <div className="flex items-center gap-1">
                                 <div className="relative group">
                                   <Button
                                     variant="ghost"
@@ -954,16 +828,16 @@ export default function SocialFeed() {
                                       // If they haven't liked, it will use the default 'like' or last selected reaction.
                                       toggleLikeMutation.mutate({ postId: post.id });
                                     }}
-                                    className={`rounded-xl hover:text-rose-600 hover:bg-rose-50 ${
-                                      userLiked ? 'text-rose-600' : ''
+                                    className={`rounded-xl hover:bg-red-50 ${
+                                      userLiked ? 'text-red-600' : 'text-gray-600'
                                     }`}
                                   >
-                                    <Heart className={`w-5 h-5 mr-2 ${userLiked ? 'fill-rose-600' : ''}`} />
-                                    <span className="font-semibold">{post.likes_count || 0}</span>
+                                    <Heart className={`w-5 h-5 mr-1 ${userLiked ? 'fill-red-600' : ''}`} />
+                                    <span className="text-sm">{post.likes_count || 0}</span>
                                   </Button>
 
                                   {/* Reaction Picker */}
-                                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:flex bg-white shadow-2xl rounded-full p-2 gap-1 border-2 border-indigo-200 z-10">
+                                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:flex bg-white shadow-xl rounded-full px-2 py-1 gap-1 border border-gray-200 z-10">
                                     {['like', 'love', 'haha', 'wow', 'sad', 'fire'].map(type => (
                                       <button
                                         key={type}
@@ -972,7 +846,7 @@ export default function SocialFeed() {
                                           setSelectedReaction({ ...selectedReaction, [post.id]: type });
                                           toggleLikeMutation.mutate({ postId: post.id });
                                         }}
-                                        className="text-2xl hover:scale-125 transition-transform p-1"
+                                        className="text-xl hover:scale-125 transition-transform p-1"
                                         title={type}
                                       >
                                         {getReactionEmoji(type)}
@@ -988,41 +862,39 @@ export default function SocialFeed() {
                                     ...expandedComments,
                                     [post.id]: !expandedComments[post.id]
                                   })}
-                                  className="rounded-xl hover:text-blue-600 hover:bg-blue-50"
+                                  className="rounded-xl hover:bg-blue-50 text-gray-600"
                                 >
-                                  <MessageCircle className="w-5 h-5 mr-2" />
-                                  <span className="font-semibold">{post.comments_count || 0}</span>
+                                  <MessageCircle className="w-5 h-5 mr-1" />
+                                  <span className="text-sm">{post.comments_count || 0}</span>
                                 </Button>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
                                   onClick={() => savePostMutation.mutate(post.id)}
                                   disabled={savePostMutation.isPending}
-                                  className="rounded-xl hover:text-indigo-600 hover:bg-indigo-50"
+                                  className="rounded-xl hover:bg-purple-50 text-gray-600"
                                 >
-                                  <Bookmark className="w-5 h-5 mr-2" />
-                                  <span className="font-semibold">Salvar</span>
+                                  <Bookmark className="w-5 h-5" />
                                 </Button>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
                                   onClick={() => sharePostMutation.mutate(post.id)}
                                   disabled={sharePostMutation.isPending}
-                                  className="rounded-xl hover:text-green-600 hover:bg-green-50"
+                                  className="rounded-xl hover:bg-green-50 text-gray-600"
                                 >
-                                  <Share2 className="w-5 h-5 mr-2" />
-                                  <span className="font-semibold">Partilhar</span>
+                                  <Share2 className="w-5 h-5" />
                                 </Button>
                               </div>
 
                               {/* Comments Section */}
                               {showComments && (
-                                <div className="mt-4 pt-4 border-t-2 border-purple-100 space-y-4">
+                                <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                                   {/* Comment Input */}
-                                  <div className="flex gap-3">
-                                    <Avatar className="w-10 h-10 flex-shrink-0">
+                                  <div className="flex gap-2">
+                                    <Avatar className="w-8 h-8 flex-shrink-0">
                                       <AvatarImage src={user?.profile_photo_url} />
-                                      <AvatarFallback className="bg-indigo-600 text-white">
+                                      <AvatarFallback className="bg-blue-600 text-white text-xs">
                                         {user?.full_name?.[0]?.toUpperCase()}
                                       </AvatarFallback>
                                     </Avatar>
@@ -1042,7 +914,7 @@ export default function SocialFeed() {
                                             });
                                           }
                                         }}
-                                        className="rounded-xl border-2 border-indigo-100"
+                                        className="rounded-xl border-gray-200 text-sm"
                                       />
                                       <Button
                                         size="sm"
@@ -1055,7 +927,7 @@ export default function SocialFeed() {
                                           }
                                         }}
                                         disabled={!commentTexts[post.id]?.trim()}
-                                        className="bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                                        className="bg-blue-600 hover:bg-blue-700 rounded-xl"
                                       >
                                         <Send className="w-4 h-4" />
                                       </Button>
@@ -1064,39 +936,33 @@ export default function SocialFeed() {
 
                                   {/* Comments List */}
                                   {postComments.map(comment => (
-                                    <div key={comment.id} className="flex gap-3">
+                                    <div key={comment.id} className="flex gap-2">
                                       <button
                                         onClick={() => navigate(createPageUrl(`UserProfile?email=${comment.author_email}`))}
                                         className="hover:opacity-80 transition-opacity"
                                       >
-                                        <Avatar className="w-10 h-10 flex-shrink-0">
+                                        <Avatar className="w-8 h-8 flex-shrink-0">
                                           <AvatarImage src={comment.author_photo_url} />
-                                          <AvatarFallback className="bg-blue-600 text-white">
+                                          <AvatarFallback className="bg-blue-600 text-white text-xs">
                                             {comment.author_name?.[0]?.toUpperCase()}
                                           </AvatarFallback>
                                         </Avatar>
                                       </button>
                                       <div className="flex-1">
-                                        <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                                        <div className="bg-gray-50 rounded-2xl px-4 py-2">
                                           <button
                                             onClick={() => navigate(createPageUrl(`UserProfile?email=${comment.author_email}`))}
                                             className="hover:underline"
                                           >
-                                            <p className="font-semibold text-gray-900 text-sm">
+                                            <p className="font-semibold text-gray-900 text-sm mb-1">
                                               {comment.author_name}
                                             </p>
                                           </button>
                                           <p className="text-gray-800 text-sm">{comment.content}</p>
                                         </div>
-                                        <div className="flex items-center gap-4 mt-1 ml-4">
-                                          {/* <button className="text-xs text-gray-500 hover:text-indigo-600 font-semibold">
-                                            Curtir
-                                          </button>
-                                          <button className="text-xs text-gray-500 hover:text-indigo-600 font-semibold">
-                                            Responder
-                                          </button> */}
+                                        <div className="flex items-center gap-3 mt-1 ml-3">
                                           <span className="text-xs text-gray-500">
-                                            {format(new Date(comment.created_date), "d 'de' MMM", { locale: ptBR })}
+                                            {format(new Date(comment.created_date), "d MMM", { locale: ptBR })}
                                           </span>
                                           {(user && (comment.author_email === user.email || isModeratorOrAdmin)) && (
                                             <button
@@ -1104,7 +970,7 @@ export default function SocialFeed() {
                                                 commentId: comment.id,
                                                 postId: post.id
                                               })}
-                                              className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                                              className="text-xs text-red-500 hover:text-red-700"
                                             >
                                               Remover
                                             </button>
@@ -1115,8 +981,8 @@ export default function SocialFeed() {
                                   ))}
 
                                   {postComments.length === 0 && (
-                                    <p className="text-center text-gray-500 text-sm py-4">
-                                      Seja o primeiro a comentar! 💬
+                                    <p className="text-center text-gray-400 text-sm py-3">
+                                      Seja o primeiro a comentar
                                     </p>
                                   )}
                                 </div>
@@ -1126,27 +992,43 @@ export default function SocialFeed() {
                         </motion.div>
                       );
                     })}
-                  </AnimatePresence>
+                  </div>
                 )}
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-6">
-                <Card className="border-0 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <TrendingUp className="w-5 h-5 text-indigo-600" />
-                      <h3 className="font-bold text-gray-900">Hashtags em Alta</h3>
+              <div className="space-y-4 hidden lg:block">
+                {/* Search */}
+                <Card className="border-0 shadow-sm bg-white">
+                  <CardContent className="p-4">
+                    <div className="relative">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Pesquisar..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 border-gray-200 rounded-xl text-sm"
+                      />
                     </div>
-                    <div className="space-y-2">
-                      {trendingHashtags.slice(0, 8).map((tag, idx) => (
+                  </CardContent>
+                </Card>
+
+                {/* Trending Hashtags */}
+                <Card className="border-0 shadow-sm bg-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-bold text-gray-900 text-sm">Em Alta</h3>
+                    </div>
+                    <div className="space-y-1">
+                      {trendingHashtags.slice(0, 6).map((tag, idx) => (
                         <button
                           key={idx}
                           onClick={() => handleHashtagClick(tag.hashtag)}
-                          className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition-colors"
+                          className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors group"
                         >
-                          <span className="font-semibold text-indigo-700">#{tag.hashtag}</span>
-                          <Badge className="bg-indigo-600 text-white">
+                          <span className="font-semibold text-blue-600 text-sm group-hover:text-blue-700">#{tag.hashtag}</span>
+                          <Badge variant="outline" className="text-xs border-gray-200">
                             {tag.usage_count || 0}
                           </Badge>
                         </button>
@@ -1155,301 +1037,30 @@ export default function SocialFeed() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-xl">
-                  <CardContent className="p-6">
-                    <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-blue-600" />
-                      Ações Rápidas
-                    </h3>
+                {/* Quick Stats */}
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4" />
+                      <h3 className="font-bold text-sm">Dog Connect</h3>
+                    </div>
                     <div className="space-y-2">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => navigate(createPageUrl('Partners'))}
-                      >
-                        <ShoppingBag className="w-4 h-4 mr-2 text-emerald-600" />
-                        Ver Loja PawCão
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => navigate(createPageUrl('Community'))}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2 text-blue-600" />
-                        Fórum Comunidade
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => navigate(createPageUrl('Home'))}
-                      >
-                        <Users className="w-4 h-4 mr-2 text-indigo-600" />
-                        Encontrar Passeadores
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* TRENDING TAB */}
-          <TabsContent value="trending" className="space-y-6">
-            {/* Featured Announcements */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-6">
-                <Flame className="w-6 h-6 text-orange-500" />
-                <h2 className="text-2xl font-bold text-gray-900">Novidades em Destaque</h2>
-              </div>
-
-              {announcements.length === 0 ? (
-                <Card className="border-0 shadow-xl">
-                  <CardContent className="p-12 text-center">
-                    <Sparkles className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma novidade no momento</h3>
-                    <p className="text-gray-600">Fique atento às próximas ofertas!</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {announcements.map((announcement, idx) => {
-                    const Icon = getAnnouncementIcon(announcement.promotion_type);
-                    const colorClass = getAnnouncementColor(announcement.featured_tier);
-                    
-                    return (
-                      <motion.div
-                        key={announcement.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.1 }}
-                      >
-                        <Card className="border-0 shadow-2xl overflow-hidden relative">
-                          {/* Featured Badge */}
-                          {announcement.featured_tier !== 'none' && (
-                            <div className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full bg-gradient-to-r ${colorClass} text-white text-xs font-bold`}>
-                              {announcement.featured_tier === 'exclusive' && '👑 EXCLUSIVO'}
-                              {announcement.featured_tier === 'premium' && '⭐ PREMIUM'}
-                              {announcement.featured_tier === 'basic' && '✨ DESTAQUE'}
-                            </div>
-                          )}
-
-                          {/* Image */}
-                          {announcement.image_url && (
-                            <div className="relative h-48 overflow-hidden">
-                              <img
-                                src={announcement.image_url}
-                                className="w-full h-full object-cover"
-                                alt={announcement.title}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                            </div>
-                          )}
-
-                          <CardContent className="p-6">
-                            <div className="flex items-start gap-4 mb-4">
-                              <div className={`w-14 h-14 bg-gradient-to-br ${colorClass} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl`}>
-                                <Icon className="w-7 h-7 text-white" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                  {announcement.title}
-                                </h3>
-                                <Badge className="mb-2 capitalize">
-                                  {announcement.company_name}
-                                </Badge>
-                              </div>
-                            </div>
-
-                            <p className="text-gray-700 mb-4 line-clamp-3">
-                              {announcement.message}
-                            </p>
-
-                            {/* Promotion Details */}
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                              {announcement.discount_percentage > 0 && (
-                                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 text-center">
-                                  <div className="text-2xl font-bold text-red-600">
-                                    -{announcement.discount_percentage}%
-                                  </div>
-                                  <div className="text-xs text-red-600">Desconto</div>
-                                </div>
-                              )}
-                              
-                              {announcement.bonus_points_multiplier > 1 && (
-                                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-3 text-center">
-                                  <div className="text-2xl font-bold text-yellow-600">
-                                    {announcement.bonus_points_multiplier}x
-                                  </div>
-                                  <div className="text-xs text-yellow-600">PawPoints</div>
-                                </div>
-                              )}
-
-                              {announcement.end_date && (
-                                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-3 col-span-2">
-                                  <div className="flex items-center justify-center gap-2 text-blue-700">
-                                    <Clock className="w-4 h-4" />
-                                    <span className="text-sm font-semibold">
-                                      Válido até {format(new Date(announcement.end_date), "d 'de' MMMM", { locale: ptBR })}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Stats */}
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mb-4 pt-4 border-t">
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                {announcement.views_count || 0}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Users className="w-4 h-4" />
-                                {announcement.clicks_count || 0}
-                              </div>
-                              {announcement.conversions_count > 0 && (
-                                <Badge className="bg-green-100 text-green-700 ml-auto">
-                                  <Zap className="w-3 h-3 mr-1" />
-                                  {announcement.conversions_count} vendas
-                                </Badge>
-                              )}
-                            </div>
-
-                            <Button 
-                              className={`w-full bg-gradient-to-r ${colorClass} hover:shadow-xl transition-shadow`}
-                              onClick={() => navigate(createPageUrl(`PartnerDetails?id=${announcement.company_id}`))}
-                            >
-                              Ver Mais
-                              <ChevronRight className="w-4 h-4 ml-2" />
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* SHOP TAB */}
-          <TabsContent value="shop" className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <ShoppingBag className="w-6 h-6 text-emerald-600" />
-              <h2 className="text-2xl font-bold text-gray-900">Produtos em Destaque</h2>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {trendingProducts.map((product, idx) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card className="border-0 shadow-xl hover:shadow-2xl transition-all">
-                    <div className="relative h-48 bg-gray-100 overflow-hidden">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          className="w-full h-full object-cover"
-                          alt={product.product_name}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="w-16 h-16 text-gray-300" />
-                        </div>
-                      )}
-                      {product.discount_percentage > 0 && (
-                        <Badge className="absolute top-3 right-3 bg-red-500 text-white">
-                          -{product.discount_percentage}%
-                        </Badge>
-                      )}
-                    </div>
-                    <CardContent className="p-6">
-                      <Badge className="mb-2 capitalize">
-                        {product.category}
-                      </Badge>
-                      <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
-                        {product.product_name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {product.description}
-                      </p>
                       <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-2xl font-bold text-emerald-600">
-                            €{product.price_euro?.toFixed(2)}
-                          </div>
-                          {product.points_cost && (
-                            <div className="text-sm text-gray-600">
-                              ou {product.points_cost} pts
-                            </div>
-                          )}
-                        </div>
-                        <Button 
-                          size="sm"
-                          className="bg-gradient-to-r from-emerald-600 to-teal-600"
-                          onClick={() => navigate(createPageUrl(`PartnerDetails?id=${product.partner_id}`))}
-                        >
-                          Ver <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
+                        <span className="text-xs text-white/80">Posts Ativos</span>
+                        <span className="font-bold">{posts.length}</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-
-            {trendingProducts.length === 0 && (
-              <Card className="border-0 shadow-xl">
-                <CardContent className="p-12 text-center">
-                  <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum produto em destaque</h3>
-                  <p className="text-gray-600 mb-4">Explore a loja completa!</p>
-                  <Button onClick={() => navigate(createPageUrl('Partners'))}>
-                    Ir para a Loja
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Partner Spotlight */}
-            <div className="mt-12">
-              <div className="flex items-center gap-3 mb-6">
-                <Star className="w-6 h-6 text-yellow-500" />
-                <h2 className="text-2xl font-bold text-gray-900">Parceiros em Destaque</h2>
-              </div>
-
-              <div className="grid md:grid-cols-4 gap-4">
-                {partners.slice(0, 4).map((partner, idx) => (
-                  <Card
-                    key={partner.id}
-                    className="border-0 shadow-lg hover:shadow-xl transition-shadow"
-                    onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
-                  >
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        {partner.logo_url ? (
-                          <img src={partner.logo_url} className="w-full h-full object-contain rounded-full" />
-                        ) : (
-                          <Store className="w-8 h-8 text-gray-400" />
-                        )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-white/80">Comunidade</span>
+                        <span className="font-bold">{allPosts.reduce((sum, p) => sum + (p.likes_count || 0), 0)} ❤️</span>
                       </div>
-                      <h4 className="font-bold text-gray-900 mb-1">{partner.partner_name}</h4>
-                      <Badge variant="outline" className="text-xs mb-2 capitalize">
-                        {partner.partner_type.replace('_', ' ')}
-                      </Badge>
-                      {partner.discount_percentage > 0 && (
-                        <Badge className="bg-emerald-500 text-white">
-                          -{partner.discount_percentage}% OFF
-                        </Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </TabsContent>
+          {/* TRENDING TAB AND SHOP TAB CONTENTS ARE REMOVED */}
+          {/* The TabsTrigger for Trending and Shop remain in TabsList as per outline, but their content is gone. */}
         </Tabs>
       </div>
 

@@ -86,8 +86,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: "🏥 " + (language === 'pt' ? 'Serviços Parceiros' : 'Partner Services'), url: createPageUrl("PartnerServices"), icon: Award },
-    { title: "🐕 Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
+    { title: language === 'pt' ? 'Serviços Parceiros' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
+    { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -106,24 +106,24 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
-    { title: "📢 " + (language === 'pt' ? 'Aprovar Anúncios' : 'Approve Ads'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
-    { title: "⚙️ " + (language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup'), url: createPageUrl("PaymentSetup"), icon: Shield }
+    { title: language === 'pt' ? 'Aprovar Anúncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
+    { title: language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield }
   ] : [];
 
   const moderatorItem = (user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
-    { title: "🛡️ " + (language === 'pt' ? 'Moderação' : 'Moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
+    { title: language === 'pt' ? 'Moderação' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
   const companyItem = user?.account_type === 'company' ? [
-    { title: "🏢 " + (language === 'pt' ? 'Minha Empresa' : 'My Company'), url: createPageUrl("PartnerDashboard"), icon: Store } 
+    { title: language === 'pt' ? 'Minha Empresa' : 'My Company', url: createPageUrl("PartnerDashboard"), icon: Store } 
   ] : [];
 
   const veterinaryItem = user?.account_type === 'company' && user?.company_type === 'veterinary' ? [
-    { title: "🏥 " + (language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard'), url: createPageUrl("VeterinaryDashboard"), icon: Award }
+    { title: language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard', url: createPageUrl("VeterinaryDashboard"), icon: Award }
   ] : [];
 
   const stripeConnectItem = (user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both') ? [
-    { title: "💰 Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
+    { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
   ] : [];
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
