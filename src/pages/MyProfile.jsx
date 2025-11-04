@@ -16,22 +16,25 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
   Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle, AtSign,
-  Award, ShieldCheck, Heart, CheckCircle, Sparkles // New icons
+  Award, ShieldCheck, Heart, CheckCircle, Sparkles, // Existing icons
+  Calendar, TrendingUp, Target, ChevronRight, Star // New icons
 } from "lucide-react";
 import { toast } from "sonner";
 import DogProfileCard from "../components/profile/DogProfileCard";
 import AddEditDogForm from "../components/profile/AddEditDogForm";
-import { Badge } from "@/components/ui/badge"; // New component import
-import { format } from "date-fns"; // New date formatting import
-import { ptBR } from "date-fns/locale"; // New locale import
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useRouter } from 'next/navigation'; // Assuming Next.js for navigation
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
+  const router = useRouter(); // Initialize useRouter
   const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
   const [showAddDog, setShowAddDog] = useState(false);
   const [editingDog, setEditingDog] = useState(null);
-  const [uploadingCover, setUploadingCover] = useState(false); // New state for cover photo upload
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -47,12 +50,12 @@ export default function MyProfile() {
     bio: "",
     website: "",
     instagram_handle: "",
-    facebook_handle: "", // New
-    twitter_handle: "", // New
-    tiktok_handle: "", // New
-    youtube_handle: "", // New
-    favorite_dog_breeds: [], // New
-    interests: [], // New
+    facebook_handle: "",
+    twitter_handle: "",
+    tiktok_handle: "",
+    youtube_handle: "",
+    favorite_dog_breeds: [],
+    interests: [],
   });
 
   const [preferences, setPreferences] = useState({
@@ -73,12 +76,12 @@ export default function MyProfile() {
         bio: user.bio || "",
         website: user.website || "",
         instagram_handle: user.instagram_handle || "",
-        facebook_handle: user.facebook_handle || "", // New
-        twitter_handle: user.twitter_handle || "", // New
-        tiktok_handle: user.tiktok_handle || "", // New
-        youtube_handle: user.youtube_handle || "", // New
-        favorite_dog_breeds: user.favorite_dog_breeds || [], // New
-        interests: user.interests || [], // New
+        facebook_handle: user.facebook_handle || "",
+        twitter_handle: user.twitter_handle || "",
+        tiktok_handle: user.tiktok_handle || "",
+        youtube_handle: user.youtube_handle || "",
+        favorite_dog_breeds: user.favorite_dog_breeds || [],
+        interests: user.interests || [],
       });
       setPreferences({
         language: user.preferences?.language || "pt",
@@ -92,7 +95,54 @@ export default function MyProfile() {
   const { data: myDogs, isLoading: loadingDogs } = useQuery({
     queryKey: ['myDogs', user?.email],
     queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
-    enabled: !!user && activeTab === "pets", // Only enable when user exists and tab is 'pets'
+    enabled: !!user && activeTab === "pets",
+    initialData: [],
+  });
+
+  // ✅ NEW: Query for user's bookings (service history)
+  const { data: myBookings, isLoading: loadingBookings } = useQuery({
+    queryKey: ['myBookingsHistory', user?.email],
+    queryFn: async () => {
+      const walkerBookings = await base44.entities.Booking.filter({
+        owner_email: user?.email
+      }, '-created_date');
+      const trainerBookings = await base44.entities.TrainingBooking.filter({
+        owner_email: user?.email
+      }, '-created_date');
+      const serviceBookings = await base44.entities.ServiceBooking.filter({
+        owner_email: user?.email
+      }, '-created_date');
+      const allBookings = [...walkerBookings, ...trainerBookings, ...serviceBookings];
+      // Client-side sort after combining bookings from different entities
+      return allBookings.sort((a, b) => {
+        const dateA = new Date(a.created_date || a.walk_date || a.session_date || a.booking_date);
+        const dateB = new Date(b.created_date || b.walk_date || b.session_date || b.booking_date);
+        return dateB.getTime() - dateA.getTime(); // Descending order
+      });
+    },
+    enabled: !!user && activeTab === "activity",
+    initialData: [],
+  });
+
+  // ✅ NEW: Query for loyalty points
+  const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
+    queryKey: ['loyaltyPoints', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const points = await base44.entities.LoyaltyPoints.filter({
+        user_email: user.email
+      });
+      return points[0] || { points_balance: 0, tier: 'bronze', total_earned: 0 };
+    },
+    enabled: !!user,
+    staleTime: 0,
+  });
+
+  // ✅ NEW: Query for saved favorites
+  const { data: favorites, isLoading: loadingFavorites } = useQuery({
+    queryKey: ['myFavorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
+    enabled: !!user && activeTab === "activity",
     initialData: [],
   });
 
@@ -124,7 +174,7 @@ export default function MyProfile() {
     }
   });
 
-  const uploadCoverMutation = useMutation({ // New mutation for cover photo
+  const uploadCoverMutation = useMutation({
     mutationFn: async (file) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       await base44.auth.updateMe({ cover_photo_url: file_url });
@@ -148,7 +198,7 @@ export default function MyProfile() {
     }
   };
 
-  const handleCoverUpload = (e) => { // New handler for cover photo upload
+  const handleCoverUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploadingCover(true);
@@ -166,9 +216,10 @@ export default function MyProfile() {
 
   const handleLogout = () => {
     base44.auth.logout();
+    router.push('/'); // Redirect to home or login page after logout
   };
 
-  const handleToggleBreed = (breed) => { // New handler for favorite breeds
+  const handleToggleBreed = (breed) => {
     const breeds = profileData.favorite_dog_breeds || [];
     if (breeds.includes(breed)) {
       setProfileData({
@@ -183,7 +234,7 @@ export default function MyProfile() {
     }
   };
 
-  const handleToggleInterest = (interest) => { // New handler for interests
+  const handleToggleInterest = (interest) => {
     const interests = profileData.interests || [];
     if (interests.includes(interest)) {
       setProfileData({
@@ -198,13 +249,37 @@ export default function MyProfile() {
     }
   };
 
-  const POPULAR_BREEDS = [ // New constant
+  // ✅ NEW: Helper to get tier color
+  const getTierColor = (tier) => {
+    const colors = {
+      bronze: 'from-orange-600 to-orange-700',
+      silver: 'from-gray-400 to-gray-600',
+      gold: 'from-yellow-400 to-yellow-600',
+      platinum: 'from-purple-500 to-indigo-600'
+    };
+    return colors[tier] || colors.bronze;
+  };
+
+  // ✅ NEW: Helper to get booking type label
+  const getBookingTypeLabel = (booking) => {
+    if (booking.walk_date) return '🐾 Passeio';
+    if (booking.session_date) return '🎓 Treino';
+    if (booking.service_type) return '🏥 Serviço';
+    return '📅 Agendamento';
+  };
+
+  // Placeholder for navigation to other pages if needed. Replace with actual router logic.
+  const createPageUrl = (page) => `/app/${page.toLowerCase()}`;
+  const navigate = (path) => router.push(path);
+
+
+  const POPULAR_BREEDS = [
     "Labrador", "Golden Retriever", "Pastor Alemão", "Bulldog", "Beagle",
     "Poodle", "Rottweiler", "Yorkshire", "Boxer", "Dachshund", "Husky",
     "Chihuahua", "Pug", "Shih Tzu", "Border Collie", "Cocker Spaniel"
   ];
 
-  const INTERESTS = [ // New constant
+  const INTERESTS = [
     { value: "adoption", label: "Adoção", icon: "🏠" },
     { value: "training", label: "Treino", icon: "🎓" },
     { value: "health", label: "Saúde", icon: "🏥" },
@@ -253,7 +328,7 @@ export default function MyProfile() {
           {/* Sidebar */}
           <Card className="lg:col-span-1 h-fit border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-6">
-              {/* Cover Photo - NEW */}
+              {/* Cover Photo */}
               <div className="relative -mx-6 -mt-6 mb-4">
                 <div className="relative h-24 bg-gradient-to-r from-green-500 to-blue-600 overflow-hidden">
                   {user?.cover_photo_url && (
@@ -275,7 +350,7 @@ export default function MyProfile() {
 
               <div className="flex flex-col items-center -mt-12 mb-6">
                 <div className="relative">
-                  <Avatar className="w-24 h-24 mb-4 ring-4 ring-white"> {/* Updated avatar style */}
+                  <Avatar className="w-24 h-24 mb-4 ring-4 ring-white">
                     <AvatarImage src={user?.profile_photo_url} />
                     <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-2xl">
                       {user?.full_name?.[0]?.toUpperCase() || "U"}
@@ -296,7 +371,7 @@ export default function MyProfile() {
                 <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 text-center">{user?.full_name}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{user?.email}</p>
 
-                {/* User Badges - NEW */}
+                {/* User Badges */}
                 <div className="flex flex-wrap gap-2 justify-center mb-3">
                   {user?.role === 'admin' && (
                     <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
@@ -323,6 +398,17 @@ export default function MyProfile() {
                     </Badge>
                   )}
                 </div>
+
+                {/* ✅ NEW: PawPoints Display */}
+                {loyaltyPoints && (
+                  <div className={`w-full bg-gradient-to-r ${getTierColor(loyaltyPoints.tier)} text-white rounded-xl p-4 mb-4 shadow-lg`}>
+                    <div className="text-center">
+                      <div className="text-xs opacity-90 mb-1">PawPoints</div>
+                      <div className="text-3xl font-bold">{loyaltyPoints.points_balance?.toLocaleString() || 0}</div>
+                      <div className="text-xs opacity-90 mt-1 capitalize">{loyaltyPoints.tier} Tier</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Separator className="my-4 dark:bg-gray-700" />
@@ -336,7 +422,23 @@ export default function MyProfile() {
                   <User className="w-4 h-4 mr-2" />
                   Perfil
                 </Button>
-                <Button // New tab for Social
+                <Button
+                  variant={activeTab === "activity" ? "default" : "ghost"}
+                  className="w-full justify-start dark:hover:bg-gray-700"
+                  onClick={() => setActiveTab("activity")}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Atividade
+                </Button>
+                <Button
+                  variant={activeTab === "pets" ? "default" : "ghost"}
+                  className="w-full justify-start dark:hover:bg-gray-700"
+                  onClick={() => setActiveTab("pets")}
+                >
+                  <Dog className="w-4 h-4 mr-2" />
+                  Meus Pets
+                </Button>
+                <Button
                   variant={activeTab === "social" ? "default" : "ghost"}
                   className="w-full justify-start dark:hover:bg-gray-700"
                   onClick={() => setActiveTab("social")}
@@ -344,7 +446,7 @@ export default function MyProfile() {
                   <AtSign className="w-4 h-4 mr-2" />
                   Redes Sociais
                 </Button>
-                <Button // New tab for Badges
+                <Button
                   variant={activeTab === "badges" ? "default" : "ghost"}
                   className="w-full justify-start dark:hover:bg-gray-700"
                   onClick={() => setActiveTab("badges")}
@@ -359,14 +461,6 @@ export default function MyProfile() {
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Preferências
-                </Button>
-                <Button
-                  variant={activeTab === "pets" ? "default" : "ghost"}
-                  className="w-full justify-start dark:hover:bg-gray-700"
-                  onClick={() => setActiveTab("pets")}
-                >
-                  <Dog className="w-4 h-4 mr-2" />
-                  Meus Pets
                 </Button>
                 <Button
                   variant={activeTab === "payment" ? "default" : "ghost"}
@@ -477,7 +571,7 @@ export default function MyProfile() {
                       className="mt-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       placeholder="Conte um pouco sobre você e seus pets... Aparece no seu perfil público!"
                       rows={4}
-                      maxLength={250} // Updated maxLength
+                      maxLength={250}
                     />
                     <p className="text-xs text-gray-500 mt-1">{profileData.bio?.length || 0}/250 caracteres</p>
                   </div>
@@ -575,7 +669,7 @@ export default function MyProfile() {
               </Card>
             )}
 
-            {/* Social Media Tab - NEW */}
+            {/* Social Media Tab */}
             {activeTab === "social" && (
               <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
@@ -690,7 +784,7 @@ export default function MyProfile() {
               </Card>
             )}
 
-            {/* Badges Tab - NEW */}
+            {/* Badges Tab */}
             {activeTab === "badges" && (
               <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
@@ -809,6 +903,177 @@ export default function MyProfile() {
               </Card>
             )}
 
+            {/* ✅ NEW: Activity Tab - Service History & Saved Services */}
+            {activeTab === "activity" && (
+              <div className="space-y-6">
+                {/* PawPoints Summary Card */}
+                <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                  <CardHeader className={`bg-gradient-to-r ${getTierColor(loyaltyPoints?.tier || 'bronze')} text-white rounded-t-xl`}>
+                    <CardTitle className="text-xl flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-6 h-6" />
+                        Resumo PawPoints
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
+                        className="text-white hover:bg-white/20"
+                      >
+                        Ver Recompensas
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                        <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                          {loyaltyPoints?.points_balance?.toLocaleString() || 0}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Pontos Disponíveis</div>
+                      </div>
+                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                        <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                          {loyaltyPoints?.total_earned?.toLocaleString() || 0}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Total Ganho</div>
+                      </div>
+                      <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                        <Target className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize">
+                          {loyaltyPoints?.tier || 'Bronze'}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Nível Atual</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Service History */}
+                <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-green-600" />
+                      Histórico de Serviços
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {myBookings.length} serviços realizados
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingBookings ? (
+                      <div className="space-y-3">
+                        {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}
+                      </div>
+                    ) : myBookings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400">Nenhum serviço ainda</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                          Comece agendando um passeio ou treino!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {myBookings.slice(0, 10).map((booking) => ( // Displaying only latest 10
+                          <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm">{getBookingTypeLabel(booking)}</span>
+                                <Badge className={
+                                  booking.status === 'completed' ? 'bg-green-500' :
+                                  booking.status === 'confirmed' ? 'bg-blue-500' :
+                                  booking.status === 'cancelled' ? 'bg-gray-500' :
+                                  'bg-yellow-500'
+                                }>
+                                  {booking.status}
+                                </Badge>
+                              </div>
+                              <p className="font-bold text-gray-900 dark:text-gray-100">
+                                {booking.walker_name || booking.trainer_name || booking.partner_name || 'Serviço'}
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {booking.dog_name || 'N/A'} • {format(new Date(booking.walk_date || booking.session_date || booking.booking_date || booking.created_date), "d MMM yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-green-600">€{booking.total_amount?.toFixed(2) || '0.00'}</div>
+                              {(booking.points_earned > 0 && typeof booking.points_earned === 'number') && (
+                                <div className="text-xs text-purple-600 flex items-center gap-1 justify-end">
+                                  <Star className="w-3 h-3 fill-purple-500" />
+                                  +{booking.points_earned} pts
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Saved Services (Favorites) */}
+                <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Heart className="w-5 h-5 text-pink-600" />
+                      Serviços Salvos
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Seus passeadores e treinadores favoritos
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingFavorites ? (
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {[1, 2].map(i => <Skeleton key={i} className="h-32 rounded-lg" />)}
+                      </div>
+                    ) : favorites.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400">Nenhum favorito salvo</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                          Salve seus profissionais favoritos para acesso rápido!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {favorites.map((fav) => (
+                          <div key={fav.id} className="p-4 border-2 border-pink-100 dark:border-pink-900 rounded-lg hover:shadow-lg transition-shadow">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Avatar className="w-12 h-12">
+                                <AvatarImage src={fav.walker_photo_url || fav.trainer_photo_url || fav.service_photo_url} />
+                                <AvatarFallback className="bg-gradient-to-br from-pink-500 to-rose-500 text-white">
+                                  {(fav.walker_name || fav.trainer_name || fav.service_name)?.[0] || 'S'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-gray-900 dark:text-gray-100">{fav.walker_name || fav.trainer_name || fav.service_name}</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{fav.walker_location || fav.trainer_location || fav.service_location || 'Localização não disponível'}</p>
+                              </div>
+                            </div>
+                            {(fav.walker_hourly_rate || fav.trainer_hourly_rate || fav.service_price) && (
+                              <div className="text-sm font-semibold text-green-600">
+                                €{(fav.walker_hourly_rate || fav.trainer_hourly_rate || fav.service_price)?.toFixed(2)}{fav.walker_hourly_rate || fav.trainer_hourly_rate ? '/hora' : ''}
+                              </div>
+                            )}
+                            {fav.notes && (
+                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 italic">
+                                {fav.notes}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Settings Tab */}
             {activeTab === "settings" && (
               <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
@@ -879,6 +1144,100 @@ export default function MyProfile() {
                     <Save className="w-4 h-4 mr-2" />
                     Guardar Preferências
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* My Pets Tab */}
+            {activeTab === "pets" && (
+              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <Dog className="w-5 h-5" />
+                        Meus Pets ({myDogs?.length || 0})
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Gerencie os perfis dos seus animais de estimação
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setEditingDog(null);
+                        setShowAddDog(true);
+                      }}
+                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    >
+                      <PlusCircle className="w-4 h-4 mr-2" />
+                      Adicionar Pet
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {showAddDog || editingDog ? (
+                    <AddEditDogForm
+                      dog={editingDog}
+                      ownerEmail={user?.email}
+                      onCancel={() => {
+                        setShowAddDog(false);
+                        setEditingDog(null);
+                      }}
+                      onSuccess={() => {
+                        setShowAddDog(false);
+                        setEditingDog(null);
+                        queryClient.invalidateQueries({ queryKey: ['myDogs'] });
+                        toast.success(editingDog ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!");
+                      }}
+                    />
+                  ) : loadingDogs ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {[1, 2].map(i => (
+                        <Skeleton key={i} className="h-64 rounded-xl" />
+                      ))}
+                    </div>
+                  ) : myDogs?.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        Nenhum pet cadastrado
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Adicione o perfil do seu pet para começar a usar os serviços da PawCão
+                      </p>
+                      <Button
+                        onClick={() => setShowAddDog(true)}
+                        className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        Adicionar Primeiro Pet
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {myDogs.map(dog => (
+                        <DogProfileCard
+                          key={dog.id}
+                          dog={dog}
+                          onEdit={() => {
+                              setEditingDog(dog);
+                              setShowAddDog(true); // Ensure form is visible for editing
+                          }}
+                          onDelete={async () => {
+                            if (confirm(`Tem certeza que deseja remover ${dog.dog_name}?`)) {
+                              try {
+                                await base44.entities.DogProfile.delete(dog.id);
+                                queryClient.invalidateQueries({ queryKey: ['myDogs'] });
+                                toast.success("Pet removido com sucesso");
+                              } catch (error) {
+                                toast.error("Erro ao remover pet.");
+                              }
+                            }
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -983,95 +1342,6 @@ export default function MyProfile() {
                       Sair da Conta
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* My Pets Tab */}
-            {activeTab === "pets" && (
-              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                      <Dog className="w-5 h-5" />
-                      Meus Pets ({myDogs?.length || 0})
-                    </CardTitle>
-                    <Button
-                      onClick={() => {
-                        setEditingDog(null); // Clear any editing state
-                        setShowAddDog(true);
-                      }}
-                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                    >
-                      <PlusCircle className="w-4 h-4 mr-2" />
-                      Adicionar Pet
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {showAddDog || editingDog ? (
-                    <AddEditDogForm
-                      dog={editingDog}
-                      ownerEmail={user?.email} // Pass owner's email to the form
-                      onCancel={() => {
-                        setShowAddDog(false);
-                        setEditingDog(null);
-                      }}
-                      onSuccess={() => {
-                        setShowAddDog(false);
-                        setEditingDog(null);
-                        queryClient.invalidateQueries({ queryKey: ['myDogs'] });
-                        toast.success(editingDog ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!");
-                      }}
-                    />
-                  ) : loadingDogs ? (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {[1, 2].map(i => (
-                        <Skeleton key={i} className="h-64 rounded-xl" />
-                      ))}
-                    </div>
-                  ) : myDogs?.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                        Nenhum pet cadastrado
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Adicione o perfil do seu pet para começar a usar os serviços da PawCão
-                      </p>
-                      <Button
-                        onClick={() => setShowAddDog(true)}
-                        className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                      >
-                        <PlusCircle className="w-4 h-4 mr-2" />
-                        Adicionar Primeiro Pet
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {myDogs.map(dog => (
-                        <DogProfileCard
-                          key={dog.id}
-                          dog={dog}
-                          onEdit={() => {
-                              setEditingDog(dog);
-                              setShowAddDog(true); // Ensure form is visible for editing
-                          }}
-                          onDelete={async () => {
-                            if (confirm(`Tem certeza que deseja remover ${dog.dog_name}?`)) {
-                              try {
-                                await base44.entities.DogProfile.delete(dog.id);
-                                queryClient.invalidateQueries({ queryKey: ['myDogs'] });
-                                toast.success("Pet removido com sucesso");
-                              } catch (error) {
-                                toast.error("Erro ao remover pet.");
-                              }
-                            }
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}
