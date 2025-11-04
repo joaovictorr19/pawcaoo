@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,11 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Sparkles, X, TrendingUp, Crown, Award, Megaphone } from "lucide-react";
+import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
 
 export default function Partners() {
   const navigate = useNavigate();
@@ -26,6 +24,7 @@ export default function Partners() {
     queryKey: ['partners'],
     queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
     initialData: [],
+    staleTime: 300000,
   });
 
   const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
@@ -41,32 +40,13 @@ export default function Partners() {
     staleTime: 0,
   });
 
-  const { data: featuredAnnouncements } = useQuery({
-    queryKey: ['featuredAnnouncements'],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
-      is_featured: true,
-      is_active: true,
-      moderation_status: 'approved'
-    }, '-featured_position'),
-    initialData: [],
-  });
-
-  const { data: announcements } = useQuery({
-    queryKey: ['companyAnnouncements'],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({ 
-      is_active: true,
-      moderation_status: 'approved'
-    }, '-created_date'),
-    initialData: [],
-  });
-
   const categories = [
-    { id: "all", name: "Todos", icon: Store, color: "from-gray-500 to-gray-600" },
-    { id: "pet_store", name: "Pet Shops", icon: ShoppingBag, color: "from-blue-500 to-blue-600" },
-    { id: "veterinary", name: "Veterinários", icon: Award, color: "from-red-500 to-red-600" },
-    { id: "grooming", name: "Grooming", icon: Sparkles, color: "from-pink-500 to-pink-600" },
-    { id: "insurance", name: "Seguros", icon: Award, color: "from-purple-500 to-purple-600" },
-    { id: "training", name: "Treino", icon: Award, color: "from-green-500 to-green-600" },
+    { id: "all", name: "Todos", icon: Store },
+    { id: "pet_store", name: "Pet Shops", icon: ShoppingBag },
+    { id: "veterinary", name: "Veterinários", icon: Store },
+    { id: "grooming", name: "Grooming", icon: Store },
+    { id: "insurance", name: "Seguros", icon: Store },
+    { id: "training", name: "Treino", icon: Store },
   ];
 
   const filteredPartners = partners.filter(partner => {
@@ -78,427 +58,167 @@ export default function Partners() {
     return matchesSearch && matchesCategory;
   });
 
-  const activePartnersCount = partners.filter(p => p.is_active).length;
-  const featuredPartners = filteredPartners.filter(p => p.discount_percentage >= 15).slice(0, 3);
-  const regularPartners = filteredPartners.filter(p => p.discount_percentage < 15);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      {/* Clean Hero Section */}
-      <div className="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-          <div className="text-center mb-6">
-            <Badge className="bg-white/20 backdrop-blur-md text-white border-white/30 px-4 py-1.5 text-sm md:text-base mb-4">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Parceiros Oficiais
-            </Badge>
+    <div className="min-h-screen bg-gray-50">
+      {/* Simplified Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                PawCão Marketplace
+              </h1>
+              <p className="text-gray-600">
+                Produtos exclusivos com <span className="font-semibold text-green-600">PawPoints</span>
+              </p>
+            </div>
 
-            <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tight">
-              PawCão Marketplace
-            </h1>
-            
-            <p className="text-base md:text-xl text-white/90 mb-6 font-medium max-w-2xl mx-auto">
-              Descubra produtos exclusivos e ganhe <span className="font-bold text-emerald-200">PawPoints</span> em cada compra
-            </p>
-
-            {/* Clean PawPoints Display */}
             {user && (
-              <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-lg border-2 border-white/30 rounded-xl px-4 md:px-6 py-3 shadow-xl mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 rounded-full flex items-center justify-center">
-                    <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-200 fill-emerald-200" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-white/70 text-xs md:text-sm font-medium">Seus PawPoints</p>
-                    <p className="text-xl md:text-2xl font-black text-white">
-                      {loadingPoints ? "..." : (loyaltyPoints?.points_balance || 0).toLocaleString()}
-                    </p>
-                  </div>
+              <div className="hidden md:flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+                <div className="text-right">
+                  <p className="text-xs text-gray-600">Seus PawPoints</p>
+                  <p className="text-lg font-bold text-green-600">
+                    {loadingPoints ? "..." : (loyaltyPoints?.points_balance || 0).toLocaleString()}
+                  </p>
                 </div>
-                <div className="h-8 w-px bg-white/30 hidden md:block" />
                 <Button
                   onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
-                  className="bg-white text-emerald-700 hover:bg-emerald-50 font-bold shadow-lg"
                   size="sm"
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  <Gift className="w-4 h-4 mr-2" />
+                  <Gift className="w-4 h-4 mr-1" />
                   Resgatar
                 </Button>
               </div>
             )}
+          </div>
 
-            {/* Clean Search Bar */}
-            <div className="max-w-2xl mx-auto">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="Pesquisar parceiros..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-12 h-12 bg-white/95 backdrop-blur-lg shadow-lg border-0 text-base rounded-xl"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            </div>
+          {/* Search */}
+          <div className="relative max-w-xl">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder="Pesquisar parceiros..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11 bg-white"
+            />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
-        {/* Featured Announcements Banner */}
-        {featuredAnnouncements.length > 0 && (
-          <div className="mb-8">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredAnnouncements.slice(0, 3).map((announcement) => (
-                <motion.div
-                  key={announcement.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  className="cursor-pointer"
-                >
-                  <Card className={`border-0 shadow-2xl overflow-hidden ${
-                    announcement.featured_tier === 'exclusive' ? 'ring-4 ring-yellow-400' :
-                    announcement.featured_tier === 'premium' ? 'ring-2 ring-purple-400' :
-                    'ring-1 ring-orange-400'
-                  }`}>
-                    <div className="absolute top-4 right-4 z-10">
-                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-xl">
-                        <Crown className="w-3 h-3 mr-1" />
-                        {announcement.featured_tier?.toUpperCase()}
-                      </Badge>
-                    </div>
-
-                    <div className="relative h-56 bg-gradient-to-br from-purple-100 to-pink-100">
-                      {announcement.image_url ? (
-                        <img
-                          src={announcement.image_url}
-                          alt={announcement.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Megaphone className="w-20 h-20 text-purple-300" />
-                        </div>
-                      )}
-                      {announcement.discount_percentage > 0 && (
-                        <Badge className="absolute bottom-4 left-4 bg-red-500 text-white text-xl px-4 py-2 shadow-xl">
-                          -{announcement.discount_percentage}%
-                        </Badge>
-                      )}
-                    </div>
-
-                    <CardContent className="p-6">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                        {announcement.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-3">{announcement.company_name}</p>
-                      <p className="text-gray-700 mb-4">{announcement.message}</p>
-                      
-                      <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
-                        Ver Promoção
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Regular Announcements */}
-        {announcements.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Megaphone className="w-6 h-6 text-purple-600" />
-              Promoções Ativas
-            </h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {announcements.slice(0, 4).map((announcement) => (
-                <Card key={announcement.id} className="border-0 shadow-lg hover:shadow-xl transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex gap-4">
-                      {announcement.image_url && (
-                        <img
-                          src={announcement.image_url}
-                          alt=""
-                          className="w-24 h-24 object-cover rounded-lg"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="capitalize">{announcement.promotion_type}</Badge>
-                          {announcement.discount_percentage > 0 && (
-                            <Badge className="bg-red-500">-{announcement.discount_percentage}%</Badge>
-                          )}
-                        </div>
-                        <h4 className="font-bold text-gray-900 mb-1">{announcement.title}</h4>
-                        <p className="text-sm text-gray-600">{announcement.company_name}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Stats Banner */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[
-            { icon: Store, value: activePartnersCount, label: "Parceiros", color: "from-blue-500 to-blue-600" },
-            { icon: TrendingUp, value: "10-20", label: "Pontos/€1", color: "from-green-500 to-green-600" },
-            { icon: Award, value: "100%", label: "Verificados", color: "from-purple-500 to-purple-600" }
-          ].map((stat, idx) => (
-            <Card key={idx} className="border-0 shadow-lg bg-white overflow-hidden">
-              <CardContent className="p-4 md:p-6 text-center relative">
-                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.color}`} />
-                <stat.icon className={`w-8 h-8 md:w-10 md:h-10 mx-auto mb-2 bg-gradient-to-br ${stat.color} text-white p-2 rounded-xl shadow-lg`} />
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{stat.value}</div>
-                <div className="text-xs md:text-sm text-gray-600 font-medium">{stat.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Categories */}
-        <div className="mb-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Categorias</h3>
-          <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* Centered Categories */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
             {categories.map((cat) => (
               <Button
                 key={cat.id}
-                variant={activeCategory === cat.id ? "default" : "outline"}
+                variant={activeCategory === cat.id ? "default" : "ghost"}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`whitespace-nowrap h-12 px-6 text-sm font-semibold shadow-md transition-all ${
+                className={`text-sm transition-all ${
                   activeCategory === cat.id 
-                    ? `bg-gradient-to-r ${cat.color} text-white border-0` 
-                    : 'bg-white hover:bg-gray-50'
+                    ? 'bg-green-600 text-white shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
+                size="sm"
               >
-                <cat.icon className="w-4 h-4 mr-2" />
                 {cat.name}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Featured Partners */}
-        {featuredPartners.length > 0 && (
-          <div className="mb-10">
-            <div className="flex items-center gap-3 mb-6">
-              <Crown className="w-6 h-6 text-yellow-500" />
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Parceiros em Destaque</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredPartners.map((partner) => (
-                <motion.div
-                  key={partner.id}
-                  whileHover={{ y: -5 }}
-                  className="cursor-pointer"
-                  onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
-                >
-                  <Card className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden bg-white">
-                    {/* Premium Badge */}
-                    <div className="absolute top-4 right-4 z-10">
-                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg px-3 py-1 text-xs font-bold">
-                        <Crown className="w-3 h-3 mr-1" />
-                        DESTAQUE
-                      </Badge>
-                    </div>
-
-                    {/* Logo Section */}
-                    <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6">
-                      {partner.logo_url ? (
-                        <img
-                          src={partner.logo_url}
-                          alt={partner.partner_name}
-                          className="max-h-full max-w-full object-contain transition-transform hover:scale-105"
-                        />
-                      ) : (
-                        <Store className="w-20 h-20 text-gray-300" />
-                      )}
-                      
-                      {partner.discount_percentage > 0 && (
-                        <div className="absolute bottom-4 left-4">
-                          <Badge className="bg-red-500 text-white text-lg px-4 py-2 shadow-lg">
-                            -{partner.discount_percentage}%
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-
-                    <CardContent className="p-6">
-                      <h3 className="font-bold text-xl text-gray-900 mb-2">
-                        {partner.partner_name}
-                      </h3>
-                      
-                      <Badge variant="outline" className="mb-3 capitalize text-xs">
-                        {partner.partner_type.replace('_', ' ')}
-                      </Badge>
-
-                      {partner.location && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                          <MapPin className="w-4 h-4 text-emerald-600" />
-                          <span>{partner.location}</span>
-                        </div>
-                      )}
-
-                      {partner.promo_code && (
-                        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-3 mb-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-gray-600 font-medium">Código Promocional</p>
-                              <p className="text-lg font-bold text-emerald-700 font-mono">
-                                {partner.promo_code}
-                              </p>
-                            </div>
-                            <Tag className="w-6 h-6 text-emerald-600" />
-                          </div>
-                        </div>
-                      )}
-
-                      <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg h-12 text-base font-semibold">
-                        Ver Produtos
-                        <ChevronRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+        {/* Partners Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <Skeleton key={i} className="h-64 rounded-lg" />
+            ))}
           </div>
-        )}
-
-        {/* Regular Partners */}
-        {regularPartners.length > 0 && (
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <Store className="w-6 h-6 text-emerald-600" />
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Todos os Parceiros</h2>
-            </div>
-
-            {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                  <Skeleton key={i} className="h-80 rounded-2xl" />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {regularPartners.map((partner) => (
-                  <motion.div
-                    key={partner.id}
-                    whileHover={{ y: -5 }}
-                    className="cursor-pointer"
-                    onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
-                  >
-                    <Card className="border-0 shadow-lg hover:shadow-xl transition-all overflow-hidden h-full bg-white">
-                      <div className="relative h-36 md:h-40 bg-gray-50 flex items-center justify-center p-4">
-                        {partner.logo_url ? (
-                          <img
-                            src={partner.logo_url}
-                            alt={partner.partner_name}
-                            className="max-h-full max-w-full object-contain transition-transform hover:scale-105"
-                          />
-                        ) : (
-                          <Store className="w-12 h-12 text-gray-300" />
-                        )}
-
-                        {partner.discount_percentage > 0 && (
-                          <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1">
-                            -{partner.discount_percentage}%
-                          </Badge>
-                        )}
-                      </div>
-
-                      <CardContent className="p-3 md:p-4">
-                        <h3 className="font-bold text-sm md:text-base text-gray-900 mb-1 line-clamp-1">
-                          {partner.partner_name}
-                        </h3>
-
-                        <Badge variant="outline" className="mb-2 text-xs capitalize">
-                          {partner.partner_type.replace('_', ' ')}
-                        </Badge>
-
-                        {partner.location && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600 mb-3">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{partner.location}</span>
-                          </div>
-                        )}
-
-                        {partner.promo_code && (
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 mb-3">
-                            <p className="text-[9px] text-gray-600">Código</p>
-                            <p className="text-xs font-bold text-emerald-700 font-mono truncate">
-                              {partner.promo_code}
-                            </p>
-                          </div>
-                        )}
-
-                        <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white h-8 text-xs font-semibold">
-                          Ver Loja
-                          <ChevronRight className="w-3 h-3 ml-1" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && filteredPartners.length === 0 && (
-          <Card className="border-0 shadow-xl">
+        ) : filteredPartners.length === 0 ? (
+          <Card>
             <CardContent className="p-12 text-center">
-              <Store className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">Nenhum parceiro encontrado</h3>
+              <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum parceiro encontrado</h3>
               <p className="text-gray-600 mb-4">Tente ajustar os filtros ou pesquisa</p>
               <Button onClick={() => { setSearchQuery(""); setActiveCategory("all"); }}>
                 Limpar Filtros
               </Button>
             </CardContent>
           </Card>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredPartners.map((partner) => (
+              <div
+                key={partner.id}
+                onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
+                className="cursor-pointer group"
+              >
+                <Card className="h-full hover:shadow-lg transition-shadow">
+                  <div className="relative h-40 bg-gray-100 flex items-center justify-center p-4">
+                    {partner.logo_url ? (
+                      <img
+                        src={partner.logo_url}
+                        alt={partner.partner_name}
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <Store className="w-12 h-12 text-gray-300" />
+                    )}
+
+                    {partner.discount_percentage > 0 && (
+                      <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1">
+                        -{partner.discount_percentage}%
+                      </Badge>
+                    )}
+                  </div>
+
+                  <CardContent className="p-3">
+                    <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">
+                      {partner.partner_name}
+                    </h3>
+
+                    <Badge variant="outline" className="mb-2 text-xs capitalize">
+                      {partner.partner_type.replace('_', ' ')}
+                    </Badge>
+
+                    {partner.location && (
+                      <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{partner.location}</span>
+                      </div>
+                    )}
+
+                    {partner.promo_code && (
+                      <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
+                        <p className="text-[9px] text-gray-600">Código</p>
+                        <p className="text-xs font-bold text-green-700 font-mono truncate">
+                          {partner.promo_code}
+                        </p>
+                      </div>
+                    )}
+
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-8 text-xs font-semibold">
+                      Ver Loja
+                      <ChevronRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
         )}
 
-        {/* Clean Benefits Section */}
-        <Card className="mt-12 border-0 shadow-xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 text-white">
-          <CardContent className="p-8 md:p-12">
-            <div className="text-center mb-8">
-              <h3 className="text-3xl md:text-4xl font-bold mb-4">
-                Como Ganhar PawPoints?
+        {/* Simple Benefits */}
+        <Card className="mt-8 bg-green-600 text-white">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold mb-2">
+                Ganhe 10-20 PawPoints por cada €1
               </h3>
-              <p className="text-lg text-white/90">
-                Acumule pontos em cada compra e troque por recompensas incríveis
+              <p className="text-green-100">
+                Acumule pontos em cada compra e troque por recompensas
               </p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { icon: ShoppingBag, value: "10-20", label: "pts por cada €1", color: "from-blue-400 to-blue-500" },
-                { icon: Star, value: "∞", label: "Sem limites", color: "from-yellow-400 to-yellow-500" },
-                { icon: Gift, value: "100", label: "pts = €1", color: "from-pink-400 to-pink-500" },
-                { icon: Award, value: "2x", label: "Pts em promoções", color: "from-purple-400 to-purple-500" }
-              ].map((benefit, idx) => (
-                <div key={idx} className="text-center">
-                  <div className={`w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xl`}>
-                    <benefit.icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
-                  </div>
-                  <div className="text-3xl md:text-4xl font-bold mb-2">{benefit.value}</div>
-                  <p className="text-sm md:text-base text-white/90 font-medium">{benefit.label}</p>
-                </div>
-              ))}
             </div>
           </CardContent>
         </Card>
