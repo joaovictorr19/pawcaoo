@@ -106,6 +106,20 @@ export default function UserProfile() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: userComments = [] } = useQuery({
+    queryKey: ['userComments', profileEmail],
+    queryFn: () => base44.entities.SocialComment.filter({ author_email: profileEmail }),
+    enabled: !!profileEmail,
+    initialData: [],
+  });
+
+  const { data: userLikes = [] } = useQuery({
+    queryKey: ['userLikes', profileEmail],
+    queryFn: () => base44.entities.SocialLike.filter({ user_email: profileEmail }),
+    enabled: !!profileEmail,
+    initialData: [],
+  });
+
   const followMutation = useMutation({
     mutationFn: async (isFollowing) => {
       if (isFollowing) {
@@ -137,11 +151,32 @@ export default function UserProfile() {
   const xpNeeded = xpForNextLevel(currentLevel);
   const xpProgress = ((currentLevelXP % xpNeeded) / xpNeeded) * 100;
 
+  // Real-time Daily Quests with actual data
   const dailyQuests = [
-    { id: 1, title: "Publicar 1 foto", reward: 50, completed: (profileUser?.profile_stats?.total_posts || 0) > 0 },
-    { id: 2, title: "Dar 5 curtidas", reward: 25, completed: false },
-    { id: 3, title: "3 comentários", reward: 30, completed: (profileUser?.profile_stats?.total_comments_made || 0) >= 3 },
-    { id: 4, title: "Visitar Dog Connect", reward: 20, completed: true },
+    { 
+      id: 1, 
+      title: "Publicar 1 foto", 
+      reward: 50, 
+      completed: (profileUser?.profile_stats?.total_posts || 0) > 0 
+    },
+    { 
+      id: 2, 
+      title: "Dar 5 curtidas", 
+      reward: 25, 
+      completed: userLikes.length >= 5 
+    },
+    { 
+      id: 3, 
+      title: "3 comentários", 
+      reward: 30, 
+      completed: userComments.length >= 3 
+    },
+    { 
+      id: 4, 
+      title: "Visitar Dog Connect", 
+      reward: 20, 
+      completed: true 
+    },
   ];
 
   // High-Quality 3D Badges - Twitter/Premium Style

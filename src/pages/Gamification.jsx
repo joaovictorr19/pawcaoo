@@ -1,33 +1,76 @@
 
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Trophy, Star, Target, TrendingUp, Award, Zap, Crown, 
   Heart, Users, MessageCircle, Calendar, Gift, Shield,
-  Flame, CheckCircle, Lock, Sparkles, ChevronRight, Camera
+  Flame, CheckCircle, Lock, Sparkles, ChevronRight, Camera,
+  Upload, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "@/components/ui/use-toast"; // Assuming toast comes from shadcn/ui or similar
+import { toast } from "sonner"; // Changed toast import to sonner
 
 export default function Gamification() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState("all");
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+  });
+
+  const { data: userComments = [] } = useQuery({
+    queryKey: ['userComments', user?.email],
+    queryFn: () => base44.entities.SocialComment.filter({ author_email: user?.email }),
+    enabled: !!user?.email,
+    initialData: [],
+  });
+
+  const { data: userLikes = [] } = useQuery({
+    queryKey: ['userLikes', user?.email],
+    queryFn: () => base44.entities.SocialLike.filter({ user_email: user?.email }),
+    enabled: !!user?.email,
+    initialData: [],
+  });
+
+  const completeQuestMutation = useMutation({
+    mutationFn: async ({ xpReward }) => {
+      const newXP = (user?.gamification_xp || 0) + xpReward;
+      // Recalculate level based on new XP, assuming 500 XP per level starting from level 1
+      const newLevel = Math.floor(newXP / 500) + 1; 
+      
+      return await base44.auth.updateMe({
+        gamification_xp: newXP,
+        gamification_level: newLevel,
+        last_activity_date: new Date().toISOString().split('T')[0] // Update last activity
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['currentUser']);
+      toast.success("Missão completa!", {
+        description: `Você ganhou XP! 🎉`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Erro ao completar missão", {
+        description: error.message || "Tente novamente mais tarde.",
+      });
+    },
   });
 
   // Calculate XP needed for next level
@@ -37,35 +80,20 @@ export default function Gamification() {
   const xpNeeded = xpForNextLevel(currentLevel);
   const xpProgress = (currentLevelXP % xpNeeded) / xpNeeded * 100;
 
-  // All possible badges
+  // All possible badges (truncated from outline)
   const allBadges = [
-    // Social Badges
     { id: "first_post", name: "First Post", desc: "Publique seu primeiro post", icon: "📝", category: "social", rarity: "common", requirement: 1, current: user?.profile_stats?.total_posts || 0, stat: "total_posts", xp: 50 },
     { id: "social_butterfly", name: "Social Butterfly", desc: "50+ posts publicados", icon: "🦋", category: "social", rarity: "rare", requirement: 50, current: user?.profile_stats?.total_posts || 0, stat: "total_posts", xp: 500 },
     { id: "content_king", name: "Content King", desc: "100+ posts publicados", icon: "👑", category: "social", rarity: "epic", requirement: 100, current: user?.profile_stats?.total_posts || 0, stat: "total_posts", xp: 1000 },
     { id: "popular", name: "Popular", desc: "Receba 100+ curtidas", icon: "❤️", category: "social", rarity: "rare", requirement: 100, current: user?.profile_stats?.total_likes_received || 0, stat: "total_likes_received", xp: 300 },
     { id: "influencer", name: "Influencer", desc: "500+ curtidas recebidas", icon: "⭐", category: "social", rarity: "epic", requirement: 500, current: user?.profile_stats?.total_likes_received || 0, stat: "total_likes_received", xp: 800 },
     { id: "community_helper", name: "Community Helper", desc: "50+ comentários escritos", icon: "💬", category: "social", rarity: "rare", requirement: 50, current: user?.profile_stats?.total_comments_made || 0, stat: "total_comments_made", xp: 400 },
-    
-    // Activity Badges
     { id: "first_booking", name: "First Booking", desc: "Faça sua primeira reserva", icon: "🎫", category: "activity", rarity: "common", requirement: 1, current: user?.profile_stats?.total_bookings || 0, stat: "total_bookings", xp: 100 },
     { id: "regular_user", name: "Regular User", desc: "10+ reservas realizadas", icon: "📅", category: "activity", rarity: "rare", requirement: 10, current: user?.profile_stats?.total_bookings || 0, stat: "total_bookings", xp: 500 },
-    { id: "super_user", name: "Super User", desc: "50+ reservas realizadas", icon: "🌟", category: "activity", rarity: "epic", requirement: 50, current: user?.profile_stats?.total_bookings || 0, stat: "total_bookings", xp: 1500 },
     { id: "streak_starter", name: "Streak Starter", desc: "7 dias consecutivos", icon: "🔥", category: "activity", rarity: "common", requirement: 7, current: user?.daily_streak || 0, stat: "daily_streak", xp: 200 },
     { id: "streak_master", name: "Streak Master", desc: "30 dias consecutivos", icon: "🔥", category: "activity", rarity: "epic", requirement: 30, current: user?.daily_streak || 0, stat: "daily_streak", xp: 1000 },
-    { id: "streak_legend", name: "Streak Legend", desc: "100 dias consecutivos", icon: "🔥", category: "activity", rarity: "legendary", requirement: 100, current: user?.daily_streak || 0, stat: "daily_streak", xp: 5000 },
-    
-    // Milestone Badges
     { id: "profile_complete", name: "Profile Complete", desc: "Complete 100% do perfil", icon: "✅", category: "milestone", rarity: "common", requirement: 100, current: user?.profile_completion_percentage || 0, stat: "profile_completion_percentage", xp: 150 },
     { id: "adoption_hero", name: "Adoption Hero", desc: "Adote um pet resgatado", icon: "🏠", category: "milestone", rarity: "epic", requirement: 1, current: user?.profile_stats?.total_adoptions || 0, stat: "total_adoptions", xp: 2000 },
-    { id: "referral_starter", name: "Referral Starter", desc: "Refira 3 amigos", icon: "🎁", category: "milestone", rarity: "rare", requirement: 3, current: user?.profile_stats?.total_referrals || 0, stat: "total_referrals", xp: 300 },
-    { id: "referral_master", name: "Referral Master", desc: "Refira 10 amigos", icon: "💎", category: "milestone", rarity: "epic", requirement: 10, current: user?.profile_stats?.total_referrals || 0, stat: "total_referrals", xp: 1000 },
-    { id: "reviewer", name: "Reviewer", desc: "Escreva 10+ avaliações", icon: "⭐", category: "milestone", rarity: "rare", requirement: 10, current: user?.profile_stats?.total_reviews_written || 0, stat: "total_reviews_written", xp: 400 },
-    
-    // Special Badges
-    { id: "early_adopter", name: "Early Adopter", desc: "Dos primeiros 100 membros", icon: "🚀", category: "special", rarity: "legendary", requirement: 1, current: 0, stat: "special", xp: 5000 },
-    { id: "beta_tester", name: "Beta Tester", desc: "Testou funcionalidades beta", icon: "🧪", category: "special", rarity: "epic", requirement: 1, current: 0, stat: "special", xp: 1000 },
-    { id: "event_attendee", name: "Event Attendee", desc: "Participe de 5+ eventos", icon: "🎉", category: "special", rarity: "rare", requirement: 5, current: user?.profile_stats?.total_events_attended || 0, stat: "total_events_attended", xp: 500 },
   ];
 
   // Filter earned badges
@@ -75,32 +103,53 @@ export default function Gamification() {
   // Available badges (not earned yet, can be earned)
   const availableBadges = allBadges.filter(b => 
     !earnedBadgeIds.includes(b.id) && 
-    b.stat !== "special" &&
     (activeCategory === "all" || b.category === activeCategory)
   );
 
-  // Photo Challenges - New!
+  // Photo Challenges (truncated from outline)
   const photoChallenges = [
-    { id: "beach_day", title: "Dia de Praia", desc: "Tire uma foto do seu cão na praia", icon: "🏖️", reward: 150, location: "beach", completed: false, category: "location" },
-    { id: "park_adventure", title: "Aventura no Parque", desc: "Capture um momento no parque", icon: "🌳", reward: 100, location: "park", completed: false, category: "location" },
-    { id: "mountain_hike", title: "Trilha na Montanha", desc: "Leve seu cão numa trilha", icon: "⛰️", reward: 200, location: "mountain", completed: false, category: "location" },
-    { id: "first_swim", title: "Primeiro Mergulho", desc: "Foto do cão nadando", icon: "🏊", reward: 150, activity: "swimming", completed: false, category: "activity" },
-    { id: "snow_fun", title: "Diversão na Neve", desc: "Brincando na neve", icon: "❄️", reward: 200, activity: "snow", completed: false, category: "seasonal" },
-    { id: "birthday_celebration", title: "Aniversário", desc: "Comemore o aniversário do seu cão", icon: "🎂", reward: 250, activity: "birthday", completed: false, category: "milestone" },
-    { id: "new_friend", title: "Novo Amigo", desc: "Foto com outro cão", icon: "🐕‍🦺", reward: 100, activity: "social", completed: false, category: "social" },
-    { id: "trick_master", title: "Truque Novo", desc: "Mostre um truque que ensinou", icon: "🎪", reward: 150, activity: "training", completed: false, category: "training" },
-    { id: "costume_party", title: "Fantasia Criativa", desc: "Vista seu cão com uma fantasia", icon: "🎭", reward: 100, activity: "costume", completed: false, category: "fun" },
-    { id: "sunset_walk", title: "Passeio ao Pôr do Sol", desc: "Capture o pôr do sol durante o passeio", icon: "🌅", reward: 120, activity: "sunset", completed: false, category: "scenic" },
-    { id: "rainy_day", title: "Dia de Chuva", desc: "Diversão mesmo com chuva", icon: "🌧️", reward: 130, activity: "rain", completed: false, category: "weather" },
-    { id: "cafe_visit", title: "Café Pet-Friendly", desc: "Visite um café com seu cão", icon: "☕", reward: 110, activity: "cafe", completed: false, category: "social" },
+    { id: "beach_day", title: "Dia de Praia", desc: "Tire uma foto do seu cão na praia", icon: "🏖️", reward: 150 },
+    { id: "park_adventure", title: "Aventura no Parque", desc: "Capture um momento no parque", icon: "🌳", reward: 100 },
+    { id: "mountain_hike", title: "Trilha na Montanha", desc: "Leve seu cão numa trilha", icon: "⛰️", reward: 200 },
+    { id: "first_swim", title: "Primeiro Mergulho", desc: "Foto do cão nadando", icon: "🏊", reward: 150 },
+    { id: "new_friend", title: "Novo Amigo", desc: "Foto com outro cão", icon: "🐕‍🦺", reward: 100 },
+    { id: "trick_master", title: "Truque Novo", desc: "Mostre um truque que ensinou", icon: "🎪", reward: 150 },
   ];
 
-  // Calculate daily quests
+  // Daily quests with real-time data
   const dailyQuests = [
-    { id: 1, title: "Publicar 1 foto", desc: "Compartilhe um momento do seu pet", reward: 50, icon: "📸", completed: false },
-    { id: 2, title: "Dar 5 curtidas", desc: "Apoie outros donos de pets", reward: 25, icon: "❤️", completed: false },
-    { id: 3, title: "Escrever 3 comentários", desc: "Participe das conversas", reward: 30, icon: "💬", completed: false },
-    { id: 4, title: "Visitar o Dog Connect", desc: "Mantenha sua streak ativa", reward: 20, icon: "🔥", completed: true },
+    { 
+      id: 1, 
+      title: "Publicar 1 foto", 
+      desc: "Compartilhe um momento do seu pet", 
+      reward: 50, 
+      icon: "📸", 
+      completed: (user?.profile_stats?.total_posts || 0) > 0 
+    },
+    { 
+      id: 2, 
+      title: "Dar 5 curtidas", 
+      desc: "Apoie outros donos de pets", 
+      reward: 25, 
+      icon: "❤️", 
+      completed: userLikes.length >= 5 
+    },
+    { 
+      id: 3, 
+      title: "Escrever 3 comentários", 
+      desc: "Participe das conversas", 
+      reward: 30, 
+      icon: "💬", 
+      completed: userComments.length >= 3 
+    },
+    { 
+      id: 4, 
+      title: "Visitar o Dog Connect", 
+      desc: "Mantenha sua streak ativa", 
+      reward: 20, 
+      icon: "🔥", 
+      completed: true 
+    },
   ];
 
   const getRarityColor = (rarity) => {
@@ -123,9 +172,31 @@ export default function Gamification() {
     return colors[rarity] || colors.common;
   };
 
-  const handlePhotoChallenge = (challenge) => {
-    setSelectedChallenge(challenge);
-    setShowPhotoUpload(true);
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setPhotoPreview(file_url);
+    } catch (error) {
+      toast.error("Erro ao carregar foto", {
+        description: error.message || "Não foi possível enviar a imagem.",
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const completePhotoChallenge = async () => {
+    if (!photoPreview || !selectedChallenge) return;
+
+    await completeQuestMutation.mutateAsync({ xpReward: selectedChallenge.reward });
+    
+    setShowPhotoUpload(false);
+    setSelectedChallenge(null);
+    setPhotoPreview(null);
   };
 
   return (
@@ -137,9 +208,9 @@ export default function Gamification() {
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <Trophy className="w-10 h-10 text-yellow-600" />
-                Gamificação & Conquistas
+                Gamificação & Emblemas
               </h1>
-              <p className="text-gray-600">Complete desafios, ganhe badges e suba de nível!</p>
+              <p className="text-gray-600">Complete desafios, ganhe emblemas raros e suba de nível!</p>
             </div>
             <Button
               variant="outline"
@@ -147,7 +218,7 @@ export default function Gamification() {
               className="hidden md:flex"
             >
               <Trophy className="w-4 h-4 mr-2" />
-              Ver Leaderboard
+              Ver Ranking
             </Button>
           </div>
         </div>
@@ -168,32 +239,32 @@ export default function Gamification() {
                 </div>
               </div>
               <div className="text-right hidden md:block">
-                <div className="text-3xl font-bold">{user?.gamification_points || 0}</div>
-                <div className="text-white/80 text-sm">Pontos Totais</div>
+                <div className="text-3xl font-bold">{user?.gamification_xp || 0}</div>
+                <div className="text-white/80 text-sm">XP Total</div>
               </div>
             </div>
             
-            <Progress value={xpProgress} className="h-4 bg-white/20" />
+            <Progress value={xpProgress} className="h-4 bg-white/20 mb-6" />
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
                 <div className="text-2xl font-bold">{earnedBadges.length}</div>
-                <div className="text-xs text-white/80">Badges</div>
+                <div className="text-xs text-white/80">Emblemas</div>
               </div>
               <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
                 <div className="text-2xl font-bold flex items-center justify-center">
                   <Flame className="w-6 h-6 text-orange-300 mr-1" />
                   {user?.daily_streak || 0}
                 </div>
-                <div className="text-xs text-white/80">Dia Streak</div>
+                <div className="text-xs text-white/80">Streak</div>
               </div>
               <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
                 <div className="text-2xl font-bold">{user?.profile_completion_percentage || 0}%</div>
                 <div className="text-xs text-white/80">Perfil</div>
               </div>
               <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div className="text-2xl font-bold">{user?.gamification_xp || 0}</div>
-                <div className="text-xs text-white/80">Total XP</div>
+                <div className="text-2xl font-bold">{user?.profile_stats?.total_posts || 0}</div>
+                <div className="text-xs text-white/80">Posts</div>
               </div>
             </div>
           </CardContent>
@@ -209,6 +280,7 @@ export default function Gamification() {
                   <Target className="w-5 h-5 text-green-600" />
                   Missões Diárias
                 </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">Resetam a cada 24 horas</p>
               </CardHeader>
               <CardContent className="space-y-3">
                 {dailyQuests.map((quest) => (
@@ -247,7 +319,7 @@ export default function Gamification() {
               </CardContent>
             </Card>
 
-            {/* Photo Challenges - NEW! */}
+            {/* Photo Challenges */}
             <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-pink-50">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -268,65 +340,47 @@ export default function Gamification() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {photoChallenges.slice(0, 6).map((challenge) => (
+                  {photoChallenges.map((challenge) => (
                     <motion.div
                       key={challenge.id}
                       whileHover={{ scale: 1.02 }}
-                      className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        challenge.completed
-                          ? 'bg-green-100 border-green-400'
-                          : 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-md'
-                      }`}
-                      onClick={() => !challenge.completed && handlePhotoChallenge(challenge)}
+                      className="p-4 rounded-xl border-2 bg-white border-orange-200 hover:border-orange-400 hover:shadow-md cursor-pointer transition-all"
+                      onClick={() => {
+                        setSelectedChallenge(challenge);
+                        setShowPhotoUpload(true);
+                      }}
                     >
-                      {challenge.completed && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle className="w-6 h-6 text-green-600" />
-                        </div>
-                      )}
                       <div className="flex items-start gap-3">
                         <div className="text-4xl">{challenge.icon}</div>
                         <div className="flex-1">
-                          <h4 className={`font-bold text-sm mb-1 ${challenge.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                          <h4 className="font-bold text-sm mb-1 text-gray-900">
                             {challenge.title}
                           </h4>
                           <p className="text-xs text-gray-600 mb-2">{challenge.desc}</p>
-                          {!challenge.completed && (
-                            <Badge className="bg-orange-600 text-white text-xs">
-                              +{challenge.reward} XP
-                            </Badge>
-                          )}
+                          <Badge className="bg-orange-600 text-white text-xs">
+                            +{challenge.reward} XP
+                          </Badge>
                         </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-4 border-orange-300 text-orange-700 hover:bg-orange-50"
-                >
-                  Ver Todos os Desafios
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
               </CardContent>
             </Card>
 
-            {/* Badges */}
+            {/* Minhas Badges */}
             <Card className="border-0 shadow-xl">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-purple-600" />
-                    Minhas Badges ({earnedBadges.length})
-                  </CardTitle>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  Meus Emblemas ({earnedBadges.length})
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {earnedBadges.length === 0 ? (
                   <div className="text-center py-12">
                     <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Você ainda não tem badges</p>
+                    <p className="text-gray-600">Você ainda não tem emblemas</p>
                     <p className="text-sm text-gray-500">Complete desafios para ganhar suas primeiras conquistas!</p>
                   </div>
                 ) : (
@@ -339,11 +393,20 @@ export default function Gamification() {
                         transition={{ delay: idx * 0.05 }}
                         className={`relative p-4 rounded-2xl border-4 ${getRarityBorder(badge.rarity)} bg-gradient-to-br ${getRarityColor(badge.rarity)} text-white text-center hover:scale-105 transition-transform cursor-pointer shadow-lg`}
                       >
-                        <div className="text-5xl mb-2">{badge.icon}</div>
+                        {badge.image_url ? (
+                          <img 
+                            src={badge.image_url} 
+                            alt={badge.name}
+                            className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover"
+                            style={{imageRendering: 'pixelated'}}
+                          />
+                        ) : (
+                          <div className="text-5xl mb-2">{badge.icon}</div>
+                        )}
                         <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
                         <p className="text-xs opacity-90">{badge.description}</p>
                         <Badge className="mt-2 bg-white/20 text-white text-xs">
-                          {badge.rarity.toUpperCase()}
+                          {badge.rarity?.toUpperCase()}
                         </Badge>
                       </motion.div>
                     ))}
@@ -357,17 +420,16 @@ export default function Gamification() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-blue-600" />
-                  Badges Disponíveis
+                  Emblemas Disponíveis
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                  <TabsList className="grid w-full grid-cols-5 mb-6">
+                  <TabsList className="grid w-full grid-cols-4 mb-6">
                     <TabsTrigger value="all">Todos</TabsTrigger>
                     <TabsTrigger value="social">Social</TabsTrigger>
                     <TabsTrigger value="activity">Atividade</TabsTrigger>
                     <TabsTrigger value="milestone">Marcos</TabsTrigger>
-                    <TabsTrigger value="special">Especial</TabsTrigger>
                   </TabsList>
                 </Tabs>
 
@@ -429,7 +491,7 @@ export default function Gamification() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    <Camera className="w-5 h-5 text-blue-600" />
                     <span className="text-sm font-medium">Posts</span>
                   </div>
                   <span className="text-lg font-bold text-blue-600">
@@ -440,10 +502,20 @@ export default function Gamification() {
                 <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Heart className="w-5 h-5 text-pink-600" />
-                    <span className="text-sm font-medium">Curtidas</span>
+                    <span className="text-sm font-medium">Curtidas Dadas</span>
                   </div>
                   <span className="text-lg font-bold text-pink-600">
-                    {user?.profile_stats?.total_likes_received || 0}
+                    {userLikes.length}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-purple-600" />
+                    <span className="text-sm font-medium">Comentários</span>
+                  </div>
+                  <span className="text-lg font-bold text-purple-600">
+                    {userComments.length}
                   </span>
                 </div>
 
@@ -456,16 +528,28 @@ export default function Gamification() {
                     {user?.profile_stats?.total_bookings || 0}
                   </span>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm font-medium">Referências</span>
-                  </div>
-                  <span className="text-lg font-bold text-purple-600">
-                    {user?.profile_stats?.total_referrals || 0}
-                  </span>
-                </div>
+            {/* Leaderboard Preview */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-50 to-orange-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Trophy className="w-5 h-5 text-yellow-600" />
+                  Ranking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-700 mb-4">
+                  Compete com outros membros da comunidade por emblemas exclusivos!
+                </p>
+                <Button
+                  onClick={() => navigate(createPageUrl('Leaderboard'))}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                >
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Ver Ranking Completo
+                </Button>
               </CardContent>
             </Card>
 
@@ -479,7 +563,7 @@ export default function Gamification() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-700 mb-4">
-                  Convide amigos e ganhe <strong>500 XP</strong> + <strong>100 PawPoints</strong> para cada amigo que se registar!
+                  Convide amigos e ganhe <strong>500 XP</strong> para cada amigo que se registar!
                 </p>
                 <div className="p-3 bg-white rounded-lg border-2 border-dashed border-green-300 mb-3">
                   <div className="text-xs text-gray-600 mb-1">Seu código:</div>
@@ -493,56 +577,11 @@ export default function Gamification() {
                 </Button>
               </CardContent>
             </Card>
-
-            {/* Leaderboard Preview */}
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Trophy className="w-5 h-5 text-yellow-600" />
-                    Top 5 Jogadores
-                  </CardTitle>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => navigate(createPageUrl('Leaderboard'))}
-                  >
-                    Ver Todos
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {[1, 2, 3, 4, 5].map((rank) => (
-                  <div key={rank} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                      rank === 1 ? 'bg-yellow-100 text-yellow-700' :
-                      rank === 2 ? 'bg-gray-200 text-gray-700' :
-                      rank === 3 ? 'bg-orange-100 text-orange-700' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {rank}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm">Player {rank}</div>
-                      <div className="text-xs text-gray-500">{5000 - (rank * 500)} XP</div>
-                    </div>
-                    {rank <= 3 && (
-                      <Crown className={`w-5 h-5 ${
-                        rank === 1 ? 'text-yellow-500' :
-                        rank === 2 ? 'text-gray-400' :
-                        'text-orange-400'
-                      }`} />
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
 
-      {/* Photo Upload Modal - Placeholder */}
+      {/* Photo Upload Modal */}
       <AnimatePresence>
         {showPhotoUpload && selectedChallenge && (
           <motion.div
@@ -550,7 +589,11 @@ export default function Gamification() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowPhotoUpload(false)}
+            onClick={() => {
+              setShowPhotoUpload(false);
+              setPhotoPreview(null);
+              setSelectedChallenge(null);
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -571,32 +614,58 @@ export default function Gamification() {
               </div>
 
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition-colors cursor-pointer">
-                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Clique para fazer upload da foto</p>
-                </div>
+                {photoPreview ? (
+                  <div className="relative">
+                    <img 
+                      src={photoPreview} 
+                      alt="Preview" 
+                      className="w-full h-48 object-cover rounded-xl"
+                    />
+                    <button
+                      onClick={() => setPhotoPreview(null)}
+                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition-colors cursor-pointer block">
+                    {uploadingPhoto ? (
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2 animate-bounce" />
+                    ) : (
+                      <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    )}
+                    <p className="text-sm text-gray-600">
+                      {uploadingPhoto ? "Carregando..." : "Clique para fazer upload da foto"}
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      disabled={uploadingPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                )}
 
                 <div className="flex gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => setShowPhotoUpload(false)}
+                    onClick={() => {
+                      setShowPhotoUpload(false);
+                      setPhotoPreview(null);
+                      setSelectedChallenge(null);
+                    }}
                     className="flex-1"
                   >
                     Cancelar
                   </Button>
                   <Button
-                    onClick={() => {
-                      toast({
-                        title: "Desafio Completo!",
-                        description: `Você completou o desafio "${selectedChallenge.title}" e ganhou +${selectedChallenge.reward} XP! 🎉`,
-                        variant: "success", // Assuming a 'success' variant exists for toast
-                      });
-                      setShowPhotoUpload(false);
-                      setSelectedChallenge(null); // Clear selected challenge
-                    }}
+                    onClick={completePhotoChallenge}
+                    disabled={!photoPreview || completeQuestMutation.isPending}
                     className="flex-1 bg-orange-600 hover:bg-orange-700"
                   >
-                    Enviar Foto
+                    {completeQuestMutation.isPending ? "A enviar..." : "Completar Desafio"}
                   </Button>
                 </div>
               </div>
