@@ -2119,6 +2119,70 @@ export const translations = {
   }
 };
 
+// Adoption System Translations
+export const adoptionTranslations = {
+  adoptAPet: { pt: "Adotar um Pet", en: "Adopt a Pet", es: "Adoptar una Mascota" },
+  adoptionListings: { pt: "Pets para Adoção", en: "Pets for Adoption", es: "Mascotas en Adopción" },
+  petsWaiting: { pt: "pets esperando", en: "pets waiting", es: "mascotas esperando" },
+  postForAdoption: { pt: "Publicar para Adoção", en: "Post for Adoption", es: "Publicar para Adopción" },
+  everyPetDeservesHome: { pt: "Todo Pet Merece um Lar", en: "Every Pet Deserves a Home", es: "Toda Mascota Merece un Hogar" },
+  adoptDontShop: { pt: "Adote, não compre! Cada adoção salva uma vida.", en: "Adopt, don't shop! Each adoption saves a life.", es: "¡Adopta, no compres! Cada adopción salva una vida." },
+  searchAndFilter: { pt: "Buscar & Filtrar", en: "Search & Filter", es: "Buscar y Filtrar" },
+  searchByName: { pt: "Buscar por nome ou raça...", en: "Search by name or breed...", es: "Buscar por nombre o raza..." },
+  petType: { pt: "Tipo de Pet", en: "Pet Type", es: "Tipo de Mascota" },
+  allTypes: { pt: "Todos os Tipos", en: "All Types", es: "Todos los Tipos" },
+  allSizes: { pt: "Todos os Tamanhos", en: "All Sizes", es: "Todos los Tamaños" },
+  allAges: { pt: "Todas as Idades", en: "All Ages", es: "Todas las Edades" },
+  allGenders: { pt: "Todos os Sexos", en: "All Genders", es: "Todos los Sexos" },
+  urgentOnly: { pt: "Apenas Urgentes", en: "Urgent Only", es: "Solo Urgentes" },
+  noPetsFound: { pt: "Nenhum pet encontrado", en: "No pets found", es: "No se encontraron mascotas" },
+  tryAdjustingFilters: { pt: "Tente ajustar os filtros ou volte mais tarde", en: "Try adjusting your filters or check back later", es: "Intenta ajustar los filtros o vuelve más tarde" },
+  clearAllFilters: { pt: "Limpar Todos os Filtros", en: "Clear All Filters", es: "Limpiar Todos los Filtros" },
+  goodWithKids: { pt: "Bom com crianças", en: "Good with kids", es: "Bueno con niños" },
+  goodWithDogs: { pt: "Bom com cães", en: "Good with dogs", es: "Bueno con perros" },
+  goodWithCats: { pt: "Bom com gatos", en: "Good with cats", es: "Bueno con gatos" },
+  freeAdoption: { pt: "ADOÇÃO GRÁTIS", en: "FREE ADOPTION", es: "ADOPCIÓN GRATIS" },
+  adoptionFee: { pt: "Taxa de Adoção", en: "Adoption Fee", es: "Tarifa de Adopción" },
+  applyToAdopt: { pt: "Candidatar-se para Adotar", en: "Apply to Adopt", es: "Solicitar Adopción" },
+  backToListings: { pt: "Voltar às Listagens", en: "Back to Listings", es: "Volver a Listados" },
+  aboutMe: { pt: "Sobre Mim", en: "About Me", es: "Sobre Mí" },
+  myStory: { pt: "Minha História", en: "My Story", es: "Mi Historia" },
+  goodWith: { pt: "Bom Com", en: "Good With", es: "Bueno Con" },
+  healthInformation: { pt: "Informações de Saúde", en: "Health Information", es: "Información de Salud" },
+  spayedNeutered: { pt: "Castrado", en: "Spayed/Neutered", es: "Castrado" },
+  vaccinated: { pt: "Vacinado", en: "Vaccinated", es: "Vacunado" },
+  microchipped: { pt: "Com Microchip", en: "Microchipped", es: "Con Microchip" },
+  myIdealHome: { pt: "Meu Lar Ideal", en: "My Ideal Home", es: "Mi Hogar Ideal" },
+  contactInformation: { pt: "Informações de Contato", en: "Contact Information", es: "Información de Contacto" },
+  organization: { pt: "Organização", en: "Organization", es: "Organización" },
+  location: { pt: "Localização", en: "Location", es: "Ubicación" },
+  posted: { pt: "Publicado", en: "Posted", es: "Publicado" },
+  views: { pt: "Visualizações", en: "Views", es: "Vistas" },
+  applications: { pt: "Candidaturas", en: "Applications", es: "Solicitudes" },
+  applicationSubmitted: { pt: "Candidatura Enviada", en: "Application Submitted", es: "Solicitud Enviada" },
+  viewMyApplications: { pt: "Ver Minhas Candidaturas", en: "View My Applications", es: "Ver Mis Solicitudes" },
+  manageListing: { pt: "Gerir Listagem", en: "Manage Listing", es: "Gestionar Anuncio" },
+  share: { pt: "Partilhar", en: "Share", es: "Compartir" },
+  myAdoptionApplications: { pt: "Minhas Candidaturas de Adoção", en: "My Adoption Applications", es: "Mis Solicitudes de Adopción" },
+  trackApplicationStatus: { pt: "Acompanhe o status das suas candidaturas de adoção", en: "Track the status of your adoption applications", es: "Seguimiento del estado de tus solicitudes de adopción" },
+  noApplicationsYet: { pt: "Nenhuma candidatura ainda", en: "No applications yet", es: "Aún no hay solicitudes" },
+  browsePets: { pt: "Navegar Pets", en: "Browse Pets", es: "Explorar Mascotas" },
+  applicationFor: { pt: "Candidatura para", en: "Application for", es: "Solicitud para" },
+  wantsToAdopt: { pt: "Quer adotar", en: "Wants to adopt", es: "Quiere adoptar" },
+  applied: { pt: "Candidatou-se", en: "Applied", es: "Solicitado" },
+  yourInformation: { pt: "Suas Informações", en: "Your Information", es: "Tu Información" },
+  interviewScheduled: { pt: "Entrevista Agendada", en: "Interview Scheduled", es: "Entrevista Programada" },
+  congratulations: { pt: "Parabéns!", en: "Congratulations!", es: "¡Felicidades!" },
+  applicationApproved: { pt: "Sua candidatura foi aprovada! O abrigo entrará em contato em breve para arranjar a adoção.", en: "Your application has been approved! The shelter will contact you soon to arrange the adoption.", es: "¡Tu solicitud ha sido aprobada! El refugio se pondrá en contacto contigo pronto para organizar la adopción." },
+  applicationStatus: { pt: "Status da Candidatura", en: "Application Status", es: "Estado de la Solicitud" },
+  viewPet: { pt: "Ver Pet", en: "View Pet", es: "Ver Mascota" },
+};
+
 export const t = (key, lang = 'pt') => {
+  // Add adoption translations
+  if (adoptionTranslations[key]) {
+    return adoptionTranslations[key][lang] || adoptionTranslations[key].pt;
+  }
+  
   return translations[lang]?.[key] || translations['pt']?.[key] || key;
 };

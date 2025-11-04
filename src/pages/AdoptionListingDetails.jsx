@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,9 +16,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
+
 export default function AdoptionListingDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const urlParams = new URLSearchParams(window.location.search);
   const listingId = urlParams.get('id');
   const [selectedPhoto, setSelectedPhoto] = useState(0);
@@ -60,7 +65,8 @@ export default function AdoptionListingDetails() {
 
   const handleApply = () => {
     if (!user) {
-      toast.error("Please log in to apply for adoption");
+      const msg = language === 'pt' ? "Faça login para candidatar-se" : language === 'es' ? "Inicia sesión para postularte" : "Please log in to apply for adoption";
+      toast.error(msg);
       return;
     }
     navigate(createPageUrl(`ApplyForAdoption?listing_id=${listingId}`));
@@ -68,11 +74,14 @@ export default function AdoptionListingDetails() {
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
+    const shareTitle = language === 'pt' ? `Adotar ${listing.pet_name}` : language === 'es' ? `Adoptar ${listing.pet_name}` : `Adopt ${listing.pet_name}`;
+    const shareText = language === 'pt' ? `Veja ${listing.pet_name} disponível para adoção!` : language === 'es' ? `¡Mira a ${listing.pet_name} disponible para adopción!` : `Check out ${listing.pet_name} available for adoption!`;
+    
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Adopt ${listing.pet_name}`,
-          text: `Check out ${listing.pet_name} available for adoption!`,
+          title: shareTitle,
+          text: shareText,
           url: shareUrl
         });
       } catch (err) {
@@ -80,7 +89,8 @@ export default function AdoptionListingDetails() {
       }
     } else {
       navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copied to clipboard!");
+      const msg = language === 'pt' ? "Link copiado!" : language === 'es' ? "¡Enlace copiado!" : "Link copied to clipboard!";
+      toast.success(msg);
     }
   };
 
@@ -119,10 +129,18 @@ export default function AdoptionListingDetails() {
     const years = listing.age_years || 0;
     const months = listing.age_months || 0;
     
-    if (years === 0 && months === 0) return "Age unknown";
-    if (years === 0) return `${months} months old`;
-    if (months === 0) return `${years} ${years === 1 ? 'year' : 'years'} old`;
-    return `${years} years ${months} months old`;
+    if (years === 0 && months === 0) {
+      return language === 'pt' ? "Idade desconhecida" : language === 'es' ? "Edad desconocida" : "Age unknown";
+    }
+    if (years === 0) {
+      const monthsLabel = language === 'pt' ? 'meses' : language === 'es' ? 'meses' : 'months';
+      return `${months} ${monthsLabel}`;
+    }
+    if (months === 0) {
+      const yearLabel = language === 'pt' ? (years === 1 ? 'ano' : 'anos') : language === 'es' ? (years === 1 ? 'año' : 'años') : (years === 1 ? 'year' : 'years');
+      return `${years} ${yearLabel}`;
+    }
+    return `${years} ${language === 'pt' ? 'anos' : language === 'es' ? 'años' : 'years'} ${months} ${language === 'pt' ? 'meses' : language === 'es' ? 'meses' : 'months'}`;
   };
 
   const isOwnListing = user?.email === listing.created_by;
@@ -137,7 +155,7 @@ export default function AdoptionListingDetails() {
           onClick={() => navigate(createPageUrl('AdoptionListings'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Listings
+          {t('backToListings', language)}
         </Button>
 
         {/* Main Content */}
@@ -338,20 +356,20 @@ export default function AdoptionListingDetails() {
               <CardContent className="p-6">
                 {listing.adoption_fee > 0 ? (
                   <div className="text-center mb-4">
-                    <div className="text-sm text-gray-600 mb-1">Adoption Fee</div>
+                    <div className="text-sm text-gray-600 mb-1">{t('adoptionFee', language)}</div>
                     <div className="text-4xl font-bold text-purple-600">
                       €{listing.adoption_fee}
                     </div>
                     {listing.fee_includes && listing.fee_includes.length > 0 && (
                       <div className="mt-2 text-xs text-gray-600">
-                        Includes: {listing.fee_includes.join(', ')}
+                        {language === 'pt' ? 'Inclui' : language === 'es' ? 'Incluye' : 'Includes'}: {listing.fee_includes.join(', ')}
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="text-center mb-4">
                     <Badge className="bg-green-500 text-white text-lg px-6 py-2">
-                      FREE ADOPTION
+                      {t('freeAdoption', language)}
                     </Badge>
                   </div>
                 )}
@@ -362,7 +380,7 @@ export default function AdoptionListingDetails() {
                       <div className="space-y-3">
                         <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                           <p className="text-sm font-semibold text-blue-900 mb-1">
-                            Application Submitted
+                            {t('applicationSubmitted', language)}
                           </p>
                           <p className="text-xs text-blue-700">
                             Status: {existingApplication.application_status}
@@ -373,7 +391,7 @@ export default function AdoptionListingDetails() {
                           className="w-full"
                           onClick={() => navigate(createPageUrl('MyAdoptionApplications'))}
                         >
-                          View My Applications
+                          {t('viewMyApplications', language)}
                         </Button>
                       </div>
                     ) : (
@@ -381,8 +399,8 @@ export default function AdoptionListingDetails() {
                         className="w-full h-14 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white text-lg font-semibold shadow-lg"
                         onClick={handleApply}
                       >
-                        <Heart className="w-5 h-5 mr-2" />
-                        Apply to Adopt
+                        <Home className="w-5 h-5 mr-2" />
+                        {t('applyToAdopt', language)}
                       </Button>
                     )}
                   </>
@@ -394,7 +412,7 @@ export default function AdoptionListingDetails() {
                     className="w-full"
                     onClick={() => navigate(createPageUrl(`ManageAdoptionListings`))}
                   >
-                    Manage Listing
+                    {t('manageListing', language)}
                   </Button>
                 )}
 
@@ -404,7 +422,7 @@ export default function AdoptionListingDetails() {
                   onClick={handleShare}
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Share
+                  {t('share', language)}
                 </Button>
               </CardContent>
             </Card>
@@ -412,18 +430,18 @@ export default function AdoptionListingDetails() {
             {/* Contact Info */}
             <Card className="border-0 shadow-xl">
               <CardHeader>
-                <CardTitle className="text-lg">Contact Information</CardTitle>
+                <CardTitle className="text-lg">{t('contactInformation', language)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {listing.shelter_name && (
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Organization</div>
+                    <div className="text-sm text-gray-600 mb-1">{t('organization', language)}</div>
                     <div className="font-semibold">{listing.shelter_name}</div>
                   </div>
                 )}
                 
                 <div>
-                  <div className="text-sm text-gray-600 mb-1">Location</div>
+                  <div className="text-sm text-gray-600 mb-1">{t('location', language)}</div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-purple-600" />
                     <span>{listing.location_city}, {listing.location_country}</span>
@@ -445,7 +463,7 @@ export default function AdoptionListingDetails() {
 
                 {listing.contact_phone && (
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Phone</div>
+                    <div className="text-sm text-gray-600 mb-1">{language === 'pt' ? 'Telefone' : language === 'es' ? 'Teléfono' : 'Phone'}</div>
                     <a 
                       href={`tel:${listing.contact_phone}`}
                       className="flex items-center gap-2 text-purple-600 hover:text-purple-700"
@@ -462,17 +480,17 @@ export default function AdoptionListingDetails() {
             <Card className="border-0 shadow-xl">
               <CardContent className="p-6 space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Posted</span>
+                  <span className="text-gray-600">{t('posted', language)}</span>
                   <span className="font-semibold">
-                    {listing.date_posted ? format(new Date(listing.date_posted), 'MMM d, yyyy') : 'Recently'}
+                    {listing.date_posted ? format(new Date(listing.date_posted), 'MMM d, yyyy') : (language === 'pt' ? 'Recentemente' : language === 'es' ? 'Recientemente' : 'Recently')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Views</span>
+                  <span className="text-gray-600">{t('views', language)}</span>
                   <span className="font-semibold">{listing.views_count || 0}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Applications</span>
+                  <span className="text-gray-600">{t('applications', language)}</span>
                   <span className="font-semibold">{listing.applications_count || 0}</span>
                 </div>
               </CardContent>

@@ -151,16 +151,16 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
-    { title: language === 'pt' ? 'Serviços Parceiros' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
+    { title: language === 'pt' ? 'Serviços Parceiros' : language === 'es' ? 'Servicios Asociados' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
-    { title: language === 'pt' ? '🏡 Adotar Pet' : '🏡 Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Heart },
+    // { title: language === 'pt' ? '🏡 Adotar Pet' : '🏡 Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Heart }, // Moved to adminItem
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
-    { title: language === 'pt' ? 'Gamificação' : 'Gamification', url: createPageUrl("Gamification"), icon: Trophy },
+    { title: language === 'pt' ? 'Gamificação' : language === 'es' ? 'Gamificación' : 'Gamification', url: createPageUrl("Gamification"), icon: Trophy },
     { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
     { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
@@ -173,12 +173,13 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
-    { title: language === 'pt' ? 'Aprovar Anúncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
-    { title: language === 'pt' ? 'Config. Pagamentos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield }
+    { title: language === 'pt' ? 'Aprovar Anúncios' : language === 'es' ? 'Aprobar Anuncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
+    { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield },
+    { title: language === 'pt' ? '🏡 Adoções' : language === 'es' ? '🏡 Adopciones' : '🏡 Adoptions', url: createPageUrl("AdoptionListings"), icon: Home }
   ] : [];
 
   const moderatorItem = (user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
-    { title: language === 'pt' ? 'Moderação' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
+    { title: language === 'pt' ? 'Moderação' : language === 'es' ? 'Moderación' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
   const companyItem = user?.account_type === 'company' ? [
@@ -195,7 +196,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 8; // Changed from 7 to 8 to include adoption
+  const mainMenuCount = 7; // Changed from 8 to 7, adoption moved out
   const myActivityCount = 9;
   const professionalServicesCount = 6;
   
