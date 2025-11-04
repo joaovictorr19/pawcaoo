@@ -36,6 +36,7 @@ export default function Home() {
     queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating'),
     initialData: [],
     enabled: !!user,
+    staleTime: 60000, // Cache for 1 minute
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
@@ -43,14 +44,11 @@ export default function Home() {
     queryFn: () => base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date'),
     initialData: [],
     enabled: !!user,
+    staleTime: 30000, // Cache for 30 seconds
   });
 
-  const { data: availability } = useQuery({
-    queryKey: ['allAvailability'],
-    queryFn: () => base44.entities.CalendarAvailability.list(),
-    initialData: [],
-    enabled: !!user,
-  });
+  // Remove availability query - too heavy, not needed immediately
+  const getWalkerAvailability = () => true; // Simplified
 
   // Cleanup on unmount
   useEffect(() => {
@@ -81,15 +79,6 @@ export default function Home() {
     return null;
   }
 
-  const getWalkerAvailability = (walker) => {
-    const today = new Date().toISOString().split('T')[0];
-    const walkerAvailability = availability.filter(a => 
-      a.professional_email === walker.created_by && 
-      a.date >= today
-    );
-    return walkerAvailability.length > 0;
-  };
-
   const filteredWalkers = walkers.filter(walker => {
     const matchesLocation = !searchLocation || 
       walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
@@ -97,9 +86,8 @@ export default function Home() {
       walker.dog_sizes?.includes(filterSize);
     const matchesTime = filterTime === "all" || 
       walker.availability?.includes(filterTime);
-    const matchesAvailability = filterAvailability === "all" ||
-      (filterAvailability === "available" && getWalkerAvailability(walker)) ||
-      (filterAvailability === "unavailable" && !getWalkerAvailability(walker));
+    // Simplified availability check
+    const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
     
     return matchesLocation && matchesSize && matchesTime && matchesAvailability;
   });

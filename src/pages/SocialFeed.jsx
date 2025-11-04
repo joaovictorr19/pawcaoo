@@ -267,8 +267,8 @@ export default function SocialFeed() {
   };
 
   const handleCreatePost = () => {
-    if (!newPostContent.trim()) {
-      toast.error("Escreva algo para publicar!");
+    if (!newPostContent.trim() && mediaUrls.length === 0) {
+      toast.error("Adicione texto ou uma foto para publicar!");
       return;
     }
 
@@ -276,11 +276,13 @@ export default function SocialFeed() {
       author_email: user.email,
       author_name: user.full_name,
       author_photo_url: user.profile_photo_url,
+      author_city: user.city,
       dog_name: newPostDogName,
       content: newPostContent,
       media_urls: mediaUrls,
       media_type: mediaUrls.length > 1 ? 'album' : mediaUrls.length === 1 ? 'photo' : null,
-      is_public: true
+      is_public: true,
+      moderation_status: 'approved'
     });
   };
 
@@ -335,16 +337,35 @@ export default function SocialFeed() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <Camera className="w-7 h-7 text-white" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <Camera className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-black text-gray-900">
+                  PawCão Social
+                </h1>
+                <p className="text-gray-600 font-medium">Conecte-se com outros donos e descubra novidades</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-black text-gray-900">
-                PawCão Social
-              </h1>
-              <p className="text-gray-600 font-medium">Conecte-se com outros donos e descubra novidades</p>
-            </div>
+
+            {/* Profile Button */}
+            {user && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(createPageUrl(`UserProfile?email=${user.email}`))}
+                className="flex items-center gap-2 border-2 hover:bg-purple-50"
+              >
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={user.profile_photo_url} />
+                  <AvatarFallback className="bg-purple-600 text-white">
+                    {user.full_name?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-semibold hidden md:inline">Meu Perfil</span>
+              </Button>
+            )}
           </div>
 
           {/* Stats Bar */}
@@ -482,7 +503,7 @@ export default function SocialFeed() {
                             </label>
                             <Button
                               onClick={handleCreatePost}
-                              disabled={createPostMutation.isPending || !newPostContent.trim()}
+                              disabled={createPostMutation.isPending || (!newPostContent.trim() && mediaUrls.length === 0)}
                               className="ml-auto bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl shadow-lg"
                             >
                               <Send className="w-4 h-4 mr-2" />

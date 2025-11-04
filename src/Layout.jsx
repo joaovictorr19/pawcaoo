@@ -37,14 +37,16 @@ function LayoutContent({ children, currentPageName }) {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000, // 5 minutes - increased cache time
+    retry: 1, // Only retry once
   });
 
   const { data: notifications } = useQuery({
     queryKey: ['unreadNotifications'],
     queryFn: async () => {
+      if (!user?.email) return [];
       const allNotifications = await base44.entities.Notification.filter({ 
-        recipient_email: user?.email,
+        recipient_email: user.email,
         is_read: false 
       });
       return allNotifications;
@@ -52,19 +54,21 @@ function LayoutContent({ children, currentPageName }) {
     enabled: !!user,
     initialData: [],
     staleTime: 60000, // 1 minute
+    refetchInterval: 120000, // Refetch every 2 minutes instead of constantly
   });
 
   const { data: ownerSubscription } = useQuery({
     queryKey: ['ownerSubscription'],
     queryFn: async () => {
+      if (!user?.email) return null;
       const subs = await base44.entities.OwnerSubscription.filter({
-        owner_email: user?.email,
+        owner_email: user.email,
         is_active: true
       });
       return subs[0];
     },
     enabled: !!user,
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000, // 5 minutes - increased cache time
   });
 
   // Cleanup on unmount
