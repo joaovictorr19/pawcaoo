@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -92,64 +93,65 @@ export default function Partners() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5 }}
+              className="mb-6"
             >
               <Badge className="bg-white/20 backdrop-blur-md text-white border-white/30 px-4 py-1.5 text-sm md:text-base mb-4">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Loja Oficial PawCão
+                Parceiros Oficiais
               </Badge>
             </motion.div>
 
-            <motion.h1
+            <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-4xl md:text-6xl font-black text-white mb-4 drop-shadow-lg"
+              className="mb-6"
             >
-              🛍️ PawPoints Shop
-            </motion.h1>
+              <h1 className="text-4xl md:text-7xl font-black text-white mb-3 drop-shadow-2xl tracking-tight">
+                PawCão
+                <span className="block text-2xl md:text-4xl font-bold bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent mt-2">
+                  MARKETPLACE
+                </span>
+              </h1>
+            </motion.div>
             
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-lg md:text-2xl text-white/90 mb-8 font-medium"
+              className="text-base md:text-xl text-white/90 mb-8 font-medium max-w-2xl mx-auto"
             >
-              Compre nos nossos parceiros e ganhe <span className="text-yellow-300 font-bold">PawPoints</span>!
+              Descubra produtos exclusivos e ganhe <span className="font-bold text-emerald-200">PawPoints</span> em cada compra
             </motion.p>
 
-            {/* PawPoints Display */}
+            {/* Compact PawPoints Display */}
             {user && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="max-w-md mx-auto mb-8"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 backdrop-blur-lg border-2 border-white/30 rounded-2xl px-4 md:px-6 py-3 shadow-2xl mb-8"
               >
-                <Card className="bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 border-0 shadow-2xl">
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
-                          <Star className="w-6 h-6 md:w-8 md:h-8 text-amber-500 fill-amber-500" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-white/90 text-xs md:text-sm font-medium">Seus PawPoints</p>
-                          <p className="text-2xl md:text-4xl font-black text-white">
-                            {loadingPoints ? "..." : (loyaltyPoints?.points_balance || 0).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
-                        className="bg-white text-amber-600 hover:bg-amber-50 font-bold shadow-lg"
-                        size="sm"
-                      >
-                        <Gift className="w-4 h-4 mr-2" />
-                        Resgatar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-200 fill-emerald-200" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white/70 text-xs md:text-sm font-medium">Seus PawPoints</p>
+                    <p className="text-xl md:text-3xl font-black text-white">
+                      {loadingPoints ? "..." : (loyaltyPoints?.points_balance || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="h-8 w-px bg-white/30 hidden md:block" />
+                <Button
+                  onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
+                  className="bg-white text-emerald-700 hover:bg-emerald-50 font-bold shadow-lg"
+                  size="sm"
+                >
+                  <Gift className="w-4 h-4 mr-2" />
+                  Resgatar
+                </Button>
               </motion.div>
             )}
 
