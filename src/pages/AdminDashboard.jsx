@@ -62,11 +62,14 @@ import {
   Flag,
   Heart, // Used for adoption advocate badge
   Sparkles, // Added for badges section
+  Award, // Added for custom badges
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 // Placeholder for createPageUrl function (if not already defined globally or in another utility)
 // In a real application, this would typically be a routing function or use Next.js/React Router hooks.
@@ -94,6 +97,13 @@ export default function AdminDashboard() {
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
   const [selectedUserForBadges, setSelectedUserForBadges] = useState(null);
   const [badgesFormData, setBadgesFormData] = useState({});
+  const [newCustomBadge, setNewCustomBadge] = useState({
+    name: "",
+    description: "",
+    icon: "⭐",
+    rarity: "common",
+    category: "special"
+  });
 
   // Check if user is admin
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -384,6 +394,47 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddCustomBadge = () => {
+    if (!newCustomBadge.name || !newCustomBadge.description) {
+      toast.error("Preencha nome e descrição do badge");
+      return;
+    }
+
+    const currentBadges = badgesFormData.public_badges || [];
+    const updatedBadges = [
+      ...currentBadges,
+      {
+        ...newCustomBadge,
+        badge_id: Date.now().toString(), // Simple unique ID for now
+        earned_date: new Date().toISOString()
+      }
+    ];
+
+    setBadgesFormData({
+      ...badgesFormData,
+      public_badges: updatedBadges
+    });
+
+    setNewCustomBadge({
+      name: "",
+      description: "",
+      icon: "⭐",
+      rarity: "common",
+      category: "special"
+    });
+
+    toast.success("Emblema adicionado! Clique em Salvar para confirmar");
+  };
+
+  const handleRemoveBadge = (badgeId) => {
+    const currentBadges = badgesFormData.public_badges || [];
+    setBadgesFormData({
+      ...badgesFormData,
+      public_badges: currentBadges.filter(b => b.badge_id !== badgeId)
+    });
+    toast.success("Emblema removido! Clique em Salvar para confirmar");
+  };
+
   // Calculate statistics
   const stats = {
     totalUsers: allUsers.length,
@@ -480,8 +531,8 @@ export default function AdminDashboard() {
               )}
             </TabsTrigger>
             <TabsTrigger value="badges" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-xs md:text-sm py-3 dark:text-gray-300 dark:data-[state=active]:bg-indigo-700">
-              <Shield className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Badges</span>
+              <Sparkles className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Emblemas</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1690,134 +1741,99 @@ export default function AdminDashboard() {
           <TabsContent value="badges">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700 mb-6">
               <CardHeader>
-                <CardTitle className="text-2xl dark:text-gray-100">Gestão de Badges e Selos</CardTitle>
+                <CardTitle className="text-2xl dark:text-gray-100 flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-yellow-500" />
+                  Gestão de Emblemas e Badges
+                </CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Gerencie badges especiais, selos de verificação e funções dos utilizadores. Apenas administradores podem editar.
+                  Gerencie badges, selos de verificação e emblemas personalizados dos utilizadores
                 </p>
               </CardHeader>
               <CardContent>
-                {/* Badge Types Info */}
-                <div className="grid md:grid-cols-4 gap-4 mb-8">
-                  <div className="p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-700">
-                    <ShieldCheck className="w-8 h-8 text-red-600 dark:text-red-400 mb-3" />
-                    <h4 className="font-bold text-red-900 dark:text-red-300 mb-2">Admin Total</h4>
-                    <p className="text-sm text-red-700 dark:text-red-400">
-                      Acesso total ao sistema e todas as funcionalidades
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
-                    <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-3" />
-                    <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2">Moderador Social</h4>
-                    <p className="text-sm text-blue-700 dark:text-blue-400">
-                      Pode moderar posts, gerir badges e fixar conteúdo no Dog Connect
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-700">
-                    <CheckCircle className="w-8 h-8 text-cyan-600 dark:text-cyan-400 mb-3" />
-                    <h4 className="font-bold text-cyan-900 dark:text-cyan-300 mb-2">Verificado</h4>
-                    <p className="text-sm text-cyan-700 dark:text-cyan-400">
-                      Badge para utilizadores verificados pela plataforma
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-pink-50 dark:bg-pink-900/20 rounded-xl border-2 border-pink-200 dark:border-pink-700">
-                    <Heart className="w-8 h-8 text-pink-600 dark:text-pink-400 mb-3" />
-                    <h4 className="font-bold text-pink-900 dark:text-pink-300 mb-2">Defensor de Adoção</h4>
-                    <p className="text-sm text-pink-700 dark:text-pink-400">
-                      Badge especial para defensores de adoção de animais
-                    </p>
-                  </div>
-                </div>
-
                 {/* Search */}
                 <div className="relative mb-6">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
-                    placeholder="Pesquisar utilizadores para gerir badges..."
+                    placeholder="Pesquisar utilizadores..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-11 h-12 rounded-xl border-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                   />
                 </div>
 
-                {/* Users List with Badges */}
-                <div className="grid md:grid-cols-2 gap-4">
+                {/* Users Grid */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {allUsers
                     .filter(u => 
                       u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
                     )
-                    .slice(0, 20)
-                    .map(user => (
-                      <Card key={user.id} className="border-2 border-indigo-100 dark:border-indigo-800 dark:bg-gray-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">
-                                {user.full_name || 'Sem Nome'}
+                    .slice(0, 30)
+                    .map(userItem => (
+                      <Card key={userItem.id} className="border-2 border-indigo-100 dark:border-indigo-800 dark:bg-gray-800 hover:shadow-lg transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3 mb-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={userItem.profile_photo_url} />
+                              <AvatarFallback className="bg-purple-600 text-white">
+                                {userItem.full_name?.[0]?.toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-sm dark:text-gray-100 truncate">
+                                {userItem.full_name || 'Sem Nome'}
                               </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                {user.email}
+                              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                                {userItem.email}
                               </p>
-                              
-                              {/* Current Badges */}
-                              <div className="flex flex-wrap gap-2">
-                                {user.role === 'admin' && (
-                                  <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
-                                    <ShieldCheck className="w-3 h-3 mr-1" />
-                                    Admin Total
-                                  </Badge>
-                                )}
-                                {user.social_role === 'moderator' && (
-                                  <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-                                    <Shield className="w-3 h-3 mr-1" />
-                                    Moderador
-                                  </Badge>
-                                )}
-                                {user.social_role === 'admin' && (
-                                  <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-                                    <ShieldCheck className="w-3 h-3 mr-1" />
-                                    Admin Social
-                                  </Badge>
-                                )}
-                                {user.is_verified && (
-                                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
-                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                    Verificado
-                                  </Badge>
-                                )}
-                                {user.is_adoption_advocate && (
-                                  <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
-                                    <Heart className="w-3 h-3 mr-1" />
-                                    Defensor Adoção
-                                  </Badge>
-                                )}
-                                {!user.is_verified && !user.is_adoption_advocate && user.role !== 'admin' && user.social_role !== 'moderator' && user.social_role !== 'admin' && (
-                                  <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-400">
-                                    Sem badges
-                                  </Badge>
-                                )}
-                              </div>
                             </div>
+                          </div>
+                          
+                          {/* Current Badges */}
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {userItem.is_verified && (
+                              <Badge className="bg-blue-500 text-white text-xs flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" />Verificado
+                              </Badge>
+                            )}
+                            {userItem.role === 'admin' && (
+                              <Badge className="bg-red-600 text-white text-xs flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3" />Admin
+                              </Badge>
+                            )}
+                            {userItem.social_role === 'moderator' && (
+                              <Badge className="bg-blue-600 text-white text-xs flex items-center gap-1">
+                                <Shield className="w-3 h-3" />Mod
+                              </Badge>
+                            )}
+                            {userItem.is_adoption_advocate && (
+                              <Badge className="bg-pink-500 text-white text-xs flex items-center gap-1">
+                                <Heart className="w-3 h-3" />Adoção
+                              </Badge>
+                            )}
+                            {userItem.public_badges && userItem.public_badges.length > 0 && (
+                              <Badge variant="outline" className="text-xs dark:border-gray-600">
+                                +{userItem.public_badges.length} emblemas
+                              </Badge>
+                            )}
                           </div>
 
                           <Button
                             onClick={() => {
-                              setSelectedUserForBadges(user);
+                              setSelectedUserForBadges(userItem);
                               setBadgesFormData({
-                                is_verified: user.is_verified || false,
-                                is_adoption_advocate: user.is_adoption_advocate || false,
-                                role: user.role || 'user',
-                                social_role: user.social_role || 'user',
+                                is_verified: userItem.is_verified || false,
+                                is_adoption_advocate: userItem.is_adoption_advocate || false,
+                                role: userItem.role || 'user',
+                                social_role: userItem.social_role || 'user',
+                                public_badges: userItem.public_badges || []
                               });
                               setShowBadgesDialog(true);
                             }}
-                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-xs h-8"
                           >
-                            <Shield className="w-4 h-4 mr-2" />
-                            Gerir Badges e Funções
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Gerir Emblemas
                           </Button>
                         </CardContent>
                       </Card>
@@ -1828,35 +1844,42 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Badges Management Dialog */}
+        {/* Badges Management Dialog - ENHANCED */}
         <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
-          <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="dark:text-gray-100 text-xl">
-                Gerir Badges e Funções - {selectedUserForBadges?.full_name || selectedUserForBadges?.email}
+              <DialogTitle className="dark:text-gray-100 text-xl flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-yellow-500" />
+                Gerir Emblemas - {selectedUserForBadges?.full_name || selectedUserForBadges?.email}
               </DialogTitle>
             </DialogHeader>
             
             {selectedUserForBadges && (
               <div className="space-y-6 py-4">
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    <strong>Email:</strong> {selectedUserForBadges.email}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <strong>Tipo de Conta:</strong> {selectedUserForBadges.account_type || 'owner'}
-                  </p>
+                {/* User Info */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 border-2 border-purple-200 dark:border-purple-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={selectedUserForBadges.profile_photo_url} />
+                      <AvatarFallback className="bg-purple-600 text-white">
+                        {selectedUserForBadges.full_name?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">{selectedUserForBadges.full_name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{selectedUserForBadges.email}</p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* System Roles Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <ShieldCheck className="w-6 h-6 text-red-600" />
-                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">Funções do Sistema</h3>
-                  </div>
+                {/* System Roles */}
+                <div className="space-y-3">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-red-600" />
+                    Funções do Sistema
+                  </h3>
                   
-                  {/* Admin Role */}
-                  <label className="flex items-start gap-4 p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-700 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+                  <label className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-700 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition">
                     <input
                       type="checkbox"
                       checked={badgesFormData.role === 'admin'}
@@ -1864,22 +1887,15 @@ export default function AdminDashboard() {
                         ...badgesFormData, 
                         role: e.target.checked ? 'admin' : 'user'
                       })}
-                      className="mt-1 w-5 h-5"
+                      className="mt-1 w-4 h-4"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ShieldCheck className="w-5 h-5 text-red-600 dark:text-red-400" />
-                        <h4 className="font-bold text-red-900 dark:text-red-300">Administrador Total</h4>
-                      </div>
-                      <p className="text-sm text-red-700 dark:text-red-400">
-                        ⚠️ <strong>PODER TOTAL:</strong> Acesso completo a todas as funcionalidades, dados e configurações.
-                        Pode aprovar anúncios, gerir pagamentos, configurar sistema, editar qualquer conteúdo.
-                      </p>
+                    <div>
+                      <h4 className="font-bold text-red-900 dark:text-red-300 mb-1">🛡️ Administrador Total</h4>
+                      <p className="text-sm text-red-700 dark:text-red-400">Acesso total ao sistema</p>
                     </div>
                   </label>
 
-                  {/* Social Role - Moderator */}
-                  <label className="flex items-start gap-4 p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                  <label className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
                     <input
                       type="checkbox"
                       checked={badgesFormData.social_role === 'moderator'}
@@ -1887,22 +1903,15 @@ export default function AdminDashboard() {
                         ...badgesFormData, 
                         social_role: e.target.checked ? 'moderator' : 'user'
                       })}
-                      className="mt-1 w-5 h-5"
+                      className="mt-1 w-4 h-4"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <h4 className="font-bold text-blue-900 dark:text-blue-300">Moderador (Dog Connect)</h4>
-                      </div>
-                      <p className="text-sm text-blue-700 dark:text-blue-400">
-                        🛡️ Pode moderar posts no Dog Connect, remover conteúdo inapropriado, fixar posts importantes,
-                        gerir reports e banir usuários problemáticos.
-                      </p>
+                    <div>
+                      <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-1">🛡️ Moderador (Dog Connect)</h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">Pode moderar posts e conteúdo</p>
                     </div>
                   </label>
 
-                  {/* Social Role - Admin */}
-                  <label className="flex items-start gap-4 p-5 bg-purple-50 dark:bg-purple-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                  <label className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition">
                     <input
                       type="checkbox"
                       checked={badgesFormData.social_role === 'admin'}
@@ -1910,82 +1919,182 @@ export default function AdminDashboard() {
                         ...badgesFormData, 
                         social_role: e.target.checked ? 'admin' : 'user'
                       })}
-                      className="mt-1 w-5 h-5"
+                      className="mt-1 w-4 h-4"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <h4 className="font-bold text-purple-900 dark:text-purple-300">Admin Social (Dog Connect)</h4>
-                      </div>
-                      <p className="text-sm text-purple-700 dark:text-purple-400">
-                        👑 Controle total sobre o Dog Connect: tudo que o moderador pode + gerenciar outros moderadores,
-                        configurar regras, acessar analytics avançados.
-                      </p>
+                    <div>
+                      <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-1">👑 Admin Social (Dog Connect)</h4>
+                      <p className="text-sm text-purple-700 dark:text-purple-400">Controle total no Dog Connect</p>
                     </div>
                   </label>
                 </div>
 
-                {/* Badges Section */}
-                <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-6 h-6 text-cyan-600" />
-                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">Badges Especiais</h3>
-                  </div>
+                {/* Special Badges */}
+                <div className="space-y-3">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-cyan-600" />
+                    Badges Especiais
+                  </h3>
 
-                  {/* Verified Badge */}
-                  <label className="flex items-start gap-4 p-5 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-700 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors">
+                  <label className="flex items-start gap-3 p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-700 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition">
                     <input
                       type="checkbox"
                       checked={badgesFormData.is_verified || false}
                       onChange={(e) => setBadgesFormData({...badgesFormData, is_verified: e.target.checked})}
-                      className="mt-1 w-5 h-5"
+                      className="mt-1 w-4 h-4"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-                        <h4 className="font-bold text-cyan-900 dark:text-cyan-300">Utilizador Verificado</h4>
-                      </div>
-                      <p className="text-sm text-cyan-700 dark:text-cyan-400">
-                        Este badge indica que o utilizador foi verificado pela plataforma PawCão.
-                        Aparece como um selo azul ✓ no perfil e posts.
-                      </p>
+                    <div>
+                      <h4 className="font-bold text-cyan-900 dark:text-cyan-300 mb-1">✓ Verificado</h4>
+                      <p className="text-sm text-cyan-700 dark:text-cyan-400">Selo azul ao lado do nome</p>
                     </div>
                   </label>
 
-                  {/* Adoption Advocate Badge */}
-                  <label className="flex items-start gap-4 p-5 bg-pink-50 dark:bg-pink-900/20 rounded-xl border-2 border-pink-200 dark:border-pink-700 cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors">
+                  <label className="flex items-start gap-3 p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl border-2 border-pink-200 dark:border-pink-700 cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-900/30 transition">
                     <input
                       type="checkbox"
                       checked={badgesFormData.is_adoption_advocate || false}
                       onChange={(e) => setBadgesFormData({...badgesFormData, is_adoption_advocate: e.target.checked})}
-                      className="mt-1 w-5 h-5"
+                      className="mt-1 w-4 h-4"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-                        <h4 className="font-bold text-pink-900 dark:text-pink-300">Defensor de Adoção</h4>
-                      </div>
-                      <p className="text-sm text-pink-700 dark:text-pink-400">
-                        Badge especial para utilizadores ativos na causa da adoção de animais.
-                        Aparece como um selo rosa ❤️ no perfil e posts.
-                      </p>
+                    <div>
+                      <h4 className="font-bold text-pink-900 dark:text-pink-300 mb-1">💖 Defensor de Adoção</h4>
+                      <p className="text-sm text-pink-700 dark:text-pink-400">Badge especial de adoção</p>
                     </div>
                   </label>
                 </div>
 
-                {/* Warning */}
-                <div className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-bold text-amber-900 dark:text-amber-300 mb-2">⚠️ Atenção</h4>
-                      <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
-                        <li>• <strong>Admin Total:</strong> Tenha cuidado ao dar este poder - não há restrições!</li>
-                        <li>• <strong>Moderador/Admin Social:</strong> Podem moderar conteúdo mas não têm acesso ao sistema geral</li>
-                        <li>• Badges podem ser combinados (ex: Verificado + Defensor Adoção)</li>
-                      </ul>
-                    </div>
+                {/* Custom Community Badges */}
+                <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg flex items-center gap-2">
+                      <Award className="w-5 h-5 text-purple-600" />
+                      Emblemas Personalizados
+                    </h3>
+                    <Badge className="bg-purple-600">
+                      {(badgesFormData.public_badges || []).length} emblemas
+                    </Badge>
                   </div>
+
+                  {/* Add New Badge Form */}
+                  <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700">
+                    <CardContent className="p-4">
+                      <h4 className="font-bold text-sm mb-3">➕ Adicionar Novo Emblema</h4>
+                      <div className="grid md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <Label className="text-xs dark:text-gray-300">Nome do Emblema</Label>
+                          <Input
+                            value={newCustomBadge.name}
+                            onChange={(e) => setNewCustomBadge({...newCustomBadge, name: e.target.value})}
+                            placeholder="Ex: Criador Ativo"
+                            className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs dark:text-gray-300">Ícone (Emoji)</Label>
+                          <Input
+                            value={newCustomBadge.icon}
+                            onChange={(e) => setNewCustomBadge({...newCustomBadge, icon: e.target.value})}
+                            placeholder="⭐"
+                            className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                            maxLength={2}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs dark:text-gray-300">Raridade</Label>
+                          <Select 
+                            value={newCustomBadge.rarity} 
+                            onValueChange={(v) => setNewCustomBadge({...newCustomBadge, rarity: v})}
+                          >
+                            <SelectTrigger className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                              <SelectItem value="common" className="dark:hover:bg-gray-700">Comum</SelectItem>
+                              <SelectItem value="rare" className="dark:hover:bg-gray-700">Raro</SelectItem>
+                              <SelectItem value="epic" className="dark:hover:bg-gray-700">Épico</SelectItem>
+                              <SelectItem value="legendary" className="dark:hover:bg-gray-700">Lendário</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs dark:text-gray-300">Categoria</Label>
+                          <Select 
+                            value={newCustomBadge.category} 
+                            onValueChange={(v) => setNewCustomBadge({...newCustomBadge, category: v})}
+                          >
+                            <SelectTrigger className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                              <SelectItem value="social" className="dark:hover:bg-gray-700">Social</SelectItem>
+                              <SelectItem value="activity" className="dark:hover:bg-gray-700">Atividade</SelectItem>
+                              <SelectItem value="milestone" className="dark:hover:bg-gray-700">Marco</SelectItem>
+                              <SelectItem value="special" className="dark:hover:bg-gray-700">Especial</SelectItem>
+                              <SelectItem value="professional" className="dark:hover:bg-gray-700">Profissional</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <Label className="text-xs dark:text-gray-300">Descrição</Label>
+                        <Textarea
+                          value={newCustomBadge.description}
+                          onChange={(e) => setNewCustomBadge({...newCustomBadge, description: e.target.value})}
+                          placeholder="Descreva o que este emblema representa"
+                          rows={2}
+                          className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleAddCustomBadge}
+                        className="w-full bg-purple-600 hover:bg-purple-700 h-9 text-sm"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Adicionar Emblema
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Current Badges List */}
+                  {(badgesFormData.public_badges || []).length > 0 && (
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {(badgesFormData.public_badges || []).map((badge) => (
+                        <Card key={badge.badge_id} className={`border-2 ${
+                          badge.rarity === 'legendary' ? 'border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20' :
+                          badge.rarity === 'epic' ? 'border-purple-400 bg-purple-50/50 dark:bg-purple-900/20' :
+                          badge.rarity === 'rare' ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-900/20' :
+                          'border-gray-300 bg-gray-50/50 dark:bg-gray-700/20'
+                        } dark:text-gray-100`}>
+                          <CardContent className="p-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-2xl">{badge.icon}</span>
+                                <div>
+                                  <h5 className="font-bold text-sm dark:text-gray-100">{badge.name}</h5>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">{badge.description}</p>
+                                  <Badge className={`mt-1 text-xs capitalize ${
+                                    badge.rarity === 'legendary' ? 'bg-yellow-500' :
+                                    badge.rarity === 'epic' ? 'bg-purple-500' :
+                                    badge.rarity === 'rare' ? 'bg-blue-500' :
+                                    'bg-gray-500'
+                                  }`}>
+                                    {badge.rarity}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveBadge(badge.badge_id)}
+                                className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 h-7 w-7"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

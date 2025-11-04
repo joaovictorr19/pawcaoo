@@ -144,27 +144,25 @@ export default function UserProfile() {
     { id: 4, title: "Visitar Dog Connect", reward: 20, completed: true },
   ];
 
-  // High-quality 3D Badge Generator - Twitter/X Style
-  const getPixelBadge = (type, data = {}, transparent = false) => {
-    const bgColor = transparent ? 'none' : '%23ffffff';
-    
+  // High-Quality 3D Badges - Twitter/Premium Style
+  const getBadgeImage = (type, data = {}, transparent = false) => {
     const badges = {
-      // Twitter-style Blue Checkmark - Ultra High Quality 3D
-      verified: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='vgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%231D9BF0;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%230E7BBF;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%230A5A8F;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='vshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.6' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='vshadow' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4' result='offsetblur'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='40' cy='44' r='32' fill='%23000000' opacity='0.15'/%3E%3Ccircle cx='40' cy='40' r='35' fill='url(%23vgrad)' filter='url(%23vshadow)'/%3E%3Ccircle cx='40' cy='40' r='35' fill='url(%23vshine)' opacity='0.4'/%3E%3Cpath d='M 30 40 L 36 48 L 52 30' stroke='%23ffffff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round' fill='none' filter='url(%23vshadow)'/%3E%3C/svg%3E`,
+      // Twitter Blue Checkmark - Ultra Premium 3D
+      verified: `data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='vg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%231DA1F2;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%230A66C2;stop-opacity:1'/%3E%3C/linearGradient%3E%3CradialGradient id='vs'%3E%3Cstop offset='0%25' style='stop-color:%23fff;stop-opacity:0.5'/%3E%3Cstop offset='100%25' style='stop-color:%23fff;stop-opacity:0'/%3E%3C/radialGradient%3E%3Cfilter id='vsh'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3CfeOffset dy='2'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.25'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='24' cy='26' r='18' fill='%23000' opacity='0.1'/%3E%3Ccircle cx='24' cy='24' r='20' fill='url(%23vg)' filter='url(%23vsh)'/%3E%3Ccircle cx='24' cy='24' r='20' fill='url(%23vs)'/%3E%3Cpath d='M18 24l4 5 8-10' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
       
-      // Premium Gold Admin Shield - 3D Isometric
-      admin: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='agrad1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFD700;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23FFA500;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF6347;stop-opacity:1' /%3E%3C/linearGradient%3E%3ClinearGradient id='agrad2' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFE55C;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FFA500;stop-opacity:1' /%3E%3C/linearGradient%3E%3Cfilter id='ashadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3CradialGradient id='ashine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M 40 12 L 60 25 L 60 50 L 40 68 L 20 50 L 20 25 Z' fill='%23000000' opacity='0.2' transform='translate(0,4)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23agrad1)' filter='url(%23ashadow)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23ashine)' opacity='0.4'/%3E%3Cpath d='M 40 18 L 54 26 L 54 44 L 40 56 L 26 44 L 26 26 Z' fill='url(%23agrad2)' opacity='0.7'/%3E%3Cpath d='M 36 34 L 34 38 L 38 42 L 42 42 L 46 38 L 44 34 L 40 32 Z' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='40' cy='38' r='3' fill='%23FFD700'/%3E%3C/svg%3E`,
+      // Red/Gold Admin Shield - Premium 3D
+      admin: `data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='ag1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23DC2626'/%3E%3Cstop offset='50%25' style='stop-color:%23B91C1C'/%3E%3Cstop offset='100%25' style='stop-color:%23991B1B'/%3E%3C/linearGradient%3E%3ClinearGradient id='ag2' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%23FCD34D'/%3E%3Cstop offset='50%25' style='stop-color:%23F59E0B'/%3E%3Cstop offset='100%25' style='stop-color:%23D97706'/%3E%3C/linearGradient%3E%3CradialGradient id='as'%3E%3Cstop offset='0%25' style='stop-color:%23fff;stop-opacity:0.6'/%3E%3Cstop offset='100%25' style='stop-color:%23fff;stop-opacity:0'/%3E%3C/radialGradient%3E%3Cfilter id='ash'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3CfeOffset dy='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M24 6L36 12v14c0 8-12 14-12 14s-12-6-12-14V12z' fill='%23000' opacity='0.15' transform='translate(0,3)'/%3E%3Cpath d='M24 4L36 10v14c0 8-12 14-12 14s-12-6-12-14V10z' fill='url(%23ag1)' filter='url(%23ash)'/%3E%3Cpath d='M24 4L36 10v14c0 8-12 14-12 14s-12-6-12-14V10z' fill='url(%23as)' opacity='0.3'/%3E%3Cpath d='M24 10L32 14v10c0 5-8 9-8 9s-8-4-8-9V14z' fill='url(%23ag2)' opacity='0.8'/%3E%3Cpath d='M21 20l2 3 5-6' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E`,
       
-      // Elegant Blue Moderator Shield - 3D
-      moderator: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='mgrad1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%235B8DEE;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%233B82F6;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%232563EB;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='mshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.6' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='mshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M 40 12 L 60 25 L 60 50 L 40 68 L 20 50 L 20 25 Z' fill='%23000000' opacity='0.2' transform='translate(0,4)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23mgrad1)' filter='url(%23mshadow)'/%3E%3Cpath d='M 40 10 L 60 23 L 60 48 L 40 66 L 20 48 L 20 23 Z' fill='url(%23mshine)' opacity='0.3'/%3E%3Cpath d='M 40 20 L 52 28 L 52 42 L 40 52 L 28 42 L 28 28 Z' fill='%23DBEAFE' opacity='0.5'/%3E%3Cpath d='M 36 34 L 38 38 L 42 38 L 44 34 L 42 30 L 38 30 Z' fill='%23ffffff' opacity='0.8'/%3E%3C/svg%3E`,
+      // Blue Moderator Shield - Premium 3D
+      moderator: `data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='mg1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233B82F6'/%3E%3Cstop offset='50%25' style='stop-color:%232563EB'/%3E%3Cstop offset='100%25' style='stop-color:%231D4ED8'/%3E%3C/linearGradient%3E%3CradialGradient id='ms'%3E%3Cstop offset='0%25' style='stop-color:%23fff;stop-opacity:0.5'/%3E%3Cstop offset='100%25' style='stop-color:%23fff;stop-opacity:0'/%3E%3C/radialGradient%3E%3Cfilter id='msh'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3CfeOffset dy='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M24 6L36 12v14c0 8-12 14-12 14s-12-6-12-14V12z' fill='%23000' opacity='0.15' transform='translate(0,3)'/%3E%3Cpath d='M24 4L36 10v14c0 8-12 14-12 14s-12-6-12-14V10z' fill='url(%23mg1)' filter='url(%23msh)'/%3E%3Cpath d='M24 4L36 10v14c0 8-12 14-12 14s-12-6-12-14V10z' fill='url(%23ms)' opacity='0.3'/%3E%3Cpath d='M24 12L32 16v9c0 4.5-8 8-8 8s-8-3.5-8-8v-9z' fill='%2393C5FD' opacity='0.4'/%3E%3Crect x='22' y='18' width='4' height='8' fill='%23fff' rx='1'/%3E%3Crect x='20' y='22' width='8' height='4' fill='%23fff' rx='1'/%3E%3C/svg%3E`,
       
-      // Pink Heart Adoption Advocate - 3D
-      adoption: `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='hgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF69B4;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23EC4899;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23DB2777;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='hshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.7' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='hshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M 28 26 Q 24 20 18 20 Q 10 20 10 30 Q 10 40 40 60 Q 70 40 70 30 Q 70 20 62 20 Q 56 20 52 26 Q 48 30 40 36 Q 32 30 28 26 Z' fill='%23000000' opacity='0.15' transform='translate(0,4)'/%3E%3Cpath d='M 28 24 Q 24 18 18 18 Q 10 18 10 28 Q 10 38 40 58 Q 70 38 70 28 Q 70 18 62 18 Q 56 18 52 24 Q 48 28 40 34 Q 32 28 28 24 Z' fill='url(%23hgrad)' filter='url(%23hshadow)'/%3E%3Cellipse cx='28' cy='28' rx='12' ry='10' fill='url(%23hshine)' opacity='0.5'/%3E%3C/svg%3E`,
+      // Pink Heart Adoption - 3D
+      adoption: `data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='hg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF69B4'/%3E%3Cstop offset='100%25' style='stop-color:%23DB2777'/%3E%3C/linearGradient%3E%3CradialGradient id='hs'%3E%3Cstop offset='0%25' style='stop-color:%23fff;stop-opacity:0.6'/%3E%3Cstop offset='100%25' style='stop-color:%23fff;stop-opacity:0'/%3E%3C/radialGradient%3E%3Cfilter id='hsh'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3CfeOffset dy='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.25'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M16 14c-4 0-7 3-7 7 0 8 15 19 15 19s15-11 15-19c0-4-3-7-7-7-2.5 0-4.7 1.3-6 3.3-1.3-2-3.5-3.3-6-3.3z' fill='%23000' opacity='0.12' transform='translate(0,3)'/%3E%3Cpath d='M16 12c-4 0-7 3-7 7 0 8 15 19 15 19s15-11 15-19c0-4-3-7-7-7-2.5 0-4.7 1.3-6 3.3-1.3-2-3.5-3.3-6-3.3z' fill='url(%23hg)' filter='url(%23hsh)'/%3E%3Cellipse cx='18' cy='16' rx='8' ry='6' fill='url(%23hs)'/%3E%3C/svg%3E`,
       
-      // Golden Level Badge - 3D Coin Style
+      // Golden Level Badge - 3D Coin
       level: (level) => {
         const lvl = level || 1;
-        return `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='lgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFD700;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23FFA500;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF8C00;stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='lshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='lshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='3'/%3E%3CfeOffset dx='0' dy='5'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.4'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='50' rx='28' ry='8' fill='%23000000' opacity='0.2'/%3E%3Ccircle cx='40' cy='40' r='30' fill='url(%23lgrad)' filter='url(%23lshadow)'/%3E%3Ccircle cx='40' cy='40' r='28' fill='%23B8860B' opacity='0.3'/%3E%3Ccircle cx='40' cy='40' r='25' fill='%23FFD700' opacity='0.5'/%3E%3Cellipse cx='35' cy='30' rx='15' ry='12' fill='url(%23lshine)' opacity='0.6'/%3E%3Ctext x='40' y='50' font-family='Arial,sans-serif' font-size='28' font-weight='bold' fill='%23ffffff' text-anchor='middle' stroke='%23B8860B' stroke-width='1'%3E${lvl}%3C/text%3E%3C/svg%3E`;
+        return `data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 56 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='lg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FFD700'/%3E%3Cstop offset='50%25' style='stop-color:%23FFA500'/%3E%3Cstop offset='100%25' style='stop-color:%23FF8C00'/%3E%3C/linearGradient%3E%3CradialGradient id='ls'%3E%3Cstop offset='0%25' style='stop-color:%23fff;stop-opacity:0.7'/%3E%3Cstop offset='100%25' style='stop-color:%23fff;stop-opacity:0'/%3E%3C/radialGradient%3E%3Cfilter id='lsh'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3CfeOffset dy='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='28' cy='34' rx='22' ry='6' fill='%23000' opacity='0.15'/%3E%3Ccircle cx='28' cy='28' r='24' fill='url(%23lg)' filter='url(%23lsh)'/%3E%3Ccircle cx='28' cy='28' r='22' fill='%23B8860B' opacity='0.2'/%3E%3Ccircle cx='28' cy='28' r='20' fill='%23FFD700' opacity='0.4'/%3E%3Cellipse cx='23' cy='20' rx='12' ry='9' fill='url(%23ls)'/%3E%3Ctext x='28' y='35' font-family='Arial,sans-serif' font-size='20' font-weight='bold' fill='%23fff' text-anchor='middle' stroke='%23B8860B' stroke-width='0.5'%3E${lvl}%3C/text%3E%3C/svg%3E`;
       },
       
       // Community Badges - High Quality 3D
@@ -173,35 +171,20 @@ export default function UserProfile() {
         const icon = badge?.icon || '⭐';
         
         const colors = {
-          legendary: {
-            grad1: '%23FFD700', grad2: '%23FFA500', grad3: '%23FF8C00',
-            shine: '%23FFFACD', border: '%23B8860B'
-          },
-          epic: {
-            grad1: '%23C084FC', grad2: '%23A855F7', grad3: '%238B5CF6',
-            shine: '%23F3E8FF', border: '%236B21A8'
-          },
-          rare: {
-            grad1: '%2360A5FA', grad2: '%233B82F6', grad3: '%232563EB',
-            shine: '%23DBEAFE', border: '%231E40AF'
-          },
-          common: {
-            grad1: '%239CA3AF', grad2: '%236B7280', grad3: '%234B5563',
-            shine: '%23E5E7EB', border: '%23374151'
-          }
+          legendary: { g1: '%23FFD700', g2: '%23FFA500', g3: '%23FF8C00', border: '%23B8860B' },
+          epic: { g1: '%23C084FC', g2: '%23A855F7', g3: '%238B5CF6', border: '%236B21A8' },
+          rare: { g1: '%2360A5FA', g2: '%233B82F6', g3: '%232563EB', border: '%231E40AF' },
+          common: { g1: '%239CA3AF', g2: '%236B7280', g3: '%234B5563', border: '%23374151' }
         };
         
         const c = colors[rarity];
         
-        return `data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='cgrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:${c.grad1};stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:${c.grad2};stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:${c.grad3};stop-opacity:1' /%3E%3C/linearGradient%3E%3CradialGradient id='cshine'%3E%3Cstop offset='0%25' style='stop-color:%23ffffff;stop-opacity:0.7' /%3E%3Cstop offset='100%25' style='stop-color:%23ffffff;stop-opacity:0' /%3E%3C/radialGradient%3E%3Cfilter id='cshadow'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='4'/%3E%3CfeOffset dx='0' dy='6'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.35'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Crect x='18' y='22' width='64' height='64' rx='16' fill='%23000000' opacity='0.15'/%3E%3Crect x='15' y='15' width='70' height='70' rx='18' fill='url(%23cgrad)' filter='url(%23cshadow)'/%3E%3Crect x='18' y='18' width='64' height='64' rx='16' fill='${c.border}' opacity='0.3'/%3E%3Crect x='22' y='22' width='56' height='56' rx='14' fill='url(%23cgrad)' opacity='0.6'/%3E%3Cellipse cx='38' cy='32' rx='20' ry='16' fill='url(%23cshine)' opacity='0.5'/%3E%3Ctext x='50' y='68' font-size='42' text-anchor='middle'%3E${icon}%3C/text%3E%3C/svg%3E`;
+        return `data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='cg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:${c.g1}'/%3E%3Cstop offset='50%25' style='stop-color:${c.g2}'/%3E%3Cstop offset='100%25' style='stop-color:${c.g3}'/%3E%3C/linearGradient%3E%3CradialGradient id='cs'%3E%3Cstop offset='0%25' style='stop-color:%23fff;stop-opacity:0.6'/%3E%3Cstop offset='100%25' style='stop-color:%23fff;stop-opacity:0'/%3E%3C/radialGradient%3E%3Cfilter id='csh'%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3CfeOffset dy='4'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.3'/%3E%3C/feComponentTransfer%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Crect x='12' y='16' width='56' height='56' rx='14' fill='%23000' opacity='0.12'/%3E%3Crect x='10' y='10' width='60' height='60' rx='16' fill='url(%23cg)' filter='url(%23csh)'/%3E%3Crect x='14' y='14' width='52' height='52' rx='14' fill='${c.border}' opacity='0.25'/%3E%3Crect x='18' y='18' width='44' height='44' rx='12' fill='url(%23cg)' opacity='0.5'/%3E%3Cellipse cx='32' cy='28' rx='16' ry='12' fill='url(%23cs)'/%3E%3Ctext x='40' y='56' font-size='34' text-anchor='middle'%3E${icon}%3C/text%3E%3C/svg%3E`;
       }
     };
     
-    if (type === 'level') {
-      return badges.level(data);
-    } else if (type === 'community') {
-      return badges.community(data);
-    }
+    if (type === 'level') return badges.level(data);
+    if (type === 'community') return badges.community(data);
     return badges[type] || null;
   };
 
@@ -237,75 +220,6 @@ export default function UserProfile() {
     );
   }
 
-  const getBadges = () => {
-    const badges = [];
-    if (profileUser.role === 'admin') {
-      badges.push(
-        <div key="admin" className="relative group cursor-pointer">
-          <img 
-            src={getPixelBadge('admin', null, false)} 
-            alt="Admin" 
-            className="w-10 h-10 hover:scale-110 transition-transform drop-shadow-lg" 
-          />
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-              🛡️ Administrador
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (profileUser.social_role === 'moderator') {
-      badges.push(
-        <div key="mod" className="relative group cursor-pointer">
-          <img 
-            src={getPixelBadge('moderator', null, false)} 
-            alt="Moderator" 
-            className="w-10 h-10 hover:scale-110 transition-transform drop-shadow-lg" 
-          />
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-              🛡️ Moderador
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (profileUser.is_verified) {
-      badges.push(
-        <div key="verified" className="relative group cursor-pointer">
-          <img 
-            src={getPixelBadge('verified', null, false)} 
-            alt="Verificado" 
-            className="w-8 h-8 hover:scale-110 transition-transform drop-shadow-lg" 
-          />
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-              ✓ Conta Verificada
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (profileUser.is_adoption_advocate) {
-      badges.push(
-        <div key="advocate" className="relative group cursor-pointer">
-          <img 
-            src={getPixelBadge('adoption', null, false)} 
-            alt="Adoção" 
-            className="w-10 h-10 hover:scale-110 transition-transform drop-shadow-lg" 
-          />
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-              💖 Defensor de Adoção
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return badges;
-  };
-
   const totalLikes = userPosts.reduce((sum, p) => sum + (p.likes_count || 0), 0);
 
   return (
@@ -334,33 +248,93 @@ export default function UserProfile() {
 
               <div className="flex-1 md:mt-16">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-3">
                       <h1 className="text-3xl font-bold text-gray-900">{profileUser.full_name}</h1>
                       
-                      {/* High-Quality 3D Badges */}
-                      <div className="flex items-center gap-2">
-                        {getBadges()}
-                        
-                        {/* Level Badge */}
+                      {/* Verified Badge - FIRST, next to name */}
+                      {profileUser.is_verified && (
                         <div className="relative group cursor-pointer">
                           <img 
-                            src={getPixelBadge('level', currentLevel, false)} 
-                            alt={`Nível ${currentLevel}`} 
-                            className="w-12 h-12 hover:scale-110 transition-transform drop-shadow-xl" 
+                            src={getBadgeImage('verified')} 
+                            alt="Verificado" 
+                            className="w-7 h-7 hover:scale-110 transition-transform drop-shadow-lg" 
                           />
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
-                              ⚡ Nível {currentLevel} • {currentLevelXP % xpNeeded}/{xpNeeded} XP
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
+                              ✓ Conta Verificada
                             </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+                      
+                      {/* Admin Badge - Red Shield */}
+                      {profileUser.role === 'admin' && (
+                        <div className="relative group cursor-pointer">
+                          <img 
+                            src={getBadgeImage('admin')} 
+                            alt="Admin" 
+                            className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg" 
+                          />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
+                              🛡️ Administrador
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Moderator Badge - Blue Shield */}
+                      {profileUser.social_role === 'moderator' && (
+                        <div className="relative group cursor-pointer">
+                          <img 
+                            src={getBadgeImage('moderator')} 
+                            alt="Moderador" 
+                            className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg" 
+                          />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
+                              🛡️ Moderador
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Adoption Advocate Badge */}
+                      {profileUser.is_adoption_advocate && (
+                        <div className="relative group cursor-pointer">
+                          <img 
+                            src={getBadgeImage('adoption')} 
+                            alt="Adoção" 
+                            className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg" 
+                          />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
+                              💖 Defensor de Adoção
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {!isOwnProfile && currentUser && (
-                    <div className="flex gap-2">
+                  {/* Level Badge - MOVED TO RIGHT CORNER */}
+                  <div className="flex items-start gap-3">
+                    <div className="relative group cursor-pointer">
+                      <img 
+                        src={getBadgeImage('level', currentLevel)} 
+                        alt={`Nível ${currentLevel}`} 
+                        className="w-14 h-14 hover:scale-110 transition-transform drop-shadow-2xl" 
+                      />
+                      <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
+                          ⚡ Nível {currentLevel} • {currentLevelXP % xpNeeded}/{xpNeeded} XP
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {!isOwnProfile && currentUser && (
                       <Button
                         onClick={() => followMutation.mutate(followData.isFollowing)}
                         disabled={followMutation.isPending}
@@ -369,14 +343,14 @@ export default function UserProfile() {
                       >
                         {followData.isFollowing ? 'Seguindo' : 'Seguir'}
                       </Button>
-                    </div>
-                  )}
+                    )}
 
-                  {isOwnProfile && (
-                    <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl('MyProfile'))}>
-                      Editar
-                    </Button>
-                  )}
+                    {isOwnProfile && (
+                      <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl('MyProfile'))}>
+                        Editar
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-5 gap-4 mb-6">
@@ -476,7 +450,7 @@ export default function UserProfile() {
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-20 h-20 bg-white/10 rounded-xl flex items-center justify-center p-2 backdrop-blur-sm border-2 border-white/20">
                       <img 
-                        src={getPixelBadge('level', currentLevel, false)} 
+                        src={getBadgeImage('level', currentLevel)} 
                         alt={`Nível ${currentLevel}`} 
                         className="w-full h-full drop-shadow-2xl"
                       />
@@ -562,7 +536,7 @@ export default function UserProfile() {
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {profileUser.public_badges.map((badge, idx) => (
-                      <BadgeItem key={idx} badge={badge} idx={idx} getPixelBadge={getPixelBadge} />
+                      <BadgeItem key={idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>
                 )}
@@ -616,7 +590,7 @@ export default function UserProfile() {
   );
 }
 
-function BadgeItem({ badge, idx, getPixelBadge }) {
+function BadgeItem({ badge, idx, getBadgeImage }) {
   const [showTransparent, setShowTransparent] = useState(false);
   
   return (
@@ -641,7 +615,7 @@ function BadgeItem({ badge, idx, getPixelBadge }) {
       >
         <div className={`${showTransparent ? 'bg-transparent' : 'bg-white/90'} backdrop-blur-sm rounded-xl p-2 border-2 ${showTransparent ? 'border-white/30' : 'border-white/50'}`}>
           <img 
-            src={getPixelBadge('community', badge, showTransparent)} 
+            src={getBadgeImage('community', badge, showTransparent)} 
             alt={badge.name} 
             className="w-full h-20 mx-auto drop-shadow-xl"
           />
@@ -659,7 +633,6 @@ function BadgeItem({ badge, idx, getPixelBadge }) {
         )}
       </div>
       
-      {/* Tooltip */}
       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-30 animate-in fade-in slide-in-from-bottom-2">
         <div className="bg-gray-900 text-white rounded-xl p-4 shadow-2xl border-2 border-gray-700 min-w-[200px]">
           <div className="flex items-center gap-2 mb-2">

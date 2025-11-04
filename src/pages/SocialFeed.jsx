@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Heart, MessageCircle, Send, Bookmark, MoreHorizontal, 
+  Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   Image as ImageIcon, MapPin, Shield, CheckCircle, Camera, Share2
 } from "lucide-react";
 import { toast } from "sonner";
@@ -153,6 +154,16 @@ export default function SocialFeed() {
     );
   }
 
+  // High-Quality 3D Badges
+  const getBadgeImage = (type) => {
+    const badges = {
+      verified: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='v' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231DA1F2'/%3E%3Cstop offset='1' stop-color='%230A66C2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='10' r='9' fill='url(%23v)'/%3E%3Cpath d='M7 10l2 2.5 4-5' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
+      admin: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23DC2626'/%3E%3Cstop offset='1' stop-color='%23991B1B'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M10 2l6 3v7c0 4-6 7-6 7s-6-3-6-7V5z' fill='url(%23a)'/%3E%3Cpath d='M8 9l1.5 2 3-3.5' stroke='%23FFD700' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E`,
+      moderator: `data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%233B82F6'/%3E%3Cstop offset='1' stop-color='%231D4ED8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M10 2l6 3v7c0 4-6 7-6 7s-6-3-6-7V5z' fill='url(%23m)'/%3E%3Crect x='8.5' y='7' width='3' height='6' fill='%23fff' rx='0.5'/%3E%3Crect x='7' y='9.5' width='6' height='3' fill='%23fff' rx='0.5'/%3E%3C/svg%3E`
+    };
+    return badges[type] || null;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -244,6 +255,7 @@ export default function SocialFeed() {
                 onLike={(isLiked) => likePostMutation.mutate({ postId: post.id, isLiked })}
                 onSave={(isSaved) => savePostMutation.mutate({ postId: post.id, isSaved })}
                 onNavigateToProfile={(email) => navigate(createPageUrl(`UserProfile?email=${email}`))}
+                getBadgeImage={getBadgeImage}
               />
             ))}
           </div>
@@ -253,7 +265,7 @@ export default function SocialFeed() {
   );
 }
 
-function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToProfile }) {
+function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToProfile, getBadgeImage }) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const queryClient = useQueryClient();
@@ -300,10 +312,22 @@ function PostCard({ post, user, isLiked, isSaved, onLike, onSave, onNavigateToPr
               <AvatarFallback>{post.author_name?.[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <h4 className="font-bold text-sm">{post.author_name}</h4>
-                {post.author_role === 'admin' && <Shield className="w-3 h-3 text-red-600" />}
-                {post.is_verified_user && <CheckCircle className="w-3 h-3 text-blue-500" />}
+                
+                {/* Badges in order: Verified, Admin, Moderator, Adoption */}
+                {post.is_verified_user && (
+                  <img src={getBadgeImage('verified')} alt="Verificado" className="w-4 h-4" title="Verificado" />
+                )}
+                {post.author_role === 'admin' && (
+                  <img src={getBadgeImage('admin')} alt="Admin" className="w-4 h-4" title="Administrador" />
+                )}
+                {post.author_social_role === 'moderator' && (
+                  <img src={getBadgeImage('moderator')} alt="Moderador" className="w-4 h-4" title="Moderador" />
+                )}
+                {post.is_adoption_advocate && (
+                  <Heart className="w-4 h-4 text-pink-500 fill-pink-500" title="Defensor de Adoção" />
+                )}
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <span>{format(new Date(post.created_date), "d MMM 'às' HH:mm", { locale: ptBR })}</span>
