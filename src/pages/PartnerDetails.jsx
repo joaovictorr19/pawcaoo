@@ -281,15 +281,15 @@ export default function PartnerDetails() {
           <TabsList className="grid w-full grid-cols-3 mb-8 h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 dark:bg-gray-900/80 dark:border-gray-700">
             <TabsTrigger value="products" className="text-sm font-semibold dark:text-gray-100 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
               <ShoppingBag className="w-5 h-5 mr-2" />
-              Produtos
+              Ver Produtos
             </TabsTrigger>
             <TabsTrigger value="about" className="text-sm font-semibold dark:text-gray-100 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
               <Info className="w-5 h-5 mr-2" />
-              Sobre
+              Sobre Parceiro
             </TabsTrigger>
             <TabsTrigger value="reviews" className="text-sm font-semibold dark:text-gray-100 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
               <Star className="w-5 h-5 mr-2" />
-              Avaliações ({totalReviews})
+              Avaliações Clientes
             </TabsTrigger>
           </TabsList>
 

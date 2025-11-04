@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Heart, MessageCircle, Share2, Camera, Video, MapPin, Send,
   TrendingUp, Sparkles, ShoppingBag, Zap, Gift, Award,
-  Star, ChevronRight, Clock, Users, Eye, Flame
+  Star, ChevronRight, Clock, Users, Eye, Flame, Store // Added Store icon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -206,15 +207,15 @@ export default function SocialFeed() {
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg h-14">
             <TabsTrigger value="feed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white">
               <Camera className="w-5 h-5 mr-2" />
-              Feed
+              Feed Social
             </TabsTrigger>
             <TabsTrigger value="trending" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white">
               <TrendingUp className="w-5 h-5 mr-2" />
-              Em Alta
+              Novidades Destaque
             </TabsTrigger>
             <TabsTrigger value="shop" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white">
               <ShoppingBag className="w-5 h-5 mr-2" />
-              Loja
+              Produtos Loja
             </TabsTrigger>
           </TabsList>
 

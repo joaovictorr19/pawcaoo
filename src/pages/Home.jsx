@@ -397,14 +397,14 @@ export default function Home() {
               className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
             >
               <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-              Passeadores
+              Buscar Passeadores
             </TabsTrigger>
             <TabsTrigger 
               value="emergency" 
               className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
             >
               <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-              Emergências
+              Passeios Urgentes
             </TabsTrigger>
           </TabsList>
 
