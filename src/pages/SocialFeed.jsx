@@ -47,6 +47,10 @@ export default function SocialFeed() {
   const [filterCity, setFilterCity] = useState("all");
   const [filterHashtag, setFilterHashtag] = useState("all");
 
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentTexts, setCommentTexts] = useState({});
+  const [selectedReaction, setSelectedReaction] = useState({});
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -83,6 +87,18 @@ export default function SocialFeed() {
       status: 'accepted'
     }),
     enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: allComments } = useQuery({
+    queryKey: ['socialComments'],
+    queryFn: () => base44.entities.SocialComment.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: allLikes } = useQuery({
+    queryKey: ['socialLikes'],
+    queryFn: () => base44.entities.SocialLike.list(),
     initialData: [],
   });
 
@@ -185,21 +201,126 @@ export default function SocialFeed() {
   });
 
   const toggleLikeMutation = useMutation({
-    mutationFn: async ({ postId, isLiked }) => {
-      if (isLiked) {
-        const likes = await base44.entities.SocialLike.filter({ post_id: postId, user_email: user.email });
-        if (likes[0]) await base44.entities.SocialLike.delete(likes[0].id);
+    mutationFn: async ({ postId }) => {
+      if (!user) {
+        toast.error("Você precisa estar logado para curtir!");
+        return;
+      }
+      const existingLike = allLikes.find(
+        like => like.post_id === postId && like.user_email === user.email
+      );
+
+      const post = allPosts.find(p => p.id === postId);
+      if (!post) {
+        throw new Error("Post not found");
+      }
+
+      if (existingLike) {
+        await base44.entities.SocialLike.delete(existingLike.id);
+        await base44.entities.SocialPost.update(postId, {
+          likes_count: Math.max(0, (post.likes_count || 0) - 1)
+        });
       } else {
         await base44.entities.SocialLike.create({
           post_id: postId,
           user_email: user.email,
-          user_name: user.full_name
+          user_name: user.full_name,
+          reaction_type: selectedReaction[postId] || 'like'
         });
+        await base44.entities.SocialPost.update(postId, {
+          likes_count: (post.likes_count || 0) + 1
+        });
+
+        // Notify post author
+        if (post.author_email !== user.email) {
+          await base44.entities.SocialNotification.create({
+            recipient_email: post.author_email,
+            sender_email: user.email,
+            sender_name: user.full_name,
+            sender_photo_url: user.profile_photo_url,
+            notification_type: 'like',
+            related_content_type: 'post',
+            related_content_id: postId,
+            post_preview: post.content?.substring(0, 50) || 'Post sem conteúdo'
+          });
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['socialPosts']);
+      queryClient.invalidateQueries(['socialLikes']);
     },
+    onError: (error) => {
+      toast.error("Erro ao interagir com o post: " + error.message);
+    }
+  });
+
+  const createCommentMutation = useMutation({
+    mutationFn: async ({ postId, content }) => {
+      if (!user) {
+        toast.error("Você precisa estar logado para comentar!");
+        return;
+      }
+      const comment = await base44.entities.SocialComment.create({
+        post_id: postId,
+        author_email: user.email,
+        author_name: user.full_name,
+        author_photo_url: user.profile_photo_url,
+        content
+      });
+
+      const post = allPosts.find(p => p.id === postId);
+      if (post) {
+        await base44.entities.SocialPost.update(postId, {
+          comments_count: (post.comments_count || 0) + 1
+        });
+
+        // Notify post author
+        if (post.author_email !== user.email) {
+          await base44.entities.SocialNotification.create({
+            recipient_email: post.author_email,
+            sender_email: user.email,
+            sender_name: user.full_name,
+            sender_photo_url: user.profile_photo_url,
+            notification_type: 'comment',
+            related_content_type: 'post',
+            related_content_id: postId,
+            post_preview: content.substring(0, 50)
+          });
+        }
+      }
+
+      return comment;
+    },
+    onSuccess: (_, { postId }) => {
+      queryClient.invalidateQueries(['socialPosts']);
+      queryClient.invalidateQueries(['socialComments']);
+      setCommentTexts({ ...commentTexts, [postId]: '' });
+      toast.success("Comentário publicado! 💬");
+    },
+    onError: (error) => {
+      toast.error("Erro ao publicar comentário: " + error.message);
+    }
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: async ({ commentId, postId }) => {
+      await base44.entities.SocialComment.delete(commentId);
+      const post = allPosts.find(p => p.id === postId);
+      if (post) {
+        await base44.entities.SocialPost.update(postId, {
+          comments_count: Math.max(0, (post.comments_count || 0) - 1)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['socialComments']);
+      queryClient.invalidateQueries(['socialPosts']);
+      toast.success("Comentário removido!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover comentário: " + error.message);
+    }
   });
 
   const togglePinMutation = useMutation({
@@ -215,6 +336,9 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Post atualizado!");
     },
+    onError: (error) => {
+      toast.error("Erro ao fixar/desafixar post: " + error.message);
+    }
   });
 
   const deletePostMutation = useMutation({
@@ -223,10 +347,17 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success("Post removido!");
     },
+    onError: (error) => {
+      toast.error("Erro ao remover post: " + error.message);
+    }
   });
 
   const savePostMutation = useMutation({
     mutationFn: async (postId) => {
+      if (!user) {
+        toast.error("Você precisa estar logado para salvar posts!");
+        return;
+      }
       const existing = await base44.entities.SocialSavedPost.filter({
         user_email: user.email,
         post_id: postId
@@ -248,6 +379,9 @@ export default function SocialFeed() {
       queryClient.invalidateQueries(['socialPosts']);
       toast.success(action === 'saved' ? "Post salvo!" : "Post removido dos salvos");
     },
+    onError: (error) => {
+      toast.error("Erro ao salvar post: " + error.message);
+    }
   });
 
   const handleMediaUpload = async (e) => {
@@ -342,6 +476,34 @@ export default function SocialFeed() {
     return null;
   };
 
+  const getReactionEmoji = (type) => {
+    const emojis = {
+      like: '❤️',
+      love: '😍',
+      haha: '😂',
+      wow: '😮',
+      sad: '😢',
+      fire: '🔥'
+    };
+    return emojis[type] || '❤️';
+  };
+
+  const getPostLikes = (postId) => {
+    return allLikes.filter(like => like.post_id === postId);
+  };
+
+  const hasUserLiked = (postId) => {
+    return allLikes.some(like => like.post_id === postId && like.user_email === user?.email);
+  };
+
+  const getPostComments = (postId) => {
+    // Only show top-level comments for now
+    return allComments
+      .filter(comment => comment.post_id === postId && !comment.parent_comment_id)
+      .sort((a,b) => new Date(a.created_date) - new Date(b.created_date));
+  };
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
@@ -354,9 +516,9 @@ export default function SocialFeed() {
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-black text-gray-900">
-                  PawCão Social
+                  🐕 Dog Connect
                 </h1>
-                <p className="text-gray-600 font-medium">Conecte-se com outros donos e descubra novidades</p>
+                <p className="text-gray-600 font-medium">Conecte-se com outros donos e seus pets</p>
               </div>
             </div>
 
@@ -403,7 +565,7 @@ export default function SocialFeed() {
           <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl h-16 p-2">
             <TabsTrigger value="feed" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg">
               <Camera className="w-5 h-5 mr-2" />
-              <span className="font-bold">Feed Social</span>
+              <span className="font-bold">Feed</span>
             </TabsTrigger>
             <TabsTrigger value="trending" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg">
               <TrendingUp className="w-5 h-5 mr-2" />
@@ -545,134 +707,307 @@ export default function SocialFeed() {
                   </Card>
                 ) : (
                   <AnimatePresence>
-                    {posts.map((post, idx) => (
-                      <motion.div
-                        key={post.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                      >
-                        <Card className={`border-0 shadow-xl hover:shadow-2xl transition-all ${
-                          post.is_pinned ? 'bg-gradient-to-br from-amber-50 to-yellow-50 ring-2 ring-amber-400' : 'bg-white'
-                        }`}>
-                          <CardContent className="p-6">
-                            {/* Pinned Badge */}
-                            {post.is_pinned && (
-                              <div className="flex items-center gap-2 mb-4 p-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl shadow-lg">
-                                <TrendingUp className="w-5 h-5" />
-                                <span className="font-bold text-sm">POST FIXADO NO TOPO</span>
-                              </div>
-                            )}
+                    {posts.map((post, idx) => {
+                      const postLikes = getPostLikes(post.id);
+                      const userLiked = hasUserLiked(post.id);
+                      const postComments = getPostComments(post.id);
+                      const showComments = expandedComments[post.id];
 
-                            {/* Post Header */}
-                            <div className="flex items-start gap-3 mb-4">
-                              <Avatar className="w-12 h-12 border-2 border-purple-200">
-                                <AvatarImage src={post.author_photo_url} />
-                                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
-                                  {post.author_name?.[0]?.toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                  <h4 className="font-bold text-gray-900">{post.author_name}</h4>
-                                  {getRoleBadge(post.author_role, post.author_email)}
-                                  {post.dog_name && (
-                                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0">
-                                      🐾 {post.dog_name}
-                                    </Badge>
-                                  )}
+                      return (
+                        <motion.div
+                          key={post.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <Card className={`border-0 shadow-xl hover:shadow-2xl transition-all ${
+                            post.is_pinned ? 'bg-gradient-to-br from-amber-50 to-yellow-50 ring-2 ring-amber-400' : 'bg-white'
+                          }`}>
+                            <CardContent className="p-6">
+                              {/* Pinned Badge */}
+                              {post.is_pinned && (
+                                <div className="flex items-center gap-2 mb-4 p-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl shadow-lg">
+                                  <TrendingUp className="w-5 h-5" />
+                                  <span className="font-bold text-sm">POST FIXADO NO TOPO</span>
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                  {format(new Date(post.created_date), "d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                                </p>
-                              </div>
+                              )}
 
-                              {/* Action Menu */}
-                              {isModeratorOrAdmin && (
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => togglePinMutation.mutate({ postId: post.id, isPinned: post.is_pinned })}
-                                    className={`rounded-xl ${post.is_pinned ? 'bg-amber-100 border-amber-300 text-amber-700 hover:bg-amber-200' : ''}`}
-                                  >
-                                    <TrendingUp className="w-4 h-4" />
-                                  </Button>
-                                  {(user?.role === 'admin' || post.author_email === user?.email) && (
+                              {/* Post Header */}
+                              <div className="flex items-start gap-3 mb-4">
+                                <button
+                                  onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
+                                  className="hover:opacity-80 transition-opacity"
+                                >
+                                  <Avatar className="w-12 h-12 border-2 border-purple-200 cursor-pointer">
+                                    <AvatarImage src={post.author_photo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                                      {post.author_name?.[0]?.toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </button>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    <button
+                                      onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
+                                      className="hover:underline"
+                                    >
+                                      <h4 className="font-bold text-gray-900">{post.author_name}</h4>
+                                    </button>
+                                    {getRoleBadge(post.author_role, post.author_email)}
+                                    {post.dog_name && (
+                                      <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0">
+                                        🐾 {post.dog_name}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-gray-600">
+                                    {format(new Date(post.created_date), "d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                                  </p>
+                                </div>
+
+                                {/* Action Menu */}
+                                {isModeratorOrAdmin && (
+                                  <div className="flex gap-2">
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => {
-                                        if (confirm('Tem certeza que deseja remover este post?')) {
-                                          deletePostMutation.mutate(post.id);
-                                        }
-                                      }}
-                                      className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
+                                      onClick={() => togglePinMutation.mutate({ postId: post.id, isPinned: post.is_pinned })}
+                                      className={`rounded-xl ${post.is_pinned ? 'bg-amber-100 border-amber-300 text-amber-700 hover:bg-amber-200' : ''}`}
                                     >
-                                      <X className="w-4 h-4" /> {/* Changed Trash2 to X */}
+                                      <TrendingUp className="w-4 h-4" />
                                     </Button>
+                                    {(user?.role === 'admin' || post.author_email === user?.email) && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          if (confirm('Tem certeza que deseja remover este post?')) {
+                                            deletePostMutation.mutate(post.id);
+                                          }
+                                        }}
+                                        className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Post Content */}
+                              <p className="text-gray-800 mb-4 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+
+                              {/* Media */}
+                              {post.media_urls && post.media_urls.length > 0 && (
+                                <div className={`grid gap-2 mb-4 ${
+                                  post.media_urls.length === 1 ? 'grid-cols-1' :
+                                  post.media_urls.length === 2 ? 'grid-cols-2' :
+                                  'grid-cols-2'
+                                }`}>
+                                  {post.media_urls.slice(0, 4).map((url, idx) => (
+                                    <img
+                                      key={idx}
+                                      src={url}
+                                      className="w-full h-64 object-cover rounded-2xl border-2 border-purple-100"
+                                      alt={`Post media ${idx + 1}`}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Reactions Summary */}
+                              {postLikes.length > 0 && (
+                                <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
+                                  <div className="flex -space-x-1">
+                                    {['like', 'love', 'haha', 'wow', 'fire'].map(type => {
+                                      const count = postLikes.filter(l => l.reaction_type === type).length;
+                                      if (count === 0) return null;
+                                      return (
+                                        <span key={type} className="text-lg">
+                                          {getReactionEmoji(type)}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                  <span className="font-semibold">{postLikes.length}</span>
+                                </div>
+                              )}
+
+                              {/* Post Actions */}
+                              <div className="flex items-center gap-6 pt-4 border-t-2 border-purple-100">
+                                <div className="relative group">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      // If user clicks, and they already liked, it will unlike.
+                                      // If they haven't liked, it will use the default 'like' or last selected reaction.
+                                      toggleLikeMutation.mutate({ postId: post.id });
+                                    }}
+                                    className={`hover:text-rose-600 hover:bg-rose-50 rounded-xl ${
+                                      userLiked ? 'text-rose-600' : ''
+                                    }`}
+                                  >
+                                    <Heart className={`w-5 h-5 mr-2 ${userLiked ? 'fill-rose-600' : ''}`} />
+                                    <span className="font-semibold">{post.likes_count || 0}</span>
+                                  </Button>
+
+                                  {/* Reaction Picker */}
+                                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:flex bg-white shadow-2xl rounded-full p-2 gap-1 border-2 border-purple-200 z-10">
+                                    {['like', 'love', 'haha', 'wow', 'sad', 'fire'].map(type => (
+                                      <button
+                                        key={type}
+                                        onClick={(e) => {
+                                          e.stopPropagation(); // Prevent toggling like when picking reaction
+                                          setSelectedReaction({ ...selectedReaction, [post.id]: type });
+                                          toggleLikeMutation.mutate({ postId: post.id });
+                                        }}
+                                        className="text-2xl hover:scale-125 transition-transform"
+                                      >
+                                        {getReactionEmoji(type)}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setExpandedComments({
+                                    ...expandedComments,
+                                    [post.id]: !expandedComments[post.id]
+                                  })}
+                                  className="hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                                >
+                                  <MessageCircle className="w-5 h-5 mr-2" />
+                                  <span className="font-semibold">{post.comments_count || 0}</span>
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => savePostMutation.mutate(post.id)}
+                                  className="hover:text-purple-600 hover:bg-purple-50 rounded-xl"
+                                >
+                                  <Bookmark className="w-5 h-5 mr-2" />
+                                  <span className="font-semibold">Salvar</span>
+                                </Button>
+                                <Button variant="ghost" size="sm" className="hover:text-green-600 hover:bg-green-50 rounded-xl">
+                                  <Share2 className="w-5 h-5 mr-2" />
+                                  <span className="font-semibold">Partilhar</span>
+                                </Button>
+                              </div>
+
+                              {/* Comments Section */}
+                              {showComments && (
+                                <div className="mt-4 pt-4 border-t-2 border-purple-100 space-y-4">
+                                  {/* Comment Input */}
+                                  <div className="flex gap-3">
+                                    <Avatar className="w-10 h-10 flex-shrink-0">
+                                      <AvatarImage src={user?.profile_photo_url} />
+                                      <AvatarFallback className="bg-purple-600 text-white">
+                                        {user?.full_name?.[0]?.toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 flex gap-2">
+                                      <Input
+                                        placeholder="Escreva um comentário..."
+                                        value={commentTexts[post.id] || ''}
+                                        onChange={(e) => setCommentTexts({
+                                          ...commentTexts,
+                                          [post.id]: e.target.value
+                                        })}
+                                        onKeyPress={(e) => {
+                                          if (e.key === 'Enter' && commentTexts[post.id]?.trim()) {
+                                            createCommentMutation.mutate({
+                                              postId: post.id,
+                                              content: commentTexts[post.id]
+                                            });
+                                          }
+                                        }}
+                                        className="rounded-xl border-2 border-purple-100"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        onClick={() => {
+                                          if (commentTexts[post.id]?.trim()) {
+                                            createCommentMutation.mutate({
+                                              postId: post.id,
+                                              content: commentTexts[post.id]
+                                            });
+                                          }
+                                        }}
+                                        disabled={!commentTexts[post.id]?.trim()}
+                                        className="bg-purple-600 hover:bg-purple-700 rounded-xl"
+                                      >
+                                        <Send className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {/* Comments List */}
+                                  {postComments.map(comment => (
+                                    <div key={comment.id} className="flex gap-3">
+                                      <button
+                                        onClick={() => navigate(createPageUrl(`UserProfile?email=${comment.author_email}`))}
+                                        className="hover:opacity-80 transition-opacity"
+                                      >
+                                        <Avatar className="w-10 h-10 flex-shrink-0">
+                                          <AvatarImage src={comment.author_photo_url} />
+                                          <AvatarFallback className="bg-blue-600 text-white">
+                                            {comment.author_name?.[0]?.toUpperCase()}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                      </button>
+                                      <div className="flex-1">
+                                        <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                                          <button
+                                            onClick={() => navigate(createPageUrl(`UserProfile?email=${comment.author_email}`))}
+                                            className="hover:underline"
+                                          >
+                                            <p className="font-semibold text-gray-900 text-sm">
+                                              {comment.author_name}
+                                            </p>
+                                          </button>
+                                          <p className="text-gray-800 text-sm">{comment.content}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-1 ml-4">
+                                          {/* <button className="text-xs text-gray-500 hover:text-purple-600 font-semibold">
+                                            Curtir
+                                          </button>
+                                          <button className="text-xs text-gray-500 hover:text-purple-600 font-semibold">
+                                            Responder
+                                          </button> */}
+                                          <span className="text-xs text-gray-500">
+                                            {format(new Date(comment.created_date), "d 'de' MMM", { locale: ptBR })}
+                                          </span>
+                                          {(user && (comment.author_email === user.email || isModeratorOrAdmin)) && (
+                                            <button
+                                              onClick={() => deleteCommentMutation.mutate({
+                                                commentId: comment.id,
+                                                postId: post.id
+                                              })}
+                                              className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                                            >
+                                              Remover
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+
+                                  {postComments.length === 0 && (
+                                    <p className="text-center text-gray-500 text-sm py-4">
+                                      Seja o primeiro a comentar! 💬
+                                    </p>
                                   )}
                                 </div>
                               )}
-                            </div>
-
-                            {/* Post Content */}
-                            <p className="text-gray-800 mb-4 whitespace-pre-wrap leading-relaxed">{post.content}</p>
-
-                            {/* Media */}
-                            {post.media_urls && post.media_urls.length > 0 && (
-                              <div className={`grid gap-2 mb-4 ${
-                                post.media_urls.length === 1 ? 'grid-cols-1' :
-                                post.media_urls.length === 2 ? 'grid-cols-2' :
-                                'grid-cols-2'
-                              }`}>
-                                {post.media_urls.slice(0, 4).map((url, idx) => (
-                                  <img
-                                    key={idx}
-                                    src={url}
-                                    className="w-full h-64 object-cover rounded-2xl border-2 border-purple-100"
-                                    alt={`Post media ${idx + 1}`}
-                                  />
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Post Actions */}
-                            <div className="flex items-center gap-6 pt-4 border-t-2 border-purple-100">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleLikeMutation.mutate({ 
-                                  postId: post.id, 
-                                  isLiked: false 
-                                })}
-                                className="hover:text-rose-600 hover:bg-rose-50 rounded-xl"
-                              >
-                                <Heart className="w-5 h-5 mr-2" />
-                                <span className="font-semibold">{post.likes_count || 0}</span>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="hover:text-blue-600 hover:bg-blue-50 rounded-xl">
-                                <MessageCircle className="w-5 h-5 mr-2" />
-                                <span className="font-semibold">{post.comments_count || 0}</span>
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => savePostMutation.mutate(post.id)}
-                                className="hover:text-purple-600 hover:bg-purple-50 rounded-xl"
-                              >
-                                <Bookmark className="w-5 h-5 mr-2" />
-                                <span className="font-semibold">Salvar</span>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="hover:text-green-600 hover:bg-green-50 rounded-xl">
-                                <Share2 className="w-5 h-5 mr-2" />
-                                <span className="font-semibold">Partilhar</span>
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
                   </AnimatePresence>
                 )}
               </div>
@@ -801,7 +1136,7 @@ export default function SocialFeed() {
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                                   {announcement.title}
                                 </h3>
-                                <Badge className="bg-purple-100 text-purple-700 mb-2">
+                                <Badge className="mb-2 capitalize">
                                   {announcement.company_name}
                                 </Badge>
                               </div>

@@ -88,7 +88,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: "🏥 " + (language === 'pt' ? 'Serviços' : 'Services'), url: createPageUrl("PartnerServices"), icon: Award },
     { title: "🐾 Comunidade", url: createPageUrl("Community"), icon: MessageCircle },
-    { title: "📸 Rede Social", url: createPageUrl("SocialFeed"), icon: Camera },
+    { title: "🐕 Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
