@@ -153,6 +153,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
     { title: language === 'pt' ? 'Serviços Parceiros' : 'Partner Services', url: createPageUrl("PartnerServices"), icon: Award },
     { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
+    { title: language === 'pt' ? '🏡 Adotar Pet' : '🏡 Adopt Pet', url: createPageUrl("AdoptionListings"), icon: Heart },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -194,7 +195,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 7;
+  const mainMenuCount = 8; // Changed from 7 to 8 to include adoption
   const myActivityCount = 9;
   const professionalServicesCount = 6;
   

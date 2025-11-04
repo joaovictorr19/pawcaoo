@@ -51,6 +51,8 @@ import ApproveAnnouncements from './pages/ApproveAnnouncements';
 import Gamification from './pages/Gamification';
 import DogConnectPremium from './pages/DogConnectPremium';
 import DogConnectRewards from './pages/DogConnectRewards';
+import AdoptionListings from './pages/AdoptionListings';
+import AdoptionListingDetails from './pages/AdoptionListingDetails';
 import Layout from './Layout.jsx';
 
 
@@ -108,6 +110,8 @@ export const PAGES = {
     "Gamification": Gamification,
     "DogConnectPremium": DogConnectPremium,
     "DogConnectRewards": DogConnectRewards,
+    "AdoptionListings": AdoptionListings,
+    "AdoptionListingDetails": AdoptionListingDetails,
 }
 
 export const pagesConfig = {
