@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, MapPin, Heart, Share2, AlertCircle, CheckCircle2, 
-  Phone, Mail, Calendar, Activity, Home, Users, Stethoscope, FileText
+  Phone, Mail, Calendar, Activity, Home, Users, Stethoscope, FileText, Shield
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -195,6 +195,16 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
+                {/* Verified Organization Badge */}
+                {listing.is_verified && (
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-green-600 text-white text-base px-4 py-2 shadow-xl">
+                      <Shield className="w-4 h-4 mr-2" />
+                      {language === 'pt' ? '✓ Organização Verificada' : language === 'es' ? '✓ Organización Verificada' : '✓ Verified Organization'}
+                    </Badge>
+                  </div>
+                )}
+
                 {/* Urgency Badge */}
                 {(listing.urgency_level === "urgent" || listing.urgency_level === "critical") && (
                   <div className="absolute top-4 right-4">
@@ -231,15 +241,34 @@ export default function AdoptionListingDetails() {
             <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="flex-1">
                     <CardTitle className="text-3xl mb-2">{listing.pet_name}</CardTitle>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-3">
                       <Badge variant="outline" className="text-base">{listing.breed}</Badge>
                       <Badge variant="outline" className="text-base">{listing.gender}</Badge>
                       <Badge variant="outline" className="text-base">{getAgeLabel()}</Badge>
                       {listing.size && <Badge variant="outline" className="text-base">{listing.size}</Badge>}
                     </div>
                   </div>
+                  
+                  {/* Verification Info */}
+                  {listing.is_verified && (
+                    <div className="text-right">
+                      <div className="inline-flex items-center gap-2 bg-green-50 border-2 border-green-200 rounded-lg px-3 py-2">
+                        <Shield className="w-5 h-5 text-green-600" />
+                        <div className="text-left">
+                          <p className="text-xs font-semibold text-green-900">
+                            {language === 'pt' ? 'Verificado' : language === 'es' ? 'Verificado' : 'Verified'}
+                          </p>
+                          {listing.success_stories_count > 0 && (
+                            <p className="text-xs text-green-700">
+                              {listing.success_stories_count} {language === 'pt' ? 'adoções bem-sucedidas' : language === 'es' ? 'adopciones exitosas' : 'successful adoptions'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -414,6 +443,24 @@ export default function AdoptionListingDetails() {
                   >
                     {t('manageListing', language)}
                   </Button>
+                )}
+
+                {/* WhatsApp Contact */}
+                {listing.contact_whatsapp && (
+                  <a
+                    href={`https://wa.me/${listing.contact_whatsapp.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mt-3"
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-500 text-green-600 hover:bg-green-50"
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      {language === 'pt' ? 'Contato WhatsApp' : language === 'es' ? 'Contacto WhatsApp' : 'WhatsApp Contact'}
+                    </Button>
+                  </a>
                 )}
 
                 <Button

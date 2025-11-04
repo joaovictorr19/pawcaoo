@@ -1,38 +1,37 @@
 
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Award, Star, Sliders } from "lucide-react";
+import { Search, MapPin, Award, Star, Sliders, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import TrainerCard from "../components/trainers/TrainerCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters"; // Assuming this is general purpose for 'walkers' and 'trainers'
+import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters";
 import { Button } from "@/components/ui/button";
-import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
+import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge"; // Assuming this path for Badge
 
 export default function Trainers() {
   const { language } = useLanguage();
-  // Removed searchLocation state as it's replaced by LocationSearch and userLocation for geo-filtering
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [searchLocation, setSearchLocation] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState("all");
-  const [filterMethodology, setFilterMethodology] = useState("all");
-  const [filterMethod, setFilterMethod] = useState("all");
-  const [filterRating, setFilterRating] = useState("all");
-  const [filterSuccessRate, setFilterSuccessRate] = useState("all");
+  const [filterConsultation, setFilterConsultation] = useState("all"); // Renamed from filterMethod
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [userLocation, setUserLocation] = useState(null); // Added userLocation state for geolocation
   const [advancedFilters, setAdvancedFilters] = useState({
-    radius: 50,
-    languages: [],
-    specializations: [],
+    specialties: [],
+    methodologies: [],
+    consultationTypes: [],
     minExperience: 0,
     minRating: 0,
-    minPrice: 0,
-    maxPrice: 150,
-    backgroundCheck: false
+    verifiedOnly: false,
+    availableDate: null
   });
 
   const { data: trainers, isLoading } = useQuery({
@@ -41,118 +40,65 @@ export default function Trainers() {
     initialData: [],
   });
 
-  const { data: allReviews } = useQuery({
-    queryKey: ['allTrainerReviews'],
-    queryFn: () => base44.entities.Review.list(),
-    initialData: [],
-  });
+  // Removed allReviews query and trainersWithRatings calculation as per new outline
 
-  // Calculate average ratings for each trainer
-  const trainersWithRatings = trainers.map(trainer => {
-    const trainerReviews = allReviews.filter(r => r.trainer_id === trainer.id);
-    const averageRating = trainerReviews.length > 0
-      ? trainerReviews.reduce((sum, r) => sum + r.rating, 0) / trainerReviews.length
-      : trainer.rating || 0;
-    return {
-      ...trainer,
-      average_rating: averageRating,
-      review_count: trainerReviews.length
-    };
-  });
-
-  // Calculate distance for trainers
-  const getTrainerDistance = (trainer) => {
-    if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
-    
-    // Assuming trainer.latitude and trainer.longitude are available
-    // Defaulting to a central Lisbon coordinate if trainer's geo-data is missing for demonstration
-    const trainerLat = trainer.latitude || 38.7223; 
-    const trainerLng = trainer.longitude || -9.1393;
-    
-    return calculateDistance(
-      userLocation.lat,
-      userLocation.lng,
-      trainerLat,
-      trainerLng
-    );
-  };
-
-  const filteredTrainers = trainersWithRatings
-    .map(trainer => ({
-      ...trainer,
-      distance: getTrainerDistance(trainer) // Add calculated distance to each trainer
-    }))
+  const filteredTrainers = trainers
     .filter(trainer => {
-      // The original searchLocation filter is removed, as LocationSearch now handles geo-location.
-      // The matchesRadius filter below will cover location-based filtering.
-      
+      const matchesLocation = !searchLocation ||
+        trainer.location?.toLowerCase().includes(searchLocation.toLowerCase()) ||
+        trainer.name?.toLowerCase().includes(searchLocation.toLowerCase()); // Added name search
+
       const matchesSpecialty = filterSpecialty === "all" ||
         trainer.training_specialties?.includes(filterSpecialty);
-      const matchesMethodology = filterMethodology === "all" ||
-        trainer.training_methodologies?.some(m => m.methodology_name === filterMethodology);
-      const matchesMethod = filterMethod === "all" ||
-        trainer.consultation_options?.includes(filterMethod);
-      const matchesRating = filterRating === "all" ||
-        (filterRating === "4+" && trainer.average_rating >= 4) ||
-        (filterRating === "4.5+" && trainer.average_rating >= 4.5) ||
-        (filterRating === "5" && trainer.average_rating === 5);
-      const matchesSuccessRate = filterSuccessRate === "all" ||
-        (filterSuccessRate === "90+" && trainer.success_rate >= 90) ||
-        (filterSuccessRate === "95+" && trainer.success_rate >= 95) ||
-        (filterSuccessRate === "98+" && trainer.success_rate >= 98);
+      
+      // filterMethodology, filterRating, filterSuccessRate removed from primary filters
+      // filterMethod is now filterConsultation
+      const matchesConsultation = filterConsultation === "all" ||
+        trainer.consultation_options?.includes(filterConsultation);
 
       // Advanced filters
-      // matchesRadius now considers if userLocation is available and if trainer's distance is within radius
-      const matchesRadius = !userLocation || trainer.distance === null || 
-        trainer.distance <= advancedFilters.radius;
+      const matchesAdvSpecialties = advancedFilters.specialties.length === 0 ||
+        advancedFilters.specialties.some(spec => trainer.training_specialties?.includes(spec));
       
-      const matchesLanguages = advancedFilters.languages.length === 0 ||
-        advancedFilters.languages.some(lang => trainer.languages?.includes(lang));
+      const matchesAdvMethodologies = advancedFilters.methodologies.length === 0 ||
+        advancedFilters.methodologies.some(method => 
+          trainer.training_methodologies?.some(m => m.methodology_name === method)
+        );
       
-      // Assuming trainer has a 'specializations' array, similar to 'training_specialties'
-      const matchesSpecializations = advancedFilters.specializations.length === 0 ||
-        advancedFilters.specializations.some(spec => trainer.specializations?.includes(spec));
+      const matchesAdvConsultation = advancedFilters.consultationTypes.length === 0 ||
+        advancedFilters.consultationTypes.some(type => trainer.consultation_options?.includes(type));
       
-      const matchesExperience = trainer.experience_years >= advancedFilters.minExperience;
-      const matchesAdvRating = trainer.average_rating >= advancedFilters.minRating;
+      const matchesExperience = (trainer.experience_years || 0) >= (advancedFilters.minExperience || 0);
+      const matchesAdvRating = (trainer.rating || 0) >= (advancedFilters.minRating || 0); // Using trainer.rating directly
       
-      // Assuming trainer has an 'hourly_rate' property
-      const matchesPrice = trainer.hourly_rate >= advancedFilters.minPrice && 
-                           trainer.hourly_rate <= advancedFilters.maxPrice;
+      const matchesVerified = !advancedFilters.verifiedOnly || trainer.verification_status === 'verified';
       
-      // Assuming trainer has a 'background_check_status' property
-      const matchesBackgroundCheck = !advancedFilters.backgroundCheck || 
-                                     trainer.background_check_status === 'verified';
+      // Placeholder for availableDate filtering logic
+      const matchesAvailableDate = !advancedFilters.availableDate || true; 
 
-      return matchesSpecialty && matchesMethodology && matchesMethod && 
-             matchesRating && matchesSuccessRate && matchesRadius && matchesLanguages && 
-             matchesSpecializations && matchesExperience && matchesAdvRating && 
-             matchesPrice && matchesBackgroundCheck;
+      return matchesLocation && matchesSpecialty && matchesConsultation &&
+             matchesAdvSpecialties && matchesAdvMethodologies && matchesAdvConsultation &&
+             matchesExperience && matchesAdvRating && matchesVerified && matchesAvailableDate;
     })
     .sort((a, b) => {
-      // Sort by distance if user location is available and distances are calculated
-      if (userLocation && a.distance !== null && b.distance !== null) {
-        return a.distance - b.distance;
-      }
-      // Otherwise, sort by average rating (descending) as a default
-      return b.average_rating - a.average_rating;
+      // Sort by trainer.rating (descending) as a default
+      return (b.rating || 0) - (a.rating || 0);
     });
 
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
-      radius: 50,
-      languages: [],
-      specializations: [],
+      specialties: [],
+      methodologies: [],
+      consultationTypes: [],
       minExperience: 0,
       minRating: 0,
-      minPrice: 0,
-      maxPrice: 150,
-      backgroundCheck: false
+      verifiedOnly: false,
+      availableDate: null
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
       {/* Hero Section - Mobile Optimized */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0">
@@ -195,14 +141,20 @@ export default function Trainers() {
             >
               <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-3 md:p-6 border border-white/50">
                 <div className="flex flex-col gap-2 md:gap-3">
-                  {/* Location Search with Geolocation */}
-                  <LocationSearch
-                    onLocationChange={setUserLocation}
-                    currentLocation={userLocation}
-                  />
+                  {/* Search Input for Location/Name */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder={language === 'pt' ? 'Pesquisar por localização ou nome...' : language === 'es' ? 'Buscar por ubicación o nombre...' : 'Search by location or name...'}
+                      className="pl-9 h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-purple-500 rounded-xl bg-white"
+                      value={searchLocation}
+                      onChange={(e) => setSearchLocation(e.target.value)}
+                    />
+                  </div>
                   
                   {/* Filters - Stack on Mobile */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {/* Training Specialty */}
                     <Select value={filterSpecialty} onValueChange={setFilterSpecialty}>
                       <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-purple-500 rounded-xl bg-white">
@@ -222,22 +174,8 @@ export default function Trainers() {
                       </SelectContent>
                     </Select>
 
-                    {/* Training Methodology */}
-                    <Select value={filterMethodology} onValueChange={setFilterMethodology}>
-                      <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-purple-500 rounded-xl bg-white">
-                        <SelectValue placeholder={language === 'pt' ? 'Metodologia' : language === 'es' ? 'Metodología' : 'Method'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{language === 'pt' ? 'Todas' : language === 'es' ? 'Todas' : 'All'}</SelectItem>
-                        <SelectItem value="positive_reinforcement">{language === 'pt' ? 'Reforço Positivo' : language === 'es' ? 'Refuerzo Positivo' : 'Positive Reinforcement'}</SelectItem>
-                        <SelectItem value="clicker_training">{language === 'pt' ? 'Clicker' : language === 'es' ? 'Clicker' : 'Clicker'}</SelectItem>
-                        <SelectItem value="science_based">{language === 'pt' ? 'Baseado em Ciência' : language === 'es' ? 'Basado en Ciencia' : 'Science-Based'}</SelectItem>
-                        <SelectItem value="balanced_training">{language === 'pt' ? 'Equilibrado' : language === 'es' ? 'Equilibrado' : 'Balanced'}</SelectItem>
-                      </SelectContent>
-                    </Select>
-
                     {/* Consultation Method */}
-                    <Select value={filterMethod} onValueChange={setFilterMethod} className="col-span-2 md:col-span-1">
+                    <Select value={filterConsultation} onValueChange={setFilterConsultation}>
                       <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-purple-500 rounded-xl bg-white">
                         <SelectValue placeholder={language === 'pt' ? 'Tipo Consulta' : language === 'es' ? 'Tipo Consulta' : 'Consultation'} />
                       </SelectTrigger>
@@ -246,50 +184,6 @@ export default function Trainers() {
                         <SelectItem value="in_person">{language === 'pt' ? 'Presencial' : language === 'es' ? 'Presencial' : 'In-Person'}</SelectItem>
                         <SelectItem value="online">{language === 'pt' ? 'Online' : language === 'es' ? 'En Línea' : 'Online'}</SelectItem>
                         <SelectItem value="hybrid">{language === 'pt' ? 'Híbrido' : language === 'es' ? 'Híbrido' : 'Hybrid'}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Secondary Filters */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200">
-                    {/* Success Rate */}
-                    <Select value={filterSuccessRate} onValueChange={setFilterSuccessRate}>
-                      <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-purple-500 rounded-xl bg-white">
-                        <SelectValue placeholder={language === 'pt' ? 'Taxa Sucesso' : language === 'es' ? 'Tasa Éxito' : 'Success Rate'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{language === 'pt' ? 'Todas' : language === 'es' ? 'Todas' : 'All'}</SelectItem>
-                        <SelectItem value="90+">90%+</SelectItem>
-                        <SelectItem value="95+">95%+</SelectItem>
-                        <SelectItem value="98+">98%+</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {/* Rating */}
-                    <Select value={filterRating} onValueChange={setFilterRating}>
-                      <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-purple-500 rounded-xl bg-white">
-                        <SelectValue placeholder={language === 'pt' ? 'Avaliação' : language === 'es' ? 'Calificación' : 'Rating'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{language === 'pt' ? 'Todas' : language === 'es' ? 'Todas' : 'All'}</SelectItem>
-                        <SelectItem value="4+">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            4.0+
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="4.5+">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            4.5+
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="5">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            5.0
-                          </div>
-                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -307,12 +201,12 @@ export default function Trainers() {
           <Button
             variant="outline"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="border-2 border-purple-200 hover:bg-purple-50"
+            className="border-2 border-green-200 hover:bg-green-50"
           >
             <Sliders className="w-4 h-4 mr-2" />
             {showAdvancedFilters 
               ? (language === 'pt' ? 'Ocultar Filtros Avançados' : language === 'es' ? 'Ocultar Filtros Avanzados' : 'Hide Advanced Filters') 
-              : (language === 'pt' ? 'Mostrar Filtros Avançados' : language === 'es' ? 'Mostrar Filtros Avanzados' : 'Show Advanced Filters')}
+              : (language === 'pt' ? 'Mostrar Filtros Avançados' : language === 'es' ? 'Mostrar Filtros Avançados' : 'Show Advanced Filters')}
           </Button>
         </div>
 
@@ -326,11 +220,11 @@ export default function Trainers() {
                 transition={{ duration: 0.3 }}
                 className="lg:col-span-1"
               >
-                <AdvancedWalkerFilters
+                <AdvancedTrainerFilters
                   filters={advancedFilters}
                   onFiltersChange={setAdvancedFilters}
                   onReset={resetAdvancedFilters}
-                  language={language} // Pass language prop to AdvancedWalkerFilters
+                  language={language}
                 />
               </motion.div>
             )}
@@ -342,12 +236,13 @@ export default function Trainers() {
                 <h2 className="text-xl md:text-3xl font-bold text-gray-900">
                   {language === 'pt' ? 'Treinadores Disponíveis' : language === 'es' ? 'Entrenadores Disponibles' : 'Available Trainers'}
                 </h2>
-                <p className="text-xs md:text-base text-gray-600 mt-1">
-                  {filteredTrainers.length} {language === 'pt' ? 'certificados encontrados' : language === 'es' ? 'certificados encontrados' : 'certified trainers found'}
-                  {userLocation && advancedFilters.radius < 50 && (
-                    <span className="text-purple-600 font-semibold ml-2">
-                      ({language === 'pt' ? 'até' : language === 'es' ? 'hasta' : 'up to'} {advancedFilters.radius}km)
-                    </span>
+                <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
+                  {filteredTrainers.length} {language === 'pt' ? 'treinadores encontrados' : language === 'es' ? 'entrenadores encontrados' : 'trainers found'}
+                  {advancedFilters.verifiedOnly && (
+                    <Badge className="bg-green-500 text-white ml-2">
+                      <Shield className="w-3 h-3 mr-1" />
+                      {language === 'pt' ? 'Certificados' : language === 'es' ? 'Certificados' : 'Certified'}
+                    </Badge>
                   )}
                 </p>
               </div>
@@ -385,7 +280,7 @@ export default function Trainers() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.05 }}
                   >
-                    <TrainerCard trainer={trainer} distance={trainer.distance} />
+                    <TrainerCard trainer={trainer} />
                   </motion.div>
                 ))}
               </div>

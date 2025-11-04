@@ -36,11 +36,17 @@ export default function Home() {
     radius: 50,
     languages: [],
     specializations: [],
+    certifications: [], // Added for new filter
+    serviceTypes: [],   // Added for new filter
+    timeSlots: [],      // Added for new filter
+    availableDate: null, // Added for new filter
     minExperience: 0,
     minRating: 0,
     minPrice: 0,
     maxPrice: 100,
-    backgroundCheck: false
+    backgroundCheck: false,
+    verifiedOnly: false, // Added for new filter
+    instantBooking: false // Added for new filter
   });
   const [userLocation, setUserLocation] = useState(null);
 
@@ -141,27 +147,62 @@ export default function Home() {
         return true;
       })();
       
-      // Advanced filters
+      // Advanced filters - Distance
       const matchesRadius = !userLocation || walker.distance === null || 
-        walker.distance <= advancedFilters.radius;
+        walker.distance <= (advancedFilters.radius || 50);
       
-      const matchesLanguages = advancedFilters.languages.length === 0 ||
+      // Languages filter
+      const matchesLanguages = !advancedFilters.languages || advancedFilters.languages.length === 0 ||
         advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));
       
-      const matchesSpecializations = advancedFilters.specializations.length === 0 ||
+      // Specializations filter
+      const matchesSpecializations = !advancedFilters.specializations || advancedFilters.specializations.length === 0 ||
         advancedFilters.specializations.some(spec => walker.specializations?.includes(spec));
       
-      const matchesExperience = walker.experience_years >= advancedFilters.minExperience;
-      const matchesRating = walker.rating >= advancedFilters.minRating;
-      const matchesPrice = walker.hourly_rate >= advancedFilters.minPrice && 
-                           walker.hourly_rate <= advancedFilters.maxPrice;
+      // Certifications filter
+      const matchesCertifications = !advancedFilters.certifications || advancedFilters.certifications.length === 0 ||
+        advancedFilters.certifications.some(cert => 
+          walker.certifications_detailed?.some(wCert => 
+            wCert.name?.toLowerCase().includes(cert.toLowerCase())
+          )
+        );
       
+      // Service Types filter
+      const matchesServiceTypes = !advancedFilters.serviceTypes || advancedFilters.serviceTypes.length === 0 ||
+        advancedFilters.serviceTypes.some(type => 
+          walker.services_offered?.some(s => 
+            s.service_name?.toLowerCase().includes(type.replace('_', ' '))
+          )
+        );
+      
+      // Time Slots filter
+      const matchesTimeSlots = !advancedFilters.timeSlots || advancedFilters.timeSlots.length === 0 ||
+        advancedFilters.timeSlots.some(slot => walker.availability?.includes(slot));
+      
+      // Date availability filter
+      const matchesDate = !advancedFilters.availableDate; // TODO: Check calendar availability
+      
+      // Experience, rating, price
+      const matchesExperience = (walker.experience_years || 0) >= (advancedFilters.minExperience || 0);
+      const matchesRating = (walker.rating || 0) >= (advancedFilters.minRating || 0);
+      const matchesPrice = (walker.hourly_rate || 0) >= (advancedFilters.minPrice || 0) && 
+                           (walker.hourly_rate || 0) <= (advancedFilters.maxPrice || 100);
+      
+      // Verification filters
       const matchesBackgroundCheck = !advancedFilters.backgroundCheck || 
                                      walker.background_check_status === 'verified';
       
+      const matchesVerifiedOnly = !advancedFilters.verifiedOnly ||
+                                   walker.verification_status === 'verified';
+      
+      const matchesInstantBooking = !advancedFilters.instantBooking ||
+                                     walker.instant_booking === true;
+      
       return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
              matchesDogSitting && matchesRadius && matchesLanguages && matchesSpecializations &&
-             matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck;
+             matchesCertifications && matchesServiceTypes && matchesTimeSlots && matchesDate &&
+             matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck &&
+             matchesVerifiedOnly && matchesInstantBooking;
     })
     .sort((a, b) => {
       // Sort by distance if user location is available and distances are calculated
@@ -185,11 +226,17 @@ export default function Home() {
       radius: 50,
       languages: [],
       specializations: [],
+      certifications: [],
+      serviceTypes: [],
+      timeSlots: [],
+      availableDate: null,
       minExperience: 0,
       minRating: 0,
       minPrice: 0,
       maxPrice: 100,
-      backgroundCheck: false
+      backgroundCheck: false,
+      verifiedOnly: false,
+      instantBooking: false
     });
   };
 

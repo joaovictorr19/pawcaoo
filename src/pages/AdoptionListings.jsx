@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Home, MapPin, Search, Filter, PlusCircle, Clock, AlertCircle } from "lucide-react";
+import { Label } from "@/components/ui/label"; // New import
+import { Home, MapPin, Search, Filter, PlusCircle, Clock, AlertCircle, Shield } from "lucide-react"; // Shield added
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -24,6 +26,9 @@ export default function AdoptionListings() {
   const [filterGender, setFilterGender] = useState("all");
   const [filterLocation, setFilterLocation] = useState("");
   const [showUrgentOnly, setShowUrgentOnly] = useState(false);
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false); // New state
+  const [filterGoodWith, setFilterGoodWith] = useState([]); // New state
+  const [filterSpecialNeeds, setFilterSpecialNeeds] = useState(false); // New state
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -55,9 +60,19 @@ export default function AdoptionListings() {
     const matchesUrgency = !showUrgentOnly || 
       listing.urgency_level === "urgent" || 
       listing.urgency_level === "critical";
+
+    const matchesVerified = !showVerifiedOnly || listing.is_verified === true; // New filter condition
+    
+    const matchesGoodWith = filterGoodWith.length === 0 || // New filter condition
+      filterGoodWith.every(type => listing.good_with?.[type] === true);
+    
+    const matchesSpecialNeeds = !filterSpecialNeeds || // New filter condition
+      (listing.special_needs && listing.special_needs.length > 0) ||
+      (listing.medical_conditions && listing.medical_conditions.length > 0);
     
     return matchesSearch && matchesPetType && matchesSize && matchesAge && 
-           matchesGender && matchesLocation && matchesUrgency;
+           matchesGender && matchesLocation && matchesUrgency && matchesVerified &&
+           matchesGoodWith && matchesSpecialNeeds; // Updated return condition
   });
 
   const getAgeLabel = (listing) => {
@@ -139,88 +154,141 @@ export default function AdoptionListings() {
               <h3 className="text-lg font-semibold text-gray-900">{t('searchAndFilter', language)}</h3>
             </div>
             
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder={t('searchByName', language)}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="space-y-4"> {/* Changed to space-y-4 for overall spacing */}
+              {/* Row 1 - Search & Main Filters */}
+              <div className="grid md:grid-cols-4 gap-4"> {/* Grid for first row of filters */}
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder={t('searchByName', language)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Pet Type */}
+                <Select value={filterPetType} onValueChange={setFilterPetType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('petType', language)} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('allTypes', language)}</SelectItem>
+                    <SelectItem value="dog">🐕 {language === 'pt' ? 'Cães' : language === 'es' ? 'Perros' : 'Dogs'}</SelectItem>
+                    <SelectItem value="cat">🐱 {language === 'pt' ? 'Gatos' : language === 'es' ? 'Gatos' : 'Cats'}</SelectItem>
+                    <SelectItem value="bird">🦜 {language === 'pt' ? 'Pássaros' : language === 'es' ? 'Pájaros' : 'Birds'}</SelectItem>
+                    <SelectItem value="rabbit">🐰 {language === 'pt' ? 'Coelhos' : language === 'es' ? 'Conejos' : 'Rabbits'}</SelectItem>
+                    <SelectItem value="other">🐾 {language === 'pt' ? 'Outros' : language === 'es' ? 'Otros' : 'Other'}</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Size */}
+                <Select value={filterSize} onValueChange={setFilterSize}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'pt' ? 'Tamanho' : language === 'es' ? 'Tamaño' : 'Size'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('allSizes', language)}</SelectItem>
+                    <SelectItem value="small">{language === 'pt' ? 'Pequeno' : language === 'es' ? 'Pequeño' : 'Small'}</SelectItem>
+                    <SelectItem value="medium">{language === 'pt' ? 'Médio' : language === 'es' ? 'Mediano' : 'Medium'}</SelectItem>
+                    <SelectItem value="large">{language === 'pt' ? 'Grande' : language === 'es' ? 'Grande' : 'Large'}</SelectItem>
+                    <SelectItem value="extra_large">{language === 'pt' ? 'Extra Grande' : language === 'es' ? 'Extra Grande' : 'Extra Large'}</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Age */}
+                <Select value={filterAge} onValueChange={setFilterAge}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'pt' ? 'Idade' : language === 'es' ? 'Edad' : 'Age'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('allAges', language)}</SelectItem>
+                    <SelectItem value="puppy">{language === 'pt' ? 'Filhote (<2a)' : language === 'es' ? 'Cachorro (<2a)' : 'Puppy/Kitten (<2y)'}</SelectItem>
+                    <SelectItem value="adult">{language === 'pt' ? 'Adulto (2-7a)' : language === 'es' ? 'Adulto (2-7a)' : 'Adult (2-7y)'}</SelectItem>
+                    <SelectItem value="senior">{language === 'pt' ? 'Idoso (7a+)' : language === 'es' ? 'Mayor (7a+)' : 'Senior (7y+)'}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Pet Type */}
-              <Select value={filterPetType} onValueChange={setFilterPetType}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('petType', language)} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('allTypes', language)}</SelectItem>
-                  <SelectItem value="dog">🐕 {language === 'pt' ? 'Cães' : language === 'es' ? 'Perros' : 'Dogs'}</SelectItem>
-                  <SelectItem value="cat">🐱 {language === 'pt' ? 'Gatos' : language === 'es' ? 'Gatos' : 'Cats'}</SelectItem>
-                  <SelectItem value="bird">🦜 {language === 'pt' ? 'Pássaros' : language === 'es' ? 'Pájaros' : 'Birds'}</SelectItem>
-                  <SelectItem value="rabbit">🐰 {language === 'pt' ? 'Coelhos' : language === 'es' ? 'Conejos' : 'Rabbits'}</SelectItem>
-                  <SelectItem value="other">🐾 {language === 'pt' ? 'Outros' : language === 'es' ? 'Otros' : 'Other'}</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Row 2 - Gender, Location, Special Filters */}
+              <div className="grid md:grid-cols-4 gap-4"> {/* Grid for second row of filters */}
+                {/* Gender */}
+                <Select value={filterGender} onValueChange={setFilterGender}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'pt' ? 'Sexo' : language === 'es' ? 'Sexo' : 'Gender'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('allGenders', language)}</SelectItem>
+                    <SelectItem value="male">{language === 'pt' ? 'Macho' : language === 'es' ? 'Macho' : 'Male'}</SelectItem>
+                    <SelectItem value="female">{language === 'pt' ? 'Fêmea' : language === 'es' ? 'Hembra' : 'Female'}</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Size */}
-              <Select value={filterSize} onValueChange={setFilterSize}>
-                <SelectTrigger>
-                  <SelectValue placeholder={language === 'pt' ? 'Tamanho' : language === 'es' ? 'Tamaño' : 'Size'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('allSizes', language)}</SelectItem>
-                  <SelectItem value="small">{language === 'pt' ? 'Pequeno' : language === 'es' ? 'Pequeño' : 'Small'}</SelectItem>
-                  <SelectItem value="medium">{language === 'pt' ? 'Médio' : language === 'es' ? 'Mediano' : 'Medium'}</SelectItem>
-                  <SelectItem value="large">{language === 'pt' ? 'Grande' : language === 'es' ? 'Grande' : 'Large'}</SelectItem>
-                  <SelectItem value="extra_large">{language === 'pt' ? 'Extra Grande' : language === 'es' ? 'Extra Grande' : 'Extra Large'}</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Location */}
+                <Input
+                  placeholder={`${t('location', language)}...`}
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                />
 
-              {/* Age */}
-              <Select value={filterAge} onValueChange={setFilterAge}>
-                <SelectTrigger>
-                  <SelectValue placeholder={language === 'pt' ? 'Idade' : language === 'es' ? 'Edad' : 'Age'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('allAges', language)}</SelectItem>
-                  <SelectItem value="puppy">{language === 'pt' ? 'Filhote (<2a)' : language === 'es' ? 'Cachorro (<2a)' : 'Puppy/Kitten (<2y)'}</SelectItem>
-                  <SelectItem value="adult">{language === 'pt' ? 'Adulto (2-7a)' : language === 'es' ? 'Adulto (2-7a)' : 'Adult (2-7y)'}</SelectItem>
-                  <SelectItem value="senior">{language === 'pt' ? 'Idoso (7a+)' : language === 'es' ? 'Mayor (7a+)' : 'Senior (7y+)'}</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Urgent Only Toggle */}
+                <Button
+                  variant={showUrgentOnly ? "default" : "outline"}
+                  onClick={() => setShowUrgentOnly(!showUrgentOnly)}
+                  className={showUrgentOnly ? "bg-orange-500 hover:bg-orange-600" : ""}
+                >
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  {t('urgentOnly', language)}
+                </Button>
 
-              {/* Gender */}
-              <Select value={filterGender} onValueChange={setFilterGender}>
-                <SelectTrigger>
-                  <SelectValue placeholder={language === 'pt' ? 'Sexo' : language === 'es' ? 'Sexo' : 'Gender'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('allGenders', language)}</SelectItem>
-                  <SelectItem value="male">{language === 'pt' ? 'Macho' : language === 'es' ? 'Macho' : 'Male'}</SelectItem>
-                  <SelectItem value="female">{language === 'pt' ? 'Fêmea' : language === 'es' ? 'Hembra' : 'Female'}</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Verified Only Toggle - New Button */}
+                <Button
+                  variant={showVerifiedOnly ? "default" : "outline"}
+                  onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
+                  className={showVerifiedOnly ? "bg-green-500 hover:bg-green-600 text-white" : ""}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Verificados' : language === 'es' ? 'Verificados' : 'Verified'}
+                </Button>
+              </div>
 
-              {/* Location */}
-              <Input
-                placeholder={`${t('location', language)}...`}
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-              />
-
-              {/* Urgent Only Toggle */}
-              <Button
-                variant={showUrgentOnly ? "default" : "outline"}
-                onClick={() => setShowUrgentOnly(!showUrgentOnly)}
-                className={showUrgentOnly ? "bg-orange-500 hover:bg-orange-600" : ""}
-              >
-                <AlertCircle className="w-4 h-4 mr-2" />
-                {t('urgentOnly', language)}
-              </Button>
+              {/* Row 3 - Good With & Special Needs - New Section */}
+              <div className="flex flex-wrap items-center gap-2"> {/* Changed to flex-wrap with items-center */}
+                <Label className="text-sm font-semibold text-gray-700"> {/* Removed w-full mb-1, let it flow */}
+                  {language === 'pt' ? 'Bom com:' : language === 'es' ? 'Bueno con:' : 'Good with:'}
+                </Label>
+                {[
+                  { id: 'children', label: language === 'pt' ? '👶 Crianças' : language === 'es' ? '👶 Niños' : '👶 Children' },
+                  { id: 'dogs', label: language === 'pt' ? '🐕 Cães' : language === 'es' ? '🐕 Perros' : '🐕 Dogs' },
+                  { id: 'cats', label: language === 'pt' ? '🐱 Gatos' : language === 'es' ? '🐱 Gatos' : '🐱 Cats' },
+                  { id: 'other_pets', label: language === 'pt' ? '🐾 Outros' : language === 'es' ? '🐾 Otros' : '🐾 Other Pets' }
+                ].map(item => (
+                  <Badge
+                    key={item.id}
+                    variant={filterGoodWith.includes(item.id) ? "default" : "outline"}
+                    className="cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => {
+                      if (filterGoodWith.includes(item.id)) {
+                        setFilterGoodWith(filterGoodWith.filter(f => f !== item.id));
+                      } else {
+                        setFilterGoodWith([...filterGoodWith, item.id]);
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </Badge>
+                ))}
+                
+                {/* Special Needs Badge - New */}
+                <Badge
+                  variant={filterSpecialNeeds ? "default" : "outline"}
+                  className="cursor-pointer hover:scale-105 transition-transform bg-orange-100 border-orange-400 text-orange-800"
+                  onClick={() => setFilterSpecialNeeds(!filterSpecialNeeds)}
+                >
+                  ♿ {language === 'pt' ? 'Necessidades Especiais' : language === 'es' ? 'Necesidades Especiales' : 'Special Needs'}
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -250,6 +318,9 @@ export default function AdoptionListings() {
                 setFilterLocation("");
                 setSearchQuery("");
                 setShowUrgentOnly(false);
+                setShowVerifiedOnly(false); // Reset new state
+                setFilterGoodWith([]);     // Reset new state
+                setFilterSpecialNeeds(false); // Reset new state
               }}>
                 {t('clearAllFilters', language)}
               </Button>
@@ -285,16 +356,26 @@ export default function AdoptionListings() {
                       </div>
                     )}
                     
+                    {/* Verified Badge - New */}
+                    {listing.is_verified && (
+                      <div className="absolute top-3 left-3 z-10"> {/* Added z-10 to ensure visibility */}
+                        <Badge className="bg-green-600 text-white shadow-lg">
+                          <Shield className="w-3 h-3 mr-1" />
+                          {language === 'pt' ? 'Verificado' : language === 'es' ? 'Verificado' : 'Verified'}
+                        </Badge>
+                      </div>
+                    )}
+
                     {/* Urgency Badge */}
                     {(listing.urgency_level === "urgent" || listing.urgency_level === "critical") && (
-                      <div className="absolute top-3 right-3">
+                      <div className="absolute top-3 right-3 z-10"> {/* Added z-10 to ensure visibility */}
                         {getUrgencyBadge(listing.urgency_level)}
                       </div>
                     )}
 
                     {/* Featured Badge */}
                     {listing.featured && (
-                      <div className="absolute top-3 left-3">
+                      <div className="absolute bottom-3 left-3 z-10"> {/* Changed position, added z-10 */}
                         <Badge className="bg-yellow-400 text-gray-900">
                           ⭐ {language === 'pt' ? 'Destaque' : language === 'es' ? 'Destacado' : 'Featured'}
                         </Badge>
@@ -338,6 +419,11 @@ export default function AdoptionListings() {
                           🐱 {t('goodWithCats', language)}
                         </Badge>
                       )}
+                      {(listing.special_needs && listing.special_needs.length > 0) || (listing.medical_conditions && listing.medical_conditions.length > 0) ? (
+                        <Badge className="bg-orange-100 text-orange-800 text-xs">
+                          ♿ {language === 'pt' ? 'Necessidades Especiais' : language === 'es' ? 'Necesidades Especiales' : 'Special Needs'}
+                        </Badge>
+                      ) : null}
                     </div>
 
                     {/* Footer */}
