@@ -989,12 +989,44 @@ export default function PartnerDashboard() {
       setUploadingImage(false);
     };
 
+    const handlePriceChange = (field, value) => {
+      // Remove leading zeros and parse as float
+      const cleanValue = value.replace(/^0+(?=\d)/, '');
+      const numValue = parseFloat(cleanValue) || 0;
+      setFormData({...formData, [field]: numValue});
+    };
+
+    const handlePriceBySizeChange = (size, value) => {
+      // Remove leading zeros and parse as float
+      const cleanValue = value.replace(/^0+(?=\d)/, '');
+      const numValue = parseFloat(cleanValue) || 0;
+      setFormData({
+        ...formData,
+        price_by_size: {...(formData.price_by_size || {}), [size]: numValue}
+      });
+    };
+
     const handleSubmit = () => {
       if (!formData.service_name || !formData.description || formData.base_price <= 0) {
-        toast.error("Preencha todos os campos obrigatórios (*, preço > 0)");
+        toast.error("Preencha todos os campos obrigatórios: Nome, Descrição e Preço Base > 0");
         return;
       }
-      saveServiceMutation.mutate(formData);
+
+      // Ensure all prices are numbers
+      const cleanedData = {
+        ...formData,
+        base_price: parseFloat(formData.base_price) || 0,
+        duration_minutes: parseInt(formData.duration_minutes) || 60,
+        emergency_surcharge: parseFloat(formData.emergency_surcharge) || 0,
+        price_by_size: {
+          small: parseFloat(formData.price_by_size?.small) || 0,
+          medium: parseFloat(formData.price_by_size?.medium) || 0,
+          large: parseFloat(formData.price_by_size?.large) || 0,
+          extra_large: parseFloat(formData.price_by_size?.extra_large) || 0,
+        }
+      };
+
+      saveServiceMutation.mutate(cleanedData);
     };
 
     return (
@@ -1069,11 +1101,13 @@ export default function PartnerDashboard() {
                 <Input
                   type="number"
                   step="0.01"
-                  min="0"
-                  value={formData.base_price}
-                  onChange={(e) => setFormData({...formData, base_price: parseFloat(e.target.value) || 0})}
+                  min="0.01"
+                  value={formData.base_price || ''}
+                  onChange={(e) => handlePriceChange('base_price', e.target.value)}
+                  placeholder="Ex: 20"
                   required
                 />
+                <p className="text-xs text-gray-600 mt-1">Insira o preço sem zeros à esquerda (ex: 20, não 020)</p>
               </div>
             </div>
 
@@ -1086,11 +1120,9 @@ export default function PartnerDashboard() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.price_by_size?.small || 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      price_by_size: {...(formData.price_by_size || {}), small: parseFloat(e.target.value) || 0}
-                    })}
+                    value={formData.price_by_size?.small || ''}
+                    onChange={(e) => handlePriceBySizeChange('small', e.target.value)}
+                    placeholder="0"
                   />
                 </div>
                 <div>
@@ -1099,11 +1131,9 @@ export default function PartnerDashboard() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.price_by_size?.medium || 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      price_by_size: {...(formData.price_by_size || {}), medium: parseFloat(e.target.value) || 0}
-                    })}
+                    value={formData.price_by_size?.medium || ''}
+                    onChange={(e) => handlePriceBySizeChange('medium', e.target.value)}
+                    placeholder="0"
                   />
                 </div>
                 <div>
@@ -1112,11 +1142,9 @@ export default function PartnerDashboard() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.price_by_size?.large || 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      price_by_size: {...(formData.price_by_size || {}), large: parseFloat(e.target.value) || 0}
-                    })}
+                    value={formData.price_by_size?.large || ''}
+                    onChange={(e) => handlePriceBySizeChange('large', e.target.value)}
+                    placeholder="0"
                   />
                 </div>
                 <div>
@@ -1125,11 +1153,9 @@ export default function PartnerDashboard() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.price_by_size?.extra_large || 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      price_by_size: {...(formData.price_by_size || {}), extra_large: parseFloat(e.target.value) || 0}
-                    })}
+                    value={formData.price_by_size?.extra_large || ''}
+                    onChange={(e) => handlePriceBySizeChange('extra_large', e.target.value)}
+                    placeholder="0"
                   />
                 </div>
               </div>
@@ -1283,8 +1309,8 @@ export default function PartnerDashboard() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.emergency_surcharge || 0}
-                    onChange={(e) => setFormData({...formData, emergency_surcharge: parseFloat(e.target.value) || 0})}
+                    value={formData.emergency_surcharge || ''}
+                    onChange={(e) => handlePriceChange('emergency_surcharge', e.target.value)}
                     placeholder="0.00"
                   />
                 </div>
