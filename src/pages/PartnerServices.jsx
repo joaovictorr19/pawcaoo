@@ -109,13 +109,18 @@ export default function PartnerServices() {
   const getUrgencyBadge = (service) => {
     if (service.is_emergency) {
       return (
-        <Badge className="bg-red-500 text-white animate-pulse">
+        <Badge className="bg-red-500 text-white animate-pulse absolute top-3 right-3">
           <Zap className="w-3 h-3 mr-1" />
           EMERGÊNCIA 24/7
         </Badge>
       );
     }
     return null;
+  };
+
+  const handleServiceClick = (serviceId) => {
+    // Navigate com window.location para garantir que funciona
+    window.location.href = createPageUrl(`BookService?serviceId=${serviceId}`);
   };
 
   return (
@@ -277,8 +282,10 @@ export default function PartnerServices() {
                     transition={{ delay: idx * 0.05 }}
                     whileHover={{ y: -5 }}
                   >
-                    <Card className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden cursor-pointer"
-                          onClick={() => navigate(createPageUrl(`BookService?serviceId=${service.id}`))}>
+                    <Card 
+                      className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden cursor-pointer"
+                      onClick={() => handleServiceClick(service.id)}
+                    >
                       {/* Service Image */}
                       <div className={`relative h-48 bg-gradient-to-br ${category.color} flex items-center justify-center`}>
                         {service.image_url ? (

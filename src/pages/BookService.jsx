@@ -68,9 +68,22 @@ export default function BookService() {
 
   const partner = partners.find(p => p.id === service?.partner_id);
 
+  // Show loading message if service not found yet
+  React.useEffect(() => {
+    if (!serviceId) {
+      toast.error("ID do serviço não fornecido!");
+      setTimeout(() => navigate(createPageUrl('PartnerServices')), 2000);
+    }
+  }, [serviceId, navigate]);
+
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
       const dog = userDogs.find(d => d.id === selectedDog);
+      
+      if (!dog) {
+        throw new Error("Pet não encontrado");
+      }
+      
       const price = service.price_by_size?.[dog.size] || service.base_price;
       const emergencyFee = isEmergency ? (service.emergency_surcharge || 0) : 0;
       const totalAmount = price + emergencyFee;
@@ -84,19 +97,19 @@ export default function BookService() {
         service_type: service.service_type,
         owner_email: user.email,
         owner_name: user.full_name,
-        owner_phone: user.phone,
+        owner_phone: user.phone || '',
         dog_profile_id: dog.id,
         dog_name: dog.dog_name,
-        dog_breed: dog.breed,
+        dog_breed: dog.breed || 'Não especificado',
         dog_size: dog.size,
-        dog_weight: dog.weight,
+        dog_weight: dog.weight || 0,
         booking_date: format(selectedDate, 'yyyy-MM-dd'),
         booking_time: selectedTime,
-        duration_minutes: service.duration_minutes,
+        duration_minutes: service.duration_minutes || 60,
         is_emergency: isEmergency,
         urgency_level: isEmergency ? 'urgent' : 'normal',
-        symptoms: symptoms,
-        special_requests: specialRequests,
+        symptoms: symptoms || '',
+        special_requests: specialRequests || '',
         service_price: price,
         emergency_surcharge: emergencyFee,
         total_amount: totalAmount,
@@ -106,6 +119,7 @@ export default function BookService() {
         payment_status: 'pending'
       });
 
+      // Update loyalty points
       const loyaltyPoints = await base44.entities.LoyaltyPoints.filter({ 
         user_email: user.email 
       });
@@ -115,8 +129,16 @@ export default function BookService() {
           points_balance: (loyaltyPoints[0].points_balance || 0) + Math.floor(totalAmount * 15),
           total_earned: (loyaltyPoints[0].total_earned || 0) + Math.floor(totalAmount * 15)
         });
+      } else {
+        await base44.entities.LoyaltyPoints.create({
+          user_email: user.email,
+          points_balance: Math.floor(totalAmount * 15),
+          total_earned: Math.floor(totalAmount * 15),
+          tier: 'bronze'
+        });
       }
 
+      // Create notification
       await base44.entities.Notification.create({
         recipient_email: user.email,
         title: "Agendamento Confirmado! 🎉",
@@ -131,9 +153,14 @@ export default function BookService() {
     onSuccess: () => {
       queryClient.invalidateQueries(['myServiceBookings']);
       queryClient.invalidateQueries(['loyaltyPoints']);
-      toast.success("Agendamento criado com sucesso!");
-      navigate(createPageUrl('MyBookings'));
+      toast.success("Agendamento criado com sucesso! 🎉");
+      setTimeout(() => {
+        navigate(createPageUrl('MyBookings'));
+      }, 1500);
     },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao criar agendamento");
+    }
   });
 
   const handleSubmit = (e) => {
@@ -156,6 +183,25 @@ export default function BookService() {
 
     createBookingMutation.mutate();
   };
+
+  // Loading state
+  if (!service && services.length > 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
+        <Card className="max-w-md border-0 shadow-2xl">
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Serviço não encontrado</h2>
+            <p className="text-gray-600 mb-6">O serviço que procura não existe ou foi removido.</p>
+            <Button onClick={() => navigate(createPageUrl('PartnerServices'))}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar aos Serviços
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!service) {
     return (
