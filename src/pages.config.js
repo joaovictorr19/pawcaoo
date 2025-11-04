@@ -48,6 +48,7 @@ import PartnerServices from './pages/PartnerServices';
 import BookService from './pages/BookService';
 import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import ApproveAnnouncements from './pages/ApproveAnnouncements';
+import Gamification from './pages/Gamification';
 import Layout from './Layout.jsx';
 
 
@@ -102,6 +103,7 @@ export const PAGES = {
     "BookService": BookService,
     "VeterinaryDashboard": VeterinaryDashboard,
     "ApproveAnnouncements": ApproveAnnouncements,
+    "Gamification": Gamification,
 }
 
 export const pagesConfig = {

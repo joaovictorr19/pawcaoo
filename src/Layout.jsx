@@ -94,6 +94,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
+    { title: language === 'pt' ? 'Gamificação' : 'Gamification', url: createPageUrl("Gamification"), icon: Trophy }, // NEW ITEM
     { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
     { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
@@ -130,7 +131,7 @@ function LayoutContent({ children, currentPageName }) {
 
   // Define the counts for each section from the base navigationItems
   const mainMenuCount = 7; // findWalkers to Dog Connect
-  const myActivityCount = 8; // myFavorites to leaderboard
+  const myActivityCount = 9; // myFavorites to leaderboard (now includes Gamification)
   const professionalServicesCount = 6; // professionalDashboard to ownerMembership
   
   // Calculate start and end indices for slicing allNavigationItems
@@ -138,12 +139,12 @@ function LayoutContent({ children, currentPageName }) {
   const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount; // 7
 
   const myActivityStartIndex = mainMenuEndIndex; // 7
-  const myActivityEndIndex = myActivityStartIndex + myActivityCount; // 7 + 8 = 15
+  const myActivityEndIndex = myActivityStartIndex + myActivityCount; // 7 + 9 = 16
 
-  const professionalServicesStartIndex = myActivityEndIndex; // 15
-  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount; // 15 + 6 = 21
+  const professionalServicesStartIndex = myActivityEndIndex; // 16
+  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount; // 16 + 6 = 22
 
-  const adminAndOtherStartIndex = professionalServicesEndIndex; // 21
+  const adminAndOtherStartIndex = professionalServicesEndIndex; // 22
 
   const languageFlags = {
     pt: "🇵🇹",
