@@ -66,11 +66,11 @@ export default function PartnerDashboard() {
     service_type: "bath",
     description: "",
     duration_minutes: 60,
-    base_price: 0,
-    price_by_size: { small: 0, medium: 0, large: 0, extra_large: 0 },
+    base_price: "",
+    price_by_size: { small: "", medium: "", large: "", extra_large: "" },
     includes: [],
     is_emergency: false,
-    emergency_surcharge: 0,
+    emergency_surcharge: "",
     available_days: [],
     image_url: ""
   });
@@ -80,7 +80,7 @@ export default function PartnerDashboard() {
     title: "",
     message: "",
     promotion_type: "discount",
-    discount_percentage: 0,
+    discount_percentage: "",
     target_subscription_tier: ["free", "basic", "premium", "vip"],
     start_date: "",
     end_date: "",
@@ -245,7 +245,7 @@ export default function PartnerDashboard() {
         let message = '';
         if (checkInDateTime && checkOutDateTime) {
             message = language === 'pt'
-                ? `Recolha: ${format(new Date(checkInDateTime), "dd/MM/yyyy 'às' HH:mm")}\nEntrega: ${format(new Date(checkOutDateTime), "dd/MM/yyyy 'às' HH:mm")}`
+                ? `Recolha: ${format(new Date(checkInDateTime), "dd/MM/yyyy 'às' HH:mm")}\nEntrega: ${format(new Date(checkOutDateTime), "dd/MM/yyyy 'at' HH:mm")}`
                 : `Pickup: ${format(new Date(checkInDateTime), "MM/dd/yyyy 'at' HH:mm")}\nDropoff: ${format(new Date(checkOutDateTime), "MM/dd/yyyy 'at' HH:mm")}`;
         } else if (checkInDateTime) {
             message = language === 'pt'
@@ -421,8 +421,22 @@ export default function PartnerDashboard() {
   // NEW: Create Service Mutation
   const createServiceMutation = useMutation({
     mutationFn: async (serviceData) => {
-      return await base44.entities.PartnerService.create({
+      // Convert string values to numbers
+      const processedData = {
         ...serviceData,
+        base_price: parseFloat(serviceData.base_price) || 0,
+        duration_minutes: parseInt(serviceData.duration_minutes) || 60,
+        emergency_surcharge: parseFloat(serviceData.emergency_surcharge) || 0,
+        price_by_size: {
+          small: parseFloat(serviceData.price_by_size.small) || 0,
+          medium: parseFloat(serviceData.price_by_size.medium) || 0,
+          large: parseFloat(serviceData.price_by_size.large) || 0,
+          extra_large: parseFloat(serviceData.price_by_size.extra_large) || 0
+        }
+      };
+
+      return await base44.entities.PartnerService.create({
+        ...processedData,
         partner_id: company.id,
         partner_name: company.company_name,
         partner_company_email: company.company_email,
@@ -439,11 +453,11 @@ export default function PartnerDashboard() {
         service_type: "bath",
         description: "",
         duration_minutes: 60,
-        base_price: 0,
-        price_by_size: { small: 0, medium: 0, large: 0, extra_large: 0 },
+        base_price: "",
+        price_by_size: { small: "", medium: "", large: "", extra_large: "" },
         includes: [],
         is_emergency: false,
-        emergency_surcharge: 0,
+        emergency_surcharge: "",
         available_days: [],
         image_url: ""
       });
@@ -456,8 +470,14 @@ export default function PartnerDashboard() {
   // NEW: Create Announcement Mutation
   const createAnnouncementMutation = useMutation({
     mutationFn: async (announcementData) => {
-      return await base44.entities.CompanyAnnouncement.create({
+      // Convert string values to numbers
+      const processedData = {
         ...announcementData,
+        discount_percentage: parseInt(announcementData.discount_percentage) || 0
+      };
+
+      return await base44.entities.CompanyAnnouncement.create({
+        ...processedData,
         company_id: company.id,
         company_name: company.company_name,
         company_email: company.company_email,
@@ -473,7 +493,7 @@ export default function PartnerDashboard() {
         title: "",
         message: "",
         promotion_type: "discount",
-        discount_percentage: 0,
+        discount_percentage: "",
         target_subscription_tier: ["free", "basic", "premium", "vip"],
         start_date: "",
         end_date: "",
@@ -1348,34 +1368,42 @@ export default function PartnerDashboard() {
                 <Input
                   type="number"
                   value={newService.duration_minutes}
-                  onChange={(e) => setNewService({ ...newService, duration_minutes: parseInt(e.target.value) })}
+                  onChange={(e) => setNewService({ ...newService, duration_minutes: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{language === 'pt' ? 'Preço Base (€)' : 'Base Price (€)'}</Label>
+                <Label>{language === 'pt' ? 'Preço Base (€)' : 'Base Price (€)'} *</Label>
                 <Input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={newService.base_price}
-                  onChange={(e) => setNewService({ ...newService, base_price: parseFloat(e.target.value) })}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                    setNewService({ ...newService, base_price: value });
+                  }}
+                  placeholder="25.00"
                 />
+                <p className="text-xs text-gray-500">{language === 'pt' ? 'Digite apenas números (ex: 25 ou 25.50)' : 'Enter numbers only (ex: 25 or 25.50)'}</p>
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>{language === 'pt' ? 'Preços por Tamanho (€)' : 'Prices by Size (€)'}</Label>
+              <p className="text-xs text-gray-600 mb-2">{language === 'pt' ? 'Opcional - se deixar vazio, usará o preço base' : 'Optional - if left empty, will use base price'}</p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {['small', 'medium', 'large', 'extra_large'].map(size => (
                   <div key={size}>
                     <Label className="text-xs capitalize">{size.replace('_', ' ')}</Label>
                     <Input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       value={newService.price_by_size[size]}
-                      onChange={(e) => setNewService({
-                        ...newService,
-                        price_by_size: { ...newService.price_by_size, [size]: parseFloat(e.target.value) || 0 }
-                      })}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                        setNewService({
+                          ...newService,
+                          price_by_size: { ...newService.price_by_size, [size]: value }
+                        });
+                      }}
+                      placeholder="0"
                     />
                   </div>
                 ))}
@@ -1408,10 +1436,12 @@ export default function PartnerDashboard() {
                 </Label>
                 {newService.is_emergency && (
                   <Input
-                    type="number"
-                    step="0.01"
+                    type="text"
                     value={newService.emergency_surcharge}
-                    onChange={(e) => setNewService({ ...newService, emergency_surcharge: parseFloat(e.target.value) })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                      setNewService({ ...newService, emergency_surcharge: value });
+                    }}
                     placeholder={language === 'pt' ? "Taxa adicional (€)" : "Additional fee (€)"}
                     className="mt-2"
                   />
@@ -1422,7 +1452,7 @@ export default function PartnerDashboard() {
             <div className="space-y-2">
               <Label>{language === 'pt' ? 'Imagem do Serviço' : 'Service Image'}</Label>
               {newService.image_url && (
-                <img src={newService.image_url} className="w-full h-32 object-cover rounded-lg mb-2" />
+                <img src={newService.image_url} className="w-full h-32 object-cover rounded-lg mb-2" alt="Service preview" />
               )}
               <Input
                 type="file"
@@ -1436,11 +1466,27 @@ export default function PartnerDashboard() {
             </div>
 
             <Button
-              onClick={() => createServiceMutation.mutate(newService)}
-              disabled={createServiceMutation.isPending || !newService.service_name || !newService.base_price}
+              onClick={() => {
+                if (!newService.service_name || !newService.base_price) {
+                  toast.error(language === 'pt' ? 'Preencha o nome e preço do serviço!' : 'Fill in service name and price!');
+                  return;
+                }
+                createServiceMutation.mutate(newService);
+              }}
+              disabled={createServiceMutation.isPending}
               className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-bold"
             >
-              {createServiceMutation.isPending ? (language === 'pt' ? 'Criando...' : 'Creating...') : (language === 'pt' ? 'Criar Serviço' : 'Create Service')}
+              {createServiceMutation.isPending ? (
+                <>
+                  <Clock className="w-5 h-5 mr-2 animate-spin" />
+                  {language === 'pt' ? 'Criando...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {language === 'pt' ? 'Criar Serviço' : 'Create Service'}
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -1496,9 +1542,13 @@ export default function PartnerDashboard() {
               <div className="space-y-2">
                 <Label>{language === 'pt' ? 'Desconto (%)' : 'Discount (%)'}</Label>
                 <Input
-                  type="number"
+                  type="text"
                   value={newAnnouncement.discount_percentage}
-                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, discount_percentage: parseInt(e.target.value) })}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setNewAnnouncement({ ...newAnnouncement, discount_percentage: value });
+                  }}
+                  placeholder="10"
                 />
               </div>
             </div>
@@ -1525,7 +1575,7 @@ export default function PartnerDashboard() {
             <div className="space-y-2">
               <Label>{language === 'pt' ? 'Imagem da Promoção' : 'Promotion Image'}</Label>
               {newAnnouncement.image_url && (
-                <img src={newAnnouncement.image_url} className="w-full h-48 object-cover rounded-lg mb-2" />
+                <img src={newAnnouncement.image_url} className="w-full h-48 object-cover rounded-lg mb-2" alt="Announcement preview" />
               )}
               <Input
                 type="file"
@@ -1539,11 +1589,27 @@ export default function PartnerDashboard() {
             </div>
 
             <Button
-              onClick={() => createAnnouncementMutation.mutate(newAnnouncement)}
-              disabled={createAnnouncementMutation.isPending || !newAnnouncement.title || !newAnnouncement.start_date || !newAnnouncement.end_date}
+              onClick={() => {
+                if (!newAnnouncement.title || !newAnnouncement.start_date || !newAnnouncement.end_date) {
+                  toast.error(language === 'pt' ? 'Preencha todos os campos obrigatórios!' : 'Fill in all required fields!');
+                  return;
+                }
+                createAnnouncementMutation.mutate(newAnnouncement);
+              }}
+              disabled={createAnnouncementMutation.isPending}
               className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-lg font-bold"
             >
-              {createAnnouncementMutation.isPending ? (language === 'pt' ? 'Criando...' : 'Creating...') : (language === 'pt' ? 'Criar Anúncio' : 'Create Announcement')}
+              {createAnnouncementMutation.isPending ? (
+                <>
+                  <Clock className="w-5 h-5 mr-2 animate-spin" />
+                  {language === 'pt' ? 'Criando...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {language === 'pt' ? 'Criar Anúncio' : 'Create Announcement'}
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -1636,7 +1702,7 @@ export default function PartnerDashboard() {
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       {announcement.image_url && (
-                        <img src={announcement.image_url} className="w-24 h-24 object-cover rounded-lg" />
+                        <img src={announcement.image_url} className="w-24 h-24 object-cover rounded-lg" alt="Announcement image" />
                       )}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
