@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Store, Calendar, DollarSign, Package, TrendingUp,
   Clock, User, PawPrint, CheckCircle, X, AlertCircle,
-  Bell, Phone, MapPin, Pill, MessageCircle, Send
+  Bell, Phone, MapPin, Pill, MessageCircle, Send,
+  Shield, RefreshCw // New imports for Shield and RefreshCw
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -27,19 +28,33 @@ export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [messageText, setMessageText] = useState("");
+  const [showDebug, setShowDebug] = useState(false); // New state for debug info
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: company } = useQuery({
+  const { data: company, isLoading: loadingCompany } = useQuery({ // Added isLoading: loadingCompany
     queryKey: ['myCompany'],
     queryFn: async () => {
-      const companies = await base44.entities.PartnerCompany.filter({ 
-        company_email: user?.email
+      if (!user?.email) return null;
+      
+      // Try multiple filters to find the company
+      const byEmail = await base44.entities.PartnerCompany.filter({ 
+        company_email: user.email
       });
-      return companies[0];
+      
+      if (byEmail.length > 0) return byEmail[0];
+      
+      // Try by created_by as fallback
+      const byCreator = await base44.entities.PartnerCompany.filter({ 
+        created_by: user.email
+      });
+      
+      if (byCreator.length > 0) return byCreator[0];
+      
+      return null;
     },
     enabled: !!user,
   });
@@ -211,18 +226,112 @@ export default function PartnerDashboard() {
     return colors[status] || colors.pending;
   };
 
-  if (!company) {
+  if (loadingCompany) { // Loading state for company data
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
         <Card className="max-w-md border-0 shadow-2xl">
           <CardContent className="p-12 text-center">
-            <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <Store className="w-16 h-16 text-gray-300 mx-auto mb-4 animate-pulse" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {language === 'pt' ? 'Acesso Restrito' : 'Access Restricted'}
+              {language === 'pt' ? 'Carregando...' : 'Loading...'}
             </h2>
-            <p className="text-gray-600">
-              {language === 'pt' ? 'Apenas para empresas parceiras' : 'Partner companies only'}
-            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!company) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
+        <Card className="max-w-2xl border-0 shadow-2xl">
+          <CardContent className="p-12">
+            <div className="text-center mb-6">
+              <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {language === 'pt' ? 'Empresa Não Encontrada' : 'Company Not Found'}
+              </h2>
+              <p className="text-gray-600 mb-4">
+                {language === 'pt' 
+                  ? 'Não encontramos uma empresa associada à sua conta.' 
+                  : 'We could not find a company associated with your account.'}
+              </p>
+            </div>
+
+            {/* Debug Info */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDebug(!showDebug)}
+                className="mb-2 text-blue-800 hover:bg-blue-100"
+              >
+                {showDebug ? '▼' : '▶'} {language === 'pt' ? 'Informações de Debug' : 'Debug Info'}
+              </Button>
+              
+              {showDebug && (
+                <div className="text-sm space-y-2 mt-2">
+                  <div>
+                    <strong className="text-gray-700">Email do usuário:</strong>
+                    <code className="ml-2 bg-white px-2 py-1 rounded text-gray-900">{user?.email || 'N/A'}</code>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700">Tipo de conta:</strong>
+                    <code className="ml-2 bg-white px-2 py-1 rounded text-gray-900">{user?.account_type || 'não definido'}</code>
+                  </div>
+                  <div>
+                    <strong className="text-gray-700">Role:</strong>
+                    <code className="ml-2 bg-white px-2 py-1 rounded text-gray-900">{user?.role || 'user'}</code>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Solutions */}
+            <div className="space-y-3">
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                <h3 className="font-bold text-gray-900 mb-2">
+                  {language === 'pt' ? '✅ Soluções:' : '✅ Solutions:'}
+                </h3>
+                <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+                  <li>
+                    {language === 'pt' 
+                      ? 'Verifique se criou a empresa com o email correto:' 
+                      : 'Check if you created the company with the correct email:'}{' '}
+                    <code className="bg-white px-2 py-1 rounded text-gray-900">{user?.email || 'N/A'}</code>
+                  </li>
+                  <li>
+                    {language === 'pt' 
+                      ? 'A empresa deve ser criada através do painel de Admin (Dashboard → Dados → PartnerCompany)' 
+                      : 'The company must be created through Admin panel (Dashboard → Data → PartnerCompany)'}
+                  </li>
+                  <li>
+                    {language === 'pt' 
+                      ? 'Ao criar, use este email no campo "company_email" e "created_by"' 
+                      : 'When creating, use this email in the "company_email" and "created_by" fields'}
+                  </li>
+                </ol>
+              </div>
+
+              {user?.role === 'admin' && (
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Ir para Admin Dashboard' : 'Go to Admin Dashboard'}
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="w-full mt-2"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                {language === 'pt' ? 'Recarregar Página' : 'Reload Page'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
