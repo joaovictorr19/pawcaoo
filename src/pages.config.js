@@ -44,6 +44,9 @@ import Landing from './pages/Landing';
 import UserProfile from './pages/UserProfile';
 import SocialEvents from './pages/SocialEvents';
 import ModerationPanel from './pages/ModerationPanel';
+import PartnerServices from './pages/PartnerServices';
+import BookService from './pages/BookService';
+import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import Layout from './Layout.jsx';
 
 
@@ -94,6 +97,9 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "SocialEvents": SocialEvents,
     "ModerationPanel": ModerationPanel,
+    "PartnerServices": PartnerServices,
+    "BookService": BookService,
+    "VeterinaryDashboard": VeterinaryDashboard,
 }
 
 export const pagesConfig = {

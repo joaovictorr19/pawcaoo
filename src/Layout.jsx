@@ -82,9 +82,10 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: t('pawcaoShop', language), url: createPageUrl("Partners"), icon: Store },
+    { title: "🏥 " + (language === 'pt' ? 'Serviços Parceiros' : 'Partner Services'), url: createPageUrl("PartnerServices"), icon: Award },
     { title: "🐾 Comunidade", url: createPageUrl("Community"), icon: MessageCircle },
     { title: "📸 Rede Social", url: createPageUrl("SocialFeed"), icon: Camera },
-    { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar }, 
+    { title: "📅 Eventos", url: createPageUrl("SocialEvents"), icon: Calendar },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
@@ -111,11 +112,15 @@ function LayoutContent({ children, currentPageName }) {
     { title: "🛡️ " + (language === 'pt' ? 'Moderação' : 'Moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
+  const veterinaryItem = user?.account_type === 'company' && user?.company_type === 'veterinary' ? [
+    { title: "🏥 " + (language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard'), url: createPageUrl("VeterinaryDashboard"), icon: Award }
+  ] : [];
+
   const stripeConnectItem = (user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both') ? [
     { title: "💰 Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
   ] : [];
 
-  const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...stripeConnectItem];
+  const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...veterinaryItem, ...stripeConnectItem];
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -236,7 +241,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(0, 8).map((item) => ( 
+                  {allNavigationItems.slice(0, 9).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -263,7 +268,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(8, 16).map((item) => ( 
+                  {allNavigationItems.slice(9, 17).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -291,7 +296,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(16, 22).map((item) => ( 
+                  {allNavigationItems.slice(17, 23).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -310,12 +315,12 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {allNavigationItems.length > 22 && ( 
+            {allNavigationItems.length > 23 && ( 
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(22).map((item) => ( 
+                    {allNavigationItems.slice(23).map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
