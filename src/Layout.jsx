@@ -29,8 +29,78 @@ import {
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import { queryConfig, prefetchQueries } from "@/utils/queryConfig";
-import { usePrefetchOnHover } from "@/utils/performanceUtils";
+
+// Query optimization configs
+const queryConfig = {
+  user: {
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  },
+  notifications: {
+    staleTime: 30 * 1000,
+    cacheTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60 * 1000,
+  },
+  static: {
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  },
+};
+
+// Simple prefetch helpers
+const prefetchQueries = {
+  walkers: (queryClient, base44) => {
+    queryClient.prefetchQuery({
+      queryKey: ['walkers'],
+      queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating'),
+      staleTime: 2 * 60 * 1000,
+    });
+  },
+  trainers: (queryClient, base44) => {
+    queryClient.prefetchQuery({
+      queryKey: ['trainers'],
+      queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
+      staleTime: 2 * 60 * 1000,
+    });
+  },
+  partners: (queryClient, base44) => {
+    queryClient.prefetchQuery({
+      queryKey: ['partners'],
+      queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
+      staleTime: 3 * 60 * 1000,
+    });
+  },
+  bookings: (queryClient, base44, userEmail) => {
+    if (!userEmail) return;
+    queryClient.prefetchQuery({
+      queryKey: ['userBookings', userEmail],
+      queryFn: () => base44.entities.Booking.filter({ created_by: userEmail }, '-created_date'),
+      staleTime: 1 * 60 * 1000,
+    });
+  },
+};
+
+// Prefetch on hover hook
+const usePrefetchOnHover = (prefetchFn) => {
+  const timeoutRef = React.useRef(null);
+
+  const handleMouseEnter = React.useCallback(() => {
+    timeoutRef.current = setTimeout(() => {
+      prefetchFn();
+    }, 100);
+  }, [prefetchFn]);
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  }, []);
+
+  return { handleMouseEnter, handleMouseLeave };
+};
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
@@ -174,7 +244,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const planBadge = getPlanBadge();
 
-  // Prefetch handlers for hover
+  // Prefetch handlers
   const prefetchWalkers = usePrefetchOnHover(() => 
     prefetchQueries.walkers(queryClient, base44)
   );
