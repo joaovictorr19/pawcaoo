@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,10 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   ArrowLeft, Calendar as CalendarIcon, Clock, DollarSign,
-  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone, Mail, Building2, Globe, Info,
-  CreditCard, ArrowRight, Package, Shield
+  AlertCircle, CheckCircle, Zap, Star, MapPin, Phone, Mail,
+  CreditCard, Package, Shield, Info, Dog as DogIcon, Home
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -36,13 +35,10 @@ export default function BookService() {
   const [selectedDog, setSelectedDog] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState("");
-  const [pickupTime, setPickupTime] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("");
   const [needsTransport, setNeedsTransport] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
   const [symptoms, setSymptoms] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [step, setStep] = useState(1); // 1: Details, 2: Review, 3: Payment
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
 
   const { data: user } = useQuery({
@@ -74,6 +70,13 @@ export default function BookService() {
   });
 
   const partner = partners.find(p => p.id === service?.partner_id);
+
+  React.useEffect(() => {
+    if (!serviceId) {
+      toast.error("ID do serviço não fornecido!");
+      setTimeout(() => navigate(createPageUrl('PartnerServices')), 2000);
+    }
+  }, [serviceId, navigate]);
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
@@ -169,46 +172,32 @@ export default function BookService() {
     }
   });
 
-  const handleNextStep = () => {
-    if (step === 1) {
-      if (userDogs.length === 0) {
-        toast.error("Você precisa cadastrar um pet primeiro!");
-        setTimeout(() => navigate(createPageUrl('MyProfile')), 1000);
-        return;
-      }
-
-      if (!selectedDog || !selectedDate || !selectedTime) {
-        toast.error("Preencha todos os campos obrigatórios");
-        return;
-      }
-
-      if (service.service_type === 'veterinary' && isEmergency && !symptoms) {
-        toast.error("Descreva os sintomas para emergência veterinária");
-        return;
-      }
-
-      if (needsTransport && (!pickupTime || !deliveryTime)) {
-        toast.error("Defina horários de busca e entrega");
-        return;
-      }
-
-      setStep(2);
-    } else if (step === 2) {
-      setStep(3);
-    }
-  };
-
   const handleConfirmBooking = () => {
+    if (userDogs.length === 0) {
+      toast.error("Você precisa cadastrar um pet primeiro!");
+      setTimeout(() => navigate(createPageUrl('MyProfile')), 1000);
+      return;
+    }
+
+    if (!selectedDog || !selectedDate || !selectedTime) {
+      toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    if (service.service_type === 'veterinary' && isEmergency && !symptoms) {
+      toast.error("Descreva os sintomas para emergência veterinária");
+      return;
+    }
+
     if (!paymentMethod) {
       toast.error("Selecione um método de pagamento");
       return;
     }
+
     createBookingMutation.mutate();
   };
 
   if (!serviceId) {
-    toast.error("ID do serviço não fornecido!");
-    setTimeout(() => navigate(createPageUrl('PartnerServices')), 1500);
     return null;
   }
 
@@ -250,52 +239,22 @@ export default function BookService() {
     "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
   ];
 
-  const getServiceTypeLabel = (type) => {
-    const labels = {
-      bath: '🛁 Banho',
-      grooming: '✂️ Grooming',
-      veterinary: '🏥 Veterinário',
-      vaccination: '💉 Vacinação',
-      checkup: '🩺 Check-up',
-      emergency: '🚨 Emergência',
-      training: '🎓 Treino',
-      daycare: '🏠 Creche',
-      surgery: '⚕️ Cirurgia',
-      pharmacy: '💊 Farmácia',
-      boarding: '🏡 Hospedagem',
-      transport: '🚗 Transporte'
+  const getServiceIcon = (type) => {
+    const icons = {
+      bath: '🛁',
+      grooming: '✂️',
+      veterinary: '🏥',
+      vaccination: '💉',
+      checkup: '🩺',
+      emergency: '🚨',
+      training: '🎓',
+      daycare: '🏠',
+      surgery: '⚕️',
+      pharmacy: '💊',
+      boarding: '🏡',
     };
-    return labels[type] || type;
+    return icons[type] || '📦';
   };
-
-  // Step Indicator Component
-  const StepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
-      <div className="flex items-center gap-4">
-        {[
-          { num: 1, label: "Detalhes" },
-          { num: 2, label: "Revisão" },
-          { num: 3, label: "Pagamento" }
-        ].map((s, idx) => (
-          <React.Fragment key={s.num}>
-            <div className="text-center">
-              <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold mb-2 transition-all ${
-                step >= s.num ? 'bg-green-600 text-white scale-110 shadow-lg' : 'bg-gray-200 text-gray-500'
-              }`}>
-                {step > s.num ? <CheckCircle className="w-6 h-6" /> : s.num}
-              </div>
-              <span className={`text-xs font-medium ${step >= s.num ? 'text-green-600' : 'text-gray-400'}`}>
-                {s.label}
-              </span>
-            </div>
-            {idx < 2 && (
-              <div className={`w-12 md:w-24 h-1 ${step > s.num ? 'bg-green-600' : 'bg-gray-200'}`} />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -303,501 +262,353 @@ export default function BookService() {
         <Button
           variant="outline"
           className="mb-6"
-          onClick={() => step === 1 ? navigate(createPageUrl('PartnerServices')) : setStep(step - 1)}
+          onClick={() => navigate(createPageUrl('PartnerServices'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {step === 1 ? 'Voltar aos Serviços' : 'Voltar'}
+          Voltar aos Serviços
         </Button>
-
-        <StepIndicator />
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <AnimatePresence mode="wait">
-              {/* STEP 1: Service Details */}
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  {/* Service Info */}
-                  <Card className="border-0 shadow-2xl mb-6">
-                    <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                      <CardTitle className="text-2xl flex items-center gap-2">
-                        <Package className="w-6 h-6" />
-                        {service.service_name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      {service.image_url && (
-                        <img
-                          src={service.image_url}
-                          alt={service.service_name}
-                          className="w-full h-64 object-cover rounded-2xl mb-6 shadow-lg"
-                        />
-                      )}
+          <div className="lg:col-span-2">
+            <Card className="border-0 shadow-2xl">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <CardTitle className="text-2xl flex items-center gap-3">
+                  <span className="text-4xl">{getServiceIcon(service.service_type)}</span>
+                  <div>
+                    <div>{service.service_name}</div>
+                    <div className="text-sm font-normal opacity-90">{service.partner_name}</div>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                {/* Service Image & Description */}
+                {service.image_url && (
+                  <img
+                    src={service.image_url}
+                    alt={service.service_name}
+                    className="w-full h-64 object-cover rounded-xl shadow-lg"
+                  />
+                )}
 
-                      <Badge className="text-base px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white mb-4">
-                        {getServiceTypeLabel(service.service_type)}
-                      </Badge>
-
-                      <p className="text-gray-700 leading-relaxed mb-6">{service.description}</p>
-
-                      {/* Quick Stats */}
-                      <div className="grid md:grid-cols-3 gap-4 mb-6">
-                        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border-2 border-blue-100">
-                          <Clock className="w-6 h-6 text-blue-600" />
-                          <div>
-                            <p className="text-xs text-gray-600 font-semibold">Duração</p>
-                            <p className="font-bold text-gray-900">{service.duration_minutes} min</p>
-                          </div>
+                <div>
+                  <p className="text-gray-700 leading-relaxed mb-4">{service.description}</p>
+                  {service.includes?.length > 0 && (
+                    <div className="grid md:grid-cols-2 gap-2">
+                      {service.includes.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 bg-green-50 p-2 rounded-lg">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          {item}
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border-2 border-green-100">
-                          <DollarSign className="w-6 h-6 text-green-600" />
-                          <div>
-                            <p className="text-xs text-gray-600 font-semibold">A partir de</p>
-                            <p className="font-bold text-gray-900 text-xl">€{service.base_price}</p>
-                          </div>
-                        </div>
+                <Separator />
 
-                        <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl border-2 border-purple-100">
-                          <Star className="w-6 h-6 text-purple-600" />
-                          <div>
-                            <p className="text-xs text-gray-600 font-semibold">Avaliação</p>
-                            <p className="font-bold text-gray-900">{service.average_rating > 0 ? `${service.average_rating.toFixed(1)} / 5.0` : 'Novo'}</p>
-                          </div>
-                        </div>
-                      </div>
+                {/* Step 1: Select Pet */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                    <h3 className="text-xl font-bold text-gray-900">Selecione seu Pet</h3>
+                  </div>
 
-                      {/* What's Included */}
-                      {service.includes?.length > 0 && (
-                        <>
-                          <Separator className="my-6" />
-                          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                            O que está incluído
-                          </h3>
-                          <div className="grid md:grid-cols-2 gap-3">
-                            {service.includes.map((item, idx) => (
-                              <div key={idx} className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                                <span className="text-gray-800">{item}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Booking Form */}
-                  <Card className="border-0 shadow-2xl">
-                    <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-                      <CardTitle className="text-xl">Informações do Agendamento</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-5">
-                      {userDogs.length === 0 && (
-                        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-4">
-                          <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-bold text-amber-900 mb-1">
-                                Você precisa cadastrar um pet primeiro!
-                              </p>
-                              <Button
-                                type="button"
-                                onClick={() => navigate(createPageUrl('MyProfile'))}
-                                className="bg-amber-600 hover:bg-amber-700 mt-2"
-                              >
-                                Cadastrar Pet Agora
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Select Pet */}
-                      <div>
-                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                          Selecione o Pet *
-                        </Label>
-                        <Select value={selectedDog} onValueChange={setSelectedDog} disabled={userDogs.length === 0}>
-                          <SelectTrigger>
-                            <SelectValue placeholder={userDogs.length === 0 ? "Cadastre um pet primeiro" : "Escolha seu pet"} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {userDogs.map(dog => (
-                              <SelectItem key={dog.id} value={dog.id}>
-                                🐕 {dog.dog_name} ({dog.breed}) - {dog.size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Select Date */}
-                      <div>
-                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                          Data do Serviço *
-                        </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
-                              disabled={userDogs.length === 0}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {selectedDate ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Escolha a data"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              onSelect={setSelectedDate}
-                              disabled={(date) => date < new Date() || date < new Date().setHours(0,0,0,0)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      {/* Select Time */}
-                      <div>
-                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                          Horário *
-                        </Label>
-                        <Select value={selectedTime} onValueChange={setSelectedTime} disabled={userDogs.length === 0}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Escolha o horário" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {timeSlots.map(time => (
-                              <SelectItem key={time} value={time}>
-                                🕐 {time}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Transport Option */}
-                      <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
-                        <label className="flex items-start gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={needsTransport}
-                            onChange={(e) => setNeedsTransport(e.target.checked)}
-                            className="mt-1"
-                            disabled={userDogs.length === 0}
-                          />
-                          <div className="flex-1">
-                            <p className="font-bold text-blue-900 flex items-center gap-1">
-                              🚗 Precisa de Transporte?
-                            </p>
-                            <p className="text-sm text-blue-700 mt-1">
-                              Serviço de busca e entrega do seu pet (+€25)
-                            </p>
-                          </div>
-                        </label>
-
-                        {needsTransport && (
-                          <div className="grid md:grid-cols-2 gap-3 mt-4">
-                            <div>
-                              <Label className="text-xs">Horário de Busca</Label>
-                              <Select value={pickupTime} onValueChange={setPickupTime}>
-                                <SelectTrigger className="h-9">
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {timeSlots.map(time => (
-                                    <SelectItem key={time} value={time}>{time}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label className="text-xs">Horário de Entrega</Label>
-                              <Select value={deliveryTime} onValueChange={setDeliveryTime}>
-                                <SelectTrigger className="h-9">
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {timeSlots.map(time => (
-                                    <SelectItem key={time} value={time}>{time}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Emergency Option */}
-                      {(service.service_type === 'veterinary' || service.is_emergency) && (
-                        <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
-                          <label className="flex items-start gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={isEmergency}
-                              onChange={(e) => setIsEmergency(e.target.checked)}
-                              className="mt-1"
-                              disabled={userDogs.length === 0}
-                            />
-                            <div>
-                              <p className="font-bold text-orange-900 flex items-center gap-1">
-                                <Zap className="w-4 h-4" />
-                                É uma emergência?
-                              </p>
-                              <p className="text-sm text-orange-700 mt-1">
-                                Atendimento prioritário (+€{service.emergency_surcharge || 0})
-                              </p>
-                            </div>
-                          </label>
-                        </div>
-                      )}
-
-                      {/* Symptoms Field */}
-                      {service.service_type === 'veterinary' && isEmergency && (
+                  {userDogs.length === 0 ? (
+                    <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                            Sintomas / Motivo da Consulta *
-                          </Label>
-                          <Textarea
-                            value={symptoms}
-                            onChange={(e) => setSymptoms(e.target.value)}
-                            placeholder="Descreva os sintomas ou motivo da visita..."
-                            rows={3}
-                            disabled={userDogs.length === 0}
-                          />
-                        </div>
-                      )}
-
-                      {/* Special Requests */}
-                      <div>
-                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                          Pedidos Especiais (opcional)
-                        </Label>
-                        <Textarea
-                          value={specialRequests}
-                          onChange={(e) => setSpecialRequests(e.target.value)}
-                          placeholder="Algum pedido especial ou informação importante..."
-                          rows={2}
-                          disabled={userDogs.length === 0}
-                        />
-                      </div>
-
-                      <Button
-                        onClick={handleNextStep}
-                        disabled={userDogs.length === 0}
-                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-14 text-lg font-bold shadow-lg"
-                      >
-                        Continuar
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* STEP 2: Review Booking */}
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <Card className="border-0 shadow-2xl">
-                    <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-                      <CardTitle className="text-xl">Revise seu Agendamento</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                      {/* Service Info */}
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">Serviço</h3>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <p className="font-bold text-gray-900">{service.service_name}</p>
-                          <p className="text-sm text-gray-600">{service.partner_name}</p>
+                          <p className="font-bold text-amber-900 mb-2">
+                            Você precisa cadastrar um pet primeiro!
+                          </p>
+                          <Button
+                            onClick={() => navigate(createPageUrl('MyProfile'))}
+                            className="bg-amber-600 hover:bg-amber-700"
+                          >
+                            <DogIcon className="w-4 h-4 mr-2" />
+                            Cadastrar Pet Agora
+                          </Button>
                         </div>
                       </div>
-
-                      <Separator />
-
-                      {/* Pet Info */}
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">Pet</h3>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <p className="font-bold text-gray-900">{selectedDogData?.dog_name}</p>
-                          <p className="text-sm text-gray-600">{selectedDogData?.breed} - {selectedDogData?.size}</p>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      {/* Date & Time */}
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">Data e Horário</h3>
-                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <CalendarIcon className="w-4 h-4 text-gray-600" />
-                            <span className="font-semibold">{format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-gray-600" />
-                            <span className="font-semibold">{selectedTime}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {needsTransport && (
-                        <>
-                          <Separator />
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-3">Transporte</h3>
-                            <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Busca:</span>
-                                <span className="font-bold">{pickupTime}</span>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {userDogs.map(dog => {
+                        const dogPrice = service.price_by_size?.[dog.size] || service.base_price;
+                        const isSelected = selectedDog === dog.id;
+                        
+                        return (
+                          <button
+                            key={dog.id}
+                            type="button"
+                            onClick={() => setSelectedDog(dog.id)}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${
+                              isSelected 
+                                ? 'border-blue-600 bg-blue-50 shadow-lg' 
+                                : 'border-gray-200 hover:border-blue-300 bg-white'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              {dog.photo_url ? (
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-16 h-16 rounded-lg object-cover" />
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                                  🐕
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <h4 className="font-bold text-gray-900">{dog.dog_name}</h4>
+                                <p className="text-sm text-gray-600">{dog.breed}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">{dog.size}</Badge>
+                                  <Badge className="bg-green-600 text-white text-xs">
+                                    €{dogPrice}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Entrega:</span>
-                                <span className="font-bold">{deliveryTime}</span>
-                              </div>
+                              {isSelected && (
+                                <CheckCircle className="w-6 h-6 text-blue-600" />
+                              )}
                             </div>
-                          </div>
-                        </>
-                      )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
 
-                      <Button
-                        onClick={handleNextStep}
-                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 h-14 text-lg font-bold shadow-lg"
-                      >
-                        Prosseguir para Pagamento
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
+                <Separator />
 
-              {/* STEP 3: Payment */}
-              {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <Card className="border-0 shadow-2xl">
-                    <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
-                      <CardTitle className="text-xl flex items-center gap-2">
-                        <CreditCard className="w-6 h-6" />
-                        Pagamento
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                      <div>
-                        <Label className="text-lg font-bold text-gray-900 mb-4 block">
-                          Método de Pagamento
-                        </Label>
-                        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                          <div className="space-y-3">
-                            <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                              paymentMethod === 'credit_card' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                            }`}>
-                              <RadioGroupItem value="credit_card" id="credit_card" />
-                              <div className="flex-1">
-                                <p className="font-bold">💳 Cartão de Crédito</p>
-                                <p className="text-sm text-gray-600">Visa, Mastercard, Amex</p>
-                              </div>
-                            </label>
+                {/* Step 2: Date & Time */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                    <h3 className="text-xl font-bold text-gray-900">Data e Horário</h3>
+                  </div>
 
-                            <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                              paymentMethod === 'mbway' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                            }`}>
-                              <RadioGroupItem value="mbway" id="mbway" />
-                              <div className="flex-1">
-                                <p className="font-bold">📱 MB WAY</p>
-                                <p className="text-sm text-gray-600">Pagamento instantâneo</p>
-                              </div>
-                            </label>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="mb-2 block">Data do Serviço *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left font-normal h-12"
+                            disabled={!selectedDog}
+                          >
+                            <CalendarIcon className="mr-2 h-5 w-5" />
+                            {selectedDate ? format(selectedDate, "d 'de' MMMM", { locale: ptBR }) : "Escolha a data"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            disabled={(date) => date < new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
 
-                            <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                              paymentMethod === 'multibanco' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                            }`}>
-                              <RadioGroupItem value="multibanco" id="multibanco" />
-                              <div className="flex-1">
-                                <p className="font-bold">🏦 Multibanco</p>
-                                <p className="text-sm text-gray-600">Referência bancária</p>
-                              </div>
-                            </label>
-                          </div>
-                        </RadioGroup>
+                    <div>
+                      <Label className="mb-2 block">Horário *</Label>
+                      <Select value={selectedTime} onValueChange={setSelectedTime} disabled={!selectedDog}>
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Escolha o horário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.map(time => (
+                            <SelectItem key={time} value={time}>
+                              🕐 {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Step 3: Extras */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                    <h3 className="text-xl font-bold text-gray-900">Serviços Extras</h3>
+                  </div>
+
+                  {/* Transport */}
+                  <label className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                    needsTransport ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={needsTransport}
+                        onChange={(e) => setNeedsTransport(e.target.checked)}
+                        className="mt-1"
+                        disabled={!selectedDog}
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 flex items-center gap-2">
+                          🚗 Transporte (Busca e Entrega)
+                          <Badge className="bg-blue-600 text-white">+€25</Badge>
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Buscamos e entregamos seu pet no local
+                        </p>
                       </div>
+                    </div>
+                  </label>
 
-                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                          <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-                          <div>
-                            <p className="font-bold text-blue-900">Pagamento Seguro</p>
-                            <p className="text-sm text-blue-700">
-                              Seus dados estão protegidos com criptografia SSL de 256 bits
-                            </p>
-                          </div>
+                  {/* Emergency */}
+                  {(service.service_type === 'veterinary' || service.is_emergency) && (
+                    <label className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      isEmergency ? 'border-orange-600 bg-orange-50' : 'border-gray-200 hover:border-orange-300'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isEmergency}
+                          onChange={(e) => setIsEmergency(e.target.checked)}
+                          className="mt-1"
+                          disabled={!selectedDog}
+                        />
+                        <div className="flex-1">
+                          <p className="font-bold text-gray-900 flex items-center gap-2">
+                            <Zap className="w-5 h-5 text-orange-600" />
+                            Atendimento de Emergência
+                            <Badge className="bg-orange-600 text-white">+€{service.emergency_surcharge || 0}</Badge>
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Atendimento prioritário imediato
+                          </p>
                         </div>
                       </div>
+                    </label>
+                  )}
 
-                      <Button
-                        onClick={handleConfirmBooking}
-                        disabled={createBookingMutation.isPending}
-                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 h-14 text-lg font-bold shadow-lg"
-                      >
-                        {createBookingMutation.isPending ? (
-                          <>
-                            <Clock className="w-5 h-5 mr-2 animate-spin" />
-                            Processando...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-5 h-5 mr-2" />
-                            Confirmar e Pagar €{totalAmount.toFixed(2)}
-                          </>
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {/* Special Requests */}
+                  <div>
+                    <Label className="mb-2 block">Pedidos Especiais (opcional)</Label>
+                    <Textarea
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder="Alguma informação importante sobre seu pet ou preferências..."
+                      rows={3}
+                      disabled={!selectedDog}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Step 4: Payment */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                    <h3 className="text-xl font-bold text-gray-900">Método de Pagamento</h3>
+                  </div>
+
+                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === 'credit_card' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                    }`}>
+                      <RadioGroupItem value="credit_card" id="credit_card" />
+                      <div className="flex-1">
+                        <p className="font-bold">💳 Cartão de Crédito</p>
+                        <p className="text-sm text-gray-600">Visa, Mastercard, Amex</p>
+                      </div>
+                    </label>
+
+                    <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === 'mbway' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                    }`}>
+                      <RadioGroupItem value="mbway" id="mbway" />
+                      <div className="flex-1">
+                        <p className="font-bold">📱 MB WAY</p>
+                        <p className="text-sm text-gray-600">Pagamento instantâneo</p>
+                      </div>
+                    </label>
+
+                    <label className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === 'multibanco' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                    }`}>
+                      <RadioGroupItem value="multibanco" id="multibanco" />
+                      <div className="flex-1">
+                        <p className="font-bold">🏦 Multibanco</p>
+                        <p className="text-sm text-gray-600">Referência bancária</p>
+                      </div>
+                    </label>
+                  </RadioGroup>
+
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-blue-900">Pagamento 100% Seguro</p>
+                        <p className="text-sm text-blue-700">
+                          Dados protegidos com criptografia SSL de 256 bits
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirm Button */}
+                <Button
+                  onClick={handleConfirmBooking}
+                  disabled={createBookingMutation.isPending || !selectedDog || !selectedDate || !selectedTime}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-16 text-xl font-bold shadow-lg"
+                >
+                  {createBookingMutation.isPending ? (
+                    <>
+                      <Clock className="w-6 h-6 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-6 h-6 mr-2" />
+                      Confirmar e Pagar €{totalAmount.toFixed(2)}
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Sidebar - Price Summary */}
+          {/* Sidebar - Summary */}
           <div className="lg:col-span-1">
-            <Card className="border-0 shadow-2xl sticky top-6">
-              <CardHeader className="bg-gradient-to-br from-gray-800 to-gray-900 text-white">
-                <CardTitle className="text-lg">Resumo do Pedido</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
+            <div className="sticky top-6 space-y-6">
+              {/* Price Summary */}
+              <Card className="border-0 shadow-2xl">
+                <CardHeader className="bg-gradient-to-br from-gray-800 to-gray-900 text-white">
+                  <CardTitle className="text-lg">Resumo do Pedido</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  {/* Pet Selected */}
+                  {selectedDogData && (
+                    <>
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="text-xs text-gray-600 mb-1">Pet Selecionado</div>
+                        <div className="font-bold text-gray-900">{selectedDogData.dog_name}</div>
+                        <div className="text-sm text-gray-600">{selectedDogData.breed} • {selectedDogData.size}</div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Price Breakdown */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Serviço:</span>
+                    <span className="text-gray-600">Serviço {selectedDogData ? `(${selectedDogData.size})` : ''}:</span>
                     <span className="font-bold text-gray-900">€{price.toFixed(2)}</span>
                   </div>
 
-                  {selectedDogData && service.price_by_size && (
-                    <div className="text-xs text-gray-500 -mt-2">
-                      Tamanho: {selectedDogData.size}
-                    </div>
-                  )}
-
                   {isEmergency && emergencyFee > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-orange-600">Taxa Emergência:</span>
+                      <span className="text-orange-600">Emergência:</span>
                       <span className="font-bold text-orange-600">€{emergencyFee.toFixed(2)}</span>
                     </div>
                   )}
@@ -811,47 +622,81 @@ export default function BookService() {
 
                   <Separator />
 
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="font-bold text-lg text-gray-900">Total:</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xl text-gray-900">Total:</span>
                     <span className="font-bold text-3xl text-green-600">€{totalAmount.toFixed(2)}</span>
                   </div>
 
                   <div className="flex items-center justify-center gap-2 text-purple-600 bg-purple-50 rounded-lg p-3">
                     <Star className="w-5 h-5 fill-purple-500" />
-                    <span className="font-bold text-lg">+{pointsToEarn} PawPoints</span>
+                    <span className="font-bold">+{pointsToEarn} PawPoints</span>
                   </div>
+                </CardContent>
+              </Card>
 
-                  {partner && (
-                    <>
-                      <Separator />
-                      <div>
-                        <h4 className="font-bold text-sm text-gray-900 mb-3">📍 Localização do Serviço:</h4>
-                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                          <p className="font-semibold text-gray-900">{partner.company_name || service.partner_name}</p>
-                          {partner.address && (
-                            <div className="flex items-start gap-2 text-sm text-gray-700">
-                              <MapPin className="w-4 h-4 mt-0.5 text-purple-600" />
-                              <div>
-                                <p>{partner.address}</p>
-                                <p>{partner.city}, {partner.postal_code}</p>
-                              </div>
-                            </div>
-                          )}
-                          {partner.phone && (
-                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                              <Phone className="w-4 h-4 text-green-600" />
-                              <a href={`tel:${partner.phone}`} className="hover:text-green-600">
-                                {partner.phone}
-                              </a>
-                            </div>
-                          )}
+              {/* Location Info */}
+              {partner && (
+                <Card className="border-0 shadow-xl">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-purple-600" />
+                      Localização do Serviço
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-3">
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">{partner.company_name || service.partner_name}</h4>
+                      {partner.address && (
+                        <>
+                          <p className="text-sm text-gray-700">{partner.address}</p>
+                          <p className="text-sm text-gray-700">{partner.city}, {partner.postal_code}</p>
+                        </>
+                      )}
+                    </div>
+                    
+                    {partner.phone && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Phone className="w-4 h-4 text-green-600" />
+                        <a href={`tel:${partner.phone}`} className="hover:text-green-600 font-medium">
+                          {partner.phone}
+                        </a>
+                      </div>
+                    )}
+
+                    {partner.company_email && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Mail className="w-4 h-4 text-blue-600" />
+                        <a href={`mailto:${partner.company_email}`} className="hover:text-blue-600 text-sm">
+                          {partner.company_email}
+                        </a>
+                      </div>
+                    )}
+
+                    {needsTransport && (
+                      <div className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-blue-900 font-semibold text-sm">
+                          <CheckCircle className="w-4 h-4" />
+                          Com transporte - não precisa ir à loja!
                         </div>
                       </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Service Details */}
+              <Card className="border-2 border-purple-200 bg-purple-50">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-purple-900">
+                      <p className="font-semibold mb-1">Duração: {service.duration_minutes} minutos</p>
+                      <p>Você receberá uma confirmação por email e notificação no app</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
