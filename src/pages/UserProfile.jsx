@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   MapPin, Users, Heart, MessageCircle, 
   UserPlus, UserCheck, Grid, Bookmark, Shield, ArrowLeft,
-  Link as LinkIcon, CheckCircle, Instagram
+  Link as LinkIcon, CheckCircle, AtSign
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -31,7 +32,7 @@ export default function UserProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmail = urlParams.get('email');
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
-  const [showFollowingDialog, setShowFollowingDialog] = useState(false);
+  const [showFollowingDialog, setShowFollowingDialog, ] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -322,7 +323,7 @@ export default function UserProfile() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm font-semibold"
                   >
-                    <Instagram className="w-4 h-4" />
+                    <AtSign className="w-4 h-4" />
                     @{profileUser.instagram_handle.replace('@', '')}
                   </a>
                 )}

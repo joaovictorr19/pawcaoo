@@ -11,15 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton"; // Added Skeleton import
-import { Textarea } from "@/components/ui/textarea"; // Added Textarea import
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
-  Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle, Instagram // Added Dog, PlusCircle, and Instagram imports
+  Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle, AtSign
 } from "lucide-react";
 import { toast } from "sonner";
-import DogProfileCard from "../components/profile/DogProfileCard"; // Added DogProfileCard import
-import AddEditDogForm from "../components/profile/AddEditDogForm"; // Added AddEditDogForm import
+import DogProfileCard from "../components/profile/DogProfileCard";
+import AddEditDogForm from "../components/profile/AddEditDogForm";
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
@@ -39,9 +39,9 @@ export default function MyProfile() {
     address: "",
     city: "",
     postal_code: "",
-    bio: "", // New field
-    website: "", // New field
-    instagram_handle: "", // New field
+    bio: "",
+    website: "",
+    instagram_handle: "",
   });
 
   const [preferences, setPreferences] = useState({
@@ -59,9 +59,9 @@ export default function MyProfile() {
         address: user.address || "",
         city: user.city || "",
         postal_code: user.postal_code || "",
-        bio: user.bio || "", // Populate new field
-        website: user.website || "", // Populate new field
-        instagram_handle: user.instagram_handle || "", // Populate new field
+        bio: user.bio || "",
+        website: user.website || "",
+        instagram_handle: user.instagram_handle || "",
       });
       setPreferences({
         language: user.preferences?.language || "pt",
@@ -346,7 +346,7 @@ export default function MyProfile() {
                     <div>
                       <Label htmlFor="instagram" className="dark:text-gray-300">Instagram</Label>
                       <div className="relative mt-2">
-                        <Instagram className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
                           id="instagram"
                           value={profileData.instagram_handle}
