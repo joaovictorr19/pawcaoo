@@ -42,44 +42,44 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
 
   return (
     <Card className="border-0 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 p-3 md:p-4">
+      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 p-2.5 md:p-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <CalendarIcon className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
-            {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+          <CardTitle className="flex items-center gap-1.5 md:gap-2 text-sm md:text-lg">
+            <CalendarIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-green-600" />
+            <span className="truncate">{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</span>
           </CardTitle>
-          <div className="flex gap-1">
+          <div className="flex gap-0.5 md:gap-1 flex-shrink-0">
             <Button
               variant="outline"
               size="icon"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="h-8 w-8"
+              className="h-7 w-7 md:h-8 md:w-8"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="h-8 w-8"
+              className="h-7 w-7 md:h-8 md:w-8"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-3 md:p-4">
+      <CardContent className="p-2 md:p-4">
         {/* Week Days Header - Compact */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 md:gap-1 mb-1.5 md:mb-2">
           {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
-            <div key={idx} className="text-center text-xs font-bold text-gray-500 py-1">
+            <div key={idx} className="text-center text-[10px] md:text-xs font-bold text-gray-500 py-0.5 md:py-1">
               {day}
             </div>
           ))}
         </div>
         
         {/* Calendar Grid - Compact */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5 md:gap-1">
           {/* Padding days */}
           {paddingDays.map((_, idx) => (
             <div key={`pad-${idx}`} className="aspect-square" />
@@ -96,9 +96,9 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
                 onClick={() => onDateSelect && status !== 'past' && onDateSelect(date)}
                 disabled={status === 'past'}
                 className={`
-                  aspect-square p-1 rounded-lg border transition-all text-xs md:text-sm
+                  aspect-square p-0.5 md:p-1 rounded-md md:rounded-lg border transition-all text-[10px] md:text-sm
                   ${getStatusColor(status)}
-                  ${isSelected ? 'ring-2 ring-green-500 scale-105' : ''}
+                  ${isSelected ? 'ring-1 md:ring-2 ring-green-500 scale-105' : ''}
                   ${status === 'past' ? 'cursor-not-allowed opacity-50' : 'hover:scale-110 cursor-pointer'}
                   ${isToday(date) ? 'font-bold ring-1 ring-yellow-500' : ''}
                   flex flex-col items-center justify-center relative
@@ -106,7 +106,7 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
               >
                 <span className="font-semibold">{format(date, 'd')}</span>
                 {count > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-xs bg-blue-600">
+                  <Badge className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 h-3 w-3 md:h-4 md:w-4 min-w-0 p-0 text-[8px] md:text-xs bg-blue-600 flex items-center justify-center">
                     {count}
                   </Badge>
                 )}
@@ -116,18 +116,18 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
         </div>
 
         {/* Compact Legend */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
+        <div className="flex flex-wrap gap-1.5 md:gap-2 mt-3 md:mt-4 pt-2 md:pt-3 border-t">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-green-100 border border-green-400" />
-            <span className="text-xs text-gray-600">Disponível</span>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-100 border border-green-400" />
+            <span className="text-[10px] md:text-xs text-gray-600">Disponível</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-blue-100 border border-blue-400" />
-            <span className="text-xs text-gray-600">Parcial</span>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-blue-100 border border-blue-400" />
+            <span className="text-[10px] md:text-xs text-gray-600">Parcial</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-red-100 border border-red-400" />
-            <span className="text-xs text-gray-600">Lotado</span>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
+            <span className="text-[10px] md:text-xs text-gray-600">Lotado</span>
           </div>
         </div>
       </CardContent>

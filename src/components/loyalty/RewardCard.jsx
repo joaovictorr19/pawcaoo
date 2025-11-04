@@ -15,21 +15,21 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
     >
       <Card className="border-0 shadow-xl hover:shadow-2xl transition-all h-full relative overflow-hidden">
         {reward.isNew && (
-          <Badge className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white z-10">
+          <Badge className="absolute top-2 md:top-3 right-2 md:right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white z-10 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
             NEW
           </Badge>
         )}
-        <CardHeader className="text-center pb-4">
-          <div className="text-5xl md:text-6xl mb-3">{reward.icon}</div>
-          <CardTitle className="text-xl md:text-2xl font-bold text-purple-600">
+        <CardHeader className="text-center pb-3 md:pb-4 p-3 md:p-6">
+          <div className="text-3xl md:text-5xl lg:text-6xl mb-2 md:mb-3">{reward.icon}</div>
+          <CardTitle className="text-base md:text-xl lg:text-2xl font-bold text-purple-600 leading-tight">
             {reward.discount}
           </CardTitle>
-          <p className="text-sm md:text-base text-gray-600 mt-2">{reward.description}</p>
+          <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1.5 md:mt-2 leading-snug">{reward.description}</p>
         </CardHeader>
-        <CardContent className="text-center pt-0">
-          <p className="text-base md:text-lg font-semibold mb-3 md:mb-4">{reward.points} points</p>
+        <CardContent className="text-center pt-0 p-3 md:p-6">
+          <p className="text-sm md:text-base lg:text-lg font-semibold mb-2 md:mb-3 lg:mb-4">{reward.points} points</p>
           <Button
-            className="w-full bg-purple-600 hover:bg-purple-700 h-10 md:h-11"
+            className="w-full bg-purple-600 hover:bg-purple-700 h-8 md:h-10 lg:h-11 text-xs md:text-sm"
             disabled={!canAfford || isRedeeming}
             onClick={() => onRedeem(reward)}
           >

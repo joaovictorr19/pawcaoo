@@ -285,10 +285,17 @@ function LayoutContent({ children, currentPageName }) {
           --accent: 142 76% 92%;
           --accent-foreground: 142 76% 20%;
         }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+          [data-sidebar="sidebar"] {
+            width: 280px !important;
+          }
+        }
       `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         <Sidebar className="border-r border-green-100 bg-white">
-          <SidebarHeader className="border-b border-green-100 p-6">
+          <SidebarHeader className="border-b border-green-100 p-4 md:p-6">
             <a 
               href={createPageUrl("Home")} 
               className="block hover:opacity-80 transition-opacity"
@@ -300,15 +307,15 @@ function LayoutContent({ children, currentPageName }) {
             {planBadge && (
               <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
                 <div className="text-xs font-semibold">
-                  {planBadge.icon} {planBadge.name} MEMBER
+                  {planBadge.icon} {planBadge.name}
                 </div>
               </div>
             )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="mt-3 w-full">
-                  <Globe className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" className="mt-3 w-full text-xs md:text-sm">
+                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-2" />
                   {languageFlags[language]} {languageNames[language]}
                 </Button>
               </DropdownMenuTrigger>
@@ -326,7 +333,7 @@ function LayoutContent({ children, currentPageName }) {
             </DropdownMenu>
           </SidebarHeader>
           
-          <SidebarContent className="p-4">
+          <SidebarContent className="p-3 md:p-4">
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -339,11 +346,11 @@ function LayoutContent({ children, currentPageName }) {
                     >
                       <a 
                         href={createPageUrl("MyProfile")} 
-                        className="flex items-center gap-3 px-4 py-3"
+                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
                         onClick={handleNavigation(createPageUrl("MyProfile"))}
                       >
-                        <User className="w-5 h-5 text-slate-700" />
-                        <span className="font-semibold">{t('myProfile', language)} & {language === 'pt' ? 'Config.' : 'Settings'}</span>
+                        <User className="w-4 h-4 md:w-5 md:h-5 text-slate-700 flex-shrink-0" />
+                        <span className="font-semibold text-xs md:text-sm truncate">{t('myProfile', language)}</span>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -352,25 +359,25 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {allNavigationItems.slice(mainMenuStartIndex, mainMenuEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
+                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
                         } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
                       >
                         <a 
                           href={item.url} 
-                          className="flex items-center gap-3 px-4 py-3"
+                          className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3"
                           onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
-                          <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
-                          <span className="font-medium">{item.title}</span>
+                          <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
+                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -380,22 +387,22 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{t('myActivity', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {allNavigationItems.slice(myActivityStartIndex, myActivityEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
+                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
                         }`}
                       >
-                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.title}</span>
+                        <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
+                          <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                           {item.hasNotifications && unreadCount > 0 && (
-                            <Badge className="ml-auto bg-red-500 text-white">
+                            <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
                               {unreadCount}
                             </Badge>
                           )}
@@ -408,20 +415,20 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{t('professionalServices', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {allNavigationItems.slice(professionalServicesStartIndex, professionalServicesEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-2 ${
+                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
                           location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
                         }`}
                       >
-                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.title}</span>
+                        <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
+                          <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -432,20 +439,20 @@ function LayoutContent({ children, currentPageName }) {
 
             {allNavigationItems.slice(adminAndOtherStartIndex).length > 0 && ( 
               <SidebarGroup>
-                <SidebarGroupLabel className="text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {allNavigationItems.slice(adminAndOtherStartIndex).map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-cyan-100 hover:text-cyan-800 transition-all duration-200 rounded-xl mb-2 ${
+                          className={`hover:bg-cyan-100 hover:text-cyan-800 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
                             location.pathname === item.url ? 'bg-cyan-600 text-white shadow-lg' : ''
                           } border-2 border-cyan-300 bg-cyan-50`}
                         >
-                          <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                            <item.icon className="w-5 h-5 text-cyan-700" />
-                            <span className="font-medium">{item.title}</span>
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
+                            <item.icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-700 flex-shrink-0" />
+                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -457,41 +464,41 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarContent>
         </Sidebar>
 
-        <main className="flex-1 flex flex-col">
-          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-10">
-            <div className="flex items-center gap-3 md:gap-4">
-              <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors" />
+        <main className="flex-1 flex flex-col min-w-0">
+          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-10">
+            <div className="flex items-center gap-2 md:gap-4">
+              <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors flex-shrink-0" />
 
-              <Link to={createPageUrl("Home")} className="md:hidden">
+              <Link to={createPageUrl("Home")} className="md:hidden flex-shrink-0">
                 <PawCaoLogo size="small" showText={false} />
               </Link>
 
-              <div className="hidden md:flex items-center gap-3 flex-1">
+              <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
                 <PawCaoLogo size="small" showText={false} />
-                <h1 className="text-lg font-semibold text-gray-900 truncate">
+                <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
                   {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                 </h1>
               </div>
 
               {planBadge && (
-                <Badge className={`${planBadge.color} text-white text-xs md:text-sm shadow-lg`}>
+                <Badge className={`${planBadge.color} text-white text-[10px] md:text-sm shadow-lg flex-shrink-0 px-2 md:px-3 py-1`}>
                   <span className="hidden sm:inline">{planBadge.icon} </span>
                   {planBadge.name}
                 </Badge>
               )}
 
               {unreadCount > 0 && (
-                <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0">
+                <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0 flex-shrink-0">
                   <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer shadow-lg">
                     <Bell className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
-                    <span className="hidden sm:inline">{unreadCount}</span>
+                    <span className="hidden sm:inline ml-1">{unreadCount}</span>
                   </Badge>
                 </Link>
               )}
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden h-9 w-9">
+                  <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 flex-shrink-0">
                     <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
