@@ -144,20 +144,23 @@ export default function UserProfile() {
     { id: 4, title: "Visitar Dog Connect", reward: 20, completed: true },
   ];
 
-  // Pixel Art Badge Generator - Habbo Style
-  const getPixelBadge = (type, data = {}) => {
+  // Pixel Art Badge Generator - Habbo Style with Transparent Background Option
+  const getPixelBadge = (type, data = {}, transparent = false) => {
+    const opacity = transparent ? '0' : '0.2'; // Shadow opacity
+    const bgOpacity = transparent ? '0' : '1'; // Main background opacity
+    
     const badges = {
-      admin: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%23DC2626'/%3E%3Crect x='4' width='56' height='4' fill='%23FF6B6B'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23991B1B'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23991B1B'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FF6B6B'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FCA5A5'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EF4444'/%3E%3Cpath d='M24 20h16v4h-16z M28 24h8v8h-8z M24 32h4v4h-4z M36 32h4v4h-4z' fill='%23FEF2F2'/%3E%3Crect x='28' y='28' width='8' height='4' fill='%23FECACA'/%3E%3C/g%3E%3C/svg%3E`,
+      admin: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%23DC2626' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%23FF6B6B'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23991B1B'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23991B1B'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FF6B6B'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FCA5A5'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EF4444'/%3E%3Cpath d='M24 20h16v4h-16z M28 24h8v8h-8z M24 32h4v4h-4z M36 32h4v4h-4z' fill='%23FEF2F2'/%3E%3Crect x='28' y='28' width='8' height='4' fill='%23FECACA'/%3E%3C/g%3E%3C/svg%3E`,
       
-      moderator: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%232563EB'/%3E%3Crect x='4' width='56' height='4' fill='%2360A5FA'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%231E40AF'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%231E40AF'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2360A5FA'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%2393C5FD'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%233B82F6'/%3E%3Cpath d='M24 22h4v12h-4z M36 22h4v12h-4z M28 26h8v4h-8z M28 34h8v4h-8z' fill='%23DBEAFE'/%3E%3C/g%3E%3C/svg%3E`,
+      moderator: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%232563EB' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%2360A5FA'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%231E40AF'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%231E40AF'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2360A5FA'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%2393C5FD'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%233B82F6'/%3E%3Cpath d='M24 22h4v12h-4z M36 22h4v12h-4z M28 26h8v4h-8z M28 34h8v4h-8z' fill='%23DBEAFE'/%3E%3C/g%3E%3C/svg%3E`,
       
-      verified: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%2310B981'/%3E%3Crect x='4' width='56' height='4' fill='%2334D399'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23059669'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23059669'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2334D399'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%236EE7B7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%2310B981'/%3E%3Cpath d='M24 28h4v8h-4z M28 24h4v12h-4z M32 20h4v16h-4z M36 24h4v8h-4z' fill='%23FFF'/%3E%3C/g%3E%3C/svg%3E`,
+      verified: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%2310B981' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%2334D399'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23059669'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23059669'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%2334D399'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%236EE7B7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%2310B981'/%3E%3Cpath d='M24 28h4v8h-4z M28 24h4v12h-4z M32 20h4v16h-4z M36 24h4v8h-4z' fill='%23FFF'/%3E%3C/g%3E%3C/svg%3E`,
       
-      adoption: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%23EC4899'/%3E%3Crect x='4' width='56' height='4' fill='%23F9A8D4'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23BE185D'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23BE185D'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23F9A8D4'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FBCFE8'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EC4899'/%3E%3Cpath d='M20 20h8v4h-8z M36 20h8v4h-8z M20 24h4v4h-4z M40 24h4v4h-4z M24 28h16v4h-16z M20 32h24v4h-20z M24 36h16v4h-16z' fill='%23FDF2F8'/%3E%3C/g%3E%3C/svg%3E`,
+      adoption: `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%23EC4899' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%23F9A8D4'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23BE185D'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23BE185D'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23F9A8D4'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FBCFE8'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23EC4899'/%3E%3Cpath d='M20 20h8v4h-8z M36 20h8v4h-8z M20 24h4v4h-4z M40 24h4v4h-4z M24 28h16v4h-16z M20 32h24v4h-20z M24 36h16v4h-16z' fill='%23FDF2F8'/%3E%3C/g%3E%3C/svg%3E`,
       
       level: (level) => {
         const lvl = level || 1;
-        return `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='0.2' y='4'/%3E%3Crect width='64' height='56' fill='%23F59E0B'/%3E%3Crect x='4' width='56' height='4' fill='%23FCD34D'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23D97706'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23D97706'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FCD34D'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FEF3C7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23FBBF24'/%3E%3Cpath d='M28 20h8v4h-8z M24 24h16v4h-16z M20 28h24v4h-24z M24 32h16v4h-16z M28 36h8v4h-8z' fill='%23FEF9C3'/%3E%3Ctext x='32' y='38' font-family='monospace' font-size='18' font-weight='bold' fill='%23713F12' text-anchor='middle'%3E${lvl}%3C/text%3E%3C/g%3E%3C/svg%3E`;
+        return `data:image/svg+xml,%3Csvg width='64' height='64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='64' height='64' fill='%23000' opacity='${opacity}' y='4'/%3E%3Crect width='64' height='56' fill='%23F59E0B' opacity='${bgOpacity}'/%3E%3Crect x='4' width='56' height='4' fill='%23FCD34D'/%3E%3Crect x='4' y='52' width='56' height='4' fill='%23D97706'/%3E%3Crect x='56' y='4' width='4' height='48' fill='%23D97706'/%3E%3Crect x='4' y='4' width='4' height='48' fill='%23FCD34D'/%3E%3Crect x='12' y='12' width='40' height='32' fill='%23FEF3C7'/%3E%3Crect x='16' y='16' width='32' height='24' fill='%23FBBF24'/%3E%3Cpath d='M28 20h8v4h-8z M24 24h16v4h-16z M20 28h24v4h-24z M24 32h16v4h-16z M28 36h8v4h-8z' fill='%23FEF9C3'/%3E%3Ctext x='32' y='38' font-family='monospace' font-size='18' font-weight='bold' fill='%23713F12' text-anchor='middle'%3E${lvl}%3C/text%3E%3C/g%3E%3C/svg%3E`;
       },
       
       community: (badge) => {
@@ -193,7 +196,7 @@ export default function UserProfile() {
         
         const c = colors[rarity];
         
-        return `data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='80' height='80' fill='%23000' opacity='0.3' y='6'/%3E%3Crect width='80' height='68' fill='${c.main}'/%3E%3Crect x='6' width='68' height='6' fill='${c.glow}'/%3E%3Crect x='6' y='62' width='68' height='6' fill='${c.dark}'/%3E%3Crect x='68' y='6' width='6' height='56' fill='${c.dark}'/%3E%3Crect x='6' y='6' width='6' height='56' fill='${c.glow}'/%3E%3Crect x='16' y='16' width='48' height='36' fill='${c.light}'/%3E%3Crect x='20' y='20' width='40' height='28' fill='${c.main}'/%3E%3Cpath d='M28 24h24v4h-24z M24 28h32v4h-32z M20 32h40v4h-40z M24 36h32v4h-32z M28 40h24v4h-24z' fill='${c.glow}'/%3E%3Ctext x='40' y='46' font-size='28' text-anchor='middle'%3E${icon}%3C/text%3E%3C/g%3E%3C/svg%3E`;
+        return `data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Crect width='80' height='80' fill='%23000' opacity='${opacity}' y='6'/%3E%3Crect width='80' height='68' fill='${c.main}' opacity='${bgOpacity}'/%3E%3Crect x='6' width='68' height='6' fill='${c.glow}'/%3E%3Crect x='6' y='62' width='68' height='6' fill='${c.dark}'/%3E%3Crect x='68' y='6' width='6' height='56' fill='${c.dark}'/%3E%3Crect x='6' y='6' width='6' height='56' fill='${c.glow}'/%3E%3Crect x='16' y='16' width='48' height='36' fill='${c.light}'/%3E%3Crect x='20' y='20' width='40' height='28' fill='${c.main}'/%3E%3Cpath d='M28 24h24v4h-24z M24 28h32v4h-32z M20 32h40v4h-40z M24 36h32v4h-32z M28 40h24v4h-24z' fill='${c.glow}'/%3E%3Ctext x='40' y='46' font-size='28' text-anchor='middle'%3E${icon}%3C/text%3E%3C/g%3E%3C/svg%3E`;
       }
     };
     
@@ -243,7 +246,7 @@ export default function UserProfile() {
       badges.push(
         <div key="admin" className="relative group cursor-pointer">
           <img 
-            src={getPixelBadge('admin')} 
+            src={getPixelBadge('admin', null, false)} 
             alt="Admin" 
             className="w-12 h-12 hover:scale-110 transition-transform" 
             style={{imageRendering: 'pixelated'}}
@@ -260,7 +263,7 @@ export default function UserProfile() {
       badges.push(
         <div key="mod" className="relative group cursor-pointer">
           <img 
-            src={getPixelBadge('moderator')} 
+            src={getPixelBadge('moderator', null, false)} 
             alt="Moderator" 
             className="w-12 h-12 hover:scale-110 transition-transform" 
             style={{imageRendering: 'pixelated'}}
@@ -277,7 +280,7 @@ export default function UserProfile() {
       badges.push(
         <div key="verified" className="relative group cursor-pointer">
           <img 
-            src={getPixelBadge('verified')} 
+            src={getPixelBadge('verified', null, false)} 
             alt="Verificado" 
             className="w-12 h-12 hover:scale-110 transition-transform" 
             style={{imageRendering: 'pixelated'}}
@@ -294,7 +297,7 @@ export default function UserProfile() {
       badges.push(
         <div key="advocate" className="relative group cursor-pointer">
           <img 
-            src={getPixelBadge('adoption')} 
+            src={getPixelBadge('adoption', null, false)} 
             alt="Adoção" 
             className="w-12 h-12 hover:scale-110 transition-transform" 
             style={{imageRendering: 'pixelated'}}
@@ -348,7 +351,7 @@ export default function UserProfile() {
                       {/* Level Badge */}
                       <div className="relative group cursor-pointer">
                         <img 
-                          src={getPixelBadge('level', currentLevel)} 
+                          src={getPixelBadge('level', currentLevel, false)} 
                           alt={`Nível ${currentLevel}`} 
                           className="w-14 h-14 hover:scale-110 transition-transform" 
                           style={{imageRendering: 'pixelated'}}
@@ -448,7 +451,7 @@ export default function UserProfile() {
           <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
             <TabsTrigger value="posts"><Grid className="w-4 h-4 mr-1" />Posts</TabsTrigger>
             <TabsTrigger value="gamification"><Zap className="w-4 h-4 mr-1" />XP</TabsTrigger>
-            <TabsTrigger value="badges"><Award className="w-4 h-4 mr-1" />Badges</TabsTrigger>
+            <TabsTrigger value="badges"><Award className="w-4 h-4 mr-1" />Emblemas</TabsTrigger>
             <TabsTrigger value="activity"><TrendingUp className="w-4 h-4 mr-1" />Stats</TabsTrigger>
             {isOwnProfile && <TabsTrigger value="saved"><Bookmark className="w-4 h-4 mr-1" />Salvos</TabsTrigger>}
           </TabsList>
@@ -479,7 +482,7 @@ export default function UserProfile() {
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-20 h-20 bg-white/10 rounded-xl flex items-center justify-center p-2 backdrop-blur-sm border-2 border-white/20">
                       <img 
-                        src={getPixelBadge('level', currentLevel)} 
+                        src={getPixelBadge('level', currentLevel, false)} 
                         alt={`Nível ${currentLevel}`} 
                         className="w-full h-full"
                         style={{imageRendering: 'pixelated'}}
@@ -495,7 +498,7 @@ export default function UserProfile() {
                   <div className="grid grid-cols-4 gap-2">
                     <div className="text-center p-2 bg-white/10 rounded">
                       <div className="text-lg font-bold">{profileUser?.public_badges?.length || 0}</div>
-                      <div className="text-xs text-white/80">Badges</div>
+                      <div className="text-xs text-white/80">Emblemas</div>
                     </div>
                     <div className="text-center p-2 bg-white/10 rounded">
                       <div className="text-lg font-bold flex items-center justify-center">
@@ -544,12 +547,15 @@ export default function UserProfile() {
           </TabsContent>
 
           <TabsContent value="badges">
-            <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+            <Card className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Award className="w-6 h-6 text-yellow-400" />
-                  Coleção de Badges - Estilo Habbo Hotel
+                  Emblemas
                 </CardTitle>
+                <p className="text-sm text-gray-400 mt-2">
+                  Clique no emblema para ver com fundo transparente
+                </p>
               </CardHeader>
               <CardContent>
                 {(!profileUser.public_badges || profileUser.public_badges.length === 0) ? (
@@ -557,68 +563,13 @@ export default function UserProfile() {
                     <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-4 border-2 border-white/20">
                       <Award className="w-12 h-12 text-gray-500" />
                     </div>
-                    <p className="text-gray-400">Nenhuma badge conquistada</p>
-                    <p className="text-sm text-gray-500 mt-2">Participe da comunidade para ganhar badges!</p>
+                    <p className="text-gray-400">Nenhum emblema conquistado</p>
+                    <p className="text-sm text-gray-500 mt-2">Participe da comunidade para ganhar emblemas!</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {profileUser.public_badges.map((badge, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
-                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        transition={{ 
-                          delay: idx * 0.08,
-                          type: "spring",
-                          stiffness: 200
-                        }}
-                        className="relative group"
-                      >
-                        <div className={`p-2 bg-gradient-to-br rounded-2xl border-4 hover:scale-110 transition-all cursor-pointer shadow-2xl ${
-                          badge.rarity === 'legendary' ? 'from-yellow-400 to-orange-500 border-yellow-300 shadow-yellow-500/50' :
-                          badge.rarity === 'epic' ? 'from-purple-500 to-pink-500 border-purple-400 shadow-purple-500/50' :
-                          badge.rarity === 'rare' ? 'from-blue-400 to-cyan-500 border-blue-300 shadow-blue-500/50' :
-                          'from-gray-600 to-gray-700 border-gray-500 shadow-gray-500/50'
-                        }`}>
-                          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-2 border-2 border-white/50">
-                            <img 
-                              src={getPixelBadge('community', badge)} 
-                              alt={badge.name} 
-                              className="w-full h-16 mx-auto"
-                              style={{imageRendering: 'pixelated'}}
-                            />
-                          </div>
-                          <p className="text-center text-xs font-black mt-2 truncate text-white drop-shadow-lg">
-                            {badge.name}
-                          </p>
-                        </div>
-                        
-                        {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-30 animate-in fade-in slide-in-from-bottom-2">
-                          <div className="bg-gray-900 text-white rounded-xl p-4 shadow-2xl border-2 border-gray-700 min-w-[200px]">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-2xl">{badge.icon}</span>
-                              <p className="font-bold text-sm">{badge.name}</p>
-                            </div>
-                            <p className="text-xs text-gray-300 mb-2">{badge.description}</p>
-                            <div className="flex items-center justify-between">
-                              <Badge className={`text-xs ${
-                                badge.rarity === 'legendary' ? 'bg-yellow-500' :
-                                badge.rarity === 'epic' ? 'bg-purple-500' :
-                                badge.rarity === 'rare' ? 'bg-blue-500' :
-                                'bg-gray-500'
-                              }`}>
-                                {badge.rarity?.toUpperCase()}
-                              </Badge>
-                              {badge.earned_date && (
-                                <p className="text-xs text-gray-400">
-                                  {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
+                      <BadgeItem key={idx} badge={badge} idx={idx} getPixelBadge={getPixelBadge} />
                     ))}
                   </div>
                 )}
@@ -669,5 +620,81 @@ export default function UserProfile() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+function BadgeItem({ badge, idx, getPixelBadge }) {
+  const [showTransparent, setShowTransparent] = useState(false);
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      transition={{ 
+        delay: idx * 0.08,
+        type: "spring",
+        stiffness: 200
+      }}
+      className="relative group"
+    >
+      <div 
+        onClick={() => setShowTransparent(!showTransparent)}
+        className={`p-2 bg-gradient-to-br rounded-2xl border-4 hover:scale-110 transition-all cursor-pointer shadow-2xl ${
+          badge.rarity === 'legendary' ? 'from-yellow-400 to-orange-500 border-yellow-300 shadow-yellow-500/50' :
+          badge.rarity === 'epic' ? 'from-purple-500 to-pink-500 border-purple-400 shadow-purple-500/50' :
+          badge.rarity === 'rare' ? 'from-blue-400 to-cyan-500 border-blue-300 shadow-blue-500/50' :
+          'from-gray-600 to-gray-700 border-gray-500 shadow-gray-500/50'
+        }`}
+      >
+        <div className={`${showTransparent ? 'bg-transparent' : 'bg-white/90'} backdrop-blur-sm rounded-xl p-2 border-2 ${showTransparent ? 'border-white/30' : 'border-white/50'}`}>
+          <img 
+            src={getPixelBadge('community', badge, showTransparent)} 
+            alt={badge.name} 
+            className="w-full h-16 mx-auto"
+            style={{imageRendering: 'pixelated'}}
+          />
+        </div>
+        <p className="text-center text-xs font-black mt-2 truncate text-white drop-shadow-lg">
+          {badge.name}
+        </p>
+        
+        {showTransparent && (
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-10">
+            <Badge className="bg-green-500 text-white text-xs whitespace-nowrap">
+              Transparente
+            </Badge>
+          </div>
+        )}
+      </div>
+      
+      {/* Tooltip */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-30 animate-in fade-in slide-in-from-bottom-2">
+        <div className="bg-gray-900 text-white rounded-xl p-4 shadow-2xl border-2 border-gray-700 min-w-[200px]">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">{badge.icon}</span>
+            <p className="font-bold text-sm">{badge.name}</p>
+          </div>
+          <p className="text-xs text-gray-300 mb-2">{badge.description}</p>
+          <div className="flex items-center justify-between mb-2">
+            <Badge className={`text-xs ${
+              badge.rarity === 'legendary' ? 'bg-yellow-500' :
+              badge.rarity === 'epic' ? 'bg-purple-500' :
+              badge.rarity === 'rare' ? 'bg-blue-500' :
+              'bg-gray-500'
+            }`}>
+              {badge.rarity?.toUpperCase()}
+            </Badge>
+            {badge.earned_date && (
+              <p className="text-xs text-gray-400">
+                {format(new Date(badge.earned_date), "d MMM yyyy", { locale: ptBR })}
+              </p>
+            )}
+          </div>
+          <p className="text-xs text-gray-400 border-t border-gray-700 pt-2 mt-2">
+            💡 Clique para alternar fundo transparente
+          </p>
+        </div>
+      </div>
+    </motion.div>
   );
 }
