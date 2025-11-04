@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Scissors, Droplet, Stethoscope, Syringe, Activity, Pill,
   Calendar, Clock, MapPin, Star, Search, AlertCircle, CheckCircle,
-  Zap, Heart, Shield, PawPrint
+  Zap, Heart, Shield, PawPrint, Store
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
