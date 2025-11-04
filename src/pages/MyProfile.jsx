@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,16 +11,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton"; // Added Skeleton import
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
-  Globe, CreditCard, Upload, Save, Eye, EyeOff
+  Globe, CreditCard, Upload, Save, Eye, EyeOff, Dog, PlusCircle // Added Dog and PlusCircle imports
 } from "lucide-react";
 import { toast } from "sonner";
+import DogProfileCard from "../components/profile/DogProfileCard"; // Added DogProfileCard import
+import AddEditDogForm from "../components/profile/AddEditDogForm"; // Added AddEditDogForm import
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
+  const [showAddDog, setShowAddDog] = useState(false); // New state for showing Add Dog form
+  const [editingDog, setEditingDog] = useState(null); // New state for editing a dog
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -28,17 +33,43 @@ export default function MyProfile() {
   });
 
   const [profileData, setProfileData] = useState({
-    full_name: user?.full_name || "",
-    phone: user?.phone || "",
-    address: user?.address || "",
-    city: user?.city || "",
-    postal_code: user?.postal_code || "",
+    full_name: "",
+    phone: "",
+    address: "",
+    city: "",
+    postal_code: "",
   });
 
   const [preferences, setPreferences] = useState({
-    language: user?.preferences?.language || "pt",
-    notifications_enabled: user?.preferences?.notifications_enabled ?? true,
-    email_notifications: user?.preferences?.email_notifications ?? true,
+    language: "pt",
+    notifications_enabled: true,
+    email_notifications: true,
+  });
+
+  // Effect to update profileData and preferences when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        full_name: user.full_name || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        city: user.city || "",
+        postal_code: user.postal_code || "",
+      });
+      setPreferences({
+        language: user.preferences?.language || "pt",
+        notifications_enabled: user.preferences?.notifications_enabled ?? true,
+        email_notifications: user.preferences?.email_notifications ?? true,
+      });
+    }
+  }, [user]);
+
+  // New query for fetching user's dogs
+  const { data: myDogs, isLoading: loadingDogs } = useQuery({
+    queryKey: ['myDogs', user?.email],
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    enabled: !!user && activeTab === "pets", // Only enable when user exists and tab is 'pets'
+    initialData: [],
   });
 
   const updateProfileMutation = useMutation({
@@ -63,6 +94,9 @@ export default function MyProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success("Foto atualizada!");
+    },
+    onError: () => {
+      toast.error("Erro ao fazer upload da foto.");
     }
   });
 
@@ -169,6 +203,14 @@ export default function MyProfile() {
                   Preferências
                 </Button>
                 <Button
+                  variant={activeTab === "pets" ? "default" : "ghost"} // New tab for Pets
+                  className="w-full justify-start dark:hover:bg-gray-700"
+                  onClick={() => setActiveTab("pets")}
+                >
+                  <Dog className="w-4 h-4 mr-2" />
+                  Meus Pets
+                </Button>
+                <Button
                   variant={activeTab === "payment" ? "default" : "ghost"}
                   className="w-full justify-start dark:hover:bg-gray-700"
                   onClick={() => setActiveTab("payment")}
@@ -219,7 +261,7 @@ export default function MyProfile() {
                         <Input
                           id="full_name"
                           value={profileData.full_name}
-                          onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                           className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                           placeholder="Seu nome completo"
                         />
@@ -246,7 +288,7 @@ export default function MyProfile() {
                         <Input
                           id="phone"
                           value={profileData.phone}
-                          onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                           className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                           placeholder="+351 912 345 678"
                         />
@@ -260,7 +302,7 @@ export default function MyProfile() {
                         <Input
                           id="city"
                           value={profileData.city}
-                          onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
                           className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                           placeholder="Lisboa"
                         />
@@ -275,7 +317,7 @@ export default function MyProfile() {
                       <Input
                         id="address"
                         value={profileData.address}
-                        onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                        onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
                         className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                         placeholder="Rua Principal, 123"
                       />
@@ -288,7 +330,7 @@ export default function MyProfile() {
                       <Input
                         id="postal_code"
                         value={profileData.postal_code}
-                        onChange={(e) => setProfileData({...profileData, postal_code: e.target.value})}
+                        onChange={(e) => setProfileData({ ...profileData, postal_code: e.target.value })}
                         className="mt-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                         placeholder="1000-001"
                       />
@@ -333,7 +375,7 @@ export default function MyProfile() {
                     </Label>
                     <Select
                       value={preferences.language}
-                      onValueChange={(value) => setPreferences({...preferences, language: value})}
+                      onValueChange={(value) => setPreferences({ ...preferences, language: value })}
                     >
                       <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
                         <SelectValue />
@@ -361,7 +403,7 @@ export default function MyProfile() {
                         </div>
                         <Switch
                           checked={preferences.notifications_enabled}
-                          onCheckedChange={(checked) => setPreferences({...preferences, notifications_enabled: checked})}
+                          onCheckedChange={(checked) => setPreferences({ ...preferences, notifications_enabled: checked })}
                         />
                       </div>
 
@@ -372,7 +414,7 @@ export default function MyProfile() {
                         </div>
                         <Switch
                           checked={preferences.email_notifications}
-                          onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
+                          onCheckedChange={(checked) => setPreferences({ ...preferences, email_notifications: checked })}
                         />
                       </div>
                     </div>
@@ -490,6 +532,95 @@ export default function MyProfile() {
                       Sair da Conta
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* NEW: My Pets Tab */}
+            {activeTab === "pets" && (
+              <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                      <Dog className="w-5 h-5" />
+                      Meus Pets ({myDogs?.length || 0})
+                    </CardTitle>
+                    <Button
+                      onClick={() => {
+                        setEditingDog(null); // Clear any editing state
+                        setShowAddDog(true);
+                      }}
+                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    >
+                      <PlusCircle className="w-4 h-4 mr-2" />
+                      Adicionar Pet
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {showAddDog || editingDog ? (
+                    <AddEditDogForm
+                      dog={editingDog}
+                      ownerEmail={user?.email} // Pass owner's email to the form
+                      onCancel={() => {
+                        setShowAddDog(false);
+                        setEditingDog(null);
+                      }}
+                      onSuccess={() => {
+                        setShowAddDog(false);
+                        setEditingDog(null);
+                        queryClient.invalidateQueries({ queryKey: ['myDogs'] });
+                        toast.success(editingDog ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!");
+                      }}
+                    />
+                  ) : loadingDogs ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {[1, 2].map(i => (
+                        <Skeleton key={i} className="h-64 rounded-xl" />
+                      ))}
+                    </div>
+                  ) : myDogs?.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        Nenhum pet cadastrado
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Adicione o perfil do seu pet para começar a usar os serviços da PawCão
+                      </p>
+                      <Button
+                        onClick={() => setShowAddDog(true)}
+                        className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        Adicionar Primeiro Pet
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {myDogs.map(dog => (
+                        <DogProfileCard
+                          key={dog.id}
+                          dog={dog}
+                          onEdit={() => {
+                              setEditingDog(dog);
+                              setShowAddDog(true); // Ensure form is visible for editing
+                          }}
+                          onDelete={async () => {
+                            if (confirm(`Tem certeza que deseja remover ${dog.dog_name}?`)) {
+                              try {
+                                await base44.entities.DogProfile.delete(dog.id);
+                                queryClient.invalidateQueries({ queryKey: ['myDogs'] });
+                                toast.success("Pet removido com sucesso");
+                              } catch (error) {
+                                toast.error("Erro ao remover pet.");
+                              }
+                            }
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
