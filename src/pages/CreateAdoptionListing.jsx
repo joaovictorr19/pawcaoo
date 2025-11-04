@@ -15,9 +15,9 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { useLanguage } => "@/components/LanguageContext";
+import { useLanguage } from "@/components/LanguageContext"; // Corrected import
 import { t } from "@/components/translations";
-import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // Added import
+import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
 
 export default function CreateAdoptionListing() {
   const navigate = useNavigate();
