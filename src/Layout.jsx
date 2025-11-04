@@ -3,7 +3,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,16 +29,19 @@ import {
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { queryConfig, prefetchQueries } from "@/utils/queryConfig";
+import { usePrefetchOnHover } from "@/utils/performanceUtils";
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const { language, setLanguage } = useLanguage();
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 300000, // 5 minutes - increased cache time
-    retry: 1, // Only retry once
+    ...queryConfig.user,
+    retry: 1,
   });
 
   const { data: notifications } = useQuery({
@@ -53,8 +56,7 @@ function LayoutContent({ children, currentPageName }) {
     },
     enabled: !!user,
     initialData: [],
-    staleTime: 60000, // 1 minute
-    refetchInterval: 120000, // Refetch every 2 minutes instead of constantly
+    ...queryConfig.notifications,
   });
 
   const { data: ownerSubscription } = useQuery({
@@ -68,15 +70,8 @@ function LayoutContent({ children, currentPageName }) {
       return subs[0];
     },
     enabled: !!user,
-    staleTime: 300000, // 5 minutes - increased cache time
+    ...queryConfig.static,
   });
-
-  // Cleanup on unmount
-  React.useEffect(() => {
-    return () => {
-      // Cleanup
-    };
-  }, []);
 
   const unreadCount = notifications?.length || 0;
 
@@ -94,7 +89,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
-    { title: language === 'pt' ? 'Gamificação' : 'Gamification', url: createPageUrl("Gamification"), icon: Trophy }, // NEW ITEM
+    { title: language === 'pt' ? 'Gamificação' : 'Gamification', url: createPageUrl("Gamification"), icon: Trophy },
     { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
     { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
@@ -129,22 +124,20 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  // Define the counts for each section from the base navigationItems
-  const mainMenuCount = 7; // findWalkers to Dog Connect
-  const myActivityCount = 9; // myFavorites to leaderboard (now includes Gamification)
-  const professionalServicesCount = 6; // professionalDashboard to ownerMembership
+  const mainMenuCount = 7;
+  const myActivityCount = 9;
+  const professionalServicesCount = 6;
   
-  // Calculate start and end indices for slicing allNavigationItems
   const mainMenuStartIndex = 0;
-  const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount; // 7
+  const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount;
 
-  const myActivityStartIndex = mainMenuEndIndex; // 7
-  const myActivityEndIndex = myActivityStartIndex + myActivityCount; // 7 + 9 = 16
+  const myActivityStartIndex = mainMenuEndIndex;
+  const myActivityEndIndex = myActivityStartIndex + myActivityCount;
 
-  const professionalServicesStartIndex = myActivityEndIndex; // 16
-  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount; // 16 + 6 = 22
+  const professionalServicesStartIndex = myActivityEndIndex;
+  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
 
-  const adminAndOtherStartIndex = professionalServicesEndIndex; // 22
+  const adminAndOtherStartIndex = professionalServicesEndIndex;
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -180,6 +173,31 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   const planBadge = getPlanBadge();
+
+  // Prefetch handlers for hover
+  const prefetchWalkers = usePrefetchOnHover(() => 
+    prefetchQueries.walkers(queryClient, base44)
+  );
+  
+  const prefetchTrainers = usePrefetchOnHover(() => 
+    prefetchQueries.trainers(queryClient, base44)
+  );
+  
+  const prefetchPartners = usePrefetchOnHover(() => 
+    prefetchQueries.partners(queryClient, base44)
+  );
+  
+  const prefetchBookings = usePrefetchOnHover(() => 
+    prefetchQueries.bookings(queryClient, base44, user?.email)
+  );
+
+  const getPrefetchHandlers = (item) => {
+    if (item.url === createPageUrl("Home")) return prefetchWalkers;
+    if (item.url === createPageUrl("Trainers")) return prefetchTrainers;
+    if (item.url === createPageUrl("Partners")) return prefetchPartners;
+    if (item.url === createPageUrl("MyBookings")) return prefetchBookings;
+    return {};
+  };
 
   const handleNavigation = (url) => (e) => {
     e.preventDefault();
@@ -277,6 +295,7 @@ function LayoutContent({ children, currentPageName }) {
                           href={item.url} 
                           className="flex items-center gap-3 px-4 py-3"
                           onClick={handleNavigation(item.url)}
+                          {...getPrefetchHandlers(item)}
                         >
                           <item.icon className={`w-5 h-5 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
                           <span className="font-medium">{item.title}</span>
