@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,7 +35,9 @@ export default function PartnerDashboard() {
     description: "",
     duration_minutes: 60,
     base_price: "",
-    image_url: ""
+    image_url: "",
+    location: "",
+    address: ""
   });
 
   const [announcementForm, setAnnouncementForm] = useState({
@@ -157,7 +160,9 @@ export default function PartnerDashboard() {
         description: "",
         duration_minutes: 60,
         base_price: "",
-        image_url: ""
+        image_url: "",
+        location: "",
+        address: ""
       });
     },
     onError: (error) => {
@@ -215,6 +220,12 @@ export default function PartnerDashboard() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       return file_url;
     },
+    onSuccess: (url) => {
+      toast.success('✅ Imagem carregada!');
+    },
+    onError: () => {
+      toast.error('❌ Erro ao carregar imagem');
+    }
   });
 
   if (!company) {
@@ -280,19 +291,60 @@ export default function PartnerDashboard() {
         </div>
       </div>
 
-      {/* CRIAR SERVIÇO */}
+      {/* CRIAR SERVIÇO - COM FOTO E LOCALIZAÇÃO */}
       <Dialog open={showCreateService} onOpenChange={setShowCreateService}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Criar Serviço</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* FOTO DO SERVIÇO */}
+            <div>
+              <Label>Foto do Serviço</Label>
+              {serviceForm.image_url && (
+                <div className="relative w-full h-48 mb-2">
+                  <img 
+                    src={serviceForm.image_url} 
+                    className="w-full h-full object-cover rounded-lg" 
+                    alt="Serviço"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setServiceForm({...serviceForm, image_url: ""})}
+                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    try {
+                      const url = await uploadImageMutation.mutateAsync(file);
+                      setServiceForm({...serviceForm, image_url: url});
+                    } catch (error) {
+                      console.error('Error uploading:', error);
+                    }
+                  }
+                }}
+                className="h-10"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Foto do serviço ajuda a atrair mais clientes
+              </p>
+            </div>
+
             <div>
               <Label>Nome do Serviço *</Label>
               <Input
                 value={serviceForm.service_name}
                 onChange={(e) => setServiceForm({...serviceForm, service_name: e.target.value})}
                 placeholder="Banho Completo"
+                className="bg-white text-gray-900"
               />
             </div>
 
@@ -302,7 +354,7 @@ export default function PartnerDashboard() {
                 value={serviceForm.service_type}
                 onValueChange={(v) => setServiceForm({...serviceForm, service_type: v})}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white text-gray-900">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -322,6 +374,29 @@ export default function PartnerDashboard() {
                 value={serviceForm.description}
                 onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
                 rows={3}
+                placeholder="Descreva o serviço em detalhes..."
+                className="bg-white text-gray-900"
+              />
+            </div>
+
+            {/* LOCALIZAÇÃO */}
+            <div>
+              <Label>Cidade/Localização *</Label>
+              <Input
+                value={serviceForm.location}
+                onChange={(e) => setServiceForm({...serviceForm, location: e.target.value})}
+                placeholder="Lisboa"
+                className="bg-white text-gray-900"
+              />
+            </div>
+
+            <div>
+              <Label>Morada Completa</Label>
+              <Input
+                value={serviceForm.address}
+                onChange={(e) => setServiceForm({...serviceForm, address: e.target.value})}
+                placeholder="Rua Principal, 123"
+                className="bg-white text-gray-900"
               />
             </div>
 
@@ -332,6 +407,7 @@ export default function PartnerDashboard() {
                   type="number"
                   value={serviceForm.duration_minutes}
                   onChange={(e) => setServiceForm({...serviceForm, duration_minutes: e.target.value})}
+                  className="bg-white text-gray-900"
                 />
               </div>
               <div>
@@ -342,14 +418,15 @@ export default function PartnerDashboard() {
                   value={serviceForm.base_price}
                   onChange={(e) => setServiceForm({...serviceForm, base_price: e.target.value})}
                   placeholder="25.00"
+                  className="bg-white text-gray-900"
                 />
               </div>
             </div>
 
             <Button
               onClick={() => {
-                if (!serviceForm.service_name || !serviceForm.base_price) {
-                  toast.error('Preencha nome e preço!');
+                if (!serviceForm.service_name || !serviceForm.base_price || !serviceForm.location) {
+                  toast.error('Preencha nome, preço e localização!');
                   return;
                 }
                 createServiceMutation.mutate(serviceForm);
@@ -363,19 +440,60 @@ export default function PartnerDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* CRIAR ANÚNCIO */}
+      {/* CRIAR ANÚNCIO - COM FOTO */}
       <Dialog open={showCreateAnnouncement} onOpenChange={setShowCreateAnnouncement}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Criar Anúncio</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* FOTO DO ANÚNCIO */}
+            <div>
+              <Label>Imagem do Anúncio *</Label>
+              {announcementForm.image_url && (
+                <div className="relative w-full h-48 mb-2">
+                  <img 
+                    src={announcementForm.image_url} 
+                    className="w-full h-full object-cover rounded-lg" 
+                    alt="Anúncio"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncementForm({...announcementForm, image_url: ""})}
+                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    try {
+                      const url = await uploadImageMutation.mutateAsync(file);
+                      setAnnouncementForm({...announcementForm, image_url: url});
+                    } catch (error) {
+                      console.error('Error:', error);
+                    }
+                  }
+                }}
+                className="h-10"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Imagem chamativa aumenta cliques (recomendado: 1200x630px)
+              </p>
+            </div>
+
             <div>
               <Label>Título *</Label>
               <Input
                 value={announcementForm.title}
                 onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
                 placeholder="Super Promoção!"
+                className="bg-white text-gray-900"
               />
             </div>
 
@@ -386,6 +504,7 @@ export default function PartnerDashboard() {
                 onChange={(e) => setAnnouncementForm({...announcementForm, message: e.target.value})}
                 rows={4}
                 placeholder="Descreva a promoção..."
+                className="bg-white text-gray-900"
               />
             </div>
 
@@ -397,6 +516,7 @@ export default function PartnerDashboard() {
                   value={announcementForm.discount_percentage}
                   onChange={(e) => setAnnouncementForm({...announcementForm, discount_percentage: e.target.value})}
                   placeholder="10"
+                  className="bg-white text-gray-900"
                 />
               </div>
               <div>
@@ -405,7 +525,7 @@ export default function PartnerDashboard() {
                   value={announcementForm.promotion_type}
                   onValueChange={(v) => setAnnouncementForm({...announcementForm, promotion_type: v})}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white text-gray-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -424,6 +544,7 @@ export default function PartnerDashboard() {
                   type="date"
                   value={announcementForm.start_date}
                   onChange={(e) => setAnnouncementForm({...announcementForm, start_date: e.target.value})}
+                  className="bg-white text-gray-900"
                 />
               </div>
               <div>
@@ -432,37 +553,15 @@ export default function PartnerDashboard() {
                   type="date"
                   value={announcementForm.end_date}
                   onChange={(e) => setAnnouncementForm({...announcementForm, end_date: e.target.value})}
+                  className="bg-white text-gray-900"
                 />
               </div>
             </div>
 
-            <div>
-              <Label>Imagem</Label>
-              {announcementForm.image_url && (
-                <img src={announcementForm.image_url} className="w-full h-32 object-cover rounded-lg mb-2" />
-              )}
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    try {
-                      const url = await uploadImageMutation.mutateAsync(file);
-                      setAnnouncementForm({...announcementForm, image_url: url});
-                      toast.success('Imagem carregada!');
-                    } catch (error) {
-                      toast.error('Erro ao carregar imagem');
-                    }
-                  }
-                }}
-              />
-            </div>
-
             <Button
               onClick={() => {
-                if (!announcementForm.title || !announcementForm.start_date || !announcementForm.end_date) {
-                  toast.error('Preencha título e datas!');
+                if (!announcementForm.title || !announcementForm.message || !announcementForm.start_date || !announcementForm.end_date || !announcementForm.image_url) {
+                  toast.error('Preencha título, mensagem, datas e adicione uma imagem!');
                   return;
                 }
                 createAnnouncementMutation.mutate(announcementForm);

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -272,7 +273,7 @@ export default function AdminDashboard() {
     mutationFn: ({ id, data }) => base44.entities.CompanyAnnouncement.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
-      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); // Assuming this query key is used elsewhere for active announcements
       toast.success("Anúncio atualizado!");
       setShowAnnouncementDialog(false);
       setSelectedAnnouncement(null);
@@ -283,7 +284,7 @@ export default function AdminDashboard() {
     mutationFn: (id) => base44.entities.CompanyAnnouncement.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
-      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); // Assuming this query key is used elsewhere for active announcements
       toast.success("Anúncio eliminado!");
     },
   });
@@ -587,7 +588,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Megaphone className="w-6 h-6 text-pink-600" />
-                  Gestão de Anúncios ({allAnnouncements.length})
+                  Todos os Anúncios ({allAnnouncements.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -595,34 +596,83 @@ export default function AdminDashboard() {
                   <p className="text-center py-8 text-gray-600">Nenhum anúncio</p>
                 ) : (
                   <div className="space-y-4">
-                    {allAnnouncements.map((announcement) => (
-                      <Card key={announcement.id} className="border-2 border-purple-100">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="font-bold text-lg">{announcement.title}</h3>
-                              <p className="text-sm text-gray-600">{announcement.company_name}</p>
-                              <div className="flex gap-2 mt-2">
-                                <Badge className={announcement.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                                  {announcement.is_active ? 'Ativo' : 'Inativo'}
-                                </Badge>
-                                <Badge variant="outline">
-                                  {announcement.moderation_status}
-                                </Badge>
+                    {allAnnouncements.map((announcement) => {
+                      const now = new Date();
+                      const isActive = announcement.is_active && announcement.moderation_status === 'approved';
+                      const endDate = announcement.end_date ? new Date(announcement.end_date) : null;
+                      const isExpired = endDate && now > endDate;
+
+                      return (
+                        <Card key={announcement.id} className={`border-2 ${
+                          isActive && !isExpired ? 'border-green-200 bg-green-50' : 
+                          isExpired ? 'border-gray-300 bg-gray-50' :
+                          'border-purple-100'
+                        }`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex gap-3 flex-1">
+                                {announcement.image_url && (
+                                  <img 
+                                    src={announcement.image_url} 
+                                    className="w-24 h-24 object-cover rounded-lg" 
+                                    alt={announcement.title}
+                                  />
+                                )}
+                                <div className="flex-1">
+                                  <h3 className="font-bold text-lg">{announcement.title}</h3>
+                                  <p className="text-sm text-gray-600">{announcement.company_name}</p>
+                                  <p className="text-sm text-gray-700 mt-1 line-clamp-2">{announcement.message}</p>
+                                  <div className="flex gap-2 mt-2 flex-wrap">
+                                    <Badge className={announcement.is_active ? 'bg-green-600' : 'bg-gray-400'}>
+                                      {announcement.is_active ? '✓ Ativo' : 'Inativo'}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                      {announcement.moderation_status}
+                                    </Badge>
+                                    {isExpired && (
+                                      <Badge className="bg-orange-600">Expirado</Badge>
+                                    )}
+                                    {announcement.discount_percentage > 0 && (
+                                      <Badge className="bg-red-500">-{announcement.discount_percentage}%</Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    {announcement.start_date?.split('T')[0]} → {announcement.end_date?.split('T')[0]}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    updateAnnouncementMutation.mutate({
+                                      id: announcement.id,
+                                      data: { is_active: !announcement.is_active }
+                                    });
+                                  }}
+                                  className={announcement.is_active ? 'text-orange-600 border-orange-300' : 'text-green-600 border-green-300'}
+                                >
+                                  {announcement.is_active ? 'Desativar' : 'Ativar'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    if (confirm(`Eliminar "${announcement.title}"?`)) {
+                                      deleteAnnouncementMutation.mutate(announcement.id);
+                                    }
+                                  }}
+                                  className="text-red-600 border-red-200"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -632,55 +682,130 @@ export default function AdminDashboard() {
           <TabsContent value="services">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>Serviços Pendentes ({pendingApprovalServices.length})</CardTitle>
+                <CardTitle>Todos os Serviços ({allPartnerServices.length})</CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {pendingApprovalServices.length} pendentes de aprovação
+                </p>
               </CardHeader>
               <CardContent>
-                {pendingApprovalServices.length === 0 ? (
+                {allPartnerServices.length === 0 ? (
                   <div className="text-center py-12">
-                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhum serviço pendente</p>
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhum serviço</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pendingApprovalServices.map((service) => (
-                      <Card key={service.id} className="border-2 border-orange-200">
-                        <CardContent className="p-4">
-                          <h3 className="font-bold">{service.service_name}</h3>
-                          <p className="text-sm text-gray-600">{service.partner_name}</p>
-                          <div className="flex gap-2 mt-3">
-                            <Button
-                              size="sm"
-                              onClick={async () => {
-                                await base44.entities.PartnerService.update(service.id, {
-                                  moderation_status: 'approved',
-                                  is_active: true
-                                });
-                                queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
-                                toast.success("✅ Serviço aprovado!");
-                              }}
-                              className="bg-green-600"
-                            >
-                              Aprovar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={async () => {
-                                await base44.entities.PartnerService.update(service.id, {
-                                  moderation_status: 'rejected',
-                                  is_active: false
-                                });
-                                queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
-                                toast.success("Serviço rejeitado");
-                              }}
-                              className="text-red-600"
-                            >
-                              Rejeitar
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {allPartnerServices.map((service) => {
+                      const isPending = service.moderation_status === 'pending';
+                      const isApproved = service.moderation_status === 'approved';
+                      const isActive = service.is_active;
+
+                      return (
+                        <Card key={service.id} className={`border-2 ${
+                          isPending ? 'border-orange-200 bg-orange-50' :
+                          isApproved && isActive ? 'border-green-200 bg-green-50' :
+                          'border-gray-200'
+                        }`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              {service.image_url && (
+                                <img 
+                                  src={service.image_url} 
+                                  className="w-20 h-20 object-cover rounded-lg" 
+                                  alt={service.service_name}
+                                />
+                              )}
+                              <div className="flex-1">
+                                <h3 className="font-bold text-lg">{service.service_name}</h3>
+                                <p className="text-sm text-gray-600">{service.partner_name}</p>
+                                {service.location && (
+                                  <p className="text-xs text-gray-500">📍 {service.location}</p>
+                                )}
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  <Badge className={
+                                    isPending ? 'bg-orange-500' :
+                                    service.moderation_status === 'approved' ? 'bg-green-600' :
+                                    'bg-red-600'
+                                  }>
+                                    {service.moderation_status}
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    {isActive ? '🟢 Ativo' : '🔴 Inativo'}
+                                  </Badge>
+                                  <Badge variant="outline">€{service.base_price}</Badge>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                {isPending && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={async () => {
+                                        await base44.entities.PartnerService.update(service.id, {
+                                          moderation_status: 'approved',
+                                          is_active: true
+                                        });
+                                        queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                        queryClient.invalidateQueries({ queryKey: ['partnerServices'] }); // Assuming this query key is used elsewhere for partner services
+                                        toast.success("✅ Serviço aprovado!");
+                                      }}
+                                      className="bg-green-600"
+                                    >
+                                      Aprovar
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={async () => {
+                                        await base44.entities.PartnerService.update(service.id, {
+                                          moderation_status: 'rejected',
+                                          is_active: false
+                                        });
+                                        queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                        toast.success("Serviço rejeitado");
+                                      }}
+                                      className="text-red-600"
+                                    >
+                                      Rejeitar
+                                    </Button>
+                                  </>
+                                )}
+                                {isApproved && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      await base44.entities.PartnerService.update(service.id, {
+                                        is_active: !isActive 
+                                      });
+                                      queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                      toast.success(`Serviço ${!isActive ? 'ativado' : 'desativado'}!`);
+                                    }}
+                                    className={isActive ? 'text-orange-600 border-orange-300' : 'text-green-600 border-green-300'}
+                                  >
+                                    {isActive ? 'Desativar' : 'Ativar'}
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={async () => {
+                                    if (confirm(`Eliminar "${service.service_name}"?`)) {
+                                      await base44.entities.PartnerService.delete(service.id);
+                                      queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                      toast.success('Serviço eliminado!');
+                                    }
+                                  }}
+                                  className="text-red-600 border-red-200"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
