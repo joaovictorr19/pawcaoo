@@ -59,6 +59,10 @@ export default function SocialFeed() {
   const [showCreateStory, setShowCreateStory] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  // NOVO: Estado para comentários
+  const [commentingPostId, setCommentingPostId] = useState(null);
+  const [commentText, setCommentText] = useState("");
+
   // New states for Create Post Modal with scheduling
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostData, setNewPostData] = useState({
@@ -118,7 +122,6 @@ export default function SocialFeed() {
         const followingEmails = follows.map(f => f.following_email);
         
         console.log('👥 Seguindo:', followingEmails.length, 'usuários');
-        console.log('Emails:', followingEmails);
 
         if (followingEmails.length === 0) {
           console.log('⚠️ Não está seguindo ninguém');
@@ -134,7 +137,6 @@ export default function SocialFeed() {
         console.log('✅ Posts de quem sigo:', followingPosts.length);
         return followingPosts;
       } else {
-        // BUSCAR TODOS OS POSTS PÚBLICOS E APROVADOS
         const allPosts = await base44.entities.SocialPost.list('-created_date');
         
         console.log('📊 TODOS OS POSTS NO BANCO:', allPosts.length);
@@ -145,16 +147,6 @@ export default function SocialFeed() {
         );
         
         console.log('🌍 POSTS PÚBLICOS E APROVADOS:', publicPosts.length);
-        console.log('\n📋 LISTA DE POSTS:');
-        publicPosts.forEach((p, i) => {
-          console.log(`  ${i+1}. Autor: ${p.author_name} (${p.author_email})`);
-          console.log(`     Conteúdo: "${p.content?.substring(0, 40)}..."`);
-          console.log(`     Moderation: ${p.moderation_status} | Public: ${p.is_public}`);
-          console.log(`     Data: ${p.created_date}`);
-          console.log(`     ID: ${p.id.substring(0, 8)}...`);
-          console.log('');
-        });
-        console.log('=====================================\n');
         
         return publicPosts;
       }
@@ -166,6 +158,30 @@ export default function SocialFeed() {
     refetchInterval: 5000,
     enabled: !!user?.email
   });
+
+  // NOVO: Buscar dados de usuários para badges
+  const { data: usersData = [] } = useQuery({
+    queryKey: ['usersForBadges'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      return users;
+    },
+    staleTime: 60000,
+  });
+
+  // Função helper para pegar badges do usuário
+  const getUserBadges = (authorEmail) => {
+    const userData = usersData.find(u => u.email === authorEmail);
+    if (!userData) return { publicBadges: [], isVerified: false, role: 'user', socialRole: 'user', isAdoptionAdvocate: false };
+    
+    return {
+      publicBadges: userData.public_badges || [],
+      isVerified: userData.is_verified || false,
+      role: userData.role || 'user',
+      socialRole: userData.social_role || 'user',
+      isAdoptionAdvocate: userData.is_adoption_advocate || false
+    };
+  };
 
   const createPostMutation = useMutation({
     mutationFn: async (postData) => {
@@ -253,49 +269,127 @@ export default function SocialFeed() {
 
   const likeMutation = useMutation({
     mutationFn: async ({ postId }) => {
-      // Award points to post author
-      const post = posts.find(p => p.id === postId);
-      if (post && post.author_email !== user.email) {
-        const authorLoyaltyPoints = await base44.entities.LoyaltyPoints.filter({
-          user_email: post.author_email
-        });
+      console.log('💗 CURTINDO POST:', postId, 'por', user.email);
+      
+      // Verificar se já curtiu
+      const existingLikes = await base44.entities.SocialLike.filter({
+        post_id: postId,
+        user_email: user.email
+      });
 
-        if (authorLoyaltyPoints[0]) {
-          const authorSubscription = await base44.entities.SocialSubscription.filter({
-            user_email: post.author_email,
-            is_active: true
-          });
-          const pointsMultiplier = authorSubscription[0]?.features?.points_multiplier || 1;
-          const basePoints = 2;
-          const pointsEarned = basePoints * pointsMultiplier;
-          const newBalance = authorLoyaltyPoints[0].points_balance + pointsEarned;
-
-          await base44.entities.LoyaltyPoints.update(authorLoyaltyPoints[0].id, {
-            points_balance: newBalance,
-            total_earned: authorLoyaltyPoints[0].total_earned + pointsEarned
-          });
-
-          await base44.entities.PointsTransaction.create({
-            user_email: post.author_email,
-            transaction_type: 'earned',
-            points_amount: pointsEarned,
-            description: `Like recebido no Dog Connect`,
-            balance_after: newBalance
+      if (existingLikes.length > 0) {
+        // Descurtir
+        console.log('❌ Removendo curtida');
+        await base44.entities.SocialLike.delete(existingLikes[0].id);
+        
+        // Atualizar contagem do post
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          await base44.entities.SocialPost.update(postId, {
+            likes_count: Math.max(0, (post.likes_count || 0) - 1)
           });
         }
-      }
+        return { action: 'unliked' };
+      } else {
+        // Curtir
+        console.log('✅ Adicionando curtida');
+        const newLike = await base44.entities.SocialLike.create({
+          post_id: postId,
+          user_email: user.email,
+          user_name: user.full_name,
+          reaction_type: 'like'
+        });
 
-      return await base44.entities.SocialLike.create({
-        post_id: postId,
-        user_email: user.email,
-        user_name: user.full_name,
-        reaction_type: 'like'
-      });
+        // Atualizar contagem do post
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          await base44.entities.SocialPost.update(postId, {
+            likes_count: (post.likes_count || 0) + 1
+          });
+
+          // Award points to post author
+          if (post.author_email !== user.email) {
+            const authorLoyaltyPoints = await base44.entities.LoyaltyPoints.filter({
+              user_email: post.author_email
+            });
+
+            if (authorLoyaltyPoints[0]) {
+              const authorSubscription = await base44.entities.SocialSubscription.filter({
+                user_email: post.author_email,
+                is_active: true
+              });
+              const pointsMultiplier = authorSubscription[0]?.features?.points_multiplier || 1;
+              const basePoints = 2;
+              const pointsEarned = basePoints * pointsMultiplier;
+              const newBalance = authorLoyaltyPoints[0].points_balance + pointsEarned;
+
+              await base44.entities.LoyaltyPoints.update(authorLoyaltyPoints[0].id, {
+                points_balance: newBalance,
+                total_earned: authorLoyaltyPoints[0].total_earned + pointsEarned
+              });
+
+              await base44.entities.PointsTransaction.create({
+                user_email: post.author_email,
+                transaction_type: 'earned',
+                points_amount: pointsEarned,
+                description: `Like recebido no Dog Connect`,
+                balance_after: newBalance
+              });
+            }
+          }
+        }
+        
+        return { action: 'liked', like: newLike };
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
+      queryClient.invalidateQueries({ queryKey: ['postLikes'] });
     },
   });
+
+  // NOVO: Mutation para comentar
+  const commentMutation = useMutation({
+    mutationFn: async ({ postId, content }) => {
+      console.log('💬 COMENTANDO NO POST:', postId);
+      
+      const newComment = await base44.entities.SocialComment.create({
+        post_id: postId,
+        author_email: user.email,
+        author_name: user.full_name,
+        author_photo_url: user.profile_photo_url,
+        content: content
+      });
+
+      // Atualizar contagem de comentários do post
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+        await base44.entities.SocialPost.update(postId, {
+          comments_count: (post.comments_count || 0) + 1
+        });
+      }
+
+      return newComment;
+    },
+    onSuccess: () => {
+      setCommentText("");
+      setCommentingPostId(null);
+      queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
+      toast.success('✅ Comentário adicionado!');
+    },
+  });
+
+  // NOVO: Query para likes de cada post
+  const { data: allLikes = [] } = useQuery({
+    queryKey: ['postLikes'],
+    queryFn: () => base44.entities.SocialLike.list(),
+    staleTime: 10000,
+  });
+
+  // Helper para verificar se usuário curtiu um post
+  const hasUserLikedPost = (postId) => {
+    return allLikes.some(like => like.post_id === postId && like.user_email === user?.email);
+  };
 
   const handleCreatePost = () => {
     if (!newPostData.content.trim() && newPostData.media_urls.length === 0) {
@@ -354,7 +448,6 @@ export default function SocialFeed() {
       author_email: user.email,
       author_name: user.full_name,
       author_photo_url: user.profile_photo_url || "",
-      author_profile_badges: user.profile_badges || [],
       media_urls: newPostData.media_urls,
       is_public: true,
       post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
@@ -372,6 +465,19 @@ export default function SocialFeed() {
 
   const handleLike = (postId) => {
     likeMutation.mutate({ postId });
+  };
+
+  const handleComment = (postId) => {
+    if (!commentText.trim()) {
+      toast.error('Digite um comentário');
+      return;
+    }
+    commentMutation.mutate({ postId, content: commentText });
+  };
+
+  const handleNavigateToProfile = (email) => {
+    console.log('🔗 Navegando para perfil:', email);
+    navigate(createPageUrl(`UserProfile?email=${email}`));
   };
 
   const isPremium = socialSubscription?.plan_type === 'premium' || socialSubscription?.plan_type === 'pro';
@@ -531,7 +637,8 @@ export default function SocialFeed() {
             ) : (
               <AnimatePresence>
                 {posts.map((post, index) => {
-                  const authorBadges = post.author_profile_badges || [];
+                  const { publicBadges, isVerified, role, socialRole, isAdoptionAdvocate } = getUserBadges(post.author_email);
+                  const userLiked = hasUserLikedPost(post.id);
 
                   return (
                     <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.05 }}>
@@ -540,7 +647,10 @@ export default function SocialFeed() {
                           {/* Post Header */}
                           <div className="flex items-center justify-between p-4">
                             <div className="flex items-center gap-3">
-                              <Avatar className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all" onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}>
+                              <Avatar 
+                                className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all" 
+                                onClick={() => handleNavigateToProfile(post.author_email)}
+                              >
                                 <AvatarImage src={post.author_photo_url} />
                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
                                   {post.author_name?.[0]}
@@ -548,59 +658,55 @@ export default function SocialFeed() {
                               </Avatar>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors" onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}>
+                                  <p 
+                                    className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors" 
+                                    onClick={() => handleNavigateToProfile(post.author_email)}
+                                  >
                                     {post.author_name}
                                   </p>
 
-                                  {/* Profile Badges ao lado do nome */}
-                                  {authorBadges.map((badge, idx) => {
-                                    if (badge.badge_id === 'verified') {
-                                      return (
-                                        <div key={idx} className="w-5 h-5" title="Verificado">
-                                          <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-500" />
-                                        </div>
-                                      );
-                                    }
-                                    if (badge.badge_id === 'admin') {
-                                      return (
-                                        <div key={idx} title="Administrador">
-                                          <Badge className="bg-red-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
-                                            <Shield className="w-3 h-3" />
-                                            Admin
-                                          </Badge>
-                                        </div>
-                                      );
-                                    }
-                                    if (badge.badge_id === 'moderator') {
-                                      return (
-                                        <div key={idx} title="Moderador">
-                                          <Badge className="bg-blue-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
-                                            <ShieldCheck className="w-3 h-3" />
-                                            Mod
-                                          </Badge>
-                                        </div>
-                                      );
-                                    }
-                                    if (badge.badge_id === 'adoption_advocate') {
-                                      return (
-                                        <div key={idx} title="Defensor de Adoção">
-                                          <Badge className="bg-green-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
-                                            <Heart className="w-3 h-3" />
-                                          </Badge>
-                                        </div>
-                                      );
-                                    }
-                                    if (badge.badge_id === 'vip_member') {
-                                      return (
-                                        <div key={idx} title="Membro VIP">
-                                          <Badge className="bg-purple-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
-                                            <Crown className="w-3 h-3" />
-                                          </Badge>
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  })}
+                                  {/* Distintivos do Perfil */}
+                                  {isVerified && (
+                                    <div className="w-5 h-5" title="Verificado">
+                                      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="#1d9bf0">
+                                        <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
+                                      </svg>
+                                    </div>
+                                  )}
+                                  
+                                  {role === 'admin' && (
+                                    <Badge className="bg-red-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                      <Shield className="w-3 h-3" />
+                                      Admin
+                                    </Badge>
+                                  )}
+                                  
+                                  {socialRole === 'moderator' && (
+                                    <Badge className="bg-blue-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                      <ShieldCheck className="w-3 h-3" />
+                                      Mod
+                                    </Badge>
+                                  )}
+                                  
+                                  {socialRole === 'admin' && role !== 'admin' && (
+                                    <Badge className="bg-purple-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                      <Crown className="w-3 h-3" />
+                                      Admin
+                                    </Badge>
+                                  )}
+                                  
+                                  {isAdoptionAdvocate && (
+                                    <Badge className="bg-green-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                      <Heart className="w-3 h-3" />
+                                    </Badge>
+                                  )}
+
+                                  {/* Badges customizados do perfil */}
+                                  {publicBadges.slice(0, 2).map((badge, idx) => (
+                                    <Badge key={idx} className="bg-purple-600 text-white text-xs px-1.5 py-0 h-5">
+                                      {badge.icon} {badge.name}
+                                    </Badge>
+                                  ))}
                                 </div>
                                 {post.location && (
                                   <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -626,10 +732,21 @@ export default function SocialFeed() {
                           <div className="p-4">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-4">
-                                <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)} className="hover:text-red-600 transition-colors">
-                                  <Heart className="w-6 h-6" />
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleLike(post.id)} 
+                                  className={`hover:text-red-600 transition-colors ${userLiked ? 'text-red-600' : ''}`}
+                                  disabled={likeMutation.isPending}
+                                >
+                                  <Heart className={`w-6 h-6 ${userLiked ? 'fill-red-600' : ''}`} />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="hover:text-blue-600 transition-colors"
+                                  onClick={() => setCommentingPostId(commentingPostId === post.id ? null : post.id)}
+                                >
                                   <MessageCircle className="w-6 h-6" />
                                 </Button>
                                 <Button variant="ghost" size="sm" className="hover:text-green-600 transition-colors">
@@ -650,7 +767,12 @@ export default function SocialFeed() {
 
                             {/* Post Content */}
                             <div className="mb-2">
-                              <span className="font-semibold text-gray-900 mr-2">{post.author_name}</span>
+                              <span 
+                                className="font-semibold text-gray-900 mr-2 cursor-pointer hover:text-blue-600"
+                                onClick={() => handleNavigateToProfile(post.author_email)}
+                              >
+                                {post.author_name}
+                              </span>
                               <span className="text-gray-700">{post.content}</span>
                             </div>
 
@@ -671,7 +793,10 @@ export default function SocialFeed() {
 
                             {/* Comments Count */}
                             {post.comments_count > 0 && (
-                              <button className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
+                              <button 
+                                className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                                onClick={() => setCommentingPostId(commentingPostId === post.id ? null : post.id)}
+                              >
                                 Ver todos os {post.comments_count} comentários
                               </button>
                             )}
@@ -683,6 +808,40 @@ export default function SocialFeed() {
                                 month: 'long'
                               })}
                             </p>
+
+                            {/* NOVO: Área de Comentário */}
+                            {commentingPostId === post.id && (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="w-8 h-8">
+                                    <AvatarImage src={user?.profile_photo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-sm">
+                                      {user?.full_name?.[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <input
+                                    type="text"
+                                    placeholder="Adicione um comentário..."
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter' && commentText.trim()) {
+                                        handleComment(post.id);
+                                      }
+                                    }}
+                                    className="flex-1 border-0 focus:ring-0 text-sm"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleComment(post.id)}
+                                    disabled={!commentText.trim() || commentMutation.isPending}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                  >
+                                    Publicar
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
