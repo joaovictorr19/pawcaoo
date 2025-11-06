@@ -60,13 +60,14 @@ export default function Partners() {
   const { data: announcements = [] } = useQuery({
     queryKey: ['activeAnnouncements'],
     queryFn: async () => {
-      const allAnnouncements = await base44.entities.CompanyAnnouncement.list('-featured_position');
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.list('-created_date');
       
-      console.log('📢 PARTNERS PAGE - ALL ANNOUNCEMENTS:', {
+      console.log('📢 PARTNERS PAGE - TODOS OS ANÚNCIOS:', {
         total: allAnnouncements.length,
         announcements: allAnnouncements.map(a => ({
           title: a.title,
           company: a.company_name,
+          company_email: a.company_email,
           moderation_status: a.moderation_status,
           is_active: a.is_active,
           start_date: a.start_date,
@@ -77,11 +78,11 @@ export default function Partners() {
 
       // FILTRO 1: Aprovados
       const approved = allAnnouncements.filter(a => a.moderation_status === 'approved');
-      console.log('✅ APPROVED:', approved.length);
+      console.log('✅ APROVADOS:', approved.length);
 
       // FILTRO 2: Ativos
       const active = approved.filter(a => a.is_active === true);
-      console.log('🟢 ACTIVE:', active.length);
+      console.log('🟢 ATIVOS:', active.length);
 
       // FILTRO 3: Dentro do período de datas
       const now = new Date();
@@ -97,16 +98,16 @@ export default function Partners() {
         const isInRange = now >= startDate && now <= endDate;
         
         console.log(`📅 "${a.title}":`, {
-          start: startDate.toISOString(),
-          end: endDate.toISOString(),
-          now: now.toISOString(),
+          start: startDate.toISOString().split('T')[0],
+          end: endDate.toISOString().split('T')[0],
+          now: now.toISOString().split('T')[0],
           isInRange
         });
         
         return isInRange;
       });
 
-      console.log('✅ FINAL ANNOUNCEMENTS TO SHOW:', inDateRange.length);
+      console.log('✅ ANÚNCIOS NO PERÍODO:', inDateRange.length);
 
       // Ordenar por destaque
       const sorted = inDateRange.sort((a, b) => {
@@ -118,19 +119,17 @@ export default function Partners() {
         return new Date(b.created_date) - new Date(a.created_date);
       });
 
-      console.log('🎯 SORTED ANNOUNCEMENTS:', sorted.map(a => ({
-        title: a.title,
-        is_featured: a.is_featured,
-        featured_position: a.featured_position
-      })));
+      console.log('🎯 ANÚNCIOS FINAIS A MOSTRAR:', sorted.map(a => a.title));
 
       return sorted;
     },
     initialData: [],
-    staleTime: 60000,
+    staleTime: 0, // ZERO CACHE
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
-  console.log('🎯 RENDERING', announcements.length, 'ANNOUNCEMENTS');
+  console.log('🎯 RENDERIZANDO', announcements.length, 'ANÚNCIOS NA LOJA');
 
   const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
     queryKey: ['loyaltyPoints', user?.email],

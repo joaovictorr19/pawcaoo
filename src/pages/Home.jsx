@@ -77,15 +77,21 @@ export default function Home() {
       });
 
       // Filtrar APENAS ativos E verificados
-      const active = allWalkers.filter(w => w.is_active === true && w.verification_status === 'verified');
+      const active = allWalkers.filter(w => 
+        w.is_active === true && w.verification_status === 'verified'
+      );
       
-      console.log('✅ PASSEADORES ATIVOS E VERIFICADOS:', active.length);
+      console.log('✅ PASSEADORES ATIVOS E VERIFICADOS:', {
+        count: active.length,
+        walkers: active.map(w => w.walker_name)
+      });
       
       return active;
     },
     initialData: [],
     enabled: !!user,
-    staleTime: 60000,
+    staleTime: 0, // ZERO CACHE
+    refetchOnMount: 'always',
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({

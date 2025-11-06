@@ -197,13 +197,50 @@ export default function PartnerDashboard() {
     enabled: !!company,
   });
 
-  // NEW: Query for partner's own announcements
+  // NEW: Query for partner's own announcements - COM ZERO CACHE
   const { data: myAnnouncements = [] } = useQuery({
-    queryKey: ['myAnnouncements', company?.id],
-    queryFn: () => base44.entities.CompanyAnnouncement.filter({
-      company_id: company?.id
-    }),
-    enabled: !!company,
+    queryKey: ['myAnnouncements', user?.email],
+    queryFn: async () => {
+      if (!user?.email || !company?.id) {
+        console.log('⚠️ NO USER/COMPANY:', { email: user?.email, companyId: company?.id });
+        return [];
+      }
+
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+      
+      console.log('📢 PARTNER DASHBOARD - TODOS OS ANÚNCIOS:', {
+        total: allAnnouncements.length,
+        my_email: user.email,
+        company_id: company.id,
+        all: allAnnouncements.map(a => ({
+          title: a.title,
+          company_email: a.company_email,
+          company_id: a.company_id,
+          created_by: a.created_by
+        }))
+      });
+
+      const myAnnouncements = allAnnouncements.filter(a =>
+        a.company_email === user.email || 
+        a.company_id === company.id ||
+        a.created_by === user.email
+      );
+
+      console.log('✅ MEUS ANÚNCIOS:', {
+        count: myAnnouncements.length,
+        announcements: myAnnouncements.map(a => ({
+          title: a.title,
+          status: a.moderation_status,
+          is_active: a.is_active
+        }))
+      });
+
+      return myAnnouncements;
+    },
+    enabled: !!user?.email && !!company?.id,
+    staleTime: 0, // ZERO CACHE - sempre busca fresh data
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
 
@@ -523,43 +560,49 @@ export default function PartnerDashboard() {
     }
   });
 
-  // NEW: Create Announcement Mutation
+  // NEW: Create Announcement Mutation - CORRIGIDO
   const createAnnouncementMutation = useMutation({
     mutationFn: async (announcementData) => {
-      // Convert string values to numbers (retained from original for safety)
       const processedData = {
         ...announcementData,
         discount_percentage: parseInt(announcementData.discount_percentage) || 0
       };
 
-      console.log('🚀 CREATING ANNOUNCEMENT with data:', {
+      const dataToCreate = {
         ...processedData,
-        company_id: company.id, // Using company.id directly
-        company_name: company.company_name, // Using company.company_name directly
-        company_email: user.email, // CRÍTICO para RLS, using user.email
-        created_by: user.email, // Added from outline
-        moderation_status: 'approved',
+        company_id: company.id,
+        company_name: company.company_name,
+        company_email: user.email, // CRÍTICO - email da empresa
+        created_by: user.email,
+        moderation_status: 'approved', // Auto-aprovado
         is_active: true
-      });
+      };
 
-      const result = await base44.entities.CompanyAnnouncement.create({
-        ...processedData,
-        company_id: company.id, // Using company.id directly
-        company_name: company.company_name, // Using company.company_name directly
-        company_email: user.email, // CRÍTICO para RLS
-        created_by: user.email, // Added from outline
-        moderation_status: 'approved',
-        is_active: true
-      });
-      console.log('✅ ANNOUNCEMENT CREATED:', result);
+      console.log('🚀 CRIANDO ANÚNCIO:', dataToCreate);
+
+      const result = await base44.entities.CompanyAnnouncement.create(dataToCreate);
+      
+      console.log('✅ ANÚNCIO CRIADO:', result);
+      
       return result;
     },
     onSuccess: (newAnnouncement) => {
-      console.log('Announcement created successfully:', newAnnouncement);
-      queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] }); // Keep existing query key
-      toast.success(language === 'pt' ? 'Anúncio criado e ativo!' : 'Announcement created and active!'); // Keep language support
-      setShowCreateAnnouncementModal(false); // Corrected modal state setter
-      setNewAnnouncement({ // Keep existing form reset logic
+      console.log('✅ SUCCESS - Anúncio criado:', newAnnouncement);
+      
+      // Invalidar TODAS as queries de anúncios
+      queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingAnnouncements'] });
+      queryClient.invalidateQueries({ queryKey: ['approvedAnnouncements'] });
+      
+      // Forçar refetch imediatamente
+      queryClient.refetchQueries({ queryKey: ['myAnnouncements'] });
+      queryClient.refetchQueries({ queryKey: ['activeAnnouncements'] });
+      
+      toast.success('✅ Anúncio criado e ATIVO na loja!');
+      setShowCreateAnnouncementModal(false);
+      setNewAnnouncement({
         title: "",
         message: "",
         promotion_type: "discount",
@@ -572,8 +615,8 @@ export default function PartnerDashboard() {
       });
     },
     onError: (error) => {
-      console.error('❌ CREATE ANNOUNCEMENT ERROR:', error);
-      toast.error(error.message || (language === 'pt' ? 'Erro ao criar anúncio' : 'Failed to create announcement')); // Keep language support
+      console.error('❌ ERRO AO CRIAR ANÚNCIO:', error);
+      toast.error('❌ Erro: ' + error.message);
     }
   });
 
