@@ -1,473 +1,372 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Calendar, MapPin, Clock, DollarSign, Phone, Dog, ShieldCheck, CheckCircle2, Activity } from "lucide-react";
-import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, MapPin, Clock, DollarSign, User, Dog, MessageCircle, XCircle, CheckCircle, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import NotificationService from "../components/NotificationService";
+import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { useCreateNotification } from "../components/NotificationService";
 
 export default function MyBookings() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [completionCode, setCompletionCode] = useState("");
-  const [completingBooking, setCompletingBooking] = useState(null); // Renamed from verifyingBookingId to store the full booking object
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const createNotification = useCreateNotification();
+  const [activeTab, setActiveTab] = useState("upcoming");
 
-  // Helper function for creating page URLs (assuming simple path construction for now)
-  const createPageUrl = (pathWithParams) => `/${pathWithParams}`;
+  const urlParams = new URLSearchParams(window.location.search);
+  const highlightedBookingId = urlParams.get('id');
 
-  const { data: user } = useQuery({
+  // Buscar usuário atual
+  const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: bookings, isLoading } = useQuery({
-    queryKey: ['bookings'],
+  // Buscar bookings do usuário (owner)
+  const { data: ownerBookings = [], isLoading: loadingOwnerBookings } = useQuery({
+    queryKey: ['myBookings', user?.email],
     queryFn: async () => {
-      const walkerBookings = await base44.entities.Booking.list('-created_date');
-      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date');
-      return [...walkerBookings, ...trainerBookings];
+      if (!user?.email) return [];
+      const bookings = await base44.entities.Booking.filter({
+        created_by: user.email
+      }, '-created_date');
+      return bookings;
     },
-    initialData: [],
+    enabled: !!user?.email,
+    refetchInterval: 10000, // Atualizar a cada 10 segundos
+    refetchOnWindowFocus: true,
   });
 
-  const updateBookingMutation = useMutation({
-    mutationFn: async ({ id, data, isTraining }) => {
-      if (isTraining) {
-        return await base44.entities.TrainingBooking.update(id, data);
-      } else {
-        return await base44.entities.Booking.update(id, data);
-      }
+  // Buscar bookings onde o usuário é o walker
+  const { data: walkerBookings = [], isLoading: loadingWalkerBookings } = useQuery({
+    queryKey: ['walkerBookings', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const bookings = await base44.entities.Booking.filter({
+        walker_email: user.email
+      }, '-created_date');
+      return bookings;
     },
-    onSuccess: async (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      
-      // Send cancellation notification
-      if (variables.data.status === "cancelled") {
-        const booking = queryClient.getQueryData(['bookings']).find(b => b.id === variables.id);
-        if (booking) {
-          await base44.entities.Notification.create({
-            recipient_email: booking.walker_email || booking.trainer_email,
-            title: "Booking Cancelled",
-            message: `Booking for ${booking.dog_name} on ${format(new Date(booking.walk_date || booking.session_date), "MMM d, yyyy")} has been cancelled`,
-            type: "booking",
-            related_id: variables.id,
-            priority: "high"
-          });
-        }
-      }
-    },
+    enabled: !!user?.email,
+    refetchInterval: 10000, // Atualizar a cada 10 segundos
+    refetchOnWindowFocus: true,
   });
 
+  // Combinar bookings
+  const allBookings = [...ownerBookings, ...walkerBookings];
+
+  // Filtrar por status
+  const upcomingBookings = allBookings.filter(b => 
+    ['pending', 'confirmed'].includes(b.status) && 
+    new Date(b.walk_date) >= new Date()
+  );
+  
+  const inProgressBookings = allBookings.filter(b => b.status === 'in_progress');
+  const completedBookings = allBookings.filter(b => b.status === 'completed');
+  const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
+
+  // Mutation para cancelar booking
+  const cancelBookingMutation = useMutation({
+    mutationFn: async (bookingId) => {
+      const booking = allBookings.find(b => b.id === bookingId);
+      if (!booking) throw new Error('Booking not found');
+
+      // Atualizar booking
+      await base44.entities.Booking.update(bookingId, {
+        status: 'cancelled'
+      });
+
+      // Atualizar payment para refunded
+      if (booking.payment_id) {
+        await base44.entities.Payment.update(booking.payment_id, {
+          status: 'refunded'
+        });
+      }
+
+      // Notificar o walker
+      await createNotification.mutateAsync({
+        recipient_email: booking.walker_email || booking.created_by,
+        title: '❌ Reserva Cancelada',
+        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.walk_date), 'dd/MM/yyyy', { locale: pt })} foi cancelada.`,
+        type: 'booking',
+        related_id: bookingId,
+        priority: 'normal'
+      });
+
+      return bookingId;
+    },
+    onSuccess: () => {
+      toast.success('✅ Reserva cancelada com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['myBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
+    },
+    onError: () => {
+      toast.error('❌ Erro ao cancelar reserva');
+    }
+  });
+
+  // Mutation para confirmar conclusão (walker)
   const completeBookingMutation = useMutation({
-    mutationFn: async ({ booking, code, isTraining }) => { // Now accepts full booking object and isTraining
-      if (booking.completion_code !== code.toUpperCase()) { // Ensure code is upper cased for comparison
-        throw new Error("Invalid completion code!");
-      }
+    mutationFn: async (bookingId) => {
+      const booking = allBookings.find(b => b.id === bookingId);
+      if (!booking) throw new Error('Booking not found');
 
-      // Update booking status
-      const updateData = {
+      // Atualizar booking
+      await base44.entities.Booking.update(bookingId, {
         status: 'completed',
-        payment_status: 'released',
-        completed_date: new Date().toISOString(),
-      };
+        completed_date: new Date().toISOString()
+      });
 
-      if (isTraining) {
-        await base44.entities.TrainingBooking.update(booking.id, updateData);
-      } else {
-        await base44.entities.Booking.update(booking.id, updateData);
-      }
-
-      // Find all payments for this booking (retaining previous robust payment finding logic)
-      const payments = await base44.entities.Payment.filter({ booking_id: booking.id });
-      for (const payment of payments) {
-        await base44.entities.Payment.update(payment.id, {
-          status: "released",
+      // Liberar pagamento
+      if (booking.payment_id) {
+        await base44.entities.Payment.update(booking.payment_id, {
+          status: 'released',
           released_date: new Date().toISOString()
         });
       }
 
-      // PawPoints logic: Only award points to the owner
-      let totalPoints = 0;
-      if (user?.email === booking.owner_email) {
-        const ownerSubs = await base44.entities.OwnerSubscription.filter({
-          owner_email: user?.email,
-          is_active: true
+      // Atualizar earnings do walker
+      const walkerProfiles = await base44.entities.WalkerProfile.filter({
+        created_by: booking.walker_email
+      });
+      if (walkerProfiles[0]) {
+        await base44.entities.WalkerProfile.update(walkerProfiles[0].id, {
+          total_earnings: (walkerProfiles[0].total_earnings || 0) + booking.service_amount
         });
-        const subscription = ownerSubs[0]; // Assuming only one active subscription
-        const pointsMultiplier = subscription?.points_multiplier || 1;
-        const basePoints = Math.floor(booking.total_amount * 10); // 10 points per euro
-        totalPoints = Math.floor(basePoints * pointsMultiplier);
-        
-        // Get or create loyalty points record
-        const loyaltyRecords = await base44.entities.LoyaltyPoints.filter({
-          user_email: user?.email
-        });
-        
-        let currentPointsBalance = 0;
-        if (loyaltyRecords.length > 0) {
-          const loyaltyPoints = loyaltyRecords[0];
-          currentPointsBalance = loyaltyPoints.points_balance + totalPoints;
-          
-          // Check for tier upgrade
-          const oldTier = loyaltyPoints.tier;
-          let newTier = oldTier;
-          
-          if (currentPointsBalance >= 10000) newTier = 'platinum';
-          else if (currentPointsBalance >= 5000) newTier = 'gold';
-          else if (currentPointsBalance >= 2000) newTier = 'silver';
-          else newTier = 'bronze';
-          
-          await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
-            points_balance: currentPointsBalance,
-            total_earned: loyaltyPoints.total_earned + totalPoints,
-            lifetime_bookings: (loyaltyPoints.lifetime_bookings || 0) + 1,
-            tier: newTier
-          });
-          
-          // Notify tier upgrade
-          if (newTier !== oldTier) {
-            await NotificationService.tierUpgraded({
-              userEmail: user?.email,
-              newTier,
-              oldTier
-            });
-          }
-        } else {
-          currentPointsBalance = totalPoints;
-          await base44.entities.LoyaltyPoints.create({
-            user_email: user?.email,
-            points_balance: currentPointsBalance,
-            total_earned: totalPoints,
-            tier: 'bronze', // Default tier
-            lifetime_bookings: 1
-          });
-        }
-
-        // Create transaction record
-        await base44.entities.PointsTransaction.create({
-          user_email: user?.email,
-          transaction_type: 'earned',
-          points_amount: totalPoints,
-          related_booking_id: booking.id,
-          description: `Earned ${totalPoints} points from booking with ${booking.walker_name || booking.trainer_name}${pointsMultiplier > 1 ? ` (${pointsMultiplier}x multiplier)` : ''}`,
-          balance_after: currentPointsBalance
-        });
-
-        // Notify about points earned
-        if (totalPoints > 0) {
-          await NotificationService.loyaltyPointsEarned({
-            userEmail: user?.email,
-            points: totalPoints,
-            source: `do agendamento com ${booking.walker_name || booking.trainer_name}`
-          });
-        }
       }
 
-      // Use NotificationService for completion
-      await NotificationService.bookingCompleted({
-        booking,
-        isTraining,
-        pointsEarned: totalPoints
+      // Notificar o owner
+      await createNotification.mutateAsync({
+        recipient_email: booking.created_by,
+        title: '✅ Passeio Concluído!',
+        message: `O passeio de ${booking.dog_name} foi concluído. Deixe uma avaliação!`,
+        type: 'booking',
+        related_id: bookingId,
+        action_url: `/MyBookings?id=${bookingId}`,
+        priority: 'normal'
       });
 
-      return totalPoints; // Return points for toast message
+      return bookingId;
     },
-    onSuccess: (totalPoints) => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['payments'] }); // Invalidate payments query
-      queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] }); // New query invalidation for loyalty points
-      setCompletionCode("");
-      setCompletingBooking(null); // Resetting the booking being completed
-      if (totalPoints > 0) {
-        toast.success(`Booking completed! You earned ${totalPoints} PawPoints! 🎉`);
-      } else {
-        toast.success("Booking completed! Payment released."); // Generic message if no points awarded (e.g., if walker completes)
-      }
+    onSuccess: () => {
+      toast.success('✅ Passeio marcado como concluído!');
+      queryClient.invalidateQueries({ queryKey: ['myBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to complete booking.");
+    onError: () => {
+      toast.error('❌ Erro ao concluir passeio');
     }
   });
 
-  const handleCancelBooking = async (booking) => {
-    await updateBookingMutation.mutateAsync({
-      id: booking.id,
-      data: { status: "cancelled", payment_status: "refunded" },
-      isTraining: !!booking.session_date
-    });
-  };
-
-  const handleVerifyCompletion = async (bookingToComplete, isTraining) => {
-    await completeBookingMutation.mutateAsync({ 
-      booking: bookingToComplete, // Pass the full booking object
-      code: completionCode,
-      isTraining 
-    });
-  };
-
-  const filteredBookings = activeTab === "all" 
-    ? bookings.filter(b => b.created_by === user?.email || b.owner_email === user?.email)
-    : bookings.filter(b => b.status === activeTab && (b.created_by === user?.email || b.owner_email === user?.email));
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-      in_progress: "bg-purple-100 text-purple-800 border-purple-200",
-      completed: "bg-green-100 text-green-800 border-green-200",
-      cancelled: "bg-gray-100 text-gray-800 border-gray-200"
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
+      confirmed: { label: 'Confirmado', color: 'bg-blue-100 text-blue-800' },
+      in_progress: { label: 'Em Andamento', color: 'bg-purple-100 text-purple-800' },
+      completed: { label: 'Concluído', color: 'bg-green-100 text-green-800' },
+      cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
     };
-    return colors[status] || colors.pending;
+    
+    const config = statusConfig[status] || statusConfig.pending;
+    return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const getPaymentStatusColor = (status) => {
-    const colors = {
-      pending: "bg-orange-100 text-orange-800 border-orange-200",
-      held: "bg-blue-100 text-blue-800 border-blue-200",
-      released: "bg-green-100 text-green-800 border-green-200",
-      refunded: "bg-gray-100 text-gray-800 border-gray-200"
-    };
-    return colors[status] || colors.pending;
+  const BookingCard = ({ booking }) => {
+    const isHighlighted = booking.id === highlightedBookingId;
+    const isWalker = booking.walker_email === user?.email;
+
+    return (
+      <Card className={`border-2 hover:shadow-lg transition-shadow ${isHighlighted ? 'border-green-500 ring-4 ring-green-100' : 'border-gray-200'}`}>
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-xl">{booking.dog_name}</CardTitle>
+              <p className="text-sm text-gray-600">
+                {isWalker ? `Cliente: ${booking.owner_name}` : `Passeador: ${booking.walker_name}`}
+              </p>
+            </div>
+            {getStatusBadge(booking.status)}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <span>{format(new Date(booking.walk_date), 'dd MMM yyyy', { locale: pt })}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-gray-500" />
+              <span>{booking.duration_hours}h - {booking.walk_time}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Dog className="w-4 h-4 text-gray-500" />
+              <span>{booking.dog_size}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-green-600 font-semibold">
+              <DollarSign className="w-4 h-4" />
+              <span>€{booking.total_amount}</span>
+            </div>
+          </div>
+
+          {booking.special_notes && (
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-500 mb-1">Notas:</p>
+              <p className="text-sm">{booking.special_notes}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(createPageUrl(`LiveWalkTracking?id=${booking.id}`))}
+              className="flex-1"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Ver Detalhes
+            </Button>
+            
+            {booking.status === 'confirmed' && isWalker && (
+              <Button
+                size="sm"
+                onClick={() => completeBookingMutation.mutate(booking.id)}
+                disabled={completeBookingMutation.isPending}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Concluir
+              </Button>
+            )}
+            
+            {['pending', 'confirmed'].includes(booking.status) && !isWalker && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  if (window.confirm('Tem certeza que deseja cancelar esta reserva?')) {
+                    cancelBookingMutation.mutate(booking.id);
+                  }
+                }}
+                disabled={cancelBookingMutation.isPending}
+                className="flex-1"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
+
+  if (loadingUser || loadingOwnerBookings || loadingWalkerBookings) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">My Bookings</h1>
-          <p className="text-sm md:text-lg text-gray-600">Manage your appointments</p>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Minhas Reservas</h1>
+          <p className="text-gray-600">Gerencie seus passeios agendados</p>
         </div>
 
-        {/* Tabs - Mobile Optimized with Horizontal Scroll */}
-        <div className="mb-6 md:mb-8 overflow-x-auto pb-2 scrollbar-hide">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-max">
-            <TabsList className="bg-white border border-gray-200 shadow-sm inline-flex">
-              <TabsTrigger value="all" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700 text-sm md:text-base px-3 md:px-4">
-                All
-              </TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700 text-sm md:text-base px-3 md:px-4">
-                Pending
-              </TabsTrigger>
-              <TabsTrigger value="confirmed" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-sm md:text-base px-3 md:px-4">
-                Confirmed
-              </TabsTrigger>
-              <TabsTrigger value="in_progress" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 text-sm md:text-base px-3 md:px-4">
-                Progress
-              </TabsTrigger>
-              <TabsTrigger value="completed" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700 text-sm md:text-base px-3 md:px-4">
-                Done
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="upcoming">
+              Próximos ({upcomingBookings.length})
+            </TabsTrigger>
+            <TabsTrigger value="in_progress">
+              Em Andamento ({inProgressBookings.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Concluídos ({completedBookings.length})
+            </TabsTrigger>
+            <TabsTrigger value="cancelled">
+              Cancelados ({cancelledBookings.length})
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Bookings List - Mobile Optimized */}
-        {isLoading ? (
-          <div className="space-y-3 md:space-y-4">
-            {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-48 md:h-64 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : filteredBookings.length === 0 ? (
-          <Card className="border-0 shadow-xl">
-            <CardContent className="p-8 md:p-12 text-center">
-              <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 md:w-12 md:h-12 text-gray-400" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2">No bookings yet</h3>
-              <p className="text-sm md:text-base text-gray-600">Find a dog walker or trainer!</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4 md:space-y-6">
-            {filteredBookings.map((booking, index) => {
-              const isTraining = !!booking.session_date;
-              return (
-                <motion.div
-                  key={booking.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100 p-4 md:p-6">
-                      <div className="flex flex-col md:flex-row justify-between items-start gap-3 md:gap-4">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg md:text-2xl mb-2">
-                            {isTraining ? `Training with ${booking.trainer_name}` : `Walk with ${booking.walker_name}`}
-                          </CardTitle>
-                          <div className="flex gap-2 flex-wrap">
-                            <Badge className={getStatusColor(booking.status)}>
-                              {booking.status}
-                            </Badge>
-                            <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                              {booking.payment_status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl md:text-3xl font-bold text-green-600">
-                            €{booking.total_amount?.toFixed(2)}
-                          </div>
-                          <div className="text-xs md:text-sm text-gray-600">
-                            {booking.duration_hours}h
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6">
-                      <div className="grid md:grid-cols-2 gap-6 mb-6">
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                              <Dog className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-600">Dog</div>
-                              <div className="font-semibold text-gray-900">
-                                {booking.dog_name} ({booking.dog_size})
-                              </div>
-                            </div>
-                          </div>
+          <TabsContent value="upcoming" className="space-y-4">
+            {upcomingBookings.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Nenhuma reserva próxima</h3>
+                  <p className="text-gray-600 mb-4">Reserve um passeio para o seu pet!</p>
+                  <Button onClick={() => navigate(createPageUrl('Home'))}>
+                    Encontrar Passeadores
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              upcomingBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))
+            )}
+          </TabsContent>
 
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Calendar className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-600">Date & Time</div>
-                              <div className="font-semibold text-gray-900">
-                                {format(new Date(booking.walk_date || booking.session_date), "MMMM d, yyyy")}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {booking.walk_time || booking.session_time}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+          <TabsContent value="in_progress" className="space-y-4">
+            {inProgressBookings.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600">Nenhum passeio em andamento</p>
+                </CardContent>
+              </Card>
+            ) : (
+              inProgressBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))
+            )}
+          </TabsContent>
 
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                              <Phone className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-600">Your Contact</div>
-                              <div className="font-semibold text-gray-900">
-                                {booking.owner_name}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {booking.owner_phone}
-                              </div>
-                            </div>
-                          </div>
+          <TabsContent value="completed" className="space-y-4">
+            {completedBookings.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <CheckCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600">Nenhum passeio concluído ainda</p>
+                </CardContent>
+              </Card>
+            ) : (
+              completedBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))
+            )}
+          </TabsContent>
 
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-orange-600" />
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-600">Booked On</div>
-                              <div className="font-semibold text-gray-900">
-                                {format(new Date(booking.created_date), "MMM d, yyyy 'at' h:mm a")}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Live Tracking Button - NEW */}
-                      {!isTraining && (booking.status === "in_progress" || booking.status === "confirmed") && (
-                        <Button
-                          className="w-full mb-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg h-12"
-                          onClick={() => navigate(createPageUrl(`LiveWalkTracking?booking_id=${booking.id}`))}
-                        >
-                          <Activity className="w-5 h-5 mr-2" />
-                          Track Walk Live
-                        </Button>
-                      )}
-
-                      {booking.special_notes && (
-                        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">
-                            Special Notes:
-                          </div>
-                          <div className="text-gray-600">
-                            {booking.special_notes}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Completion Code Section */}
-                      {(booking.status === "in_progress" || booking.status === "confirmed") && booking.payment_status === "held" && (
-                        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-4">
-                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-blue-600" />
-                            Complete the {isTraining ? 'Session' : 'Walk'}
-                          </h4>
-                          <p className="text-sm text-gray-700 mb-4">
-                            Ask the {isTraining ? 'trainer' : 'walker'} for the completion code and enter it below to release payment.
-                          </p>
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <Input
-                              placeholder="Enter 6-digit code"
-                              value={completingBooking?.id === booking.id ? completionCode : ""}
-                              onChange={(e) => {
-                                setCompletionCode(e.target.value.toUpperCase());
-                                setCompletingBooking(booking); // Store the full booking object
-                              }}
-                              maxLength={6}
-                              className="text-center text-lg font-mono tracking-wider sm:w-1/2 md:w-2/3"
-                            />
-                            <Button
-                              onClick={() => handleVerifyCompletion(booking, isTraining)}
-                              disabled={completeBookingMutation.isPending || completionCode.length !== 6 || completingBooking?.id !== booking.id}
-                              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
-                            >
-                              Verify & Release Payment
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {booking.status === "completed" && (
-                        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4">
-                          <p className="text-green-700 font-semibold flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5" />
-                            {isTraining ? 'Session' : 'Walk'} completed! Payment has been released.
-                          </p>
-                        </div>
-                      )}
-
-                      {booking.status === "pending" && (
-                        <div className="flex gap-3">
-                          <Button
-                            variant="outline"
-                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-                            onClick={() => handleCancelBooking(booking)}
-                            disabled={updateBookingMutation.isPending}
-                          >
-                            Cancel Booking
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
+          <TabsContent value="cancelled" className="space-y-4">
+            {cancelledBookings.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <XCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600">Nenhuma reserva cancelada</p>
+                </CardContent>
+              </Card>
+            ) : (
+              cancelledBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

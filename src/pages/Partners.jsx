@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -5,97 +6,62 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, ShoppingBag, Search, ChevronRight, Megaphone, X } from "lucide-react";
+import { Store, MapPin, ShoppingBag, Search, ChevronRight, Megaphone, X, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
+import { format } from 'date-fns';
 
 export default function Partners() {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: partners, isLoading } = useQuery({
-    queryKey: ['partners'],
+  // CORRIGIDO: Query para parceiros com refetch automático
+  const { data: partners = [], isLoading: loadingPartners } = useQuery({
+    queryKey: ['partnerships'],
     queryFn: async () => {
-      const all = await base44.entities.Partnership.list();
-      console.log('🏪 PARTNERS:', all.length);
-      return all.filter(p => p.is_active === true);
+      const allPartners = await base44.entities.Partnership.list();
+      return allPartners.filter(p => p.is_active === true);
     },
     initialData: [],
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    refetchOnWindowFocus: true,
+    staleTime: 10000,
   });
 
-  const { data: announcements = [] } = useQuery({
+  // NOVO: Query para anúncios aprovados com refetch automático
+  const { data: announcements = [], isLoading: loadingAnnouncements } = useQuery({
     queryKey: ['activeAnnouncements'],
     queryFn: async () => {
-      // Carregar TODOS os anúncios
-      const all = await base44.entities.CompanyAnnouncement.list('-created_date');
+      const all = await base44.entities.CompanyAnnouncement.filter({
+        is_active: true,
+        moderation_status: 'approved'
+      }, '-featured_position', 20); // Limit to 20 results, sorted by featured_position
       
-      console.log('📢 === ANÚNCIOS - DEBUG COMPLETO ===');
-      console.log('Total carregados:', all.length);
-      
-      all.forEach((a, i) => {
-        console.log(`\n📋 ANÚNCIO ${i + 1}:`, {
-          id: a.id,
-          title: a.title,
-          company: a.company_name,
-          company_email: a.company_email,
-          moderation_status: a.moderation_status,
-          is_active: a.is_active,
-          start_date: a.start_date,
-          end_date: a.end_date,
-          created_date: a.created_date
-        });
-      });
-
-      // FILTRO: Aprovados
-      const approved = all.filter(a => a.moderation_status === 'approved');
-      console.log('\n✅ APROVADOS:', approved.length);
-
-      // FILTRO: Ativos
-      const active = approved.filter(a => a.is_active === true);
-      console.log('🟢 ATIVOS:', active.length);
-
-      // FILTRO: Com datas válidas
-      const withDates = active.filter(a => a.start_date && a.end_date);
-      console.log('📅 COM DATAS:', withDates.length);
-
-      // FILTRO: Dentro do período
+      // Filtrar apenas anúncios vigentes
       const now = new Date();
-      const valid = withDates.filter(a => {
-        const start = new Date(a.start_date);
-        const end = new Date(a.end_date);
-        const ok = now >= start && now <= end;
+      return all.filter(a => {
+        const startDate = a.start_date ? new Date(a.start_date) : null;
+        const endDate = a.end_date ? new Date(a.end_date) : null;
         
-        console.log(`"${a.title}": ${start.toISOString().split('T')[0]} até ${end.toISOString().split('T')[0]} = ${ok ? 'MOSTRA ✅' : 'OCULTA ❌'}`);
+        if (startDate && startDate > now) return false;
+        if (endDate && endDate < now) return false;
         
-        return ok;
-      });
-
-      console.log('\n🎯 ANÚNCIOS VÁLIDOS:', valid.length);
-      console.log('Títulos:', valid.map(a => a.title));
-      console.log('=================================\n');
-
-      return valid.sort((a, b) => {
-        if (a.is_featured && !b.is_featured) return -1;
-        if (!a.is_featured && b.is_featured) return 1;
-        return new Date(b.created_date) - new Date(a.created_date);
+        return true;
       });
     },
     initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
+    refetchInterval: 60000, // Atualizar a cada 60 segundos
     refetchOnWindowFocus: true,
-    refetchInterval: 5000, // Refetch a cada 5 segundos
   });
 
   const categories = [
@@ -106,14 +72,18 @@ export default function Partners() {
   ];
 
   const filteredPartners = partners.filter(partner => {
-    const matchesSearch = !searchQuery ||
-      partner.partner_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === "all" || partner.partner_type === activeCategory;
+    const matchesSearch = !searchTerm ||
+      partner.partner_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || partner.partner_type === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
+  // Anúncios em destaque (pagos)
+  const featuredAnnouncements = announcements.filter(a => a.is_featured && a.featured_tier && a.featured_tier !== 'none');
+  const regularAnnouncements = announcements.filter(a => !a.is_featured || !a.featured_tier || a.featured_tier === 'none');
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -124,71 +94,113 @@ export default function Partners() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               placeholder={language === 'pt' ? "Pesquisar..." : "Search..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-11 bg-white"
             />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        {/* ANÚNCIOS */}
-        {announcements.length > 0 && (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* NOVO: Anúncios em Destaque */}
+        {featuredAnnouncements.length > 0 && (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Megaphone className="w-6 h-6 text-purple-600" />
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {language === 'pt' ? 'Promoções' : 'Promotions'}
-                </h2>
-                <Badge className="bg-purple-600 text-white">
-                  {announcements.length}
-                </Badge>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+              <h2 className="text-2xl font-bold text-gray-900">
+                {language === 'pt' ? 'Promoções em Destaque' : 'Featured Promotions'}
+              </h2>
             </div>
-            
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {announcements.map((announcement) => (
-                <motion.div
-                  key={announcement.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedAnnouncement(announcement)}
-                >
-                  <Card className="overflow-hidden hover:shadow-2xl transition-all border-2 border-purple-200">
+              {featuredAnnouncements.map((announcement) => (
+                <Card key={announcement.id} className="border-2 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-xl">
+                  <CardContent className="p-4">
                     {announcement.image_url && (
-                      <div className="relative h-40 bg-gradient-to-br from-purple-100 to-pink-100">
-                        <img
-                          src={announcement.image_url}
-                          alt={announcement.title}
-                          className="w-full h-full object-cover"
-                        />
-                        {announcement.discount_percentage > 0 && (
-                          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-lg shadow-lg">
-                            -{announcement.discount_percentage}%
-                          </Badge>
-                        )}
+                      <img
+                        src={announcement.image_url}
+                        alt={announcement.title}
+                        className="w-full h-40 object-cover rounded-lg mb-3"
+                      />
+                    )}
+                    <Badge className="bg-yellow-500 text-white mb-2">
+                      ⭐ {announcement.featured_tier?.toUpperCase()}
+                    </Badge>
+                    <h3 className="font-bold text-lg mb-2">{announcement.title}</h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{announcement.message}</p>
+                    
+                    {announcement.discount_percentage > 0 && (
+                      <div className="bg-white rounded-lg p-2 mb-3">
+                        <p className="text-2xl font-bold text-red-600">
+                          -{announcement.discount_percentage}%
+                        </p>
                       </div>
                     )}
-                    <CardContent className="p-4">
-                      <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
-                        {announcement.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {announcement.message}
+                    
+                    {announcement.end_date && (
+                      <p className="text-xs text-gray-500 mb-3">
+                        {language === 'pt' ? 'Válido até:' : 'Valid until:'} {format(new Date(announcement.end_date), 'dd/MM/yyyy')}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          {announcement.company_name}
-                        </span>
-                        <ChevronRight className="w-5 h-5 text-green-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                    )}
+                    
+                    <Button
+                      onClick={() => {
+                        // Incrementar views
+                        base44.entities.CompanyAnnouncement.update(announcement.id, {
+                          views_count: (announcement.views_count || 0) + 1
+                        });
+                        
+                        // Navegar para parceiro
+                        const partner = partners.find(p => p.id === announcement.company_id);
+                        if (partner) {
+                          navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
+                        }
+                      }}
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                    >
+                      {language === 'pt' ? 'Ver Oferta' : 'View Offer'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Anúncios Regulares */}
+        {regularAnnouncements.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {language === 'pt' ? 'Últimas Promoções' : 'Latest Promotions'}
+            </h2>
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {regularAnnouncements.slice(0, 8).map((announcement) => (
+                <Card key={announcement.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+                  base44.entities.CompanyAnnouncement.update(announcement.id, {
+                    views_count: (announcement.views_count || 0) + 1
+                  });
+                  const partner = partners.find(p => p.id === announcement.company_id);
+                  if (partner) {
+                    navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
+                  }
+                }}>
+                  <CardContent className="p-3">
+                    {announcement.image_url && (
+                      <img
+                        src={announcement.image_url}
+                        alt={announcement.title}
+                        className="w-full h-24 object-cover rounded-lg mb-2"
+                      />
+                    )}
+                    <h4 className="font-semibold text-sm mb-1 line-clamp-1">{announcement.title}</h4>
+                    <p className="text-xs text-gray-600 line-clamp-2">{announcement.message}</p>
+                    {announcement.discount_percentage > 0 && (
+                      <Badge className="bg-red-500 text-white mt-2">
+                        -{announcement.discount_percentage}%
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -200,9 +212,9 @@ export default function Partners() {
             {categories.map((cat) => (
               <Button
                 key={cat.id}
-                variant={activeCategory === cat.id ? "default" : "ghost"}
-                onClick={() => setActiveCategory(cat.id)}
-                className={activeCategory === cat.id ? 'bg-green-600 text-white' : ''}
+                variant={categoryFilter === cat.id ? "default" : "ghost"}
+                onClick={() => setCategoryFilter(cat.id)}
+                className={categoryFilter === cat.id ? 'bg-green-600 text-white' : ''}
                 size="sm"
               >
                 {cat.name}
@@ -212,7 +224,7 @@ export default function Partners() {
         </div>
 
         {/* PARCEIROS */}
-        {isLoading ? (
+        {loadingPartners ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
               <Skeleton key={i} className="h-64 rounded-lg" />
@@ -222,7 +234,7 @@ export default function Partners() {
           <Card>
             <CardContent className="p-12 text-center">
               <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Nenhuma marca encontrada</p>
+              <p className="text-gray-600">{language === 'pt' ? 'Nenhuma marca encontrada' : 'No brands found'}</p>
             </CardContent>
           </Card>
         ) : (
@@ -259,72 +271,6 @@ export default function Partners() {
           </div>
         )}
       </div>
-
-      {/* MODAL DE ANÚNCIO */}
-      <AnimatePresence>
-        {selectedAnnouncement && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 z-50"
-              onClick={() => setSelectedAnnouncement(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl shadow-2xl z-50 max-h-[90vh] overflow-y-auto"
-            >
-              <div className="relative">
-                {selectedAnnouncement.image_url && (
-                  <div className="relative h-64">
-                    <img
-                      src={selectedAnnouncement.image_url}
-                      alt={selectedAnnouncement.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSelectedAnnouncement(null)}
-                      className="absolute top-4 right-4 bg-white/90 hover:bg-white"
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    {selectedAnnouncement.title}
-                  </h2>
-                  
-                  <p className="text-lg text-gray-700 mb-6">
-                    {selectedAnnouncement.message}
-                  </p>
-
-                  {selectedAnnouncement.discount_percentage > 0 && (
-                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
-                      <p className="text-5xl font-black text-red-600 text-center">
-                        -{selectedAnnouncement.discount_percentage}%
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-6 border-t">
-                    <div>
-                      <p className="text-sm text-gray-600">Marca:</p>
-                      <p className="font-bold text-gray-900">{selectedAnnouncement.company_name}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
