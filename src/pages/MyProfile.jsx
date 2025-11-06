@@ -13,12 +13,12 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress"; // Added Progress component
+import { Progress } from "@/components/ui/progress";
 import {
   User, Mail, Phone, MapPin, Settings, LogOut, Shield, Bell,
   Globe, CreditCard, Upload, Save, Dog, PlusCircle, AtSign,
   Award, ShieldCheck, Heart, CheckCircle, Sparkles, Calendar,
-  ChevronRight, Star, Target, TrendingUp, Trophy, Crown // Added Trophy and Crown
+  ChevronRight, Star, Target, TrendingUp, Trophy, Crown, Camera // Added Camera
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +27,7 @@ import DogProfileCard from "../components/profile/DogProfileCard";
 import AddEditDogForm from "../components/profile/AddEditDogForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { motion } from "framer-motion"; // Added framer-motion
+import { motion } from "framer-motion";
 
 export default function MyProfile() {
   const queryClient = useQueryClient();
@@ -292,83 +292,47 @@ export default function MyProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* COMPACT HEADER */}
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Meu Perfil
-            </h1>
-            <p className="text-gray-600">
-              Gerencie suas informações pessoais e preferências
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Meu Perfil</h1>
           </div>
-          <Button
-            variant="outline"
-            className="border-gray-300 text-gray-700 hover:bg-gray-100"
-            onClick={handleLogout}
-          >
+          <Button variant="outline" onClick={handleLogout} size="sm">
             <LogOut className="w-4 h-4 mr-2" />
             Sair
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          <Card className="lg:col-span-1 h-fit border-gray-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="relative -mx-6 -mt-6 mb-4">
-                <div className="relative h-24 bg-gradient-to-r from-green-600 to-blue-600 overflow-hidden">
-                  {user?.cover_photo_url && (
-                    <img src={user.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
-                  )}
-                  <label htmlFor="cover-upload" className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-md cursor-pointer hover:bg-gray-50">
-                    <Upload className="w-3 h-3 text-gray-700" />
-                  </label>
-                  <input
-                    id="cover-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleCoverUpload}
-                    disabled={uploadingCover}
-                  />
-                </div>
+        {/* COMPACT PROFILE CARD */}
+        <Card className="border-gray-200 shadow-sm mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-6">
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={user?.profile_photo_url} />
+                  <AvatarFallback className="bg-green-600 text-white text-2xl">
+                    {user?.full_name?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <label htmlFor="photo-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-md cursor-pointer hover:bg-gray-50">
+                  <Upload className="w-3 h-3 text-gray-700" />
+                </label>
+                <input id="photo-upload" type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadPhotoMutation.isPending} />
               </div>
 
-              <div className="flex flex-col items-center -mt-12 mb-6">
-                <div className="relative">
-                  <Avatar className="w-24 h-24 mb-4 ring-4 ring-white">
-                    <AvatarImage src={user?.profile_photo_url} />
-                    <AvatarFallback className="bg-green-600 text-white text-2xl">
-                      {user?.full_name?.[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <label htmlFor="photo-upload" className="absolute bottom-4 right-0 bg-white rounded-full p-2 shadow-md cursor-pointer hover:bg-gray-50">
-                    <Upload className="w-4 h-4 text-gray-600" />
-                  </label>
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                    disabled={uploadPhotoMutation.isPending}
-                  />
-                </div>
-                <h3 className="font-bold text-lg text-gray-900 text-center">{user?.full_name}</h3>
-                <p className="text-sm text-gray-600 mb-2">{user?.email}</p>
+              {/* Info */}
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900">{user?.full_name}</h3>
+                <p className="text-sm text-gray-600 mb-3">{user?.email}</p>
 
-                <div className="flex flex-wrap gap-2 justify-center mb-3">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {user?.role === 'admin' && (
                     <Badge className="bg-red-600 text-white">
                       <Shield className="w-3 h-3 mr-1" />
                       Admin
-                    </Badge>
-                  )}
-                  {user?.social_role === 'moderator' && (
-                    <Badge className="bg-blue-600 text-white">
-                      <ShieldCheck className="w-3 h-3 mr-1" />
-                      Moderador
                     </Badge>
                   )}
                   {user?.is_verified && (
@@ -377,118 +341,77 @@ export default function MyProfile() {
                       Verificado
                     </Badge>
                   )}
-                  {user?.is_adoption_advocate && (
-                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
-                      <Heart className="w-3 h-3 mr-1" />
-                      Defensor Adoção
-                    </Badge>
-                  )}
-                  
-                  {/* SHOW TOP 3 BADGES ON SIDEBAR */}
                   {earnedBadges.slice(0, 3).map((badge, idx) => (
-                    <Badge 
-                      key={idx} 
-                      className="bg-gray-700 text-white text-xs"
-                      title={badge.name}
-                    >
+                    <Badge key={idx} className="bg-gray-700 text-white text-xs" title={badge.name}>
                       {badge.icon}
                     </Badge>
                   ))}
                 </div>
 
-                {loyaltyPoints && (
-                  <div className={`w-full bg-green-600 text-white rounded-lg p-4 mb-4 shadow-sm`}>
-                    <div className="text-center">
-                      <div className="text-xs opacity-90 mb-1">PawPoints</div>
-                      <div className="text-3xl font-bold">{loyaltyPoints.points_balance?.toLocaleString() || 0}</div>
-                      <div className="text-xs opacity-90 mt-1 capitalize">{loyaltyPoints.tier} Tier</div>
-                    </div>
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{user?.total_posts || 0}</div>
+                    <div className="text-xs text-gray-600">Posts</div>
                   </div>
-                )}
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{user?.followers_count || 0}</div>
+                    <div className="text-xs text-gray-600">Seguidores</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{user?.following_count || 0}</div>
+                    <div className="text-xs text-gray-600">Seguindo</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{loyaltyPoints?.points_balance || 0}</div>
+                    <div className="text-xs text-gray-600">PawPoints</div>
+                  </div>
+                </div>
               </div>
 
-              <Separator className="my-4" />
+              {/* Dog Connect Quick Access */}
+              <Button
+                onClick={() => navigate(createPageUrl('SocialFeed'))}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Dog Connect
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-              <nav className="space-y-2">
-                <Button
-                  variant={activeTab === "profile" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("profile")}
-                >
+        {/* TABS */}
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Sidebar Nav */}
+          <Card className="lg:col-span-1 h-fit border-gray-200 shadow-sm">
+            <CardContent className="p-4">
+              <nav className="space-y-1">
+                <Button variant={activeTab === "profile" ? "default" : "ghost"} className="w-full justify-start" size="sm" onClick={() => setActiveTab("profile")}>
                   <User className="w-4 h-4 mr-2" />
-                  Perfil
+                  Informações
                 </Button>
-                <Button
-                  variant={activeTab === "activity" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("activity")}
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Atividade
-                </Button>
-                <Button
-                  variant={activeTab === "pets" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("pets")}
-                >
+                <Button variant={activeTab === "pets" ? "default" : "ghost"} className="w-full justify-start" size="sm" onClick={() => setActiveTab("pets")}>
                   <Dog className="w-4 h-4 mr-2" />
                   Meus Pets
                 </Button>
-                <Button
-                  variant={activeTab === "social" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("social")}
-                >
-                  <AtSign className="w-4 h-4 mr-2" />
-                  Redes Sociais
+                <Button variant={activeTab === "activity" ? "default" : "ghost"} className="w-full justify-start" size="sm" onClick={() => setActiveTab("activity")}>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Atividade
                 </Button>
-                <Button
-                  variant={activeTab === "badges" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("badges")}
-                >
+                <Button variant={activeTab === "badges" ? "default" : "ghost"} className="w-full justify-start" size="sm" onClick={() => setActiveTab("badges")}>
                   <Award className="w-4 h-4 mr-2" />
-                  Badges
+                  Emblemas
                 </Button>
-                <Button
-                  variant={activeTab === "settings" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("settings")}
-                >
+                <Button variant={activeTab === "settings" ? "default" : "ghost"} className="w-full justify-start" size="sm" onClick={() => setActiveTab("settings")}>
                   <Settings className="w-4 h-4 mr-2" />
-                  Preferências
-                </Button>
-                <Button
-                  variant={activeTab === "payment" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("payment")}
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Pagamentos
-                </Button>
-                <Button
-                  variant={activeTab === "security" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab("security")}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Segurança
-                </Button>
-
-                <Separator className="my-4" />
-
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair da Conta
+                  Configurações
                 </Button>
               </nav>
             </CardContent>
           </Card>
 
+          {/* Content */}
           <div className="lg:col-span-3">
             {/* Profile Tab */}
             {activeTab === "profile" && (
@@ -841,80 +764,6 @@ export default function MyProfile() {
               </div>
             )}
 
-            {/* Social Tab */}
-            {activeTab === "social" && (
-              <Card className="border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <AtSign className="w-5 h-5 text-purple-600" />
-                    Redes Sociais
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Instagram</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">@</span>
-                      <Input
-                        value={profileData.instagram_handle}
-                        onChange={(e) => setProfileData({...profileData, instagram_handle: e.target.value})}
-                        placeholder="seu_instagram"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Facebook</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">@</span>
-                      <Input
-                        value={profileData.facebook_handle}
-                        onChange={(e) => setProfileData({...profileData, facebook_handle: e.target.value})}
-                        placeholder="seu_facebook"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Twitter / X</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">@</span>
-                      <Input
-                        value={profileData.twitter_handle}
-                        onChange={(e) => setProfileData({...profileData, twitter_handle: e.target.value})}
-                        placeholder="seu_twitter"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>TikTok</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">@</span>
-                      <Input
-                        value={profileData.tiktok_handle}
-                        onChange={(e) => setProfileData({...profileData, tiktok_handle: e.target.value})}
-                        placeholder="seu_tiktok"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>YouTube</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">@</span>
-                      <Input
-                        value={profileData.youtube_handle}
-                        onChange={(e) => setProfileData({...profileData, youtube_handle: e.target.value})}
-                        placeholder="seu_youtube"
-                      />
-                    </div>
-                  </div>
-
-                  <Button onClick={handleSaveProfile} className="w-full bg-purple-600 hover:bg-purple-700">
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Redes Sociais
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Badges Tab */}
             {activeTab === "badges" && (
               <div className="space-y-6">
@@ -1160,7 +1009,81 @@ export default function MyProfile() {
               </Card>
             )}
 
-            {/* Payment Tab */}
+            {/* Social Tab (Moved logic to profile tab or removed from nav) */}
+            {activeTab === "social" && (
+              <Card className="border-gray-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <AtSign className="w-5 h-5 text-purple-600" />
+                    Redes Sociais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Instagram</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.instagram_handle}
+                        onChange={(e) => setProfileData({...profileData, instagram_handle: e.target.value})}
+                        placeholder="seu_instagram"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Facebook</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.facebook_handle}
+                        onChange={(e) => setProfileData({...profileData, facebook_handle: e.target.value})}
+                        placeholder="seu_facebook"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Twitter / X</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.twitter_handle}
+                        onChange={(e) => setProfileData({...profileData, twitter_handle: e.target.value})}
+                        placeholder="seu_twitter"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>TikTok</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.tiktok_handle}
+                        onChange={(e) => setProfileData({...profileData, tiktok_handle: e.target.value})}
+                        placeholder="seu_tiktok"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>YouTube</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        value={profileData.youtube_handle}
+                        onChange={(e) => setProfileData({...profileData, youtube_handle: e.target.value})}
+                        placeholder="seu_youtube"
+                      />
+                    </div>
+                  </div>
+
+                  <Button onClick={handleSaveProfile} className="w-full bg-purple-600 hover:bg-purple-700">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Redes Sociais
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment Tab (Removed from nav) */}
             {activeTab === "payment" && (
               <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
@@ -1181,7 +1104,7 @@ export default function MyProfile() {
               </Card>
             )}
 
-            {/* Security Tab */}
+            {/* Security Tab (Removed from nav) */}
             {activeTab === "security" && (
               <Card className="border-gray-200 shadow-sm">
                 <CardHeader>

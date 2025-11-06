@@ -260,6 +260,39 @@ function LayoutContent({ children, currentPageName }) {
     awardWelcomeBadge();
   }, [user?.email, language, queryClient]);
 
+  // Ensure Dog Connect profile for every user
+  React.useEffect(() => {
+    const setupDogConnectProfile = async () => {
+      if (!user?.email) return;
+      
+      // Check if user has Dog Connect stats
+      if (user.profile_stats === undefined || user.profile_stats === null) {
+        await base44.auth.updateMe({
+          profile_stats: {
+            total_posts: 0,
+            total_likes_received: 0,
+            total_comments_made: 0,
+            total_bookings: 0,
+            total_dogs_helped: 0,
+            total_referrals: 0,
+            total_reviews_written: 0,
+            total_forum_topics: 0,
+            total_forum_replies: 0,
+            total_events_attended: 0,
+            total_adoptions: 0,
+            member_since_days: 0
+          },
+          followers_count: 0,
+          following_count: 0,
+          total_posts: 0
+        });
+        queryClient.invalidateQueries(['currentUser']);
+      }
+    };
+    
+    setupDogConnectProfile();
+  }, [user?.email, queryClient]);
+
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -460,9 +493,6 @@ function LayoutContent({ children, currentPageName }) {
                       >
                         <MessageCircle className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
                         <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[messagesIndex].title}</span>
-                        <Badge className="ml-auto bg-white text-blue-700 text-xs font-bold">
-                          💬
-                        </Badge>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
