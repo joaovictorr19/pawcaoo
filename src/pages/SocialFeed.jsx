@@ -442,7 +442,7 @@ export default function SocialFeed() {
                           {/* Post Header */}
                           <div className="flex items-center justify-between p-4">
                             <div className="flex items-center gap-3">
-                              <Avatar className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all">
+                              <Avatar className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all" onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}>
                                 <AvatarImage src={post.author_photo_url} />
                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
                                   {post.author_name?.[0]}
@@ -450,7 +450,7 @@ export default function SocialFeed() {
                               </Avatar>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors">
+                                  <p className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors" onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}>
                                     {post.author_name}
                                   </p>
 
@@ -465,30 +465,40 @@ export default function SocialFeed() {
                                     }
                                     if (badge.badge_id === 'admin') {
                                       return (
-                                        <Badge key={idx} className="bg-red-600 text-white text-xs px-1 py-0">
-                                          <Shield className="w-3 h-3" />
-                                        </Badge>
+                                        <div key={idx} title="Administrador">
+                                          <Badge className="bg-red-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                            <Shield className="w-3 h-3" />
+                                            Admin
+                                          </Badge>
+                                        </div>
                                       );
                                     }
                                     if (badge.badge_id === 'moderator') {
                                       return (
-                                        <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
-                                          <ShieldCheck className="w-3 h-3" />
-                                        </Badge>
+                                        <div key={idx} title="Moderador">
+                                          <Badge className="bg-blue-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                            <ShieldCheck className="w-3 h-3" />
+                                            Mod
+                                          </Badge>
+                                        </div>
                                       );
                                     }
                                     if (badge.badge_id === 'adoption_advocate') {
                                       return (
-                                        <Badge key={idx} className="bg-green-600 text-white text-xs px-1 py-0">
-                                          <Heart className="w-3 h-3" />
-                                        </Badge>
+                                        <div key={idx} title="Defensor de Adoção">
+                                          <Badge className="bg-green-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                            <Heart className="w-3 h-3" />
+                                          </Badge>
+                                        </div>
                                       );
                                     }
                                     if (badge.badge_id === 'vip_member') {
                                       return (
-                                        <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
-                                          <Crown className="w-3 h-3" />
-                                        </Badge>
+                                        <div key={idx} title="Membro VIP">
+                                          <Badge className="bg-purple-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
+                                            <Crown className="w-3 h-3" />
+                                          </Badge>
+                                        </div>
                                       );
                                     }
                                     return null;
@@ -550,7 +560,11 @@ export default function SocialFeed() {
                             {post.tags?.length > 0 && (
                               <div className="flex flex-wrap gap-2 mb-2">
                                 {post.tags.map((tag, idx) => (
-                                  <span key={idx} className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
+                                  <span 
+                                    key={idx} 
+                                    className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium hover:underline"
+                                    onClick={() => navigate(createPageUrl(`SocialFeed?hashtag=${tag}`))}
+                                  >
                                     #{tag}
                                   </span>
                                 ))}
