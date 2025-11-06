@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { NotificationService } from "@/services/NotificationService"; // Assuming this path for NotificationService
+import NotificationService from "@/components/NotificationService"; // Updated import path
 
 function BadgeItem({ badge, idx, getBadgeImage }) {
   const [transparentBg, setTransparentBg] = useState(false);
