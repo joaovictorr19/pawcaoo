@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { NotificationService } from "@/services/NotificationService"; // Assuming this path for NotificationService
 
 function BadgeItem({ badge, idx, getBadgeImage }) {
   const [transparentBg, setTransparentBg] = useState(false);
@@ -76,25 +77,43 @@ export default function UserProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmail = urlParams.get('email');
 
+  console.log('🔍 USERPROFILE - URL Email:', profileEmail);
+
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
+
+  console.log('👤 USERPROFILE - Current User:', currentUser?.email);
 
   const isOwnProfile = currentUser?.email === profileEmail;
 
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', profileEmail],
     queryFn: async () => {
-      if (!profileEmail) return null;
-      const users = await base44.entities.User.filter({ email: profileEmail });
-      console.log('UserProfile - Users found:', users);
-      console.log('UserProfile - First user achievements_badges:', users[0]?.achievements_badges);
-      return users[0] || null;
+      if (!profileEmail) {
+        console.log('❌ No profile email provided');
+        return null;
+      }
+      
+      console.log('🔎 Searching for user with email:', profileEmail);
+      const users = await base44.entities.User.list();
+      console.log('📋 Total users in database:', users.length);
+      
+      const found = users.find(u => u.email === profileEmail);
+      console.log('✅ User found:', found ? {
+        email: found.email,
+        name: found.full_name,
+        badges: found.achievements_badges?.length || 0,
+        public_badges: found.public_badges?.length || 0
+      } : 'NOT FOUND');
+      
+      return found || null;
     },
     enabled: !!profileEmail,
     retry: 1,
     staleTime: 0,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
 
@@ -161,7 +180,8 @@ export default function UserProfile() {
   const followMutation = useMutation({
     mutationFn: async () => {
       if (!currentUser?.email || !profileEmail) return;
-      await base44.entities.SocialFollow.create({
+      
+      const newFollow = await base44.entities.SocialFollow.create({
         follower_email: currentUser.email,
         follower_name: currentUser.full_name,
         follower_photo_url: currentUser.profile_photo_url,
@@ -169,11 +189,20 @@ export default function UserProfile() {
         following_name: profileUser.full_name,
         status: 'accepted'
       });
+
+      // ENVIAR NOTIFICAÇÃO
+      await NotificationService.newFollower({
+        followerName: currentUser.full_name,
+        followerEmail: currentUser.email,
+        recipientEmail: profileEmail
+      });
+
+      return newFollow;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['followers', profileEmail]);
       queryClient.invalidateQueries(['following', currentUser.email]);
-      toast.success('Agora você está seguindo!');
+      toast.success('✅ Agora você está seguindo!');
     },
   });
 

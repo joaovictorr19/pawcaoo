@@ -1,3 +1,4 @@
+
 import { base44 } from "@/api/base44Client";
 
 /**
@@ -494,6 +495,12 @@ const NotificationService = {
   },
 
   async newFollower({ followerName, followerEmail, recipientEmail }) {
+    console.log('📬 SENDING NEW FOLLOWER NOTIFICATION:', {
+      from: followerEmail,
+      to: recipientEmail,
+      name: followerName
+    });
+
     await this.create({
       recipient_email: recipientEmail,
       title: `👥 Novo Seguidor: ${followerName}`,
@@ -501,9 +508,11 @@ const NotificationService = {
       type: "system",
       related_id: null,
       action_url: `/UserProfile?email=${followerEmail}`,
-      priority: "low",
-      sendEmail: false
+      priority: "normal",
+      sendEmail: true // MUDADO PARA TRUE
     });
+
+    console.log('✅ Notification created successfully');
   },
 
   async postLiked({ post, likerName, authorEmail }) {

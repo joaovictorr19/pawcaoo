@@ -684,7 +684,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Todos os Serviços ({allPartnerServices.length})</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
-                  {pendingApprovalServices.length} pendentes de aprovação
+                  {pendingApprovalServices.length} pendentes • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} ativos
                 </p>
               </CardHeader>
               <CardContent>
@@ -704,7 +704,8 @@ export default function AdminDashboard() {
                         <Card key={service.id} className={`border-2 ${
                           isPending ? 'border-orange-200 bg-orange-50' :
                           isApproved && isActive ? 'border-green-200 bg-green-50' :
-                          'border-gray-200'
+                          isApproved && !isActive ? 'border-gray-300 bg-gray-100' :
+                          'border-red-200 bg-red-50'
                         }`}>
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
@@ -733,10 +734,13 @@ export default function AdminDashboard() {
                                     {isActive ? '🟢 Ativo' : '🔴 Inativo'}
                                   </Badge>
                                   <Badge variant="outline">€{service.base_price}</Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {service.created_by?.substring(0, 20)}...
+                                  </Badge>
                                 </div>
                               </div>
                               <div className="flex gap-2">
-                                {isPending && (
+                                {isPending ? (
                                   <>
                                     <Button
                                       size="sm"
@@ -746,31 +750,34 @@ export default function AdminDashboard() {
                                           is_active: true
                                         });
                                         queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
-                                        queryClient.invalidateQueries({ queryKey: ['partnerServices'] }); // Assuming this query key is used elsewhere for partner services
+                                        queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
                                         toast.success("✅ Serviço aprovado!");
                                       }}
                                       className="bg-green-600"
                                     >
-                                      Aprovar
+                                      ✓ Aprovar
                                     </Button>
                                     <Button
                                       size="sm"
                                       variant="outline"
                                       onClick={async () => {
+                                        const reason = prompt('Motivo da rejeição:');
+                                        if (!reason) return;
                                         await base44.entities.PartnerService.update(service.id, {
                                           moderation_status: 'rejected',
-                                          is_active: false
+                                          is_active: false,
+                                          rejection_reason: reason
                                         });
                                         queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                        queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
                                         toast.success("Serviço rejeitado");
                                       }}
                                       className="text-red-600"
                                     >
-                                      Rejeitar
+                                      ✗ Rejeitar
                                     </Button>
                                   </>
-                                )}
-                                {isApproved && (
+                                ) : isApproved && (
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -779,11 +786,12 @@ export default function AdminDashboard() {
                                         is_active: !isActive 
                                       });
                                       queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                                      queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
                                       toast.success(`Serviço ${!isActive ? 'ativado' : 'desativado'}!`);
                                     }}
                                     className={isActive ? 'text-orange-600 border-orange-300' : 'text-green-600 border-green-300'}
                                   >
-                                    {isActive ? 'Desativar' : 'Ativar'}
+                                    {isActive ? '⏸ Desativar' : '▶ Ativar'}
                                   </Button>
                                 )}
                                 <Button
@@ -793,7 +801,8 @@ export default function AdminDashboard() {
                                     if (confirm(`Eliminar "${service.service_name}"?`)) {
                                       await base44.entities.PartnerService.delete(service.id);
                                       queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
-                                      toast.success('Serviço eliminado!');
+                                      queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
+                                      toast.success('✅ Serviço eliminado!');
                                     }
                                   }}
                                   className="text-red-600 border-red-200"

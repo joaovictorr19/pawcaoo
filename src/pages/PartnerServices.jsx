@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -26,52 +27,59 @@ export default function PartnerServices() {
   const isCompany = user?.account_type === 'company';
 
   const { data: services = [], isLoading } = useQuery({
-    queryKey: ['partnerServices', user?.email],
+    queryKey: ['partnerServices'],
     queryFn: async () => {
       const all = await base44.entities.PartnerService.list('-created_date');
       
-      console.log('🔧 === SERVIÇOS - DEBUG COMPLETO ===');
-      console.log('Total carregados:', all.length);
-      console.log('Usuário:', user?.email, '| Tipo:', user?.account_type);
+      console.log('\n🔧 === PARTNER SERVICES - DEBUG COMPLETO ===');
+      console.log('📊 Total de serviços no banco:', all.length);
+      console.log('👤 Usuário logado:', user?.email, '| Tipo:', user?.account_type);
       
       all.forEach((s, i) => {
         console.log(`\n📋 SERVIÇO ${i + 1}:`, {
-          id: s.id,
+          id: s.id.substring(0, 8),
           name: s.service_name,
+          partner: s.partner_name,
           partner_email: s.partner_company_email,
           created_by: s.created_by,
-          moderation_status: s.moderation_status,
-          is_active: s.is_active
+          location: s.location,
+          moderation: s.moderation_status,
+          is_active: s.is_active,
+          price: s.base_price
         });
       });
 
-      // Se for empresa: mostrar TODOS os seus
+      // Se for empresa: mostrar TODOS os seus serviços (aprovados, pendentes, rejeitados)
       if (isCompany && user?.email) {
         const mine = all.filter(s => 
           s.partner_company_email === user.email || 
           s.created_by === user.email
         );
         console.log('\n🏢 MEUS SERVIÇOS (empresa):', mine.length);
+        console.log('Títulos:', mine.map(s => s.service_name));
         return mine;
       }
 
-      // Se for cliente: mostrar apenas aprovados E ativos
-      const approved = all.filter(s => s.moderation_status === 'approved');
-      console.log('\n✅ APROVADOS:', approved.length);
-
-      const active = approved.filter(s => s.is_active === true);
-      console.log('🟢 ATIVOS:', active.length);
-      console.log('Títulos:', active.map(s => s.service_name));
+      // Se for cliente/público: mostrar APENAS aprovados E ativos
+      const approvedAndActive = all.filter(s => 
+        s.moderation_status === 'approved' && 
+        s.is_active === true
+      );
+      
+      console.log('\n✅ SERVIÇOS PÚBLICOS (aprovados + ativos):', approvedAndActive.length);
+      console.log('Títulos:', approvedAndActive.map(s => s.service_name));
+      console.log('Localidades:', approvedAndActive.map(s => s.location));
+      console.log('Empresas:', approvedAndActive.map(s => s.partner_name));
       console.log('=================================\n');
 
-      return active;
+      return approvedAndActive;
     },
     enabled: !!user,
     initialData: [],
     staleTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+    refetchInterval: 3000, // Poll every 3 seconds
   });
 
   const serviceTypes = [

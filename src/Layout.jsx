@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users, LogOut } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -374,6 +374,12 @@ function LayoutContent({ children, currentPageName }) {
     }
   };
 
+  const handleLogout = () => {
+    if (confirm(language === 'pt' ? 'Tem certeza que deseja sair?' : language === 'es' ? '¿Estás seguro de que quieres cerrar sesión?' : 'Are you sure you want to log out?')) {
+      base44.auth.logout();
+    }
+  };
+
   return (
     <SidebarProvider>
       <style>{`
@@ -636,6 +642,27 @@ function LayoutContent({ children, currentPageName }) {
                 </SidebarGroupContent>
               </SidebarGroup>
             )}
+
+            {/* BOTÃO DE LOGOUT - NOVO */}
+            <SidebarGroup className="mt-auto border-t border-gray-200 pt-3">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={handleLogout}
+                      className="hover:bg-red-50 text-red-600 rounded-lg transition-colors w-full"
+                    >
+                      <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3">
+                        <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                        <span className="font-semibold text-xs md:text-sm truncate">
+                          {language === 'pt' ? 'Sair' : language === 'es' ? 'Salir' : 'Logout'}
+                        </span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </SidebarContent>
         </Sidebar>
 
