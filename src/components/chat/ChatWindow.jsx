@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import NotificationService from "../NotificationService"; // Added import
+import NotificationService from "../NotificationService";
 
 export default function ChatWindow({ conversation, messages, currentUser, onMessagesUpdate }) {
   const [messageText, setMessageText] = useState("");
@@ -67,20 +67,23 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ message, attachments }) => {
-      // Sanitize message (basic XSS prevention)
+      console.log('📤 SENDING MESSAGE:', {
+        conversation_id: conversation.id,
+        sender: currentUser?.email,
+        message: message.substring(0, 50) + '...'
+      });
+
+      // Sanitize message
       const sanitizedMessage = message
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#x27;")
-        .replace(/\//g, "&#x2F;");
+        .replace(/>/g, "&gt;");
 
       // Create message
       const newMessage = await base44.entities.ChatMessage.create({
         conversation_id: conversation.id,
         sender_email: currentUser?.email,
         sender_name: currentUser?.full_name,
-        sender_photo_url: currentUser?.photo_url,
+        sender_photo_url: currentUser?.profile_photo_url,
         message: sanitizedMessage,
         original_message: message,
         message_type: attachments?.length > 0 ? 'image' : 'text',
@@ -91,6 +94,8 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         }]
       });
 
+      console.log('✅ Message created:', newMessage.id);
+
       // Update conversation's last message
       await base44.entities.ChatConversation.update(conversation.id, {
         last_message: message.substring(0, 100),
@@ -98,7 +103,9 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         last_message_date: new Date().toISOString()
       });
 
-      // Send notifications to other participants
+      console.log('✅ Conversation updated');
+
+      // Send notifications
       const otherParticipants = conversation.participants?.filter(
         p => p.email !== currentUser?.email
       ) || [];
@@ -112,6 +119,8 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         });
       }
 
+      console.log('✅ Notifications sent to:', otherParticipants.map(p => p.email));
+
       return newMessage;
     },
     onSuccess: () => {
@@ -119,10 +128,11 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       onMessagesUpdate?.();
+      toast.success("✅ Mensagem enviada!");
     },
     onError: (error) => {
-      toast.error("Erro ao enviar mensagem");
-      console.error(error);
+      console.error('❌ ERROR:', error);
+      toast.error("❌ Erro ao enviar: " + error.message);
     }
   });
 
@@ -150,7 +160,17 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
   };
 
   const handleSendMessage = () => {
-    if (!messageText.trim()) return;
+    if (!messageText.trim()) {
+      toast.error("❌ Escreva uma mensagem!");
+      return;
+    }
+    
+    if (!conversation) {
+      toast.error("❌ Nenhuma conversa selecionada!");
+      return;
+    }
+
+    console.log('📝 Sending message:', messageText.substring(0, 30) + '...');
     sendMessageMutation.mutate({ message: messageText, attachments: [] });
   };
 
@@ -338,9 +358,14 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
             placeholder="Escreva uma mensagem..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
             disabled={sendMessageMutation.isPending || uploading}
-            className="flex-1"
+            className="flex-1 bg-white text-gray-900"
           />
           
           <Button
@@ -353,6 +378,9 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         </div>
         {uploading && (
           <p className="text-xs text-gray-500 mt-2">A fazer upload...</p>
+        )}
+        {sendMessageMutation.isPending && (
+          <p className="text-xs text-blue-600 mt-2 font-semibold">Enviando mensagem...</p>
         )}
       </div>
     </div>

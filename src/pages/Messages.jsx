@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ export default function Messages() {
   const urlParams = new URLSearchParams(window.location.search);
   const conversationIdParam = urlParams.get('conversation_id');
   const walkerIdParam = urlParams.get('walker_id');
+  const trainerIdParam = urlParams.get('trainer_id'); // NOVO
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -41,10 +43,17 @@ export default function Messages() {
     queryKey: ['conversations'],
     queryFn: async () => {
       const allConversations = await base44.entities.ChatConversation.list('-last_message_date');
-      return allConversations.filter(conv => 
+      
+      console.log('📬 ALL CONVERSATIONS:', allConversations.length);
+      
+      const mine = allConversations.filter(conv => 
         conv.participants?.some(p => p.email === user?.email) &&
         !conv.is_archived
       );
+      
+      console.log('📬 MY CONVERSATIONS:', mine.length);
+      
+      return mine;
     },
     enabled: !!user,
     initialData: [],
@@ -81,43 +90,61 @@ export default function Messages() {
     }
   }, [conversationIdParam, conversations]);
 
-  // Create conversation with walker/trainer from URL
+  // CORRIGIDO: Create conversation with walker/trainer from URL
   useEffect(() => {
-    if (walkerIdParam && user && walkers.length > 0 && conversations.length >= 0) {
-      const walker = walkers.find(w => w.id === walkerIdParam);
-      if (walker) {
-        // Check if conversation already exists
-        const existing = conversations.find(conv =>
-          conv.participants?.some(p => p.email === walker.created_by)
-        );
-        
-        if (existing) {
-          setSelectedConversationId(existing.id);
-        } else {
-          // Create new conversation
-          createConversationMutation.mutate({
-            participants: [
-              {
-                email: user.email,
-                name: user.full_name,
-                photo_url: user.photo_url,
-                role: 'owner'
-              },
-              {
-                email: walker.created_by,
-                name: walker.walker_name,
-                photo_url: walker.photo_url,
-                role: 'walker'
-              }
-            ]
-          });
-        }
-      }
+    if (!user || conversations.length === undefined) return;
+
+    const professionalId = walkerIdParam || trainerIdParam;
+    if (!professionalId) return;
+
+    const isWalker = !!walkerIdParam;
+    const professionals = isWalker ? walkers : trainers;
+    
+    if (professionals.length === 0) return;
+
+    const professional = professionals.find(p => p.id === professionalId);
+    
+    if (!professional) {
+      console.log('❌ Professional not found:', professionalId);
+      return;
     }
-  }, [walkerIdParam, user, walkers, conversations]);
+
+    console.log('🔍 Found professional:', professional);
+
+    // Check if conversation already exists
+    const existing = conversations.find(conv =>
+      conv.participants?.some(p => p.email === professional.created_by)
+    );
+    
+    if (existing) {
+      console.log('✅ Conversation exists:', existing.id);
+      setSelectedConversationId(existing.id);
+    } else {
+      console.log('🆕 Creating new conversation...');
+      
+      const participants = [
+        {
+          email: user.email,
+          name: user.full_name,
+          photo_url: user.profile_photo_url,
+          role: 'owner'
+        },
+        {
+          email: professional.created_by,
+          name: isWalker ? professional.walker_name : professional.trainer_name,
+          photo_url: professional.photo_url,
+          role: isWalker ? 'walker' : 'trainer'
+        }
+      ];
+
+      createConversationMutation.mutate({ participants });
+    }
+  }, [walkerIdParam, trainerIdParam, user?.email, walkers, trainers, conversations, user?.full_name, user?.profile_photo_url]);
 
   const createConversationMutation = useMutation({
     mutationFn: async ({ participants, conversationName }) => {
+      console.log('🚀 Creating conversation with participants:', participants);
+
       // Check if one-on-one conversation already exists
       if (participants.length === 2) {
         const existing = conversations.find(conv =>
@@ -129,6 +156,7 @@ export default function Messages() {
         );
         
         if (existing) {
+          console.log('✅ Found existing conversation:', existing.id);
           return existing;
         }
       }
@@ -145,6 +173,8 @@ export default function Messages() {
         last_message_date: new Date().toISOString()
       });
 
+      console.log('✅ Conversation created:', newConv.id);
+
       return newConv;
     },
     onSuccess: (newConv) => {
@@ -154,17 +184,18 @@ export default function Messages() {
       setNewChatEmail("");
       setGroupName("");
       setGroupParticipants([]);
-      toast.success("Conversa criada!");
+      toast.success("✅ Conversa criada!");
     },
-    onError: () => {
-      toast.error("Erro ao criar conversa");
+    onError: (error) => {
+      console.error('❌ Error creating conversation:', error);
+      toast.error("❌ Erro ao criar conversa: " + error.message);
     }
   });
 
   const handleCreateChat = () => {
     if (createGroupChat) {
       if (!groupName.trim() || groupParticipants.length === 0) {
-        toast.error("Preencha o nome e selecione participantes");
+        toast.error("❌ Preencha o nome e selecione participantes");
         return;
       }
       
@@ -172,7 +203,7 @@ export default function Messages() {
         {
           email: user?.email,
           name: user?.full_name,
-          photo_url: user?.photo_url,
+          photo_url: user?.profile_photo_url,
           role: 'owner'
         },
         ...groupParticipants
@@ -184,32 +215,46 @@ export default function Messages() {
       });
     } else {
       if (!newChatEmail.trim()) {
-        toast.error("Digite um email");
+        toast.error("❌ Digite um email ou nome");
         return;
       }
       
-      // Find professional
-      const walker = walkers.find(w => w.created_by === newChatEmail || w.walker_name.toLowerCase().includes(newChatEmail.toLowerCase()));
-      const trainer = trainers.find(t => t.created_by === newChatEmail || t.trainer_name.toLowerCase().includes(newChatEmail.toLowerCase()));
+      // MELHORADO: Find professional by name OR email
+      const searchTerm = newChatEmail.toLowerCase();
+      
+      const walker = walkers.find(w => 
+        w.created_by?.toLowerCase() === searchTerm ||
+        w.walker_name?.toLowerCase().includes(searchTerm)
+      );
+      
+      const trainer = trainers.find(t => 
+        t.created_by?.toLowerCase() === searchTerm ||
+        t.trainer_name?.toLowerCase().includes(searchTerm)
+      );
       
       const professional = walker || trainer;
       
       if (!professional) {
-        toast.error("Profissional não encontrado");
+        toast.error("❌ Profissional não encontrado");
+        console.log('❌ No professional found for:', newChatEmail);
+        console.log('Walkers:', walkers.map(w => ({ name: w.walker_name, email: w.created_by })));
+        console.log('Trainers:', trainers.map(t => ({ name: t.trainer_name, email: t.created_by })));
         return;
       }
+      
+      console.log('✅ Found professional:', professional);
       
       const participants = [
         {
           email: user?.email,
           name: user?.full_name,
-          photo_url: user?.photo_url,
+          photo_url: user?.profile_photo_url,
           role: 'owner'
         },
         {
           email: professional.created_by,
-          name: walker ? walker.walker_name : trainer.trainer_name,
-          photo_url: walker ? walker.photo_url : trainer.photo_url,
+          name: walker ? professional.walker_name : professional.trainer_name,
+          photo_url: professional.photo_url,
           role: walker ? 'walker' : 'trainer'
         }
       ];
@@ -265,7 +310,7 @@ export default function Messages() {
                 Nova
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Nova Conversa</DialogTitle>
               </DialogHeader>
@@ -289,6 +334,7 @@ export default function Messages() {
                         placeholder="Ex: Passeadores da Família"
                         value={groupName}
                         onChange={(e) => setGroupName(e.target.value)}
+                        className="bg-white text-gray-900"
                       />
                     </div>
                     
@@ -328,14 +374,18 @@ export default function Messages() {
                       placeholder="Digite email ou nome..."
                       value={newChatEmail}
                       onChange={(e) => setNewChatEmail(e.target.value)}
+                      className="bg-white text-gray-900 placeholder-gray-500"
                     />
+                    <p className="text-xs text-gray-500">
+                      Exemplo: "João Silva" ou "joao@mail.com"
+                    </p>
                   </div>
                 )}
 
                 <Button
                   onClick={handleCreateChat}
                   disabled={createConversationMutation.isPending}
-                  className="w-full"
+                  className="w-full bg-green-600 hover:bg-green-700"
                 >
                   {createConversationMutation.isPending ? "Criando..." : "Criar Conversa"}
                 </Button>
