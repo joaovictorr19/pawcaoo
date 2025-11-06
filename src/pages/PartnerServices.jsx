@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Store, MapPin, Search, Star, Calendar, Clock, 
-  DollarSign, Phone, Shield, ChevronRight, Filter,
-  Zap, Heart, TrendingUp, X
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Store, MapPin, Search, Star, ChevronRight, Calendar,
+  Clock, Euro, Sparkles, Filter, X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -20,355 +18,296 @@ import { useLanguage } from "@/components/LanguageContext";
 export default function PartnerServices() {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [filterCity, setFilterCity] = useState("all");
-  const [filterEmergency, setFilterEmergency] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedServiceType, setSelectedServiceType] = useState("all");
+  const [selectedCity, setSelectedCity] = useState("all");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: companies, isLoading: loadingCompanies } = useQuery({
+  const { data: services = [], isLoading } = useQuery({
+    queryKey: ['partnerServices'],
+    queryFn: () => base44.entities.PartnerService.filter({ is_active: true, moderation_status: 'approved' }),
+    initialData: [],
+    staleTime: 60000,
+  });
+
+  const { data: partners = [] } = useQuery({
     queryKey: ['partnerCompanies'],
     queryFn: () => base44.entities.PartnerCompany.filter({ is_active: true }),
     initialData: [],
   });
 
-  const { data: services, isLoading: loadingServices } = useQuery({
-    queryKey: ['partnerServices'],
-    queryFn: () => base44.entities.PartnerService.filter({ 
-      is_active: true,
-      moderation_status: 'approved'
-    }),
-    initialData: [],
-  });
-
-  // Group services by company
-  const companiesWithServices = companies.map(company => {
-    const companyServices = services.filter(s => s.partner_id === company.id);
-    return {
-      ...company,
-      services: companyServices,
-      totalBookings: companyServices.reduce((sum, s) => sum + (s.total_bookings || 0), 0),
-      averageRating: companyServices.length > 0 
-        ? companyServices.reduce((sum, s) => sum + (s.average_rating || 0), 0) / companyServices.length
-        : 0
-    };
-  }).filter(c => c.services.length > 0);
-
   const serviceTypes = [
-    { value: "all", label: language === 'pt' ? "Todos os Serviços" : "All Services" },
-    { value: "bath", label: language === 'pt' ? "Banho" : "Bath" },
-    { value: "grooming", label: "Grooming" },
-    { value: "veterinary", label: language === 'pt' ? "Veterinário" : "Veterinary" },
-    { value: "emergency", label: language === 'pt' ? "Emergência 24/7" : "Emergency 24/7" },
-    { value: "vaccination", label: language === 'pt' ? "Vacinação" : "Vaccination" },
-    { value: "checkup", label: "Check-up" },
-    { value: "daycare", label: "Daycare" },
-    { value: "boarding", label: language === 'pt' ? "Alojamento" : "Boarding" },
-    { value: "training", label: language === 'pt' ? "Treino" : "Training" },
+    { id: "all", name: language === 'pt' ? "Todos" : "All", icon: "🐾" },
+    { id: "bath", name: language === 'pt' ? "Banho" : "Bath", icon: "🛁" },
+    { id: "grooming", name: "Grooming", icon: "✂️" },
+    { id: "veterinary", name: language === 'pt' ? "Veterinário" : "Veterinary", icon: "🏥" },
+    { id: "vaccination", name: language === 'pt' ? "Vacinação" : "Vaccination", icon: "💉" },
+    { id: "checkup", name: "Check-up", icon: "🩺" },
+    { id: "training", name: language === 'pt' ? "Treino" : "Training", icon: "🎓" },
+    { id: "daycare", name: "Daycare", icon: "🏠" },
+    { id: "emergency", name: language === 'pt' ? "Emergência" : "Emergency", icon: "🚨" },
   ];
 
-  const cities = [
-    { value: "all", label: language === 'pt' ? "Todas as Cidades" : "All Cities" },
-    ...Array.from(new Set(companies.map(c => c.city).filter(Boolean))).map(city => ({
-      value: city,
-      label: city
-    }))
-  ];
+  const cities = ["all", ...new Set(partners.map(p => p.city).filter(Boolean))];
 
-  const filteredCompanies = companiesWithServices.filter(company => {
-    const matchesSearch = !searchQuery || 
-      company.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.city?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesType = filterType === "all" || 
-      company.services.some(s => s.service_type === filterType);
-    
-    const matchesCity = filterCity === "all" || company.city === filterCity;
-    
-    const matchesEmergency = !filterEmergency || 
-      company.services.some(s => s.is_emergency);
+  const filteredServices = React.useMemo(() => {
+    return services.filter(service => {
+      const matchesSearch = !searchQuery ||
+        service.service_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.partner_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesType = selectedServiceType === "all" || service.service_type === selectedServiceType;
+      
+      const partner = partners.find(p => p.company_name === service.partner_name);
+      const matchesCity = selectedCity === "all" || partner?.city === selectedCity;
 
-    return matchesSearch && matchesType && matchesCity && matchesEmergency;
-  });
+      return matchesSearch && matchesType && matchesCity;
+    });
+  }, [services, searchQuery, selectedServiceType, selectedCity, partners]);
 
-  const getServiceTypeIcon = (type) => {
-    const icons = {
-      bath: "🛁",
-      grooming: "✂️",
-      veterinary: "🏥",
-      emergency: "🚨",
-      vaccination: "💉",
-      checkup: "🩺",
-      daycare: "🏠",
-      boarding: "🛏️",
-      training: "🎓"
-    };
-    return icons[type] || "📋";
+  const getServiceIcon = (type) => {
+    const found = serviceTypes.find(s => s.id === type);
+    return found?.icon || "🐾";
   };
 
-  const getServiceTypeColor = (type) => {
-    const colors = {
-      bath: "bg-blue-100 text-blue-800",
-      grooming: "bg-purple-100 text-purple-800",
-      veterinary: "bg-red-100 text-red-800",
-      emergency: "bg-orange-100 text-orange-800",
-      vaccination: "bg-green-100 text-green-800",
-      checkup: "bg-cyan-100 text-cyan-800",
-      daycare: "bg-yellow-100 text-yellow-800",
-      boarding: "bg-indigo-100 text-indigo-800",
-      training: "bg-pink-100 text-pink-800"
-    };
-    return colors[type] || "bg-gray-100 text-gray-800";
+  const getServiceTypeName = (type) => {
+    const found = serviceTypes.find(s => s.id === type);
+    return found?.name || type;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-12 md:py-16">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-5xl font-black mb-4">
-              🏥 {language === 'pt' ? 'Serviços para o Seu Pet' : 'Services for Your Pet'}
-            </h1>
-            <p className="text-lg md:text-xl text-white/90">
-              {language === 'pt' 
-                ? 'Banho, Grooming, Veterinário e Emergência 24/7' 
-                : 'Bath, Grooming, Veterinary and 24/7 Emergency'}
-            </p>
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                🐕 {language === 'pt' ? 'Serviços para Pets' : 'Pet Services'}
+              </h1>
+              <p className="text-gray-600">
+                {language === 'pt' ? 'Reserve banho, veterinário, grooming e muito mais' : 'Book bath, vet, grooming and more'}
+              </p>
+            </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl p-4">
-              <div className="flex gap-3 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    placeholder={language === 'pt' ? "Pesquisar empresas ou serviços..." : "Search companies or services..."}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-12"
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="h-12 px-4"
-                >
-                  <Filter className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <AnimatePresence>
-                {showFilters && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="grid md:grid-cols-3 gap-3 pt-4 border-t"
-                  >
-                    <Select value={filterType} onValueChange={setFilterType}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {serviceTypes.map(type => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filterCity} onValueChange={setFilterCity}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map(city => (
-                          <SelectItem key={city.value} value={city.value}>
-                            {city.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Button
-                      variant={filterEmergency ? "default" : "outline"}
-                      onClick={() => setFilterEmergency(!filterEmergency)}
-                      className={filterEmergency ? "bg-orange-600" : ""}
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      {language === 'pt' ? 'Apenas Emergência' : 'Emergency Only'}
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+          {/* Search */}
+          <div className="relative max-w-xl">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder={language === 'pt' ? "Pesquisar serviços..." : "Search services..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 bg-white shadow-sm"
+            />
           </div>
         </div>
       </div>
 
-      {/* Results Section */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {language === 'pt' ? 'Empresas Disponíveis' : 'Available Companies'}
-            </h2>
-            <p className="text-gray-600 flex items-center gap-2 mt-1">
-              <TrendingUp className="w-4 h-4 text-green-600" />
-              {filteredCompanies.length} {language === 'pt' ? 'encontradas' : 'found'}
-            </p>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* Filters */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">
+                {language === 'pt' ? 'Tipo de Serviço:' : 'Service Type:'}
+              </span>
+            </div>
+            {serviceTypes.map((type) => (
+              <Button
+                key={type.id}
+                variant={selectedServiceType === type.id ? "default" : "outline"}
+                onClick={() => setSelectedServiceType(type.id)}
+                size="sm"
+                className={selectedServiceType === type.id ? 'bg-purple-600 hover:bg-purple-700' : ''}
+              >
+                <span className="mr-1">{type.icon}</span>
+                {type.name}
+              </Button>
+            ))}
           </div>
 
-          {(filterType !== "all" || filterCity !== "all" || filterEmergency) && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setFilterType("all");
-                setFilterCity("all");
-                setFilterEmergency(false);
-              }}
-            >
-              <X className="w-4 h-4 mr-2" />
-              {language === 'pt' ? 'Limpar Filtros' : 'Clear Filters'}
-            </Button>
+          {cities.length > 1 && (
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  {language === 'pt' ? 'Cidade:' : 'City:'}
+                </span>
+              </div>
+              {cities.map((city) => (
+                <Button
+                  key={city}
+                  variant={selectedCity === city ? "default" : "outline"}
+                  onClick={() => setSelectedCity(city)}
+                  size="sm"
+                  className={selectedCity === city ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  {city === "all" ? (language === 'pt' ? 'Todas' : 'All') : city}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {(selectedServiceType !== "all" || selectedCity !== "all" || searchQuery) && (
+            <div className="mt-4 flex items-center gap-2">
+              <Badge variant="outline" className="text-sm">
+                {filteredServices.length} {language === 'pt' ? 'serviços encontrados' : 'services found'}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedServiceType("all");
+                  setSelectedCity("all");
+                  setSearchQuery("");
+                }}
+              >
+                <X className="w-4 h-4 mr-1" />
+                {language === 'pt' ? 'Limpar Filtros' : 'Clear Filters'}
+              </Button>
+            </div>
           )}
         </div>
 
-        {/* Companies Grid */}
-        {loadingCompanies || loadingServices ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Services Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Skeleton key={i} className="h-96 rounded-2xl" />
+              <Skeleton key={i} className="h-80 rounded-2xl" />
             ))}
           </div>
-        ) : filteredCompanies.length === 0 ? (
+        ) : filteredServices.length === 0 ? (
           <Card className="border-0 shadow-xl">
             <CardContent className="p-12 text-center">
               <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {language === 'pt' ? 'Nenhuma empresa encontrada' : 'No companies found'}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                {language === 'pt' ? 'Nenhum serviço encontrado' : 'No services found'}
               </h3>
-              <p className="text-gray-600 mb-4">
-                {language === 'pt' ? 'Tente ajustar os filtros' : 'Try adjusting filters'}
+              <p className="text-gray-600 mb-6">
+                {language === 'pt' ? 'Tente ajustar os filtros' : 'Try adjusting the filters'}
               </p>
               <Button onClick={() => {
+                setSelectedServiceType("all");
+                setSelectedCity("all");
                 setSearchQuery("");
-                setFilterType("all");
-                setFilterCity("all");
-                setFilterEmergency(false);
               }}>
-                {language === 'pt' ? 'Limpar Pesquisa' : 'Clear Search'}
+                {language === 'pt' ? 'Ver Todos os Serviços' : 'View All Services'}
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCompanies.map((company, idx) => (
-              <motion.div
-                key={company.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-              >
-                <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer h-full"
-                  onClick={() => navigate(createPageUrl(`BookService?company_id=${company.id}`))}
-                >
-                  {/* Company Header */}
-                  <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100">
-                    {company.logo_url ? (
-                      <img
-                        src={company.logo_url}
-                        alt={company.company_name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Store className="w-16 h-16 text-gray-300" />
-                      </div>
-                    )}
-                    
-                    {company.services.some(s => s.is_emergency) && (
-                      <Badge className="absolute top-3 right-3 bg-orange-500 text-white animate-pulse">
-                        <Zap className="w-3 h-3 mr-1" />
-                        24/7
-                      </Badge>
-                    )}
-
-                    {company.averageRating > 0 && (
-                      <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-1 shadow-lg">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-bold text-gray-900">{company.averageRating.toFixed(1)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
-                      {company.company_name}
-                    </h3>
-
-                    {company.city && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                        <MapPin className="w-4 h-4" />
-                        <span>{company.city}</span>
-                      </div>
-                    )}
-
-                    {/* Services Preview */}
-                    <div className="space-y-2 mb-4">
-                      <p className="text-xs font-semibold text-gray-700 uppercase">
-                        {language === 'pt' ? 'Serviços:' : 'Services:'}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {company.services.slice(0, 4).map(service => (
-                          <Badge
-                            key={service.id}
-                            className={`${getServiceTypeColor(service.service_type)} text-xs`}
-                          >
-                            {getServiceTypeIcon(service.service_type)} {service.service_name}
-                          </Badge>
-                        ))}
-                        {company.services.length > 4 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{company.services.length - 4} {language === 'pt' ? 'mais' : 'more'}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4 pb-4 border-b">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{company.totalBookings || 0} {language === 'pt' ? 'reservas' : 'bookings'}</span>
-                      </div>
-                      {company.phone && (
-                        <div className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" />
-                          <span className="text-xs">{company.phone}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {filteredServices.map((service, index) => {
+                const partner = partners.find(p => p.company_name === service.partner_name);
+                
+                return (
+                  <motion.div
+                    key={service.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer group h-full">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="text-4xl">{getServiceIcon(service.service_type)}</div>
+                          {service.is_emergency && (
+                            <Badge className="bg-red-500 text-white">
+                              🚨 {language === 'pt' ? 'Emergência' : 'Emergency'}
+                            </Badge>
+                          )}
                         </div>
-                      )}
-                    </div>
+                        <CardTitle className="text-xl group-hover:text-purple-600 transition-colors">
+                          {service.service_name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                          <Store className="w-4 h-4" />
+                          <span className="font-medium">{service.partner_name}</span>
+                        </div>
+                      </CardHeader>
 
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg group-hover:shadow-xl transition-all">
-                      {language === 'pt' ? 'Ver Serviços e Agendar' : 'View Services & Book'}
-                      <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      <CardContent className="space-y-3">
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {service.description}
+                        </p>
+
+                        {partner?.city && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <MapPin className="w-4 h-4" />
+                            {partner.city}
+                          </div>
+                        )}
+
+                        {service.duration_minutes && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            {service.duration_minutes} {language === 'pt' ? 'minutos' : 'minutes'}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <div>
+                            <div className="text-2xl font-bold text-purple-600">
+                              €{service.base_price}
+                            </div>
+                            {service.price_by_size && (
+                              <p className="text-xs text-gray-500">
+                                {language === 'pt' ? 'Preço base' : 'Base price'}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <Button
+                            onClick={() => navigate(createPageUrl(`BookService?id=${service.id}`))}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            {language === 'pt' ? 'Reservar' : 'Book'}
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </div>
+
+                        {service.average_rating > 0 && (
+                          <div className="flex items-center gap-1 pt-2">
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            <span className="font-semibold">{service.average_rating.toFixed(1)}</span>
+                            <span className="text-sm text-gray-500">
+                              ({service.total_bookings || 0} {language === 'pt' ? 'reservas' : 'bookings'})
+                            </span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
+
+        {/* Info Banner */}
+        <Card className="mt-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0">
+          <CardContent className="p-8">
+            <div className="text-center">
+              <Sparkles className="w-12 h-12 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-2">
+                {language === 'pt' ? 'Ganhe PawPoints em cada reserva!' : 'Earn PawPoints on every booking!'}
+              </h3>
+              <p className="text-purple-100">
+                {language === 'pt' 
+                  ? 'Acumule pontos e troque por descontos e recompensas' 
+                  : 'Accumulate points and redeem for discounts and rewards'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

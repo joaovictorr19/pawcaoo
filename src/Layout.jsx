@@ -154,6 +154,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
+    { title: language === 'pt' ? 'Serviços' : language === 'es' ? 'Servicios' : 'Services', url: createPageUrl("PartnerServices"), icon: Store },
     { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
     
@@ -207,7 +208,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 6;
+  const mainMenuCount = 7; // Aumentado de 6 para 7 (incluindo Serviços)
   const messagesIndex = mainMenuCount;
   const dogConnectIndex = messagesIndex + 1;
   const myActivityStartIndex = dogConnectIndex + 1;

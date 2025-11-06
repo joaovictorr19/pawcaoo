@@ -266,7 +266,7 @@ export default function SocialFeed() {
               <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('Notifications'))}>
                 <Bell className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('MyProfile'))}>
+              <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}>
                 <User className="w-5 h-5" />
               </Button>
             </div>
@@ -714,7 +714,7 @@ export default function SocialFeed() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(createPageUrl('MyProfile'))}
+            onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}
           >
             <User className="w-6 h-6" />
           </Button>
