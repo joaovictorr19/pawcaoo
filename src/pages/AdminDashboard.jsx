@@ -90,6 +90,19 @@ export default function AdminDashboard() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false);
   const [announcementFormData, setAnnouncementFormData] = useState({});
+  const [showGrantAllUsersModal, setShowGrantAllUsersModal] = useState(false);
+  const [selectedBadgeForAll, setSelectedBadgeForAll] = useState(null);
+  const [showCreateCustomBadgeModal, setShowCreateCustomBadgeModal] = useState(false);
+  const [customBadgeForm, setCustomBadgeForm] = useState({
+    name: "",
+    description: "",
+    icon: "⭐",
+    image_url: "",
+    rarity: "common",
+    category: "special"
+  });
+  const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
+  const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -353,6 +366,113 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
       toast.success("Anúncio eliminado!");
+    },
+  });
+
+  const grantBadgeToAllMutation = useMutation({
+    mutationFn: async ({ badge }) => {
+      const results = [];
+      
+      for (const user of allUsers) {
+        try {
+          const currentBadges = user.public_badges || [];
+          
+          // Verifica se já tem
+          if (currentBadges.some(b => b.badge_id === badge.badge_id)) {
+            results.push({ email: user.email, status: 'already_has', name: user.full_name });
+            continue;
+          }
+
+          const newBadge = {
+            badge_id: badge.badge_id,
+            name: badge.name,
+            description: badge.description,
+            icon: badge.icon || "",
+            image_url: badge.image_url || "",
+            rarity: badge.rarity,
+            category: badge.category,
+            earned_date: new Date().toISOString()
+          };
+
+          await base44.entities.User.update(user.id, {
+            public_badges: [...currentBadges, newBadge]
+          });
+
+          results.push({ email: user.email, status: 'success', name: user.full_name });
+        } catch (error) {
+          results.push({ email: user.email, status: 'error', error: error.message, name: user.full_name });
+        }
+      }
+
+      return results;
+    },
+    onSuccess: (results) => {
+      const successCount = results.filter(r => r.status === 'success').length;
+      const alreadyHasCount = results.filter(r => r.status === 'already_has').length;
+      const errorCount = results.filter(r => r.status === 'error').length;
+
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      setShowGrantAllUsersModal(false);
+      setSelectedBadgeForAll(null);
+
+      toast.success(
+        `✅ ${successCount} emblemas concedidos! ${alreadyHasCount} já tinham. ${errorCount} erros.`
+      );
+    },
+  });
+
+  const grantCustomBadgeMutation = useMutation({
+    mutationFn: async ({ badge, userEmails }) => {
+      const results = [];
+      
+      for (const email of userEmails) {
+        try {
+          const users = allUsers.filter(u => u.email === email); // Use cached allUsers
+          if (users.length === 0) {
+            results.push({ email, status: 'not_found' });
+            continue;
+          }
+
+          const user = users[0];
+          const currentBadges = user.public_badges || [];
+          
+          const newBadge = {
+            badge_id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Ensure unique ID
+            name: badge.name,
+            description: badge.description,
+            icon: badge.icon || "",
+            image_url: badge.image_url || "",
+            rarity: badge.rarity,
+            category: badge.category,
+            earned_date: new Date().toISOString()
+          };
+
+          await base44.entities.User.update(user.id, {
+            public_badges: [...currentBadges, newBadge]
+          });
+
+          results.push({ email, status: 'success', name: user.full_name });
+        } catch (error) {
+          results.push({ email, status: 'error', error: error.message });
+        }
+      }
+
+      return results;
+    },
+    onSuccess: (results) => {
+      const successCount = results.filter(r => r.status === 'success').length;
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      setShowCreateCustomBadgeModal(false);
+      setCustomBadgeForm({
+        name: "",
+        description: "",
+        icon: "⭐",
+        image_url: "",
+        rarity: "common",
+        category: "special"
+      });
+      setSelectedUsersForBadge([]);
+      toast.success(`✅ Emblema customizado concedido a ${successCount} usuários!`);
     },
   });
 
@@ -628,6 +748,34 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCustomBadgeImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingCustomBadgeImage(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setCustomBadgeForm({
+        ...customBadgeForm,
+        image_url: file_url,
+        icon: "" // Clear icon if image is uploaded
+      });
+      toast.success("✅ Imagem carregada!");
+    } catch (error) {
+      console.error("Error uploading badge image:", error);
+      toast.error("❌ Erro ao carregar imagem");
+    } finally {
+      setUploadingCustomBadgeImage(false);
+    }
+  };
+
+  const toggleUserSelection = (email) => {
+    setSelectedUsersForBadge(prev =>
+      prev.includes(email)
+        ? prev.filter(e => e !== email)
+        : [...prev, email]
+    );
+  };
 
   if (loadingUser) {
     return (
@@ -2444,6 +2592,32 @@ export default function AdminDashboard() {
                 </p>
               </CardHeader>
               <CardContent>
+                {/* NOVAS OPÇÕES DE ADMIN */}
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <Button
+                    onClick={() => setShowGrantAllUsersModal(true)}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-16"
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Dar Emblema a TODOS
+                  </Button>
+                  <Button
+                    onClick={() => setShowCreateCustomBadgeModal(true)}
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 h-16"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Criar Emblema Customizado
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl('Gamification'))}
+                    className="h-16 border-2 border-indigo-300 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-400 dark:hover:bg-indigo-900/20"
+                  >
+                    <Award className="w-5 h-5 mr-2" />
+                    Ver Gamificação
+                  </Button>
+                </div>
+
                 {/* Search */}
                 <div className="relative mb-6">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -2879,6 +3053,411 @@ export default function AdminDashboard() {
                 ) : (
                   <>
                     💾 Salvar Alterações
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* NOVO: Grant Badge to ALL Users Modal */}
+        <Dialog open={showGrantAllUsersModal} onOpenChange={setShowGrantAllUsersModal}>
+          <DialogContent className="max-w-3xl dark:bg-gray-800 dark:border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="dark:text-gray-100 text-2xl flex items-center gap-2">
+                <Sparkles className="w-7 h-7 text-purple-500" />
+                Conceder Emblema a TODOS os Usuários
+              </DialogTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                ⚠️ Isso dará o emblema a TODOS os {allUsers.length} usuários da plataforma
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                  🎁 Use isto para celebrações especiais, eventos da plataforma ou recompensas gerais!
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-lg font-bold dark:text-gray-100 mb-4 block">
+                  Selecione o Emblema para Conceder a Todos
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                  {[
+                    { badge_id: "platform_birthday", name: "Aniversário PawCão", description: "Celebração de aniversário da plataforma", icon: "🎂", rarity: "legendary", category: "special" },
+                    { badge_id: "2025_user", name: "Usuário 2025", description: "Membro ativo em 2025", icon: "🎉", rarity: "common", category: "milestone" },
+                    { badge_id: "beta_tester", name: "Beta Tester", description: "Ajudou a testar a plataforma", icon: "🧪", rarity: "epic", category: "special" },
+                    { badge_id: "early_adopter", name: "Early Adopter", description: "Um dos primeiros usuários", icon: "🌟", rarity: "rare", category: "milestone" },
+                    { badge_id: "community_champion", name: "Campeão da Comunidade", description: "Contribuiu para crescimento", icon: "🏆", rarity: "epic", category: "special" },
+                    { badge_id: "thank_you", name: "Obrigado!", description: "Agradecimento especial", icon: "💖", rarity: "rare", category: "special" },
+                  ].map((badge) => (
+                    <Card
+                      key={badge.badge_id}
+                      className={`cursor-pointer transition-all border-2 ${
+                        selectedBadgeForAll?.badge_id === badge.badge_id
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 scale-105'
+                          : 'border-gray-300 hover:border-purple-300 hover:shadow-lg dark:border-gray-700 dark:hover:border-purple-700'
+                      }`}
+                      onClick={() => setSelectedBadgeForAll(badge)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="text-5xl mb-2">{badge.icon}</div>
+                        <p className="text-sm font-bold dark:text-gray-100">{badge.name}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                          {badge.description}
+                        </p>
+                        <Badge className={`mt-2 ${
+                          badge.rarity === 'legendary' ? 'bg-yellow-500' :
+                          badge.rarity === 'epic' ? 'bg-purple-500' :
+                          badge.rarity === 'rare' ? 'bg-blue-500' :
+                          'bg-gray-500'
+                        } text-white text-xs`}>
+                          {badge.rarity}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {selectedBadgeForAll && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-xl p-6">
+                  <h3 className="font-bold text-lg dark:text-gray-100 mb-2">
+                    📋 Resumo
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Você está prestes a conceder o emblema <strong>"{selectedBadgeForAll.name}"</strong> para <strong className="text-purple-600 dark:text-purple-400">{allUsers.length} usuários</strong>.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowGrantAllUsersModal(false);
+                  setSelectedBadgeForAll(null);
+                }}
+                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!selectedBadgeForAll) {
+                    toast.error("Selecione um emblema");
+                    return;
+                  }
+                  if (!confirm(`Tem certeza que deseja dar "${selectedBadgeForAll.name}" para TODOS os ${allUsers.length} usuários?`)) {
+                    return;
+                  }
+                  grantBadgeToAllMutation.mutate({ badge: selectedBadgeForAll });
+                }}
+                disabled={!selectedBadgeForAll || grantBadgeToAllMutation.isPending}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                {grantBadgeToAllMutation.isPending ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    Concedendo...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Confirmar e Conceder
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* NOVO: Create Custom Badge for Selected Users Modal */}
+        <Dialog open={showCreateCustomBadgeModal} onOpenChange={setShowCreateCustomBadgeModal}>
+          <DialogContent className="max-w-4xl dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="dark:text-gray-100 text-2xl flex items-center gap-2">
+                <Plus className="w-7 h-7 text-blue-500" />
+                Criar e Conceder Emblema Customizado
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6 py-4">
+              {/* Badge Form */}
+              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-300 dark:border-blue-700">
+                <CardContent className="p-6">
+                  <h3 className="font-bold text-lg dark:text-gray-100 mb-4">
+                    1️⃣ Criar Emblema
+                  </h3>
+                  
+                  {/* Image Upload */}
+                  <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-blue-300 dark:border-blue-700">
+                    <Label className="text-xs font-bold mb-2 block dark:text-gray-300">Imagem do Emblema</Label>
+                    <div className="flex items-center gap-4">
+                      {customBadgeForm.image_url ? (
+                        <div className="relative">
+                          <img
+                            src={customBadgeForm.image_url}
+                            alt="Badge preview"
+                            className="w-20 h-20 rounded-xl object-cover border-2 border-blue-500 shadow-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setCustomBadgeForm({...customBadgeForm, image_url: ""})}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-300 dark:border-gray-600">
+                          <Upload className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCustomBadgeImageUpload}
+                          disabled={uploadingCustomBadgeImage}
+                          className="h-9 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {uploadingCustomBadgeImage ? "A carregar..." : "PNG ou JPG (64x64px recomendado)"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <Label className="dark:text-gray-300">Nome do Emblema *</Label>
+                      <Input
+                        value={customBadgeForm.name}
+                        onChange={(e) => setCustomBadgeForm({...customBadgeForm, name: e.target.value})}
+                        placeholder="Ex: Contribuidor Top 2025"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <Label className="dark:text-gray-300">Emoji (se não usar imagem)</Label>
+                      <Input
+                        value={customBadgeForm.icon}
+                        onChange={(e) => setCustomBadgeForm({...customBadgeForm, icon: e.target.value})}
+                        placeholder="⭐"
+                        maxLength={2}
+                        disabled={!!customBadgeForm.image_url}
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <Label className="dark:text-gray-300">Descrição *</Label>
+                    <Textarea
+                      value={customBadgeForm.description}
+                      onChange={(e) => setCustomBadgeForm({...customBadgeForm, description: e.target.value})}
+                      placeholder="Descreva o emblema..."
+                      rows={2}
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="dark:text-gray-300">Raridade</Label>
+                      <Select 
+                        value={customBadgeForm.rarity} 
+                        onValueChange={(v) => setCustomBadgeForm({...customBadgeForm, rarity: v})}
+                      >
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                          <SelectItem value="common">Comum</SelectItem>
+                          <SelectItem value="rare">Raro</SelectItem>
+                          <SelectItem value="epic">Épico</SelectItem>
+                          <SelectItem value="legendary">Lendário</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="dark:text-gray-300">Categoria</Label>
+                      <Select 
+                        value={customBadgeForm.category} 
+                        onValueChange={(v) => setCustomBadgeForm({...customBadgeForm, category: v})}
+                      >
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                          <SelectItem value="social">Social</SelectItem>
+                          <SelectItem value="activity">Atividade</SelectItem>
+                          <SelectItem value="milestone">Marco</SelectItem>
+                          <SelectItem value="special">Especial</SelectItem>
+                          <SelectItem value="professional">Profissional</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* User Selection */}
+              <Card className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-300 dark:border-green-700">
+                <CardContent className="p-6">
+                  <h3 className="font-bold text-lg dark:text-gray-100 mb-4">
+                    2️⃣ Selecionar Usuários ({selectedUsersForBadge.length})
+                  </h3>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedUsersForBadge(allUsers.map(u => u.email))}
+                      className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      Selecionar Todos
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedUsersForBadge([])}
+                      className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      Limpar Seleção
+                    </Button>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-2 max-h-64 overflow-y-auto border-2 border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                    {allUsers.slice(0, 50).map(user => (
+                      <label
+                        key={user.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${
+                          selectedUsersForBadge.includes(user.email)
+                            ? 'bg-green-100 dark:bg-green-900/30 border border-green-500 dark:border-green-700'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUsersForBadge.includes(user.email)}
+                          onChange={() => toggleUserSelection(user.email)}
+                          className="w-4 h-4"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate dark:text-gray-100">
+                            {user.full_name || 'Sem Nome'}
+                          </p>
+                          <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {allUsers.length > 50 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Mostrando primeiros 50 usuários. Use "Selecionar Todos" para incluir os {allUsers.length} usuários.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Preview */}
+              {customBadgeForm.name && selectedUsersForBadge.length > 0 && (
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700">
+                  <CardContent className="p-6">
+                    <h3 className="font-bold text-lg dark:text-gray-100 mb-3">
+                      ✨ Preview
+                    </h3>
+                    <div className="flex items-center gap-4">
+                      {customBadgeForm.image_url ? (
+                        <img 
+                          src={customBadgeForm.image_url} 
+                          className="w-16 h-16 rounded-xl border-2 border-purple-500"
+                          alt="Preview"
+                        />
+                      ) : (
+                        <div className="text-6xl">{customBadgeForm.icon}</div>
+                      )}
+                      <div>
+                        <p className="font-bold text-xl dark:text-gray-100">{customBadgeForm.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{customBadgeForm.description}</p>
+                        <div className="flex gap-2 mt-2">
+                          <Badge className="bg-purple-600">
+                            {selectedUsersForBadge.length} usuários
+                          </Badge>
+                          <Badge className={`${
+                            customBadgeForm.rarity === 'legendary' ? 'bg-yellow-500' :
+                            customBadgeForm.rarity === 'epic' ? 'bg-purple-500' :
+                            customBadgeForm.rarity === 'rare' ? 'bg-blue-500' :
+                            'bg-gray-500'
+                          }`}>
+                            {customBadgeForm.rarity}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCreateCustomBadgeModal(false);
+                  setCustomBadgeForm({
+                    name: "",
+                    description: "",
+                    icon: "⭐",
+                    image_url: "",
+                    rarity: "common",
+                    category: "special"
+                  });
+                  setSelectedUsersForBadge([]);
+                }}
+                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!customBadgeForm.name || !customBadgeForm.description) {
+                    toast.error("Preencha nome e descrição");
+                    return;
+                  }
+                  if (!customBadgeForm.image_url && !customBadgeForm.icon) {
+                    toast.error("Adicione imagem ou emoji");
+                    return;
+                  }
+                  if (selectedUsersForBadge.length === 0) {
+                    toast.error("Selecione pelo menos um usuário");
+                    return;
+                  }
+                  grantCustomBadgeMutation.mutate({
+                    badge: customBadgeForm,
+                    userEmails: selectedUsersForBadge
+                  });
+                }}
+                disabled={grantCustomBadgeMutation.isPending}
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+              >
+                {grantCustomBadgeMutation.isPending ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Criar e Conceder
                   </>
                 )}
               </Button>
