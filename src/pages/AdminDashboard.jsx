@@ -289,6 +289,58 @@ export default function AdminDashboard() {
     },
   });
 
+  // NOVO: Mutation para conceder badge a todos
+  const grantBadgeToAllMutation = useMutation({
+    mutationFn: async (badge) => {
+      console.log('🎖️ Concedendo badge a todos os usuários:', badge);
+      
+      const updates = allUsers.map(async (user) => {
+        const currentPublicBadges = user.public_badges || [];
+        
+        // Verificar se já tem o badge
+        const hasBadge = currentPublicBadges.some(b => b.badge_id === badge.badge_id);
+        if (hasBadge) {
+          console.log(`⏭️ ${user.email} já tem o badge`);
+          return null;
+        }
+
+        const newBadge = {
+          badge_id: badge.badge_id || Date.now().toString(),
+          name: badge.name,
+          description: badge.description,
+          icon: badge.icon,
+          image_url: badge.image_url || "",
+          rarity: badge.rarity || "common",
+          category: badge.category || "special",
+          xp: badge.xp || 50,
+          earned_date: new Date().toISOString(),
+          granted_by: user.email
+        };
+
+        console.log(`✅ Concedendo badge a ${user.email}`);
+        
+        await base44.entities.User.update(user.id, {
+          public_badges: [...currentPublicBadges, newBadge],
+          gamification_xp: (user.gamification_xp || 0) + (badge.xp || 50)
+        });
+
+        return user.email;
+      });
+
+      const results = await Promise.all(updates);
+      const granted = results.filter(r => r !== null);
+      
+      console.log(`🎉 Badge concedido a ${granted.length} usuários!`);
+      return granted;
+    },
+    onSuccess: (grantedUsers) => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success(`✅ Badge concedido a ${grantedUsers.length} usuários!`);
+      setShowGrantAllUsersModal(false);
+      setSelectedBadgeForAll(null);
+    },
+  });
+
   // Handlers
   const handleEditUser = (user) => {
     setSelectedUser(user);
@@ -329,6 +381,107 @@ export default function AdminDashboard() {
   const handleDeleteCompany = (company) => {
     if (window.confirm(`Tem certeza que deseja eliminar a empresa ${company.company_name}?`)) {
       deleteCompanyMutation.mutate(company.id);
+    }
+  };
+
+  // NOVO: Upload de imagem para badge customizado
+  const handleUploadBadgeImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validar tamanho (max 500KB)
+    if (file.size > 500000) {
+      toast.error('Imagem muito grande! Máximo: 500KB');
+      return;
+    }
+
+    setUploadingCustomBadgeImage(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setCustomBadgeForm({...customBadgeForm, image_url: file_url});
+      toast.success('✅ Imagem carregada!');
+    } catch (error) {
+      toast.error('Erro ao carregar imagem');
+    } finally {
+      setUploadingCustomBadgeImage(false);
+    }
+  };
+
+  // NOVO: Handlers para badges
+  const handleOpenBadgesDialog = (user) => {
+    setSelectedUserForBadges(user);
+    setBadgesFormData({
+      is_verified: user.is_verified || false,
+      is_adoption_advocate: user.is_adoption_advocate || false,
+      social_role: user.social_role || 'user'
+    });
+    setShowBadgesDialog(true);
+  };
+
+  const handleSaveBadges = async () => {
+    if (!selectedUserForBadges) return;
+
+    await updateUserMutation.mutateAsync({
+      id: selectedUserForBadges.id,
+      data: badgesFormData
+    });
+
+    setShowBadgesDialog(false);
+    setSelectedUserForBadges(null);
+  };
+
+  const handleGrantCustomBadge = async () => {
+    if (!customBadgeForm.name || !customBadgeForm.description) {
+      toast.error('Preencha nome e descrição!');
+      return;
+    }
+
+    if (selectedUsersForBadge.length === 0) {
+      toast.error('Selecione pelo menos um usuário!');
+      return;
+    }
+
+    const badge = {
+      badge_id: `custom_${Date.now()}`,
+      name: customBadgeForm.name,
+      description: customBadgeForm.description,
+      icon: customBadgeForm.icon,
+      image_url: customBadgeForm.image_url || "",
+      rarity: customBadgeForm.rarity,
+      category: customBadgeForm.category,
+      xp: 100, // Default XP for custom badges
+      earned_date: new Date().toISOString(),
+      granted_by: user.email
+    };
+
+    try {
+      for (const userEmail of selectedUsersForBadge) {
+        const targetUser = allUsers.find(u => u.email === userEmail);
+        if (!targetUser) continue;
+
+        const currentPublicBadges = targetUser.public_badges || [];
+        
+        await base44.entities.User.update(targetUser.id, {
+          public_badges: [...currentPublicBadges, badge],
+          gamification_xp: (targetUser.gamification_xp || 0) + 100
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success(`✅ Badge concedido a ${selectedUsersForBadge.length} usuários!`);
+      setShowCreateCustomBadgeModal(false);
+      setCustomBadgeForm({
+        name: "",
+        description: "",
+        icon: "⭐",
+        image_url: "",
+        rarity: "common",
+        category: "special"
+      });
+      setSelectedUsersForBadge([]);
+    } catch (error) {
+      console.error("Error granting custom badge:", error);
+      toast.error("Erro ao conceder badge customizado.");
     }
   };
 
@@ -393,9 +546,10 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2 bg-white shadow-lg p-1">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 bg-white shadow-lg p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="badges">Emblemas</TabsTrigger>
             <TabsTrigger value="companies">Empresas</TabsTrigger>
             <TabsTrigger value="announcements">Anúncios</TabsTrigger>
             <TabsTrigger value="services">Serviços</TabsTrigger>
@@ -485,6 +639,162 @@ export default function AdminDashboard() {
                       ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* NOVA TAB: BADGES */}
+          <TabsContent value="badges">
+            <Card className="border-0 shadow-xl mt-6">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Award className="w-6 h-6 text-purple-600" />
+                      Gestão de Emblemas
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">Conceder emblemas especiais aos usuários</p>
+                  </div>
+                  <Button
+                    onClick={() => setShowCreateCustomBadgeModal(true)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Emblema Customizado
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Badges Pré-definidos */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Emblemas do Sistema</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Badge Verificado */}
+                      <Card className="border-2 border-blue-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex gap-3">
+                              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <CheckCircle className="w-8 h-8 text-blue-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-lg">Verificado</h4>
+                                <p className="text-sm text-gray-600">Selo de verificação azul do Twitter</p>
+                                <Badge className="mt-2 bg-blue-500">Comum</Badge>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedBadgeForAll({
+                                  badge_id: 'verified',
+                                  name: 'Verificado',
+                                  description: 'Usuário verificado pela plataforma',
+                                  icon: '✓',
+                                  rarity: 'common',
+                                  category: 'special',
+                                  xp: 50
+                                });
+                                setShowGrantAllUsersModal(true);
+                              }}
+                            >
+                              Conceder a Todos
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Badge Defensor de Adoção */}
+                      <Card className="border-2 border-pink-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex gap-3">
+                              <div className="w-16 h-16 bg-pink-100 rounded-xl flex items-center justify-center">
+                                <Heart className="w-8 h-8 text-pink-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-lg">Defensor de Adoção</h4>
+                                <p className="text-sm text-gray-600">Apoiador de adoções</p>
+                                <Badge className="mt-2 bg-pink-500">Raro</Badge>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedBadgeForAll({
+                                  badge_id: 'adoption_advocate',
+                                  name: 'Defensor de Adoção',
+                                  description: 'Apoiador ativo de adoções',
+                                  icon: '💖',
+                                  rarity: 'rare',
+                                  category: 'special',
+                                  xp: 100
+                                });
+                                setShowGrantAllUsersModal(true);
+                              }}
+                            >
+                              Conceder a Todos
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Lista de Usuários com Badges */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Usuários e seus Emblemas</h3>
+                    <div className="space-y-3">
+                      {allUsers.map((user) => (
+                        <Card key={user.id} className="border-2 border-gray-200">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-12 h-12">
+                                  <AvatarImage src={user.profile_photo_url} />
+                                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                                    {user.full_name?.[0] || user.email?.[0]?.toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <h4 className="font-semibold">{user.full_name || user.email}</h4>
+                                  <p className="text-sm text-gray-600">{user.email}</p>
+                                  <div className="flex gap-1 mt-1 flex-wrap">
+                                    {user.is_verified && (
+                                      <Badge className="bg-blue-500 text-white text-xs">✓ Verificado</Badge>
+                                    )}
+                                    {user.is_adoption_advocate && (
+                                      <Badge className="bg-pink-500 text-white text-xs">💖 Defensor</Badge>
+                                    )}
+                                    {user.social_role && user.social_role !== 'user' && (
+                                      <Badge className="bg-orange-500 text-white text-xs capitalize">{user.social_role}</Badge>
+                                    )}
+                                    {user.public_badges?.length > 0 && (
+                                      <Badge className="bg-purple-500 text-white text-xs">
+                                        🏆 {user.public_badges.length} badges
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenBadgesDialog(user)}
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar Badges
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -658,9 +968,9 @@ export default function AdminDashboard() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (confirm(`Eliminar "${announcement.title}"?`)) {
-                                      deleteAnnouncementMutation.mutate(announcement.id);
+                                      await deleteAnnouncementMutation.mutate(announcement.id);
                                     }
                                   }}
                                   className="text-red-600 border-red-200"
@@ -1051,6 +1361,260 @@ export default function AdminDashboard() {
                 onClick={handleSaveUser}
                 disabled={updateUserMutation.isPending}
                 className="bg-green-600"
+              >
+                Guardar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* NOVO: Modal para Conceder Badge a Todos */}
+        <Dialog open={showGrantAllUsersModal} onOpenChange={setShowGrantAllUsersModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Conceder Badge a TODOS os Usuários</DialogTitle>
+              <DialogDescription>
+                Esta ação irá conceder o badge a TODOS os {allUsers.length} usuários da plataforma.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedBadgeForAll && (
+              <div className="py-4">
+                <Card className="border-2 border-purple-200 bg-purple-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-4xl">{selectedBadgeForAll.icon}</div>
+                      <div>
+                        <h4 className="font-bold text-lg">{selectedBadgeForAll.name}</h4>
+                        <p className="text-sm text-gray-600">{selectedBadgeForAll.description}</p>
+                        <Badge className="mt-2 bg-purple-500">+{selectedBadgeForAll.xp} XP</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="mt-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ <strong>Atenção:</strong> Esta ação não pode ser desfeita automaticamente. 
+                    Todos os usuários receberão este badge e {selectedBadgeForAll.xp} XP.
+                  </p>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowGrantAllUsersModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => grantBadgeToAllMutation.mutate(selectedBadgeForAll)}
+                disabled={grantBadgeToAllMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {grantBadgeToAllMutation.isPending ? '⏳ Concedendo...' : '✓ Confirmar e Conceder'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* NOVO: Modal para Criar Badge Customizado */}
+        <Dialog open={showCreateCustomBadgeModal} onOpenChange={setShowCreateCustomBadgeModal}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Criar Emblema Customizado</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Nome do Badge *</Label>
+                <Input
+                  value={customBadgeForm.name}
+                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, name: e.target.value})}
+                  placeholder="Ex: Top Contribuidor"
+                />
+              </div>
+
+              <div>
+                <Label>Descrição *</Label>
+                <Textarea
+                  value={customBadgeForm.description}
+                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, description: e.target.value})}
+                  placeholder="Ex: Contribuidor ativo da comunidade"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Emoji/Ícone</Label>
+                  <Input
+                    value={customBadgeForm.icon}
+                    onChange={(e) => setCustomBadgeForm({...customBadgeForm, icon: e.target.value})}
+                    placeholder="⭐"
+                    maxLength={2}
+                  />
+                </div>
+
+                <div>
+                  <Label>Raridade</Label>
+                  <Select 
+                    value={customBadgeForm.rarity} 
+                    onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, rarity: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="common">Comum</SelectItem>
+                      <SelectItem value="rare">Raro</SelectItem>
+                      <SelectItem value="epic">Épico</SelectItem>
+                      <SelectItem value="legendary">Lendário</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Imagem PNG (Opcional, máx 500KB)</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    onChange={handleUploadBadgeImage}
+                    disabled={uploadingCustomBadgeImage}
+                  />
+                  {uploadingCustomBadgeImage && <div className="animate-spin text-purple-600">⏳</div>}
+                </div>
+                {customBadgeForm.image_url && (
+                  <img src={customBadgeForm.image_url} alt="Badge Preview" className="w-16 h-16 mt-2 rounded-lg object-cover" />
+                )}
+              </div>
+
+              <div>
+                <Label>Selecionar Usuários</Label>
+                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                  <div className="flex items-center gap-2 p-2 bg-purple-50 rounded">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsersForBadge.length === allUsers.length && allUsers.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUsersForBadge(allUsers.map(u => u.email));
+                        } else {
+                          setSelectedUsersForBadge([]);
+                        }
+                      }}
+                      className="w-4 h-4 accent-purple-600"
+                    />
+                    <span className="font-semibold">Selecionar Todos ({allUsers.length})</span>
+                  </div>
+                  {allUsers.map((user) => (
+                    <div key={user.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsersForBadge.includes(user.email)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedUsersForBadge([...selectedUsersForBadge, user.email]);
+                          } else {
+                            setSelectedUsersForBadge(selectedUsersForBadge.filter(email => email !== user.email));
+                          }
+                        }}
+                        className="w-4 h-4 accent-purple-600"
+                      />
+                      <span className="text-sm">{user.full_name} ({user.email})</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  {selectedUsersForBadge.length} usuário(s) selecionado(s)
+                </p>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreateCustomBadgeModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleGrantCustomBadge}
+                className="bg-purple-600 hover:bg-purple-700"
+                disabled={!customBadgeForm.name || !customBadgeForm.description || selectedUsersForBadge.length === 0}
+              >
+                <Award className="w-4 h-4 mr-2" />
+                Criar e Conceder Badge
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* NOVO: Modal para Editar Badges de um Usuário */}
+        <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Editar Badges de {selectedUserForBadges?.full_name || selectedUserForBadges?.email}</DialogTitle>
+            </DialogHeader>
+            {selectedUserForBadges && (
+              <div className="space-y-4 py-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={badgesFormData.is_verified || false}
+                    onChange={(e) => setBadgesFormData({...badgesFormData, is_verified: e.target.checked})}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                  <Label>Verificado (selo azul)</Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={badgesFormData.is_adoption_advocate || false}
+                    onChange={(e) => setBadgesFormData({...badgesFormData, is_adoption_advocate: e.target.checked})}
+                    className="w-4 h-4 accent-pink-600"
+                  />
+                  <Heart className="w-5 h-5 text-pink-600" />
+                  <Label>Defensor de Adoção</Label>
+                </div>
+
+                <div>
+                  <Label>Role Social</Label>
+                  <Select 
+                    value={badgesFormData.social_role || 'user'} 
+                    onValueChange={(value) => setBadgesFormData({...badgesFormData, social_role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">Usuário</SelectItem>
+                      <SelectItem value="moderator">Moderador</SelectItem>
+                      <SelectItem value="admin">Admin Social</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">Badges Públicos Atuais:</h4>
+                  {selectedUserForBadges.public_badges?.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedUserForBadges.public_badges.map((badge, idx) => (
+                        <Badge key={idx} className="bg-purple-500">
+                          {badge.icon} {badge.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600">Nenhum badge customizado</p>
+                  )}
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowBadgesDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveBadges}
+                disabled={updateUserMutation.isPending}
+                className="bg-purple-600"
               >
                 Guardar
               </Button>
