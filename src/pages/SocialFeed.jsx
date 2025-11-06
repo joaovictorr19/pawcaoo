@@ -110,45 +110,60 @@ export default function SocialFeed() {
       console.log('\n🔍 === SOCIALFEED - CARREGANDO POSTS ===');
       console.log('👤 Usuário:', user.email);
       console.log('📑 Tab Ativa:', selectedTab);
+      console.log('🕐 Timestamp:', new Date().toLocaleTimeString());
       
       if (selectedTab === 'following') {
-        const follows = await base44.entities.SocialFollow.filter({
-          follower_email: user.email,
-          status: 'accepted'
-        });
+        const all = await base44.entities.SocialFollow.list();
+        const follows = all.filter(f => f.follower_email === user.email && f.status === 'accepted');
         const followingEmails = follows.map(f => f.following_email);
         
         console.log('👥 Seguindo:', followingEmails.length, 'usuários');
+        console.log('Emails:', followingEmails);
 
-        if (followingEmails.length === 0) return [];
+        if (followingEmails.length === 0) {
+          console.log('⚠️ Não está seguindo ninguém');
+          return [];
+        }
 
-        const followingPosts = await base44.entities.SocialPost.filter({
-          author_email: { $in: followingEmails },
-          moderation_status: 'approved'
-        }, '-created_date');
+        const allPosts = await base44.entities.SocialPost.list('-created_date');
+        const followingPosts = allPosts.filter(p => 
+          followingEmails.includes(p.author_email) &&
+          p.moderation_status === 'approved'
+        );
         
         console.log('✅ Posts de quem sigo:', followingPosts.length);
         return followingPosts;
       } else {
-        const allPublicPosts = await base44.entities.SocialPost.filter({
-          moderation_status: 'approved',
-          is_public: true
-        }, '-created_date');
+        // BUSCAR TODOS OS POSTS PÚBLICOS E APROVADOS
+        const allPosts = await base44.entities.SocialPost.list('-created_date');
         
-        console.log('🌍 TODOS OS POSTS PÚBLICOS:', allPublicPosts.length);
-        allPublicPosts.forEach((p, i) => {
-          console.log(`  ${i+1}. ${p.author_name}: "${p.content?.substring(0, 30)}..." | moderation: ${p.moderation_status} | public: ${p.is_public}`);
+        console.log('📊 TODOS OS POSTS NO BANCO:', allPosts.length);
+        
+        const publicPosts = allPosts.filter(p => 
+          p.moderation_status === 'approved' && 
+          p.is_public === true
+        );
+        
+        console.log('🌍 POSTS PÚBLICOS E APROVADOS:', publicPosts.length);
+        console.log('\n📋 LISTA DE POSTS:');
+        publicPosts.forEach((p, i) => {
+          console.log(`  ${i+1}. Autor: ${p.author_name} (${p.author_email})`);
+          console.log(`     Conteúdo: "${p.content?.substring(0, 40)}..."`);
+          console.log(`     Moderation: ${p.moderation_status} | Public: ${p.is_public}`);
+          console.log(`     Data: ${p.created_date}`);
+          console.log(`     ID: ${p.id.substring(0, 8)}...`);
+          console.log('');
         });
         console.log('=====================================\n');
         
-        return allPublicPosts;
+        return publicPosts;
       }
     },
     initialData: [],
-    staleTime: 0, // MUDADO: Não cachear
-    refetchOnMount: 'always', // NOVO: Sempre buscar ao montar
-    refetchOnWindowFocus: true, // NOVO: Refetch ao focar janela
-    refetchInterval: 5000, // NOVO: Poll a cada 5 segundos
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
     enabled: !!user?.email
   });
 
@@ -288,6 +303,18 @@ export default function SocialFeed() {
       return;
     }
 
+    if (!user?.email || !user?.full_name) {
+      toast.error('❌ Erro: Usuário não autenticado corretamente');
+      console.error('User data missing:', user);
+      return;
+    }
+
+    console.log('\n📤 === CRIANDO POST ===');
+    console.log('Autor:', user.full_name, '(' + user.email + ')');
+    console.log('Conteúdo:', newPostData.content.substring(0, 50) + '...');
+    console.log('Mídias:', newPostData.media_urls.length);
+    console.log('Agendado?', !!newPostData.scheduled_date);
+
     // Check if scheduled
     if (newPostData.scheduled_date) {
       const scheduledDate = new Date(newPostData.scheduled_date);
@@ -302,7 +329,7 @@ export default function SocialFeed() {
         content: newPostData.content,
         author_email: user.email,
         author_name: user.full_name,
-        author_photo_url: user.profile_photo_url,
+        author_photo_url: user.profile_photo_url || "",
         media_urls: newPostData.media_urls,
         is_public: true,
         post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
@@ -321,19 +348,26 @@ export default function SocialFeed() {
       return;
     }
 
-    // Regular post (immediate) - GARANTIR QUE SEJA APROVADO E PÚBLICO
-    createPostMutation.mutate({
+    // CORRIGIDO: Post imediato - GARANTIR aprovação e público
+    const postData = {
       content: newPostData.content,
       author_email: user.email,
       author_name: user.full_name,
-      author_photo_url: user.profile_photo_url,
+      author_photo_url: user.profile_photo_url || "",
+      author_profile_badges: user.profile_badges || [],
       media_urls: newPostData.media_urls,
       is_public: true,
       post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
-      moderation_status: 'approved', // ADICIONADO: Garantir aprovação imediata
-      location: newPostData.location,
-      tags: newPostData.tags,
-    });
+      moderation_status: 'approved',
+      location: newPostData.location || "",
+      tags: newPostData.tags || [],
+      likes_count: 0,
+      comments_count: 0,
+      shares_count: 0
+    };
+
+    console.log('📝 Dados do post:', postData);
+    createPostMutation.mutate(postData);
   };
 
   const handleLike = (postId) => {

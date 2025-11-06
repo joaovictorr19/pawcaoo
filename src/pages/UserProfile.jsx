@@ -31,7 +31,10 @@ function BadgeItem({ badge, idx, getBadgeImage }) {
       className="flex flex-col items-center cursor-pointer"
       onClick={() => setTransparentBg(!transparentBg)}
     >
-      <div className={`w-20 h-20 ${transparentBg ? 'bg-transparent' : 'bg-white/10'} rounded-xl flex items-center justify-center mb-2 border-2 border-white/20 hover:border-yellow-400 transition-all shadow-lg relative group`}>
+      {/* CORRIGIDO: Apenas o container do badge fica transparente, não afeta a foto de perfil */}
+      <div className={`w-20 h-20 rounded-xl flex items-center justify-center mb-2 border-2 border-white/20 hover:border-yellow-400 transition-all shadow-lg relative group ${
+        transparentBg ? 'bg-transparent' : 'bg-white/10'
+      }`}>
         {badge.image_url ? (
           <img 
             src={badge.image_url} 
@@ -77,14 +80,15 @@ export default function UserProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmail = urlParams.get('email');
 
-  console.log('🔍 USERPROFILE - URL Email:', profileEmail);
+  console.log('\n🔍 === USERPROFILE - INÍCIO ===');
+  console.log('URL Email:', profileEmail);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  console.log('👤 USERPROFILE - Current User:', currentUser?.email);
+  console.log('👤 Current User:', currentUser?.email);
 
   const isOwnProfile = currentUser?.email === profileEmail;
 
@@ -92,26 +96,40 @@ export default function UserProfile() {
     queryKey: ['profileUser', profileEmail],
     queryFn: async () => {
       if (!profileEmail) {
-        console.log('❌ No profile email provided');
+        console.log('❌ No profile email in URL');
         return null;
       }
       
-      console.log('🔎 Searching for user with email:', profileEmail);
+      console.log('🔎 Buscando usuário com email:', profileEmail);
       const users = await base44.entities.User.list();
-      console.log('📋 Total users in database:', users.length);
+      console.log('📋 Total de usuários no banco:', users.length);
+      console.log('📧 Emails no banco:', users.map(u => u.email));
       
       const found = users.find(u => u.email === profileEmail);
-      console.log('✅ User found:', found ? {
-        email: found.email,
-        name: found.full_name,
-        badges: found.achievements_badges?.length || 0,
-        public_badges: found.public_badges?.length || 0
-      } : 'NOT FOUND');
+      
+      if (found) {
+        console.log('✅ USUÁRIO ENCONTRADO:', {
+          email: found.email,
+          name: found.full_name,
+          photo: found.profile_photo_url ? 'SIM' : 'NÃO',
+          city: found.city,
+          bio: found.bio ? 'SIM' : 'NÃO',
+          achievements: found.achievements_badges?.length || 0,
+          public_badges: found.public_badges?.length || 0,
+          is_verified: found.is_verified,
+          role: found.role,
+          social_role: found.social_role
+        });
+      } else {
+        console.log('❌ USUÁRIO NÃO ENCONTRADO para email:', profileEmail);
+        console.log('Emails disponíveis:', users.map(u => u.email).join(', '));
+      }
       
       return found || null;
     },
     enabled: !!profileEmail,
-    retry: 1,
+    retry: 3,
+    retryDelay: 1000,
     staleTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
@@ -121,25 +139,26 @@ export default function UserProfile() {
   const achievementsBadges = profileUser?.achievements_badges || [];
   const publicBadges = profileUser?.public_badges || [];
 
-  console.log('===== PROFILE DEBUG =====');
-  console.log('Profile User Email:', profileUser?.email);
-  console.log('Profile User Full Name:', profileUser?.full_name);
-  console.log('Profile Badges (profile_badges):', profileBadges);
-  console.log('Achievements Badges (achievements_badges):', achievementsBadges);
-  console.log('Public Badges (public_badges):', publicBadges);
-  console.log('Achievements Badges Length:', achievementsBadges.length);
-  console.log('Public Badges Length:', publicBadges.length);
-  console.log('========================');
-
-  const { data: userPosts = [] } = useQuery({
+  const { data: userPosts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ['userPosts', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      const posts = await base44.entities.SocialPost.filter({ author_email: profileEmail }, '-created_date');
-      return posts;
+      
+      console.log('📝 Buscando posts de:', profileEmail);
+      const posts = await base44.entities.SocialPost.list('-created_date');
+      const userPosts = posts.filter(p => p.author_email === profileEmail);
+      
+      console.log('✅ Posts encontrados:', userPosts.length);
+      userPosts.forEach((p, i) => {
+        console.log(`  ${i+1}. "${p.content?.substring(0, 30)}..." | moderation: ${p.moderation_status} | public: ${p.is_public}`);
+      });
+      
+      return userPosts;
     },
     enabled: !!profileEmail,
     initialData: [],
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const { data: userDogs = [] } = useQuery({
@@ -153,33 +172,60 @@ export default function UserProfile() {
     initialData: [],
   });
 
-  const { data: followers = [] } = useQuery({
+  const { data: followers = [], isLoading: loadingFollowers } = useQuery({
     queryKey: ['followers', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      const follows = await base44.entities.SocialFollow.filter({ following_email: profileEmail });
-      return follows;
+      
+      console.log('👥 Buscando seguidores de:', profileEmail);
+      const all = await base44.entities.SocialFollow.list();
+      const followers = all.filter(f => f.following_email === profileEmail);
+      
+      console.log('✅ Seguidores encontrados:', followers.length);
+      followers.forEach((f, i) => {
+        console.log(`  ${i+1}. ${f.follower_name} (${f.follower_email})`);
+      });
+      
+      return followers;
     },
     enabled: !!profileEmail,
     initialData: [],
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
-  const { data: following = [] } = useQuery({
+  const { data: following = [], isLoading: loadingFollowing } = useQuery({
     queryKey: ['following', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      const follows = await base44.entities.SocialFollow.filter({ follower_email: profileEmail });
-      return follows;
+      
+      console.log('👤 Buscando quem está seguindo:', profileEmail);
+      const all = await base44.entities.SocialFollow.list();
+      const following = all.filter(f => f.follower_email === profileEmail);
+      
+      console.log('✅ Seguindo:', following.length);
+      
+      return following;
     },
     enabled: !!profileEmail,
     initialData: [],
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const recentPhotos = userPosts.filter(p => p.media_urls?.length > 0).slice(0, 9);
 
   const followMutation = useMutation({
     mutationFn: async () => {
-      if (!currentUser?.email || !profileEmail) return;
+      if (!currentUser?.email || !profileEmail) {
+        console.log('❌ Não pode seguir: currentUser ou profileEmail vazio');
+        return;
+      }
+      
+      console.log('💫 SEGUINDO:', {
+        follower: currentUser.email,
+        following: profileEmail
+      });
       
       const newFollow = await base44.entities.SocialFollow.create({
         follower_email: currentUser.email,
@@ -190,7 +236,10 @@ export default function UserProfile() {
         status: 'accepted'
       });
 
+      console.log('✅ Follow criado:', newFollow.id);
+
       // ENVIAR NOTIFICAÇÃO
+      console.log('📬 Enviando notificação de novo seguidor...');
       await NotificationService.newFollower({
         followerName: currentUser.full_name,
         followerEmail: currentUser.email,
@@ -200,8 +249,9 @@ export default function UserProfile() {
       return newFollow;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['followers', profileEmail]);
-      queryClient.invalidateQueries(['following', currentUser.email]);
+      queryClient.invalidateQueries({ queryKey: ['followers'] });
+      queryClient.invalidateQueries({ queryKey: ['following'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('✅ Agora você está seguindo!');
     },
   });
@@ -215,8 +265,9 @@ export default function UserProfile() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['followers', profileEmail]);
-      queryClient.invalidateQueries(['following', currentUser.email]);
+      queryClient.invalidateQueries({ queryKey: ['followers'] });
+      queryClient.invalidateQueries({ queryKey: ['following'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Deixou de seguir');
     },
   });
@@ -237,7 +288,7 @@ export default function UserProfile() {
     return badgeImages[badgeId] || '🏆';
   };
 
-  if (loadingUser) {
+  if (loadingUser || loadingPosts || loadingFollowers || loadingFollowing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
@@ -261,6 +312,15 @@ export default function UserProfile() {
       </div>
     );
   }
+
+  console.log('\n📊 === USERPROFILE - DADOS CARREGADOS ===');
+  console.log('Profile User:', profileUser ? '✅ CARREGADO' : '❌ NULL');
+  console.log('Posts:', userPosts.length);
+  console.log('Seguidores:', followers.length);
+  console.log('Seguindo:', following.length);
+  console.log('Is Following?', followers.some(f => f.follower_email === currentUser?.email));
+  console.log('========================================\n');
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50">
