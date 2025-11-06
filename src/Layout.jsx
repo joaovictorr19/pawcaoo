@@ -108,6 +108,7 @@ function LayoutContent({ children, currentPageName }) {
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
+  const [dogConnectExpanded, setDogConnectExpanded] = React.useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -148,13 +149,16 @@ function LayoutContent({ children, currentPageName }) {
   const unreadCount = notifications?.length || 0;
 
   const navigationItems = [
-    // MENU PRINCIPAL - Serviços principais
+    // MENU PRINCIPAL - Serviços core
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
     { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
     { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
     { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
-    { title: language === 'pt' ? 'Parceiros' : language === 'es' ? 'Socios' : 'Partners', url: createPageUrl("PartnerServices"), icon: Store },
+    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
+    
+    // MENSAGENS (especial)
+    { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
     
     // MINHA ATIVIDADE
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
@@ -162,18 +166,18 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('scheduledWalks', language), url: createPageUrl("ScheduledWalks"), icon: CalendarClock },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
-    { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
-    { title: language === 'pt' ? 'Gamificação' : language === 'es' ? 'Gamificación' : 'Gamification', url: createPageUrl("Gamification"), icon: Trophy },
-    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
-    { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     
+    // DOG CONNECT
+    { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
+    { title: language === 'pt' ? 'Emblemas' : language === 'es' ? 'Emblemas' : 'Badges', url: createPageUrl("Gamification"), icon: Award },
+    
     // SERVIÇOS PROFISSIONAIS
-    { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
     { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: GraduationCap },
+    { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
@@ -203,19 +207,20 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 6; // Passeadores, Trainers, Dog Sitting, Loja, Parceiros, Adotar
-  const myActivityCount = 12; // Dashboard + 11 items
+  const mainMenuCount = 6; // Passeadores, Trainers, Dog Sitting, Loja, Recompensas, Adotar
+  const messagesIndex = mainMenuCount; // Mensagens (especial)
+  const myActivityStartIndex = messagesIndex + 1;
+  const myActivityCount = 8; // Dashboard + 7 items
+  const dogConnectStartIndex = myActivityStartIndex + myActivityCount;
+  const dogConnectCount = 2; // Dog Connect Feed + Emblemas
+  const professionalServicesStartIndex = dogConnectStartIndex + dogConnectCount;
   const professionalServicesCount = 6;
   
   const mainMenuStartIndex = 0;
   const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount;
-
-  const myActivityStartIndex = mainMenuEndIndex;
   const myActivityEndIndex = myActivityStartIndex + myActivityCount;
-
-  const professionalServicesStartIndex = myActivityEndIndex;
+  const dogConnectEndIndex = dogConnectStartIndex + dogConnectCount;
   const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
-
   const adminAndOtherStartIndex = professionalServicesEndIndex;
 
   const languageFlags = {
@@ -363,6 +368,7 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
+            {/* MENU PRINCIPAL */}
             <SidebarGroup>
               <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
               <SidebarGroupContent>
@@ -391,6 +397,32 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
+            {/* MENSAGENS - BOTÃO ESPECIAL */}
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 rounded-xl mb-3 ${
+                        location.pathname === allNavigationItems[messagesIndex].url ? 'bg-blue-600 text-white shadow-lg' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                      } border-2 border-blue-300`}
+                    >
+                      <a 
+                        href={allNavigationItems[messagesIndex].url} 
+                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
+                        onClick={handleNavigation(allNavigationItems[messagesIndex].url)}
+                      >
+                        <MessageCircle className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[messagesIndex].title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
                 className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
@@ -408,7 +440,7 @@ function LayoutContent({ children, currentPageName }) {
                           asChild 
                           className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
                             location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                          }`}
+                          } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
                             <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
@@ -427,12 +459,45 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
+            {/* DOG CONNECT */}
+            <SidebarGroup>
+              <SidebarGroupLabel 
+                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
+                onClick={() => setDogConnectExpanded(!dogConnectExpanded)}
+              >
+                <span>📸 Dog Connect</span>
+                <span className={`transition-transform duration-200 ${dogConnectExpanded ? 'rotate-90' : ''}`}>▶</span>
+              </SidebarGroupLabel>
+              {dogConnectExpanded && (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {allNavigationItems.slice(dogConnectStartIndex, dogConnectEndIndex).map((item) => ( 
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
+                            location.pathname === item.url ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
+                          }`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
+                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
+
+            {/* TORNAR-ME PROFISSIONAL */}
             <SidebarGroup>
               <SidebarGroupLabel 
                 className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
-                <span>{t('professionalServices', language)}</span>
+                <span>{language === 'pt' ? '👔 Tornar-me Profissional' : language === 'es' ? '👔 Ser Profesional' : '👔 Become Professional'}</span>
                 <span className={`transition-transform duration-200 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {professionalServicesExpanded && (
