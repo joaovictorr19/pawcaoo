@@ -10,15 +10,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Trophy, Star, Target, TrendingUp, Award, Zap, Crown, 
+  Trophy, Star, Target, TrendingUp, Award, Zap, Crown,
   Heart, Users, MessageCircle, Calendar, Gift, Shield,
   Flame, CheckCircle, Lock, Sparkles, ChevronRight, Camera,
-  Upload, X
+  Upload, X, Plus, Trash, Search, BarChart3
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { toast } from "sonner"; // Changed toast import to sonner
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Gamification() {
   const navigate = useNavigate();
@@ -28,6 +34,13 @@ export default function Gamification() {
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
+
+  // New admin-related state
+  const [showGrantBadgeModal, setShowGrantBadgeModal] = useState(false);
+  const [showRemoveBadgeModal, setShowRemoveBadgeModal] = useState(false);
+  const [selectedUserForBadge, setSelectedUserForBadge] = useState(null);
+  const [selectedBadgeToRemove, setSelectedBadgeToRemove] = useState(null); // This might not be strictly needed if we pass badge_id directly
+  const [userEmailSearch, setUserEmailSearch] = useState('');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -52,8 +65,8 @@ export default function Gamification() {
     mutationFn: async ({ xpReward }) => {
       const newXP = (user?.gamification_xp || 0) + xpReward;
       // Recalculate level based on new XP, assuming 500 XP per level starting from level 1
-      const newLevel = Math.floor(newXP / 500) + 1; 
-      
+      const newLevel = Math.floor(newXP / 500) + 1;
+
       return await base44.auth.updateMe({
         gamification_xp: newXP,
         gamification_level: newLevel,
@@ -73,12 +86,134 @@ export default function Gamification() {
     },
   });
 
+  // New mutations for admin controls
+  const grantBadgeMutation = useMutation({
+    mutationFn: async ({ userEmail, badge }) => {
+      const users = await base44.entities.User.filter({ email: userEmail });
+      if (users.length === 0) throw new Error('Usuário não encontrado');
+
+      const targetUser = users[0];
+      const currentBadges = targetUser.achievements_badges || [];
+
+      // Check if user already has this badge
+      if (currentBadges.some(b => b.badge_id === badge.id)) {
+        throw new Error('Usuário já possui este emblema');
+      }
+
+      const newBadge = {
+        badge_id: badge.id,
+        name: badge.name,
+        description: badge.desc,
+        icon: badge.icon,
+        rarity: badge.rarity,
+        xp: badge.xp,
+        image_url: badge.image_url || null,
+        earned_date: new Date().toISOString(),
+      };
+
+      await base44.entities.User.update(targetUser.id, {
+        achievements_badges: [...currentBadges, newBadge]
+      });
+
+      // Grant XP for the badge
+      const newXP = (targetUser.gamification_xp || 0) + badge.xp;
+      const newLevel = Math.floor(newXP / 500) + 1;
+      await base44.entities.User.update(targetUser.id, {
+        gamification_xp: newXP,
+        gamification_level: newLevel,
+      });
+
+      return newBadge;
+    },
+    onSuccess: (newBadge) => {
+      queryClient.invalidateQueries(['currentUser']); // Invalidate current user's data if it's the admin granting to themselves
+      queryClient.invalidateQueries(['allUsers']); // Invalidate if there's a list of all users
+      if (selectedUserForBadge && newBadge) {
+        setSelectedUserForBadge(prev => ({
+          ...prev,
+          achievements_badges: [...(prev.achievements_badges || []), newBadge],
+          gamification_xp: (prev.gamification_xp || 0) + newBadge.xp,
+          gamification_level: Math.floor(((prev.gamification_xp || 0) + newBadge.xp) / 500) + 1,
+        }));
+      }
+      toast.success(`Emblema "${newBadge.name}" concedido!`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Erro ao conceder emblema');
+    }
+  });
+
+  const removeBadgeMutation = useMutation({
+    mutationFn: async ({ userEmail, badgeId }) => {
+      const users = await base44.entities.User.filter({ email: userEmail });
+      if (users.length === 0) throw new Error('Usuário não encontrado');
+
+      const targetUser = users[0];
+      const currentBadges = targetUser.achievements_badges || [];
+
+      const badgeToRemove = currentBadges.find(b => b.badge_id === badgeId);
+      if (!badgeToRemove) {
+        throw new Error('Emblema não encontrado para este usuário');
+      }
+
+      const updatedBadges = currentBadges.filter(b => b.badge_id !== badgeId);
+
+      await base44.entities.User.update(targetUser.id, {
+        achievements_badges: updatedBadges
+      });
+
+      // Revoke XP for the badge
+      const newXP = Math.max(0, (targetUser.gamification_xp || 0) - badgeToRemove.xp);
+      const newLevel = Math.floor(newXP / 500) + 1;
+      await base44.entities.User.update(targetUser.id, {
+        gamification_xp: newXP,
+        gamification_level: newLevel,
+      });
+      return badgeToRemove;
+    },
+    onSuccess: (removedBadge) => {
+      queryClient.invalidateQueries(['currentUser']);
+      queryClient.invalidateQueries(['allUsers']);
+      if (selectedUserForBadge && removedBadge) {
+        setSelectedUserForBadge(prev => ({
+          ...prev,
+          achievements_badges: (prev.achievements_badges || []).filter(b => b.badge_id !== removedBadge.badge_id),
+          gamification_xp: Math.max(0, (prev.gamification_xp || 0) - removedBadge.xp),
+          gamification_level: Math.floor(Math.max(0, (prev.gamification_xp || 0) - removedBadge.xp) / 500) + 1,
+        }));
+      }
+      setShowRemoveBadgeModal(false);
+      setSelectedBadgeToRemove(null);
+      toast.success(`Emblema "${removedBadge.name}" removido!`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Erro ao remover emblema');
+    }
+  });
+
+  const searchUserMutation = useMutation({
+    mutationFn: async (email) => {
+      const users = await base44.entities.User.filter({ email });
+      if (users.length === 0) throw new Error('Usuário não encontrado');
+      return users[0];
+    },
+    onSuccess: (user) => {
+      setSelectedUserForBadge(user);
+      toast.success(`Usuário ${user.email} encontrado.`);
+    },
+    onError: (error) => {
+      setSelectedUserForBadge(null);
+      toast.error(error.message || 'Usuário não encontrado');
+    }
+  });
+
   // Calculate XP needed for next level
-  const xpForNextLevel = (level) => level * 500;
+  const xpPerLevel = 500;
   const currentLevelXP = user?.gamification_xp || 0;
   const currentLevel = user?.gamification_level || 1;
-  const xpNeeded = xpForNextLevel(currentLevel);
-  const xpProgress = (currentLevelXP % xpNeeded) / xpNeeded * 100;
+  const xpNeededForNextLevel = currentLevel * xpPerLevel;
+  const xpInCurrentLevel = currentLevelXP - ((currentLevel - 1) * xpPerLevel); // XP earned in the current level
+  const xpProgressPercentage = (xpInCurrentLevel / xpPerLevel) * 100;
 
   // All possible badges (truncated from outline)
   const allBadges = [
@@ -96,13 +231,13 @@ export default function Gamification() {
     { id: "adoption_hero", name: "Adoption Hero", desc: "Adote um pet resgatado", icon: "🏠", category: "milestone", rarity: "epic", requirement: 1, current: user?.profile_stats?.total_adoptions || 0, stat: "total_adoptions", xp: 2000 },
   ];
 
-  // Filter earned badges
+  // Filter earned badges for current user (using public_badges as per existing code)
   const earnedBadges = user?.public_badges || [];
   const earnedBadgeIds = earnedBadges.map(b => b.badge_id);
 
-  // Available badges (not earned yet, can be earned)
-  const availableBadges = allBadges.filter(b => 
-    !earnedBadgeIds.includes(b.id) && 
+  // Available badges (not earned yet, can be earned) for user display
+  const availableBadges = allBadges.filter(b =>
+    !earnedBadgeIds.includes(b.id) &&
     (activeCategory === "all" || b.category === activeCategory)
   );
 
@@ -118,37 +253,37 @@ export default function Gamification() {
 
   // Daily quests with real-time data
   const dailyQuests = [
-    { 
-      id: 1, 
-      title: "Publicar 1 foto", 
-      desc: "Compartilhe um momento do seu pet", 
-      reward: 50, 
-      icon: "📸", 
-      completed: (user?.profile_stats?.total_posts || 0) > 0 
+    {
+      id: 1,
+      title: "Publicar 1 foto",
+      desc: "Compartilhe um momento do seu pet",
+      reward: 50,
+      icon: "📸",
+      completed: (user?.profile_stats?.total_posts || 0) > 0
     },
-    { 
-      id: 2, 
-      title: "Dar 5 curtidas", 
-      desc: "Apoie outros donos de pets", 
-      reward: 25, 
-      icon: "❤️", 
-      completed: userLikes.length >= 5 
+    {
+      id: 2,
+      title: "Dar 5 curtidas",
+      desc: "Apoie outros donos de pets",
+      reward: 25,
+      icon: "❤️",
+      completed: userLikes.length >= 5
     },
-    { 
-      id: 3, 
-      title: "Escrever 3 comentários", 
-      desc: "Participe das conversas", 
-      reward: 30, 
-      icon: "💬", 
-      completed: userComments.length >= 3 
+    {
+      id: 3,
+      title: "Escrever 3 comentários",
+      desc: "Participe das conversas",
+      reward: 30,
+      icon: "💬",
+      completed: userComments.length >= 3
     },
-    { 
-      id: 4, 
-      title: "Visitar o Dog Connect", 
-      desc: "Mantenha sua streak ativa", 
-      reward: 20, 
-      icon: "🔥", 
-      completed: true 
+    {
+      id: 4,
+      title: "Visitar o Dog Connect",
+      desc: "Mantenha sua streak ativa",
+      reward: 20,
+      icon: "🔥",
+      completed: true
     },
   ];
 
@@ -193,186 +328,278 @@ export default function Gamification() {
     if (!photoPreview || !selectedChallenge) return;
 
     await completeQuestMutation.mutateAsync({ xpReward: selectedChallenge.reward });
-    
+
     setShowPhotoUpload(false);
     setSelectedChallenge(null);
     setPhotoPreview(null);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header Compacto */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <Trophy className="w-10 h-10 text-yellow-600" />
-                Gamificação & Emblemas
-              </h1>
-              <p className="text-gray-600">Complete desafios, ganhe emblemas raros e suba de nível!</p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => navigate(createPageUrl('Leaderboard'))}
-              className="hidden md:flex"
-            >
-              <Trophy className="w-4 h-4 mr-2" />
-              Ver Ranking
-            </Button>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <Zap className="w-8 h-8 text-yellow-600" />
+            Gamificação & Emblemas
+          </h1>
+          <p className="text-gray-600">Complete desafios e ganhe emblemas exclusivos!</p>
         </div>
 
-        {/* Level Progress Card */}
-        <Card className="border-0 shadow-2xl mb-6 bg-gradient-to-br from-purple-600 to-blue-600 text-white overflow-hidden">
-          <CardContent className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-4 border-white/40">
-                  <span className="text-4xl font-black">{currentLevel}</span>
-                </div>
+        {/* XP Card Compacto */}
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold mb-1">Nível {currentLevel}</h2>
-                  <p className="text-white/80 text-sm">
-                    {currentLevelXP % xpNeeded} / {xpNeeded} XP para Nível {currentLevel + 1}
-                  </p>
+                  <p className="text-xs opacity-90 mb-1">Nível</p>
+                  <p className="text-3xl font-bold">{currentLevel}</p>
                 </div>
+                <Trophy className="w-10 h-10 opacity-80" />
               </div>
-              <div className="text-right hidden md:block">
-                <div className="text-3xl font-bold">{user?.gamification_xp || 0}</div>
-                <div className="text-white/80 text-sm">XP Total</div>
-              </div>
-            </div>
-            
-            <Progress value={xpProgress} className="h-4 bg-white/20 mb-6" />
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div className="text-2xl font-bold">{earnedBadges.length}</div>
-                <div className="text-xs text-white/80">Emblemas</div>
-              </div>
-              <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div className="text-2xl font-bold flex items-center justify-center">
-                  <Flame className="w-6 h-6 text-orange-300 mr-1" />
-                  {user?.daily_streak || 0}
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">XP Total</p>
+                  <p className="text-3xl font-bold text-blue-600">{user?.gamification_xp || 0}</p>
                 </div>
-                <div className="text-xs text-white/80">Streak</div>
+                <TrendingUp className="w-10 h-10 text-blue-600 opacity-50" />
               </div>
-              <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div className="text-2xl font-bold">{user?.profile_completion_percentage || 0}%</div>
-                <div className="text-xs text-white/80">Perfil</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Emblemas</p>
+                  <p className="text-3xl font-bold text-purple-600">{earnedBadges.length}</p>
+                </div>
+                <Award className="w-10 h-10 text-purple-600 opacity-50" />
               </div>
-              <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div className="text-2xl font-bold">{user?.profile_stats?.total_posts || 0}</div>
-                <div className="text-xs text-white/80">Posts</div>
-              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Progresso Compacto */}
+        <Card className="border-0 shadow-lg mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-semibold">Progresso para Nível {currentLevel + 1}</p>
+              <p className="text-sm text-gray-600">{xpInCurrentLevel} / {xpPerLevel} XP</p>
             </div>
+            <Progress value={xpProgressPercentage} className="h-3 bg-gray-200" />
           </CardContent>
         </Card>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Daily Quests */}
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-green-600" />
-                  Missões Diárias
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">Resetam a cada 24 horas</p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {dailyQuests.map((quest) => (
-                  <div
-                    key={quest.id}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      quest.completed
-                        ? 'bg-green-50 border-green-300'
-                        : 'bg-white border-gray-200 hover:border-purple-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`text-3xl ${quest.completed ? 'opacity-50' : ''}`}>
-                          {quest.icon}
+        {/* Admin Controls Compactos */}
+        {user?.role === 'admin' && (
+          <div className="grid md:grid-cols-3 gap-3 mb-6">
+            <Button
+              onClick={() => { setShowGrantBadgeModal(true); setSelectedUserForBadge(null); setUserEmailSearch(''); }}
+              className="bg-green-600 hover:bg-green-700 h-12"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Conceder Emblema
+            </Button>
+            <Button
+              onClick={() => { setShowRemoveBadgeModal(true); setSelectedUserForBadge(null); setUserEmailSearch(''); }}
+              variant="outline"
+              className="border-red-300 text-red-600 hover:bg-red-50 h-12"
+            >
+              <Trash className="w-5 h-5 mr-2" />
+              Remover Emblema
+            </Button>
+            <Button
+              onClick={() => navigate(createPageUrl('AdminDashboard'))}
+              variant="outline"
+              className="h-12"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Admin Dashboard
+            </Button>
+          </div>
+        )}
+
+        <Tabs defaultValue="missions" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
+            <TabsTrigger value="missions">Missões</TabsTrigger>
+            <TabsTrigger value="badges">Meus Emblemas</TabsTrigger>
+            <TabsTrigger value="leaderboard">Ranking</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="missions">
+            <div className="space-y-6">
+              {/* Daily Quests */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-green-600" />
+                    Missões Diárias
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">Resetam a cada 24 horas</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {dailyQuests.map((quest) => (
+                    <div
+                      key={quest.id}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        quest.completed
+                          ? 'bg-green-50 border-green-300'
+                          : 'bg-white border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`text-3xl ${quest.completed ? 'opacity-50' : ''}`}>
+                            {quest.icon}
+                          </div>
+                          <div>
+                            <h4 className={`font-semibold ${quest.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                              {quest.title}
+                            </h4>
+                            <p className="text-sm text-gray-600">{quest.desc}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className={`font-semibold ${quest.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                            {quest.title}
-                          </h4>
-                          <p className="text-sm text-gray-600">{quest.desc}</p>
+                        <div className="text-right">
+                          {quest.completed ? (
+                            <CheckCircle className="w-8 h-8 text-green-600" />
+                          ) : (
+                            <Badge className="bg-purple-600 text-white">
+                              +{quest.reward} XP
+                            </Badge>
+                          )}
                         </div>
-                      </div>
-                      <div className="text-right">
-                        {quest.completed ? (
-                          <CheckCircle className="w-8 h-8 text-green-600" />
-                        ) : (
-                          <Badge className="bg-purple-600 text-white">
-                            +{quest.reward} XP
-                          </Badge>
-                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Photo Challenges */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-pink-50">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Camera className="w-5 h-5 text-orange-600" />
-                      Desafios de Fotos
-                    </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Capture momentos especiais e ganhe XP!
-                    </p>
-                  </div>
-                  <Badge className="bg-orange-600 text-white">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Novo
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {photoChallenges.map((challenge) => (
-                    <motion.div
-                      key={challenge.id}
-                      whileHover={{ scale: 1.02 }}
-                      className="p-4 rounded-xl border-2 bg-white border-orange-200 hover:border-orange-400 hover:shadow-md cursor-pointer transition-all"
-                      onClick={() => {
-                        setSelectedChallenge(challenge);
-                        setShowPhotoUpload(true);
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="text-4xl">{challenge.icon}</div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-sm mb-1 text-gray-900">
-                            {challenge.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 mb-2">{challenge.desc}</p>
-                          <Badge className="bg-orange-600 text-white text-xs">
-                            +{challenge.reward} XP
-                          </Badge>
-                        </div>
-                      </div>
-                    </motion.div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Minhas Badges */}
-            <Card className="border-0 shadow-xl">
+              {/* Photo Challenges */}
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-pink-50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Camera className="w-5 h-5 text-orange-600" />
+                        Desafios de Fotos
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Capture momentos especiais e ganhe XP!
+                      </p>
+                    </div>
+                    <Badge className="bg-orange-600 text-white">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Novo
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {photoChallenges.map((challenge) => (
+                      <motion.div
+                        key={challenge.id}
+                        whileHover={{ scale: 1.02 }}
+                        className="p-4 rounded-xl border-2 bg-white border-orange-200 hover:border-orange-400 hover:shadow-md cursor-pointer transition-all"
+                        onClick={() => {
+                          setSelectedChallenge(challenge);
+                          setShowPhotoUpload(true);
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="text-4xl">{challenge.icon}</div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-sm mb-1 text-gray-900">
+                              {challenge.title}
+                            </h4>
+                            <p className="text-xs text-gray-600 mb-2">{challenge.desc}</p>
+                            <Badge className="bg-orange-600 text-white text-xs">
+                              +{challenge.reward} XP
+                            </Badge>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Available Badges */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-blue-600" />
+                    Emblemas Disponíveis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+                    <TabsList className="grid w-full grid-cols-4 mb-6">
+                      <TabsTrigger value="all">Todos</TabsTrigger>
+                      <TabsTrigger value="social">Social</TabsTrigger>
+                      <TabsTrigger value="activity">Atividade</TabsTrigger>
+                      <TabsTrigger value="milestone">Marcos</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {availableBadges.map((badge) => {
+                      const progress = Math.min((badge.current / badge.requirement) * 100, 100);
+                      const isLocked = progress === 0;
+
+                      return (
+                        <div
+                          key={badge.id}
+                          className={`relative p-4 rounded-xl border-2 ${
+                            isLocked ? 'bg-gray-50 border-gray-300' : 'bg-white border-purple-200'
+                          }`}
+                        >
+                          {isLocked && (
+                            <div className="absolute top-2 right-2">
+                              <Lock className="w-5 h-5 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className={`text-4xl ${isLocked ? 'grayscale opacity-50' : ''}`}>
+                              {badge.icon}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-900 mb-1">{badge.name}</h4>
+                              <p className="text-sm text-gray-600">{badge.desc}</p>
+                              <Badge className={`mt-2 ${getRarityBorder(badge.rarity)}`} variant="outline">
+                                {badge.rarity} • +{badge.xp} XP
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-gray-600">
+                              <span>Progresso</span>
+                              <span>{badge.current} / {badge.requirement}</span>
+                            </div>
+                            <Progress value={progress} className="h-2" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+
+          {/* Badges Tab - Mais Compacto */}
+          <TabsContent value="badges">
+            <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-purple-600" />
+                  <Trophy className="w-6 h-6 text-yellow-600" />
                   Meus Emblemas ({earnedBadges.length})
                 </CardTitle>
               </CardHeader>
@@ -380,157 +607,57 @@ export default function Gamification() {
                 {earnedBadges.length === 0 ? (
                   <div className="text-center py-12">
                     <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Você ainda não tem emblemas</p>
-                    <p className="text-sm text-gray-500">Complete desafios para ganhar suas primeiras conquistas!</p>
+                    <p className="text-gray-600 mb-4">Nenhum emblema ainda</p>
+                    <Button onClick={() => document.querySelector('[data-state="inactive"][value="missions"]')?.click()}>
+                      Ver Missões
+                    </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {earnedBadges.map((badge, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className={`relative p-4 rounded-2xl border-4 ${getRarityBorder(badge.rarity)} bg-gradient-to-br ${getRarityColor(badge.rarity)} text-white text-center hover:scale-105 transition-transform cursor-pointer shadow-lg`}
-                      >
-                        {badge.image_url ? (
-                          <img 
-                            src={badge.image_url} 
-                            alt={badge.name}
-                            className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover"
-                            style={{imageRendering: 'pixelated'}}
-                          />
-                        ) : (
-                          <div className="text-5xl mb-2">{badge.icon}</div>
-                        )}
-                        <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
-                        <p className="text-xs opacity-90">{badge.description}</p>
-                        <Badge className="mt-2 bg-white/20 text-white text-xs">
-                          {badge.rarity?.toUpperCase()}
-                        </Badge>
-                      </motion.div>
-                    ))}
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {earnedBadges.map((badge, idx) => {
+                      const rarityColors = {
+                        common: "bg-gray-100 border-gray-300",
+                        rare: "bg-blue-100 border-blue-300",
+                        epic: "bg-purple-100 border-purple-300",
+                        legendary: "bg-yellow-100 border-yellow-300"
+                      };
+                      const colors = rarityColors[badge.rarity] || rarityColors.common;
+
+                      return (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.02 }}
+                          className={`relative p-3 rounded-lg border-2 ${colors} text-center hover:scale-105 transition-transform cursor-pointer`}
+                          title={badge.name}
+                        >
+                          {badge.image_url ? (
+                            <img
+                              src={badge.image_url}
+                              alt={badge.name}
+                              className="w-full aspect-square object-cover rounded-lg mb-2"
+                              style={{ imageRendering: 'pixelated' }}
+                            />
+                          ) : (
+                            <div className="text-4xl mb-2">{badge.icon}</div>
+                          )}
+                          <p className="text-xs font-bold truncate">{badge.name}</p>
+                          {badge.earned_date && (
+                            <p className="text-[10px] text-gray-500 mt-1">
+                              {new Date(badge.earned_date).toLocaleDateString('pt-PT')}
+                            </p>
+                          )}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Available Badges */}
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-blue-600" />
-                  Emblemas Disponíveis
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                  <TabsList className="grid w-full grid-cols-4 mb-6">
-                    <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="social">Social</TabsTrigger>
-                    <TabsTrigger value="activity">Atividade</TabsTrigger>
-                    <TabsTrigger value="milestone">Marcos</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {availableBadges.map((badge) => {
-                    const progress = Math.min((badge.current / badge.requirement) * 100, 100);
-                    const isLocked = progress === 0;
-
-                    return (
-                      <div
-                        key={badge.id}
-                        className={`relative p-4 rounded-xl border-2 ${
-                          isLocked ? 'bg-gray-50 border-gray-300' : 'bg-white border-purple-200'
-                        }`}
-                      >
-                        {isLocked && (
-                          <div className="absolute top-2 right-2">
-                            <Lock className="w-5 h-5 text-gray-400" />
-                          </div>
-                        )}
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className={`text-4xl ${isLocked ? 'grayscale opacity-50' : ''}`}>
-                            {badge.icon}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 mb-1">{badge.name}</h4>
-                            <p className="text-sm text-gray-600">{badge.desc}</p>
-                            <Badge className={`mt-2 ${getRarityBorder(badge.rarity)}`} variant="outline">
-                              {badge.rarity} • +{badge.xp} XP
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-gray-600">
-                            <span>Progresso</span>
-                            <span>{badge.current} / {badge.requirement}</span>
-                          </div>
-                          <Progress value={progress} className="h-2" />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  Estatísticas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Camera className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-medium">Posts</span>
-                  </div>
-                  <span className="text-lg font-bold text-blue-600">
-                    {user?.profile_stats?.total_posts || 0}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-pink-600" />
-                    <span className="text-sm font-medium">Curtidas Dadas</span>
-                  </div>
-                  <span className="text-lg font-bold text-pink-600">
-                    {userLikes.length}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm font-medium">Comentários</span>
-                  </div>
-                  <span className="text-lg font-bold text-purple-600">
-                    {userComments.length}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-green-600" />
-                    <span className="text-sm font-medium">Reservas</span>
-                  </div>
-                  <span className="text-lg font-bold text-green-600">
-                    {user?.profile_stats?.total_bookings || 0}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
+          <TabsContent value="leaderboard">
             {/* Leaderboard Preview */}
             <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-50 to-orange-50">
               <CardHeader>
@@ -554,7 +681,7 @@ export default function Gamification() {
             </Card>
 
             {/* Referral Program */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-blue-50">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-blue-50 mt-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Gift className="w-5 h-5 text-green-600" />
@@ -577,8 +704,8 @@ export default function Gamification() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Photo Upload Modal */}
@@ -616,9 +743,9 @@ export default function Gamification() {
               <div className="space-y-4">
                 {photoPreview ? (
                   <div className="relative">
-                    <img 
-                      src={photoPreview} 
-                      alt="Preview" 
+                    <img
+                      src={photoPreview}
+                      alt="Preview"
                       className="w-full h-48 object-cover rounded-xl"
                     />
                     <button
@@ -673,6 +800,184 @@ export default function Gamification() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Grant Badge Modal */}
+      <Dialog open={showGrantBadgeModal} onOpenChange={setShowGrantBadgeModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Conceder Emblema</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="user-email-search">Email do Usuário</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  id="user-email-search"
+                  type="email"
+                  value={userEmailSearch}
+                  onChange={(e) => setUserEmailSearch(e.target.value)}
+                  placeholder="usuario@exemplo.com"
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => searchUserMutation.mutate(userEmailSearch)}
+                  disabled={searchUserMutation.isPending || !userEmailSearch}
+                >
+                  {searchUserMutation.isPending ? "Buscando..." : <><Search className="w-4 h-4 mr-2" /> Buscar</>}
+                </Button>
+              </div>
+            </div>
+
+            {searchUserMutation.isError && (
+                <p className="text-red-500 text-sm">
+                  {searchUserMutation.error.message || 'Erro ao buscar usuário.'}
+                </p>
+            )}
+
+            {selectedUserForBadge && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <p className="font-semibold text-blue-900">
+                  {selectedUserForBadge.full_name}
+                </p>
+                <p className="text-sm text-blue-700">{selectedUserForBadge.email}</p>
+                <p className="text-xs text-blue-600 mt-2">
+                  Emblemas atuais: {selectedUserForBadge.achievements_badges?.length || 0}
+                </p>
+              </div>
+            )}
+
+            {selectedUserForBadge && (
+              <>
+                <div>
+                  <Label className="mb-3 block">Selecione o Emblema para Conceder</Label>
+                  <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                    {allBadges.map((badge) => {
+                      const alreadyHas = selectedUserForBadge.achievements_badges?.some(
+                        b => b.badge_id === badge.id
+                      );
+
+                      return (
+                        <Card
+                          key={badge.id}
+                          className={`cursor-pointer transition-all border ${
+                            alreadyHas
+                              ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                              : 'hover:shadow-lg hover:scale-105 bg-white'
+                          }`}
+                          onClick={() => {
+                            if (!alreadyHas) {
+                              grantBadgeMutation.mutate({
+                                userEmail: selectedUserForBadge.email,
+                                badge: badge
+                              });
+                            }
+                          }}
+                        >
+                          <CardContent className="p-3 text-center">
+                            <div className="text-3xl mb-2">{badge.icon}</div>
+                            <p className="text-xs font-bold">{badge.name}</p>
+                            {alreadyHas && (
+                              <Badge className="mt-2 bg-gray-500 text-white text-[10px]">
+                                Já possui
+                              </Badge>
+                            )}
+                            {grantBadgeMutation.isPending && grantBadgeMutation.variables?.badge?.id === badge.id && (
+                              <Badge className="mt-2 bg-blue-500 text-white text-[10px]">
+                                Concedendo...
+                              </Badge>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Badge Modal */}
+      <Dialog open={showRemoveBadgeModal} onOpenChange={setShowRemoveBadgeModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Remover Emblema</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="remove-user-email-search">Email do Usuário</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  id="remove-user-email-search"
+                  type="email"
+                  value={userEmailSearch}
+                  onChange={(e) => setUserEmailSearch(e.target.value)}
+                  placeholder="usuario@exemplo.com"
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => searchUserMutation.mutate(userEmailSearch)}
+                  disabled={searchUserMutation.isPending || !userEmailSearch}
+                >
+                  {searchUserMutation.isPending ? "Buscando..." : <><Search className="w-4 h-4 mr-2" /> Buscar</>}
+                </Button>
+              </div>
+            </div>
+
+            {searchUserMutation.isError && (
+                <p className="text-red-500 text-sm">
+                  {searchUserMutation.error.message || 'Erro ao buscar usuário.'}
+                </p>
+            )}
+
+            {selectedUserForBadge && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <p className="font-semibold text-blue-900">
+                  {selectedUserForBadge.full_name}
+                </p>
+                <p className="text-sm text-blue-700">{selectedUserForBadge.email}</p>
+              </div>
+            )}
+
+            {selectedUserForBadge && selectedUserForBadge.achievements_badges?.length > 0 ? (
+              <>
+                <Label>Clique no emblema para remover</Label>
+                <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                  {selectedUserForBadge.achievements_badges.map((badge, idx) => (
+                    <Card
+                      key={idx}
+                      className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all hover:border-red-300"
+                      onClick={() => {
+                        if (confirm(`Tem certeza que deseja remover o emblema "${badge.name}" de ${selectedUserForBadge.email}?`)) {
+                          removeBadgeMutation.mutate({
+                            userEmail: selectedUserForBadge.email,
+                            badgeId: badge.badge_id
+                          });
+                        }
+                      }}
+                    >
+                      <CardContent className="p-3 text-center">
+                        <div className="text-3xl mb-2">{badge.icon}</div>
+                        <p className="text-xs font-bold truncate">{badge.name}</p>
+                        {removeBadgeMutation.isPending && removeBadgeMutation.variables?.badgeId === badge.badge_id && (
+                          <Badge className="mt-2 bg-red-500 text-white text-[10px]">
+                            Removendo...
+                          </Badge>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            ) : selectedUserForBadge ? (
+              <p className="text-center text-gray-600 py-8">
+                Este usuário não possui emblemas
+              </p>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

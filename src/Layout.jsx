@@ -227,36 +227,39 @@ function LayoutContent({ children, currentPageName }) {
     const awardWelcomeBadge = async () => {
       if (!user?.email) return;
       
-      const badges = user.public_badges || [];
+      const badges = user.achievements_badges || [];
       const hasWelcomeBadge = badges.some(b => b.badge_id === 'welcome');
       
       if (!hasWelcomeBadge) {
-        const newBadge = {
-          badge_id: 'welcome',
-          name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
-          description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
-          icon: '🎉',
-          rarity: 'common',
-          earned_date: new Date().toISOString(),
-          category: 'milestone'
-        };
-        
-        await base44.auth.updateMe({
-          public_badges: [...badges, newBadge],
-          gamification_xp: (user.gamification_xp || 0) + 50
-        });
-        
-        queryClient.invalidateQueries(['currentUser']);
-        toast.success(language === 'pt' ? '🎉 Emblema de Boas-Vindas conquistado!' : (language === 'es' ? '🎉 ¡Emblema de Bienvenida obtenido!' : '🎉 Welcome Badge earned!'));
+        try {
+          const newBadge = {
+            badge_id: 'welcome',
+            name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
+            description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
+            icon: '🎉',
+            rarity: 'common',
+            earned_date: new Date().toISOString(),
+            category: 'milestone'
+          };
+          
+          await base44.auth.updateMe({
+            achievements_badges: [...badges, newBadge],
+            gamification_xp: (user.gamification_xp || 0) + 50
+          });
+          
+          queryClient.invalidateQueries(['currentUser']);
+          toast.success(language === 'pt' ? '🎉 Emblema de Boas-Vindas conquistado! +50 XP' : (language === 'es' ? '🎉 ¡Emblema de Bienvenida obtenido! +50 XP' : '🎉 Welcome Badge earned! +50 XP'));
+        } catch (error) {
+          console.error('Error awarding welcome badge:', error);
+        }
       }
     };
     
-    // Only trigger if user email or language changes, to prevent re-awarding.
-    // The queryClient.invalidateQueries(['currentUser']) would cause user to re-fetch,
-    // which then updates `user.public_badges` and `user.gamification_xp`.
-    // If these were in dependencies, it would re-run the effect immediately.
-    awardWelcomeBadge();
-  }, [user?.email, language, queryClient]);
+    // Delay to ensure user data is loaded and badges are initialized
+    if (user?.email && user.achievements_badges !== undefined) {
+      awardWelcomeBadge();
+    }
+  }, [user?.email, user?.achievements_badges, language, queryClient]);
 
   // Ensure Dog Connect profile for every user
   React.useEffect(() => {
@@ -265,26 +268,30 @@ function LayoutContent({ children, currentPageName }) {
       
       // Check if user has Dog Connect stats
       if (user.profile_stats === undefined || user.profile_stats === null) {
-        await base44.auth.updateMe({
-          profile_stats: {
-            total_posts: 0,
-            total_likes_received: 0,
-            total_comments_made: 0,
-            total_bookings: 0,
-            total_dogs_helped: 0,
-            total_referrals: 0,
-            total_reviews_written: 0,
-            total_forum_topics: 0,
-            total_forum_replies: 0,
-            total_events_attended: 0,
-            total_adoptions: 0,
-            member_since_days: 0
-          },
-          followers_count: 0,
-          following_count: 0,
-          total_posts: 0
-        });
-        queryClient.invalidateQueries(['currentUser']);
+        try {
+          await base44.auth.updateMe({
+            profile_stats: {
+              total_posts: 0,
+              total_likes_received: 0,
+              total_comments_made: 0,
+              total_bookings: 0,
+              total_dogs_helped: 0,
+              total_referrals: 0,
+              total_reviews_written: 0,
+              total_forum_topics: 0,
+              total_forum_replies: 0,
+              total_events_attended: 0,
+              total_adoptions: 0,
+              member_since_days: 0
+            },
+            followers_count: 0,
+            following_count: 0,
+            total_posts: 0
+          });
+          queryClient.invalidateQueries(['currentUser']);
+        } catch (error) {
+          console.error('Error setting up Dog Connect profile:', error);
+        }
       }
     };
     

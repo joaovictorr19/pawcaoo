@@ -59,6 +59,9 @@ export default function UserProfile() {
   const profileBadges = profileUser?.profile_badges || [];
   const achievementsBadges = profileUser?.achievements_badges || [];
 
+  console.log('Profile User:', profileUser?.email);
+  console.log('Achievements Badges:', achievementsBadges);
+
   const { data: userPosts = [] } = useQuery({
     queryKey: ['userPosts', profileEmail],
     queryFn: () => base44.entities.SocialPost.filter({
@@ -584,7 +587,7 @@ export default function UserProfile() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: idx * 0.03 }}
                       className={`relative p-2 rounded-lg border-2 ${colors} text-center hover:scale-110 transition-transform cursor-pointer`}
-                      title={badge.name}
+                      title={`${badge.name} - ${badge.description || ''}`}
                     >
                       {badge.image_url ? (
                         <img 
@@ -593,7 +596,7 @@ export default function UserProfile() {
                           className="w-full aspect-square object-cover rounded-lg"
                         />
                       ) : (
-                        <div className="text-3xl">{badge.icon}</div>
+                        <div className="text-3xl">{badge.icon || '🏆'}</div>
                       )}
                     </motion.div>
                   );

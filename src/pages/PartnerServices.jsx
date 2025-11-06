@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -28,8 +29,22 @@ export default function PartnerServices() {
   });
 
   const { data: services = [], isLoading } = useQuery({
-    queryKey: ['partnerServices'],
-    queryFn: () => base44.entities.PartnerService.filter({ is_active: true, moderation_status: 'approved' }),
+    queryKey: ['partnerServices', user?.email, user?.account_type], // Add user dependencies for re-fetching
+    queryFn: async () => {
+      // Se o usuário é uma empresa, mostra TODOS os seus serviços (incluindo pendentes)
+      if (user?.account_type === 'company' && user?.email) {
+        return await base44.entities.PartnerService.filter({
+          partner_company_email: user.email
+        });
+      }
+      
+      // Para outros usuários, mostra apenas aprovados e ativos
+      return await base44.entities.PartnerService.filter({ 
+        is_active: true, 
+        moderation_status: 'approved' 
+      });
+    },
+    enabled: !!user, // Only run this query if user data is available
     initialData: [],
     staleTime: 60000,
   });
@@ -56,6 +71,14 @@ export default function PartnerServices() {
 
   const filteredServices = React.useMemo(() => {
     return services.filter(service => {
+      // Se é empresa dona do serviço, mostra tudo
+      const isOwnService = user?.email === service.partner_company_email;
+      
+      // Se não for próprio serviço, só mostra se aprovado e ativo
+      if (!isOwnService && (service.moderation_status !== 'approved' || !service.is_active)) {
+        return false;
+      }
+
       const matchesSearch = !searchQuery ||
         service.service_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.partner_name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -67,7 +90,7 @@ export default function PartnerServices() {
 
       return matchesSearch && matchesType && matchesCity;
     });
-  }, [services, searchQuery, selectedServiceType, selectedCity, partners]);
+  }, [services, searchQuery, selectedServiceType, selectedCity, partners, user?.email]);
 
   const getServiceIcon = (type) => {
     const found = serviceTypes.find(s => s.id === type);
@@ -206,6 +229,7 @@ export default function PartnerServices() {
             <AnimatePresence>
               {filteredServices.map((service, index) => {
                 const partner = partners.find(p => p.company_name === service.partner_name);
+                const isOwnService = user?.email === service.partner_company_email;
                 
                 return (
                   <motion.div
@@ -219,11 +243,18 @@ export default function PartnerServices() {
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-2">
                           <div className="text-4xl">{getServiceIcon(service.service_type)}</div>
-                          {service.is_emergency && (
-                            <Badge className="bg-red-500 text-white">
-                              🚨 {language === 'pt' ? 'Emergência' : 'Emergency'}
-                            </Badge>
-                          )}
+                          <div className="flex gap-2">
+                            {isOwnService && (service.moderation_status === 'pending' || !service.is_active) && (
+                              <Badge variant="outline" className="text-xs border-orange-500 text-orange-700 bg-orange-50">
+                                {service.moderation_status === 'pending' ? (language === 'pt' ? 'Pendente' : 'Pending') : (language === 'pt' ? 'Inativo' : 'Inactive')}
+                              </Badge>
+                            )}
+                            {service.is_emergency && (
+                              <Badge className="bg-red-500 text-white">
+                                🚨 {language === 'pt' ? 'Emergência' : 'Emergency'}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <CardTitle className="text-xl group-hover:text-purple-600 transition-colors">
                           {service.service_name}
