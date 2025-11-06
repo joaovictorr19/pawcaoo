@@ -357,7 +357,8 @@ export default function SocialFeed() {
         author_email: user.email,
         author_name: user.full_name,
         author_photo_url: user.profile_photo_url,
-        content: content
+        content: content,
+        likes_count: 0
       });
 
       // Atualizar contagem de comentários do post
@@ -374,7 +375,42 @@ export default function SocialFeed() {
       setCommentText("");
       setCommentingPostId(null);
       queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
+      queryClient.invalidateQueries({ queryKey: ['postComments'] });
       toast.success('✅ Comentário adicionado!');
+    },
+  });
+
+  // NOVO: Mutation para curtir comentário
+  const likeCommentMutation = useMutation({
+    mutationFn: async ({ commentId }) => {
+      console.log('💗 CURTINDO COMENTÁRIO:', commentId);
+      
+      // Verificar se já curtiu
+      const existingLikes = await base44.entities.SocialLike.filter({
+        comment_id: commentId,
+        user_email: user.email
+      });
+
+      if (existingLikes.length > 0) {
+        // Descurtir
+        console.log('❌ Removendo curtida do comentário');
+        await base44.entities.SocialLike.delete(existingLikes[0].id);
+        return { action: 'unliked' };
+      } else {
+        // Curtir
+        console.log('✅ Adicionando curtida ao comentário');
+        const newLike = await base44.entities.SocialLike.create({
+          comment_id: commentId,
+          user_email: user.email,
+          user_name: user.full_name,
+          reaction_type: 'like'
+        });
+        return { action: 'liked', like: newLike };
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['postComments'] });
+      queryClient.invalidateQueries({ queryKey: ['commentLikes'] });
     },
   });
 
@@ -385,9 +421,42 @@ export default function SocialFeed() {
     staleTime: 10000,
   });
 
+  // NOVO: Query para comentários de cada post
+  const { data: postCommentsMap = {} } = useQuery({
+    queryKey: ['postComments'],
+    queryFn: async () => {
+      const allComments = await base44.entities.SocialComment.list('-created_date');
+      
+      // Agrupar comentários por post_id
+      const map = {};
+      allComments.forEach(comment => {
+        if (!map[comment.post_id]) {
+          map[comment.post_id] = [];
+        }
+        map[comment.post_id].push(comment);
+      });
+      
+      return map;
+    },
+    staleTime: 5000,
+    enabled: !!user?.email
+  });
+
+  // NOVO: Query para likes de cada comentário
+  const { data: allCommentLikes = [] } = useQuery({
+    queryKey: ['commentLikes'],
+    queryFn: () => base44.entities.SocialLike.filter({ comment_id: { $exists: true } }),
+    staleTime: 10000,
+  });
+
   // Helper para verificar se usuário curtiu um post
   const hasUserLikedPost = (postId) => {
     return allLikes.some(like => like.post_id === postId && like.user_email === user?.email);
+  };
+
+  // Helper para verificar se usuário curtiu um comentário
+  const hasUserLikedComment = (commentId) => {
+    return allCommentLikes.some(like => like.comment_id === commentId && like.user_email === user?.email);
   };
 
   const handleCreatePost = () => {
@@ -464,6 +533,10 @@ export default function SocialFeed() {
 
   const handleLike = (postId) => {
     likeMutation.mutate({ postId });
+  };
+
+  const handleLikeComment = (commentId) => {
+    likeCommentMutation.mutate({ commentId });
   };
 
   const handleComment = (postId) => {
@@ -638,6 +711,8 @@ export default function SocialFeed() {
                 {posts.map((post, index) => {
                   const { isVerified, role, socialRole, isAdoptionAdvocate } = getUserBadges(post.author_email);
                   const userLiked = hasUserLikedPost(post.id);
+                  const postComments = postCommentsMap[post.id] || [];
+                  const showingComments = commentingPostId === post.id;
 
                   return (
                     <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.05 }}>
@@ -785,13 +860,73 @@ export default function SocialFeed() {
                             )}
 
                             {/* Comments Count */}
-                            {post.comments_count > 0 && (
+                            {postComments.length > 0 && (
                               <button 
-                                className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                                className="text-gray-500 text-sm hover:text-gray-700 transition-colors mb-2"
                                 onClick={() => setCommentingPostId(commentingPostId === post.id ? null : post.id)}
                               >
-                                Ver todos os {post.comments_count} comentários
+                                Ver {postComments.length === 1 ? 'comentário' : `todos os ${postComments.length} comentários`}
                               </button>
+                            )}
+
+                            {/* MOSTRAR COMENTÁRIOS EXISTENTES */}
+                            {showingComments && postComments.length > 0 && (
+                              <div className="space-y-3 mb-3 pt-3 border-t border-gray-200">
+                                {postComments.slice(0, 3).map((comment) => {
+                                  const commentLiked = hasUserLikedComment(comment.id);
+                                  const commentLikesCount = allCommentLikes.filter(l => l.comment_id === comment.id).length;
+                                  
+                                  return (
+                                    <div key={comment.id} className="flex items-start gap-2">
+                                      <Avatar 
+                                        className="w-8 h-8 cursor-pointer"
+                                        onClick={() => handleNavigateToProfile(comment.author_email)}
+                                      >
+                                        <AvatarImage src={comment.author_photo_url} />
+                                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-xs">
+                                          {comment.author_name?.[0]}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1">
+                                        <div className="bg-gray-50 rounded-2xl px-3 py-2">
+                                          <p 
+                                            className="font-semibold text-sm cursor-pointer hover:text-blue-600"
+                                            onClick={() => handleNavigateToProfile(comment.author_email)}
+                                          >
+                                            {comment.author_name}
+                                          </p>
+                                          <p className="text-sm text-gray-700">{comment.content}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-1 px-3">
+                                          <button 
+                                            className={`text-xs font-semibold ${commentLiked ? 'text-red-600' : 'text-gray-500'} hover:text-red-600`}
+                                            onClick={() => handleLikeComment(comment.id)}
+                                            disabled={likeCommentMutation.isPending}
+                                          >
+                                            Curtir
+                                          </button>
+                                          {commentLikesCount > 0 && (
+                                            <span className="text-xs text-gray-500">
+                                              {commentLikesCount} {commentLikesCount === 1 ? 'curtida' : 'curtidas'}
+                                            </span>
+                                          )}
+                                          <span className="text-xs text-gray-400">
+                                            {new Date(comment.created_date).toLocaleDateString('pt-PT', {
+                                              day: 'numeric',
+                                              month: 'short'
+                                            })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                {postComments.length > 3 && (
+                                  <button className="text-sm text-gray-500 hover:text-gray-700 font-medium">
+                                    Ver mais {postComments.length - 3} comentários
+                                  </button>
+                                )}
+                              </div>
                             )}
 
                             {/* Timestamp */}
@@ -802,8 +937,8 @@ export default function SocialFeed() {
                               })}
                             </p>
 
-                            {/* NOVO: Área de Comentário */}
-                            {commentingPostId === post.id && (
+                            {/* ÁREA DE COMENTÁRIO */}
+                            {showingComments && (
                               <div className="mt-4 pt-4 border-t border-gray-200">
                                 <div className="flex items-center gap-3">
                                   <Avatar className="w-8 h-8">
@@ -822,7 +957,7 @@ export default function SocialFeed() {
                                         handleComment(post.id);
                                       }
                                     }}
-                                    className="flex-1 border-0 focus:ring-0 text-sm"
+                                    className="flex-1 border-0 focus:ring-0 text-sm bg-gray-50 rounded-full px-4 py-2"
                                   />
                                   <Button
                                     size="sm"

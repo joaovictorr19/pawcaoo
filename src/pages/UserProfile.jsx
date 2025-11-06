@@ -104,30 +104,38 @@ export default function UserProfile() {
       
       try {
         const users = await base44.entities.User.list();
-        console.log('📊 Total de usuários:', users.length);
+        console.log('📊 Total de usuários no banco:', users.length);
+        console.log('📋 Primeiros 5 emails:', users.slice(0, 5).map(u => u.email));
         
-        // Buscar com comparação case-insensitive
-        const found = users.find(u => u.email?.toLowerCase() === profileEmail.toLowerCase());
+        // Buscar com comparação case-insensitive E trim
+        const emailToFind = profileEmail.toLowerCase().trim();
+        const found = users.find(u => {
+          const userEmail = (u.email || '').toLowerCase().trim();
+          console.log(`  Comparando: "${userEmail}" === "${emailToFind}" ?`, userEmail === emailToFind);
+          return userEmail === emailToFind;
+        });
         
         if (found) {
           console.log('✅ USUÁRIO ENCONTRADO!');
-          console.log('📋 Dados:', {
+          console.log('📋 Dados completos:', JSON.stringify({
+            id: found.id,
             email: found.email,
-            nome: found.full_name,
-            foto: found.profile_photo_url ? '✓ Tem foto' : '✗ Sem foto',
-            cidade: found.city || 'Não definida',
-            bio: found.bio ? '✓ Tem bio' : '✗ Sem bio',
-            verificado: found.is_verified ? '✓' : '✗',
+            full_name: found.full_name,
+            profile_photo_url: found.profile_photo_url,
+            city: found.city,
+            bio: found.bio,
+            is_verified: found.is_verified,
             role: found.role,
-            social_role: found.social_role,
-            achievements: found.achievements_badges?.length || 0,
-            public_badges: found.public_badges?.length || 0
-          });
+            social_role: found.social_role
+          }, null, 2));
           return found;
         } else {
           console.log('❌ USUÁRIO NÃO ENCONTRADO!');
-          console.log('📧 Email procurado:', profileEmail);
-          console.log('📋 Emails disponíveis:', users.map(u => u.email).slice(0, 10));
+          console.log('📧 Email procurado (normalizado):', emailToFind);
+          console.log('📋 TODOS os emails no banco:');
+          users.forEach((u, idx) => {
+            console.log(`  ${idx + 1}. "${u.email}" (${u.full_name})`);
+          });
           return null;
         }
       } catch (error) {
@@ -136,11 +144,10 @@ export default function UserProfile() {
       }
     },
     enabled: !!profileEmail,
-    retry: 3,
-    retryDelay: 1000,
+    retry: false, // Changed from 3
     staleTime: 0,
     refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Changed from true
   });
 
   const profileBadges = profileUser?.profile_badges || [];
@@ -297,13 +304,17 @@ export default function UserProfile() {
   };
 
   console.log('\n📊 === DADOS FINAIS ===');
+  console.log('Profile Email:', profileEmail);
   console.log('Profile User:', profileUser ? '✅ OK' : '❌ NULL');
-  console.log('Email:', profileUser?.email);
-  console.log('Nome:', profileUser?.full_name);
-  console.log('Foto:', profileUser?.profile_photo_url);
-  console.log('Posts:', userPosts.length);
-  console.log('Seguidores:', followers.length);
-  console.log('Seguindo:', following.length);
+  if (profileUser) {
+    console.log('User ID:', profileUser.id);
+    console.log('Email:', profileUser.email);
+    console.log('Nome:', profileUser.full_name);
+    console.log('Foto:', profileUser.profile_photo_url ? 'Tem foto' : 'Sem foto');
+  }
+  console.log('Posts:', userPosts?.length || 0);
+  console.log('Seguidores:', followers?.length || 0);
+  console.log('Seguindo:', following?.length || 0);
   console.log('=======================\n');
 
   if (loadingUser || loadingPosts || loadingFollowers || loadingFollowing) {
@@ -325,6 +336,10 @@ export default function UserProfile() {
             <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil não encontrado</h2>
             <p className="text-gray-600 mb-4">Este perfil não está disponível ou foi removido.</p>
+            <div className="bg-gray-100 p-3 rounded-lg mb-4">
+              <p className="text-xs text-gray-500">Debug Info (só você vê):</p>
+              <p className="text-xs text-gray-600 font-mono">Email procurado: {profileEmail}</p>
+            </div>
             <Button onClick={() => navigate(createPageUrl('SocialFeed'))} className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar ao Feed
