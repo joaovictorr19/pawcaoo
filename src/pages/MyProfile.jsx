@@ -285,19 +285,19 @@ export default function MyProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-gray-600">A carregar...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Meu Perfil & Configurações
+              Meu Perfil
             </h1>
             <p className="text-gray-600">
               Gerencie suas informações pessoais e preferências
@@ -305,7 +305,7 @@ export default function MyProfile() {
           </div>
           <Button
             variant="outline"
-            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="border-gray-300 text-gray-700 hover:bg-gray-100"
             onClick={handleLogout}
           >
             <LogOut className="w-4 h-4 mr-2" />
@@ -314,14 +314,14 @@ export default function MyProfile() {
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6">
-          <Card className="lg:col-span-1 h-fit border-0 shadow-xl">
+          <Card className="lg:col-span-1 h-fit border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="relative -mx-6 -mt-6 mb-4">
-                <div className="relative h-24 bg-gradient-to-r from-green-500 to-blue-600 overflow-hidden">
+                <div className="relative h-24 bg-gradient-to-r from-green-600 to-blue-600 overflow-hidden">
                   {user?.cover_photo_url && (
                     <img src={user.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
                   )}
-                  <label htmlFor="cover-upload" className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg cursor-pointer hover:bg-white">
+                  <label htmlFor="cover-upload" className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-md cursor-pointer hover:bg-gray-50">
                     <Upload className="w-3 h-3 text-gray-700" />
                   </label>
                   <input
@@ -339,11 +339,11 @@ export default function MyProfile() {
                 <div className="relative">
                   <Avatar className="w-24 h-24 mb-4 ring-4 ring-white">
                     <AvatarImage src={user?.profile_photo_url} />
-                    <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-2xl">
+                    <AvatarFallback className="bg-green-600 text-white text-2xl">
                       {user?.full_name?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <label htmlFor="photo-upload" className="absolute bottom-4 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50">
+                  <label htmlFor="photo-upload" className="absolute bottom-4 right-0 bg-white rounded-full p-2 shadow-md cursor-pointer hover:bg-gray-50">
                     <Upload className="w-4 h-4 text-gray-600" />
                   </label>
                   <input
@@ -360,19 +360,19 @@ export default function MyProfile() {
 
                 <div className="flex flex-wrap gap-2 justify-center mb-3">
                   {user?.role === 'admin' && (
-                    <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
+                    <Badge className="bg-red-600 text-white">
                       <Shield className="w-3 h-3 mr-1" />
                       Admin
                     </Badge>
                   )}
                   {user?.social_role === 'moderator' && (
-                    <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+                    <Badge className="bg-blue-600 text-white">
                       <ShieldCheck className="w-3 h-3 mr-1" />
                       Moderador
                     </Badge>
                   )}
                   {user?.is_verified && (
-                    <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                    <Badge className="bg-blue-500 text-white">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Verificado
                     </Badge>
@@ -388,7 +388,7 @@ export default function MyProfile() {
                   {earnedBadges.slice(0, 3).map((badge, idx) => (
                     <Badge 
                       key={idx} 
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs"
+                      className="bg-gray-700 text-white text-xs"
                       title={badge.name}
                     >
                       {badge.icon}
@@ -397,7 +397,7 @@ export default function MyProfile() {
                 </div>
 
                 {loyaltyPoints && (
-                  <div className={`w-full bg-gradient-to-r ${getTierColor(loyaltyPoints.tier)} text-white rounded-xl p-4 mb-4 shadow-lg`}>
+                  <div className={`w-full bg-green-600 text-white rounded-lg p-4 mb-4 shadow-sm`}>
                     <div className="text-center">
                       <div className="text-xs opacity-90 mb-1">PawPoints</div>
                       <div className="text-3xl font-bold">{loyaltyPoints.points_balance?.toLocaleString() || 0}</div>
@@ -492,7 +492,7 @@ export default function MyProfile() {
           <div className="lg:col-span-3">
             {/* Profile Tab */}
             {activeTab === "profile" && (
-              <Card className="border-0 shadow-xl">
+              <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
                     <User className="w-5 h-5 text-green-600" />
@@ -611,8 +611,8 @@ export default function MyProfile() {
             {/* Activity Tab */}
             {activeTab === "activity" && (
               <div className="space-y-6">
-                <Card className="border-0 shadow-xl">
-                  <CardHeader className={`bg-gradient-to-r ${getTierColor(loyaltyPoints?.tier || 'bronze')} text-white rounded-t-xl`}>
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader className={`bg-green-600 text-white rounded-t-lg`}>
                     <CardTitle className="text-xl flex items-center justify-between">
                       <span className="flex items-center gap-2">
                         <Sparkles className="w-6 h-6" />
@@ -631,21 +631,21 @@ export default function MyProfile() {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="grid md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-green-50 rounded-xl">
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
                         <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
                         <div className="text-2xl font-bold text-gray-900">
                           {loyaltyPoints?.points_balance?.toLocaleString() || 0}
                         </div>
                         <div className="text-sm text-gray-600">Pontos Disponíveis</div>
                       </div>
-                      <div className="text-center p-4 bg-blue-50 rounded-xl">
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
                         <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                         <div className="text-2xl font-bold text-gray-900">
                           {loyaltyPoints?.total_earned?.toLocaleString() || 0}
                         </div>
                         <div className="text-sm text-gray-600">Total Ganho</div>
                       </div>
-                      <div className="text-center p-4 bg-purple-50 rounded-xl">
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
                         <Target className="w-8 h-8 text-purple-600 mx-auto mb-2" />
                         <div className="text-2xl font-bold text-gray-900 capitalize">
                           {loyaltyPoints?.tier || 'Bronze'}
@@ -656,7 +656,7 @@ export default function MyProfile() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-xl">
+                <Card className="border-gray-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-xl flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-green-600" />
@@ -718,7 +718,7 @@ export default function MyProfile() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-xl">
+                <Card className="border-gray-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-xl flex items-center gap-2">
                       <Heart className="w-5 h-5 text-pink-600" />
@@ -744,11 +744,11 @@ export default function MyProfile() {
                     ) : (
                       <div className="grid md:grid-cols-2 gap-3">
                         {favorites.map((fav) => (
-                          <div key={fav.id} className="p-4 border-2 border-pink-100 rounded-lg hover:shadow-lg transition-shadow">
+                          <div key={fav.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
                             <div className="flex items-center gap-3 mb-2">
                               <Avatar className="w-12 h-12">
                                 <AvatarImage src={fav.walker_photo_url} />
-                                <AvatarFallback className="bg-gradient-to-br from-pink-500 to-rose-500 text-white">
+                                <AvatarFallback className="bg-gray-700 text-white">
                                   {fav.walker_name?.[0] || 'S'}
                                 </AvatarFallback>
                               </Avatar>
@@ -779,7 +779,7 @@ export default function MyProfile() {
             {/* Pets Tab */}
             {activeTab === "pets" && (
               <div className="space-y-6">
-                <Card className="border-0 shadow-xl">
+                <Card className="border-gray-200 shadow-sm">
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-xl flex items-center gap-2">
                       <Dog className="w-5 h-5 text-green-600" />
@@ -843,7 +843,7 @@ export default function MyProfile() {
 
             {/* Social Tab */}
             {activeTab === "social" && (
-              <Card className="border-0 shadow-xl">
+              <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
                     <AtSign className="w-5 h-5 text-purple-600" />
@@ -919,31 +919,31 @@ export default function MyProfile() {
             {activeTab === "badges" && (
               <div className="space-y-6">
                 {/* XP & Level Card */}
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-600 via-blue-600 to-pink-600 text-white overflow-hidden">
+                <Card className="border-gray-200 shadow-sm bg-green-600 text-white">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <div className="text-sm opacity-90 mb-1">XP Total</div>
                         <div className="text-4xl font-bold">{user?.gamification_xp || 0}</div>
                       </div>
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-4 border-white/40">
+                      <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center border-2 border-white/40">
                         <span className="text-3xl font-black">{user?.gamification_level || 1}</span>
                       </div>
                     </div>
                     <div className="text-sm opacity-90 mb-2">
-                      Nível {user?.gamification_level || 1} • {((user?.gamification_xp || 0) % 500)} / 500 XP para próximo nível
+                      Nível {user?.gamification_level || 1} - {((user?.gamification_xp || 0) % 500)} / 500 XP para próximo nível
                     </div>
                     <Progress value={((user?.gamification_xp || 0) % 500) / 500 * 100} className="h-3 bg-white/20" />
                   </CardContent>
                 </Card>
 
                 {/* Emblemas de Missões */}
-                <Card className="border-0 shadow-xl">
+                <Card className="border-gray-200 shadow-sm">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-xl flex items-center gap-2">
-                          <Trophy className="w-5 h-5 text-yellow-600" />
+                          <Trophy className="w-5 h-5 text-green-600" />
                           Emblemas de Missões
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
@@ -966,7 +966,7 @@ export default function MyProfile() {
                         <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-600 mb-4">Nenhum emblema de missão ainda</p>
                         <p className="text-sm text-gray-500 mb-6">
-                          Complete desafios diários e desbloqueie emblemas exclusivos!
+                          Complete desafios diários e desbloqueie emblemas exclusivos
                         </p>
                         <Button onClick={() => navigate(createPageUrl('Gamification'))}>
                           <Sparkles className="w-4 h-4 mr-2" />
@@ -977,10 +977,10 @@ export default function MyProfile() {
                       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {earnedBadges.filter(b => b.category !== 'special').map((badge, idx) => {
                           const rarityColors = {
-                            common: "from-gray-400 to-gray-600 border-gray-400",
-                            rare: "from-blue-400 to-blue-600 border-blue-400",
-                            epic: "from-purple-400 to-purple-600 border-purple-400",
-                            legendary: "from-yellow-400 to-orange-600 border-yellow-400"
+                            common: "bg-gray-100 border-gray-300 text-gray-700",
+                            rare: "bg-blue-50 border-blue-300 text-blue-700",
+                            epic: "bg-purple-50 border-purple-300 text-purple-700",
+                            legendary: "bg-yellow-50 border-yellow-300 text-yellow-700"
                           };
                           const colors = rarityColors[badge.rarity] || rarityColors.common;
                           
@@ -990,12 +990,12 @@ export default function MyProfile() {
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: idx * 0.05 }}
-                              className={`relative p-3 rounded-2xl border-4 bg-gradient-to-br ${colors} text-white text-center hover:scale-105 transition-transform cursor-pointer shadow-lg`}
+                              className={`relative p-3 rounded-lg border-2 ${colors} text-center hover:scale-105 transition-transform cursor-pointer shadow-sm`}
                               title={`${badge.name} - ${badge.description}`}
                             >
                               <div className="text-4xl mb-2">{badge.icon}</div>
                               <h4 className="font-bold text-xs mb-1 line-clamp-1">{badge.name}</h4>
-                              <Badge className="bg-white/30 text-white text-[10px] backdrop-blur-sm">
+                              <Badge className="bg-white/50 text-xs">
                                 {badge.rarity?.toUpperCase()}
                               </Badge>
                             </motion.div>
@@ -1006,27 +1006,27 @@ export default function MyProfile() {
                   </CardContent>
                 </Card>
 
-                {/* Emblemas Raros (PNG) - SPECIAL CATEGORY */}
-                <Card className="border-0 shadow-xl border-4 border-yellow-400">
-                  <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
+                {/* Emblemas Raros */}
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader className="bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-xl flex items-center gap-2">
-                          <Sparkles className="w-5 h-5 text-yellow-600" />
+                          <Crown className="w-5 h-5 text-gray-700" />
                           Emblemas Raros
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
                           Concedidos por moderadores e administradores
                         </p>
                       </div>
-                      <Crown className="w-8 h-8 text-yellow-600" />
+                      <Crown className="w-8 h-8 text-gray-700" />
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
                     {earnedBadges.filter(b => b.category === 'special').length === 0 ? (
                       <div className="text-center py-12 px-4">
-                        <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-                          <Crown className="w-12 h-12 text-white" />
+                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Crown className="w-12 h-12 text-gray-400" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">
                           Emblemas Especiais
@@ -1035,7 +1035,7 @@ export default function MyProfile() {
                           Ainda não tem emblemas raros
                         </p>
                         <p className="text-sm text-gray-500">
-                          Participe ativamente da comunidade, ajude outros membros e destaque-se para ganhar reconhecimento especial dos moderadores!
+                          Participe ativamente da comunidade e destaque-se para ganhar reconhecimento especial
                         </p>
                       </div>
                     ) : (
@@ -1043,27 +1043,25 @@ export default function MyProfile() {
                         {earnedBadges.filter(b => b.category === 'special').map((badge, idx) => (
                           <motion.div
                             key={idx}
-                            initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
-                            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                            transition={{ delay: idx * 0.1, type: "spring" }}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: idx * 0.1 }}
                             className="relative group"
                           >
-                            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                            <div className="relative p-6 rounded-2xl border-4 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 text-center hover:scale-110 transition-transform cursor-pointer shadow-2xl">
+                            <div className="p-6 rounded-lg border-2 border-gray-200 bg-white text-center hover:shadow-md transition-shadow cursor-pointer">
                               {badge.image_url ? (
                                 <img 
                                   src={badge.image_url} 
                                   alt={badge.name}
-                                  className="w-20 h-20 mx-auto mb-3 rounded-xl object-cover shadow-lg ring-4 ring-yellow-300"
-                                  style={{imageRendering: 'crisp-edges'}}
+                                  className="w-20 h-20 mx-auto mb-3 rounded-lg object-cover shadow-sm"
                                 />
                               ) : (
                                 <div className="text-6xl mb-3">{badge.icon || '🏆'}</div>
                               )}
                               <h4 className="font-bold text-sm mb-1 text-gray-900">{badge.name}</h4>
                               <p className="text-xs text-gray-600 mb-2">{badge.description}</p>
-                              <Badge className="bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-xs shadow-lg">
-                                ⭐ {badge.rarity?.toUpperCase() || 'LENDÁRIO'}
+                              <Badge className="bg-gray-700 text-white text-xs">
+                                {badge.rarity?.toUpperCase() || 'RARO'}
                               </Badge>
                               {badge.earned_date && (
                                 <p className="text-xs text-gray-500 mt-2">
@@ -1079,13 +1077,13 @@ export default function MyProfile() {
                 </Card>
 
                 {/* Info Card */}
-                <Card className="border-2 border-blue-300 bg-blue-50">
+                <Card className="border-gray-200 bg-gray-50">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-3">
-                      <ShieldCheck className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <ShieldCheck className="w-6 h-6 text-gray-700 flex-shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="font-bold text-blue-900 mb-2">Como Ganhar Emblemas Raros?</h4>
-                        <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                        <h4 className="font-semibold text-gray-900 mb-2">Como Ganhar Emblemas Raros?</h4>
+                        <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                           <li>Seja ativo e útil na comunidade</li>
                           <li>Ajude outros membros no fórum</li>
                           <li>Participe de eventos especiais</li>
@@ -1101,10 +1099,10 @@ export default function MyProfile() {
 
             {/* Settings Tab */}
             {activeTab === "settings" && (
-              <Card className="border-0 shadow-xl">
+              <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-blue-600" />
+                    <Settings className="w-5 h-5 text-gray-700" />
                     Preferências
                   </CardTitle>
                 </CardHeader>
@@ -1154,7 +1152,7 @@ export default function MyProfile() {
                     </div>
                   </div>
 
-                  <Button onClick={handleSavePreferences} className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleSavePreferences} className="w-full bg-green-600 hover:bg-green-700">
                     <Save className="w-4 h-4 mr-2" />
                     Salvar Preferências
                   </Button>
@@ -1164,10 +1162,10 @@ export default function MyProfile() {
 
             {/* Payment Tab */}
             {activeTab === "payment" && (
-              <Card className="border-0 shadow-xl">
+              <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-green-600" />
+                    <CreditCard className="w-5 h-5 text-gray-700" />
                     Métodos de Pagamento
                   </CardTitle>
                 </CardHeader>
@@ -1185,20 +1183,20 @@ export default function MyProfile() {
 
             {/* Security Tab */}
             {activeTab === "security" && (
-              <Card className="border-0 shadow-xl">
+              <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-red-600" />
+                    <Shield className="w-5 h-5 text-gray-700" />
                     Segurança da Conta
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-gray-700 mt-0.5" />
                       <div>
-                        <h4 className="font-semibold text-blue-900 mb-1">Conta Protegida</h4>
-                        <p className="text-sm text-blue-700">
+                        <h4 className="font-semibold text-gray-900 mb-1">Conta Protegida</h4>
+                        <p className="text-sm text-gray-700">
                           Sua conta está protegida pela autenticação da plataforma Base44.
                         </p>
                       </div>
@@ -1227,7 +1225,7 @@ export default function MyProfile() {
                             <p className="font-medium text-sm">Autenticação</p>
                             <p className="text-xs text-gray-600">Gerenciada pela Base44</p>
                           </div>
-                          <Badge className="bg-green-500">Ativa</Badge>
+                          <Badge className="bg-gray-700 text-white">Ativa</Badge>
                         </div>
                       </div>
                     </div>
@@ -1235,7 +1233,7 @@ export default function MyProfile() {
 
                   <Separator />
 
-                  <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                     <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
                     <p className="text-sm text-red-700 mb-4">
                       Ações irreversíveis que afetam sua conta

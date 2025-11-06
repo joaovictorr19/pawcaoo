@@ -109,7 +109,7 @@ function LayoutContent({ children, currentPageName }) {
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
-  const [dogConnectExpanded, setDogConnectExpanded] = React.useState(false);
+  const [socialExpanded, setSocialExpanded] = React.useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -151,12 +151,12 @@ function LayoutContent({ children, currentPageName }) {
 
   const navigationItems = [
     // MENU PRINCIPAL - Serviços core
-    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog, color: 'from-blue-500 to-cyan-500' },
-    { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award, color: 'from-purple-500 to-pink-500' },
-    { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon, color: 'from-orange-500 to-red-500' },
-    { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag, color: 'from-emerald-500 to-teal-500' },
-    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift, color: 'from-yellow-500 to-orange-500' },
-    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home, color: 'from-pink-500 to-rose-500' },
+    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
+    { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
+    { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
+    { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
+    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
+    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
     
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
@@ -171,8 +171,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     
-    // DOG CONNECT
-    { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
+    // REDE SOCIAL
+    { title: language === 'pt' ? 'Feed' : language === 'es' ? 'Feed' : 'Feed', url: createPageUrl("SocialFeed"), icon: Camera },
     { title: language === 'pt' ? 'Emblemas' : language === 'es' ? 'Emblemas' : 'Badges', url: createPageUrl("Gamification"), icon: Award },
     
     // SERVIÇOS PROFISSIONAIS
@@ -212,15 +212,15 @@ function LayoutContent({ children, currentPageName }) {
   const messagesIndex = mainMenuCount; // Mensagens (especial)
   const myActivityStartIndex = messagesIndex + 1;
   const myActivityCount = 8; // Dashboard + 7 items
-  const dogConnectStartIndex = myActivityStartIndex + myActivityCount;
-  const dogConnectCount = 2; // Dog Connect Feed + Emblemas
-  const professionalServicesStartIndex = dogConnectStartIndex + dogConnectCount;
+  const socialStartIndex = myActivityStartIndex + myActivityCount;
+  const socialCount = 2; // Social Feed + Emblemas
+  const professionalServicesStartIndex = socialStartIndex + socialCount;
   const professionalServicesCount = 6;
   
   const mainMenuStartIndex = 0;
   const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount;
   const myActivityEndIndex = myActivityStartIndex + myActivityCount;
-  const dogConnectEndIndex = dogConnectStartIndex + dogConnectCount;
+  const socialEndIndex = socialStartIndex + socialCount;
   const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
   const adminAndOtherStartIndex = professionalServicesEndIndex;
 
@@ -236,7 +236,7 @@ function LayoutContent({ children, currentPageName }) {
         const newBadge = {
           badge_id: 'welcome',
           name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
-          description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nossa comunidad!' : 'Thanks for joining our community!'),
+          description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
           icon: '🎉',
           rarity: 'common',
           earned_date: new Date().toISOString(),
@@ -253,8 +253,13 @@ function LayoutContent({ children, currentPageName }) {
       }
     };
     
+    // Only trigger if user email or language changes, to prevent re-awarding.
+    // The queryClient.invalidateQueries(['currentUser']) would cause user to re-fetch,
+    // which then updates `user.public_badges` and `user.gamification_xp`.
+    // If these were in dependencies, it would re-run the effect immediately.
     awardWelcomeBadge();
-  }, [user?.email, language, queryClient, user?.public_badges, user?.gamification_xp]);
+  }, [user?.email, language, queryClient]);
+
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -335,18 +340,10 @@ function LayoutContent({ children, currentPageName }) {
             width: 280px !important;
           }
         }
-        
-        .menu-item-gradient {
-          transition: all 0.3s ease;
-        }
-        
-        .menu-item-gradient:hover {
-          transform: translateX(4px);
-        }
       `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
-        <Sidebar className="border-r border-green-100 bg-white shadow-xl">
-          <SidebarHeader className="border-b border-green-100 p-4 md:p-6">
+        <Sidebar className="border-r border-gray-200 bg-white">
+          <SidebarHeader className="border-b border-gray-200 p-4 md:p-6">
             <a 
               href={createPageUrl("Home")} 
               className="block hover:opacity-80 transition-opacity"
@@ -392,16 +389,16 @@ function LayoutContent({ children, currentPageName }) {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       asChild 
-                      className={`hover:bg-slate-100 hover:text-slate-800 transition-all duration-200 rounded-xl mb-3 ${
-                        location.pathname === createPageUrl("MyProfile") ? 'bg-slate-700 text-white shadow-lg' : ''
-                      } border-2 border-slate-300 bg-slate-50`}
+                      className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-3 ${
+                        location.pathname === createPageUrl("MyProfile") ? 'bg-green-600 text-white' : 'border border-gray-200'
+                      }`}
                     >
                       <a 
                         href={createPageUrl("MyProfile")} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
                         onClick={handleNavigation(createPageUrl("MyProfile"))}
                       >
-                        <User className="w-4 h-4 md:w-5 md:h-5 text-slate-700 flex-shrink-0" />
+                        <User className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                         <span className="font-semibold text-xs md:text-sm truncate">{t('myProfile', language)}</span>
                       </a>
                     </SidebarMenuButton>
@@ -410,10 +407,9 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENU PRINCIPAL - COLORIDO E MODERNO */}
+            {/* MENU PRINCIPAL - PROFISSIONAL */}
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2 mb-3 flex items-center gap-2">
-                <Sparkles className="w-3 h-3 text-yellow-500" />
+              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
                 {t('mainMenu', language)}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -422,16 +418,20 @@ function LayoutContent({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className="mb-2 rounded-xl overflow-hidden menu-item-gradient"
+                        className={`mb-1.5 rounded-lg transition-colors ${
+                          location.pathname === item.url 
+                            ? 'bg-green-600 text-white hover:bg-green-700' 
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
                       >
                         <a 
                           href={item.url} 
-                          className={`flex items-center gap-3 px-3 md:px-4 py-3 md:py-3.5 bg-gradient-to-r ${item.color} text-white hover:shadow-lg transition-all`}
+                          className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
                           onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
-                          <item.icon className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 drop-shadow-md" />
-                          <span className="font-bold text-sm md:text-base truncate drop-shadow-sm">{item.title}</span>
+                          <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -440,23 +440,27 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENSAGENS - BOTÃO ESPECIAL AINDA MAIS DESTACADO */}
+            {/* MENSAGENS - BOTÃO DESTACADO */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       asChild 
-                      className="mb-4 rounded-2xl overflow-hidden shadow-2xl"
+                      className={`mb-3 rounded-lg ${
+                        location.pathname === allNavigationItems[messagesIndex].url 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                      }`}
                     >
                       <a 
                         href={allNavigationItems[messagesIndex].url} 
-                        className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white hover:shadow-2xl transition-all animate-pulse"
+                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
                         onClick={handleNavigation(allNavigationItems[messagesIndex].url)}
                       >
-                        <MessageCircle className="w-6 h-6 md:w-7 md:h-7 flex-shrink-0 drop-shadow-lg" />
-                        <span className="font-black text-base md:text-lg truncate drop-shadow-md">{allNavigationItems[messagesIndex].title}</span>
-                        <Badge className="ml-auto bg-white text-purple-600 text-xs font-bold">
+                        <MessageCircle className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[messagesIndex].title}</span>
+                        <Badge className="ml-auto bg-white text-blue-700 text-xs font-bold">
                           💬
                         </Badge>
                       </a>
@@ -469,13 +473,10 @@ function LayoutContent({ children, currentPageName }) {
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group transition-all hover:bg-gray-50 rounded-lg py-2"
+                className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
                 onClick={() => setMyActivityExpanded(!myActivityExpanded)}
               >
-                <span className="flex items-center gap-2">
-                  <BarChart3 className="w-3 h-3" />
-                  {t('myActivity', language)}
-                </span>
+                <span>{t('myActivity', language)}</span>
                 <span className={`transition-transform duration-300 ${myActivityExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {myActivityExpanded && (
@@ -485,15 +486,15 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-gradient-to-r hover:from-green-100 hover:to-blue-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                            location.pathname === item.url ? 'bg-gradient-to-r from-green-100 to-blue-100 text-green-700 shadow-sm' : ''
-                          } ${item.icon === Zap ? 'border-2 border-orange-200 hover:border-orange-400' : ''}`}
+                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
+                          } ${item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : ''}`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
-                            <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                            <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                             {item.hasNotifications && unreadCount > 0 && (
-                              <Badge className="ml-auto bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0 shadow-lg">
+                              <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
                                 {unreadCount}
                               </Badge>
                             )}
@@ -506,31 +507,28 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
-            {/* DOG CONNECT - COM GRADIENTE ESPECIAL */}
+            {/* REDE SOCIAL */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 rounded-lg py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
-                onClick={() => setDogConnectExpanded(!dogConnectExpanded)}
+                className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
+                onClick={() => setSocialExpanded(!socialExpanded)}
               >
-                <span className="flex items-center gap-2 font-bold">
-                  <Camera className="w-4 h-4" />
-                  📸 Dog Connect
-                </span>
-                <span className={`transition-transform duration-300 ${dogConnectExpanded ? 'rotate-90' : ''}`}>▶</span>
+                <span>{language === 'pt' ? 'Rede Social' : language === 'es' ? 'Red Social' : 'Social Network'}</span>
+                <span className={`transition-transform duration-300 ${socialExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
-              {dogConnectExpanded && (
+              {socialExpanded && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(dogConnectStartIndex, dogConnectEndIndex).map((item) => ( 
+                    {allNavigationItems.slice(socialStartIndex, socialEndIndex).map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                            location.pathname === item.url ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 shadow-sm' : ''
+                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
                           }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                            <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -544,10 +542,10 @@ function LayoutContent({ children, currentPageName }) {
             {/* TORNAR-ME PROFISSIONAL */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
+                className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
-                <span>{language === 'pt' ? '👔 Tornar-me Profissional' : language === 'es' ? '👔 Ser Profesional' : '👔 Become Professional'}</span>
+                <span>{language === 'pt' ? 'Tornar-me Profissional' : language === 'es' ? 'Ser Profesional' : 'Become Professional'}</span>
                 <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {professionalServicesExpanded && (
@@ -557,12 +555,12 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                            location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
+                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
                           }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                            <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -575,19 +573,19 @@ function LayoutContent({ children, currentPageName }) {
 
             {allNavigationItems.slice(adminAndOtherStartIndex).length > 0 && ( 
               <SidebarGroup>
-                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 font-semibold uppercase">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {allNavigationItems.slice(adminAndOtherStartIndex).map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-cyan-100 hover:text-cyan-800 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                            location.pathname === item.url ? 'bg-cyan-600 text-white shadow-lg' : ''
-                          } border-2 border-cyan-300 bg-cyan-50`}
+                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
+                          }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-700 flex-shrink-0" />
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
