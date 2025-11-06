@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -161,8 +161,8 @@ function LayoutContent({ children, currentPageName }) {
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
     
-    // DOG CONNECT - Rede Social (now a highlighted button)
-    { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
+    // CONNECT - Rede Social (now a highlighted button)
+    { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
     
     // MINHA ATIVIDADE
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
@@ -210,8 +210,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const mainMenuCount = 7; // Aumentado de 6 para 7 (incluindo Serviços)
   const messagesIndex = mainMenuCount;
-  const dogConnectIndex = messagesIndex + 1;
-  const myActivityStartIndex = dogConnectIndex + 1;
+  const connectIndex = messagesIndex + 1; // Renamed from dogConnectIndex
+  const myActivityStartIndex = connectIndex + 1;
   const myActivityCount = 9; // Dashboard + 8 items (includes Badges)
   const professionalServicesStartIndex = myActivityStartIndex + myActivityCount;
   const professionalServicesCount = 6;
@@ -512,7 +512,7 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* DOG CONNECT - Botão Destacado */}
+            {/* CONNECT - Botão Destacado */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -520,18 +520,18 @@ function LayoutContent({ children, currentPageName }) {
                     <SidebarMenuButton 
                       asChild 
                       className={`mb-3 rounded-lg ${
-                        location.pathname === allNavigationItems[dogConnectIndex].url 
-                          ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                          : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                        location.pathname === allNavigationItems[connectIndex].url 
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700' 
+                          : 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 hover:from-blue-100 hover:to-indigo-100 border border-blue-200'
                       }`}
                     >
                       <a 
-                        href={allNavigationItems[dogConnectIndex].url} 
+                        href={allNavigationItems[connectIndex].url} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
-                        onClick={handleNavigation(allNavigationItems[dogConnectIndex].url)}
+                        onClick={handleNavigation(allNavigationItems[connectIndex].url)}
                       >
-                        <Camera className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
-                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[dogConnectIndex].title}</span>
+                        <Users className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[connectIndex].title}</span>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
