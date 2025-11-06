@@ -11,7 +11,7 @@ import {
   MapPin, Users, Heart, MessageCircle, ArrowLeft,
   Link as LinkIcon, CheckCircle, Dog, Calendar,
   Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star,
-  Target, Zap, Flame, Sparkles, ChevronRight, Settings, Camera, Crown // Added Crown icon
+  Target, Zap, Flame, Sparkles, ChevronRight, Settings, Camera, Crown
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -313,26 +313,21 @@ export default function UserProfile() {
   const totalLikes = userPosts.reduce((sum, p) => sum + (p.likes_count || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <Button variant="outline" className="mb-6" onClick={() => navigate(createPageUrl('SocialFeed'))}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
 
-        <Card className="border-0 shadow-2xl mb-6 overflow-hidden bg-white">
+        <Card className="border-0 shadow-xl mb-6 overflow-hidden bg-white">
           {/* Cover Photo */}
-          <div className="relative h-48 md:h-64 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600">
+          <div className="relative h-48 md:h-64 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700">
             {profileUser.cover_photo_url && (
               <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
             )}
             {isOwnProfile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-                onClick={() => navigate(createPageUrl('AccountSettings'))}
-              >
+              <Button variant="ghost" size="sm" className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30" onClick={() => navigate(createPageUrl('AccountSettings'))}>
                 <Settings className="w-4 h-4 mr-2" />
                 Editar Perfil
               </Button>
@@ -343,9 +338,9 @@ export default function UserProfile() {
             <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
               {/* Avatar */}
               <div className="flex flex-col items-center md:items-start">
-                <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-white shadow-2xl ring-4 ring-purple-200">
+                <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-white shadow-xl ring-4 ring-blue-100">
                   <AvatarImage src={profileUser.profile_photo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-4xl font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-4xl font-bold">
                     {profileUser.full_name?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>

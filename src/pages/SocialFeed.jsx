@@ -244,57 +244,50 @@ export default function SocialFeed() {
   const isPro = socialSubscription?.plan_type === 'pro';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50">
       {/* MODERN CLEAN HEADER */}
-      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <DogConnectLogo size="default" />
 
             {/* Navigation */}
-            <div className="hidden md:flex items-center gap-4">
-              <Button variant="ghost" size="sm" className={selectedTab === 'feed' ? 'text-purple-600' : 'text-gray-600'} onClick={() => setSelectedTab('feed')}>
+            <div className="hidden md:flex items-center gap-2">
+              <Button variant="ghost" size="sm" className={selectedTab === 'feed' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-100'} onClick={() => setSelectedTab('feed')}>
                 <Home className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)}>
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => setShowFilters(!showFilters)}>
                 <Search className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('SocialEvents'))}>
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl('SocialEvents'))}>
                 <Calendar className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('Notifications'))}>
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl('Notifications'))}>
                 <Bell className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}>
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}>
                 <User className="w-5 h-5" />
               </Button>
             </div>
 
             {/* Points & Actions */}
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2 bg-purple-50 rounded-lg px-3 py-1.5">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span className="font-semibold text-purple-600 text-sm">
+              <div className="hidden md:flex items-center gap-2 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg px-3 py-1.5 border border-blue-200">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-blue-600 text-sm">
                   {loyaltyPoints?.points_balance?.toLocaleString() || 0}
                 </span>
               </div>
 
-              {!isPremium && (
-                <Button onClick={() => navigate(createPageUrl('DogConnectPremium'))} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white" size="sm">
-                  <Crown className="w-4 h-4 mr-2" />
-                  Premium
-                </Button>
-              )}
-
               {isPremium && (
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                <Badge className="bg-gradient-to-r from-blue-600 to-green-600 text-white">
                   <Crown className="w-3 h-3 mr-1" />
                   {socialSubscription.plan_type.toUpperCase()}
                 </Badge>
               )}
 
-              <Button onClick={() => setShowCreateStory(true)} className="bg-purple-600 hover:bg-purple-700 text-white" size="sm">
+              <Button onClick={() => setShowCreateStory(true)} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm" size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Story
               </Button>
@@ -305,32 +298,10 @@ export default function SocialFeed() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Premium Banner */}
-        {!isPremium && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-            <Card className="border-purple-200 shadow-lg bg-gradient-to-r from-purple-100 to-pink-100 cursor-pointer hover:shadow-xl transition-shadow" onClick={() => navigate(createPageUrl('DogConnectPremium'))}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Crown className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-bold text-lg text-purple-900">Upgrade para Premium</h3>
-                    </div>
-                    <p className="text-sm text-purple-700">
-                      Ganhe mais PawPoints e recursos exclusivos
-                    </p>
-                  </div>
-                  <ChevronRight className="w-6 h-6 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
         {/* Stories */}
         <StoriesBar />
 
-        {/* Advanced Filters */}
+        {/* Filters */}
         <AnimatePresence>
           {showFilters && (
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mb-6">
@@ -339,34 +310,34 @@ export default function SocialFeed() {
           )}
         </AnimatePresence>
 
-        {/* Feed Tabs */}
+        {/* Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm shadow-sm">
-            <TabsTrigger value="feed" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm border border-gray-200">
+            <TabsTrigger value="feed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <Compass className="w-4 h-4 mr-2" />
               Explorar
             </TabsTrigger>
-            <TabsTrigger value="following" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger value="following" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <Users className="w-4 h-4 mr-2" />
               Seguindo
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Simplified Create Post Card (triggers modal) */}
-        <Card className="mb-6 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+        {/* Create Post */}
+        <Card className="mb-6 border border-gray-200 shadow-sm bg-white">
           <CardContent className="p-4">
             <div className="flex gap-3 items-center">
-              <Avatar className="ring-2 ring-purple-200">
+              <Avatar className="ring-2 ring-gray-200">
                 <AvatarImage src={user?.profile_photo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
                   {user?.full_name?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <Button variant="outline" className="flex-1 justify-start text-left text-gray-500 hover:bg-gray-50 border-2 border-purple-100 hover:border-purple-300 rounded-full h-12" onClick={() => setShowCreatePost(true)}>
+              <Button variant="outline" className="flex-1 justify-start text-left text-gray-500 hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 rounded-full h-12" onClick={() => setShowCreatePost(true)}>
                 O que seu pet anda aprontando?
               </Button>
-              <Button size="icon" variant="ghost" onClick={() => setShowCreatePost(true)} className="text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+              <Button size="icon" variant="ghost" onClick={() => setShowCreatePost(true)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                 <ImageIcon className="w-6 h-6" />
               </Button>
             </div>
@@ -377,22 +348,15 @@ export default function SocialFeed() {
         <div className="space-y-6">
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600"></div>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
             </div>
           ) : posts.length === 0 ? (
-            <Card className="border-0 shadow-lg">
+            <Card className="border border-gray-200 shadow-sm">
               <CardContent className="p-12 text-center">
                 <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Nenhum post ainda
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Seja o primeiro a compartilhar um momento com seu pet
-                </p>
-                <Button
-                  onClick={() => setShowCreatePost(true)} // Opens the new post modal
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum post ainda</h3>
+                <p className="text-gray-600 mb-4">Seja o primeiro a compartilhar um momento com seu pet</p>
+                <Button onClick={() => setShowCreatePost(true)} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
                   Criar Primeiro Post
                 </Button>
               </CardContent>
@@ -403,28 +367,21 @@ export default function SocialFeed() {
                 const authorBadges = post.author_profile_badges || [];
 
                 return (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
+                  <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.05 }}>
+                    <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-white">
                       <CardContent className="p-0">
                         {/* Post Header */}
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <Avatar className="ring-2 ring-purple-200 cursor-pointer hover:ring-purple-400 transition-all">
+                            <Avatar className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all">
                               <AvatarImage src={post.author_photo_url} />
-                              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
                                 {post.author_name?.[0]}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              {/* Nome + Badges */}
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold text-gray-900 hover:text-purple-600 cursor-pointer transition-colors">
+                                <p className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors">
                                   {post.author_name}
                                 </p>
 
@@ -440,28 +397,28 @@ export default function SocialFeed() {
                                   if (badge.badge_id === 'admin') {
                                     return (
                                       <Badge key={idx} className="bg-red-600 text-white text-xs px-1 py-0">
-                                        <Shield className="w-3 h-3 mr-1" />Admin
+                                        <Shield className="w-3 h-3" />
                                       </Badge>
                                     );
                                   }
                                   if (badge.badge_id === 'moderator') {
                                     return (
                                       <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
-                                        <ShieldCheck className="w-3 h-3 mr-1" />Moderador
+                                        <ShieldCheck className="w-3 h-3" />
                                       </Badge>
                                     );
                                   }
                                   if (badge.badge_id === 'adoption_advocate') {
                                     return (
-                                      <Badge key={idx} className="bg-pink-600 text-white text-xs px-1 py-0">
-                                        <Heart className="w-3 h-3 mr-1" />Adote!
+                                      <Badge key={idx} className="bg-green-600 text-white text-xs px-1 py-0">
+                                        <Heart className="w-3 h-3" />
                                       </Badge>
                                     );
                                   }
                                   if (badge.badge_id === 'vip_member') {
                                     return (
-                                      <Badge key={idx} className="bg-purple-600 text-white text-xs px-1 py-0">
-                                        <Crown className="w-3 h-3 mr-1" />VIP
+                                      <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
+                                        <Crown className="w-3 h-3" />
                                       </Badge>
                                     );
                                   }
@@ -484,11 +441,7 @@ export default function SocialFeed() {
                         {/* Post Image */}
                         {post.media_urls?.length > 0 && (
                           <div className="relative w-full aspect-square bg-gray-100">
-                            <img
-                              src={post.media_urls[0]}
-                              alt="Post"
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={post.media_urls[0]} alt="Post" className="w-full h-full object-cover" />
                           </div>
                         )}
 
@@ -496,22 +449,17 @@ export default function SocialFeed() {
                         <div className="p-4">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-4">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleLike(post.id)}
-                                className="hover:text-pink-600 transition-colors"
-                              >
+                              <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)} className="hover:text-red-600 transition-colors">
                                 <Heart className="w-6 h-6" />
                               </Button>
                               <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
                                 <MessageCircle className="w-6 h-6" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="hover:text-purple-600 transition-colors">
+                              <Button variant="ghost" size="sm" className="hover:text-green-600 transition-colors">
                                 <Share2 className="w-6 h-6" />
                               </Button>
                             </div>
-                            <Button variant="ghost" size="sm" className="hover:text-yellow-600 transition-colors">
+                            <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
                               <Bookmark className="w-6 h-6" />
                             </Button>
                           </div>
@@ -525,9 +473,7 @@ export default function SocialFeed() {
 
                           {/* Post Content */}
                           <div className="mb-2">
-                            <span className="font-semibold text-gray-900 mr-2">
-                              {post.author_name}
-                            </span>
+                            <span className="font-semibold text-gray-900 mr-2">{post.author_name}</span>
                             <span className="text-gray-700">{post.content}</span>
                           </div>
 
@@ -535,10 +481,7 @@ export default function SocialFeed() {
                           {post.tags?.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-2">
                               {post.tags.map((tag, idx) => (
-                                <span
-                                  key={idx}
-                                  className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm font-medium"
-                                >
+                                <span key={idx} className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
                                   #{tag}
                                 </span>
                               ))}
@@ -604,9 +547,9 @@ export default function SocialFeed() {
               <div className="space-y-4">
                 {/* User Info */}
                 <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="ring-2 ring-purple-200">
+                  <Avatar className="ring-2 ring-gray-200">
                     <AvatarImage src={user?.profile_photo_url} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
                       {user?.full_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -621,7 +564,7 @@ export default function SocialFeed() {
                   placeholder="Compartilhe um momento com seu pet... 🐾"
                   value={newPostData.content}
                   onChange={(e) => setNewPostData({ ...newPostData, content: e.target.value })}
-                  className="min-h-[120px] border-2 border-purple-100 focus:border-purple-300 rounded-xl resize-none"
+                  className="min-h-[120px] border-2 border-gray-200 focus:border-blue-300 rounded-xl resize-none"
                 />
 
                 {/* Media Upload - Using Optimized Component */}
@@ -660,14 +603,14 @@ export default function SocialFeed() {
                   </div>
                   <div className="flex items-center gap-2">
                     {socialSubscription?.features?.points_multiplier > 1 && (
-                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                      <Badge className="bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs">
                         +{10 * socialSubscription.features.points_multiplier} pts
                       </Badge>
                     )}
                     <Button
                       onClick={handleCreatePost}
                       disabled={createPostMutation.isPending || (!newPostData.content.trim() && newPostData.media_urls.length === 0)}
-                      className="bg-gradient-to-r from-purple-600 via-purple-600 to-pink-600 hover:from-purple-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg"
+                      className="bg-gradient-to-r from-blue-600 via-blue-600 to-green-600 hover:from-blue-700 hover:via-blue-700 hover:to-green-700 text-white shadow-lg"
                     >
                       <Send className="w-4 h-4 mr-2" />
                       {createPostMutation.isPending ? 'Publicando...' : 'Publicar'}
@@ -681,12 +624,12 @@ export default function SocialFeed() {
       </AnimatePresence>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 z-50 shadow-lg">
         <div className="flex items-center justify-around">
           <Button
             variant="ghost"
             size="sm"
-            className={selectedTab === 'feed' ? 'text-purple-600' : 'text-gray-600'}
+            className={selectedTab === 'feed' ? 'text-blue-600' : 'text-gray-600'}
             onClick={() => setSelectedTab('feed')}
           >
             <Home className="w-6 h-6" />
@@ -700,7 +643,7 @@ export default function SocialFeed() {
           </Button>
           <Button
             onClick={() => setShowCreatePost(true)} // Opens the new post modal
-            className="bg-gradient-to-r from-purple-600 via-purple-600 to-pink-600 text-white rounded-full w-12 h-12 p-0 shadow-lg"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full w-12 h-12 p-0 shadow-lg"
           >
             <Plus className="w-6 h-6" />
           </Button>

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ export default function StoriesBar({ stories = [], onStoryClick, onCreateStory, 
   const storyGroups = Object.values(groupedStories);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-4 mb-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
         {/* Create Story Button */}
         <div className="flex-shrink-0">
@@ -38,15 +39,15 @@ export default function StoriesBar({ stories = [], onStoryClick, onCreateStory, 
             <div className="relative">
               <Avatar className="w-16 h-16 border-2 border-gray-200">
                 <AvatarImage src={currentUser?.profile_photo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
                   {currentUser?.full_name?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
                 <Plus className="w-4 h-4 text-white" />
               </div>
             </div>
-            <p className="text-xs font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+            <p className="text-xs font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
               Criar Story
             </p>
           </button>
@@ -66,16 +67,16 @@ export default function StoriesBar({ stories = [], onStoryClick, onCreateStory, 
               className="flex flex-col items-center gap-2 cursor-pointer group"
             >
               <div className="relative">
-                <div className="p-1 bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 rounded-full">
+                <div className="p-1 bg-gradient-to-br from-blue-500 via-indigo-600 to-blue-600 rounded-full">
                   <Avatar className="w-14 h-14 border-2 border-white">
                     <AvatarImage src={group.author_photo_url} />
-                    <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
                       {group.author_name?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
               </div>
-              <p className="text-xs font-medium text-gray-900 group-hover:text-purple-600 transition-colors truncate w-16 text-center">
+              <p className="text-xs font-medium text-gray-900 group-hover:text-blue-600 transition-colors truncate w-16 text-center">
                 {group.author_name?.split(' ')[0]}
               </p>
             </button>
