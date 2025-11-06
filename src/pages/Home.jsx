@@ -63,7 +63,26 @@ export default function Home() {
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
-    queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 50), // Added limit
+    queryFn: async () => {
+      const allWalkers = await base44.entities.WalkerProfile.list('-rating', 100);
+      
+      console.log('🔍 HOME - TODOS OS PASSEADORES:', {
+        total: allWalkers.length,
+        walkers: allWalkers.map(w => ({
+          name: w.walker_name,
+          is_active: w.is_active,
+          verification_status: w.verification_status,
+          created_by: w.created_by
+        }))
+      });
+
+      // Filtrar APENAS ativos E verificados
+      const active = allWalkers.filter(w => w.is_active === true && w.verification_status === 'verified');
+      
+      console.log('✅ PASSEADORES ATIVOS E VERIFICADOS:', active.length);
+      
+      return active;
+    },
     initialData: [],
     enabled: !!user,
     staleTime: 60000,
