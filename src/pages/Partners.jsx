@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,12 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, ShoppingBag, Search, Star, ChevronRight, Tag, Gift, Megaphone, X, Sliders } from "lucide-react";
+import { Store, MapPin, ShoppingBag, Search, ChevronRight, Megaphone, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import AdvancedShopFilters from "../components/search/AdvancedShopFilters";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function Partners() {
@@ -20,51 +18,34 @@ export default function Partners() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [advancedFilters, setAdvancedFilters] = useState({
-    categories: [],
-    minPrice: 0,
-    maxPrice: 1000,
-    brand: 'all',
-    minRating: 0,
-    availability: null,
-    discountOnly: false,
-    pointsRedeemable: false,
-    inStockOnly: false
-  });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  console.log('👤 USER:', user?.email, user?.account_type);
-
   const { data: partners, isLoading } = useQuery({
     queryKey: ['partners'],
     queryFn: async () => {
-      const allPartners = await base44.entities.Partnership.list();
-      console.log('🏪 ALL PARTNERS:', {
-        total: allPartners.length,
-        partners: allPartners.map(p => ({
-          name: p.partner_name,
-          is_active: p.is_active
-        }))
-      });
-      return allPartners;
+      const all = await base44.entities.Partnership.list();
+      console.log('🏪 PARTNERS:', all.length);
+      return all.filter(p => p.is_active === true);
     },
     initialData: [],
-    staleTime: 300000,
   });
 
   const { data: announcements = [] } = useQuery({
     queryKey: ['activeAnnouncements'],
     queryFn: async () => {
-      const allAnnouncements = await base44.entities.CompanyAnnouncement.list('-created_date');
+      // Carregar TODOS os anúncios
+      const all = await base44.entities.CompanyAnnouncement.list('-created_date');
       
-      console.log('📢 PARTNERS PAGE - TODOS OS ANÚNCIOS:', {
-        total: allAnnouncements.length,
-        announcements: allAnnouncements.map(a => ({
+      console.log('📢 === ANÚNCIOS - DEBUG COMPLETO ===');
+      console.log('Total carregados:', all.length);
+      
+      all.forEach((a, i) => {
+        console.log(`\n📋 ANÚNCIO ${i + 1}:`, {
+          id: a.id,
           title: a.title,
           company: a.company_name,
           company_email: a.company_email,
@@ -72,83 +53,49 @@ export default function Partners() {
           is_active: a.is_active,
           start_date: a.start_date,
           end_date: a.end_date,
-          created_by: a.created_by
-        }))
+          created_date: a.created_date
+        });
       });
 
-      // FILTRO 1: Aprovados
-      const approved = allAnnouncements.filter(a => a.moderation_status === 'approved');
-      console.log('✅ APROVADOS:', approved.length);
+      // FILTRO: Aprovados
+      const approved = all.filter(a => a.moderation_status === 'approved');
+      console.log('\n✅ APROVADOS:', approved.length);
 
-      // FILTRO 2: Ativos
+      // FILTRO: Ativos
       const active = approved.filter(a => a.is_active === true);
       console.log('🟢 ATIVOS:', active.length);
 
-      // FILTRO 3: Dentro do período de datas
+      // FILTRO: Com datas válidas
+      const withDates = active.filter(a => a.start_date && a.end_date);
+      console.log('📅 COM DATAS:', withDates.length);
+
+      // FILTRO: Dentro do período
       const now = new Date();
-      const inDateRange = active.filter(a => {
-        // Se não tem datas, não mostra
-        if (!a.start_date || !a.end_date) {
-          console.log(`⚠️ "${a.title}" SEM DATAS - IGNORADO`);
-          return false;
-        }
+      const valid = withDates.filter(a => {
+        const start = new Date(a.start_date);
+        const end = new Date(a.end_date);
+        const ok = now >= start && now <= end;
         
-        const startDate = new Date(a.start_date);
-        const endDate = new Date(a.end_date);
-        const isInRange = now >= startDate && now <= endDate;
+        console.log(`"${a.title}": ${start.toISOString().split('T')[0]} até ${end.toISOString().split('T')[0]} = ${ok ? 'MOSTRA ✅' : 'OCULTA ❌'}`);
         
-        console.log(`📅 "${a.title}":`, {
-          start: startDate.toISOString().split('T')[0],
-          end: endDate.toISOString().split('T')[0],
-          now: now.toISOString().split('T')[0],
-          isInRange
-        });
-        
-        return isInRange;
+        return ok;
       });
 
-      console.log('✅ ANÚNCIOS NO PERÍODO:', inDateRange.length);
+      console.log('\n🎯 ANÚNCIOS VÁLIDOS:', valid.length);
+      console.log('Títulos:', valid.map(a => a.title));
+      console.log('=================================\n');
 
-      // Ordenar por destaque
-      const sorted = inDateRange.sort((a, b) => {
+      return valid.sort((a, b) => {
         if (a.is_featured && !b.is_featured) return -1;
         if (!a.is_featured && b.is_featured) return 1;
-        if (a.featured_position && b.featured_position) {
-          return a.featured_position - b.featured_position;
-        }
         return new Date(b.created_date) - new Date(a.created_date);
       });
-
-      console.log('🎯 ANÚNCIOS FINAIS A MOSTRAR:', sorted.map(a => a.title));
-
-      return sorted;
     },
     initialData: [],
-    staleTime: 0, // ZERO CACHE
+    staleTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
-  });
-
-  console.log('🎯 RENDERIZANDO', announcements.length, 'ANÚNCIOS NA LOJA');
-
-  const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
-    queryKey: ['loyaltyPoints', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return { points_balance: 0 };
-      const points = await base44.entities.LoyaltyPoints.filter({
-        user_email: user.email
-      });
-      return points[0] || { points_balance: 0 };
-    },
-    enabled: !!user?.email,
-    staleTime: 0,
-  });
-
-  const { data: allProducts = [] } = useQuery({
-    queryKey: ['allPartnerProducts'],
-    queryFn: () => base44.entities.PartnerProduct.filter({ is_available: true }),
-    initialData: [],
-    staleTime: 60000,
+    refetchInterval: 5000, // Refetch a cada 5 segundos
   });
 
   const categories = [
@@ -156,117 +103,27 @@ export default function Partners() {
     { id: "pet_store", name: "Pet Shops", icon: ShoppingBag },
     { id: "veterinary", name: language === 'pt' ? "Veterinários" : "Vets", icon: Store },
     { id: "grooming", name: "Grooming", icon: Store },
-    { id: "insurance", name: language === 'pt' ? "Seguros" : "Insurance", icon: Store },
-    { id: "training", name: language === 'pt' ? "Treino" : "Training", icon: Store },
   ];
 
-  const filteredPartners = React.useMemo(() => {
-    return partners.filter(partner => {
-      const matchesSearch = !searchQuery ||
-        partner.partner_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        partner.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = activeCategory === "all" || partner.partner_type === activeCategory;
-
-      const matchesBrand = advancedFilters.brand === 'all' || 
-                          partner.partner_name === advancedFilters.brand;
-      const matchesRating = (partner.average_rating || 0) >= advancedFilters.minRating;
-      const matchesDiscount = !advancedFilters.discountOnly || 
-                             (partner.discount_percentage && partner.discount_percentage > 0);
-
-      return matchesSearch && matchesCategory && matchesBrand && 
-             matchesRating && matchesDiscount;
-    });
-  }, [partners, searchQuery, activeCategory, advancedFilters]);
-
-  const filteredProducts = React.useMemo(() => {
-    return allProducts.filter(product => {
-      const matchesCategories = advancedFilters.categories.length === 0 ||
-                               advancedFilters.categories.includes(product.category);
-      const matchesPrice = product.price_euro >= advancedFilters.minPrice &&
-                          product.price_euro <= advancedFilters.maxPrice;
-      const matchesPoints = !advancedFilters.pointsRedeemable ||
-                           product.is_redeemable_with_points;
-      const matchesStock = !advancedFilters.inStockOnly ||
-                          product.stock_quantity > 0;
-      const matchesDiscount = !advancedFilters.discountOnly ||
-                             (product.discount_percentage && product.discount_percentage > 0);
-
-      return matchesCategories && matchesPrice && matchesPoints && 
-             matchesStock && matchesDiscount;
-    });
-  }, [allProducts, advancedFilters]);
-
-  const resetAdvancedFilters = () => {
-    setAdvancedFilters({
-      categories: [],
-      minPrice: 0,
-      maxPrice: 1000,
-      brand: 'all',
-      minRating: 0,
-      availability: null,
-      discountOnly: false,
-      pointsRedeemable: false,
-      inStockOnly: false
-    });
-  };
-
-  const getPromotionTypeLabel = (type) => {
-    const labels = {
-      flash_sale: "⚡ Flash Sale",
-      discount: "🏷️ Desconto",
-      points_bonus: "⭐ Bónus Pontos",
-      new_product: "🆕 Novo Produto"
-    };
-    return labels[type] || type;
-  };
-
-  const getFeaturedTierBadge = (tier) => {
-    const badges = {
-      basic: { color: "bg-blue-500", label: "Destaque" },
-      premium: { color: "bg-purple-500", label: "Premium" },
-      exclusive: { color: "bg-yellow-500", label: "⭐ Exclusivo" }
-    };
-    return badges[tier];
-  };
+  const filteredPartners = partners.filter(partner => {
+    const matchesSearch = !searchQuery ||
+      partner.partner_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === "all" || partner.partner_type === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                🛍️ {language === 'pt' ? 'Loja PawCão' : language === 'es' ? 'Tienda PawCão' : 'PawCão Shop'}
-              </h1>
-              <p className="text-gray-600">
-                {language === 'pt' ? 'Produtos exclusivos com' : language === 'es' ? 'Productos exclusivos con' : 'Exclusive products with'} <span className="font-semibold text-green-600">PawPoints</span>
-              </p>
-            </div>
-
-            {user && (
-              <div className="hidden md:flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-4 py-2">
-                <div className="text-right">
-                  <p className="text-xs text-gray-600">{language === 'pt' ? 'Seus PawPoints' : 'Your PawPoints'}</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {loadingPoints ? "..." : (loyaltyPoints?.points_balance || 0).toLocaleString()}
-                  </p>
-                </div>
-                <Button
-                  onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Gift className="w-4 h-4 mr-1" />
-                  {language === 'pt' ? 'Resgatar' : 'Redeem'}
-                </Button>
-              </div>
-            )}
-          </div>
-
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            🛍️ {language === 'pt' ? 'Loja PawCão' : 'PawCão Shop'}
+          </h1>
+          
           <div className="relative max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
-              placeholder={language === 'pt' ? "Pesquisar produtos e marcas..." : "Search products and brands..."}
+              placeholder={language === 'pt' ? "Pesquisar..." : "Search..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-11 bg-white"
@@ -276,273 +133,134 @@ export default function Partners() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="border-2 border-purple-200 hover:bg-purple-50"
-          >
-            <Sliders className="w-4 h-4 mr-2" />
-            {showAdvancedFilters ? (language === 'pt' ? 'Ocultar' : 'Hide') : (language === 'pt' ? 'Mostrar' : 'Show')} {language === 'pt' ? 'Filtros Avançados' : 'Advanced Filters'}
-          </Button>
-        </div>
-
-        <div className="grid lg:grid-cols-4 gap-6">
-          <AnimatePresence>
-            {showAdvancedFilters && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="lg:col-span-1"
-              >
-                <AdvancedShopFilters
-                  filters={advancedFilters}
-                  onFiltersChange={setAdvancedFilters}
-                  onReset={resetAdvancedFilters}
-                  partners={partners}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            {announcements.length > 0 && (
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Megaphone className="w-6 h-6 text-purple-600" />
-                  <h2 className="text-2xl font-bold text-gray-900">{language === 'pt' ? 'Promoções em Destaque' : 'Featured Promotions'}</h2>
-                </div>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {announcements.slice(0, 6).map((announcement) => {
-                    const featuredBadge = announcement.is_featured ? getFeaturedTierBadge(announcement.featured_tier) : null;
-                    
-                    return (
-                      <motion.div
-                        key={announcement.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.02 }}
-                        className="cursor-pointer"
-                        onClick={() => setSelectedAnnouncement(announcement)}
-                      >
-                        <Card className={`overflow-hidden hover:shadow-2xl transition-all ${
-                          featuredBadge ? 'border-2 border-purple-300 ring-2 ring-purple-200' : 'border-0 shadow-xl'
-                        }`}>
-                          {announcement.image_url && (
-                            <div className="relative h-40 bg-gradient-to-br from-purple-100 to-pink-100">
-                              <img
-                                src={announcement.image_url}
-                                alt={announcement.title}
-                                className="w-full h-full object-cover"
-                              />
-                              {featuredBadge && (
-                                <Badge className={`absolute top-2 right-2 ${featuredBadge.color} text-white shadow-lg`}>
-                                  {featuredBadge.label}
-                                </Badge>
-                              )}
-                              {announcement.discount_percentage > 0 && (
-                                <Badge className="absolute top-2 left-2 bg-red-500 text-white text-lg shadow-lg">
-                                  -{announcement.discount_percentage}%
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                          <CardContent className="p-4">
-                            <Badge className="mb-2 text-xs">
-                              {getPromotionTypeLabel(announcement.promotion_type)}
-                            </Badge>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
-                              {announcement.title}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                              {announcement.message}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">
-                                {announcement.company_name}
-                              </span>
-                              <ChevronRight className="w-5 h-5 text-green-600" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
-                {categories.map((cat) => (
-                  <Button
-                    key={cat.id}
-                    variant={activeCategory === cat.id ? "default" : "ghost"}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className={`text-sm transition-all ${
-                      activeCategory === cat.id 
-                        ? 'bg-green-600 text-white shadow-sm' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                    size="sm"
-                  >
-                    {cat.name}
-                  </Button>
-                ))}
+        {/* ANÚNCIOS */}
+        {announcements.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Megaphone className="w-6 h-6 text-purple-600" />
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {language === 'pt' ? 'Promoções' : 'Promotions'}
+                </h2>
+                <Badge className="bg-purple-600 text-white">
+                  {announcements.length}
+                </Badge>
               </div>
             </div>
-
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                <span className="font-semibold text-green-600">{filteredPartners.length}</span> {language === 'pt' ? 'marcas' : 'brands'} • 
-                <span className="font-semibold text-purple-600 ml-1">{filteredProducts.length}</span> {language === 'pt' ? 'produtos encontrados' : 'products found'}
-              </p>
-              {(advancedFilters.categories.length > 0 || 
-                advancedFilters.discountOnly || 
-                advancedFilters.pointsRedeemable || 
-                advancedFilters.minPrice > 0 || 
-                advancedFilters.maxPrice < 1000 ||
-                advancedFilters.brand !== 'all' ||
-                advancedFilters.minRating > 0 ||
-                advancedFilters.inStockOnly) && (
-                <div className="flex gap-2 flex-wrap">
-                  {advancedFilters.categories.map(cat => (
-                    <Badge key={cat} variant="outline" className="text-xs">
-                      {cat}
-                    </Badge>
-                  ))}
-                  {advancedFilters.discountOnly && (
-                    <Badge variant="outline" className="text-xs bg-red-50">
-                      🏷️ {language === 'pt' ? 'Com Desconto' : 'On Sale'}
-                    </Badge>
-                  )}
-                  {advancedFilters.pointsRedeemable && (
-                    <Badge variant="outline" className="text-xs bg-purple-50">
-                      ⭐ PawPoints
-                    </Badge>
-                  )}
-                  {advancedFilters.inStockOnly && (
-                    <Badge variant="outline" className="text-xs bg-blue-50">
-                      ✅ {language === 'pt' ? 'Em Stock' : 'In Stock'}
-                    </Badge>
-                  )}
-                  {advancedFilters.minRating > 0 && (
-                    <Badge variant="outline" className="text-xs bg-yellow-50">
-                      ⭐ {advancedFilters.minRating}+ {language === 'pt' ? 'Estrelas' : 'Stars'}
-                    </Badge>
-                  )}
-                  {advancedFilters.brand !== 'all' && (
-                    <Badge variant="outline" className="text-xs bg-green-50">
-                      {language === 'pt' ? 'Marca' : 'Brand'}: {advancedFilters.brand}
-                    </Badge>
-                  )}
-                  {(advancedFilters.minPrice > 0 || advancedFilters.maxPrice < 1000) && (
-                    <Badge variant="outline" className="text-xs bg-gray-50">
-                      {language === 'pt' ? 'Preço' : 'Price'}: €{advancedFilters.minPrice} - €{advancedFilters.maxPrice}
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                  <Skeleton key={i} className="h-64 rounded-lg" />
-                ))}
-              </div>
-            ) : filteredPartners.length === 0 && filteredProducts.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{language === 'pt' ? 'Nenhuma marca ou produto encontrado' : 'No brands or products found'}</h3>
-                  <p className="text-gray-600 mb-4">{language === 'pt' ? 'Tente ajustar os filtros ou pesquisa' : 'Try adjusting filters or search'}</p>
-                  <Button onClick={() => { setSearchQuery(""); setActiveCategory("all"); resetAdvancedFilters(); }}>
-                    {language === 'pt' ? 'Limpar Filtros' : 'Clear Filters'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredPartners.map((partner) => (
-                  <div
-                    key={partner.id}
-                    onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
-                    className="cursor-pointer group"
-                  >
-                    <Card className="h-full hover:shadow-lg transition-shadow">
-                      <div className="relative h-40 bg-gray-100 flex items-center justify-center p-4">
-                        {partner.logo_url ? (
-                          <img
-                            src={partner.logo_url}
-                            alt={partner.partner_name}
-                            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <Store className="w-12 h-12 text-gray-300" />
-                        )}
-
-                        {partner.discount_percentage > 0 && (
-                          <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1">
-                            -{partner.discount_percentage}%
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {announcements.map((announcement) => (
+                <motion.div
+                  key={announcement.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedAnnouncement(announcement)}
+                >
+                  <Card className="overflow-hidden hover:shadow-2xl transition-all border-2 border-purple-200">
+                    {announcement.image_url && (
+                      <div className="relative h-40 bg-gradient-to-br from-purple-100 to-pink-100">
+                        <img
+                          src={announcement.image_url}
+                          alt={announcement.title}
+                          className="w-full h-full object-cover"
+                        />
+                        {announcement.discount_percentage > 0 && (
+                          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-lg shadow-lg">
+                            -{announcement.discount_percentage}%
                           </Badge>
                         )}
                       </div>
+                    )}
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
+                        {announcement.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {announcement.message}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {announcement.company_name}
+                        </span>
+                        <ChevronRight className="w-5 h-5 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
-                      <CardContent className="p-3">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">
-                          {partner.partner_name}
-                        </h3>
-
-                        <Badge variant="outline" className="mb-2 text-xs capitalize">
-                          {partner.partner_type.replace('_', ' ')}
-                        </Badge>
-
-                        {partner.location && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{partner.location}</span>
-                          </div>
-                        )}
-
-                        {partner.promo_code && (
-                          <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
-                            <p className="text-[9px] text-gray-600">{language === 'pt' ? 'Código' : 'Code'}</p>
-                            <p className="text-xs font-bold text-green-700 font-mono truncate">
-                              {partner.promo_code}
-                            </p>
-                          </div>
-                        )}
-
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-8 text-xs font-semibold">
-                          {language === 'pt' ? 'Ver Loja' : 'View Shop'}
-                          <ChevronRight className="w-3 h-3 ml-1" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <Card className="mt-8 bg-green-600 text-white">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold mb-2">
-                    {language === 'pt' ? 'Ganhe 10-20 PawPoints por cada €1' : 'Earn 10-20 PawPoints per €1'}
-                  </h3>
-                  <p className="text-green-100">
-                    {language === 'pt' ? 'Acumule pontos em cada compra e troque por recompensas' : 'Accumulate points on every purchase and redeem for rewards'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+        {/* CATEGORIAS */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
+            {categories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={activeCategory === cat.id ? "default" : "ghost"}
+                onClick={() => setActiveCategory(cat.id)}
+                className={activeCategory === cat.id ? 'bg-green-600 text-white' : ''}
+                size="sm"
+              >
+                {cat.name}
+              </Button>
+            ))}
           </div>
         </div>
+
+        {/* PARCEIROS */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-64 rounded-lg" />
+            ))}
+          </div>
+        ) : filteredPartners.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600">Nenhuma marca encontrada</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {filteredPartners.map((partner) => (
+              <div
+                key={partner.id}
+                onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
+                className="cursor-pointer"
+              >
+                <Card className="h-full hover:shadow-lg transition-shadow">
+                  <div className="relative h-40 bg-gray-100 flex items-center justify-center p-4">
+                    {partner.logo_url ? (
+                      <img
+                        src={partner.logo_url}
+                        alt={partner.partner_name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <Store className="w-12 h-12 text-gray-300" />
+                    )}
+                  </div>
+                  <CardContent className="p-3">
+                    <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">
+                      {partner.partner_name}
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      {partner.partner_type.replace('_', ' ')}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
+      {/* MODAL DE ANÚNCIO */}
       <AnimatePresence>
         {selectedAnnouncement && (
           <>
@@ -554,14 +272,14 @@ export default function Partners() {
               onClick={() => setSelectedAnnouncement(null)}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl shadow-2xl z-50 max-h-[90vh] overflow-y-auto"
             >
               <div className="relative">
                 {selectedAnnouncement.image_url && (
-                  <div className="relative h-64 bg-gradient-to-br from-purple-100 to-pink-100">
+                  <div className="relative h-64">
                     <img
                       src={selectedAnnouncement.image_url}
                       alt={selectedAnnouncement.title}
@@ -579,15 +297,11 @@ export default function Partners() {
                 )}
                 
                 <div className="p-8">
-                  <Badge className="mb-4 text-base">
-                    {getPromotionTypeLabel(selectedAnnouncement.promotion_type)}
-                  </Badge>
-                  
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
                     {selectedAnnouncement.title}
                   </h2>
                   
-                  <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                  <p className="text-lg text-gray-700 mb-6">
                     {selectedAnnouncement.message}
                   </p>
 
@@ -596,29 +310,14 @@ export default function Partners() {
                       <p className="text-5xl font-black text-red-600 text-center">
                         -{selectedAnnouncement.discount_percentage}%
                       </p>
-                      <p className="text-center text-gray-600 mt-2">{language === 'pt' ? 'Desconto Especial' : 'Special Discount'}</p>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between pt-6 border-t">
                     <div>
-                      <p className="text-sm text-gray-600">{language === 'pt' ? 'Marca:' : 'Brand:'}</p>
+                      <p className="text-sm text-gray-600">Marca:</p>
                       <p className="font-bold text-gray-900">{selectedAnnouncement.company_name}</p>
                     </div>
-                    <Button
-                      onClick={() => {
-                        setSelectedAnnouncement(null);
-                        const partner = partners.find(p => p.partner_name === selectedAnnouncement.company_name);
-                        if (partner) {
-                          navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
-                        }
-                      }}
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                      size="lg"
-                    >
-                      {language === 'pt' ? 'Ver Produtos' : 'View Products'}
-                      <ChevronRight className="w-5 h-5 ml-2" />
-                    </Button>
                   </div>
                 </div>
               </div>
