@@ -123,14 +123,48 @@ export default function PartnerDashboard() {
     enabled: !!user,
   });
 
-  const { data: services } = useQuery({
-    queryKey: ['myServices'],
-    queryFn: () => base44.entities.PartnerService.filter({
-      partner_company_email: user?.email
-    }),
-    enabled: !!user,
-    initialData: [],
+  const { data: services = [], isLoading: loadingServices } = useQuery({
+    queryKey: ['companyServices'],
+    queryFn: async () => {
+      if (!user?.email) {
+        console.log('⚠️ No user email');
+        return [];
+      }
+
+      const allServices = await base44.entities.PartnerService.list();
+      
+      console.log('🔍 LOADING COMPANY SERVICES:', {
+        user_email: user.email,
+        total_services_in_db: allServices.length,
+        all_services: allServices.map(s => ({
+          name: s.service_name,
+          partner_email: s.partner_company_email,
+          created_by: s.created_by,
+          moderation_status: s.moderation_status,
+          is_active: s.is_active
+        }))
+      });
+
+      const myServices = allServices.filter(s => 
+        s.partner_company_email === user.email || s.created_by === user.email
+      );
+      
+      console.log('✅ MY SERVICES FOUND:', {
+        count: myServices.length,
+        services: myServices.map(s => ({
+          name: s.service_name,
+          moderation_status: s.moderation_status,
+          is_active: s.is_active
+        }))
+      });
+
+      return myServices;
+    },
+    enabled: !!user?.email,
+    staleTime: 30000,
   });
+
+  console.log('📊 SERVICES TO DISPLAY:', services.length);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['companyBookings'],
@@ -459,7 +493,7 @@ export default function PartnerDashboard() {
     onSuccess: (newService) => {
       console.log('Service created successfully:', newService);
       queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] });
-      queryClient.invalidateQueries({ queryKey: ['myServices'] }); // Invalidate general services list
+      queryClient.invalidateQueries({ queryKey: ['companyServices'] }); // Invalidate general services list
       queryClient.invalidateQueries({ queryKey: ['partnerServices'] }); // Invalidate partner specific services list if used elsewhere
       toast.success(language === 'pt' ? 'Serviço criado e ativo!' : 'Service created and active!');
       setShowCreateServiceModal(false);
@@ -573,6 +607,7 @@ export default function PartnerDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] });
+      queryClient.invalidateQueries({ queryKey: ['companyServices'] }); // Invalidate general services list
       toast.success(language === 'pt' ? 'Serviço atualizado! Aguardando nova aprovação.' : 'Service updated! Awaiting new approval.');
       setShowEditServiceModal(false);
       setEditingService(null);
@@ -767,8 +802,8 @@ export default function PartnerDashboard() {
       promotion_type: announcement.promotion_type || "discount",
       discount_percentage: announcement.discount_percentage?.toString() || "",
       target_subscription_tier: announcement.target_subscription_tier || ["free", "basic", "premium", "vip"],
-      start_date: announcement.start_date || "",
-      end_date: announcement.end_date || "",
+      start_date: announcement.start_date ? announcement.start_date.split('T')[0] : "",
+      end_date: announcement.end_date ? announcement.end_date.split('T')[0] : "",
       image_url: announcement.image_url || "",
       is_featured: announcement.is_featured || false
     });
@@ -1924,7 +1959,7 @@ export default function PartnerDashboard() {
                         </div>
                         <p className="text-sm text-gray-700 mt-2 line-clamp-2">{announcement.message}</p>
                         <div className="flex gap-3 text-xs text-gray-600 mt-2 flex-wrap">
-                          <span>📅 {announcement.start_date} → {announcement.end_date}</span>
+                          <span>📅 {announcement.start_date ? announcement.start_date.split('T')[0] : ''} → {announcement.end_date ? announcement.end_date.split('T')[0] : ''}</span>
                           <span>👁️ {announcement.views_count || 0} views</span>
                           <span>🖱️ {announcement.clicks_count || 0} clicks</span>
                         </div>

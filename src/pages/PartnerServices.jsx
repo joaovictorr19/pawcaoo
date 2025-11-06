@@ -28,34 +28,83 @@ export default function PartnerServices() {
     queryFn: () => base44.auth.me(),
   });
 
+  console.log('🔐 USER INFO:', {
+    email: user?.email,
+    account_type: user?.account_type,
+    is_company: user?.account_type === 'company'
+  });
+
   const { data: services = [], isLoading } = useQuery({
     queryKey: ['partnerServices'],
     queryFn: async () => {
+      // PASSO 1: Carregar TODOS os serviços primeiro
       const allServices = await base44.entities.PartnerService.list();
-      console.log('All services loaded:', allServices.length, allServices);
       
-      // Se o usuário é uma empresa, mostra TODOS os seus serviços
+      console.log('📊 RAW SERVICES LOADED:', {
+        total: allServices.length,
+        services: allServices.map(s => ({
+          id: s.id,
+          name: s.service_name,
+          partner_email: s.partner_company_email,
+          is_active: s.is_active,
+          moderation_status: s.moderation_status,
+          created_by: s.created_by
+        }))
+      });
+
+      // PASSO 2: Se for empresa, mostrar TODOS os seus serviços
       if (user?.account_type === 'company' && user?.email) {
-        const myServices = allServices.filter(s => s.partner_company_email === user.email);
-        console.log('Company services:', myServices.length);
+        const myServices = allServices.filter(s => 
+          s.partner_company_email === user.email || s.created_by === user.email
+        );
+        
+        console.log('🏢 COMPANY SERVICES:', {
+          user_email: user.email,
+          my_services_count: myServices.length,
+          my_services: myServices.map(s => ({
+            name: s.service_name,
+            is_active: s.is_active,
+            moderation_status: s.moderation_status
+          }))
+        });
+        
         return myServices;
       }
+
+      // PASSO 3: Para usuários normais, mostrar apenas aprovados E ativos
+      const publicServices = allServices.filter(s => {
+        const isApproved = s.moderation_status === 'approved';
+        const isActive = s.is_active === true;
+        
+        console.log(`📋 Service "${s.service_name}":`, {
+          moderation_status: s.moderation_status,
+          is_active: s.is_active,
+          isApproved,
+          isActive,
+          willShow: isApproved && isActive
+        });
+        
+        return isApproved && isActive;
+      });
+
+      console.log('✅ PUBLIC SERVICES TO DISPLAY:', publicServices.length);
       
-      // Para outros usuários, mostra apenas aprovados e ativos
-      const publicServices = allServices.filter(s => s.is_active);
-      console.log('Public active services:', publicServices.length);
       return publicServices;
     },
     enabled: !!user,
     initialData: [],
-    staleTime: 60000,
+    staleTime: 30000, // 30 segundos
   });
 
-  console.log('Services displayed:', services.length);
+  console.log('🎯 FINAL SERVICES DISPLAYED:', services.length);
 
   const { data: partners = [] } = useQuery({
     queryKey: ['partnerCompanies'],
-    queryFn: () => base44.entities.PartnerCompany.filter({ is_active: true }),
+    queryFn: async () => {
+      const companies = await base44.entities.PartnerCompany.filter({ is_active: true });
+      console.log('🏪 PARTNER COMPANIES:', companies.length);
+      return companies;
+    },
     initialData: [],
   });
 
@@ -74,13 +123,14 @@ export default function PartnerServices() {
   const cities = ["all", ...new Set(partners.map(p => p.city).filter(Boolean))];
 
   const filteredServices = React.useMemo(() => {
-    return services.filter(service => {
-      // Se é empresa dona do serviço, mostra tudo
-      const isOwnService = user?.email === service.partner_company_email;
+    const result = services.filter(service => {
+      const isOwnService = user?.email === service.partner_company_email || user?.email === service.created_by;
       
-      // Se não for próprio serviço, só mostra se aprovado e ativo
-      if (!isOwnService && (service.moderation_status !== 'approved' || !service.is_active)) {
-        return false;
+      // Se não for serviço próprio, verificar aprovação e ativo
+      if (!isOwnService) {
+        if (service.moderation_status !== 'approved' || !service.is_active) {
+          return false;
+        }
       }
 
       const matchesSearch = !searchQuery ||
@@ -94,6 +144,14 @@ export default function PartnerServices() {
 
       return matchesSearch && matchesType && matchesCity;
     });
+
+    console.log('🔍 FILTERED SERVICES:', {
+      before: services.length,
+      after: result.length,
+      filters: { searchQuery, selectedServiceType, selectedCity }
+    });
+
+    return result;
   }, [services, searchQuery, selectedServiceType, selectedCity, partners, user?.email]);
 
   const getServiceIcon = (type) => {
@@ -233,7 +291,7 @@ export default function PartnerServices() {
             <AnimatePresence>
               {filteredServices.map((service, index) => {
                 const partner = partners.find(p => p.company_name === service.partner_name);
-                const isOwnService = user?.email === service.partner_company_email;
+                const isOwnService = user?.email === service.partner_company_email || user?.email === service.created_by;
                 
                 return (
                   <motion.div

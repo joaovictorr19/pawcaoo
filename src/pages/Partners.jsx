@@ -38,11 +38,19 @@ export default function Partners() {
     queryFn: () => base44.auth.me(),
   });
 
+  console.log('👤 USER:', user?.email, user?.account_type);
+
   const { data: partners, isLoading } = useQuery({
     queryKey: ['partners'],
     queryFn: async () => {
       const allPartners = await base44.entities.Partnership.list();
-      console.log('Partners loaded:', allPartners.length, allPartners);
+      console.log('🏪 ALL PARTNERS:', {
+        total: allPartners.length,
+        partners: allPartners.map(p => ({
+          name: p.partner_name,
+          is_active: p.is_active
+        }))
+      });
       return allPartners;
     },
     initialData: [],
@@ -50,30 +58,79 @@ export default function Partners() {
   });
 
   const { data: announcements = [] } = useQuery({
-    queryKey: ['activeAnnouncements', user?.email],
+    queryKey: ['activeAnnouncements'],
     queryFn: async () => {
+      // PASSO 1: Carregar TODOS os anúncios
       const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
-      console.log('All announcements loaded:', allAnnouncements.length, allAnnouncements);
       
-      const now = new Date();
-      const filtered = allAnnouncements.filter(ann => {
-        const startDate = new Date(ann.start_date);
-        const endDate = new Date(ann.end_date);
-        const isActive = ann.is_active && now >= startDate && now <= endDate;
-        console.log('Announcement:', ann.title, 'Active:', isActive);
-        return isActive;
+      console.log('📢 ALL ANNOUNCEMENTS LOADED:', {
+        total: allAnnouncements.length,
+        announcements: allAnnouncements.map(a => ({
+          title: a.title,
+          company: a.company_name,
+          moderation_status: a.moderation_status,
+          is_active: a.is_active,
+          start_date: a.start_date,
+          end_date: a.end_date,
+          created_by: a.created_by
+        }))
       });
-      
-      console.log('Filtered announcements:', filtered.length);
-      return filtered.sort((a, b) => {
+
+      // PASSO 2: Filtrar por aprovados
+      const approved = allAnnouncements.filter(a => a.moderation_status === 'approved');
+      console.log('✅ APPROVED ANNOUNCEMENTS:', approved.length);
+
+      // PASSO 3: Filtrar por ativos
+      const active = approved.filter(a => a.is_active === true);
+      console.log('🟢 ACTIVE ANNOUNCEMENTS:', active.length);
+
+      // PASSO 4: Filtrar por datas
+      const now = new Date();
+      const inDateRange = active.filter(a => {
+        if (!a.start_date || !a.end_date) {
+          console.log(`⚠️ Announcement "${a.title}" missing dates`);
+          return false;
+        }
+        
+        const startDate = new Date(a.start_date);
+        const endDate = new Date(a.end_date);
+        const isInRange = now >= startDate && now <= endDate;
+        
+        console.log(`📅 "${a.title}":`, {
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          now: now.toISOString(),
+          isInRange
+        });
+        
+        return isInRange;
+      });
+
+      console.log('📊 FINAL ANNOUNCEMENTS TO DISPLAY:', inDateRange.length);
+
+      // PASSO 5: Ordenar por destaque
+      const sorted = inDateRange.sort((a, b) => {
         if (a.is_featured && !b.is_featured) return -1;
         if (!a.is_featured && b.is_featured) return 1;
+        if (a.featured_position && b.featured_position) {
+          return a.featured_position - b.featured_position;
+        }
         return new Date(b.created_date) - new Date(a.created_date);
       });
+
+      console.log('🎯 SORTED ANNOUNCEMENTS:', sorted.map(a => ({
+        title: a.title,
+        is_featured: a.is_featured,
+        featured_position: a.featured_position
+      })));
+
+      return sorted;
     },
     initialData: [],
     staleTime: 60000,
   });
+
+  console.log('🎨 ANNOUNCEMENTS TO RENDER:', announcements.length);
 
   const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
     queryKey: ['loyaltyPoints', user?.email],
