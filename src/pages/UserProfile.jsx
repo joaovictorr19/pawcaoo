@@ -35,11 +35,12 @@ export default function UserProfile() {
   const { data: currentUser, isLoading: loadingCurrentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Force fresh data
+    refetchOnWindowFocus: true, // Force fresh data
   });
 
   console.log('UserProfile - Current User:', currentUser?.email);
+  console.log('UserProfile - Current User Full Data:', currentUser);
 
   useEffect(() => {
     if (!profileEmail && currentUser?.email) {
@@ -53,20 +54,27 @@ export default function UserProfile() {
     queryKey: ['profileUser', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return null;
-      const users = await base44.entities.User.list();
-      return users.find(u => u.email === profileEmail) || null;
+      const users = await base44.entities.User.filter({ email: profileEmail });
+      console.log('UserProfile - Users found:', users);
+      return users[0] || null;
     },
     enabled: !!profileEmail,
     retry: 1,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Force fresh data
+    refetchOnWindowFocus: true, // Force fresh data
   });
 
   const profileBadges = profileUser?.profile_badges || [];
   const achievementsBadges = profileUser?.achievements_badges || [];
 
-  console.log('Profile User:', profileUser?.email);
-  console.log('Achievements Badges:', achievementsBadges);
+  console.log('===== PROFILE DEBUG =====');
+  console.log('Profile User Email:', profileUser?.email);
+  console.log('Profile User Full Name:', profileUser?.full_name);
+  console.log('Profile Badges (profile_badges):', profileBadges);
+  console.log('Achievements Badges (achievements_badges):', achievementsBadges);
+  console.log('Achievements Badges Length:', achievementsBadges.length);
+  console.log('Achievements Badges Array:', JSON.stringify(achievementsBadges, null, 2));
+  console.log('========================');
 
   const { data: userPosts = [] } = useQuery({
     queryKey: ['userPosts', profileEmail],
@@ -633,19 +641,37 @@ export default function UserProfile() {
           </Card>
         )}
 
-        {/* Emblemas - Grid Visual */}
-        {achievementsBadges.length > 0 && (
-          <Card className="border-0 shadow-xl mb-6">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Award className="w-5 h-5 text-yellow-600" />
-                Emblemas Conquistados
-                <Badge className="ml-2 bg-gray-200 text-gray-700">{achievementsBadges.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Emblemas - SEMPRE MOSTRAR (para debug) */}
+        <Card className="border-0 shadow-xl mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Award className="w-5 h-5 text-yellow-600" />
+              Emblemas Conquistados
+              <Badge className="ml-2 bg-gray-200 text-gray-700">{achievementsBadges.length}</Badge>
+            </CardTitle>
+            <p className="text-xs text-gray-500 mt-2">
+              Debug: {achievementsBadges.length > 0 ? `${achievementsBadges.length} emblemas encontrados` : 'Nenhum emblema encontrado'}
+            </p>
+          </CardHeader>
+          <CardContent>
+            {achievementsBadges.length === 0 ? (
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 text-center">
+                <Award className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+                <p className="text-gray-700 font-semibold mb-2">Nenhum emblema conquistado ainda</p>
+                <p className="text-sm text-gray-600">Participe da comunidade para ganhar emblemas!</p>
+                <p className="text-xs text-gray-500 mt-4">
+                  Debug Info: {JSON.stringify({ 
+                    email: profileUser?.email,
+                    hasField: profileUser?.achievements_badges !== undefined,
+                    isArray: Array.isArray(profileUser?.achievements_badges),
+                    raw: profileUser?.achievements_badges
+                  })}
+                </p>
+              </div>
+            ) : (
               <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {achievementsBadges.slice(0, 16).map((badge, idx) => {
+                {achievementsBadges.map((badge, idx) => {
+                  console.log('Rendering badge:', badge);
                   const rarityColors = {
                     common: "bg-gray-100 border-gray-300",
                     rare: "bg-blue-100 border-blue-300",
@@ -656,7 +682,7 @@ export default function UserProfile() {
                   
                   return (
                     <motion.div
-                      key={idx}
+                      key={badge.badge_id || idx}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: idx * 0.03 }}
@@ -672,23 +698,25 @@ export default function UserProfile() {
                       ) : (
                         <div className="text-3xl">{badge.icon || '🏆'}</div>
                       )}
+                      <p className="text-[10px] font-bold mt-1 truncate">{badge.name}</p>
                     </motion.div>
                   );
                 })}
               </div>
-              {achievementsBadges.length > 16 && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => setActiveTab('badges')}
-                >
-                  Ver Todos os Emblemas ({achievementsBadges.length})
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+            )}
+            
+            {achievementsBadges.length > 16 && (
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => setActiveTab('badges')}
+              >
+                Ver Todos os Emblemas ({achievementsBadges.length})
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
+          </CardContent>
+        </Card>
 
         {/* My Pets Section */}
         {userDogs.length > 0 && (
@@ -832,7 +860,7 @@ export default function UserProfile() {
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {achievementsBadges.map((badge, idx) => (
-                      <BadgeItem key={idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
+                      <BadgeItem key={badge.badge_id || idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>
                 )}
