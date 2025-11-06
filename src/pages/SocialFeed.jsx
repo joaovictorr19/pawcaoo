@@ -33,7 +33,10 @@ import {
   Crown, // New import for crown icon
   Sparkles, // New import for sparkles icon
   ChevronRight, // New import for chevron right icon
-  X // New import for close button in modal
+  X, // New import for close button in modal
+  CheckCircle, // New import for verified badge
+  Shield, // New import for admin badge
+  ShieldCheck // New import for moderator badge
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -396,130 +399,172 @@ export default function SocialFeed() {
             </Card>
           ) : (
             <AnimatePresence>
-              {posts.map((post, index) => (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-0">
-                      {/* Post Header */}
-                      <div className="flex items-center justify-between p-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="ring-2 ring-purple-200 cursor-pointer hover:ring-purple-400 transition-all">
-                            <AvatarImage src={post.author_photo_url} />
-                            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                              {post.author_name?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold text-gray-900 hover:text-purple-600 cursor-pointer transition-colors">
-                                {post.author_name}
-                              </p>
-                              {post.is_verified_user && (
-                                <Badge className="bg-blue-500 text-white text-xs px-1 py-0">✓</Badge>
+              {posts.map((post, index) => {
+                const authorBadges = post.author_profile_badges || [];
+
+                return (
+                  <motion.div
+                    key={post.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
+                      <CardContent className="p-0">
+                        {/* Post Header */}
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="ring-2 ring-purple-200 cursor-pointer hover:ring-purple-400 transition-all">
+                              <AvatarImage src={post.author_photo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                                {post.author_name?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              {/* Nome + Badges */}
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-gray-900 hover:text-purple-600 cursor-pointer transition-colors">
+                                  {post.author_name}
+                                </p>
+
+                                {/* Profile Badges ao lado do nome */}
+                                {authorBadges.map((badge, idx) => {
+                                  if (badge.badge_id === 'verified') {
+                                    return (
+                                      <div key={idx} className="w-5 h-5" title="Verificado">
+                                        <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-500" />
+                                      </div>
+                                    );
+                                  }
+                                  if (badge.badge_id === 'admin') {
+                                    return (
+                                      <Badge key={idx} className="bg-red-600 text-white text-xs px-1 py-0">
+                                        <Shield className="w-3 h-3 mr-1" />Admin
+                                      </Badge>
+                                    );
+                                  }
+                                  if (badge.badge_id === 'moderator') {
+                                    return (
+                                      <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
+                                        <ShieldCheck className="w-3 h-3 mr-1" />Moderador
+                                      </Badge>
+                                    );
+                                  }
+                                  if (badge.badge_id === 'adoption_advocate') {
+                                    return (
+                                      <Badge key={idx} className="bg-pink-600 text-white text-xs px-1 py-0">
+                                        <Heart className="w-3 h-3 mr-1" />Adote!
+                                      </Badge>
+                                    );
+                                  }
+                                  if (badge.badge_id === 'vip_member') {
+                                    return (
+                                      <Badge key={idx} className="bg-purple-600 text-white text-xs px-1 py-0">
+                                        <Crown className="w-3 h-3 mr-1" />VIP
+                                      </Badge>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </div>
+                              {post.location && (
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                  <MapPin className="w-3 h-3" />
+                                  {post.location}
+                                </div>
                               )}
                             </div>
-                            {post.location && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <MapPin className="w-3 h-3" />
-                                {post.location}
-                              </div>
-                            )}
                           </div>
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </Button>
-                      </div>
-
-                      {/* Post Image */}
-                      {post.media_urls?.length > 0 && (
-                        <div className="relative w-full aspect-square bg-gray-100">
-                          <img
-                            src={post.media_urls[0]}
-                            alt="Post"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-
-                      {/* Post Actions */}
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleLike(post.id)}
-                              className="hover:text-pink-600 transition-colors"
-                            >
-                              <Heart className="w-6 h-6" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
-                              <MessageCircle className="w-6 h-6" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="hover:text-purple-600 transition-colors">
-                              <Share2 className="w-6 h-6" />
-                            </Button>
-                          </div>
-                          <Button variant="ghost" size="sm" className="hover:text-yellow-600 transition-colors">
-                            <Bookmark className="w-6 h-6" />
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="w-5 h-5" />
                           </Button>
                         </div>
 
-                        {/* Likes Count */}
-                        {post.likes_count > 0 && (
-                          <p className="font-semibold text-sm mb-2">
-                            {post.likes_count} {post.likes_count === 1 ? 'curtida' : 'curtidas'}
-                          </p>
-                        )}
-
-                        {/* Post Content */}
-                        <div className="mb-2">
-                          <span className="font-semibold text-gray-900 mr-2">
-                            {post.author_name}
-                          </span>
-                          <span className="text-gray-700">{post.content}</span>
-                        </div>
-
-                        {/* Tags */}
-                        {post.tags?.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {post.tags.map((tag, idx) => (
-                              <span
-                                key={idx}
-                                className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm font-medium"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
+                        {/* Post Image */}
+                        {post.media_urls?.length > 0 && (
+                          <div className="relative w-full aspect-square bg-gray-100">
+                            <img
+                              src={post.media_urls[0]}
+                              alt="Post"
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         )}
 
-                        {/* Comments Count */}
-                        {post.comments_count > 0 && (
-                          <button className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
-                            Ver todos os {post.comments_count} comentários
-                          </button>
-                        )}
+                        {/* Post Actions */}
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-4">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleLike(post.id)}
+                                className="hover:text-pink-600 transition-colors"
+                              >
+                                <Heart className="w-6 h-6" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
+                                <MessageCircle className="w-6 h-6" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="hover:text-purple-600 transition-colors">
+                                <Share2 className="w-6 h-6" />
+                              </Button>
+                            </div>
+                            <Button variant="ghost" size="sm" className="hover:text-yellow-600 transition-colors">
+                              <Bookmark className="w-6 h-6" />
+                            </Button>
+                          </div>
 
-                        {/* Timestamp */}
-                        <p className="text-xs text-gray-400 mt-2">
-                          {new Date(post.created_date).toLocaleDateString('pt-PT', {
-                            day: 'numeric',
-                            month: 'long'
-                          })}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                          {/* Likes Count */}
+                          {post.likes_count > 0 && (
+                            <p className="font-semibold text-sm mb-2">
+                              {post.likes_count} {post.likes_count === 1 ? 'curtida' : 'curtidas'}
+                            </p>
+                          )}
+
+                          {/* Post Content */}
+                          <div className="mb-2">
+                            <span className="font-semibold text-gray-900 mr-2">
+                              {post.author_name}
+                            </span>
+                            <span className="text-gray-700">{post.content}</span>
+                          </div>
+
+                          {/* Tags */}
+                          {post.tags?.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {post.tags.map((tag, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm font-medium"
+                                >
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Comments Count */}
+                          {post.comments_count > 0 && (
+                            <button className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
+                              Ver todos os {post.comments_count} comentários
+                            </button>
+                          )}
+
+                          {/* Timestamp */}
+                          <p className="text-xs text-gray-400 mt-2">
+                            {new Date(post.created_date).toLocaleDateString('pt-PT', {
+                              day: 'numeric',
+                              month: 'long'
+                            })}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           )}
         </div>

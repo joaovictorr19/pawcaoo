@@ -11,7 +11,7 @@ import {
   MapPin, Users, Heart, MessageCircle, ArrowLeft,
   Link as LinkIcon, CheckCircle, Dog, Calendar,
   Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star,
-  Target, Zap, Flame, Sparkles, ChevronRight, Settings, Camera // Added Camera icon
+  Target, Zap, Flame, Sparkles, ChevronRight, Settings, Camera, Crown // Added Crown icon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -55,6 +55,9 @@ export default function UserProfile() {
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
+
+  const profileBadges = profileUser?.profile_badges || [];
+  const achievementsBadges = profileUser?.achievements_badges || [];
 
   const { data: userPosts = [] } = useQuery({
     queryKey: ['userPosts', profileEmail],
@@ -231,9 +234,6 @@ export default function UserProfile() {
     },
   ];
 
-  // Earned badges for display below avatar
-  const earnedBadges = profileUser?.public_badges || [];
-
   // High-Quality 3D Badges - Twitter/Premium Style
   const getBadgeImage = (type, data = {}, transparent = false) => {
     const badges = {
@@ -341,7 +341,7 @@ export default function UserProfile() {
 
           <CardContent className="relative px-6 md:px-8 pb-8">
             <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
-              {/* Avatar + Badges */}
+              {/* Avatar */}
               <div className="flex flex-col items-center md:items-start">
                 <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-white shadow-2xl ring-4 ring-purple-200">
                   <AvatarImage src={profileUser.profile_photo_url} />
@@ -349,102 +349,100 @@ export default function UserProfile() {
                     {profileUser.full_name?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-
-                {/* Top Badges Display */}
-                {earnedBadges.length > 0 && (
-                  <div className="flex gap-2 mt-4 flex-wrap justify-center md:justify-start">
-                    {earnedBadges.slice(0, 5).map((badge, idx) => (
-                      <div
-                        key={idx}
-                        className="relative group cursor-pointer"
-                        title={badge.name}
-                      >
-                        {badge.image_url ? (
-                          <img
-                            src={badge.image_url}
-                            alt={badge.name}
-                            className="w-12 h-12 rounded-lg shadow-lg hover:scale-110 transition-transform object-contain"
-                            style={{imageRendering: 'pixelated'}}
-                          />
-                        ) : (
-                          <img
-                            src={getBadgeImage('community', badge)}
-                            alt={badge.name}
-                            className="w-12 h-12 rounded-lg shadow-lg hover:scale-110 transition-transform"
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="flex-1 md:mt-20">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
+                    {/* Nome + Badges (ao lado do nome) */}
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <h1 className="text-3xl font-bold text-gray-900">{profileUser.full_name}</h1>
-
-                      {/* Verified & Role Badges */}
-                      {profileUser.is_verified && (
-                        <div className="relative group cursor-pointer">
-                          <img
-                            src={getBadgeImage('verified')}
-                            alt="Verificado"
-                            className="w-7 h-7 hover:scale-110 transition-transform drop-shadow-lg"
-                          />
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
-                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
-                              ✓ Conta Verificada
-                            </div>
-                          </div>
+                      
+                      {/* Profile Badges - aparecem ao lado do nome */}
+                      {profileBadges.map((badge, idx) => (
+                        <div
+                          key={idx}
+                          className="relative group cursor-pointer"
+                          title={`${badge.name} - ${badge.description}`}
+                        >
+                          {badge.badge_id === 'verified' && (
+                            <img 
+                              src={getBadgeImage('verified')} 
+                              alt="Verificado" 
+                              className="w-7 h-7 hover:scale-110 transition-transform drop-shadow-lg" 
+                            />
+                          )}
+                          {badge.badge_id === 'admin' && (
+                            <img 
+                              src={getBadgeImage('admin')} 
+                              alt="Admin" 
+                              className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg" 
+                            />
+                          )}
+                          {badge.badge_id === 'moderator' && (
+                            <img 
+                              src={getBadgeImage('moderator')} 
+                              alt="Moderador" 
+                              className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg" 
+                            />
+                          )}
+                          {badge.badge_id === 'adoption_advocate' && (
+                            <img 
+                              src={getBadgeImage('adoption')} 
+                              alt="Defensor de Adoção" 
+                              className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg" 
+                            />
+                          )}
+                          {badge.badge_id === 'certified_professional' && (
+                            <Badge className="bg-blue-600 text-white">
+                              <ShieldCheck className="w-3 h-3 mr-1" />
+                              Certificado
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'top_contributor' && (
+                            <Badge className="bg-yellow-600 text-white">
+                              <Star className="w-3 h-3 mr-1" />
+                              Top
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'vip_member' && (
+                            <Badge className="bg-purple-600 text-white">
+                              <Crown className="w-3 h-3 mr-1" />
+                              VIP
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'official_partner' && (
+                            <Badge className="bg-green-600 text-white">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Parceiro
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'community_leader' && (
+                            <Badge className="bg-orange-600 text-white">
+                              <Users className="w-3 h-3 mr-1" />
+                              Líder
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'expert_trainer' && (
+                            <Badge className="bg-indigo-600 text-white">
+                              <Award className="w-3 h-3 mr-1" />
+                              Expert
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'trusted_walker' && (
+                            <Badge className="bg-teal-600 text-white">
+                              <Heart className="w-3 h-3 mr-1" />
+                              Confiável
+                            </Badge>
+                          )}
+                          {badge.badge_id === 'vet_verified' && (
+                            <Badge className="bg-red-600 text-white">
+                              <ShieldCheck className="w-3 h-3 mr-1" />
+                              Veterinário
+                            </Badge>
+                          )}
                         </div>
-                      )}
-
-                      {profileUser.role === 'admin' && (
-                        <div className="relative group cursor-pointer">
-                          <img
-                            src={getBadgeImage('admin')}
-                            alt="Admin"
-                            className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg"
-                          />
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
-                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
-                              🛡️ Administrador
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {profileUser.social_role === 'moderator' && (
-                        <div className="relative group cursor-pointer">
-                          <img
-                            src={getBadgeImage('moderator')}
-                            alt="Moderador"
-                            className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg"
-                          />
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
-                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
-                              🛡️ Moderador
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {profileUser.is_adoption_advocate && (
-                        <div className="relative group cursor-pointer">
-                          <img
-                            src={getBadgeImage('adoption')}
-                            alt="Adoção"
-                            className="w-9 h-9 hover:scale-110 transition-transform drop-shadow-lg"
-                          />
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
-                            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl">
-                              💖 Defensor de Adoção
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      ))}
                     </div>
 
                     {profileUser.bio && (
@@ -564,18 +562,18 @@ export default function UserProfile() {
         )}
 
         {/* Emblemas - Grid Visual */}
-        {earnedBadges.length > 0 && (
+        {achievementsBadges.length > 0 && (
           <Card className="border-0 shadow-xl mb-6">
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Award className="w-5 h-5 text-yellow-600" />
                 Emblemas Conquistados
-                <Badge className="ml-2 bg-gray-200 text-gray-700">{earnedBadges.length}</Badge>
+                <Badge className="ml-2 bg-gray-200 text-gray-700">{achievementsBadges.length}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {earnedBadges.slice(0, 16).map((badge, idx) => {
+                {achievementsBadges.slice(0, 16).map((badge, idx) => {
                   const rarityColors = {
                     common: "bg-gray-100 border-gray-300",
                     rare: "bg-blue-100 border-blue-300",
@@ -583,7 +581,7 @@ export default function UserProfile() {
                     legendary: "bg-yellow-100 border-yellow-300"
                   };
                   const colors = rarityColors[badge.rarity] || rarityColors.common;
-
+                  
                   return (
                     <motion.div
                       key={idx}
@@ -594,8 +592,8 @@ export default function UserProfile() {
                       title={badge.name}
                     >
                       {badge.image_url ? (
-                        <img
-                          src={badge.image_url}
+                        <img 
+                          src={badge.image_url} 
                           alt={badge.name}
                           className="w-full aspect-square object-cover rounded-lg"
                         />
@@ -606,13 +604,13 @@ export default function UserProfile() {
                   );
                 })}
               </div>
-              {earnedBadges.length > 16 && (
+              {achievementsBadges.length > 16 && (
                 <Button
                   variant="outline"
                   className="w-full mt-4"
                   onClick={() => setActiveTab('badges')}
                 >
-                  Ver Todos os Emblemas ({earnedBadges.length})
+                  Ver Todos os Emblemas ({achievementsBadges.length})
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
@@ -690,7 +688,7 @@ export default function UserProfile() {
 
                   <div className="grid grid-cols-4 gap-2">
                     <div className="text-center p-2 bg-white/10 rounded">
-                      <div className="text-lg font-bold">{profileUser?.public_badges?.length || 0}</div>
+                      <div className="text-lg font-bold">{achievementsBadges.length || 0}</div>
                       <div className="text-xs text-white/80">Badges</div>
                     </div>
                     <div className="text-center p-2 bg-white/10 rounded">
@@ -751,7 +749,7 @@ export default function UserProfile() {
                 </p>
               </CardHeader>
               <CardContent>
-                {(!profileUser.public_badges || profileUser.public_badges.length === 0) ? (
+                {(!achievementsBadges || achievementsBadges.length === 0) ? (
                   <div className="text-center py-12">
                     <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-4 border-2 border-white/20">
                       <Award className="w-12 h-12 text-gray-500" />
@@ -761,7 +759,7 @@ export default function UserProfile() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {profileUser.public_badges.map((badge, idx) => (
+                    {achievementsBadges.map((badge, idx) => (
                       <BadgeItem key={idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>

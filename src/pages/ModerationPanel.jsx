@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Shield, AlertTriangle, CheckCircle, X, Flag, Ban,
-  MessageCircle, Users, TrendingUp, Eye, Clock, Star, Heart, ShieldCheck
+  MessageCircle, Users, TrendingUp, Eye, Clock, Star, Heart, ShieldCheck, Award // Added Award
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -23,14 +23,26 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label"; // Added Label
+import { Input } from "@/components/ui/input";   // Added Input
+
+// Helper to construct page URLs for notifications.
+// In a real application, this would typically be more robust, potentially using a router's `generatePath` or similar.
+const createPageUrl = (path) => {
+  return path; // The outline uses a path like "UserProfile?email={userEmail}" directly.
+};
 
 export default function ModerationPanel() {
   const queryClient = useQueryClient();
   const [selectedReport, setSelectedReport] = useState(null);
-  const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null); // Kept for the post badge dialog, even if its UI trigger is removed
   const [moderationNotes, setModerationNotes] = useState("");
   const [showDialog, setShowDialog] = useState(false);
-  const [showBadgeDialog, setShowBadgeDialog] = useState(false);
+  const [showBadgeDialog, setShowBadgeDialog] = useState(false); // Kept for the post badge dialog, even if its UI trigger is removed
+
+  // New state for user badge granting
+  const [selectedBadge, setSelectedBadge] = useState(null);
+  const [userEmailForBadge, setUserEmailForBadge] = useState('');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -60,13 +72,14 @@ export default function ModerationPanel() {
     initialData: [],
   });
 
-  const { data: allPosts } = useQuery({
+  const { data: allPosts } = useQuery({ // Kept for the post badge dialog, even if its UI trigger is removed
     queryKey: ['allPostsForModeration'],
     queryFn: () => base44.entities.SocialPost.list('-created_date'),
     enabled: isModeratorOrAdmin,
     initialData: [],
   });
 
+  // Mutation for managing badges on posts (kept, but no longer directly accessible from main UI tabs)
   const updateBadgesMutation = useMutation({
     mutationFn: async ({ postId, badges }) => {
       return base44.entities.SocialPost.update(postId, badges);
@@ -112,6 +125,145 @@ export default function ModerationPanel() {
       toast.success("Post moderado!");
     },
   });
+
+  // Available badges to grant
+  const availableBadges = [
+    {
+      badge_id: 'verified',
+      name: 'Verificado',
+      description: 'Usuário verificado pela equipe',
+      icon: '✓',
+      color: 'blue'
+    },
+    {
+      badge_id: 'adoption_advocate',
+      name: 'Defensor de Adoção',
+      description: 'Promove ativamente a adoção de animais',
+      icon: '❤️',
+      color: 'pink'
+    },
+    {
+      badge_id: 'certified_professional',
+      name: 'Profissional Certificado',
+      description: 'Profissional com certificações verificadas',
+      icon: '🎓',
+      color: 'blue'
+    },
+    {
+      badge_id: 'top_contributor',
+      name: 'Top Contribuidor',
+      description: 'Contribui ativamente para a comunidade',
+      icon: '⭐',
+      color: 'yellow'
+    },
+    {
+      badge_id: 'community_leader',
+      name: 'Líder Comunitário',
+      description: 'Líder ativo na comunidade',
+      icon: '👥',
+      color: 'orange'
+    },
+    {
+      badge_id: 'expert_trainer',
+      name: 'Treinador Expert',
+      description: 'Treinador com expertise comprovada',
+      icon: '🏆',
+      color: 'indigo'
+    },
+    {
+      badge_id: 'trusted_walker',
+      name: 'Passeador Confiável',
+      description: 'Passeador com excelente histórico',
+      icon: '💚',
+      color: 'teal'
+    },
+    {
+      badge_id: 'vet_verified',
+      name: 'Veterinário Verificado',
+      description: 'Veterinário com licença verificada',
+      icon: '⚕️',
+      color: 'red'
+    },
+    {
+      badge_id: 'official_partner',
+      name: 'Parceiro Oficial',
+      description: 'Parceiro oficial da plataforma',
+      icon: '🤝',
+      color: 'green'
+    }
+  ];
+
+  // Map for dynamic Tailwind classes to ensure they are present in compiled CSS
+  const badgeColorClasses = {
+    blue: 'bg-blue-600',
+    pink: 'bg-pink-600',
+    yellow: 'bg-yellow-600',
+    orange: 'bg-orange-600',
+    indigo: 'bg-indigo-600',
+    teal: 'bg-teal-600',
+    red: 'bg-red-600',
+    green: 'bg-green-600',
+  };
+
+  const grantBadgeMutation = useMutation({
+    mutationFn: async ({ userEmail, badge }) => {
+      // Get user
+      const users = await base44.entities.User.filter({ email: userEmail });
+      if (users.length === 0) throw new Error('Usuário não encontrado');
+
+      const targetUser = users[0];
+      const currentBadges = targetUser.profile_badges || [];
+
+      // Check if already has this badge
+      if (currentBadges.some(b => b.badge_id === badge.badge_id)) {
+        throw new Error('Usuário já possui este badge');
+      }
+
+      // Add badge
+      const newBadge = {
+        badge_id: badge.badge_id,
+        name: badge.name,
+        description: badge.description,
+        icon: badge.icon,
+        color: badge.color, // Store color if needed for rendering badges
+        granted_by: user?.email,
+        granted_date: new Date().toISOString()
+      };
+
+      await base44.entities.User.update(targetUser.id, {
+        profile_badges: [...currentBadges, newBadge]
+      });
+
+      // Send notification
+      await base44.entities.SocialNotification.create({
+        recipient_email: userEmail,
+        sender_email: user?.email,
+        sender_name: user?.full_name || 'Moderação',
+        notification_type: 'other',
+        related_content_type: 'user',
+        post_preview: `Você recebeu o badge: ${badge.name}`,
+        action_url: createPageUrl(`UserProfile?email=${userEmail}`)
+      });
+    },
+    onSuccess: () => {
+      // Invalidate users query if you have one that fetches user profiles with badges
+      // queryClient.invalidateQueries(['users']); // assuming a 'users' query exists to refresh user list
+      setSelectedBadge(null);
+      setUserEmailForBadge('');
+      toast.success('Badge concedido com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Erro ao conceder badge');
+    }
+  });
+
+  const handleGrantBadge = () => {
+    if (!userEmailForBadge || !selectedBadge) {
+      toast.error('Selecione um badge e insira o email do usuário');
+      return;
+    }
+    grantBadgeMutation.mutate({ userEmail: userEmailForBadge, badge: selectedBadge });
+  };
 
   if (!isModeratorOrAdmin) {
     return (
@@ -164,28 +316,29 @@ export default function ModerationPanel() {
           </div>
         </div>
 
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-2 h-14">
-            <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+        <Tabs defaultValue="reports" className="w-full"> {/* Changed defaultValue from "pending" to "reports" */}
+          <TabsList className="grid w-full grid-cols-4 mb-8 bg-white shadow-lg"> {/* Updated TabsList structure */}
+            <TabsTrigger value="reports" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">
               <Flag className="w-4 h-4 mr-2" />
-              Pendentes ({pendingReports.length})
+              Denúncias ({pendingReports.length + reviewingReports.length})
             </TabsTrigger>
-            <TabsTrigger value="reviewing" className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              <Eye className="w-4 h-4 mr-2" />
-              Em Análise ({reviewingReports.length})
-            </TabsTrigger>
-            <TabsTrigger value="flagged" className="rounded-lg data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
+            <TabsTrigger value="content" className="rounded-lg data-[state=active]:bg-orange-600 data-[state=active]:text-white">
               <AlertTriangle className="w-4 h-4 mr-2" />
-              Posts Sinalizados ({flaggedPosts.length})
+              Conteúdo Sinalizado ({flaggedPosts.length})
             </TabsTrigger>
-            <TabsTrigger value="badges" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-              <Shield className="w-4 h-4 mr-2" />
-              Gerir Badges
+            <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white">
+              <Users className="w-4 h-4 mr-2" />
+              Usuários
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <Award className="w-4 h-4 mr-2" />
+              Conceder Badges
             </TabsTrigger>
           </TabsList>
 
-          {/* Pending Reports */}
-          <TabsContent value="pending" className="space-y-4">
+          {/* Reports Tab - Merged Pending and Reviewing Reports */}
+          <TabsContent value="reports" className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Denúncias Pendentes</h3>
             {pendingReports.length === 0 ? (
               <Card className="border-0 shadow-xl">
                 <CardContent className="p-12 text-center">
@@ -260,28 +413,45 @@ export default function ModerationPanel() {
                 </motion.div>
               ))
             )}
-          </TabsContent>
 
-          {/* Reviewing Reports */}
-          <TabsContent value="reviewing" className="space-y-4">
-            {reviewingReports.map((report, idx) => (
-              <Card key={report.id} className="border-2 border-blue-200 bg-blue-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge className="bg-blue-600 text-white">Em Análise</Badge>
-                    <Badge className="bg-red-500 text-white">{report.reason}</Badge>
-                  </div>
-                  <p className="text-gray-700">{report.details}</p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Por: {report.moderated_by}
-                  </p>
+            <h3 className="text-xl font-bold text-gray-900 mb-4 mt-8">Denúncias Em Análise</h3>
+            {reviewingReports.length === 0 ? (
+              <Card className="border-0 shadow-xl">
+                <CardContent className="p-12 text-center">
+                  <Eye className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Nenhuma denúncia em análise
+                  </h3>
+                  <p className="text-gray-600">A fila está limpa! ✅</p>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              reviewingReports.map((report, idx) => (
+                <motion.div
+                  key={report.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Card key={report.id} className="border-2 border-blue-200 bg-blue-50 shadow-lg">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="bg-blue-600 text-white">Em Análise</Badge>
+                        <Badge className="bg-red-500 text-white">{report.reason}</Badge>
+                      </div>
+                      <p className="text-gray-700">{report.details}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Por: {report.moderated_by}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))
+            )}
           </TabsContent>
 
-          {/* Flagged Posts */}
-          <TabsContent value="flagged" className="space-y-4">
+          {/* Content Tab - Flagged Posts */}
+          <TabsContent value="content" className="space-y-4">
             {flaggedPosts.length === 0 ? (
               <Card className="border-0 shadow-xl">
                 <CardContent className="p-12 text-center">
@@ -293,186 +463,157 @@ export default function ModerationPanel() {
               </Card>
             ) : (
               flaggedPosts.map((post, idx) => (
-                <Card key={post.id} className="border-2 border-yellow-200 bg-yellow-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4 mb-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={post.author_photo_url} />
-                        <AvatarFallback className="bg-purple-600 text-white">
-                          {post.author_name?.[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900">{post.author_name}</h4>
-                        <p className="text-sm text-gray-600">
-                          {format(new Date(post.created_date), "d 'de' MMMM", { locale: ptBR })}
-                        </p>
-                        <p className="text-gray-800 mt-2">{post.content}</p>
-                        {post.media_urls?.[0] && (
-                          <img
-                            src={post.media_urls[0]}
-                            className="w-full max-w-sm h-48 object-cover rounded-xl mt-3"
-                            alt="Post"
-                          />
-                        )}
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Card key={post.id} className="border-2 border-yellow-200 bg-yellow-50 shadow-lg">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4 mb-4">
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={post.author_photo_url} />
+                          <AvatarFallback className="bg-purple-600 text-white">
+                            {post.author_name?.[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900">{post.author_name}</h4>
+                          <p className="text-sm text-gray-600">
+                            {format(new Date(post.created_date), "d 'de' MMMM", { locale: ptBR })}
+                          </p>
+                          <p className="text-gray-800 mt-2">{post.content}</p>
+                          {post.media_urls?.[0] && (
+                            <img
+                              src={post.media_urls[0]}
+                              className="w-full max-w-sm h-48 object-cover rounded-xl mt-3"
+                              alt="Post"
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => moderatePostMutation.mutate({
-                          postId: post.id,
-                          status: 'approved'
-                        })}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Aprovar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => moderatePostMutation.mutate({
-                          postId: post.id,
-                          status: 'removed'
-                        })}
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        Remover
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => moderatePostMutation.mutate({
+                            postId: post.id,
+                            status: 'approved'
+                          })}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Aprovar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => moderatePostMutation.mutate({
+                            postId: post.id,
+                            status: 'removed'
+                          })}
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Remover
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))
             )}
           </TabsContent>
 
-          {/* Badges Management Tab */}
-          <TabsContent value="badges" className="space-y-4">
-            <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-purple-50 to-blue-50">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Tipos de Badges Disponíveis</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-white rounded-xl border-2 border-blue-200">
-                    <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg mb-2">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      VERIFICADO
-                    </Badge>
-                    <p className="text-xs text-gray-600">Para usuários verificados</p>
-                  </div>
-                  <div className="p-4 bg-white rounded-xl border-2 border-green-200">
-                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg mb-2">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      CÃO VERIFICADO
-                    </Badge>
-                    <p className="text-xs text-gray-600">Para cães verificados</p>
-                  </div>
-                  <div className="p-4 bg-white rounded-xl border-2 border-red-200">
-                    <Badge className="bg-gradient-to-r from-red-600 to-pink-600 text-white border-0 shadow-lg mb-2">
-                      <Shield className="w-3 h-3 mr-1" />
-                      ADMIN
-                    </Badge>
-                    <p className="text-xs text-gray-600">Para administradores</p>
-                  </div>
-                  <div className="p-4 bg-white rounded-xl border-2 border-cyan-200">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg mb-2">
-                      <ShieldCheck className="w-3 h-3 mr-1" />
-                      MODERADOR
-                    </Badge>
-                    <p className="text-xs text-gray-600">Para moderadores</p>
-                  </div>
-                  <div className="p-4 bg-white rounded-xl border-2 border-pink-200">
-                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-lg mb-2">
-                      <Heart className="w-3 h-3 mr-1" />
-                      DEFENSOR DE ADOÇÃO
-                    </Badge>
-                    <p className="text-xs text-gray-600">Para defensores de adoção</p>
-                  </div>
-                  <div className="p-4 bg-white rounded-xl border-2 border-orange-200">
-                    <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg mb-2">
-                      <Star className="w-3 h-3 mr-1" />
-                      ANÚNCIO VERIFICADO
-                    </Badge>
-                    <p className="text-xs text-gray-600">Para anúncios oficiais</p>
-                  </div>
-                </div>
+          {/* Users Tab - Empty for now, but provides a placeholder */}
+          <TabsContent value="users" className="space-y-4">
+            <Card className="border-0 shadow-xl">
+              <CardContent className="p-12 text-center">
+                <Users className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Gestão de Usuários
+                </h3>
+                <p className="text-gray-600">Funcionalidade em desenvolvimento.</p>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Posts Recentes</h3>
-            <div className="grid gap-4">
-              {allPosts.slice(0, 10).map((post) => (
-                <Card key={post.id} className="border-0 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={post.author_photo_url} />
-                            <AvatarFallback className="bg-purple-600 text-white">
-                              {post.author_name?.[0]?.toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h4 className="font-bold text-gray-900">{post.author_name}</h4>
-                            <p className="text-xs text-gray-600">
-                              {format(new Date(post.created_date), "d 'de' MMMM", { locale: ptBR })}
-                            </p>
-                          </div>
-                        </div>
+          {/* Badges Tab - New User Badge Granting */}
+          <TabsContent value="badges" className="space-y-4">
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl">Conceder Badges</CardTitle>
+                <p className="text-sm text-gray-600 mt-2">
+                  Badges aparecem ao lado do nome do usuário em posts e perfil
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="user-email-for-badge">Email do Usuário</Label>
+                  <Input
+                    id="user-email-for-badge"
+                    type="email"
+                    value={userEmailForBadge}
+                    onChange={(e) => setUserEmailForBadge(e.target.value)}
+                    placeholder="usuario@exemplo.com"
+                    className="mt-2"
+                  />
+                </div>
 
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {post.is_verified_user && (
-                            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              VERIFICADO
-                            </Badge>
-                          )}
-                          {post.is_verified_dog && (
-                            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              CÃO VERIFICADO
-                            </Badge>
-                          )}
-                          {post.is_adoption_advocate && (
-                            <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
-                              <Heart className="w-3 h-3 mr-1" />
-                              DEFENSOR DE ADOÇÃO
-                            </Badge>
-                          )}
-                          {post.is_verified_announcement && (
-                            <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
-                              <Star className="w-3 h-3 mr-1" />
-                              ANÚNCIO VERIFICADO
-                            </Badge>
-                          )}
-                        </div>
-
-                        <p className="text-gray-700 mb-2 line-clamp-2">{post.content}</p>
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPost(post);
-                          setShowBadgeDialog(true);
-                        }}
-                        className="ml-4"
+                <div>
+                  <Label className="mb-3 block">Selecione o Badge</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {availableBadges.map((badge) => (
+                      <Card
+                        key={badge.badge_id}
+                        className={`cursor-pointer transition-all hover:shadow-lg ${
+                          selectedBadge?.badge_id === badge.badge_id
+                            ? 'ring-4 ring-purple-500 bg-purple-50'
+                            : 'hover:ring-2 hover:ring-gray-300'
+                        }`}
+                        onClick={() => setSelectedBadge(badge)}
                       >
-                        <Shield className="w-4 h-4 mr-2" />
-                        Gerir Badges
-                      </Button>
+                        <CardContent className="p-4 text-center">
+                          <div className="text-4xl mb-2">{badge.icon}</div>
+                          <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
+                          <p className="text-xs text-gray-600">{badge.description}</p>
+                          <Badge className={`mt-2 ${badgeColorClasses[badge.color] || 'bg-gray-600'} text-white`}>
+                            {badge.badge_id}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleGrantBadge}
+                  disabled={!selectedBadge || !userEmailForBadge || grantBadgeMutation.isPending}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  size="lg"
+                >
+                  <Award className="w-5 h-5 mr-2" />
+                  {grantBadgeMutation.isPending ? 'Concedendo...' : 'Conceder Badge'}
+                </Button>
+
+                {selectedBadge && (
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-900 mb-2">Badge Selecionado:</h4>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{selectedBadge.icon}</span>
+                      <div>
+                        <p className="font-bold">{selectedBadge.name}</p>
+                        <p className="text-sm text-gray-700">{selectedBadge.description}</p>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
-        {/* Moderation Dialog */}
+        {/* Moderation Dialog (for reports) */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -507,10 +648,11 @@ export default function ModerationPanel() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label htmlFor="moderation-notes" className="text-sm font-medium mb-2 block">
                     Notas de Moderação
                   </label>
                   <Textarea
+                    id="moderation-notes"
                     value={moderationNotes}
                     onChange={(e) => setModerationNotes(e.target.value)}
                     placeholder="Adicione notas sobre esta decisão..."
@@ -581,7 +723,8 @@ export default function ModerationPanel() {
           </DialogContent>
         </Dialog>
 
-        {/* Badge Management Dialog */}
+        {/* Badge Management Dialog (for posts) - This dialog and its associated state/mutation are preserved,
+            but its direct UI entry point from the main tabs has been replaced by the new "Conceder Badges" tab. */}
         <Dialog open={showBadgeDialog} onOpenChange={setShowBadgeDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
