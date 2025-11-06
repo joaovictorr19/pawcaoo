@@ -29,7 +29,7 @@ import {
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import { toast } from 'react-hot-toast'; // Assuming react-hot-toast is used for toast notifications
+import { toast } from "sonner";
 
 // Query optimization configs
 const queryConfig = {
@@ -236,7 +236,7 @@ function LayoutContent({ children, currentPageName }) {
         const newBadge = {
           badge_id: 'welcome',
           name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
-          description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
+          description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nossa comunidad!' : 'Thanks for joining our community!'),
           icon: '🎉',
           rarity: 'common',
           earned_date: new Date().toISOString(),
@@ -385,6 +385,7 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarHeader>
           
           <SidebarContent className="p-3 md:p-4">
+            {/* My Profile */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -547,7 +548,7 @@ function LayoutContent({ children, currentPageName }) {
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
                 <span>{language === 'pt' ? '👔 Tornar-me Profissional' : language === 'es' ? '👔 Ser Profesional' : '👔 Become Professional'}</span>
-                <span className={`transition-transform duration-200 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
+                <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {professionalServicesExpanded && (
                 <SidebarGroupContent>
