@@ -1204,7 +1204,10 @@ export default function AdminDashboard() {
                         is_active: true,
                         commission_rate: 10,
                         monthly_fee: 0,
-                        subscription_tier: "free"
+                        subscription_tier: "free",
+                        phone: "",
+                        city: "",
+                        address: ""
                       });
                       setShowCompanyDialog(true);
                     }}
@@ -1237,7 +1240,9 @@ export default function AdminDashboard() {
                               <div>
                                 <h3 className="font-bold text-lg dark:text-gray-100">{company.company_name}</h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">{company.company_email}</p>
-                                <Badge className="mt-1 capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type?.replace('_', ' ')}</Badge>
+                                <Badge className="mt-1 capitalize dark:bg-gray-700 dark:text-gray-100">
+                                  {company.company_type?.replace('_', ' ')}
+                                </Badge>
                               </div>
                             </div>
                             <Badge 
@@ -1349,7 +1354,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Company Creation Dialog */}
+            {/* Company Creation Dialog - CORRIGIDO */}
             <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
               <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700">
                 <DialogHeader>
@@ -1368,7 +1373,7 @@ export default function AdminDashboard() {
                         value={companyFormData.company_email || ""}
                         onChange={(e) => setCompanyFormData({...companyFormData, company_email: e.target.value})}
                         placeholder="empresa@email.com"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Este email será usado para login</p>
                     </div>
@@ -1379,7 +1384,7 @@ export default function AdminDashboard() {
                         value={companyFormData.company_name || ""}
                         onChange={(e) => setCompanyFormData({...companyFormData, company_name: e.target.value})}
                         placeholder="Nome da Empresa"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
                       />
                     </div>
 
@@ -1389,10 +1394,10 @@ export default function AdminDashboard() {
                         value={companyFormData.company_type || "pet_store"} 
                         onValueChange={(value) => setCompanyFormData({...companyFormData, company_type: value})}
                       >
-                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 bg-white text-gray-900">
                           <SelectValue placeholder="Selecione um tipo" />
                         </SelectTrigger>
-                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 bg-white">
                           <SelectItem value="veterinary" className="dark:hover:bg-gray-700">Veterinária</SelectItem>
                           <SelectItem value="pet_store" className="dark:hover:bg-gray-700">Pet Shop</SelectItem>
                           <SelectItem value="grooming" className="dark:hover:bg-gray-700">Grooming</SelectItem>
@@ -1410,10 +1415,42 @@ export default function AdminDashboard() {
                         value={companyFormData.logo_url || ""}
                         onChange={(e) => setCompanyFormData({...companyFormData, logo_url: e.target.value})}
                         placeholder="https://..."
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
                       />
                     </div>
 
+                    <div>
+                      <Label className="dark:text-gray-300">Telefone</Label>
+                      <Input
+                        value={companyFormData.phone || ""}
+                        onChange={(e) => setCompanyFormData({...companyFormData, phone: e.target.value})}
+                        placeholder="+351 912 345 678"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="dark:text-gray-300">Cidade</Label>
+                      <Input
+                        value={companyFormData.city || ""}
+                        onChange={(e) => setCompanyFormData({...companyFormData, city: e.target.value})}
+                        placeholder="Lisboa"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="dark:text-gray-300">Morada Completa</Label>
+                    <Input
+                      value={companyFormData.address || ""}
+                      onChange={(e) => setCompanyFormData({...companyFormData, address: e.target.value})}
+                      placeholder="Rua Principal, 123"
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
+                    />
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <Label className="dark:text-gray-300">Taxa de Comissão (%)</Label>
                       <Input
@@ -1421,7 +1458,7 @@ export default function AdminDashboard() {
                         value={companyFormData.commission_rate || 0}
                         onChange={(e) => setCompanyFormData({...companyFormData, commission_rate: parseFloat(e.target.value)})}
                         placeholder="10"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
                       />
                     </div>
 
@@ -1432,7 +1469,7 @@ export default function AdminDashboard() {
                         value={companyFormData.monthly_fee || 0}
                         onChange={(e) => setCompanyFormData({...companyFormData, monthly_fee: parseFloat(e.target.value)})}
                         placeholder="0"
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white text-gray-900 placeholder-gray-500"
                       />
                     </div>
 
@@ -1442,10 +1479,10 @@ export default function AdminDashboard() {
                         value={companyFormData.subscription_tier || "free"} 
                         onValueChange={(value) => setCompanyFormData({...companyFormData, subscription_tier: value})}
                       >
-                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 bg-white text-gray-900">
                           <SelectValue placeholder="Selecione um nível" />
                         </SelectTrigger>
-                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 bg-white">
                           <SelectItem value="free" className="dark:hover:bg-gray-700">Free</SelectItem>
                           <SelectItem value="basic" className="dark:hover:bg-gray-700">Basic</SelectItem>
                           <SelectItem value="premium" className="dark:hover:bg-gray-700">Premium</SelectItem>
@@ -1464,14 +1501,12 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-blue-800 dark:text-blue-300">
-                        <strong>Nota:</strong> A empresa receberá acesso ao painel de parceiros através do email fornecido. 
-                        Eles poderão fazer login usando o sistema de autenticação Base44.
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-blue-50 border-2 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700 rounded-xl p-4">
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      <strong>Nota:</strong> A empresa receberá acesso ao PartnerDashboard usando o email fornecido acima. 
+                      NÃO serão criados serviços automaticamente.
+                    </p>
+                  </div>
                 </div>
 
                 <DialogFooter>
@@ -1492,8 +1527,6 @@ export default function AdminDashboard() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </TabsContent>
-
           {/* ANNOUNCEMENTS TAB */}
           <TabsContent value="announcements">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
