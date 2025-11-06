@@ -352,6 +352,8 @@ export default function AdminDashboard() {
       city: user.city || "",
       address: user.address || "",
       postal_code: user.postal_code || "",
+      social_role: user.social_role || 'user', // Added social_role
+      company_type: user.company_type || 'pet_store', // Added company_type
     });
     setShowUserDialog(true);
   };
@@ -1349,6 +1351,116 @@ export default function AdminDashboard() {
                       onChange={(e) => setUserFormData({...userFormData, phone: e.target.value})}
                     />
                   </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Cidade</Label>
+                    <Input
+                      value={userFormData.city}
+                      onChange={(e) => setUserFormData({...userFormData, city: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Código Postal</Label>
+                    <Input
+                      value={userFormData.postal_code}
+                      onChange={(e) => setUserFormData({...userFormData, postal_code: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Morada</Label>
+                  <Input
+                    value={userFormData.address}
+                    onChange={(e) => setUserFormData({...userFormData, address: e.target.value})}
+                  />
+                </div>
+
+                {/* NOVO: Tipo de Conta */}
+                <div>
+                  <Label>Tipo de Conta</Label>
+                  <Select 
+                    value={userFormData.account_type || 'owner'} 
+                    onValueChange={(value) => setUserFormData({...userFormData, account_type: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">Cliente / Dono</SelectItem>
+                      <SelectItem value="walker">Passeador</SelectItem>
+                      <SelectItem value="trainer">Treinador</SelectItem>
+                      <SelectItem value="company">Empresa</SelectItem>
+                      <SelectItem value="both">Passeador + Treinador</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* NOVO: Role (Admin/User) */}
+                <div>
+                  <Label>Role (Permissões de Sistema)</Label>
+                  <Select 
+                    value={userFormData.role || 'user'} 
+                    onValueChange={(value) => setUserFormData({...userFormData, role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User (Normal)</SelectItem>
+                      <SelectItem value="admin">Admin (Acesso Total)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* NOVO: Social Role */}
+                <div>
+                  <Label>Role Social (Dog Connect)</Label>
+                  <Select 
+                    value={userFormData.social_role || 'user'} 
+                    onValueChange={(value) => setUserFormData({...userFormData, social_role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="moderator">Moderador</SelectItem>
+                      <SelectItem value="admin">Admin Social</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* NOVO: Se for empresa, mostrar tipo de empresa */}
+                {userFormData.account_type === 'company' && (
+                  <div>
+                    <Label>Tipo de Empresa</Label>
+                    <Select 
+                      value={userFormData.company_type || 'pet_store'} 
+                      onValueChange={(value) => setUserFormData({...userFormData, company_type: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="veterinary">Veterinária</SelectItem>
+                        <SelectItem value="pet_store">Pet Shop</SelectItem>
+                        <SelectItem value="grooming">Grooming</SelectItem>
+                        <SelectItem value="insurance">Seguros</SelectItem>
+                        <SelectItem value="training">Treino</SelectItem>
+                        <SelectItem value="food_brand">Marca de Ração</SelectItem>
+                        <SelectItem value="clothing_brand">Roupas/Acessórios</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    <strong>⚠️ Atenção:</strong> Mudar o tipo de conta não cria automaticamente os perfis correspondentes (WalkerProfile, TrainerProfile, etc). O usuário precisará criá-los.
+                  </p>
                 </div>
               </div>
             )}
