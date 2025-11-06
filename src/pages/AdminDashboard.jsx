@@ -59,7 +59,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import NotificationService from "../components/NotificationService";
-import { useLanguage } from "@/context/LanguageContext"; // Added useLanguage import
+import { useLanguage } from "@/components/LanguageContext"; // Added useLanguage import
 
 export default function AdminDashboard() {
   const { language } = useLanguage(); // Added useLanguage hook call
