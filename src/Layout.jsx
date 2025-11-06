@@ -358,6 +358,13 @@ function LayoutContent({ children, currentPageName }) {
     window.location.href = url;
   };
 
+  const handleNavigationToProfile = (e) => {
+    e.preventDefault();
+    if (user?.email) {
+      window.location.href = createPageUrl(`UserProfile?email=${user.email}`);
+    }
+  };
+
   return (
     <SidebarProvider>
       <style>{`
@@ -415,7 +422,7 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarHeader>
           
           <SidebarContent className="p-3 md:p-4">
-            {/* My Profile */}
+            {/* My Profile - Now redirects to UserProfile */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -423,13 +430,13 @@ function LayoutContent({ children, currentPageName }) {
                     <SidebarMenuButton 
                       asChild 
                       className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-3 ${
-                        location.pathname === createPageUrl("MyProfile") ? 'bg-green-600 text-white' : 'border border-gray-200'
+                        location.pathname === createPageUrl("UserProfile") ? 'bg-green-600 text-white' : 'border border-gray-200'
                       }`}
                     >
                       <a 
-                        href={createPageUrl("MyProfile")} 
+                        href={createPageUrl(`UserProfile?email=${user?.email || ''}`)} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
-                        onClick={handleNavigation(createPageUrl("MyProfile"))}
+                        onClick={handleNavigationToProfile}
                       >
                         <User className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                         <span className="font-semibold text-xs md:text-sm truncate">{t('myProfile', language)}</span>
@@ -654,7 +661,7 @@ function LayoutContent({ children, currentPageName }) {
               {unreadCount > 0 && (
                 <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0 flex-shrink-0">
                   <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer shadow-lg">
-                    <Bell className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+                    <Bell className="w-3 h-3 md:w-4 h-4 md:mr-1" />
                     <span className="hidden sm:inline ml-1">{unreadCount}</span>
                   </Badge>
                 </Link>

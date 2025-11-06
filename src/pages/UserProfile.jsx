@@ -11,7 +11,7 @@ import {
   MapPin, Users, Heart, MessageCircle, ArrowLeft,
   Link as LinkIcon, CheckCircle, Dog, Calendar,
   Award, TrendingUp, Bookmark, Grid, Shield, ShieldCheck, Star,
-  Target, Zap, Flame, Sparkles, ChevronRight
+  Target, Zap, Flame, Sparkles, ChevronRight, Settings // Added Settings icon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -66,6 +66,19 @@ export default function UserProfile() {
     initialData: [],
     staleTime: 60000,
     refetchOnWindowFocus: false,
+  });
+
+  const { data: recentPhotos = [] } = useQuery({
+    queryKey: ['recentPhotos', profileEmail],
+    queryFn: async () => {
+      const posts = await base44.entities.SocialPost.filter({
+        author_email: profileEmail,
+        moderation_status: 'approved'
+      }, '-created_date', 9);
+      return posts.filter(p => p.media_urls?.length > 0).slice(0, 9);
+    },
+    enabled: !!profileEmail,
+    initialData: [],
   });
 
   const { data: userDogs = [] } = useQuery({
@@ -218,6 +231,9 @@ export default function UserProfile() {
     },
   ];
 
+  // Earned badges for display below avatar
+  const earnedBadges = profileUser?.public_badges || [];
+
   // High-Quality 3D Badges - Twitter/Premium Style
   const getBadgeImage = (type, data = {}, transparent = false) => {
     const badges = {
@@ -297,36 +313,79 @@ export default function UserProfile() {
   const totalLikes = userPosts.reduce((sum, p) => sum + (p.likes_count || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <Button variant="outline" className="mb-6" onClick={() => navigate(createPageUrl('SocialFeed'))}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
 
-        <Card className="border-0 shadow-2xl mb-6 overflow-hidden">
-          <div className="relative h-48 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600">
+        <Card className="border-0 shadow-2xl mb-6 overflow-hidden bg-white">
+          {/* Cover Photo */}
+          <div className="relative h-48 md:h-64 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600">
             {profileUser.cover_photo_url && (
               <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
+            )}
+            {isOwnProfile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
+                onClick={() => navigate(createPageUrl('AccountSettings'))}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Editar Perfil
+              </Button>
             )}
           </div>
 
           <CardContent className="relative px-6 md:px-8 pb-8">
-            <div className="flex flex-col md:flex-row gap-6 -mt-16">
-              <Avatar className="w-32 h-32 border-4 border-white shadow-2xl">
-                <AvatarImage src={profileUser.profile_photo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-4xl font-bold">
-                  {profileUser.full_name?.[0]?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+            <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
+              {/* Avatar + Badges */}
+              <div className="flex flex-col items-center md:items-start">
+                <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-white shadow-2xl ring-4 ring-purple-200">
+                  <AvatarImage src={profileUser.profile_photo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-4xl font-bold">
+                    {profileUser.full_name?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
 
-              <div className="flex-1 md:mt-16">
+                {/* Top Badges Display */}
+                {earnedBadges.length > 0 && (
+                  <div className="flex gap-2 mt-4 flex-wrap justify-center md:justify-start">
+                    {earnedBadges.slice(0, 5).map((badge, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group cursor-pointer"
+                        title={badge.name}
+                      >
+                        {badge.image_url ? (
+                          <img 
+                            src={badge.image_url} 
+                            alt={badge.name}
+                            className="w-12 h-12 rounded-lg shadow-lg hover:scale-110 transition-transform object-contain"
+                            style={{imageRendering: 'pixelated'}}
+                          />
+                        ) : (
+                          <img 
+                            src={getBadgeImage('community', badge)} 
+                            alt={badge.name} 
+                            className="w-12 h-12 rounded-lg shadow-lg hover:scale-110 transition-transform"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 md:mt-20">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <h1 className="text-3xl font-bold text-gray-900">{profileUser.full_name}</h1>
                       
-                      {/* Verified Badge - FIRST, next to name */}
+                      {/* Verified & Role Badges */}
                       {profileUser.is_verified && (
                         <div className="relative group cursor-pointer">
                           <img 
@@ -342,7 +401,6 @@ export default function UserProfile() {
                         </div>
                       )}
                       
-                      {/* Admin Badge - Red Shield */}
                       {profileUser.role === 'admin' && (
                         <div className="relative group cursor-pointer">
                           <img 
@@ -358,7 +416,6 @@ export default function UserProfile() {
                         </div>
                       )}
                       
-                      {/* Moderator Badge - Blue Shield */}
                       {profileUser.social_role === 'moderator' && (
                         <div className="relative group cursor-pointer">
                           <img 
@@ -374,7 +431,6 @@ export default function UserProfile() {
                         </div>
                       )}
                       
-                      {/* Adoption Advocate Badge */}
                       {profileUser.is_adoption_advocate && (
                         <div className="relative group cursor-pointer">
                           <img 
@@ -390,14 +446,24 @@ export default function UserProfile() {
                         </div>
                       )}
                     </div>
+
+                    {profileUser.bio && (
+                      <p className="text-gray-700 mb-3">{profileUser.bio}</p>
+                    )}
+
+                    {profileUser.city && (
+                      <div className="flex items-center gap-2 text-gray-600 text-sm mb-3">
+                        <MapPin className="w-4 h-4" />
+                        {profileUser.city}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Action Buttons - Right Side */}
+                  {/* Action Buttons */}
                   <div className="flex items-center gap-3">
-                    {/* Level Badge Indicator - Smaller and more subtle */}
                     {currentLevel > 1 && (
                       <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 shadow-lg">
-                        ⚡ Nível {currentLevel}
+                        Nível {currentLevel}
                       </Badge>
                     )}
 
@@ -413,13 +479,15 @@ export default function UserProfile() {
                     )}
 
                     {isOwnProfile && (
-                      <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl('MyProfile'))}>
-                        Editar
+                      <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl('AccountSettings'))}>
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configurações
                       </Button>
                     )}
                   </div>
                 </div>
 
+                {/* Stats Grid */}
                 <div className="grid grid-cols-5 gap-4 mb-6">
                   <div className="text-center">
                     <div className="text-xl font-bold">{userPosts.length}</div>
@@ -448,40 +516,68 @@ export default function UserProfile() {
 
                 <Separator className="mb-4" />
 
-                {profileUser.bio && <p className="text-gray-700 mb-3">{profileUser.bio}</p>}
+                {/* My Pets Section */}
+                {userDogs.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-base font-bold mb-3">Meus Pets</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {userDogs.map(dog => (
+                        <Card key={dog.id} className="border-2 border-purple-100">
+                          <CardContent className="p-3">
+                            <div className="relative mb-2">
+                              {dog.photo_url ? (
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-24 object-cover rounded-lg" />
+                              ) : (
+                                <div className="w-full h-24 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">🐕</div>
+                              )}
+                              {dog.is_adopted && (
+                                <Badge className="absolute top-1 right-1 bg-pink-500 text-white text-xs">
+                                  <Heart className="w-2 h-2 mr-1" />Adotado
+                                </Badge>
+                              )}
+                            </div>
+                            <h4 className="font-bold text-sm">{dog.dog_name}</h4>
+                            <p className="text-xs text-gray-600">{dog.breed}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-
-            {userDogs.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-base font-bold mb-3">Meus Pets</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {userDogs.map(dog => (
-                    <Card key={dog.id} className="border-2 border-purple-100">
-                      <CardContent className="p-3">
-                        <div className="relative mb-2">
-                          {dog.photo_url ? (
-                            <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-24 object-cover rounded-lg" />
-                          ) : (
-                            <div className="w-full h-24 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">🐕</div>
-                          )}
-                          {dog.is_adopted && (
-                            <Badge className="absolute top-1 right-1 bg-pink-500 text-white text-xs">
-                              <Heart className="w-2 h-2 mr-1" />Adotado
-                            </Badge>
-                          )}
-                        </div>
-                        <h4 className="font-bold text-sm">{dog.dog_name}</h4>
-                        <p className="text-xs text-gray-600">{dog.breed}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
+        {/* Recent Photos Grid */}
+        {recentPhotos.length > 0 && (
+          <Card className="border-0 shadow-xl mb-6">
+            <CardHeader>
+              <CardTitle className="text-xl">Fotos Recentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-2">
+                {recentPhotos.map((post) => (
+                  <div
+                    key={post.id}
+                    className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => {/* TODO: Open post modal */}}
+                  >
+                    {post.media_urls?.[0] && (
+                      <img
+                        src={post.media_urls[0]}
+                        alt="Post"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
             <TabsTrigger value="posts"><Grid className="w-4 h-4 mr-1" />Posts</TabsTrigger>
