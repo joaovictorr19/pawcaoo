@@ -62,7 +62,7 @@ import NotificationService from "../components/NotificationService";
 import { useLanguage } from "@/components/LanguageContext"; // Added useLanguage import
 
 export default function AdminDashboard() {
-  const { language } = useLanguage(); // Added useLanguage hook call
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
@@ -86,7 +86,10 @@ export default function AdminDashboard() {
     category: "special"
   });
   const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false);
-  const [selectedTimeRange, setSelectedTimeRange] = useState("7days"); // Added new state
+  const [selectedTimeRange, setSelectedTimeRange] = useState("7days");
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false);
+  const [announcementFormData, setAnnouncementFormData] = useState({});
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -145,6 +148,25 @@ export default function AdminDashboard() {
     queryKey: ['supportTickets'],
     queryFn: () => base44.entities.ChatConversation.filter({ tags: 'emergency' }),
     enabled: user?.role === 'admin' && activeTab === 'support',
+    initialData: [],
+  });
+
+  // Adicionar query para todos os anúncios
+  const { data: allAnnouncements = [] } = useQuery({
+    queryKey: ['allAnnouncements'],
+    queryFn: async () => {
+      const announcements = await base44.entities.CompanyAnnouncement.list('-created_date');
+      console.log('📢 ADMIN - ALL ANNOUNCEMENTS:', announcements.map(a => ({
+        title: a.title,
+        company: a.company_name,
+        is_active: a.is_active,
+        moderation_status: a.moderation_status,
+        start_date: a.start_date,
+        end_date: a.end_date
+      })));
+      return announcements;
+    },
+    enabled: user?.role === 'admin' && activeTab === 'announcements',
     initialData: [],
   });
 
@@ -316,6 +338,24 @@ export default function AdminDashboard() {
     }
   });
 
+  const updateAnnouncementMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CompanyAnnouncement.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
+      toast.success("Anúncio atualizado!");
+      setShowAnnouncementDialog(false);
+      setSelectedAnnouncement(null);
+    },
+  });
+
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: (id) => base44.entities.CompanyAnnouncement.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
+      toast.success("Anúncio eliminado!");
+    },
+  });
+
   // Handlers
   const handleEditUser = (user) => {
     setSelectedUser(user);
@@ -413,7 +453,6 @@ export default function AdminDashboard() {
       });
     }
   };
-
 
   const handleBadgeImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -532,6 +571,64 @@ export default function AdminDashboard() {
     });
   };
 
+  const handleEditAnnouncement = (announcement) => {
+    setSelectedAnnouncement(announcement);
+    setAnnouncementFormData({
+      title: announcement.title || "",
+      message: announcement.message || "",
+      promotion_type: announcement.promotion_type || "discount",
+      discount_percentage: announcement.discount_percentage || 0,
+      image_url: announcement.image_url || "",
+      start_date: announcement.start_date ? format(new Date(announcement.start_date), 'yyyy-MM-dd') : "",
+      end_date: announcement.end_date ? format(new Date(announcement.end_date), 'yyyy-MM-dd') : "",
+      is_active: announcement.is_active ?? true,
+      is_featured: announcement.is_featured || false,
+      moderation_status: announcement.moderation_status || "approved"
+    });
+    setShowAnnouncementDialog(true);
+  };
+
+  const handleSaveAnnouncement = () => {
+    if (!selectedAnnouncement) return;
+
+    // Convert date strings back to ISO for backend
+    const dataToSend = {
+      ...announcementFormData,
+      start_date: announcementFormData.start_date ? new Date(announcementFormData.start_date).toISOString() : null,
+      end_date: announcementFormData.end_date ? new Date(announcementFormData.end_date).toISOString() : null,
+    };
+
+    updateAnnouncementMutation.mutate({
+      id: selectedAnnouncement.id,
+      data: dataToSend
+    });
+  };
+
+  const handleDeactivateAnnouncement = (announcement) => {
+    if (!user) {
+      toast.error("Erro: Usuário não autenticado.");
+      return;
+    }
+    updateAnnouncementMutation.mutate({
+      id: announcement.id,
+      data: {
+        is_active: false,
+        moderation_status: 'rejected', // Setting moderation_status to rejected for deactivation
+        moderation_notes: 'Desativado pelo admin',
+        moderated_by: user.email,
+        moderated_date: new Date().toISOString(),
+        rejection_reason: 'Desativado por ação administrativa.'
+      }
+    });
+  };
+
+  const handleDeleteAnnouncement = (announcement) => {
+    if (window.confirm(`Tem certeza que deseja ELIMINAR permanentemente o anúncio "${announcement.title}"?`)) {
+      deleteAnnouncementMutation.mutate(announcement.id);
+    }
+  };
+
+
   if (loadingUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
@@ -594,7 +691,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-1 md:gap-2 bg-white shadow-lg p-1 h-auto dark:bg-gray-800 transition-colors">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-11 gap-1 md:gap-2 bg-white shadow-lg p-1 h-auto dark:bg-gray-800 transition-colors">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-purple-700">
               <BarChart3 className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden md:inline">Overview</span>
@@ -606,6 +703,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="companies" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-green-700">
               <Store className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden sm:inline">Empresas</span>
+            </TabsTrigger>
+            <TabsTrigger value="announcements" className="data-[state=active]:bg-pink-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-pink-700">
+              <Megaphone className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden sm:inline">Anúncios</span>
             </TabsTrigger>
             <TabsTrigger value="services" className="relative data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-xs py-2 md:py-3 dark:text-gray-300 dark:data-[state=active]:bg-cyan-700">
               <Package className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
@@ -1239,6 +1340,371 @@ export default function AdminDashboard() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     {createCompanyMutation.isPending ? "A criar..." : "Criar Empresa"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+
+          {/* ANNOUNCEMENTS TAB */}
+          <TabsContent value="announcements">
+            <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <CardTitle className="text-xl md:text-2xl dark:text-gray-100 flex items-center gap-2">
+                      <Megaphone className="w-6 h-6 text-pink-600" />
+                      Gestão de Anúncios
+                    </CardTitle>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {allAnnouncements.length} anúncios no total
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {allAnnouncements.length === 0 ? (
+                  <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                    Nenhum anúncio ainda
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {allAnnouncements.map((announcement) => {
+                      const now = new Date();
+                      const startDate = announcement.start_date ? new Date(announcement.start_date) : null;
+                      const endDate = announcement.end_date ? new Date(announcement.end_date) : null;
+                      const isInDateRange = startDate && endDate && now >= startDate && now <= endDate;
+                      const isExpired = endDate && now > endDate;
+                      const isScheduled = startDate && now < startDate;
+
+                      return (
+                        <Card 
+                          key={announcement.id} 
+                          className={`border-2 ${
+                            announcement.is_active && announcement.moderation_status === 'approved' && isInDateRange
+                              ? 'border-green-200 bg-green-50/50 dark:border-green-700 dark:bg-green-900/10'
+                              : isExpired
+                              ? 'border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/50'
+                              : isScheduled
+                              ? 'border-blue-200 bg-blue-50/50 dark:border-blue-700 dark:bg-blue-900/10'
+                              : 'border-red-200 bg-red-50/50 dark:border-red-700 dark:bg-red-900/10'
+                          } dark:bg-gray-800 hover:shadow-lg transition-shadow`}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-start gap-3">
+                                  {announcement.image_url && (
+                                    <img 
+                                      src={announcement.image_url} 
+                                      alt={announcement.title}
+                                      className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-lg dark:text-gray-100 mb-1">{announcement.title}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{announcement.company_name}</p>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{announcement.message}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col gap-2 ml-4">
+                                {announcement.is_active && announcement.moderation_status === 'approved' && isInDateRange && (
+                                  <Badge className="bg-green-600 text-white">✓ Ativo</Badge>
+                                )}
+                                {!announcement.is_active && (
+                                  <Badge className="bg-gray-500 text-white">Inativo</Badge>
+                                )}
+                                {announcement.moderation_status === 'rejected' && (
+                                  <Badge className="bg-red-600 text-white">Rejeitado</Badge>
+                                )}
+                                {isExpired && (
+                                  <Badge className="bg-orange-600 text-white">Expirado</Badge>
+                                )}
+                                {isScheduled && (
+                                  <Badge className="bg-blue-600 text-white">Agendado</Badge>
+                                )}
+                                {announcement.is_featured && (
+                                  <Badge className="bg-purple-600 text-white">⭐ Destaque</Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Detalhes do anúncio */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                              <div className="bg-white dark:bg-gray-700 rounded-lg p-2 border">
+                                <p className="text-xs text-gray-600 dark:text-gray-400">Tipo</p>
+                                <p className="font-bold text-sm capitalize dark:text-gray-100">
+                                  {announcement.promotion_type?.replace('_', ' ')}
+                                </p>
+                              </div>
+
+                              {announcement.discount_percentage > 0 && (
+                                <div className="bg-white dark:bg-gray-700 rounded-lg p-2 border">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">Desconto</p>
+                                  <p className="font-bold text-sm text-green-600 dark:text-green-400">
+                                    {announcement.discount_percentage}%
+                                  </p>
+                                </div>
+                              )}
+
+                              <div className="bg-white dark:bg-gray-700 rounded-lg p-2 border">
+                                <p className="text-xs text-gray-600 dark:text-gray-400">Início</p>
+                                <p className="font-bold text-sm dark:text-gray-100">
+                                  {announcement.start_date ? format(new Date(announcement.start_date), 'dd/MM/yy') : 'N/A'}
+                                </p>
+                              </div>
+
+                              <div className="bg-white dark:bg-gray-700 rounded-lg p-2 border">
+                                <p className="text-xs text-gray-600 dark:text-gray-400">Fim</p>
+                                <p className="font-bold text-sm dark:text-gray-100">
+                                  {announcement.end_date ? format(new Date(announcement.end_date), 'dd/MM/yy') : 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Estatísticas */}
+                            <div className="grid grid-cols-3 gap-2 mb-3">
+                              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 border border-blue-200 dark:border-blue-700">
+                                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                  {announcement.views_count || 0}
+                                </div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400">Visualizações</div>
+                              </div>
+
+                              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 border border-purple-200 dark:border-purple-700">
+                                <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                                  {announcement.clicks_count || 0}
+                                </div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400">Cliques</div>
+                              </div>
+
+                              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 border border-green-200 dark:border-green-700">
+                                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                  {announcement.conversions_count || 0}
+                                </div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400">Conversões</div>
+                              </div>
+                            </div>
+
+                            {/* Ações */}
+                            <div className="flex gap-2 flex-wrap">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditAnnouncement(announcement)}
+                                className="dark:border-gray-600 dark:text-gray-300"
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </Button>
+
+                              {announcement.is_active && announcement.moderation_status === 'approved' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeactivateAnnouncement(announcement)}
+                                  className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400"
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Desativar
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateAnnouncementMutation.mutate({
+                                    id: announcement.id,
+                                    data: { is_active: true, moderation_status: 'approved' }
+                                  })}
+                                  className="border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:border-green-700 dark:text-green-400"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Ativar
+                                </Button>
+                              )}
+
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteAnnouncement(announcement)}
+                                className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Announcement Edit Dialog */}
+            <Dialog open={showAnnouncementDialog} onOpenChange={setShowAnnouncementDialog}>
+              <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="dark:text-gray-100">Editar Anúncio</DialogTitle>
+                  <DialogDescription className="dark:text-gray-400">
+                    {selectedAnnouncement?.company_name} - {selectedAnnouncement?.title}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {selectedAnnouncement && (
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <Label className="dark:text-gray-300">Título</Label>
+                      <Input
+                        value={announcementFormData.title}
+                        onChange={(e) => setAnnouncementFormData({...announcementFormData, title: e.target.value})}
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="dark:text-gray-300">Mensagem</Label>
+                      <Textarea
+                        value={announcementFormData.message}
+                        onChange={(e) => setAnnouncementFormData({...announcementFormData, message: e.target.value})}
+                        rows={3}
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="dark:text-gray-300">Tipo de Promoção</Label>
+                        <Select 
+                          value={announcementFormData.promotion_type} 
+                          onValueChange={(value) => setAnnouncementFormData({...announcementFormData, promotion_type: value})}
+                        >
+                          <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                            <SelectItem value="flash_sale">Flash Sale</SelectItem>
+                            <SelectItem value="discount">Desconto</SelectItem>
+                            <SelectItem value="new_product">Novo Produto</SelectItem>
+                            <SelectItem value="points_bonus">Bónus de Pontos</SelectItem>
+                            <SelectItem value="free_gift">Oferta Grátis</SelectItem>
+                            <SelectItem value="seasonal">Sazonal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="dark:text-gray-300">Desconto (%)</Label>
+                        <Input
+                          type="number"
+                          value={announcementFormData.discount_percentage}
+                          onChange={(e) => setAnnouncementFormData({...announcementFormData, discount_percentage: parseFloat(e.target.value)})}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="dark:text-gray-300">Data Início</Label>
+                        <Input
+                          type="date"
+                          value={announcementFormData.start_date}
+                          onChange={(e) => setAnnouncementFormData({...announcementFormData, start_date: e.target.value})}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="dark:text-gray-300">Data Fim</Label>
+                        <Input
+                          type="date"
+                          value={announcementFormData.end_date}
+                          onChange={(e) => setAnnouncementFormData({...announcementFormData, end_date: e.target.value})}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="dark:text-gray-300">URL da Imagem</Label>
+                      <Input
+                        value={announcementFormData.image_url}
+                        onChange={(e) => setAnnouncementFormData({...announcementFormData, image_url: e.target.value})}
+                        placeholder="https://..."
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Switch
+                          checked={announcementFormData.is_active}
+                          onCheckedChange={(checked) => setAnnouncementFormData({...announcementFormData, is_active: checked})}
+                        />
+                        <span className="text-sm dark:text-gray-300">Anúncio Ativo</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Switch
+                          checked={announcementFormData.is_featured}
+                          onCheckedChange={(checked) => setAnnouncementFormData({...announcementFormData, is_featured: checked})}
+                        />
+                        <span className="text-sm dark:text-gray-300">Em Destaque</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <Label className="dark:text-gray-300">Status de Moderação</Label>
+                      <Select 
+                        value={announcementFormData.moderation_status} 
+                        onValueChange={(value) => setAnnouncementFormData({...announcementFormData, moderation_status: value})}
+                      >
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                          <SelectItem value="pending">Pendente</SelectItem>
+                          <SelectItem value="approved">Aprovado</SelectItem>
+                          <SelectItem value="rejected">Rejeitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Card className="bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Criado por</p>
+                            <p className="font-mono text-xs dark:text-gray-300">{selectedAnnouncement.created_by}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Data de Criação</p>
+                            <p className="dark:text-gray-300">
+                              {format(new Date(selectedAnnouncement.created_date), 'dd/MM/yyyy HH:mm')}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAnnouncementDialog(false)}
+                    className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSaveAnnouncement}
+                    disabled={updateAnnouncementMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {updateAnnouncementMutation.isPending ? "A guardar..." : "Guardar Alterações"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

@@ -60,10 +60,9 @@ export default function Partners() {
   const { data: announcements = [] } = useQuery({
     queryKey: ['activeAnnouncements'],
     queryFn: async () => {
-      // PASSO 1: Carregar TODOS os anúncios
-      const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.list('-featured_position');
       
-      console.log('📢 ALL ANNOUNCEMENTS LOADED:', {
+      console.log('📢 PARTNERS PAGE - ALL ANNOUNCEMENTS:', {
         total: allAnnouncements.length,
         announcements: allAnnouncements.map(a => ({
           title: a.title,
@@ -76,19 +75,20 @@ export default function Partners() {
         }))
       });
 
-      // PASSO 2: Filtrar por aprovados
+      // FILTRO 1: Aprovados
       const approved = allAnnouncements.filter(a => a.moderation_status === 'approved');
-      console.log('✅ APPROVED ANNOUNCEMENTS:', approved.length);
+      console.log('✅ APPROVED:', approved.length);
 
-      // PASSO 3: Filtrar por ativos
+      // FILTRO 2: Ativos
       const active = approved.filter(a => a.is_active === true);
-      console.log('🟢 ACTIVE ANNOUNCEMENTS:', active.length);
+      console.log('🟢 ACTIVE:', active.length);
 
-      // PASSO 4: Filtrar por datas
+      // FILTRO 3: Dentro do período de datas
       const now = new Date();
       const inDateRange = active.filter(a => {
+        // Se não tem datas, não mostra
         if (!a.start_date || !a.end_date) {
-          console.log(`⚠️ Announcement "${a.title}" missing dates`);
+          console.log(`⚠️ "${a.title}" SEM DATAS - IGNORADO`);
           return false;
         }
         
@@ -106,9 +106,9 @@ export default function Partners() {
         return isInRange;
       });
 
-      console.log('📊 FINAL ANNOUNCEMENTS TO DISPLAY:', inDateRange.length);
+      console.log('✅ FINAL ANNOUNCEMENTS TO SHOW:', inDateRange.length);
 
-      // PASSO 5: Ordenar por destaque
+      // Ordenar por destaque
       const sorted = inDateRange.sort((a, b) => {
         if (a.is_featured && !b.is_featured) return -1;
         if (!a.is_featured && b.is_featured) return 1;
@@ -130,7 +130,7 @@ export default function Partners() {
     staleTime: 60000,
   });
 
-  console.log('🎨 ANNOUNCEMENTS TO RENDER:', announcements.length);
+  console.log('🎯 RENDERING', announcements.length, 'ANNOUNCEMENTS');
 
   const { data: loyaltyPoints, isLoading: loadingPoints } = useQuery({
     queryKey: ['loyaltyPoints', user?.email],
