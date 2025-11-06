@@ -231,8 +231,8 @@ export default function Gamification() {
     { id: "adoption_hero", name: "Adoption Hero", desc: "Adote um pet resgatado", icon: "🏠", category: "milestone", rarity: "epic", requirement: 1, current: user?.profile_stats?.total_adoptions || 0, stat: "total_adoptions", xp: 2000 },
   ];
 
-  // Filter earned badges for current user (using public_badges as per existing code)
-  const earnedBadges = user?.public_badges || [];
+  // Filter earned badges for current user (using achievements_badges - CORRETO!)
+  const earnedBadges = user?.achievements_badges || [];
   const earnedBadgeIds = earnedBadges.map(b => b.badge_id);
 
   // Available badges (not earned yet, can be earned) for user display

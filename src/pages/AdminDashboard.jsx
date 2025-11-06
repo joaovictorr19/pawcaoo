@@ -47,6 +47,7 @@ import {
   Edit,
   XCircle, // Added XCircle here
   Upload, // Added Upload for badge image upload
+  Eye, // Added Eye for view details button
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -58,19 +59,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import NotificationService from "../components/NotificationService";
+import { useLanguage } from "@/context/LanguageContext"; // Added useLanguage import
 
 export default function AdminDashboard() {
+  const { language } = useLanguage(); // Added useLanguage hook call
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedApplication, setSelectedApplication] = useState(null); // Kept from original
-  const [verificationNotes, setVerificationNotes] = useState(""); // Kept from original
-  const [selectedUser, setSelectedUser] = useState(null); // Kept from original
-  const [showUserDialog, setShowUserDialog] = useState(false); // Kept from original
-  const [userFormData, setUserFormData] = useState({}); // Kept from original
-  const [showCompanyDialog, setShowCompanyDialog] = useState(false); // Kept from original
-  const [companyFormData, setCompanyFormData] = useState({}); // Kept from original
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [verificationNotes, setVerificationNotes] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [userFormData, setUserFormData] = useState({});
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
+  const [companyFormData, setCompanyFormData] = useState({});
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
   const [selectedUserForBadges, setSelectedUserForBadges] = useState(null);
   const [badgesFormData, setBadgesFormData] = useState({});
@@ -83,8 +86,9 @@ export default function AdminDashboard() {
     category: "special"
   });
   const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("7days"); // Added new state
 
-  const { data: user, isLoading: loadingUser } = useQuery({ // Kept isLoading
+  const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
@@ -119,9 +123,9 @@ export default function AdminDashboard() {
   });
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
 
-  const { data: allBookings = [] } = useQuery({ // Renamed from recentBookings
+  const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
-    queryFn: async () => { // Kept original logic for combining types of bookings
+    queryFn: async () => {
       const walkerBookings = await base44.entities.Booking.list('-created_date', 100);
       const trainerBookings = await base44.entities.TrainingBooking.list('-created_date', 100);
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
@@ -130,38 +134,84 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
-  const { data: allPayments = [] } = useQuery({ // Renamed from recentPayments
+  const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
-    queryFn: () => base44.entities.Payment.list('-held_date', 100), // Changed to -held_date based on outline's data for this query
+    queryFn: () => base44.entities.Payment.list('-held_date', 100),
     enabled: user?.role === 'admin' && activeTab === 'payments',
     initialData: [],
   });
 
-  const { data: supportTickets = [] } = useQuery({ // Renamed from emergencies
+  const { data: supportTickets = [] } = useQuery({
     queryKey: ['supportTickets'],
-    queryFn: () => base44.entities.ChatConversation.filter({ tags: 'emergency' }), // New query for support tickets
+    queryFn: () => base44.entities.ChatConversation.filter({ tags: 'emergency' }),
     enabled: user?.role === 'admin' && activeTab === 'support',
     initialData: [],
   });
 
-  // Kept from original: Partner Companies query
-  const { data: partnerCompanies = [] } = useQuery({
-    queryKey: ['allPartnerCompanies'],
-    queryFn: () => base44.entities.PartnerCompany.list(),
-    enabled: user?.role === 'admin' && activeTab === 'companies',
+  // Replaced original Partner Companies query with new 'companies' query including stats
+  const { data: companies = [] } = useQuery({
+    queryKey: ['allCompanies'], // Updated query key from 'allPartnerCompanies'
+    queryFn: async () => {
+      const allCompanies = await base44.entities.PartnerCompany.list();
+      
+      const companiesWithStats = await Promise.all(
+        allCompanies.map(async (company) => {
+          const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+          const companyAnnouncements = allAnnouncements.filter(a => 
+            a.company_email === company.company_email || a.company_id === company.id
+          );
+          
+          const allServices = await base44.entities.PartnerService.list();
+          const companyServices = allServices.filter(s => 
+            s.partner_company_email === company.company_email || s.partner_id === company.id
+          );
+
+          const now = new Date();
+          const approvedAnnouncements = companyAnnouncements.filter(a => a.moderation_status === 'approved');
+          const expiredAnnouncements = companyAnnouncements.filter(a => {
+            if (!a.end_date) return false;
+            return new Date(a.end_date) < now;
+          });
+          const activeAnnouncements = approvedAnnouncements.filter(a => {
+            if (!a.start_date || !a.end_date) return false;
+            const start = new Date(a.start_date);
+            const end = new Date(a.end_date);
+            return now >= start && now <= end && a.is_active;
+          });
+
+          const approvedServices = companyServices.filter(s => s.moderation_status === 'approved');
+          const activeServices = approvedServices.filter(s => s.is_active);
+
+          return {
+            ...company,
+            stats: {
+              total_announcements: companyAnnouncements.length,
+              approved_announcements: approvedAnnouncements.length,
+              active_announcements: activeAnnouncements.length,
+              expired_announcements: expiredAnnouncements.length,
+              total_services: companyServices.length,
+              approved_services: approvedServices.length,
+              active_services: activeServices.length,
+            }
+          };
+        })
+      );
+
+      return companiesWithStats;
+    },
+    enabled: user?.role === 'admin' && activeTab === 'companies', // Retained enabled condition
+    staleTime: 60000,
   });
 
-  const { data: allReviews = [] } = useQuery({ // New query for reviews
+  const { data: allReviews = [] } = useQuery({
     queryKey: ['allReviews'],
     queryFn: () => base44.entities.Review.list('-created_date', 100),
     enabled: user?.role === 'admin' && activeTab === 'reviews',
     initialData: [],
   });
-  const pendingReviews = allReviews.filter(r => !r.is_verified); // Filtered from allReviews
+  const pendingReviews = allReviews.filter(r => !r.is_verified);
 
-  // Mutations (Kept from original unless explicitly replaced by outline)
-
-  // Update Walker Application (kept from original)
+  // Mutations
   const updateWalkerMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WalkerProfile.update(id, data),
     onSuccess: () => {
@@ -172,7 +222,6 @@ export default function AdminDashboard() {
     },
   });
 
-  // Update Trainer Application (kept from original)
   const updateTrainerMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TrainerProfile.update(id, data),
     onSuccess: () => {
@@ -183,7 +232,6 @@ export default function AdminDashboard() {
     },
   });
 
-  // Update User Mutation (kept from original)
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
@@ -194,7 +242,6 @@ export default function AdminDashboard() {
     },
   });
 
-  // Delete User Mutation (kept from original)
   const deleteUserMutation = useMutation({
     mutationFn: (id) => base44.entities.User.delete(id),
     onSuccess: () => {
@@ -203,11 +250,10 @@ export default function AdminDashboard() {
     },
   });
 
-  // Company Mutations (kept from original)
   const createCompanyMutation = useMutation({
     mutationFn: (companyData) => base44.entities.PartnerCompany.create(companyData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allPartnerCompanies'] });
+      queryClient.invalidateQueries({ queryKey: ['allCompanies'] }); // Updated query key
       toast.success("Empresa criada com sucesso!");
       setShowCompanyDialog(false);
       setCompanyFormData({});
@@ -217,28 +263,28 @@ export default function AdminDashboard() {
   const deleteCompanyMutation = useMutation({
     mutationFn: (id) => base44.entities.PartnerCompany.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allPartnerCompanies'] });
+      queryClient.invalidateQueries({ queryKey: ['allCompanies'] }); // Updated query key
       toast.success("Empresa eliminada!");
     },
   });
 
-  const moderateReviewMutation = useMutation({ // Kept from original, but updated entity to 'Review'
+  const moderateReviewMutation = useMutation({
     mutationFn: async ({ reviewId, status, notes }) => {
-      const currentUser = await base44.auth.me(); // Fetch current user for moderator info
-      return base44.entities.Review.update(reviewId, { // Changed from PartnerReview to Review
-        is_verified: status === 'approved', // Review entity uses is_verified
+      const currentUser = await base44.auth.me();
+      return base44.entities.Review.update(reviewId, {
+        is_verified: status === 'approved',
         moderation_notes: notes,
         moderated_by: currentUser.email,
         moderated_date: new Date().toISOString()
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allReviews'] }); // Invalidate allReviews
+      queryClient.invalidateQueries({ queryKey: ['allReviews'] });
       toast.success("Avaliação moderada com sucesso");
     },
   });
 
-  const updateUserBadgesMutation = useMutation({ // Updated based on outline
+  const updateUserBadgesMutation = useMutation({
     mutationFn: ({ userId, badges }) => {
       const currentUser = allUsers.find(u => u.id === userId);
       if (!currentUser) {
@@ -270,7 +316,7 @@ export default function AdminDashboard() {
     }
   });
 
-  // Handlers (Kept from original for existing tabs)
+  // Handlers
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setUserFormData({
@@ -314,7 +360,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Handle application approval
   const handleApproveApplication = async (application, type) => {
     const updateData = {
       verification_status: "verified",
@@ -325,7 +370,6 @@ export default function AdminDashboard() {
     if (type === 'walker') {
       await updateWalkerMutation.mutateAsync({ id: application.id, data: updateData });
       
-      // Use NotificationService
       await NotificationService.applicationApproved({
         applicationType: 'walker',
         professional: application,
@@ -342,7 +386,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Handle application rejection
   const handleRejectApplication = async (application, type) => {
     const updateData = {
       verification_status: "rejected",
@@ -372,7 +415,7 @@ export default function AdminDashboard() {
   };
 
 
-  const handleBadgeImageUpload = async (e) => { // From outline
+  const handleBadgeImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -393,7 +436,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleAddCustomBadge = () => { // From outline
+  const handleAddCustomBadge = () => {
     if (!newCustomBadge.name || !newCustomBadge.description) {
       toast.error("❌ Preencha nome e descrição do badge");
       return;
@@ -435,7 +478,7 @@ export default function AdminDashboard() {
     toast.success(`✨ Emblema "${badgeToAdd.name}" adicionado! Clique em 💾 Salvar para confirmar`);
   };
 
-  const handleRemoveBadge = (badgeId) => { // From outline
+  const handleRemoveBadge = (badgeId) => {
     const currentBadges = badgesFormData.public_badges || [];
     const updatedBadges = currentBadges.filter(b => b.badge_id !== badgeId);
     
@@ -447,7 +490,7 @@ export default function AdminDashboard() {
     toast.success("🗑️ Emblema removido! Clique em 💾 Salvar para confirmar");
   };
 
-  const handleOpenBadgesDialog = (userItem) => { // From outline
+  const handleOpenBadgesDialog = (userItem) => {
     setSelectedUserForBadges(userItem);
     
     const currentBadges = userItem.public_badges || [];
@@ -463,7 +506,7 @@ export default function AdminDashboard() {
     setShowBadgesDialog(true);
   };
 
-  const handleSaveBadges = () => { // From outline
+  const handleSaveBadges = () => {
     if (!selectedUserForBadges) {
       toast.error("❌ Nenhum usuário selecionado");
       return;
@@ -522,7 +565,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header (Updated from outline) */}
+        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
@@ -534,7 +577,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Stats (Updated from outline) */}
+          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat, idx) => (
               <Card key={idx} className="border-0 shadow-lg dark:bg-gray-800">
@@ -616,7 +659,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* USERS TAB - Kept original */}
+          {/* USERS TAB */}
           <TabsContent value="users">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -894,7 +937,7 @@ export default function AdminDashboard() {
             </Dialog>
           </TabsContent>
 
-          {/* COMPANIES TAB - Kept original */}
+          {/* COMPANIES TAB - Updated */}
           <TabsContent value="companies">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -924,61 +967,136 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {partnerCompanies.map((company) => (
-                    <Card key={company.id} className="border-2 border-green-100 dark:border-green-700 dark:bg-gray-800 hover:shadow-lg transition-shadow">
-                      <CardContent className="p-4">
-                        {company.logo_url && (
-                          <img 
-                            src={company.logo_url} 
-                            alt={company.company_name} 
-                            className="w-full h-24 object-contain mb-3 bg-gray-50 dark:bg-gray-900 rounded-lg p-2"
-                          />
-                        )}
-                        <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">{company.company_name}</h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{company.company_email}</p>
-                        
-                        <div className="flex flex-wrap gap-1.5 mb-3">
-                          <Badge className="text-xs capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type?.replace('_', ' ')}</Badge>
-                          <Badge className={`text-xs ${company.is_active ? "bg-green-500" : "bg-gray-500"}`}>
-                            {company.is_active ? "Ativo" : "Inativo"}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs capitalize dark:border-gray-600 dark:text-gray-300">{company.subscription_tier}</Badge>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-xs mb-3 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Produtos</p>
-                            <p className="font-bold text-gray-900 dark:text-gray-100">{company.total_products || 0}</p>
+                {companies.length === 0 ? (
+                  <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                    Nenhuma empresa parceira ainda
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {companies.map((company) => (
+                      <Card key={company.id} className="border-2 border-green-100 dark:border-green-700 dark:bg-gray-800 hover:shadow-lg transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              {company.logo_url && (
+                                <img 
+                                  src={company.logo_url} 
+                                  alt={company.company_name}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              )}
+                              <div>
+                                <h3 className="font-bold text-lg dark:text-gray-100">{company.company_name}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{company.company_email}</p>
+                                <Badge className="mt-1 capitalize dark:bg-gray-700 dark:text-gray-100">{company.company_type?.replace('_', ' ')}</Badge>
+                              </div>
+                            </div>
+                            <Badge 
+                              className={company.is_active 
+                                ? 'bg-green-600 text-white dark:bg-green-700' 
+                                : 'bg-gray-400 text-white dark:bg-gray-600'
+                              }
+                            >
+                              {company.is_active ? 'Ativa' : 'Inativa'}
+                            </Badge>
                           </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Vendas</p>
-                            <p className="font-bold text-green-600 dark:text-green-400">€{(company.total_sales || 0).toFixed(0)}</p>
-                          </div>
-                        </div>
 
-                        <div className="flex gap-2">
-                          <Button
-                            className="flex-1 h-8 text-xs"
-                            variant="outline"
-                            onClick={() => navigate(createPageUrl('PartnerDashboard'))}
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Ver Painel
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => handleDeleteCompany(company)}
-                            className="hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800 h-8 w-8"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                          {/* Estatísticas Detalhadas */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+                              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                {company.stats?.total_announcements || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Anúncios Total</div>
+                            </div>
+
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-700">
+                              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                {company.stats?.approved_announcements || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Anúncios Aprovados</div>
+                            </div>
+
+                            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-200 dark:border-purple-700">
+                              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                {company.stats?.active_announcements || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Anúncios Ativos</div>
+                            </div>
+
+                            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-red-200 dark:border-red-700">
+                              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                {company.stats?.expired_announcements || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Anúncios Expirados</div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+                            <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-3 border border-indigo-200 dark:border-indigo-700">
+                              <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                                {company.stats?.total_services || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Serviços Total</div>
+                            </div>
+
+                            <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-3 border border-teal-200 dark:border-teal-700">
+                              <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+                                {company.stats?.approved_services || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Serviços Aprovados</div>
+                            </div>
+
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-700">
+                              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                {company.stats?.active_services || 0}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">Serviços Ativos</div>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                              onClick={() => navigate(createPageUrl(`PartnerDetails?id=${company.id}`))}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Detalhes
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                              onClick={() => navigate(createPageUrl(`ApproveAnnouncements?company=${company.company_email}`))}
+                            >
+                              <Megaphone className="w-4 h-4 mr-2" />
+                              Ver Anúncios
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                              onClick={() => navigate(createPageUrl(`PartnerServices?company=${company.company_email}`))}
+                            >
+                              <Store className="w-4 h-4 mr-2" />
+                              Ver Serviços
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => handleDeleteCompany(company)}
+                              className="hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800 h-8 w-8"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1127,7 +1245,7 @@ export default function AdminDashboard() {
             </Dialog>
           </TabsContent>
 
-          {/* SERVICES TAB - COMPLETELY NEW FROM OUTLINE */}
+          {/* SERVICES TAB */}
           <TabsContent value="services">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1259,7 +1377,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* APPLICATIONS TAB - Kept original */}
+          {/* APPLICATIONS TAB */}
           <TabsContent value="applications">
             <div className="space-y-6">
               {/* Walker Applications */}
@@ -1583,7 +1701,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* BOOKINGS TAB - Kept original, adapted to allBookings */}
+          {/* BOOKINGS TAB */}
           <TabsContent value="bookings">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1632,7 +1750,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* PAYMENTS TAB - Kept original, adapted to allPayments */}
+          {/* PAYMENTS TAB */}
           <TabsContent value="payments">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1686,7 +1804,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* SUPPORT TAB - Kept original, adapted to supportTickets */}
+          {/* SUPPORT TAB */}
           <TabsContent value="support">
             <div className="space-y-6">
               {/* Emergency Reports */}
@@ -1700,7 +1818,7 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="space-y-4">
                       {supportTickets
-                        .map(ticket => ( // Renamed emergency to ticket
+                        .map(ticket => (
                           <Card key={ticket.id} className="border-2 border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-900/10">
                             <CardContent className="p-6">
                               <div className="flex items-start gap-4">
@@ -1711,7 +1829,7 @@ export default function AdminDashboard() {
                                   </h3>
                                   <p className="text-gray-700 dark:text-gray-300 mb-2">{ticket.last_message || "No specific message details available."}</p>
                                   <div className="grid md:grid-cols-2 gap-2 text-sm mb-3 dark:text-gray-300">
-                                    <div><span className="font-semibold dark:text-gray-400">Reported by:</span> {ticket.sender_id}</div> {/* Assuming sender_id for reporter */}
+                                    <div><span className="font-semibold dark:text-gray-400">Reported by:</span> {ticket.sender_id}</div>
                                     <div><span className="font-semibold dark:text-gray-400">Status:</span> {ticket.status || 'open'}</div>
                                     {ticket.last_updated_date && (
                                       <div className="col-span-2"><span className="font-semibold dark:text-gray-400">Last update:</span> {format(new Date(ticket.last_updated_date), 'MMM d, HH:mm')}</div>
@@ -1736,7 +1854,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* REVIEWS TAB - Kept original, adapted to allReviews */}
+          {/* REVIEWS TAB */}
           <TabsContent value="reviews" className="space-y-6">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -1774,7 +1892,7 @@ export default function AdminDashboard() {
                               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
                                 <span>{review.reviewer_name}</span>
                                 <span>•</span>
-                                <span>{review.partner_name || 'N/A'}</span> {/* Partner_name might be missing for generic reviews */}
+                                <span>{review.partner_name || 'N/A'}</span>
                                 {review.product_name && (
                                   <>
                                     <span>•</span>
@@ -1834,7 +1952,7 @@ export default function AdminDashboard() {
                               className="dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
                               disabled={moderateReviewMutation.isPending}
                             >
-                              <Megaphone className="w-4 h-4 mr-2" /> {/* Changed icon from Flag to Megaphone based on outline's import */}
+                              <Megaphone className="w-4 h-4 mr-2" />
                               Sinalizar
                             </Button>
                           </div>
@@ -1847,7 +1965,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* BADGES TAB - COMPLETELY NEW FROM OUTLINE */}
+          {/* BADGES TAB */}
           <TabsContent value="badges">
             <Card className="border-0 shadow-xl dark:bg-gray-800 dark:border-gray-700 mb-6">
               <CardHeader>
@@ -2305,4 +2423,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

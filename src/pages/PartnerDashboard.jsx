@@ -461,10 +461,7 @@ export default function PartnerDashboard() {
   // NEW: Create Service Mutation
   const createServiceMutation = useMutation({
     mutationFn: async (serviceData) => {
-      console.log('Creating service with data:', serviceData);
-      console.log('Company info:', { id: company.id, email: company.company_email, name: company.company_name });
-      
-      // Convert string values to numbers
+      // Convert string values to numbers (retained from original for safety)
       const processedData = {
         ...serviceData,
         base_price: parseFloat(serviceData.base_price) || 0,
@@ -478,26 +475,35 @@ export default function PartnerDashboard() {
         }
       };
 
-      const newService = await base44.entities.PartnerService.create({
+      console.log('🚀 CREATING SERVICE with data:', {
         ...processedData,
         partner_id: company.id,
         partner_name: company.company_name,
-        partner_company_email: company.company_email,
-        moderation_status: 'approved', // Auto-approve for now
-        is_active: true // Auto-activate
+        partner_company_email: user.email, // CRÍTICO para RLS, using user.email
+        created_by: user.email, // Added from outline
+        moderation_status: 'approved',
+        is_active: true
       });
-      
-      console.log('Service created:', newService);
-      return newService;
+
+      const result = await base44.entities.PartnerService.create({
+        ...processedData,
+        partner_id: company.id,
+        partner_name: company.company_name,
+        partner_company_email: user.email, // CRÍTICO para RLS
+        created_by: user.email, // Added from outline
+        moderation_status: 'approved',
+        is_active: true
+      });
+      console.log('✅ SERVICE CREATED:', result);
+      return result;
     },
     onSuccess: (newService) => {
       console.log('Service created successfully:', newService);
-      queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] });
-      queryClient.invalidateQueries({ queryKey: ['companyServices'] }); // Invalidate general services list
-      queryClient.invalidateQueries({ queryKey: ['partnerServices'] }); // Invalidate partner specific services list if used elsewhere
-      toast.success(language === 'pt' ? 'Serviço criado e ativo!' : 'Service created and active!');
-      setShowCreateServiceModal(false);
-      setNewService({
+      queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] }); // Keep existing invalidations
+      queryClient.invalidateQueries({ queryKey: ['companyServices'] }); // Keep existing invalidations
+      toast.success(language === 'pt' ? 'Serviço criado e ativo!' : 'Service created and active!'); // Keep language support
+      setShowCreateServiceModal(false); // Corrected modal state setter
+      setNewService({ // Keep existing form reset logic
         service_name: "",
         service_type: "bath",
         description: "",
@@ -512,41 +518,48 @@ export default function PartnerDashboard() {
       });
     },
     onError: (error) => {
-      console.error('Error creating service:', error);
-      toast.error(error.message || (language === 'pt' ? 'Erro ao criar serviço' : 'Failed to create service'));
+      console.error('❌ CREATE SERVICE ERROR:', error);
+      toast.error(error.message || (language === 'pt' ? 'Erro ao criar serviço' : 'Failed to create service')); // Keep language support
     }
   });
 
   // NEW: Create Announcement Mutation
   const createAnnouncementMutation = useMutation({
     mutationFn: async (announcementData) => {
-      console.log('Creating announcement with data:', announcementData);
-      console.log('Company info:', { id: company.id, email: company.company_email, name: company.company_name });
-      
-      // Convert string values to numbers
+      // Convert string values to numbers (retained from original for safety)
       const processedData = {
         ...announcementData,
         discount_percentage: parseInt(announcementData.discount_percentage) || 0
       };
 
-      const newAnnouncement = await base44.entities.CompanyAnnouncement.create({
+      console.log('🚀 CREATING ANNOUNCEMENT with data:', {
         ...processedData,
-        company_id: company.id,
-        company_name: company.company_name,
-        company_email: company.company_email,
-        moderation_status: 'approved', // Auto-approve for now
-        is_active: true // Auto-activate
+        company_id: company.id, // Using company.id directly
+        company_name: company.company_name, // Using company.company_name directly
+        company_email: user.email, // CRÍTICO para RLS, using user.email
+        created_by: user.email, // Added from outline
+        moderation_status: 'approved',
+        is_active: true
       });
-      
-      console.log('Announcement created:', newAnnouncement);
-      return newAnnouncement;
+
+      const result = await base44.entities.CompanyAnnouncement.create({
+        ...processedData,
+        company_id: company.id, // Using company.id directly
+        company_name: company.company_name, // Using company.company_name directly
+        company_email: user.email, // CRÍTICO para RLS
+        created_by: user.email, // Added from outline
+        moderation_status: 'approved',
+        is_active: true
+      });
+      console.log('✅ ANNOUNCEMENT CREATED:', result);
+      return result;
     },
     onSuccess: (newAnnouncement) => {
       console.log('Announcement created successfully:', newAnnouncement);
-      queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] });
-      toast.success(language === 'pt' ? 'Anúncio criado e ativo!' : 'Announcement created and active!');
-      setShowCreateAnnouncementModal(false);
-      setNewAnnouncement({
+      queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] }); // Keep existing query key
+      toast.success(language === 'pt' ? 'Anúncio criado e ativo!' : 'Announcement created and active!'); // Keep language support
+      setShowCreateAnnouncementModal(false); // Corrected modal state setter
+      setNewAnnouncement({ // Keep existing form reset logic
         title: "",
         message: "",
         promotion_type: "discount",
@@ -559,8 +572,8 @@ export default function PartnerDashboard() {
       });
     },
     onError: (error) => {
-      console.error('Error creating announcement:', error);
-      toast.error(error.message || (language === 'pt' ? 'Erro ao criar anúncio' : 'Failed to create announcement'));
+      console.error('❌ CREATE ANNOUNCEMENT ERROR:', error);
+      toast.error(error.message || (language === 'pt' ? 'Erro ao criar anúncio' : 'Failed to create announcement')); // Keep language support
     }
   });
 
