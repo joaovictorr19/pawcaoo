@@ -81,7 +81,7 @@ export default function UserProfile() {
   const profileEmail = urlParams.get('email');
 
   console.log('\n🔍 === USERPROFILE - INÍCIO ===');
-  console.log('URL Email:', profileEmail);
+  console.log('📧 URL Email:', profileEmail);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -96,36 +96,44 @@ export default function UserProfile() {
     queryKey: ['profileUser', profileEmail],
     queryFn: async () => {
       if (!profileEmail) {
-        console.log('❌ No profile email in URL');
+        console.log('❌ ERRO: Nenhum email na URL');
         return null;
       }
       
-      console.log('🔎 Buscando usuário com email:', profileEmail);
-      const users = await base44.entities.User.list();
-      console.log('📋 Total de usuários no banco:', users.length);
-      console.log('📧 Emails no banco:', users.map(u => u.email));
+      console.log('🔎 Iniciando busca por:', profileEmail);
       
-      const found = users.find(u => u.email === profileEmail);
-      
-      if (found) {
-        console.log('✅ USUÁRIO ENCONTRADO:', {
-          email: found.email,
-          name: found.full_name,
-          photo: found.profile_photo_url ? 'SIM' : 'NÃO',
-          city: found.city,
-          bio: found.bio ? 'SIM' : 'NÃO',
-          achievements: found.achievements_badges?.length || 0,
-          public_badges: found.public_badges?.length || 0,
-          is_verified: found.is_verified,
-          role: found.role,
-          social_role: found.social_role
-        });
-      } else {
-        console.log('❌ USUÁRIO NÃO ENCONTRADO para email:', profileEmail);
-        console.log('Emails disponíveis:', users.map(u => u.email).join(', '));
+      try {
+        const users = await base44.entities.User.list();
+        console.log('📊 Total de usuários:', users.length);
+        
+        // Buscar com comparação case-insensitive
+        const found = users.find(u => u.email?.toLowerCase() === profileEmail.toLowerCase());
+        
+        if (found) {
+          console.log('✅ USUÁRIO ENCONTRADO!');
+          console.log('📋 Dados:', {
+            email: found.email,
+            nome: found.full_name,
+            foto: found.profile_photo_url ? '✓ Tem foto' : '✗ Sem foto',
+            cidade: found.city || 'Não definida',
+            bio: found.bio ? '✓ Tem bio' : '✗ Sem bio',
+            verificado: found.is_verified ? '✓' : '✗',
+            role: found.role,
+            social_role: found.social_role,
+            achievements: found.achievements_badges?.length || 0,
+            public_badges: found.public_badges?.length || 0
+          });
+          return found;
+        } else {
+          console.log('❌ USUÁRIO NÃO ENCONTRADO!');
+          console.log('📧 Email procurado:', profileEmail);
+          console.log('📋 Emails disponíveis:', users.map(u => u.email).slice(0, 10));
+          return null;
+        }
+      } catch (error) {
+        console.error('❌ ERRO na busca:', error);
+        return null;
       }
-      
-      return found || null;
     },
     enabled: !!profileEmail,
     retry: 3,
@@ -288,23 +296,38 @@ export default function UserProfile() {
     return badgeImages[badgeId] || '🏆';
   };
 
+  console.log('\n📊 === DADOS FINAIS ===');
+  console.log('Profile User:', profileUser ? '✅ OK' : '❌ NULL');
+  console.log('Email:', profileUser?.email);
+  console.log('Nome:', profileUser?.full_name);
+  console.log('Foto:', profileUser?.profile_photo_url);
+  console.log('Posts:', userPosts.length);
+  console.log('Seguidores:', followers.length);
+  console.log('Seguindo:', following.length);
+  console.log('=======================\n');
+
   if (loadingUser || loadingPosts || loadingFollowers || loadingFollowing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando perfil...</p>
+        </div>
       </div>
     );
   }
 
   if (!profileUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full">
           <CardContent className="p-12 text-center">
             <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil não encontrado</h2>
-            <p className="text-gray-600 mb-4">Este utilizador não existe</p>
-            <Button onClick={() => navigate(createPageUrl('SocialFeed'))}>
+            <p className="text-gray-600 mb-2">Não foi possível encontrar o perfil de:</p>
+            <p className="text-sm text-gray-500 mb-4 font-mono bg-gray-100 p-2 rounded">{profileEmail}</p>
+            <Button onClick={() => navigate(createPageUrl('SocialFeed'))} className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar ao Feed
             </Button>
           </CardContent>
@@ -312,15 +335,6 @@ export default function UserProfile() {
       </div>
     );
   }
-
-  console.log('\n📊 === USERPROFILE - DADOS CARREGADOS ===');
-  console.log('Profile User:', profileUser ? '✅ CARREGADO' : '❌ NULL');
-  console.log('Posts:', userPosts.length);
-  console.log('Seguidores:', followers.length);
-  console.log('Seguindo:', following.length);
-  console.log('Is Following?', followers.some(f => f.follower_email === currentUser?.email));
-  console.log('========================================\n');
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50">
@@ -357,7 +371,8 @@ export default function UserProfile() {
             {/* Avatar and Name */}
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
               <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24">
-                <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100">
+                {/* FOTO DE PERFIL - SEM TRANSPARÊNCIA */}
+                <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
                   <AvatarImage src={profileUser.profile_photo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
                     {profileUser.full_name?.[0]?.toUpperCase()}
@@ -370,9 +385,9 @@ export default function UserProfile() {
                       {profileUser.full_name}
                     </h1>
                     
-                    {/* System Badges ao lado do nome - ÍCONE VERIFICADO CORRIGIDO */}
+                    {/* APENAS DISTINTIVOS DE SISTEMA */}
                     {profileUser.is_verified && (
-                      <div className="relative w-6 h-6" title="Verificado">
+                      <div className="w-6 h-6" title="Verificado">
                         <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#1d9bf0">
                           <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
                         </svg>
@@ -399,6 +414,7 @@ export default function UserProfile() {
                     {profileUser.is_adoption_advocate && (
                       <Badge className="bg-pink-600 text-white flex items-center gap-1" title="Defensor de Adoção">
                         <Heart className="w-3 h-3" />
+                        Defensor
                       </Badge>
                     )}
                   </div>

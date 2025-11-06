@@ -169,13 +169,12 @@ export default function SocialFeed() {
     staleTime: 60000,
   });
 
-  // Função helper para pegar badges do usuário
+  // Função helper para pegar badges do usuário - APENAS DISTINTIVOS DE SISTEMA
   const getUserBadges = (authorEmail) => {
     const userData = usersData.find(u => u.email === authorEmail);
-    if (!userData) return { publicBadges: [], isVerified: false, role: 'user', socialRole: 'user', isAdoptionAdvocate: false };
+    if (!userData) return { isVerified: false, role: 'user', socialRole: 'user', isAdoptionAdvocate: false };
     
     return {
-      publicBadges: userData.public_badges || [],
       isVerified: userData.is_verified || false,
       role: userData.role || 'user',
       socialRole: userData.social_role || 'user',
@@ -637,7 +636,7 @@ export default function SocialFeed() {
             ) : (
               <AnimatePresence>
                 {posts.map((post, index) => {
-                  const { publicBadges, isVerified, role, socialRole, isAdoptionAdvocate } = getUserBadges(post.author_email);
+                  const { isVerified, role, socialRole, isAdoptionAdvocate } = getUserBadges(post.author_email);
                   const userLiked = hasUserLikedPost(post.id);
 
                   return (
@@ -665,7 +664,7 @@ export default function SocialFeed() {
                                     {post.author_name}
                                   </p>
 
-                                  {/* Distintivos do Perfil */}
+                                  {/* APENAS DISTINTIVOS DE SISTEMA - SEM BADGES CUSTOMIZADOS */}
                                   {isVerified && (
                                     <div className="w-5 h-5" title="Verificado">
                                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="#1d9bf0">
@@ -698,15 +697,9 @@ export default function SocialFeed() {
                                   {isAdoptionAdvocate && (
                                     <Badge className="bg-green-600 text-white text-xs px-1.5 py-0 h-5 flex items-center gap-1">
                                       <Heart className="w-3 h-3" />
+                                      Defensor
                                     </Badge>
                                   )}
-
-                                  {/* Badges customizados do perfil */}
-                                  {publicBadges.slice(0, 2).map((badge, idx) => (
-                                    <Badge key={idx} className="bg-purple-600 text-white text-xs px-1.5 py-0 h-5">
-                                      {badge.icon} {badge.name}
-                                    </Badge>
-                                  ))}
                                 </div>
                                 {post.location && (
                                   <div className="flex items-center gap-1 text-xs text-gray-500">
