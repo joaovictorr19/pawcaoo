@@ -281,6 +281,8 @@ export default function MyProfile() {
     { value: "volunteering", label: "Voluntariado", icon: "❤️" },
   ];
 
+  const earnedBadges = user?.public_badges || [];
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
@@ -370,17 +372,28 @@ export default function MyProfile() {
                     </Badge>
                   )}
                   {user?.is_verified && (
-                    <Badge className="bg-blue-500 text-white">
+                    <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Verificado
                     </Badge>
                   )}
                   {user?.is_adoption_advocate && (
-                    <Badge className="bg-pink-500 text-white">
+                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
                       <Heart className="w-3 h-3 mr-1" />
                       Defensor Adoção
                     </Badge>
                   )}
+                  
+                  {/* SHOW TOP 3 BADGES ON SIDEBAR */}
+                  {earnedBadges.slice(0, 3).map((badge, idx) => (
+                    <Badge 
+                      key={idx} 
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs"
+                      title={badge.name}
+                    >
+                      {badge.icon}
+                    </Badge>
+                  ))}
                 </div>
 
                 {loyaltyPoints && (
@@ -906,7 +919,7 @@ export default function MyProfile() {
             {activeTab === "badges" && (
               <div className="space-y-6">
                 {/* XP & Level Card */}
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-600 via-blue-600 to-pink-600 text-white overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -934,7 +947,7 @@ export default function MyProfile() {
                           Emblemas de Missões
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
-                          Ganhe completando desafios e atividades
+                          {earnedBadges.filter(b => b.category !== 'special').length} emblemas conquistados
                         </p>
                       </div>
                       <Button
@@ -948,7 +961,7 @@ export default function MyProfile() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {(!user?.public_badges || user.public_badges.filter(b => b.category !== 'special').length === 0) ? (
+                    {earnedBadges.filter(b => b.category !== 'special').length === 0 ? (
                       <div className="text-center py-12">
                         <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-600 mb-4">Nenhum emblema de missão ainda</p>
@@ -961,8 +974,8 @@ export default function MyProfile() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {user.public_badges.filter(b => b.category !== 'special').map((badge, idx) => {
+                      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {earnedBadges.filter(b => b.category !== 'special').map((badge, idx) => {
                           const rarityColors = {
                             common: "from-gray-400 to-gray-600 border-gray-400",
                             rare: "from-blue-400 to-blue-600 border-blue-400",
@@ -977,12 +990,12 @@ export default function MyProfile() {
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: idx * 0.05 }}
-                              className={`relative p-4 rounded-2xl border-4 bg-gradient-to-br ${colors} text-white text-center hover:scale-105 transition-transform cursor-pointer shadow-lg`}
-                              title={badge.description}
+                              className={`relative p-3 rounded-2xl border-4 bg-gradient-to-br ${colors} text-white text-center hover:scale-105 transition-transform cursor-pointer shadow-lg`}
+                              title={`${badge.name} - ${badge.description}`}
                             >
-                              <div className="text-5xl mb-2">{badge.icon}</div>
-                              <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
-                              <Badge className="mt-2 bg-white/30 text-white text-xs backdrop-blur-sm">
+                              <div className="text-4xl mb-2">{badge.icon}</div>
+                              <h4 className="font-bold text-xs mb-1 line-clamp-1">{badge.name}</h4>
+                              <Badge className="bg-white/30 text-white text-[10px] backdrop-blur-sm">
                                 {badge.rarity?.toUpperCase()}
                               </Badge>
                             </motion.div>
@@ -993,7 +1006,7 @@ export default function MyProfile() {
                   </CardContent>
                 </Card>
 
-                {/* Emblemas Raros (PNG) */}
+                {/* Emblemas Raros (PNG) - SPECIAL CATEGORY */}
                 <Card className="border-0 shadow-xl border-4 border-yellow-400">
                   <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
                     <div className="flex items-center justify-between">
@@ -1010,7 +1023,7 @@ export default function MyProfile() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    {(!user?.public_badges || user.public_badges.filter(b => b.category === 'special').length === 0) ? (
+                    {earnedBadges.filter(b => b.category === 'special').length === 0 ? (
                       <div className="text-center py-12 px-4">
                         <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
                           <Crown className="w-12 h-12 text-white" />
@@ -1027,7 +1040,7 @@ export default function MyProfile() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                        {user.public_badges.filter(b => b.category === 'special').map((badge, idx) => (
+                        {earnedBadges.filter(b => b.category === 'special').map((badge, idx) => (
                           <motion.div
                             key={idx}
                             initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}

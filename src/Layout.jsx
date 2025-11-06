@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ import {
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { toast } from 'react-hot-toast'; // Assuming react-hot-toast is used for toast notifications
 
 // Query optimization configs
 const queryConfig = {
@@ -150,12 +151,12 @@ function LayoutContent({ children, currentPageName }) {
 
   const navigationItems = [
     // MENU PRINCIPAL - Serviços core
-    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
-    { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
-    { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
-    { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
-    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
-    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
+    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog, color: 'from-blue-500 to-cyan-500' },
+    { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award, color: 'from-purple-500 to-pink-500' },
+    { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon, color: 'from-orange-500 to-red-500' },
+    { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag, color: 'from-emerald-500 to-teal-500' },
+    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift, color: 'from-yellow-500 to-orange-500' },
+    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home, color: 'from-pink-500 to-rose-500' },
     
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
@@ -222,6 +223,38 @@ function LayoutContent({ children, currentPageName }) {
   const dogConnectEndIndex = dogConnectStartIndex + dogConnectCount;
   const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
   const adminAndOtherStartIndex = professionalServicesEndIndex;
+
+  // Award welcome badge on mount if user doesn't have it
+  React.useEffect(() => {
+    const awardWelcomeBadge = async () => {
+      if (!user?.email) return;
+      
+      const badges = user.public_badges || [];
+      const hasWelcomeBadge = badges.some(b => b.badge_id === 'welcome');
+      
+      if (!hasWelcomeBadge) {
+        const newBadge = {
+          badge_id: 'welcome',
+          name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
+          description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
+          icon: '🎉',
+          rarity: 'common',
+          earned_date: new Date().toISOString(),
+          category: 'milestone'
+        };
+        
+        await base44.auth.updateMe({
+          public_badges: [...badges, newBadge],
+          gamification_xp: (user.gamification_xp || 0) + 50
+        });
+        
+        queryClient.invalidateQueries(['currentUser']);
+        toast.success(language === 'pt' ? '🎉 Emblema de Boas-Vindas conquistado!' : (language === 'es' ? '🎉 ¡Emblema de Bienvenida obtenido!' : '🎉 Welcome Badge earned!'));
+      }
+    };
+    
+    awardWelcomeBadge();
+  }, [user?.email, language, queryClient, user?.public_badges, user?.gamification_xp]);
 
   const languageFlags = {
     pt: "🇵🇹",
@@ -302,9 +335,17 @@ function LayoutContent({ children, currentPageName }) {
             width: 280px !important;
           }
         }
+        
+        .menu-item-gradient {
+          transition: all 0.3s ease;
+        }
+        
+        .menu-item-gradient:hover {
+          transform: translateX(4px);
+        }
       `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
-        <Sidebar className="border-r border-green-100 bg-white">
+        <Sidebar className="border-r border-green-100 bg-white shadow-xl">
           <SidebarHeader className="border-b border-green-100 p-4 md:p-6">
             <a 
               href={createPageUrl("Home")} 
@@ -368,27 +409,28 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENU PRINCIPAL */}
+            {/* MENU PRINCIPAL - COLORIDO E MODERNO */}
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2">{t('mainMenu', language)}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-500 px-2 mb-3 flex items-center gap-2">
+                <Sparkles className="w-3 h-3 text-yellow-500" />
+                {t('mainMenu', language)}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {allNavigationItems.slice(mainMenuStartIndex, mainMenuEndIndex).map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                          location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                        }`}
+                        className="mb-2 rounded-xl overflow-hidden menu-item-gradient"
                       >
                         <a 
                           href={item.url} 
-                          className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3"
+                          className={`flex items-center gap-3 px-3 md:px-4 py-3 md:py-3.5 bg-gradient-to-r ${item.color} text-white hover:shadow-lg transition-all`}
                           onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
-                          <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                          <item.icon className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 drop-shadow-md" />
+                          <span className="font-bold text-sm md:text-base truncate drop-shadow-sm">{item.title}</span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -397,24 +439,25 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENSAGENS - BOTÃO ESPECIAL */}
+            {/* MENSAGENS - BOTÃO ESPECIAL AINDA MAIS DESTACADO */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       asChild 
-                      className={`hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 rounded-xl mb-3 ${
-                        location.pathname === allNavigationItems[messagesIndex].url ? 'bg-blue-600 text-white shadow-lg' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
-                      } border-2 border-blue-300`}
+                      className="mb-4 rounded-2xl overflow-hidden shadow-2xl"
                     >
                       <a 
                         href={allNavigationItems[messagesIndex].url} 
-                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
+                        className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white hover:shadow-2xl transition-all animate-pulse"
                         onClick={handleNavigation(allNavigationItems[messagesIndex].url)}
                       >
-                        <MessageCircle className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
-                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[messagesIndex].title}</span>
+                        <MessageCircle className="w-6 h-6 md:w-7 md:h-7 flex-shrink-0 drop-shadow-lg" />
+                        <span className="font-black text-base md:text-lg truncate drop-shadow-md">{allNavigationItems[messagesIndex].title}</span>
+                        <Badge className="ml-auto bg-white text-purple-600 text-xs font-bold">
+                          💬
+                        </Badge>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -425,11 +468,14 @@ function LayoutContent({ children, currentPageName }) {
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
+                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group transition-all hover:bg-gray-50 rounded-lg py-2"
                 onClick={() => setMyActivityExpanded(!myActivityExpanded)}
               >
-                <span>{t('myActivity', language)}</span>
-                <span className={`transition-transform duration-200 ${myActivityExpanded ? 'rotate-90' : ''}`}>▶</span>
+                <span className="flex items-center gap-2">
+                  <BarChart3 className="w-3 h-3" />
+                  {t('myActivity', language)}
+                </span>
+                <span className={`transition-transform duration-300 ${myActivityExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {myActivityExpanded && (
                 <SidebarGroupContent>
@@ -438,15 +484,15 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-green-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                            location.pathname === item.url ? 'bg-green-100 text-green-700 shadow-sm' : ''
-                          } ${item.icon === Zap ? 'border-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700' : ''}`}
+                          className={`hover:bg-gradient-to-r hover:from-green-100 hover:to-blue-100 hover:text-green-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
+                            location.pathname === item.url ? 'bg-gradient-to-r from-green-100 to-blue-100 text-green-700 shadow-sm' : ''
+                          } ${item.icon === Zap ? 'border-2 border-orange-200 hover:border-orange-400' : ''}`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
                             <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-500' : ''}`} />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                             {item.hasNotifications && unreadCount > 0 && (
-                              <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
+                              <Badge className="ml-auto bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0 shadow-lg">
                                 {unreadCount}
                               </Badge>
                             )}
@@ -459,14 +505,17 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
-            {/* DOG CONNECT */}
+            {/* DOG CONNECT - COM GRADIENTE ESPECIAL */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-500 px-2 cursor-pointer hover:text-gray-700 flex items-center justify-between group"
+                className="text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 rounded-lg py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
                 onClick={() => setDogConnectExpanded(!dogConnectExpanded)}
               >
-                <span>📸 Dog Connect</span>
-                <span className={`transition-transform duration-200 ${dogConnectExpanded ? 'rotate-90' : ''}`}>▶</span>
+                <span className="flex items-center gap-2 font-bold">
+                  <Camera className="w-4 h-4" />
+                  📸 Dog Connect
+                </span>
+                <span className={`transition-transform duration-300 ${dogConnectExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {dogConnectExpanded && (
                 <SidebarGroupContent>
@@ -475,8 +524,8 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-purple-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
-                            location.pathname === item.url ? 'bg-purple-100 text-purple-700 shadow-sm' : ''
+                          className={`hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1.5 md:mb-2 ${
+                            location.pathname === item.url ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 shadow-sm' : ''
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3">
