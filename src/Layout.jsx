@@ -366,7 +366,11 @@ function LayoutContent({ children, currentPageName }) {
   const handleNavigationToProfile = (e) => {
     e.preventDefault();
     if (user?.email) {
-      window.location.href = createPageUrl(`UserProfile?email=${user.email}`);
+      const profileUrl = createPageUrl(`UserProfile?email=${user.email}`);
+      console.log('Navigating to profile:', profileUrl);
+      window.location.href = profileUrl;
+    } else {
+      toast.error('Erro ao carregar perfil. Faça login novamente.');
     }
   };
 
@@ -435,11 +439,11 @@ function LayoutContent({ children, currentPageName }) {
                     <SidebarMenuButton 
                       asChild 
                       className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-3 ${
-                        location.pathname === createPageUrl("UserProfile") ? 'bg-green-600 text-white' : 'border border-gray-200'
+                        location.pathname.includes('UserProfile') ? 'bg-green-600 text-white' : 'border border-gray-200'
                       }`}
                     >
                       <a 
-                        href={createPageUrl(`UserProfile?email=${user?.email || ''}`)} 
+                        href={user?.email ? createPageUrl(`UserProfile?email=${user.email}`) : '#'} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
                         onClick={handleNavigationToProfile}
                       >

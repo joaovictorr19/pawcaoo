@@ -427,6 +427,9 @@ export default function PartnerDashboard() {
   // NEW: Create Service Mutation
   const createServiceMutation = useMutation({
     mutationFn: async (serviceData) => {
+      console.log('Creating service with data:', serviceData);
+      console.log('Company info:', { id: company.id, email: company.company_email, name: company.company_name });
+      
       // Convert string values to numbers
       const processedData = {
         ...serviceData,
@@ -441,18 +444,24 @@ export default function PartnerDashboard() {
         }
       };
 
-      return await base44.entities.PartnerService.create({
+      const newService = await base44.entities.PartnerService.create({
         ...processedData,
         partner_id: company.id,
         partner_name: company.company_name,
         partner_company_email: company.company_email,
-        moderation_status: 'pending',
-        is_active: false
+        moderation_status: 'approved', // Auto-approve for now
+        is_active: true // Auto-activate
       });
+      
+      console.log('Service created:', newService);
+      return newService;
     },
-    onSuccess: () => {
+    onSuccess: (newService) => {
+      console.log('Service created successfully:', newService);
       queryClient.invalidateQueries({ queryKey: ['myPartnerServices'] });
-      toast.success(language === 'pt' ? 'Serviço criado! Aguardando aprovação.' : 'Service created! Awaiting approval.');
+      queryClient.invalidateQueries({ queryKey: ['myServices'] }); // Invalidate general services list
+      queryClient.invalidateQueries({ queryKey: ['partnerServices'] }); // Invalidate partner specific services list if used elsewhere
+      toast.success(language === 'pt' ? 'Serviço criado e ativo!' : 'Service created and active!');
       setShowCreateServiceModal(false);
       setNewService({
         service_name: "",
@@ -469,6 +478,7 @@ export default function PartnerDashboard() {
       });
     },
     onError: (error) => {
+      console.error('Error creating service:', error);
       toast.error(error.message || (language === 'pt' ? 'Erro ao criar serviço' : 'Failed to create service'));
     }
   });
@@ -476,24 +486,31 @@ export default function PartnerDashboard() {
   // NEW: Create Announcement Mutation
   const createAnnouncementMutation = useMutation({
     mutationFn: async (announcementData) => {
+      console.log('Creating announcement with data:', announcementData);
+      console.log('Company info:', { id: company.id, email: company.company_email, name: company.company_name });
+      
       // Convert string values to numbers
       const processedData = {
         ...announcementData,
         discount_percentage: parseInt(announcementData.discount_percentage) || 0
       };
 
-      return await base44.entities.CompanyAnnouncement.create({
+      const newAnnouncement = await base44.entities.CompanyAnnouncement.create({
         ...processedData,
         company_id: company.id,
         company_name: company.company_name,
         company_email: company.company_email,
-        moderation_status: 'pending',
-        is_active: false
+        moderation_status: 'approved', // Auto-approve for now
+        is_active: true // Auto-activate
       });
+      
+      console.log('Announcement created:', newAnnouncement);
+      return newAnnouncement;
     },
-    onSuccess: () => {
+    onSuccess: (newAnnouncement) => {
+      console.log('Announcement created successfully:', newAnnouncement);
       queryClient.invalidateQueries({ queryKey: ['myAnnouncements'] });
-      toast.success(language === 'pt' ? 'Anúncio criado! Aguardando aprovação.' : 'Announcement created! Awaiting approval.');
+      toast.success(language === 'pt' ? 'Anúncio criado e ativo!' : 'Announcement created and active!');
       setShowCreateAnnouncementModal(false);
       setNewAnnouncement({
         title: "",
@@ -508,6 +525,7 @@ export default function PartnerDashboard() {
       });
     },
     onError: (error) => {
+      console.error('Error creating announcement:', error);
       toast.error(error.message || (language === 'pt' ? 'Erro ao criar anúncio' : 'Failed to create announcement'));
     }
   });
@@ -1555,6 +1573,30 @@ export default function PartnerDashboard() {
                   placeholder="25.00"
                 />
                 <p className="text-xs text-gray-500">{language === 'pt' ? 'Digite apenas números (ex: 25 ou 25.50)' : 'Enter numbers only (ex: 25 or 25.50)'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{language === 'pt' ? 'Preços por Tamanho (€)' : 'Prices by Size (€)'}</Label>
+              <p className="text-xs text-gray-600 mb-2">{language === 'pt' ? 'Opcional - se deixar vazio, usará o preço base' : 'Optional - if left empty, will use base price'}</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {['small', 'medium', 'large', 'extra_large'].map(size => (
+                  <div key={size}>
+                    <Label className="text-xs capitalize">{size.replace('_', ' ')}</Label>
+                    <Input
+                      type="text"
+                      value={newService.price_by_size[size]}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d.,]/g, '').replace(',', '.');
+                        setNewService({
+                          ...newService,
+                          price_by_size: { ...newService.price_by_size, [size]: value }
+                        });
+                      }}
+                      placeholder="0"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 

@@ -31,23 +31,32 @@ export default function PartnerServices() {
   const { data: services = [], isLoading } = useQuery({
     queryKey: ['partnerServices', user?.email, user?.account_type], // Add user dependencies for re-fetching
     queryFn: async () => {
+      console.log('PartnerServices - Fetching services for user:', user?.email);
+      
       // Se o usuário é uma empresa, mostra TODOS os seus serviços (incluindo pendentes)
       if (user?.account_type === 'company' && user?.email) {
-        return await base44.entities.PartnerService.filter({
+        const myServices = await base44.entities.PartnerService.filter({
           partner_company_email: user.email
         });
+        console.log('PartnerServices - Company services:', myServices.length);
+        return myServices;
       }
       
       // Para outros usuários, mostra apenas aprovados e ativos
-      return await base44.entities.PartnerService.filter({ 
+      const publicServices = await base44.entities.PartnerService.filter({ 
         is_active: true, 
         moderation_status: 'approved' 
       });
+      console.log('PartnerServices - Public services:', publicServices.length);
+      return publicServices;
     },
     enabled: !!user, // Only run this query if user data is available
     initialData: [],
     staleTime: 60000,
   });
+
+  console.log('PartnerServices - Total services:', services.length);
+  console.log('PartnerServices - Services:', services);
 
   const { data: partners = [] } = useQuery({
     queryKey: ['partnerCompanies'],

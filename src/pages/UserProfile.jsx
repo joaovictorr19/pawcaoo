@@ -30,6 +30,8 @@ export default function UserProfile() {
   const profileEmail = urlParams.get('email');
   const [activeTab, setActiveTab] = useState("posts");
 
+  console.log('UserProfile - Email from URL:', profileEmail);
+
   const { data: currentUser, isLoading: loadingCurrentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -37,9 +39,13 @@ export default function UserProfile() {
     refetchOnWindowFocus: false,
   });
 
+  console.log('UserProfile - Current User:', currentUser?.email);
+
   useEffect(() => {
     if (!profileEmail && currentUser?.email) {
-      navigate(createPageUrl(`UserProfile?email=${currentUser.email}`), { replace: true });
+      console.log('UserProfile - No profileEmail, redirecting to:', currentUser.email);
+      const newUrl = createPageUrl(`UserProfile?email=${currentUser.email}`);
+      window.location.href = newUrl;
     }
   }, [profileEmail, currentUser, navigate]);
 

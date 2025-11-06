@@ -105,6 +105,7 @@ export default function SocialFeed() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['socialPosts', selectedTab],
     queryFn: async () => {
+      if (!user?.email) return []; // Ensure user email exists for queries
       if (selectedTab === 'following') {
         // Get posts from followed users
         const follows = await base44.entities.SocialFollow.filter({
@@ -128,6 +129,7 @@ export default function SocialFeed() {
     },
     initialData: [],
     staleTime: 30000,
+    enabled: !!user?.email // Only run if user email is available
   });
 
   const createPostMutation = useMutation({
@@ -300,7 +302,16 @@ export default function SocialFeed() {
               <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl('Notifications'))}>
                 <Bell className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-600 hover:bg-gray-100" 
+                onClick={() => {
+                  if (user?.email) {
+                    navigate(createPageUrl(`UserProfile?email=${user.email}`));
+                  }
+                }}
+              >
                 <User className="w-5 h-5" />
               </Button>
             </div>
@@ -742,10 +753,14 @@ export default function SocialFeed() {
           >
             <Bell className="w-6 h-6" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => {
+              if (user?.email) {
+                navigate(createPageUrl(`UserProfile?email=${user.email}`));
+              }
+            }}
           >
             <User className="w-6 h-6" />
           </Button>
