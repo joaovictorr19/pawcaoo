@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +40,11 @@ export default function Partners() {
 
   const { data: partners, isLoading } = useQuery({
     queryKey: ['partners'],
-    queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
+    queryFn: async () => {
+      const allPartners = await base44.entities.Partnership.list();
+      console.log('Partners loaded:', allPartners.length, allPartners);
+      return allPartners;
+    },
     initialData: [],
     staleTime: 300000,
   });
@@ -47,26 +52,22 @@ export default function Partners() {
   const { data: announcements = [] } = useQuery({
     queryKey: ['activeAnnouncements', user?.email],
     queryFn: async () => {
-      const now = new Date();
-      const allAnnouncements = await base44.entities.CompanyAnnouncement.filter({
-        moderation_status: 'approved',
-        is_active: true
-      });
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+      console.log('All announcements loaded:', allAnnouncements.length, allAnnouncements);
       
-      return allAnnouncements.filter(ann => {
+      const now = new Date();
+      const filtered = allAnnouncements.filter(ann => {
         const startDate = new Date(ann.start_date);
         const endDate = new Date(ann.end_date);
-        
-        if (now < startDate || now > endDate) return false;
-        
-        const userTier = user?.subscription_tier || 'free';
-        return ann.target_subscription_tier?.includes(userTier);
-      }).sort((a, b) => {
+        const isActive = ann.is_active && now >= startDate && now <= endDate;
+        console.log('Announcement:', ann.title, 'Active:', isActive);
+        return isActive;
+      });
+      
+      console.log('Filtered announcements:', filtered.length);
+      return filtered.sort((a, b) => {
         if (a.is_featured && !b.is_featured) return -1;
         if (!a.is_featured && b.is_featured) return 1;
-        if (a.is_featured && b.is_featured) {
-          return (a.featured_position || 999) - (b.featured_position || 999);
-        }
         return new Date(b.created_date) - new Date(a.created_date);
       });
     },

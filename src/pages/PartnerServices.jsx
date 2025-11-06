@@ -29,34 +29,29 @@ export default function PartnerServices() {
   });
 
   const { data: services = [], isLoading } = useQuery({
-    queryKey: ['partnerServices', user?.email, user?.account_type], // Add user dependencies for re-fetching
+    queryKey: ['partnerServices'],
     queryFn: async () => {
-      console.log('PartnerServices - Fetching services for user:', user?.email);
+      const allServices = await base44.entities.PartnerService.list();
+      console.log('All services loaded:', allServices.length, allServices);
       
-      // Se o usuário é uma empresa, mostra TODOS os seus serviços (incluindo pendentes)
+      // Se o usuário é uma empresa, mostra TODOS os seus serviços
       if (user?.account_type === 'company' && user?.email) {
-        const myServices = await base44.entities.PartnerService.filter({
-          partner_company_email: user.email
-        });
-        console.log('PartnerServices - Company services:', myServices.length);
+        const myServices = allServices.filter(s => s.partner_company_email === user.email);
+        console.log('Company services:', myServices.length);
         return myServices;
       }
       
       // Para outros usuários, mostra apenas aprovados e ativos
-      const publicServices = await base44.entities.PartnerService.filter({ 
-        is_active: true, 
-        moderation_status: 'approved' 
-      });
-      console.log('PartnerServices - Public services:', publicServices.length);
+      const publicServices = allServices.filter(s => s.is_active);
+      console.log('Public active services:', publicServices.length);
       return publicServices;
     },
-    enabled: !!user, // Only run this query if user data is available
+    enabled: !!user,
     initialData: [],
     staleTime: 60000,
   });
 
-  console.log('PartnerServices - Total services:', services.length);
-  console.log('PartnerServices - Services:', services);
+  console.log('Services displayed:', services.length);
 
   const { data: partners = [] } = useQuery({
     queryKey: ['partnerCompanies'],
