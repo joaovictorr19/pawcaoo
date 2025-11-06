@@ -105,38 +105,83 @@ export default function SocialFeed() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['socialPosts', selectedTab],
     queryFn: async () => {
-      if (!user?.email) return []; // Ensure user email exists for queries
+      if (!user?.email) return [];
+      
+      console.log('\n🔍 === SOCIALFEED - CARREGANDO POSTS ===');
+      console.log('👤 Usuário:', user.email);
+      console.log('📑 Tab Ativa:', selectedTab);
+      
       if (selectedTab === 'following') {
-        // Get posts from followed users
         const follows = await base44.entities.SocialFollow.filter({
           follower_email: user.email,
           status: 'accepted'
         });
         const followingEmails = follows.map(f => f.following_email);
+        
+        console.log('👥 Seguindo:', followingEmails.length, 'usuários');
 
         if (followingEmails.length === 0) return [];
 
-        return await base44.entities.SocialPost.filter({
+        const followingPosts = await base44.entities.SocialPost.filter({
           author_email: { $in: followingEmails },
           moderation_status: 'approved'
         }, '-created_date');
+        
+        console.log('✅ Posts de quem sigo:', followingPosts.length);
+        return followingPosts;
       } else {
-        return await base44.entities.SocialPost.filter({
+        const allPublicPosts = await base44.entities.SocialPost.filter({
           moderation_status: 'approved',
           is_public: true
         }, '-created_date');
+        
+        console.log('🌍 TODOS OS POSTS PÚBLICOS:', allPublicPosts.length);
+        allPublicPosts.forEach((p, i) => {
+          console.log(`  ${i+1}. ${p.author_name}: "${p.content?.substring(0, 30)}..." | moderation: ${p.moderation_status} | public: ${p.is_public}`);
+        });
+        console.log('=====================================\n');
+        
+        return allPublicPosts;
       }
     },
     initialData: [],
-    staleTime: 30000,
-    enabled: !!user?.email // Only run if user email is available
+    staleTime: 0, // MUDADO: Não cachear
+    refetchOnMount: 'always', // NOVO: Sempre buscar ao montar
+    refetchOnWindowFocus: true, // NOVO: Refetch ao focar janela
+    refetchInterval: 5000, // NOVO: Poll a cada 5 segundos
+    enabled: !!user?.email
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (postData) => base44.entities.SocialPost.create(postData),
+    mutationFn: async (postData) => {
+      console.log('\n📤 CRIANDO POST:', {
+        author: user.email,
+        content: postData.content?.substring(0, 50) + '...',
+        has_media: postData.media_urls?.length > 0,
+        is_public: postData.is_public,
+        moderation: postData.moderation_status
+      });
+      
+      const newPost = await base44.entities.SocialPost.create(postData);
+      
+      console.log('✅ POST CRIADO:', {
+        id: newPost.id,
+        author: newPost.author_email,
+        moderation: newPost.moderation_status,
+        is_public: newPost.is_public
+      });
+      
+      return newPost;
+    },
     onSuccess: async (newPost) => {
+      console.log('🔄 Invalidando queries...');
+      
+      // Invalidar TODAS as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
-      setNewPostData({ // Clear form data after successful post
+      queryClient.invalidateQueries({ queryKey: ['userPosts'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      
+      setNewPostData({
         content: "",
         media_urls: [],
         dog_ids: [],
@@ -145,7 +190,16 @@ export default function SocialFeed() {
         post_type: "text",
         scheduled_date: "",
       });
-      setShowCreatePost(false); // Close the modal
+      setShowCreatePost(false);
+
+      // Atualizar stats do usuário
+      await base44.auth.updateMe({
+        total_posts: (user.total_posts || 0) + 1,
+        profile_stats: {
+          ...(user.profile_stats || {}),
+          total_posts: ((user.profile_stats?.total_posts || 0) + 1)
+        }
+      });
 
       // Award PawPoints for posting
       const pointsMultiplier = socialSubscription?.features?.points_multiplier || 1;
@@ -169,11 +223,17 @@ export default function SocialFeed() {
         });
 
         queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
-        toast.success(`Post publicado! +${pointsEarned} PawPoints 🎉`);
+        toast.success(`✅ Post publicado! +${pointsEarned} PawPoints 🎉`);
       } else {
-        toast.success('Post publicado! 🎉');
+        toast.success('✅ Post publicado! 🎉');
       }
+      
+      console.log('✅ Post publicado com sucesso!\n');
     },
+    onError: (error) => {
+      console.error('❌ ERRO AO CRIAR POST:', error);
+      toast.error('❌ Erro ao publicar: ' + error.message);
+    }
   });
 
   const likeMutation = useMutation({
@@ -246,8 +306,9 @@ export default function SocialFeed() {
         media_urls: newPostData.media_urls,
         is_public: true,
         post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
-        moderation_status: 'pending', // Scheduled posts need approval
+        moderation_status: 'pending',
         scheduled_publish_date: newPostData.scheduled_date,
+        is_scheduled: true,
       });
       
       toast.success('Post agendado! Será publicado em ' + new Date(newPostData.scheduled_date).toLocaleString('pt-PT', {
@@ -260,7 +321,7 @@ export default function SocialFeed() {
       return;
     }
 
-    // Regular post (immediate)
+    // Regular post (immediate) - GARANTIR QUE SEJA APROVADO E PÚBLICO
     createPostMutation.mutate({
       content: newPostData.content,
       author_email: user.email,
@@ -269,6 +330,9 @@ export default function SocialFeed() {
       media_urls: newPostData.media_urls,
       is_public: true,
       post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
+      moderation_status: 'approved', // ADICIONADO: Garantir aprovação imediata
+      location: newPostData.location,
+      tags: newPostData.tags,
     });
   };
 
