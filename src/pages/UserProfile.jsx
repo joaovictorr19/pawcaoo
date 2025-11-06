@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -99,14 +100,16 @@ export default function UserProfile() {
 
   const profileBadges = profileUser?.profile_badges || [];
   const achievementsBadges = profileUser?.achievements_badges || [];
+  const publicBadges = profileUser?.public_badges || [];
 
   console.log('===== PROFILE DEBUG =====');
   console.log('Profile User Email:', profileUser?.email);
   console.log('Profile User Full Name:', profileUser?.full_name);
   console.log('Profile Badges (profile_badges):', profileBadges);
   console.log('Achievements Badges (achievements_badges):', achievementsBadges);
+  console.log('Public Badges (public_badges):', publicBadges);
   console.log('Achievements Badges Length:', achievementsBadges.length);
-  console.log('Achievements Badges Array:', JSON.stringify(achievementsBadges, null, 2));
+  console.log('Public Badges Length:', publicBadges.length);
   console.log('========================');
 
   const { data: userPosts = [] } = useQuery({
@@ -252,7 +255,7 @@ export default function UserProfile() {
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm"
+                className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white"
                 onClick={() => navigate(createPageUrl('AccountSettings'))}
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -261,11 +264,11 @@ export default function UserProfile() {
             )}
           </div>
 
-          <CardContent className="pt-0">
+          <CardContent className="relative">
             {/* Avatar and Name */}
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-16 md:-mt-20 mb-6">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
-                <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-16 md:-mt-20">
+                <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100">
                   <AvatarImage src={profileUser.profile_photo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
                     {profileUser.full_name?.[0]?.toUpperCase()}
@@ -278,44 +281,33 @@ export default function UserProfile() {
                       {profileUser.full_name}
                     </h1>
                     
-                    {/* Profile Badges ao lado do nome */}
-                    {profileBadges.map((badge, idx) => {
-                      if (badge.badge_id === 'verified') {
-                        return <CheckCircle key={idx} className="w-6 h-6 text-blue-500 fill-blue-500" title="Verificado" />;
-                      }
-                      if (badge.badge_id === 'admin') {
-                        return (
-                          <Badge key={idx} className="bg-red-600 text-white flex items-center gap-1" title="Administrador">
-                            <Shield className="w-3 h-3" />
-                            Admin
-                          </Badge>
-                        );
-                      }
-                      if (badge.badge_id === 'moderator') {
-                        return (
-                          <Badge key={idx} className="bg-blue-600 text-white flex items-center gap-1" title="Moderador">
-                            <ShieldCheck className="w-3 h-3" />
-                            Mod
-                          </Badge>
-                        );
-                      }
-                      if (badge.badge_id === 'vip_member') {
-                        return (
-                          <Badge key={idx} className="bg-purple-600 text-white flex items-center gap-1" title="Membro VIP">
-                            <Crown className="w-3 h-3" />
-                            VIP
-                          </Badge>
-                        );
-                      }
-                      if (badge.badge_id === 'adoption_advocate') {
-                        return (
-                          <Badge key={idx} className="bg-pink-600 text-white flex items-center gap-1" title="Defensor de Adoção">
-                            <Heart className="w-3 h-3" />
-                          </Badge>
-                        );
-                      }
-                      return null;
-                    })}
+                    {/* System Badges ao lado do nome */}
+                    {profileUser.is_verified && (
+                      <CheckCircle className="w-6 h-6 text-blue-500 fill-blue-500" title="Verificado" />
+                    )}
+                    {profileUser.role === 'admin' && (
+                      <Badge className="bg-red-600 text-white flex items-center gap-1" title="Administrador">
+                        <Shield className="w-3 h-3" />
+                        Admin
+                      </Badge>
+                    )}
+                    {profileUser.social_role === 'moderator' && (
+                      <Badge className="bg-blue-600 text-white flex items-center gap-1" title="Moderador">
+                        <ShieldCheck className="w-3 h-3" />
+                        Mod
+                      </Badge>
+                    )}
+                    {profileUser.social_role === 'admin' && (
+                      <Badge className="bg-purple-600 text-white flex items-center gap-1" title="Admin Social">
+                        <Crown className="w-3 h-3" />
+                        Admin
+                      </Badge>
+                    )}
+                    {profileUser.is_adoption_advocate && (
+                      <Badge className="bg-pink-600 text-white flex items-center gap-1" title="Defensor de Adoção">
+                        <Heart className="w-3 h-3" />
+                      </Badge>
+                    )}
                   </div>
                   
                   {profileUser.bio && (
@@ -334,7 +326,7 @@ export default function UserProfile() {
               </div>
 
               {!isOwnProfile && currentUser && (
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-6 mt-4 md:mt-0">
                   <Button
                     onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
                     disabled={followMutation.isPending || unfollowMutation.isPending}
@@ -351,7 +343,7 @@ export default function UserProfile() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 md:gap-8 py-4 border-t border-b border-gray-200">
+            <div className="grid grid-cols-3 gap-4 md:gap-8 py-4 border-t border-b border-gray-200 mt-6">
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{userPosts.length}</div>
                 <div className="text-sm text-gray-600">Posts</div>
@@ -487,7 +479,7 @@ export default function UserProfile() {
                       <div className="text-sm text-gray-300">Likes</div>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                      <div className="text-3xl font-bold text-purple-400">{achievementsBadges.length}</div>
+                      <div className="text-3xl font-bold text-purple-400">{achievementsBadges.length + publicBadges.length}</div>
                       <div className="text-sm text-gray-300">Emblemas</div>
                     </div>
                   </div>
@@ -519,21 +511,23 @@ export default function UserProfile() {
             )}
           </TabsContent>
 
-          {/* Badges Tab - CORRIGIDO */}
+          {/* Badges Tab - USANDO TODOS OS BADGES (achievements + public) */}
           <TabsContent value="badges">
             <Card className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Award className="w-6 h-6 text-yellow-400" />
                   Emblemas Conquistados
-                  <Badge className="ml-2 bg-yellow-500 text-gray-900">{achievementsBadges.length}</Badge>
+                  <Badge className="ml-2 bg-yellow-500 text-gray-900">
+                    {achievementsBadges.length + publicBadges.length}
+                  </Badge>
                 </CardTitle>
                 <p className="text-sm text-gray-400 mt-2">
                   Clique no emblema para alternar fundo transparente
                 </p>
               </CardHeader>
               <CardContent>
-                {(!achievementsBadges || achievementsBadges.length === 0) ? (
+                {(achievementsBadges.length === 0 && publicBadges.length === 0) ? (
                   <div className="text-center py-12">
                     <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-4 border-2 border-white/20">
                       <Award className="w-12 h-12 text-gray-500" />
@@ -543,8 +537,13 @@ export default function UserProfile() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {/* Achievements Badges */}
                     {achievementsBadges.map((badge, idx) => (
-                      <BadgeItem key={badge.badge_id || idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
+                      <BadgeItem key={`achievement-${badge.badge_id || idx}`} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
+                    ))}
+                    {/* Public Badges (admin-granted) */}
+                    {publicBadges.map((badge, idx) => (
+                      <BadgeItem key={`public-${badge.badge_id || idx}`} badge={badge} idx={idx + achievementsBadges.length} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>
                 )}
