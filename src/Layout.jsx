@@ -109,7 +109,6 @@ function LayoutContent({ children, currentPageName }) {
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
-  const [socialExpanded, setSocialExpanded] = React.useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -161,6 +160,9 @@ function LayoutContent({ children, currentPageName }) {
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
     
+    // DOG CONNECT - Rede Social (now a highlighted button)
+    { title: "Dog Connect", url: createPageUrl("SocialFeed"), icon: Camera },
+    
     // MINHA ATIVIDADE
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
@@ -169,11 +171,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
-    { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
-    
-    // REDE SOCIAL
-    { title: language === 'pt' ? 'Feed' : language === 'es' ? 'Feed' : 'Feed', url: createPageUrl("SocialFeed"), icon: Camera },
     { title: language === 'pt' ? 'Emblemas' : language === 'es' ? 'Emblemas' : 'Badges', url: createPageUrl("Gamification"), icon: Award },
+    { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
     
     // SERVIÇOS PROFISSIONAIS
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
@@ -208,19 +207,17 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 6; // Passeadores, Trainers, Dog Sitting, Loja, Recompensas, Adotar
-  const messagesIndex = mainMenuCount; // Mensagens (especial)
-  const myActivityStartIndex = messagesIndex + 1;
-  const myActivityCount = 8; // Dashboard + 7 items
-  const socialStartIndex = myActivityStartIndex + myActivityCount;
-  const socialCount = 2; // Social Feed + Emblemas
-  const professionalServicesStartIndex = socialStartIndex + socialCount;
+  const mainMenuCount = 6;
+  const messagesIndex = mainMenuCount;
+  const dogConnectIndex = messagesIndex + 1;
+  const myActivityStartIndex = dogConnectIndex + 1;
+  const myActivityCount = 9; // Dashboard + 8 items (includes Badges)
+  const professionalServicesStartIndex = myActivityStartIndex + myActivityCount;
   const professionalServicesCount = 6;
   
   const mainMenuStartIndex = 0;
   const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount;
   const myActivityEndIndex = myActivityStartIndex + myActivityCount;
-  const socialEndIndex = socialStartIndex + socialCount;
   const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
   const adminAndOtherStartIndex = professionalServicesEndIndex;
 
@@ -507,6 +504,33 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
+            {/* DOG CONNECT - Botão Destacado */}
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`mb-3 rounded-lg ${
+                        location.pathname === allNavigationItems[dogConnectIndex].url 
+                          ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                          : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                      }`}
+                    >
+                      <a 
+                        href={allNavigationItems[dogConnectIndex].url} 
+                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
+                        onClick={handleNavigation(allNavigationItems[dogConnectIndex].url)}
+                      >
+                        <Camera className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[dogConnectIndex].title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
@@ -535,38 +559,6 @@ function LayoutContent({ children, currentPageName }) {
                                 {unreadCount}
                               </Badge>
                             )}
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-
-            {/* REDE SOCIAL */}
-            <SidebarGroup>
-              <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
-                onClick={() => setSocialExpanded(!socialExpanded)}
-              >
-                <span>{language === 'pt' ? 'Rede Social' : language === 'es' ? 'Red Social' : 'Social Network'}</span>
-                <span className={`transition-transform duration-300 ${socialExpanded ? 'rotate-90' : ''}`}>▶</span>
-              </SidebarGroupLabel>
-              {socialExpanded && (
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {allNavigationItems.slice(socialStartIndex, socialEndIndex).map((item) => ( 
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton 
-                          asChild 
-                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
-                          }`}
-                        >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
-                            <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
