@@ -8,7 +8,21 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 
-export default function WalkerCard({ walker, distance }) {
+// Dummy data for specializations for the purpose of this component
+// In a real application, this would likely be imported from a constants file or fetched from an API.
+const quickSpecializations = [
+  { id: "puppy_care", icon: "🐾", label: "Puppy Care" },
+  { id: "senior_dog_care", icon: "👴", label: "Senior Dog Care" },
+  { id: "medication_admin", icon: "💊", label: "Medication Admin" },
+  { id: "large_dog_expert", icon: "🐕", label: "Large Dog Expert" },
+  { id: "reactive_dog_handling", icon: "⚠️", label: "Reactive Dog Handling" },
+  { id: "first_aid_certified", icon: "⛑️", label: "First Aid Certified" },
+  { id: "overnight_care", icon: "🌙", label: "Overnight Care" },
+  { id: "cat_friendly", icon: "🐈", label: "Cat Friendly" },
+];
+
+
+export default function WalkerCard({ walker, distance, matchScore, showMatchScore }) {
   const navigate = useNavigate();
 
   const handleViewProfile = (e) => {
@@ -53,6 +67,24 @@ export default function WalkerCard({ walker, distance }) {
           
           {/* Badges */}
           <div className="absolute top-2 md:top-3 right-2 md:right-3 flex flex-col gap-1 md:gap-2">
+            {/* NOVO: Match Score Badge */}
+            {showMatchScore && matchScore !== undefined && (
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", delay: 0.1 }}
+              >
+                <Badge className={`${
+                  matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                  matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                  matchScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                  'bg-gradient-to-r from-gray-500 to-gray-600'
+                } text-white border-0 shadow-lg text-xs px-2 py-1 font-bold`}>
+                  {matchScore}% Match
+                </Badge>
+              </motion.div>
+            )}
+            
             {walker.verification_status === "verified" && (
               <motion.div
                 initial={{ scale: 0 }}
@@ -134,6 +166,53 @@ export default function WalkerCard({ walker, distance }) {
             <p className="text-gray-600 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
               {walker.bio}
             </p>
+          )}
+
+          {/* NOVO: Matched Services Display */}
+          {showMatchScore && walker.services_offered && walker.services_offered.length > 0 && (
+            <div className="mb-2">
+              <div className="flex flex-wrap gap-1">
+                {walker.services_offered.slice(0, 3).map((service, idx) => (
+                  <Badge
+                    key={idx}
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0.5 border-blue-300 text-blue-700 bg-blue-50"
+                  >
+                    {service.service_name}
+                  </Badge>
+                ))}
+                {walker.services_offered.length > 3 && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                    +{walker.services_offered.length - 3}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* NOVO: Matched Specializations Display */}
+          {showMatchScore && walker.specializations && walker.specializations.length > 0 && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1">
+                {walker.specializations.slice(0, 3).map((spec, idx) => {
+                  const specData = quickSpecializations.find(s => s.id === spec);
+                  return (
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className="text-[10px] px-1.5 py-0.5 border-purple-300 text-purple-700 bg-purple-50"
+                    >
+                      {specData?.icon} {specData?.label || spec}
+                    </Badge>
+                  );
+                })}
+                {walker.specializations.length > 3 && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                    +{walker.specializations.length - 3}
+                  </Badge>
+                )}
+              </div>
+            </div>
           )}
 
           {walker.dog_sizes && walker.dog_sizes.length > 0 && (

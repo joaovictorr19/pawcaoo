@@ -21,6 +21,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 import InteractiveMap from "../components/search/InteractiveMap";
 import { Map as MapIcon, List } from "lucide-react";
+import { Label } from "@/components/ui/label"; // NEW
+import { Badge } from "@/components/ui/badge"; // NEW
 
 export default function Home() {
   const { language } = useLanguage();
@@ -34,6 +36,11 @@ export default function Home() {
   const [filterTime, setFilterTime] = useState("all");
   const [filterAvailability, setFilterAvailability] = useState("all");
   const [filterDogSitting, setFilterDogSitting] = useState(dogSittingServiceFilter || "all");
+  
+  // NOVO: Filtros principais de serviços e especializações
+  const [selectedServiceTypes, setSelectedServiceTypes] = useState([]);
+  const [selectedSpecializations, setSelectedSpecializations] = useState([]);
+  
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
     radius: 50,
@@ -147,10 +154,58 @@ export default function Home() {
     );
   };
 
+  // NOVO: Função de cálculo de match score
+  const calculateMatchScore = (walker) => {
+    let score = 0;
+    let totalPossibleScore = 0;
+
+    // Service Types Match (weight: 40 points)
+    if (selectedServiceTypes.length > 0) {
+      totalPossibleScore += 40;
+      const matchedServices = selectedServiceTypes.filter(type =>
+        walker.services_offered?.some(s =>
+          s.service_name?.toLowerCase().includes(type.toLowerCase().replace('_', ' '))
+        )
+      );
+      if (selectedServiceTypes.length > 0) { // Avoid division by zero
+        score += (matchedServices.length / selectedServiceTypes.length) * 40;
+      }
+    }
+
+    // Specializations Match (weight: 30 points)
+    if (selectedSpecializations.length > 0) {
+      totalPossibleScore += 30;
+      const matchedSpecs = selectedSpecializations.filter(spec =>
+        walker.specializations?.includes(spec)
+      );
+      if (selectedSpecializations.length > 0) { // Avoid division by zero
+        score += (matchedSpecs.length / selectedSpecializations.length) * 30;
+      }
+    }
+
+    // General Quality Metrics (always contribute to score and totalPossibleScore)
+    // Rating (weight: 15 points)
+    totalPossibleScore += 15;
+    score += ((walker.rating || 0) / 5) * 15;
+
+    // Experience (weight: 10 points)
+    totalPossibleScore += 10;
+    score += Math.min(((walker.experience_years || 0) / 10), 1) * 10; // Cap experience at 10 years for score calculation
+
+    // Verification Status (weight: 5 points)
+    totalPossibleScore += 5;
+    if (walker.verification_status === 'verified') score += 5;
+
+    if (totalPossibleScore === 0) return 0; // Should not happen if general quality metrics always contribute
+
+    return Math.round((score / totalPossibleScore) * 100);
+  };
+
   const filteredWalkers = walkers
     .map(walker => ({
       ...walker,
-      distance: getWalkerDistance(walker)
+      distance: getWalkerDistance(walker),
+      matchScore: calculateMatchScore(walker)
     }))
     .filter(walker => {
       const matchesLocation = !searchLocation || 
@@ -176,6 +231,21 @@ export default function Home() {
         return true;
       })();
       
+      // MELHORADO: Service Types - Match mais inteligente (Quick filter)
+      const matchesServiceTypesQuick = selectedServiceTypes.length === 0 ||
+        selectedServiceTypes.every(type =>
+          walker.services_offered?.some(s =>
+            s.service_name?.toLowerCase().includes(type.toLowerCase().replace('_', ' ')) ||
+            type.toLowerCase().replace('_', ' ').includes(s.service_name?.toLowerCase())
+          )
+        );
+
+      // MELHORADO: Specializations - Match exato (Quick filter)
+      const matchesSpecializationsQuick = selectedSpecializations.length === 0 ||
+        selectedSpecializations.every(spec =>
+          walker.specializations?.includes(spec)
+        );
+
       // Advanced filters - Distance
       const matchesRadius = !userLocation || walker.distance === null || 
         walker.distance <= (advancedFilters.radius || 50);
@@ -184,8 +254,8 @@ export default function Home() {
       const matchesLanguages = !advancedFilters.languages || advancedFilters.languages.length === 0 ||
         advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));
       
-      // Specializations filter
-      const matchesSpecializations = !advancedFilters.specializations || advancedFilters.specializations.length === 0 ||
+      // Advanced Specializations (do filtro avançado)
+      const matchesAdvancedSpecializations = !advancedFilters.specializations || advancedFilters.specializations.length === 0 ||
         advancedFilters.specializations.some(spec => walker.specializations?.includes(spec));
       
       // Certifications filter
@@ -196,8 +266,8 @@ export default function Home() {
           )
         );
       
-      // Service Types filter
-      const matchesServiceTypes = !advancedFilters.serviceTypes || advancedFilters.serviceTypes.length === 0 ||
+      // Advanced Service Types (do filtro avançado)
+      const matchesAdvancedServiceTypes = !advancedFilters.serviceTypes || advancedFilters.serviceTypes.length === 0 ||
         advancedFilters.serviceTypes.some(type => 
           walker.services_offered?.some(s => 
             s.service_name?.toLowerCase().includes(type.replace('_', ' '))
@@ -228,18 +298,27 @@ export default function Home() {
                                      walker.instant_booking === true;
       
       return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
-             matchesDogSitting && matchesRadius && matchesLanguages && matchesSpecializations &&
-             matchesCertifications && matchesServiceTypes && matchesTimeSlots && matchesDate &&
+             matchesDogSitting && matchesServiceTypesQuick && matchesSpecializationsQuick &&
+             matchesRadius && matchesLanguages && matchesAdvancedSpecializations &&
+             matchesCertifications && matchesAdvancedServiceTypes && matchesTimeSlots && matchesDate &&
              matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck &&
              matchesVerifiedOnly && matchesInstantBooking;
     })
     .sort((a, b) => {
+      // NOVO: Ordenar por match score se há filtros de serviços/especializações
+      if (selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) {
+        if (a.matchScore !== b.matchScore) {
+          return b.matchScore - a.matchScore; // Maior score primeiro
+        }
+      }
+
       // Sort by distance if user location is available and distances are calculated
       if (userLocation && a.distance !== null && b.distance !== null) {
         return a.distance - b.distance;
       }
+      
       // Otherwise sort by rating (descending)
-      return b.rating - a.rating;
+      return (b.rating || 0) - (a.rating || 0);
     });
 
   const filteredEmergencyWalks = emergencyWalks.filter(walk => {
@@ -275,6 +354,47 @@ export default function Home() {
     { icon: Shield, value: "100%", label: "Seguro", color: "from-green-500 to-green-600" },
     { icon: Heart, value: "50k+", label: "Pets", color: "from-pink-500 to-pink-600" }
   ];
+
+  // Function to get Tailwind color classes dynamically
+  const getServiceBadgeClasses = (color, isSelected) => {
+    let classes = "cursor-pointer transition-all hover:scale-105 ";
+    if (isSelected) {
+      classes += `bg-${color}-600 text-white border-${color}-600`;
+    } else {
+      classes += `border-${color}-300 hover:bg-${color}-50 text-gray-700`;
+    }
+    return classes;
+  };
+
+  const quickServiceTypes = [
+    { id: "regular_walks", label: "Passeios", icon: "🚶", color: "blue" },
+    { id: "boarding", label: "Alojamento", icon: "🏠", color: "purple" },
+    { id: "house_sitting", label: "Casa-Sitting", icon: "🏡", color: "green" },
+    { id: "drop_in", label: "Visitas", icon: "🚪", color: "orange" },
+    { id: "training", label: "Treino", icon: "🎓", color: "indigo" },
+    { id: "grooming", label: "Grooming", icon: "✂️", color: "pink" },
+  ];
+
+  const quickSpecializations = [
+    { id: "puppies", label: "Filhotes", icon: "🐶" },
+    { id: "senior_dogs", label: "Idosos", icon: "🦴" },
+    { id: "large_breeds", label: "Grandes", icon: "🐕" },
+    { id: "small_breeds", label: "Pequenos", icon: "🐩" },
+    { id: "reactive_dogs", label: "Reativos", icon: "⚡" },
+    { id: "anxious_dogs", label: "Ansiosos", icon: "😰" },
+  ];
+
+  const toggleServiceType = (type) => {
+    setSelectedServiceTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const toggleSpecialization = (spec) => {
+    setSelectedSpecializations(prev =>
+      prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
@@ -331,12 +451,56 @@ export default function Home() {
             className="relative max-w-5xl mx-auto"
           >
             <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-3 md:p-6 border border-white/50">
-              <div className="flex flex-col gap-2 md:gap-3">
+              <div className="flex flex-col gap-3 md:gap-4">
                 {/* Location Search with Geolocation */}
                 <LocationSearch
                   onLocationChange={setUserLocation}
                   currentLocation={userLocation}
                 />
+                
+                {/* NOVO: Service Types Quick Filter */}
+                <div>
+                  <Label className="text-xs font-semibold text-gray-700 mb-2 block">
+                    🐾 Serviços Desejados
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {quickServiceTypes.map(service => (
+                      <Badge
+                        key={service.id}
+                        variant={selectedServiceTypes.includes(service.id) ? "default" : "outline"}
+                        className={getServiceBadgeClasses(service.color, selectedServiceTypes.includes(service.id))}
+                        onClick={() => toggleServiceType(service.id)}
+                      >
+                        <span className="mr-1">{service.icon}</span>
+                        {service.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* NOVO: Specializations Quick Filter */}
+                <div>
+                  <Label className="text-xs font-semibold text-gray-700 mb-2 block">
+                    ⭐ Especializações
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {quickSpecializations.map(spec => (
+                      <Badge
+                        key={spec.id}
+                        variant={selectedSpecializations.includes(spec.id) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all hover:scale-105 ${
+                          selectedSpecializations.includes(spec.id)
+                            ? `bg-purple-600 text-white`
+                            : `border-gray-300 hover:bg-gray-100`
+                        }`}
+                        onClick={() => toggleSpecialization(spec.id)}
+                      >
+                        <span className="mr-1">{spec.icon}</span>
+                        {spec.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
                 
                 {/* Filters */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -463,7 +627,7 @@ export default function Home() {
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900">
                         {filterDogSitting !== "all" ? (
                           <>
-                            {filterDogSitting === "boarding" && (language === 'pt' ? 'Passeadores com Alojamento' : language === 'es' ? 'Paseadores con Alojamiento' : 'Walkers with Boarding')}
+                            {filterDogSitting === "boarding" && (language === 'pt' ? 'Passeadores com Alojamento' : language === 'es' ? 'Paseadores con Alojamento' : 'Walkers with Boarding')}
                             {filterDogSitting === "house_sitting" && (language === 'pt' ? 'Passeadores para Casa-Sitting' : language === 'es' ? 'Paseadores para Cuidado en Casa' : 'Walkers for House Sitting')}
                             {filterDogSitting === "drop_in" && (language === 'pt' ? 'Passeadores para Visitas' : language === 'es' ? 'Paseadores para Visitas' : 'Walkers for Drop-in Visits')}
                           </>
@@ -471,9 +635,31 @@ export default function Home() {
                           language === 'pt' ? 'Passeadores Disponíveis' : language === 'es' ? 'Paseadores Disponibles' : 'Available Walkers'
                         )}
                       </h2>
-                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-                        {filteredWalkers.length} {language === 'pt' ? 'encontrados' : language === 'es' ? 'encontrados' : 'found'}
+                      <div className="flex items-center gap-2 flex-wrap mt-2">
+                        <p className="text-xs md:text-base text-gray-600 flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+                          {filteredWalkers.length} {language === 'pt' ? 'encontrados' : language === 'es' ? 'encontrados' : 'found'}
+                        </p>
+                        
+                        {/* NOVO: Active Filters Display */}
+                        {selectedServiceTypes.length > 0 && (
+                          <Badge className="bg-blue-100 text-blue-800 text-xs">
+                            {selectedServiceTypes.length} serviço{selectedServiceTypes.length > 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {selectedSpecializations.length > 0 && (
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">
+                            {selectedSpecializations.length} especialização{selectedSpecializations.length > 1 ? 'ões' : ''}
+                          </Badge>
+                        )}
+                        
+                        {/* NOVO: Sort indicator */}
+                        {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            📊 Ordenado por Match
+                          </Badge>
+                        )}
+                        
                         {filterDogSitting !== "all" && (
                           <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                             {filterDogSitting === "boarding" && "🏠 Alojamento"}
@@ -486,12 +672,13 @@ export default function Home() {
                             ({language === 'pt' ? 'até' : language === 'es' ? 'hasta' : 'up to'} {advancedFilters.radius}km)
                           </span>
                         )}
-                        {filteredWalkers.some(w => w.distance !== null) && (
+                        {filteredWalkers.some(w => w.distance !== null) && 
+                         !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
                           <span className="text-purple-600 font-semibold ml-2">
                             ({language === 'pt' ? 'ordenado por distância' : language === 'es' ? 'ordenado por distancia' : 'sorted by distance'})
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                     {filterDogSitting !== "all" && (
                       <Button
@@ -535,7 +722,29 @@ export default function Home() {
                             <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                           </div>
                           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
-                          <p className="text-sm md:text-base text-gray-600">Tente ajustar os filtros</p>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">Tente ajustar os filtros</p>
+                          
+                          {/* NOVO: Reset suggestions */}
+                          {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                            <div className="flex flex-wrap gap-2 justify-center mt-4">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedServiceTypes([])}
+                                className="text-xs"
+                              >
+                                Limpar Serviços ({selectedServiceTypes.length})
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedSpecializations([])}
+                                className="text-xs"
+                              >
+                                Limpar Especializações ({selectedSpecializations.length})
+                              </Button>
+                            </div>
+                          )}
                         </Card>
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
@@ -544,6 +753,8 @@ export default function Home() {
                               key={walker.id} 
                               walker={walker}
                               distance={walker.distance}
+                              matchScore={walker.matchScore}
+                              showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
                             />
                           ))}
                         </div>
