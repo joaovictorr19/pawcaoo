@@ -161,12 +161,66 @@ export default function UserProfile() {
     },
   });
 
+  const startDirectMessage = async () => {
+    if (!currentUser || !profileUser) {
+      toast.error('Não foi possível iniciar a conversa. Usuário atual ou perfil não encontrado.');
+      return;
+    }
+
+    try {
+      // Check if conversation already exists
+      const conversations = await base44.entities.ChatConversation.filter({}); // Filter by participant emails might be more efficient if available
+      const existing = conversations.find(conv =>
+        conv.conversation_type === 'one_on_one' &&
+        conv.participants?.length === 2 &&
+        conv.participants.some(p => p.email === currentUser.email) &&
+        conv.participants.some(p => p.email === profileUser.email)
+      );
+
+      if (existing) {
+        navigate(createPageUrl(`Messages?conversation_id=${existing.id}`));
+        toast.success('Conversa existente aberta!');
+        return;
+      }
+
+      // Create new conversation
+      const newConv = await base44.entities.ChatConversation.create({
+        conversation_type: 'one_on_one',
+        participants: [
+          {
+            email: currentUser.email,
+            name: currentUser.full_name,
+            photo_url: currentUser.profile_photo_url,
+            role: 'owner',
+            last_read_at: new Date().toISOString()
+          },
+          {
+            email: profileUser.email,
+            name: profileUser.full_name,
+            photo_url: profileUser.profile_photo_url,
+            role: 'owner',
+            last_read_at: new Date().toISOString()
+          }
+        ],
+        last_message: "Nova conversa iniciada",
+        last_message_sender: currentUser.email,
+        last_message_date: new Date().toISOString()
+      });
+
+      navigate(createPageUrl(`Messages?conversation_id=${newConv.id}`));
+      toast.success('Conversa iniciada!');
+    } catch (error) {
+      console.error('Error starting DM:', error);
+      toast.error('Erro ao iniciar conversa. Tente novamente.');
+    }
+  };
+
   // Auto-detect and award XP for "Visit Dog Connect" quest
   useEffect(() => {
     const awardVisitXP = async () => {
       if (!currentUser || !profileEmail || profileEmail !== currentUser.email) return;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
       const lastActivity = currentUser.last_activity_date;
 
       // Only award once per day
@@ -174,7 +228,8 @@ export default function UserProfile() {
 
       // Award 20 XP for daily visit
       const newXP = (currentUser.gamification_xp || 0) + 20;
-      const newLevel = Math.floor(newXP / 500) + 1; // Assuming 500 XP per level
+      // Assuming 500 XP per level, level calculation should be based on current XP
+      const newLevel = Math.floor(newXP / 500) + 1;
 
       try {
         await base44.auth.updateMe({
@@ -233,7 +288,7 @@ export default function UserProfile() {
       id: 4,
       title: "Visitar Dog Connect",
       reward: 20,
-      completed: true
+      completed: true // This is handled by the useEffect above
     },
   ];
 
@@ -464,14 +519,27 @@ export default function UserProfile() {
                     )}
 
                     {!isOwnProfile && currentUser && (
-                      <Button
-                        onClick={() => followMutation.mutate(followData.isFollowing)}
-                        disabled={followMutation.isPending}
-                        className={followData.isFollowing ? 'bg-gray-200 text-gray-900' : 'bg-purple-600 text-white'}
-                        size="sm"
-                      >
-                        {followData.isFollowing ? 'Seguindo' : 'Seguir'}
-                      </Button>
+                      <>
+                        <Button
+                          onClick={() => followMutation.mutate(followData.isFollowing)}
+                          disabled={followMutation.isPending}
+                          className={followData.isFollowing ? 'bg-gray-200 text-gray-900' : 'bg-purple-600 text-white'}
+                          size="sm"
+                        >
+                          {followData.isFollowing ? 'Seguindo' : 'Seguir'}
+                        </Button>
+                        
+                        {/* NEW: Direct Message Button */}
+                        <Button
+                          onClick={startDirectMessage}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Mensagem
+                        </Button>
+                      </>
                     )}
 
                     {isOwnProfile && (

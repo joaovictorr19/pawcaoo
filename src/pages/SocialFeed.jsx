@@ -49,6 +49,8 @@ import DogConnectLogo from "../components/social/DogConnectLogo";
 import NotificationService from "../components/NotificationService"; // New import
 import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; // New import
 import { Label } from "@/components/ui/label"; // New import
+import { Input } from "@/components/ui/input"; // New import for scheduling
+import TrendingSection from "../components/social/TrendingSection"; // New import
 
 export default function SocialFeed() {
   const navigate = useNavigate();
@@ -57,15 +59,16 @@ export default function SocialFeed() {
   const [showCreateStory, setShowCreateStory] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  // New states for Create Post Modal
+  // New states for Create Post Modal with scheduling
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostData, setNewPostData] = useState({
     content: "",
     media_urls: [],
-    dog_ids: [], // Placeholder for future feature
-    tags: [], // Placeholder for future feature
-    location: "", // Placeholder for future feature
-    post_type: "text", // Can be 'text', 'photo', 'video'
+    dog_ids: [],
+    tags: [],
+    location: "",
+    post_type: "text",
+    scheduled_date: "", // NEW: for post scheduling
   });
 
   const { data: user } = useQuery({
@@ -138,6 +141,7 @@ export default function SocialFeed() {
         tags: [],
         location: "",
         post_type: "text",
+        scheduled_date: "",
       });
       setShowCreatePost(false); // Close the modal
 
@@ -222,6 +226,39 @@ export default function SocialFeed() {
       return;
     }
 
+    // Check if scheduled
+    if (newPostData.scheduled_date) {
+      const scheduledDate = new Date(newPostData.scheduled_date);
+      const now = new Date();
+      
+      if (scheduledDate <= now) {
+        toast.error('Data de agendamento deve ser no futuro!');
+        return;
+      }
+
+      createPostMutation.mutate({
+        content: newPostData.content,
+        author_email: user.email,
+        author_name: user.full_name,
+        author_photo_url: user.profile_photo_url,
+        media_urls: newPostData.media_urls,
+        is_public: true,
+        post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
+        moderation_status: 'pending', // Scheduled posts need approval
+        scheduled_publish_date: newPostData.scheduled_date,
+      });
+      
+      toast.success('Post agendado! Será publicado em ' + new Date(newPostData.scheduled_date).toLocaleString('pt-PT', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }));
+      return;
+    }
+
+    // Regular post (immediate)
     createPostMutation.mutate({
       content: newPostData.content,
       author_email: user.email,
@@ -229,10 +266,7 @@ export default function SocialFeed() {
       author_photo_url: user.profile_photo_url,
       media_urls: newPostData.media_urls,
       is_public: true,
-      post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text', // Simple logic for now
-      // dog_ids: newPostData.dog_ids, // To be added when UI exists
-      // tags: newPostData.tags, // To be added when UI exists
-      // location: newPostData.location, // To be added when UI exists
+      post_type: newPostData.media_urls.length > 0 ? 'photo' : 'text',
     });
   };
 
@@ -296,220 +330,252 @@ export default function SocialFeed() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Stories */}
-        <StoriesBar />
+      {/* Main Content with Sidebar */}
+      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Feed Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Stories */}
+          <StoriesBar />
 
-        {/* Filters */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mb-6">
-              <SearchAndFilters />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* Filters */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mb-6">
+                <SearchAndFilters />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm border border-gray-200">
-            <TabsTrigger value="feed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              <Compass className="w-4 h-4 mr-2" />
-              Explorar
-            </TabsTrigger>
-            <TabsTrigger value="following" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              <Users className="w-4 h-4 mr-2" />
-              Seguindo
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          {/* Tabs */}
+          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
+            <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm border border-gray-200">
+              <TabsTrigger value="feed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <Compass className="w-4 h-4 mr-2" />
+                Explorar
+              </TabsTrigger>
+              <TabsTrigger value="following" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <Users className="w-4 h-4 mr-2" />
+                Seguindo
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        {/* Create Post */}
-        <Card className="mb-6 border border-gray-200 shadow-sm bg-white">
-          <CardContent className="p-4">
-            <div className="flex gap-3 items-center">
-              <Avatar className="ring-2 ring-gray-200">
-                <AvatarImage src={user?.profile_photo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
-                  {user?.full_name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <Button variant="outline" className="flex-1 justify-start text-left text-gray-500 hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 rounded-full h-12" onClick={() => setShowCreatePost(true)}>
-                O que seu pet anda aprontando?
-              </Button>
-              <Button size="icon" variant="ghost" onClick={() => setShowCreatePost(true)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                <ImageIcon className="w-6 h-6" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Posts Feed */}
-        <div className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-            </div>
-          ) : posts.length === 0 ? (
-            <Card className="border border-gray-200 shadow-sm">
-              <CardContent className="p-12 text-center">
-                <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum post ainda</h3>
-                <p className="text-gray-600 mb-4">Seja o primeiro a compartilhar um momento com seu pet</p>
-                <Button onClick={() => setShowCreatePost(true)} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
-                  Criar Primeiro Post
+          {/* Create Post */}
+          <Card className="mb-6 border border-gray-200 shadow-sm bg-white">
+            <CardContent className="p-4">
+              <div className="flex gap-3 items-center">
+                <Avatar className="ring-2 ring-gray-200">
+                  <AvatarImage src={user?.profile_photo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
+                    {user?.full_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <Button variant="outline" className="flex-1 justify-start text-left text-gray-500 hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300 rounded-full h-12" onClick={() => setShowCreatePost(true)}>
+                  O que seu pet anda aprontando?
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <AnimatePresence>
-              {posts.map((post, index) => {
-                const authorBadges = post.author_profile_badges || [];
+                <Button size="icon" variant="ghost" onClick={() => setShowCreatePost(true)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                  <ImageIcon className="w-6 h-6" />
+                </Button>
+              </div>
+              
+              {/* Quick Action Buttons */}
+              <div className="flex gap-2 mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(createPageUrl('SocialEvents'))}
+                  className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Evento
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCreateStory(true)}
+                  className="flex-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Story
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-                return (
-                  <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.05 }}>
-                    <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardContent className="p-0">
-                        {/* Post Header */}
-                        <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all">
-                              <AvatarImage src={post.author_photo_url} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
-                                {post.author_name?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors">
-                                  {post.author_name}
-                                </p>
+          {/* Posts Feed */}
+          <div className="space-y-6">
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
+              </div>
+            ) : posts.length === 0 ? (
+              <Card className="border border-gray-200 shadow-sm">
+                <CardContent className="p-12 text-center">
+                  <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum post ainda</h3>
+                  <p className="text-gray-600 mb-4">Seja o primeiro a compartilhar um momento com seu pet</p>
+                  <Button onClick={() => setShowCreatePost(true)} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
+                    Criar Primeiro Post
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <AnimatePresence>
+                {posts.map((post, index) => {
+                  const authorBadges = post.author_profile_badges || [];
 
-                                {/* Profile Badges ao lado do nome */}
-                                {authorBadges.map((badge, idx) => {
-                                  if (badge.badge_id === 'verified') {
-                                    return (
-                                      <div key={idx} className="w-5 h-5" title="Verificado">
-                                        <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-500" />
-                                      </div>
-                                    );
-                                  }
-                                  if (badge.badge_id === 'admin') {
-                                    return (
-                                      <Badge key={idx} className="bg-red-600 text-white text-xs px-1 py-0">
-                                        <Shield className="w-3 h-3" />
-                                      </Badge>
-                                    );
-                                  }
-                                  if (badge.badge_id === 'moderator') {
-                                    return (
-                                      <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
-                                        <ShieldCheck className="w-3 h-3" />
-                                      </Badge>
-                                    );
-                                  }
-                                  if (badge.badge_id === 'adoption_advocate') {
-                                    return (
-                                      <Badge key={idx} className="bg-green-600 text-white text-xs px-1 py-0">
-                                        <Heart className="w-3 h-3" />
-                                      </Badge>
-                                    );
-                                  }
-                                  if (badge.badge_id === 'vip_member') {
-                                    return (
-                                      <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
-                                        <Crown className="w-3 h-3" />
-                                      </Badge>
-                                    );
-                                  }
-                                  return null;
-                                })}
-                              </div>
-                              {post.location && (
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                  <MapPin className="w-3 h-3" />
-                                  {post.location}
+                  return (
+                    <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.05 }}>
+                      <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+                        <CardContent className="p-0">
+                          {/* Post Header */}
+                          <div className="flex items-center justify-between p-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="ring-2 ring-gray-200 cursor-pointer hover:ring-blue-400 transition-all">
+                                <AvatarImage src={post.author_photo_url} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
+                                  {post.author_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors">
+                                    {post.author_name}
+                                  </p>
+
+                                  {/* Profile Badges ao lado do nome */}
+                                  {authorBadges.map((badge, idx) => {
+                                    if (badge.badge_id === 'verified') {
+                                      return (
+                                        <div key={idx} className="w-5 h-5" title="Verificado">
+                                          <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-500" />
+                                        </div>
+                                      );
+                                    }
+                                    if (badge.badge_id === 'admin') {
+                                      return (
+                                        <Badge key={idx} className="bg-red-600 text-white text-xs px-1 py-0">
+                                          <Shield className="w-3 h-3" />
+                                        </Badge>
+                                      );
+                                    }
+                                    if (badge.badge_id === 'moderator') {
+                                      return (
+                                        <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
+                                          <ShieldCheck className="w-3 h-3" />
+                                        </Badge>
+                                      );
+                                    }
+                                    if (badge.badge_id === 'adoption_advocate') {
+                                      return (
+                                        <Badge key={idx} className="bg-green-600 text-white text-xs px-1 py-0">
+                                          <Heart className="w-3 h-3" />
+                                        </Badge>
+                                      );
+                                    }
+                                    if (badge.badge_id === 'vip_member') {
+                                      return (
+                                        <Badge key={idx} className="bg-blue-600 text-white text-xs px-1 py-0">
+                                          <Crown className="w-3 h-3" />
+                                        </Badge>
+                                      );
+                                    }
+                                    return null;
+                                  })}
                                 </div>
-                              )}
+                                {post.location && (
+                                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                                    <MapPin className="w-3 h-3" />
+                                    {post.location}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="w-5 h-5" />
-                          </Button>
-                        </div>
-
-                        {/* Post Image */}
-                        {post.media_urls?.length > 0 && (
-                          <div className="relative w-full aspect-square bg-gray-100">
-                            <img src={post.media_urls[0]} alt="Post" className="w-full h-full object-cover" />
-                          </div>
-                        )}
-
-                        {/* Post Actions */}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-4">
-                              <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)} className="hover:text-red-600 transition-colors">
-                                <Heart className="w-6 h-6" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
-                                <MessageCircle className="w-6 h-6" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="hover:text-green-600 transition-colors">
-                                <Share2 className="w-6 h-6" />
-                              </Button>
-                            </div>
-                            <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
-                              <Bookmark className="w-6 h-6" />
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-5 h-5" />
                             </Button>
                           </div>
 
-                          {/* Likes Count */}
-                          {post.likes_count > 0 && (
-                            <p className="font-semibold text-sm mb-2">
-                              {post.likes_count} {post.likes_count === 1 ? 'curtida' : 'curtidas'}
-                            </p>
-                          )}
-
-                          {/* Post Content */}
-                          <div className="mb-2">
-                            <span className="font-semibold text-gray-900 mr-2">{post.author_name}</span>
-                            <span className="text-gray-700">{post.content}</span>
-                          </div>
-
-                          {/* Tags */}
-                          {post.tags?.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {post.tags.map((tag, idx) => (
-                                <span key={idx} className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
-                                  #{tag}
-                                </span>
-                              ))}
+                          {/* Post Image */}
+                          {post.media_urls?.length > 0 && (
+                            <div className="relative w-full aspect-square bg-gray-100">
+                              <img src={post.media_urls[0]} alt="Post" className="w-full h-full object-cover" />
                             </div>
                           )}
 
-                          {/* Comments Count */}
-                          {post.comments_count > 0 && (
-                            <button className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
-                              Ver todos os {post.comments_count} comentários
-                            </button>
-                          )}
+                          {/* Post Actions */}
+                          <div className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-4">
+                                <Button variant="ghost" size="sm" onClick={() => handleLike(post.id)} className="hover:text-red-600 transition-colors">
+                                  <Heart className="w-6 h-6" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
+                                  <MessageCircle className="w-6 h-6" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="hover:text-green-600 transition-colors">
+                                  <Share2 className="w-6 h-6" />
+                                </Button>
+                              </div>
+                              <Button variant="ghost" size="sm" className="hover:text-blue-600 transition-colors">
+                                <Bookmark className="w-6 h-6" />
+                              </Button>
+                            </div>
 
-                          {/* Timestamp */}
-                          <p className="text-xs text-gray-400 mt-2">
-                            {new Date(post.created_date).toLocaleDateString('pt-PT', {
-                              day: 'numeric',
-                              month: 'long'
-                            })}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          )}
+                            {/* Likes Count */}
+                            {post.likes_count > 0 && (
+                              <p className="font-semibold text-sm mb-2">
+                                {post.likes_count} {post.likes_count === 1 ? 'curtida' : 'curtidas'}
+                              </p>
+                            )}
+
+                            {/* Post Content */}
+                            <div className="mb-2">
+                              <span className="font-semibold text-gray-900 mr-2">{post.author_name}</span>
+                              <span className="text-gray-700">{post.content}</span>
+                            </div>
+
+                            {/* Tags */}
+                            {post.tags?.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {post.tags.map((tag, idx) => (
+                                  <span key={idx} className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Comments Count */}
+                            {post.comments_count > 0 && (
+                              <button className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
+                                Ver todos os {post.comments_count} comentários
+                              </button>
+                            )}
+
+                            {/* Timestamp */}
+                            <p className="text-xs text-gray-400 mt-2">
+                              {new Date(post.created_date).toLocaleDateString('pt-PT', {
+                                day: 'numeric',
+                                month: 'long'
+                              })}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            )}
+          </div>
+        </div>
+
+        {/* Right Sidebar - Trending Section */}
+        <div className="hidden lg:block">
+          <div className="sticky top-20">
+            <TrendingSection />
+          </div>
         </div>
       </div>
 
@@ -519,7 +585,7 @@ export default function SocialFeed() {
         onClose={() => setShowCreateStory(false)}
       />
 
-      {/* Create Post Modal */}
+      {/* Create Post Modal with Scheduling */}
       <AnimatePresence>
         {showCreatePost && (
           <motion.div
@@ -567,7 +633,7 @@ export default function SocialFeed() {
                   className="min-h-[120px] border-2 border-gray-200 focus:border-blue-300 rounded-xl resize-none"
                 />
 
-                {/* Media Upload - Using Optimized Component */}
+                {/* Media Upload */}
                 <div>
                   <Label className="mb-2 block text-gray-700 font-medium">📸 Fotos/Vídeos</Label>
                   <OptimizedImageUpload
@@ -579,7 +645,29 @@ export default function SocialFeed() {
                   />
                 </div>
 
-                {/* Placeholder for other features (dog selection, tags, location, post type) */}
+                {/* NEW: Post Scheduling */}
+                <div>
+                  <Label className="mb-2 block text-gray-700 font-medium">⏰ Agendar Publicação (Opcional)</Label>
+                  <Input
+                    type="datetime-local"
+                    value={newPostData.scheduled_date}
+                    onChange={(e) => setNewPostData({ ...newPostData, scheduled_date: e.target.value })}
+                    className="border-2 border-gray-200 focus:border-blue-300"
+                    min={new Date().toISOString().slice(0, 16)}
+                  />
+                  {newPostData.scheduled_date && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      Será publicado em: {new Date(newPostData.scheduled_date).toLocaleString('pt-PT', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  )}
+                </div>
+
                 <div className="border-t border-gray-100 my-4"></div>
 
                 <div className="flex items-center justify-between mt-3">
@@ -613,7 +701,7 @@ export default function SocialFeed() {
                       className="bg-gradient-to-r from-blue-600 via-blue-600 to-green-600 hover:from-blue-700 hover:via-blue-700 hover:to-green-700 text-white shadow-lg"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      {createPostMutation.isPending ? 'Publicando...' : 'Publicar'}
+                      {newPostData.scheduled_date ? 'Agendar' : 'Publicar'}
                     </Button>
                   </div>
                 </div>
