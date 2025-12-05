@@ -674,13 +674,23 @@ function LayoutContent({ children, currentPageName }) {
                 <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors flex-shrink-0" />
               )}
 
-              <Link to={createPageUrl("Home")} className={`${user ? "md:hidden" : ""} flex-shrink-0`}>
+              <a 
+                href={createPageUrl("Home")} 
+                className={`${user ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
+                onClick={handleNavigation(createPageUrl("Home"))}
+              >
                 <PawCaoLogo size="small" showText={!user} />
-              </Link>
+              </a>
 
               {user && currentPageName !== 'Home' && (
                 <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
-                  <PawCaoLogo size="small" showText={false} />
+                  <a 
+                    href={createPageUrl("Home")}
+                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                    onClick={handleNavigation(createPageUrl("Home"))}
+                  >
+                    <PawCaoLogo size="small" showText={false} />
+                  </a>
                   <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
                     {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
                   </h1>
