@@ -235,7 +235,8 @@ export default function AdoptionListingDetails() {
                   <>
                     <img
                       src={listing.photos[selectedPhoto]}
-                      alt={listing.pet_name}
+                      alt={`${listing.pet_name} - ${listing.breed} for adoption`}
+                      loading="eager" // Main image on details page should load eagerly
                       className="w-full h-full object-cover"
                     />
                     {listing.photos.length > 1 && (

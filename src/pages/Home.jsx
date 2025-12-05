@@ -585,7 +585,7 @@ export default function Home() {
                     <div className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-green-600 transition-colors">
                       <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg mb-1">Passeadores</h3>
+                    <h2 className="font-bold text-gray-900 text-lg mb-1">Passeadores</h2>
                     <p className="text-sm text-gray-500">Encontre profissionais verificados perto de você.</p>
                   </Card>
                 </motion.div>
@@ -595,7 +595,7 @@ export default function Home() {
                     <div className="bg-pink-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-pink-600 transition-colors">
                       <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg mb-1">Adotar</h3>
+                    <h2 className="font-bold text-gray-900 text-lg mb-1">Adotar</h2>
                     <p className="text-sm text-gray-500">Dê um lar para um pet que precisa de amor.</p>
                   </Card>
                 </motion.div>
@@ -605,7 +605,7 @@ export default function Home() {
                     <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-600 transition-colors">
                       <Zap className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg mb-1">Emergência</h3>
+                    <h2 className="font-bold text-gray-900 text-lg mb-1">Emergência</h2>
                     <p className="text-sm text-gray-500">Precisa de ajuda agora? Publique um alerta.</p>
                   </Card>
                 </motion.div>
@@ -615,7 +615,7 @@ export default function Home() {
                     <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
                       <TrendingUp className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-bold text-white text-lg mb-1">Meu Painel</h3>
+                    <h2 className="font-bold text-white text-lg mb-1">Meu Painel</h2>
                     <p className="text-sm text-blue-100">Gerencie reservas, pets e pagamentos.</p>
                   </Card>
                 </motion.div>

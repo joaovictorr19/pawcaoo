@@ -52,7 +52,8 @@ export default function EmergencyDogCard({ walk }) {
         {walk.dog_photo_url ? (
           <img
             src={walk.dog_photo_url}
-            alt={walk.dog_name}
+            alt={`Emergency Walk needed for ${walk.dog_name} in ${walk.location}`}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (

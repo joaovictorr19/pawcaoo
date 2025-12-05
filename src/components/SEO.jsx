@@ -1,7 +1,9 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useLanguage } from '@/components/LanguageContext';
 
 export default function SEO({ title, description, keywords, image, url, type = 'website' }) {
+  const { language } = useLanguage();
   const siteTitle = 'PawCão';
   const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
   const metaDescription = description ? description.substring(0, 160) : 'A melhor plataforma de cuidados para pets em Portugal. Encontre passeadores, treinadores e adote seu novo melhor amigo.';
@@ -10,6 +12,9 @@ export default function SEO({ title, description, keywords, image, url, type = '
 
   return (
     <Helmet>
+      <html lang={language} />
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+      
       {/* Standard metadata */}
       <title>{fullTitle}</title>
       <meta name='description' content={metaDescription} />

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +48,8 @@ export default function WalkerCard({ walker, distance, matchScore, showMatchScor
           {walker.photo_url ? (
             <img
               src={walker.photo_url}
-              alt={walker.walker_name}
+              alt={`Photo of ${walker.walker_name}, Dog Walker in ${walker.location}`}
+              loading="lazy"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             />
           ) : (

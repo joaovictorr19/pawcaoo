@@ -409,7 +409,8 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     {listing.photos && listing.photos[0] ? (
                       <img
                         src={listing.photos[0]}
-                        alt={listing.pet_name}
+                        alt={`Adopt ${listing.pet_name} - ${listing.breed} in ${listing.location_city}`}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     ) : (
