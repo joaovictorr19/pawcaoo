@@ -152,17 +152,24 @@ export default function WalkerDetails() {
     );
   }
 
-  if (!walker) {
-    // Auto-redirect to Home if walker not found (prevents getting stuck)
-    // setTimeout(() => navigate(createPageUrl('Home')), 3000); 
+  // Redirect if walker not found
+  React.useEffect(() => {
+    if (!isLoading && !walker) {
+      const timer = setTimeout(() => {
+        navigate(createPageUrl('Home'));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, walker, navigate]);
 
+  if (!walker) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Passeador não encontrado</h2>
-          <p className="text-gray-600 mb-6">O perfil que procura não existe ou foi removido.</p>
+          <p className="text-gray-600 mb-6">Redirecionando para a página inicial em 3 segundos...</p>
           <Button onClick={() => navigate(createPageUrl('Home'))}>
-            Voltar ao Início
+            Voltar ao Início Agora
           </Button>
         </div>
       </div>
