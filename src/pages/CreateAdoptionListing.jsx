@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -354,6 +353,81 @@ export default function CreateAdoptionListing() {
                           onCheckedChange={(v) => setFormData({...formData, good_with: {...formData.good_with, other_pets: v}})}
                         />
                         <label htmlFor="other-pets">Other Pets</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Temperament Section - New */}
+                  <div className="space-y-4">
+                    <Label className="text-lg font-semibold">Personalidade & Temperamento</Label>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Nível de Energia</Label>
+                        <Select 
+                          value={formData.temperament?.energy_level || "moderate"} 
+                          onValueChange={(v) => setFormData({...formData, temperament: {...formData.temperament, energy_level: v}})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa (Sofá)</SelectItem>
+                            <SelectItem value="moderate">Moderada (Passeios normais)</SelectItem>
+                            <SelectItem value="high">Alta (Atleta)</SelectItem>
+                            <SelectItem value="very_high">Muito Alta (Incansável)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Amabilidade com Estranhos</Label>
+                        <Select 
+                          value={formData.temperament?.friendliness_to_strangers || "moderate"} 
+                          onValueChange={(v) => setFormData({...formData, temperament: {...formData.temperament, friendliness_to_strangers: v}})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Tímido/Reservado</SelectItem>
+                            <SelectItem value="moderate">Amigável</SelectItem>
+                            <SelectItem value="high">Ama todo mundo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Brincadeira</Label>
+                        <Select 
+                          value={formData.temperament?.playfulness || "moderate"} 
+                          onValueChange={(v) => setFormData({...formData, temperament: {...formData.temperament, playfulness: v}})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Prefere dormir</SelectItem>
+                            <SelectItem value="moderate">Gosta de brincar</SelectItem>
+                            <SelectItem value="high">Brincalhão o dia todo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Facilidade de Treino</Label>
+                        <Select 
+                          value={formData.temperament?.trainability || "moderate"} 
+                          onValueChange={(v) => setFormData({...formData, temperament: {...formData.temperament, trainability: v}})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Teimoso / Independente</SelectItem>
+                            <SelectItem value="moderate">Aprende bem</SelectItem>
+                            <SelectItem value="high">Muito inteligente</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>

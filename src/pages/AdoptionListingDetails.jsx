@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, MapPin, Heart, Share2, AlertCircle, CheckCircle2, 
-  Phone, Mail, Calendar, Activity, Home, Users, Stethoscope, FileText, Shield
+  Phone, Mail, Calendar, Activity, Home, Users, Stethoscope, FileText, Shield, MessageCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -70,6 +70,66 @@ export default function AdoptionListingDetails() {
       return;
     }
     navigate(createPageUrl(`ApplyForAdoption?listing_id=${listingId}`));
+  };
+
+  const handleMessageOwner = async () => {
+    if (!user) {
+      base44.auth.redirectToLogin();
+      return;
+    }
+
+    if (!listing.created_by) {
+      toast.error("Contact info not available for messaging.");
+      return;
+    }
+
+    try {
+      // Check if conversation exists
+      const conversations = await base44.entities.ChatConversation.filter({
+        participants: {
+          "$elemMatch": { email: listing.created_by }
+        },
+        conversation_type: "one_on_one"
+      });
+
+      // Filter locally to ensure I am also a participant (RLS should handle this but just in case)
+      const existing = conversations.find(c => 
+        c.participants.some(p => p.email === user.email) &&
+        c.participants.some(p => p.email === listing.created_by)
+      );
+
+      if (existing) {
+        navigate(createPageUrl(`Messages?conversation_id=${existing.id}`));
+      } else {
+        // Create new conversation
+        const newConv = await base44.entities.ChatConversation.create({
+          conversation_type: 'one_on_one',
+          conversation_name: listing.pet_name, // Initial name, usually ignored for 1on1
+          participants: [
+            {
+              email: user.email,
+              name: user.full_name,
+              photo_url: user.profile_photo_url,
+              role: 'owner' // Adopter
+            },
+            {
+              email: listing.created_by,
+              name: listing.shelter_name || "Owner", // Best guess name
+              photo_url: "", // Placeholder
+              role: 'owner' // Owner
+            }
+          ],
+          last_message: `Olá! Estou interessado em adotar ${listing.pet_name}.`,
+          last_message_sender: user.email,
+          last_message_date: new Date().toISOString(),
+          tags: ['adoption'] // Tag as adoption related
+        });
+        navigate(createPageUrl(`Messages?conversation_id=${newConv.id}`));
+      }
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      toast.error("Failed to start chat.");
+    }
   };
 
   const handleShare = async () => {
@@ -297,6 +357,42 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
+                {/* Temperament & Personality - NEW */}
+                {listing.temperament && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-purple-600" />
+                      {language === 'pt' ? 'Personalidade & Temperamento' : 'Personality & Temperament'}
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg text-center">
+                        <div className="text-xs text-gray-500 uppercase mb-1">Energia</div>
+                        <div className="font-semibold text-purple-700 capitalize">
+                          {listing.temperament.energy_level?.replace('_', ' ') || '-'}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg text-center">
+                        <div className="text-xs text-gray-500 uppercase mb-1">Amabilidade</div>
+                        <div className="font-semibold text-purple-700 capitalize">
+                          {listing.temperament.friendliness_to_strangers?.replace('_', ' ') || '-'}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg text-center">
+                        <div className="text-xs text-gray-500 uppercase mb-1">Brincadeira</div>
+                        <div className="font-semibold text-purple-700 capitalize">
+                          {listing.temperament.playfulness?.replace('_', ' ') || '-'}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg text-center">
+                        <div className="text-xs text-gray-500 uppercase mb-1">Inteligência</div>
+                        <div className="font-semibold text-purple-700 capitalize">
+                          {listing.temperament.trainability?.replace('_', ' ') || '-'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Personality Traits */}
                 {listing.good_with && (
                   <div>
@@ -403,6 +499,14 @@ export default function AdoptionListingDetails() {
 
                 {!isOwnListing && (
                   <>
+                    <Button 
+                      className="w-full mb-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                      onClick={handleMessageOwner}
+                    >
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      {language === 'pt' ? 'Enviar Mensagem' : 'Send Message'}
+                    </Button>
+
                     {existingApplication ? (
                       <div className="space-y-3">
                         <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">

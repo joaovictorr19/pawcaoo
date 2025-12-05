@@ -29,6 +29,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [filterGoodWith, setFilterGoodWith] = useState([]);
   const [filterSpecialNeeds, setFilterSpecialNeeds] = useState(false);
+  const [filterEnergy, setFilterEnergy] = useState("all"); // New state
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -78,10 +79,12 @@ export default function AdoptionListings({ isEmbedded = false }) {
     const matchesSpecialNeeds = !filterSpecialNeeds || 
       (listing.special_needs && listing.special_needs.length > 0) ||
       (listing.medical_conditions && listing.medical_conditions.length > 0);
+
+    const matchesEnergy = filterEnergy === "all" || listing.temperament?.energy_level === filterEnergy;
     
     return matchesSearch && matchesPetType && matchesSize && matchesAge && 
            matchesGender && matchesLocation && matchesUrgency && matchesVerified &&
-           matchesGoodWith && matchesSpecialNeeds;
+           matchesGoodWith && matchesSpecialNeeds && matchesEnergy;
   });
 
   const getAgeLabel = (listing) => {
@@ -249,6 +252,20 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     <SelectItem value="puppy">{language === 'pt' ? 'Filhote (<2a)' : language === 'es' ? 'Cachorro (<2a)' : 'Puppy/Kitten (<2y)'}</SelectItem>
                     <SelectItem value="adult">{language === 'pt' ? 'Adulto (2-7a)' : language === 'es' ? 'Adulto (2-7a)' : 'Adult (2-7y)'}</SelectItem>
                     <SelectItem value="senior">{language === 'pt' ? 'Idoso (7a+)' : language === 'es' ? 'Mayor (7a+)' : 'Senior (7y+)'}</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Energy Level - New */}
+                <Select value={filterEnergy} onValueChange={setFilterEnergy}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'pt' ? 'Energia' : 'Energy'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'pt' ? 'Qualquer Energia' : 'Any Energy'}</SelectItem>
+                    <SelectItem value="low">{language === 'pt' ? 'Baixa' : 'Low'}</SelectItem>
+                    <SelectItem value="moderate">{language === 'pt' ? 'Moderada' : 'Moderate'}</SelectItem>
+                    <SelectItem value="high">{language === 'pt' ? 'Alta' : 'High'}</SelectItem>
+                    <SelectItem value="very_high">{language === 'pt' ? 'Muito Alta' : 'Very High'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
