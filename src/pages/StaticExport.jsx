@@ -11,8 +11,8 @@ export default function StaticExport() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PawCão - Encontre Passeadores de Cães Verificados e de Confiança</title>
-    <meta name="description" content="Conecte-se com passeadores de cães verificados e de confiança perto de si. Agendamento fácil, seguro incluído e avaliações reais. O melhor cuidado para o seu melhor amigo.">
+    <title>Passeadores de Cães Verificados em Porto, Portugal | Agendamento Fácil | PawCão</title>
+    <meta name="description" content="Encontre passeadores de cães de confiança em Porto. Plataforma #1 com Seguro Veterinário Incluído, perfis verificados e avaliações reais. Reserve e comece agora!">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -73,6 +73,7 @@ export default function StaticExport() {
                     <a href="#beneficios" class="text-gray-600 hover:text-green-600 transition-colors">Benefícios</a>
                     <a href="#como-funciona" class="text-gray-600 hover:text-green-600 transition-colors">Como Funciona</a>
                     <a href="#depoimentos" class="text-gray-600 hover:text-green-600 transition-colors">Avaliações</a>
+                    <a href="https://pawcao.base44.app/becomewalker" class="text-green-600 font-semibold hover:text-green-700 transition-colors">Seja um Passeador</a>
                 </div>
 
                 <a href="https://pawcao.base44.app/home" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full font-semibold text-sm transition-all shadow-lg hover:shadow-green-200 transform hover:-translate-y-0.5">
