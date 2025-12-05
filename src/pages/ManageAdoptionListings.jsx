@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +14,7 @@ import { format } from "date-fns";
 
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import { useCreateNotification } from "@/components/NotificationService";
 
 import OptimizedImageUpload from "@/components/adoption/OptimizedImageUpload";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,7 @@ export default function ManageAdoptionListings() {
   const [selectedListing, setSelectedListing] = useState(null);
   const [editingListing, setEditingListing] = useState(null); // State for the listing being edited
   const [isSubmitting, setIsSubmitting] = useState(false); // State for form submission loading
+  const createNotification = useCreateNotification();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -63,11 +64,28 @@ export default function ManageAdoptionListings() {
   });
 
   const updateApplicationMutation = useMutation({
-    mutationFn: ({ appId, status, notes }) => 
-      base44.entities.AdoptionApplication.update(appId, {
+    mutationFn: async ({ appId, status, notes }) => {
+      const updatedApp = await base44.entities.AdoptionApplication.update(appId, {
         application_status: status,
         admin_notes: notes
-      }),
+      });
+
+      // Get application details to send notification
+      const application = allApplications.find(a => a.id === appId);
+      if (application) {
+        await createNotification.mutateAsync({
+          recipient_email: application.applicant_email,
+          title: `${t('applicationStatusUpdate', language)}: ${application.pet_name}`,
+          message: `${t('applicationStatusMessage', language)} ${t(status, language)}. ${notes || ''}`,
+          type: 'adoption',
+          related_id: appId,
+          action_url: `/MyAdoptionApplications`,
+          priority: status === 'approved' ? 'high' : 'normal'
+        });
+      }
+
+      return updatedApp;
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['adoptionApplications'] });
       toast.success(t(`application${variables.status.charAt(0).toUpperCase() + variables.status.slice(1)}`, language));
