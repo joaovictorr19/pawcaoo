@@ -681,9 +681,11 @@ function LayoutContent({ children, currentPageName }) {
               {user && (
                 <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
                   <PawCaoLogo size="small" showText={false} />
-                  <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
-                    {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
-                  </h1>
+                  {currentPageName !== 'Home' && (
+                    <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
+                      {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
+                    </h1>
+                  )}
                 </div>
               )}
 
