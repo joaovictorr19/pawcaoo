@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '@/components/LanguageContext';
 
-export default function SEO({ title, description, keywords, image, url, type = 'website' }) {
+export default function SEO({ title, description, keywords, image, url, type = 'website', schema }) {
   const { language } = useLanguage();
   const siteTitle = 'PawCão';
   const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
@@ -33,6 +33,16 @@ export default function SEO({ title, description, keywords, image, url, type = '
       <meta name='twitter:title' content={fullTitle} />
       <meta name='twitter:description' content={metaDescription} />
       <meta name='twitter:image' content={metaImage} />
+      
+      {/* Canonical URL */}
+      <link rel="canonical" href={currentUrl} />
+
+      {/* JSON-LD Schema */}
+      {schema && (
+        <script type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      )}
     </Helmet>
   );
 }

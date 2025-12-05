@@ -21,6 +21,7 @@ import { useCreateNotification } from "../components/NotificationService"; // Im
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
 import SEO from "../components/SEO";
+import { generateServiceSchema, generateBreadcrumbSchema } from "@/utils/seoHelpers";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -191,6 +192,14 @@ export default function WalkerDetails() {
         description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... Avaliação: ${averageRating?.toFixed(1)}/5.`}
         image={walker.photo_url}
         type="profile"
+        schema={[
+          generateServiceSchema(walker),
+          generateBreadcrumbSchema([
+            { name: "Home", url: window.location.origin },
+            { name: "Walkers", url: window.location.origin },
+            { name: walker.walker_name, url: window.location.href }
+          ])
+        ]}
       />
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Button
@@ -218,10 +227,10 @@ export default function WalkerDetails() {
                 {/* Service Areas - NEW */}
                 {walker.service_areas && walker.service_areas.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <MapPin className="w-5 h-5 text-green-600" />
                       Service Areas
-                    </h3>
+                    </h2>
                     <div className="grid md:grid-cols-2 gap-4">
                       {walker.service_areas.map((area, idx) => (
                         <div key={idx} className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
@@ -246,7 +255,7 @@ export default function WalkerDetails() {
 
                 {walker.dog_sizes && walker.dog_sizes.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Dog Sizes I Handle</h3>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Dog Sizes I Handle</h2>
                     <div className="flex flex-wrap gap-3">
                       {walker.dog_sizes.map(size => (
                         <Badge
@@ -263,7 +272,7 @@ export default function WalkerDetails() {
                 {/* Dog Breeds - NEW */}
                 {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h3>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h2>
                     <div className="flex flex-wrap gap-2">
                       {walker.dog_breeds_handled.map(breed => (
                         <Badge
@@ -289,7 +298,7 @@ export default function WalkerDetails() {
 
                 {walker.availability && walker.availability.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Availability</h3>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Availability</h2>
                     <div className="flex flex-wrap gap-3">
                       {walker.availability.map(time => (
                         <Badge

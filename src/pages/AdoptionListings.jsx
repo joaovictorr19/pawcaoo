@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import SEO from "../components/SEO";
+import { generateBreadcrumbSchema } from "@/utils/seoHelpers";
 
 export default function AdoptionListings({ isEmbedded = false }) {
   const navigate = useNavigate();
@@ -124,6 +125,10 @@ export default function AdoptionListings({ isEmbedded = false }) {
           title={language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}
           description="Descubra cães, gatos e outros animais à espera de um lar amoroso. Adote, não compre."
           keywords="adoção, cães, gatos, adotar pet, abrigo animais, pawcão"
+          schema={generateBreadcrumbSchema([
+            { name: "Home", url: window.location.origin },
+            { name: "Adoption", url: window.location.href }
+          ])}
         />
       )}
       <div className={isEmbedded ? "" : "max-w-7xl mx-auto"}>
@@ -394,14 +399,14 @@ export default function AdoptionListings({ isEmbedded = false }) {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredListings.map((listing, index) => (
-              <motion.div
+              <motion.article
                 key={listing.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
                 <Card 
-                  className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden"
+                  className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden h-full"
                   onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
                 >
                   {/* Image */}
@@ -451,9 +456,9 @@ export default function AdoptionListings({ isEmbedded = false }) {
 
                   {/* Content */}
                   <CardContent className="p-5">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
                       {listing.pet_name}
-                    </h3>
+                    </h2>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
                       <Badge variant="outline">{listing.breed}</Badge>
@@ -511,7 +516,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     )}
                   </CardContent>
                 </Card>
-              </motion.div>
+              </motion.article>
             ))}
           </div>
         )}

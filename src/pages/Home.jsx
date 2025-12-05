@@ -26,6 +26,7 @@ import { Map as MapIcon, List } from "lucide-react";
 import { Label } from "@/components/ui/label"; // NEW
 import { Badge } from "@/components/ui/badge"; // NEW
 import SEO from "../components/SEO";
+import { generateWebSiteSchema, generateOrganizationSchema } from "@/utils/seoHelpers";
 
 export default function Home() {
   const { language } = useLanguage();
@@ -516,6 +517,7 @@ export default function Home() {
       <SEO 
         title={language === 'pt' ? 'Passeadores, Treinadores e Adoção de Pets' : 'Dog Walkers, Trainers & Pet Adoption'}
         description="Encontre passeadores de cães confiáveis, treinadores e pets para adoção em Portugal. A comunidade PawCão conecta donos de pets a profissionais verificados."
+        schema={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
       {/* Smart Hero Section */}
       <div className="relative overflow-hidden">

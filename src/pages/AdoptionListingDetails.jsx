@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import SEO from "../components/SEO";
+import { generatePetSchema, generateBreadcrumbSchema } from "@/utils/seoHelpers";
 
 export default function AdoptionListingDetails() {
   const navigate = useNavigate();
@@ -211,7 +212,15 @@ export default function AdoptionListingDetails() {
         title={`Adotar ${listing.pet_name} - ${listing.breed}`}
         description={`Conheça ${listing.pet_name}, ${listing.breed}, ${listing.age_years} anos. ${listing.description?.substring(0, 100)}...`}
         image={listing.photos?.[0]}
-        type="article"
+        type="product"
+        schema={[
+          generatePetSchema(listing),
+          generateBreadcrumbSchema([
+            { name: "Home", url: window.location.origin },
+            { name: "Adoption", url: `${window.location.origin}/AdoptionListings` },
+            { name: listing.pet_name, url: window.location.href }
+          ])
+        ]}
       />
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}

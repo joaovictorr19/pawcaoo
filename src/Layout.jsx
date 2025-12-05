@@ -672,7 +672,7 @@ function LayoutContent({ children, currentPageName }) {
             <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-10">
             <div className="flex items-center gap-2 md:gap-4">
               {user && (
-                <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors flex-shrink-0" />
+                <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors flex-shrink-0" aria-label="Toggle sidebar" />
               )}
 
               <a 
@@ -730,7 +730,7 @@ function LayoutContent({ children, currentPageName }) {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`${user ? "md:hidden" : ""} h-8 w-8 flex-shrink-0 ml-2`}>
+                  <Button variant="ghost" size="icon" className={`${user ? "md:hidden" : ""} h-8 w-8 flex-shrink-0 ml-2`} aria-label="Change language">
                     <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
