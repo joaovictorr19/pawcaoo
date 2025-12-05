@@ -1,27 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, Clock, DollarSign, User, Dog, MessageCircle, XCircle, CheckCircle, Eye, Download } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useCreateNotification } from "../components/NotificationService";
+import BookingDetailsModal from "../components/booking/BookingDetailsModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 export default function MyBookings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
-  const [activeTab, setActiveTab] = useState("upcoming");
+  
+  // Filters State
+  const [filters, setFilters] = useState({
+    status: 'all',
+    type: 'all', // 'all', 'walk', 'training'
+    dateStart: null,
+    dateEnd: null
+  });
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const highlightedBookingId = urlParams.get('id');
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Modal State
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState(null);
 
   // Buscar usuário atual
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -29,141 +56,149 @@ export default function MyBookings() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Buscar bookings do usuário (owner)
-  const { data: ownerBookings = [], isLoading: loadingOwnerBookings } = useQuery({
-    queryKey: ['myBookings', user?.email],
+  // 1. Buscar Bookings de Passeio (Owner)
+  const { data: ownerWalks = [], isLoading: loadingOwnerWalks } = useQuery({
+    queryKey: ['myWalks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const bookings = await base44.entities.Booking.filter({
-        created_by: user.email
-      }, '-created_date');
-      return bookings;
+      return await base44.entities.Booking.filter({ created_by: user.email }, '-created_date');
     },
     enabled: !!user?.email,
-    refetchInterval: 10000, // Atualizar a cada 10 segundos
-    refetchOnWindowFocus: true,
+    refetchInterval: 15000
   });
 
-  // Buscar bookings onde o usuário é o walker
-  const { data: walkerBookings = [], isLoading: loadingWalkerBookings } = useQuery({
-    queryKey: ['walkerBookings', user?.email],
+  // 2. Buscar Bookings de Passeio (Walker)
+  const { data: walkerWalks = [], isLoading: loadingWalkerWalks } = useQuery({
+    queryKey: ['walkerWalks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const bookings = await base44.entities.Booking.filter({
-        walker_email: user.email
-      }, '-created_date');
-      return bookings;
+      return await base44.entities.Booking.filter({ walker_email: user.email }, '-created_date');
     },
     enabled: !!user?.email,
-    refetchInterval: 10000, // Atualizar a cada 10 segundos
-    refetchOnWindowFocus: true,
+    refetchInterval: 15000
   });
 
-  // Combinar bookings
-  const allBookings = [...ownerBookings, ...walkerBookings];
+  // 3. Buscar Treinos (Owner)
+  const { data: ownerTrainings = [], isLoading: loadingOwnerTrainings } = useQuery({
+    queryKey: ['myTrainings', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      if (!base44.entities.TrainingBooking) return [];
+      return await base44.entities.TrainingBooking.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
+    refetchInterval: 15000
+  });
 
-  // Filtrar por status
-  const upcomingBookings = allBookings.filter(b => 
-    ['pending', 'confirmed'].includes(b.status) && 
-    new Date(b.walk_date) >= new Date()
-  );
-  
-  const inProgressBookings = allBookings.filter(b => b.status === 'in_progress');
-  const completedBookings = allBookings.filter(b => b.status === 'completed');
-  const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
+  // 4. Buscar Treinos (Trainer)
+  const { data: trainerTrainings = [], isLoading: loadingTrainerTrainings } = useQuery({
+    queryKey: ['trainerTrainings', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      if (!base44.entities.TrainingBooking) return [];
+      // Assuming 'trainer_email' exists on TrainingBooking, based on schema provided
+      return await base44.entities.TrainingBooking.filter({ trainer_email: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
+    refetchInterval: 15000
+  });
 
-  // Mutation para cancelar booking
+  // Merge and Normalize Data
+  const allBookings = useMemo(() => {
+    const walks = [...ownerWalks, ...walkerWalks].map(b => ({ ...b, type: 'walk', date: b.walk_date, time: b.walk_time }));
+    const trainings = [...ownerTrainings, ...trainerTrainings].map(t => ({ ...t, type: 'training', date: t.session_date, time: t.session_time }));
+    
+    // Remove duplicates if any (e.g. if I book myself, unlikely but possible)
+    const uniqueMap = new Map();
+    [...walks, ...trainings].forEach(item => uniqueMap.set(item.id, item));
+    
+    return Array.from(uniqueMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [ownerWalks, walkerWalks, ownerTrainings, trainerTrainings]);
+
+  // Apply Filters
+  const filteredBookings = useMemo(() => {
+    return allBookings.filter(booking => {
+      // Status Filter
+      const statusMatch = filters.status === 'all' || booking.status === filters.status;
+      
+      // Type Filter
+      const typeMatch = filters.type === 'all' || booking.type === filters.type;
+      
+      // Date Range Filter
+      let dateMatch = true;
+      if (filters.dateStart || filters.dateEnd) {
+        const bookingDate = new Date(booking.date);
+        const start = filters.dateStart ? startOfDay(filters.dateStart) : null;
+        const end = filters.dateEnd ? endOfDay(filters.dateEnd) : null;
+        
+        if (start && end) {
+          dateMatch = isWithinInterval(bookingDate, { start, end });
+        } else if (start) {
+          dateMatch = bookingDate >= start;
+        } else if (end) {
+          dateMatch = bookingDate <= end;
+        }
+      }
+      
+      return statusMatch && typeMatch && dateMatch;
+    });
+  }, [allBookings, filters]);
+
+  // Apply Pagination
+  const paginatedBookings = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredBookings.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredBookings, currentPage]);
+
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+
+  // Mutation para cancelar booking (Unified)
   const cancelBookingMutation = useMutation({
-    mutationFn: async (bookingId) => {
-      const booking = allBookings.find(b => b.id === bookingId);
+    mutationFn: async ({ id, type }) => {
+      const entity = type === 'walk' ? base44.entities.Booking : base44.entities.TrainingBooking;
+      const booking = allBookings.find(b => b.id === id && b.type === type);
+      
       if (!booking) throw new Error('Booking not found');
 
-      // Atualizar booking
-      await base44.entities.Booking.update(bookingId, {
-        status: 'cancelled'
-      });
+      // Atualizar status
+      await entity.update(id, { status: 'cancelled' });
 
-      // Atualizar payment para refunded
+      // Atualizar pagamento se existir
       if (booking.payment_id) {
-        await base44.entities.Payment.update(booking.payment_id, {
-          status: 'refunded'
-        });
+        await base44.entities.Payment.update(booking.payment_id, { status: 'refunded' });
       }
 
-      // Notificar o walker
+      // Notificar profissional
+      const professionalEmail = type === 'walk' ? (booking.walker_email || booking.created_by) : (booking.trainer_email || booking.created_by);
+      
       await createNotification.mutateAsync({
-        recipient_email: booking.walker_email || booking.created_by,
+        recipient_email: professionalEmail,
         title: '❌ Reserva Cancelada',
-        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.walk_date), 'dd/MM/yyyy', { locale: pt })} foi cancelada.`,
+        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.date), 'dd/MM/yyyy', { locale: pt })} foi cancelada.`,
         type: 'booking',
-        related_id: bookingId,
+        related_id: id,
         priority: 'normal'
       });
 
-      return bookingId;
+      return id;
     },
     onSuccess: () => {
       toast.success('✅ Reserva cancelada com sucesso');
-      queryClient.invalidateQueries({ queryKey: ['myBookings'] });
-      queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
+      queryClient.invalidateQueries({ queryKey: ['myWalks'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerWalks'] });
+      queryClient.invalidateQueries({ queryKey: ['myTrainings'] });
+      queryClient.invalidateQueries({ queryKey: ['trainerTrainings'] });
+      setBookingToCancel(null);
     },
     onError: () => {
       toast.error('❌ Erro ao cancelar reserva');
     }
   });
 
-  // Mutation para confirmar conclusão (walker)
-  const completeBookingMutation = useMutation({
-    mutationFn: async (bookingId) => {
-      const booking = allBookings.find(b => b.id === bookingId);
-      if (!booking) throw new Error('Booking not found');
-
-      // Atualizar booking
-      await base44.entities.Booking.update(bookingId, {
-        status: 'completed',
-        completed_date: new Date().toISOString()
-      });
-
-      // Liberar pagamento
-      if (booking.payment_id) {
-        await base44.entities.Payment.update(booking.payment_id, {
-          status: 'released',
-          released_date: new Date().toISOString()
-        });
-      }
-
-      // Atualizar earnings do walker
-      const walkerProfiles = await base44.entities.WalkerProfile.filter({
-        created_by: booking.walker_email
-      });
-      if (walkerProfiles[0]) {
-        await base44.entities.WalkerProfile.update(walkerProfiles[0].id, {
-          total_earnings: (walkerProfiles[0].total_earnings || 0) + booking.service_amount
-        });
-      }
-
-      // Notificar o owner
-      await createNotification.mutateAsync({
-        recipient_email: booking.created_by,
-        title: '✅ Passeio Concluído!',
-        message: `O passeio de ${booking.dog_name} foi concluído. Deixe uma avaliação!`,
-        type: 'booking',
-        related_id: bookingId,
-        action_url: `/MyBookings?id=${bookingId}`,
-        priority: 'normal'
-      });
-
-      return bookingId;
-    },
-    onSuccess: () => {
-      toast.success('✅ Passeio marcado como concluído!');
-      queryClient.invalidateQueries({ queryKey: ['myBookings'] });
-      queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
-    },
-    onError: () => {
-      toast.error('❌ Erro ao concluir passeio');
-    }
-  });
+  // Helper to handle cancellation click
+  const handleCancelClick = (booking) => {
+    setBookingToCancel(booking);
+  };
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -173,247 +208,307 @@ export default function MyBookings() {
       completed: { label: 'Concluído', color: 'bg-green-100 text-green-800' },
       cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
     };
-    
     const config = statusConfig[status] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const BookingCard = ({ booking }) => {
-    const isHighlighted = booking.id === highlightedBookingId;
-    const isWalker = booking.walker_email === user?.email;
+    const isProfessional = booking.type === 'walk' 
+      ? booking.walker_email === user?.email 
+      : booking.trainer_email === user?.email;
+
+    const professionalName = booking.type === 'walk' ? booking.walker_name : booking.trainer_name;
 
     return (
-      <Card className={`border-2 hover:shadow-lg transition-shadow ${isHighlighted ? 'border-green-500 ring-4 ring-green-100' : 'border-gray-200'}`}>
-        <CardHeader>
+      <Card className="border hover:shadow-md transition-shadow overflow-hidden">
+        <div className={`h-2 w-full ${booking.type === 'walk' ? 'bg-green-500' : 'bg-indigo-500'}`} />
+        <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-xl">{booking.dog_name}</CardTitle>
-              <p className="text-sm text-gray-600">
-                {isWalker ? `Cliente: ${booking.owner_name}` : `Passeador: ${booking.walker_name}`}
-              </p>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={`${booking.type === 'walk' ? 'border-green-200 bg-green-50 text-green-700' : 'border-indigo-200 bg-indigo-50 text-indigo-700'}`}>
+                 {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'}
+              </Badge>
+              <span className="text-xs text-gray-400">ID: {booking.id.slice(-4)}</span>
             </div>
             {getStatusBadge(booking.status)}
           </div>
+          <CardTitle className="text-lg mt-2 flex items-center gap-2">
+            {booking.dog_name}
+          </CardTitle>
+          <p className="text-sm text-gray-500">
+            {isProfessional 
+              ? `Cliente: ${booking.owner_name}` 
+              : `Profissional: ${professionalName}`
+            }
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span>{format(new Date(booking.walk_date), 'dd MMM yyyy', { locale: pt })}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4 text-gray-500" />
-              <span>{booking.duration_hours}h - {booking.walk_time}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Dog className="w-4 h-4 text-gray-500" />
-              <span>{booking.dog_size}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-green-600 font-semibold">
-              <DollarSign className="w-4 h-4" />
-              <span>€{booking.total_amount}</span>
-            </div>
+          <div className="grid grid-cols-2 gap-y-2 text-sm">
+             <div className="flex items-center gap-2 text-gray-600">
+               <Calendar className="w-4 h-4" />
+               {booking.date ? format(new Date(booking.date), 'dd MMM', { locale: pt }) : 'N/A'}
+             </div>
+             <div className="flex items-center gap-2 text-gray-600">
+               <Clock className="w-4 h-4" />
+               {booking.time} ({booking.duration_hours}h)
+             </div>
+             <div className="flex items-center gap-2 font-semibold text-gray-900">
+               <DollarSign className="w-4 h-4 text-green-600" />
+               €{booking.total_amount}
+             </div>
           </div>
 
-          {booking.special_notes && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">Notas:</p>
-              <p className="text-sm">{booking.special_notes}</p>
-            </div>
-          )}
-
           <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(createPageUrl(`LiveWalkTracking?id=${booking.id}`))}
+            <Button 
+              variant="outline" 
+              size="sm" 
               className="flex-1"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Ver Detalhes
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
               onClick={() => {
-                const targetId = isWalker ? booking.created_by : booking.walker_id;
-                // If we have the ID (walker), use it. If we have email (owner), we might need to find user, 
-                // but Messages.js handles creation better with ID. 
-                // Ideally for owner messaging walker: walker_id is available.
-                // For walker messaging owner: owner_id might not be directly available in booking, but created_by is email.
-                // Messages.js supports walker_id/trainer_id params to finding professionals. 
-                // For general messaging, we might need to pass email if it's not a professional.
-                // Current Messages.js logic is optimized for finding professionals via ID or email.
-                // Let's try to pass email if we don't have professional ID, or just navigate to Messages.
-
-                // Simplification: If I am the owner, I message the walker (using walker_id).
-                // If I am the walker, I message the owner (using their email/name in new chat dialog? Or just open messages).
-                // Actually, Messages page primarily supports opening chat with professional. 
-                // Let's just navigate to Messages and let user select/find. 
-                // OR improved: navigate with a new param `target_email`? Messages.js supports `newChatEmail` state but not via URL.
-
-                // Let's use walker_id if available and I am owner.
-                if (!isWalker && booking.walker_id) {
-                   navigate(createPageUrl(`Messages?walker_id=${booking.walker_id}`));
-                } else {
-                   // Fallback for walker messaging owner: just open messages
-                   navigate(createPageUrl(`Messages`));
-                }
+                setSelectedBooking(booking);
+                setIsDetailsModalOpen(true);
               }}
-              className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Mensagem
+              Detalhes
             </Button>
-
-            {booking.status === 'confirmed' && isWalker && (
-              <Button
-                size="sm"
-                onClick={() => completeBookingMutation.mutate(booking.id)}
-                disabled={completeBookingMutation.isPending}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Concluir
-              </Button>
-            )}
-
-            {booking.status === 'completed' && !isWalker && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => toast.success("Recibo baixado com sucesso!")}
-                className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Recibo
-              </Button>
-            )}
             
-            {['pending', 'confirmed'].includes(booking.status) && !isWalker && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  if (window.confirm('Tem certeza que deseja cancelar esta reserva?')) {
-                    cancelBookingMutation.mutate(booking.id);
-                  }
-                }}
-                disabled={cancelBookingMutation.isPending}
+            {['pending', 'confirmed'].includes(booking.status) && !isProfessional && (
+              <Button 
+                variant="destructive" 
+                size="sm" 
                 className="flex-1"
+                onClick={() => handleCancelClick(booking)}
               >
-                <XCircle className="w-4 h-4 mr-2" />
-                Cancelar
+                 Cancelar
               </Button>
             )}
+             
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-blue-600 bg-blue-50 hover:bg-blue-100"
+              onClick={() => navigate(createPageUrl('Messages'))}
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
     );
   };
 
-  if (loadingUser || loadingOwnerBookings || loadingWalkerBookings) {
+  if (loadingUser || loadingOwnerWalks || loadingWalkerWalks || loadingOwnerTrainings || loadingTrainerTrainings) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
         <div className="max-w-7xl mx-auto space-y-4">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-48 w-full" />
-          ))}
+          <div className="flex gap-4 mb-8">
+             <Skeleton className="h-10 w-32" />
+             <Skeleton className="h-10 w-32" />
+             <Skeleton className="h-10 w-32" />
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+             {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Minhas Reservas</h1>
-          <p className="text-gray-600">Gerencie seus passeios agendados</p>
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Minhas Reservas</h1>
+            <p className="text-gray-600">Gerencie seus passeios e treinos em um só lugar</p>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="flex gap-2">
+             <Button onClick={() => navigate(createPageUrl('Home'))} className="bg-green-600 hover:bg-green-700">
+               + Novo Passeio
+             </Button>
+             <Button onClick={() => navigate(createPageUrl('Trainers'))} className="bg-indigo-600 hover:bg-indigo-700">
+               + Novo Treino
+             </Button>
+          </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="upcoming">
-              Próximos ({upcomingBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="in_progress">
-              Em Andamento ({inProgressBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              Concluídos ({completedBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="cancelled">
-              Cancelados ({cancelledBookings.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Filters Bar */}
+        <Card className="mb-8 border-none shadow-sm bg-white/80 backdrop-blur">
+          <CardContent className="p-4">
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <Select 
+                    value={filters.status} 
+                    onValueChange={(v) => { setFilters({...filters, status: v}); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="confirmed">Confirmado</SelectItem>
+                      <SelectItem value="in_progress">Em Andamento</SelectItem>
+                      <SelectItem value="completed">Concluído</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <TabsContent value="upcoming" className="space-y-4">
-            {upcomingBookings.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Nenhuma reserva próxima</h3>
-                  <p className="text-gray-600 mb-4">Reserve um passeio para o seu pet!</p>
-                  <Button onClick={() => navigate(createPageUrl('Home'))}>
-                    Encontrar Passeadores
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Tipo de Serviço</label>
+                  <Select 
+                    value={filters.type} 
+                    onValueChange={(v) => { setFilters({...filters, type: v}); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="walk">🐕 Passeios</SelectItem>
+                      <SelectItem value="training">🎓 Treinos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Data (Início)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        {filters.dateStart ? format(filters.dateStart, 'dd/MM/yyyy') : <span>Selecione data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filters.dateStart}
+                        onSelect={(date) => { setFilters({...filters, dateStart: date}); setCurrentPage(1); }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Data (Fim)</label>
+                  <Popover>
+                     <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        {filters.dateEnd ? format(filters.dateEnd, 'dd/MM/yyyy') : <span>Selecione data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filters.dateEnd}
+                        onSelect={(date) => { setFilters({...filters, dateEnd: date}); setCurrentPage(1); }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+             </div>
+
+             {/* Active Filters Badges / Clear */}
+             {(filters.status !== 'all' || filters.type !== 'all' || filters.dateStart || filters.dateEnd) && (
+               <div className="mt-4 flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Filtros ativos:</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-500 h-6 text-xs hover:bg-red-50"
+                    onClick={() => setFilters({ status: 'all', type: 'all', dateStart: null, dateEnd: null })}
+                  >
+                    Limpar Filtros
                   </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              upcomingBookings.map(booking => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            )}
-          </TabsContent>
+               </div>
+             )}
+          </CardContent>
+        </Card>
 
-          <TabsContent value="in_progress" className="space-y-4">
-            {inProgressBookings.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhum passeio em andamento</p>
-                </CardContent>
-              </Card>
-            ) : (
-              inProgressBookings.map(booking => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            )}
-          </TabsContent>
+        {/* Bookings Grid */}
+        {paginatedBookings.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
+             <div className="mx-auto bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                <Filter className="w-8 h-8 text-gray-400" />
+             </div>
+             <h3 className="text-xl font-semibold text-gray-900">Nenhuma reserva encontrada</h3>
+             <p className="text-gray-500 max-w-md mx-auto mt-2">
+               Tente ajustar os filtros ou crie uma nova reserva para começar.
+             </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedBookings.map((booking) => (
+              <BookingCard key={`${booking.type}-${booking.id}`} booking={booking} />
+            ))}
+          </div>
+        )}
 
-          <TabsContent value="completed" className="space-y-4">
-            {completedBookings.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <CheckCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhum passeio concluído ainda</p>
-                </CardContent>
-              </Card>
-            ) : (
-              completedBookings.map(booking => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="cancelled" className="space-y-4">
-            {cancelledBookings.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <XCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma reserva cancelada</p>
-                </CardContent>
-              </Card>
-            ) : (
-              cancelledBookings.map(booking => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+             <Button
+               variant="outline"
+               size="icon"
+               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+               disabled={currentPage === 1}
+             >
+               <ChevronLeft className="w-4 h-4" />
+             </Button>
+             <span className="text-sm font-medium">
+               Página {currentPage} de {totalPages}
+             </span>
+             <Button
+               variant="outline"
+               size="icon"
+               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+               disabled={currentPage === totalPages}
+             >
+               <ChevronRight className="w-4 h-4" />
+             </Button>
+          </div>
+        )}
       </div>
+
+      {/* Details Modal */}
+      <BookingDetailsModal 
+        booking={selectedBooking}
+        type={selectedBooking?.type}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+      />
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Reserva?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar a reserva de <strong>{bookingToCancel?.dog_name}</strong>?
+              <br/><br/>
+              O profissional será notificado imediatamente e o reembolso será processado conforme a política de cancelamento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => cancelBookingMutation.mutate({ id: bookingToCancel.id, type: bookingToCancel.type })}
+            >
+              Confirmar Cancelamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
