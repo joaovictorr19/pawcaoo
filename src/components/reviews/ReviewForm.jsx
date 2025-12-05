@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,33 +22,70 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
     would_recommend: true
   });
 
+  const isClientReview = booking.isClientReview; // Passed via prop or augmented booking object
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Determine if this is a training booking or regular walk
     const isTrainingBooking = booking.trainer_id || booking.trainer_name;
     
-    const reviewData = {
-      ...(isTrainingBooking ? {
-        training_booking_id: booking.id,
-        trainer_id: booking.trainer_id,
-        trainer_name: booking.trainer_name
-      } : {
-        booking_id: booking.id,
-        walker_id: booking.walker_id,
-        walker_name: booking.walker_name
-      }),
-      reviewer_email: booking.created_by,
-      reviewer_name: booking.owner_name,
-      ...formData
-    };
+    let reviewData = {};
+
+    if (isClientReview) {
+      // Reviewing the Client
+      reviewData = {
+        booking_id: !isTrainingBooking ? booking.id : undefined,
+        training_booking_id: isTrainingBooking ? booking.id : undefined,
+        reviewer_email: isTrainingBooking ? booking.trainer_email : booking.walker_email,
+        reviewer_name: isTrainingBooking ? booking.trainer_name : booking.walker_name,
+        target_email: booking.created_by, // Owner email
+        target_name: booking.owner_name,
+        dog_name: booking.dog_name,
+        rating: formData.rating,
+        comment: formData.comment,
+        categories: formData.categories,
+        would_work_again: formData.would_recommend
+      };
+    } else {
+      // Reviewing the Professional
+      reviewData = {
+        ...(isTrainingBooking ? {
+          training_booking_id: booking.id,
+          trainer_id: booking.trainer_id,
+          trainer_name: booking.trainer_name
+        } : {
+          booking_id: booking.id,
+          walker_id: booking.walker_id,
+          walker_name: booking.walker_name
+        }),
+        reviewer_email: booking.created_by,
+        reviewer_name: booking.owner_name,
+        ...formData
+      };
+    }
     
     onSubmit(reviewData);
   };
 
   const isTrainer = booking.trainer_id || booking.trainer_name;
-  const professionalName = booking.trainer_name || booking.walker_name;
-  const professionalType = isTrainer ? 'Trainer' : 'Walker';
+  const targetName = isClientReview ? booking.owner_name : (booking.trainer_name || booking.walker_name);
+  const targetType = isClientReview ? 'Client' : (isTrainer ? 'Trainer' : 'Walker');
+
+  // Adjust categories based on type
+  React.useEffect(() => {
+    if (isClientReview) {
+      setFormData(prev => ({
+        ...prev,
+        categories: {
+          dog_behavior: 5,
+          owner_communication: 5,
+          punctuality: 5,
+          payment_promptness: 5
+        }
+      }));
+    }
+  }, [isClientReview]);
 
   const StarRating = ({ value, onChange, label }) => (
     <div className="space-y-2">
@@ -105,7 +141,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
         <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
           <CardTitle className="flex items-center gap-2 text-2xl">
             <Star className="w-6 h-6 text-yellow-600" />
-            Leave a Review for {professionalName}
+            {isClientReview ? "Rate Client & Dog" : `Leave a Review for ${targetName}`}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-8">
@@ -122,7 +158,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
                 id="comment"
                 value={formData.comment}
                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                placeholder={`Share your experience with this ${professionalType.toLowerCase()}...`}
+                placeholder={`Share your experience with this ${targetType.toLowerCase()}...`}
                 rows={5}
                 className="resize-none"
               />
@@ -131,56 +167,95 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
             <div className="border-t border-gray-200 pt-6">
               <h4 className="font-semibold text-gray-900 mb-4">Rate by Category</h4>
               <div className="grid md:grid-cols-2 gap-4">
-                <CategoryStars
-                  value={formData.categories.punctuality}
-                  onChange={(val) => setFormData({
-                    ...formData,
-                    categories: { ...formData.categories, punctuality: val }
-                  })}
-                  label="Punctuality"
-                />
-                <CategoryStars
-                  value={formData.categories.care}
-                  onChange={(val) => setFormData({
-                    ...formData,
-                    categories: { ...formData.categories, care: val }
-                  })}
-                  label={isTrainer ? "Attention to Dog" : "Care & Attention"}
-                />
-                <CategoryStars
-                  value={formData.categories.communication}
-                  onChange={(val) => setFormData({
-                    ...formData,
-                    categories: { ...formData.categories, communication: val }
-                  })}
-                  label="Communication"
-                />
-                <CategoryStars
-                  value={formData.categories.professionalism}
-                  onChange={(val) => setFormData({
-                    ...formData,
-                    categories: { ...formData.categories, professionalism: val }
-                  })}
-                  label="Professionalism"
-                />
-                {isTrainer && (
+                {isClientReview ? (
                   <>
                     <CategoryStars
-                      value={formData.categories.effectiveness}
+                      value={formData.categories.dog_behavior || 5}
                       onChange={(val) => setFormData({
                         ...formData,
-                        categories: { ...formData.categories, effectiveness: val }
+                        categories: { ...formData.categories, dog_behavior: val }
                       })}
-                      label="Training Effectiveness"
+                      label="Dog Behavior"
                     />
                     <CategoryStars
-                      value={formData.categories.knowledge}
+                      value={formData.categories.owner_communication || 5}
                       onChange={(val) => setFormData({
                         ...formData,
-                        categories: { ...formData.categories, knowledge: val }
+                        categories: { ...formData.categories, owner_communication: val }
                       })}
-                      label="Professional Knowledge"
+                      label="Communication"
                     />
+                    <CategoryStars
+                      value={formData.categories.punctuality || 5}
+                      onChange={(val) => setFormData({
+                        ...formData,
+                        categories: { ...formData.categories, punctuality: val }
+                      })}
+                      label="Punctuality"
+                    />
+                    <CategoryStars
+                      value={formData.categories.payment_promptness || 5}
+                      onChange={(val) => setFormData({
+                        ...formData,
+                        categories: { ...formData.categories, payment_promptness: val }
+                      })}
+                      label="Process Smoothness"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <CategoryStars
+                      value={formData.categories.punctuality || 5}
+                      onChange={(val) => setFormData({
+                        ...formData,
+                        categories: { ...formData.categories, punctuality: val }
+                      })}
+                      label="Punctuality"
+                    />
+                    <CategoryStars
+                      value={formData.categories.care || 5}
+                      onChange={(val) => setFormData({
+                        ...formData,
+                        categories: { ...formData.categories, care: val }
+                      })}
+                      label={isTrainer ? "Attention to Dog" : "Care & Attention"}
+                    />
+                    <CategoryStars
+                      value={formData.categories.communication || 5}
+                      onChange={(val) => setFormData({
+                        ...formData,
+                        categories: { ...formData.categories, communication: val }
+                      })}
+                      label="Communication"
+                    />
+                    <CategoryStars
+                      value={formData.categories.professionalism || 5}
+                      onChange={(val) => setFormData({
+                        ...formData,
+                        categories: { ...formData.categories, professionalism: val }
+                      })}
+                      label="Professionalism"
+                    />
+                    {isTrainer && (
+                      <>
+                        <CategoryStars
+                          value={formData.categories.effectiveness || 5}
+                          onChange={(val) => setFormData({
+                            ...formData,
+                            categories: { ...formData.categories, effectiveness: val }
+                          })}
+                          label="Training Effectiveness"
+                        />
+                        <CategoryStars
+                          value={formData.categories.knowledge || 5}
+                          onChange={(val) => setFormData({
+                            ...formData,
+                            categories: { ...formData.categories, knowledge: val }
+                          })}
+                          label="Professional Knowledge"
+                        />
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -193,7 +268,9 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
                 onCheckedChange={(checked) => setFormData({ ...formData, would_recommend: checked })}
               />
               <label htmlFor="recommend" className="text-sm font-medium cursor-pointer">
-                I would recommend this {professionalType.toLowerCase()} to others
+                {isClientReview 
+                  ? "I would work with this client again" 
+                  : `I would recommend this ${targetType.toLowerCase()} to others`}
               </label>
             </div>
 
