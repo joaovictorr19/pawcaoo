@@ -514,7 +514,7 @@ export default function Home() {
             <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-5 leading-tight px-2 drop-shadow-lg">
               Encontre o{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300">
-                Profissional Perfeito
+                {activeTab === 'trainers' ? 'Treinador' : activeTab === 'emergency' ? 'Ajuda' : 'Passeador'} Perfeito
               </span>
               <br className="hidden md:block" />
               <span className="block md:inline"> Para o Seu Pet</span>
