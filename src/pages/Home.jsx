@@ -6,12 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card"; // Added import for Card
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
-import TrainerCard from "../components/trainers/TrainerCard"; // Import TrainerCard
+import TrainerCard from "../components/trainers/TrainerCard";
 import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters";
-import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters"; // Import AdvancedTrainerFilters
+import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters";
+import AdoptionListings from "./AdoptionListings"; // Import full Adoption page component for reuse
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -82,6 +83,21 @@ export default function Home() {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
     retry: false,
+  });
+
+  // Quick stats for logged in user (Efficiency)
+  const { data: upcomingWalk } = useQuery({
+    queryKey: ['nextWalk', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const bookings = await base44.entities.Booking.filter({
+        created_by: user.email,
+        status: 'confirmed',
+        walk_date: { '$gte': new Date().toISOString().split('T')[0] }
+      }, 'walk_date', 1);
+      return bookings[0];
+    },
+    enabled: !!user?.email,
   });
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
@@ -496,49 +512,171 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      {/* Simplified Hero Section */}
-      <div className="relative bg-gradient-to-br from-green-600 via-green-500 to-blue-600 backdrop-blur-sm py-8 md:py-16 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-6 md:mb-10">
-            {/* Simple Logo */}
-            <div className="flex justify-center mb-6">
-              <PawCaoLogo size="large" />
-            </div>
+      {/* Smart Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Background with pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-teal-600 to-blue-600 z-0">
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '30px 30px' }}></div>
+        </div>
 
-            <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
-              {activeTab === 'emergency' ? 'Emergência 🚨' : 'Passeadores Disponíveis 🐕'}
-            </h1>
-            <p className="text-white/90 mb-8 text-lg">Encontre alguém de confiança perto de si</p>
-          </div>
-
-          {/* Simple Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative max-w-5xl mx-auto"
-          >
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-3 md:p-6 border border-white/50">
-              <div className="flex flex-col gap-3 md:gap-4">
-                {/* Location Search with Geolocation */}
-                <LocationSearch
-                  onLocationChange={setUserLocation}
-                  currentLocation={userLocation}
-                />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
+          {user ? (
+            // LOGGED IN VIEW - Dashboard Lite
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                    <PawCaoLogo size="small" showText={false} />
+                  </div>
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
+                    Área do Cliente
+                  </Badge>
+                </div>
+                <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
+                  Olá, {user.full_name?.split(' ')[0]}! 👋
+                </h1>
+                <p className="text-green-50 text-lg mb-8 max-w-md">
+                  O que o seu pet precisa hoje? Estamos aqui para ajudar com passeios, companhia ou emergências.
+                </p>
                 
-                {/* Filters hidden for cleaner look - available in advanced filters */}
-                {activeTab === 'trainers' && (
-                  <div className="p-2 bg-purple-50 rounded-xl border border-purple-100">
-                    <p className="text-sm text-purple-800 font-medium flex items-center gap-2">
-                      <Award className="w-4 h-4" />
-                      Use os filtros avançados para encontrar especialistas.
-                    </p>
+                {upcomingWalk ? (
+                  <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-4 max-w-md mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-green-500 p-3 rounded-xl shadow-lg">
+                        <Calendar className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-green-100 font-medium uppercase tracking-wide">Próximo Passeio</p>
+                        <h3 className="font-bold text-lg">{upcomingWalk.walk_date} às {upcomingWalk.walk_time}</h3>
+                        <p className="text-sm text-green-50">com {upcomingWalk.walker_name}</p>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <div className="flex flex-wrap gap-3 mb-8">
+                    <Button 
+                      onClick={() => setActiveTab('walkers')} 
+                      className="bg-white text-green-700 hover:bg-green-50 border-0 font-bold"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Encontrar Passeador
+                    </Button>
+                    <Button 
+                      onClick={() => navigate(createPageUrl('OwnerDashboard'))} 
+                      variant="outline" 
+                      className="border-white text-white hover:bg-white/10"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Meu Painel
+                    </Button>
                   </div>
                 )}
+              </div>
 
+              {/* Quick Actions Grid for User */}
+              <div className="grid grid-cols-2 gap-4">
+                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => setActiveTab('walkers')}>
+                  <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
+                    <div className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-green-600 transition-colors">
+                      <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-1">Passeadores</h3>
+                    <p className="text-sm text-gray-500">Encontre profissionais verificados perto de você.</p>
+                  </Card>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => setActiveTab('adoption')}>
+                  <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
+                    <div className="bg-pink-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-pink-600 transition-colors">
+                      <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-1">Adotar</h3>
+                    <p className="text-sm text-gray-500">Dê um lar para um pet que precisa de amor.</p>
+                  </Card>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => setActiveTab('emergency')}>
+                  <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
+                    <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-600 transition-colors">
+                      <Zap className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-1">Emergência</h3>
+                    <p className="text-sm text-gray-500">Precisa de ajuda agora? Publique um alerta.</p>
+                  </Card>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => navigate(createPageUrl('OwnerDashboard'))}>
+                  <Card className="h-full bg-gradient-to-br from-blue-500 to-indigo-600 border-0 shadow-xl hover:shadow-2xl transition-all p-5 text-white">
+                    <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-bold text-white text-lg mb-1">Meu Painel</h3>
+                    <p className="text-sm text-blue-100">Gerencie reservas, pets e pagamentos.</p>
+                  </Card>
+                </motion.div>
               </div>
             </div>
-          </motion.div>
+          ) : (
+            // VISITOR VIEW - Landing Page Style
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20">
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                #1 Plataforma de Pet Services em Portugal
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight">
+                O Melhor Cuidado para o <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">Seu Melhor Amigo</span>
+              </h1>
+              
+              <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto">
+                Conectamos donos de pets a passeadores, treinadores e veterinários de confiança. 
+                Seguro, rápido e com muito amor.
+              </p>
+
+              {/* Unified Search Bar */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-white rounded-2xl shadow-2xl p-4 max-w-3xl mx-auto flex flex-col md:flex-row gap-4 items-center"
+              >
+                <div className="flex-1 w-full">
+                  <LocationSearch
+                    onLocationChange={setUserLocation}
+                    currentLocation={userLocation}
+                    className="border-0 shadow-none bg-gray-50"
+                  />
+                </div>
+                <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+                <div className="w-full md:w-auto flex gap-2">
+                  <Button 
+                    size="lg" 
+                    onClick={() => setActiveTab('walkers')}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-lg shadow-green-600/20"
+                  >
+                    Buscar Passeador
+                  </Button>
+                </div>
+              </motion.div>
+
+              {/* Trust Indicators */}
+              <div className="mt-12 flex flex-wrap justify-center gap-6 text-white/80 text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-300" />
+                  Profissionais Verificados
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-300" />
+                  Pagamento Seguro
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-300" />
+                  Suporte 24/7
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -614,13 +752,15 @@ export default function Home() {
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   Passeadores
                 </TabsTrigger>
-                {/* <TabsTrigger 
-                  value="trainers" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
+                
+                <TabsTrigger 
+                  value="adoption" 
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
-                  <Award className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  Treinadores
-                </TabsTrigger> */}
+                  <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                  Adotar
+                </TabsTrigger>
+
                 <TabsTrigger 
                   value="emergency" 
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
@@ -775,61 +915,9 @@ export default function Home() {
                 </div>
               </TabsContent>
 
-              {/* Trainers Tab */}
-              <TabsContent value="trainers">
-                <div>
-                  <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">
-                        {language === 'pt' ? 'Treinadores Disponíveis' : 'Available Trainers'}
-                      </h2>
-                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
-                        <Award className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
-                        {filteredTrainers.length} {language === 'pt' ? 'profissionais encontrados' : 'professionals found'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {viewMode === "map" ? (
-                    <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                        <p className="text-gray-500">Mapa disponível em breve para treinadores</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {loadingTrainers ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                          {[1, 2, 3].map(i => (
-                            <div key={`trainer-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                              <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                              <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                              <Skeleton className="h-4 w-1/2 bg-gray-200" />
-                            </div>
-                          ))}
-                        </div>
-                      ) : filteredTrainers.length === 0 ? (
-                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center">
-                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                            <Award className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                          </div>
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum treinador encontrado</h3>
-                          <p className="text-sm md:text-base text-gray-600 mb-4">Tente ajustar os filtros</p>
-                        </Card>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                          {filteredTrainers.map((trainer) => (
-                            <TrainerCard 
-                              key={trainer.id} 
-                              trainer={trainer}
-                              distance={trainer.distance}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
+              {/* Adoption Tab */}
+              <TabsContent value="adoption">
+                <AdoptionListings isEmbedded={true} />
               </TabsContent>
 
               {/* Emergency Walks Tab */}

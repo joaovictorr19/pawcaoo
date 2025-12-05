@@ -392,13 +392,29 @@ export default function OwnerDashboard() {
               </CardHeader>
               <CardContent className="p-4 space-y-2">
                 <Button
-                  variant="outline"
-                  className="w-full justify-start"
+                  variant="default"
+                  className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => navigate(createPageUrl('Home'))}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Agendar Passeio
+                  Novo Agendamento
                 </Button>
+                {completedBookings.length > 0 && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => {
+                      // Rebook last walker (efficiency)
+                      const lastBooking = completedBookings[0];
+                      if (lastBooking) {
+                        navigate(createPageUrl(`WalkerDetails?id=${lastBooking.walker_id}`));
+                      }
+                    }}
+                  >
+                    <Clock className="w-4 h-4 mr-2" />
+                    Reservar Novamente ({completedBookings[0].walker_name})
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   className="w-full justify-start"
