@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
-export default function AdoptionListings() {
+export default function AdoptionListings({ isEmbedded = false }) {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,10 +34,17 @@ export default function AdoptionListings() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: listings = [], isLoading } = useQuery({
+  const { data: listings = [], isLoading, isError } = useQuery({
     queryKey: ['adoptionListings'],
-    queryFn: () => base44.entities.AdoptionListing.filter({ status: 'available' }, '-created_date'),
-    initialData: [],
+    queryFn: async () => {
+      if (!base44.entities.AdoptionListing) return [];
+      try {
+        return await base44.entities.AdoptionListing.filter({ status: 'available' }, '-created_date');
+      } catch (error) {
+        console.error("Error fetching adoption listings:", error);
+        return [];
+      }
+    },
   });
 
   const filteredListings = listings.filter(listing => {
@@ -106,48 +112,71 @@ export default function AdoptionListings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <Home className="w-8 h-8 md:w-10 md:h-10 text-pink-600" />
-                {t('adoptAPet', language)}
-              </h1>
-              <p className="text-base md:text-lg text-gray-600">
-                {t('adoptDontShop', language)} • {filteredListings.length} {t('petsWaiting', language)}
-              </p>
-            </div>
-            <Button
-              onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white shadow-lg"
-            >
-              <PlusCircle className="w-5 h-5 mr-2" />
-              {t('postForAdoption', language)}
-            </Button>
-          </div>
-
-          {/* Featured Banner */}
-          <Card className="border-2 border-yellow-300 shadow-xl bg-gradient-to-r from-yellow-50 to-orange-50 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center">
-                  <Home className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    {t('everyPetDeservesHome', language)}
-                  </h3>
-                  <p className="text-gray-700">
-                    {t('adoptDontShop', language)}
-                  </p>
-                </div>
+    <div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6"}>
+      <div className={isEmbedded ? "" : "max-w-7xl mx-auto"}>
+        {/* Header - Only show if not embedded or simplified version if embedded */}
+        {!isEmbedded && (
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                  <Home className="w-8 h-8 md:w-10 md:h-10 text-pink-600" />
+                  {t('adoptAPet', language)}
+                </h1>
+                <p className="text-base md:text-lg text-gray-600">
+                  {t('adoptDontShop', language)} • {filteredListings.length} {t('petsWaiting', language)}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Button
+                onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
+                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white shadow-lg"
+              >
+                <PlusCircle className="w-5 h-5 mr-2" />
+                {t('postForAdoption', language)}
+              </Button>
+            </div>
+
+            {/* Featured Banner */}
+            <Card className="border-2 border-yellow-300 shadow-xl bg-gradient-to-r from-yellow-50 to-orange-50 mb-6">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center">
+                    <Home className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                      {t('everyPetDeservesHome', language)}
+                    </h3>
+                    <p className="text-gray-700">
+                      {t('adoptDontShop', language)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {isEmbedded && (
+          <div className="flex justify-between items-center mb-4">
+             <div>
+                <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                  {t('adoptAPet', language)}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  {filteredListings.length} {t('petsWaiting', language)}
+                </p>
+             </div>
+             <Button
+                onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
+                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white shadow-lg"
+                size="sm"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                {t('postForAdoption', language)}
+              </Button>
+          </div>
+        )}
 
         {/* Filters */}
         <Card className="border-0 shadow-xl mb-6">
@@ -302,6 +331,12 @@ export default function AdoptionListings() {
             {[1, 2, 3, 4, 5, 6].map(i => (
               <Skeleton key={i} className="h-96 rounded-2xl" />
             ))}
+          </div>
+        ) : isError ? (
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900">Erro ao carregar adoções</h3>
+            <p className="text-gray-600">Por favor, tente novamente mais tarde.</p>
           </div>
         ) : filteredListings.length === 0 ? (
           <Card className="border-0 shadow-xl">
