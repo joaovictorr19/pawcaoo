@@ -47,8 +47,8 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
-import NotificationService from "../components/NotificationService";
 import { useLanguage } from "@/components/LanguageContext";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -518,6 +518,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-7xl mx-auto p-6">
+      <ErrorBoundary>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -1775,6 +1776,7 @@ export default function AdminDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </ErrorBoundary>
       </div>
     </div>
   );

@@ -16,11 +16,13 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
@@ -155,9 +157,24 @@ export default function OwnerDashboard() {
   const walkGoal = 12; // 3x per week
   const goalProgress = (walksThisMonth / walkGoal) * 100;
 
+  if (loadingUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <Skeleton className="h-20 w-1/3" />
+          <div className="grid md:grid-cols-4 gap-6">
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+          </div>
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-6">
       <div className="max-w-7xl mx-auto">
+        <ErrorBoundary>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
@@ -467,6 +484,7 @@ export default function OwnerDashboard() {
             </Button>
           </div>
         </div>
+        </ErrorBoundary>
       </div>
     </div>
   );

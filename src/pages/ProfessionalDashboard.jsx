@@ -29,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 export default function ProfessionalDashboard() {
   const queryClient = useQueryClient();
@@ -336,6 +337,7 @@ export default function ProfessionalDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4">
       <div className="max-w-7xl mx-auto">
+        <ErrorBoundary>
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -789,6 +791,7 @@ export default function ProfessionalDashboard() {
         </Tabs>
 
         {showServiceForm && <ServiceForm />}
+        </ErrorBoundary>
       </div>
     </div>
   );
