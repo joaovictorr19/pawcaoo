@@ -514,7 +514,7 @@ export default function Home() {
             <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-5 leading-tight px-2 drop-shadow-lg">
               Encontre o{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300">
-                {activeTab === 'trainers' ? 'Treinador' : activeTab === 'emergency' ? 'Ajuda' : 'Passeador'} Perfeito
+                {activeTab === 'emergency' ? 'Ajuda' : 'Passeador'} Perfeito
               </span>
               <br className="hidden md:block" />
               <span className="block md:inline"> Para o Seu Pet</span>
@@ -758,7 +758,7 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
+              <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
@@ -766,13 +766,13 @@ export default function Home() {
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   Passeadores
                 </TabsTrigger>
-                <TabsTrigger 
+                {/* <TabsTrigger 
                   value="trainers" 
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Award className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   Treinadores
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger 
                   value="emergency" 
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
