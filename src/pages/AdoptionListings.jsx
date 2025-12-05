@@ -32,6 +32,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    retry: false,
   });
 
   const { data: listings = [], isLoading, isError } = useQuery({
@@ -45,6 +46,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
         return [];
       }
     },
+    retry: 1,
   });
 
   const filteredListings = listings.filter(listing => {

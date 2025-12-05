@@ -707,7 +707,7 @@ export default function Home() {
               variant={viewMode === "map" ? "default" : "outline"}
               onClick={() => setViewMode("map")}
               size="sm"
-              className={`bg-gradient-to-r from-purple-600 to-blue-600 text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'} `}
+              className={`bg-gradient-to-r from-green-600 to-emerald-600 text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'} `}
             >
               <MapIcon className="w-4 h-4 mr-2" />
               Mapa
