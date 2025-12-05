@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +9,9 @@ import { Card } from "@/components/ui/card"; // Added import for Card
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
+import TrainerCard from "../components/trainers/TrainerCard"; // Import TrainerCard
 import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters";
+import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters"; // Import AdvancedTrainerFilters
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -46,18 +47,33 @@ export default function Home() {
     radius: 50,
     languages: [],
     specializations: [],
-    certifications: [], // Added for new filter
-    serviceTypes: [],   // Added for new filter
-    timeSlots: [],      // Added for new filter
-    availableDate: null, // Added for new filter
+    certifications: [], 
+    serviceTypes: [],   
+    timeSlots: [],      
+    availableDate: null, 
     minExperience: 0,
     minRating: 0,
     minPrice: 0,
     maxPrice: 100,
     backgroundCheck: false,
-    verifiedOnly: false, // Added for new filter
-    instantBooking: false // Added for new filter
+    verifiedOnly: false, 
+    instantBooking: false 
   });
+
+  // State for Trainer Filters
+  const [trainerFilters, setTrainerFilters] = useState({
+    specialties: [],
+    methodologies: [],
+    consultationTypes: [],
+    minExperience: 0,
+    minRating: 0,
+    verifiedOnly: false,
+    availableDate: null
+  });
+
+  // Active Tab State (moved from Tabs to managed state for better control)
+  const [activeTab, setActiveTab] = useState("walkers");
+
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list"); // "list" or "map"
 
@@ -99,6 +115,14 @@ export default function Home() {
     enabled: !!user,
     staleTime: 0, // ZERO CACHE
     refetchOnMount: 'always',
+  });
+
+  // Fetch Trainers
+  const { data: trainers, isLoading: loadingTrainers } = useQuery({
+    queryKey: ['trainers'],
+    queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
+    initialData: [],
+    enabled: !!user,
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
@@ -151,6 +175,21 @@ export default function Home() {
       userLocation.lng,
       walkerLat,
       walkerLng
+    );
+  };
+
+  // Calculate distance for trainer (similar to walker)
+  const getTrainerDistance = (trainer) => {
+    if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
+    // Assuming trainer has coordinates or defaulting to Lisbon
+    const trainerLat = trainer.latitude || 38.7223;
+    const trainerLng = trainer.longitude || -9.1393;
+    
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      trainerLat,
+      trainerLng
     );
   };
 
@@ -329,6 +368,53 @@ export default function Home() {
     return matchesLocation && matchesSize;
   });
 
+  // Filtered Trainers Logic
+  const filteredTrainers = trainers
+    .map(trainer => ({
+      ...trainer,
+      distance: getTrainerDistance(trainer)
+    }))
+    .filter(trainer => {
+      // Text Search (Location or Name)
+      const matchesSearch = !searchLocation ||
+        trainer.location?.toLowerCase().includes(searchLocation.toLowerCase()) ||
+        trainer.trainer_name?.toLowerCase().includes(searchLocation.toLowerCase());
+
+      // Quick Filters (reusing some state variables for simplicity, or could add dedicated ones)
+      // For now, using advanced filters primarily
+      
+      // Advanced Filters
+      const matchesSpecialties = trainerFilters.specialties.length === 0 ||
+        trainerFilters.specialties.some(spec => trainer.training_specialties?.includes(spec));
+      
+      const matchesMethodologies = trainerFilters.methodologies.length === 0 ||
+        trainerFilters.methodologies.some(method => 
+          trainer.training_methodologies?.some(m => m.methodology_name === method)
+        );
+      
+      const matchesConsultation = trainerFilters.consultationTypes.length === 0 ||
+        trainerFilters.consultationTypes.some(type => trainer.consultation_options?.includes(type));
+      
+      const matchesExperience = (trainer.experience_years || 0) >= (trainerFilters.minExperience || 0);
+      const matchesRating = (trainer.rating || 0) >= (trainerFilters.minRating || 0);
+      const matchesVerified = !trainerFilters.verifiedOnly || trainer.verification_status === 'verified';
+      
+      // Distance Filter (using the same radius as walkers for consistency in UX)
+      const matchesRadius = !userLocation || trainer.distance === null || 
+        trainer.distance <= (advancedFilters.radius || 50);
+
+      return matchesSearch && matchesSpecialties && matchesMethodologies && 
+             matchesConsultation && matchesExperience && matchesRating && 
+             matchesVerified && matchesRadius;
+    })
+    .sort((a, b) => {
+      // Sort by distance if available
+      if (userLocation && a.distance !== null && b.distance !== null) {
+        return a.distance - b.distance;
+      }
+      return (b.rating || 0) - (a.rating || 0);
+    });
+
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
       radius: 50,
@@ -345,6 +431,18 @@ export default function Home() {
       backgroundCheck: false,
       verifiedOnly: false,
       instantBooking: false
+    });
+  };
+
+  const resetTrainerFilters = () => {
+    setTrainerFilters({
+      specialties: [],
+      methodologies: [],
+      consultationTypes: [],
+      minExperience: 0,
+      minRating: 0,
+      verifiedOnly: false,
+      availableDate: null
     });
   };
 
@@ -416,14 +514,14 @@ export default function Home() {
             <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-5 leading-tight px-2 drop-shadow-lg">
               Encontre o{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300">
-                Passeador Perfeito
+                Profissional Perfeito
               </span>
               <br className="hidden md:block" />
               <span className="block md:inline"> Para o Seu Pet</span>
             </h1>
             
             <p className="text-sm md:text-xl text-white/90 mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4">
-              Profissionais verificados e apaixonados por cães. 🐾
+              Passeadores e Treinadores verificados e apaixonados por cães. 🐾
             </p>
 
             {/* Simple Stats */}
@@ -458,52 +556,102 @@ export default function Home() {
                   currentLocation={userLocation}
                 />
                 
-                {/* NOVO: Service Types Quick Filter */}
-                <div>
-                  <Label className="text-xs font-semibold text-gray-700 mb-2 block">
-                    🐾 Serviços Desejados
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {quickServiceTypes.map(service => (
-                      <Badge
-                        key={service.id}
-                        variant={selectedServiceTypes.includes(service.id) ? "default" : "outline"}
-                        className={getServiceBadgeClasses(service.color, selectedServiceTypes.includes(service.id))}
-                        onClick={() => toggleServiceType(service.id)}
-                      >
-                        <span className="mr-1">{service.icon}</span>
-                        {service.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                {/* Filters based on Active Tab */}
+                {activeTab === 'walkers' ? (
+                  <>
+                    {/* NOVO: Service Types Quick Filter */}
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-700 mb-2 block">
+                        🐾 Serviços Desejados
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {quickServiceTypes.map(service => (
+                          <Badge
+                            key={service.id}
+                            variant={selectedServiceTypes.includes(service.id) ? "default" : "outline"}
+                            className={getServiceBadgeClasses(service.color, selectedServiceTypes.includes(service.id))}
+                            onClick={() => toggleServiceType(service.id)}
+                          >
+                            <span className="mr-1">{service.icon}</span>
+                            {service.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* NOVO: Specializations Quick Filter */}
-                <div>
-                  <Label className="text-xs font-semibold text-gray-700 mb-2 block">
-                    ⭐ Especializações
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {quickSpecializations.map(spec => (
-                      <Badge
-                        key={spec.id}
-                        variant={selectedSpecializations.includes(spec.id) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all hover:scale-105 ${
-                          selectedSpecializations.includes(spec.id)
-                            ? `bg-purple-600 text-white`
-                            : `border-gray-300 hover:bg-gray-100`
-                        }`}
-                        onClick={() => toggleSpecialization(spec.id)}
-                      >
-                        <span className="mr-1">{spec.icon}</span>
-                        {spec.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Filters */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {/* NOVO: Specializations Quick Filter */}
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-700 mb-2 block">
+                        ⭐ Especializações
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {quickSpecializations.map(spec => (
+                          <Badge
+                            key={spec.id}
+                            variant={selectedSpecializations.includes(spec.id) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all hover:scale-105 ${
+                              selectedSpecializations.includes(spec.id)
+                                ? `bg-purple-600 text-white`
+                                : `border-gray-300 hover:bg-gray-100`
+                            }`}
+                            onClick={() => toggleSpecialization(spec.id)}
+                          >
+                            <span className="mr-1">{spec.icon}</span>
+                            {spec.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Walkers Specific Filters */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <Select value={filterSize} onValueChange={setFilterSize}>
+                        <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
+                          <SelectValue placeholder="Tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="small">Pequeno</SelectItem>
+                          <SelectItem value="medium">Médio</SelectItem>
+                          <SelectItem value="large">Grande</SelectItem>
+                          <SelectItem value="extra_large">XL</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select value={filterTime} onValueChange={setFilterTime}>
+                        <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
+                          <SelectValue placeholder="Horário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Qualquer</SelectItem>
+                          <SelectItem value="morning">Manhã</SelectItem>
+                          <SelectItem value="afternoon">Tarde</SelectItem>
+                          <SelectItem value="evening">Noite</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select value={filterAvailability} onValueChange={setFilterAvailability} className="col-span-2 md:col-span-1">
+                        <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
+                          <SelectValue placeholder="Disponível" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="available">Disponíveis</SelectItem>
+                          <SelectItem value="unavailable">Indisponíveis</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : activeTab === 'trainers' ? (
+                  <>
+                    <div className="p-2 bg-purple-50 rounded-xl border border-purple-100">
+                      <p className="text-sm text-purple-800 font-medium flex items-center gap-2">
+                        <Award className="w-4 h-4" />
+                        Use os filtros avançados abaixo para encontrar especialistas em comportamento, obediência e mais.
+                      </p>
+                    </div>
+                  </>
+                ) : null}
                   <Select value={filterSize} onValueChange={setFilterSize}>
                     <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
                       <SelectValue placeholder="Tamanho" />
@@ -591,31 +739,46 @@ export default function Home() {
                 transition={{ duration: 0.2 }}
                 className="lg:col-span-1"
               >
-                <AdvancedWalkerFilters
-                  filters={advancedFilters}
-                  onFiltersChange={setAdvancedFilters}
-                  onReset={resetAdvancedFilters}
-                />
+                {activeTab === 'walkers' ? (
+                  <AdvancedWalkerFilters
+                    filters={advancedFilters}
+                    onFiltersChange={setAdvancedFilters}
+                    onReset={resetAdvancedFilters}
+                  />
+                ) : activeTab === 'trainers' ? (
+                  <AdvancedTrainerFilters
+                    filters={trainerFilters}
+                    onFiltersChange={setTrainerFilters}
+                    onReset={resetTrainerFilters}
+                  />
+                ) : null}
               </motion.div>
             )}
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            <Tabs defaultValue="walkers" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-6 md:mb-8 h-12 md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  Buscar Passeadores
+                  Passeadores
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="trainers" 
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
+                >
+                  <Award className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                  Treinadores
                 </TabsTrigger>
                 <TabsTrigger 
                   value="emergency" 
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  Passeios Urgentes
+                  Emergência
                 </TabsTrigger>
               </TabsList>
 
@@ -755,6 +918,63 @@ export default function Home() {
                               distance={walker.distance}
                               matchScore={walker.matchScore}
                               showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Trainers Tab */}
+              <TabsContent value="trainers">
+                <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">
+                        {language === 'pt' ? 'Treinadores Disponíveis' : 'Available Trainers'}
+                      </h2>
+                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
+                        <Award className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
+                        {filteredTrainers.length} {language === 'pt' ? 'profissionais encontrados' : 'professionals found'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {viewMode === "map" ? (
+                    <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <p className="text-gray-500">Mapa disponível em breve para treinadores</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {loadingTrainers ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                          {[1, 2, 3].map(i => (
+                            <div key={`trainer-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                              <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                              <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                              <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : filteredTrainers.length === 0 ? (
+                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center">
+                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                            <Award className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum treinador encontrado</h3>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">Tente ajustar os filtros</p>
+                        </Card>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                          {filteredTrainers.map((trainer) => (
+                            <TrainerCard 
+                              key={trainer.id} 
+                              trainer={trainer}
+                              distance={trainer.distance}
                             />
                           ))}
                         </div>
