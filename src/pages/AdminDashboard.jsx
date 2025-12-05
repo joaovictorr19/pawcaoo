@@ -759,6 +759,14 @@ export default function AdminDashboard() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')}
+                                title="Ver Perfil Público"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 onClick={() => handleEditUser(user)}
                               >
                                 <Edit className="w-4 h-4" />

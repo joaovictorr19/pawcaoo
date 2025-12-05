@@ -49,7 +49,7 @@ export default function ModerationPanel() {
     queryFn: () => base44.auth.me(),
   });
 
-  const isModeratorOrAdmin = user?.role === 'admin' || user?.social_role === 'moderator' || user?.social_role === 'admin';
+  const isModeratorOrAdmin = user?.role === 'admin' || user?.social_role === 'moderator' || user?.social_role === 'moderador' || user?.social_role === 'admin';
 
   const { data: pendingReports } = useQuery({
     queryKey: ['pendingReports'],
@@ -568,11 +568,22 @@ export default function ModerationPanel() {
                           <p className="text-sm text-gray-500">{user.email}</p>
                           <div className="flex gap-2 mt-1">
                             <Badge variant="outline" className="text-xs">{user.role}</Badge>
-                            {user.social_role && <Badge className="bg-purple-100 text-purple-800 text-xs">{user.social_role}</Badge>}
+                            {user.social_role && (
+                              <Badge className="bg-purple-100 text-purple-800 text-xs">
+                                {user.social_role === 'moderator' ? 'Moderador' : user.social_role}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')}
+                        >
+                          👤 Ver Perfil
+                        </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
