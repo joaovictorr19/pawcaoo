@@ -112,7 +112,7 @@ export default function Home() {
       return active;
     },
     initialData: [],
-    enabled: !!user,
+    // enabled: true, // Always fetch
     staleTime: 0, // ZERO CACHE
     refetchOnMount: 'always',
   });
@@ -122,14 +122,14 @@ export default function Home() {
     queryKey: ['trainers'],
     queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
     initialData: [],
-    enabled: !!user,
+    // enabled: true, 
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
     queryFn: () => base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20), // Added limit
     initialData: [],
-    enabled: !!user,
+    // enabled: true,
     staleTime: 30000,
   });
 
@@ -153,10 +153,10 @@ export default function Home() {
   }
 
   // If not logged in, redirect to landing
-  if (!user) {
-    navigate(createPageUrl("Landing"), { replace: true });
-    return null;
-  }
+  // if (!user) {
+  //   navigate(createPageUrl("Landing"), { replace: true });
+  //   return null;
+  // }
 
   // Distance calculation using actual coordinates
   const getWalkerDistance = (walker) => {

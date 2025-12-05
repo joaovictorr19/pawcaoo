@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -462,7 +461,13 @@ export default function WalkerDetails() {
                 <div className="flex gap-3">
                   <Button
                     className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
-                    onClick={() => setShowBookingForm(true)}
+                    onClick={() => {
+                      if (!user) {
+                        base44.auth.redirectToLogin();
+                      } else {
+                        setShowBookingForm(true);
+                      }
+                    }}
                     disabled={walker.verification_status !== "verified"}
                   >
                     {walker.verification_status === "verified" ? "Book This Walker" : "Verification Pending"}
@@ -471,7 +476,13 @@ export default function WalkerDetails() {
                   <Button
                     variant="outline"
                     className="h-14 px-6 border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
-                    onClick={() => navigate(createPageUrl(`Messages?walker_id=${walker.id}`))}
+                    onClick={() => {
+                      if (!user) {
+                        base44.auth.redirectToLogin();
+                      } else {
+                        navigate(createPageUrl(`Messages?walker_id=${walker.id}`));
+                      }
+                    }}
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
                     Message
