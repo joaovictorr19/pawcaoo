@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Home, MapPin, Search, Filter, PlusCircle, Clock, AlertCircle, Shield } from "lucide-react";
+import { Home, MapPin, Search, Filter, PlusCircle, Clock, AlertCircle, Shield, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -19,6 +19,7 @@ import { generateBreadcrumbSchema } from "../components/seoHelpers";
 
 export default function AdoptionListings({ isEmbedded = false }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPetType, setFilterPetType] = useState("all");
@@ -51,6 +52,34 @@ export default function AdoptionListings({ isEmbedded = false }) {
     },
     retry: 1,
   });
+
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['adoptionFavorites', user?.email],
+    queryFn: () => base44.entities.AdoptionFavorite.filter({ user_email: user?.email }),
+    enabled: !!user,
+  });
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (listing) => {
+      const favorite = favorites.find(f => f.listing_id === listing.id);
+      if (favorite) {
+        await base44.entities.AdoptionFavorite.delete(favorite.id);
+      } else {
+        await base44.entities.AdoptionFavorite.create({
+          user_email: user.email,
+          listing_id: listing.id,
+          pet_name: listing.pet_name,
+          pet_photo_url: listing.photos?.[0] || "",
+          location: listing.location_city
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adoptionFavorites'] });
+    }
+  });
+
+  const isFavorite = (listingId) => favorites.some(f => f.listing_id === listingId);
 
   const filteredListings = listings.filter(listing => {
     const matchesSearch = !searchQuery || 
@@ -452,7 +481,25 @@ export default function AdoptionListings({ isEmbedded = false }) {
                         </Badge>
                       </div>
                     )}
-                  </div>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-3 right-3 z-20 bg-white/50 hover:bg-white/80 backdrop-blur-sm rounded-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!user) {
+                          navigate(createPageUrl('Login'));
+                          return;
+                        }
+                        toggleFavoriteMutation.mutate(listing);
+                      }}
+                    >
+                      <Heart 
+                        className={`w-5 h-5 ${isFavorite(listing.id) ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} 
+                      />
+                    </Button>
+                    </div>
 
                   {/* Content */}
                   <CardContent className="p-5">
