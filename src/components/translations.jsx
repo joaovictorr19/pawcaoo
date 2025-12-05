@@ -1,4 +1,3 @@
-
 export const translations = {
   pt: {
     // Navigation - Simplified
@@ -43,18 +42,18 @@ export const translations = {
     newNotification: "nova",
     
     // Manage Availability
-    manageAvailability: "Gerir Disponibilidade",
+    // manageAvailability: "Gerir Disponibilidade", // Duplicate removed
     setAvailableTimeSlots: "Defina os seus horários disponíveis",
     selectDate: "Selecione uma Data",
     timeSlots: "Horários",
     addSlot: "Adicionar",
-    available: "Disponível",
+    // available: "Disponível", // Duplicate removed
     startTime: "Início",
     endTime: "Fim",
     saveAvailability: "Guardar",
     saving: "A guardar...",
     upcomingBookings: "Próximas Reservas",
-    noUpcomingBookings: "Sem reservas",
+    // noUpcomingBookings: "Sem reservas", // Duplicate removed
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -255,7 +254,7 @@ export const translations = {
     planComparisonTitle: "Comparação de Planos",
     featureLabel: "Funcionalidade",
     monthlyFeeLabel: "Taxa Mensal",
-    commissionLabel: "Comissão",
+    // commissionLabel: "Comissão", // Duplicate removed
     bookingsPerMonthLabel: "Reservas/Mês",
     upToLabel: "Até",
     unlimitedLabel: "Ilimitado",
@@ -266,7 +265,7 @@ export const translations = {
     supportLabel: "Suporte",
     emailSupport: "Email",
     fastSupport: "24h",
-    prioritySupport: "Prioritário",
+    // prioritySupport: "Prioritário", // Duplicate removed
     directTeamSupport: "Equipa Directa",
     profilePhotosLabel: "Fotos/Vídeos do Perfil",
     photoLabel: "foto",
@@ -280,7 +279,7 @@ export const translations = {
     moreVisibilityTitle: "Mais Visibilidade",
     prioritySearches: "Colocação prioritária nas pesquisas",
     fasterPaymentsTitle: "Pagamentos Mais Rápidos",
-    instantPayments: "Seja pago instantaneamente",
+    // instantPayments: "Seja pago instantaneamente", // Duplicate removed
     betterSupportTitle: "Melhor Suporte",
     priorityWhenNeeded: "Assistência prioritária quando precisar",
     calculateEarnings: "Calcule os Seus Ganhos Potenciais",
@@ -308,7 +307,7 @@ export const translations = {
     availableWalkers: "Passeadores Disponíveis",
     walkersFound: "passeadores encontrados",
     dogsNeedingHelp: "cães precisam de ajuda agora",
-    available: "Disponível",
+    // available: "Disponível", // Duplicate removed
     unavailable: "Indisponível",
     allWalkers: "Todos os Passeadores",
     
@@ -450,7 +449,7 @@ export const translations = {
     trackWalkLive: "Rastrear Passeio Ao Vivo",
     walkStats: "Estatísticas do Passeio",
     distance: "Distância",
-    duration: "Duração",
+    // duration: "Duração", // Duplicate removed
     updates: "Atualizações",
     currentBehavior: "Comportamento Atual",
     mood: "Humor",
