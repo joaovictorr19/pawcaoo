@@ -60,6 +60,7 @@ export default function AdminDashboard() {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  const [userTypeFilter, setUserTypeFilter] = useState("all"); // Filtro de usuários
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userFormData, setUserFormData] = useState({});
@@ -117,6 +118,20 @@ export default function AdminDashboard() {
     queryKey: ['trainerApplications'],
     queryFn: () => base44.entities.TrainerProfile.filter({ verification_status: 'pending' }),
     enabled: user?.role === 'admin' && activeTab === 'applications',
+    initialData: [],
+  });
+
+  const { data: shelterApplications = [] } = useQuery({
+    queryKey: ['shelterApplications'],
+    queryFn: () => base44.entities.ShelterProfile.filter({ verification_status: 'pending' }),
+    enabled: user?.role === 'admin' && activeTab === 'applications',
+    initialData: [],
+  });
+
+  const { data: adoptionApplications = [] } = useQuery({
+    queryKey: ['allAdoptionApplications'],
+    queryFn: () => base44.entities.AdoptionApplication.list('-created_date', 100),
+    enabled: user?.role === 'admin' && activeTab === 'adoptions',
     initialData: [],
   });
 
@@ -310,6 +325,14 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainerApplications'] });
       toast.success("Perfil de treinador atualizado!");
+    },
+  });
+
+  const updateShelterMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.ShelterProfile.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shelterApplications'] });
+      toast.success("Abrigo atualizado!");
     },
   });
 
@@ -576,8 +599,9 @@ export default function AdminDashboard() {
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 bg-white shadow-lg p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="applications">Candidaturas</TabsTrigger>
+            <TabsTrigger value="users">Contas</TabsTrigger>
+            <TabsTrigger value="applications">Verificações</TabsTrigger>
+            <TabsTrigger value="adoptions">Adoções</TabsTrigger>
             <TabsTrigger value="badges">Emblemas</TabsTrigger>
             <TabsTrigger value="companies">Empresas</TabsTrigger>
             <TabsTrigger value="announcements">Anúncios</TabsTrigger>
@@ -656,16 +680,33 @@ export default function AdminDashboard() {
           <TabsContent value="users">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-2xl">Gestão de Utilizadores</CardTitle>
-                  <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      placeholder="Pesquisar..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                  <CardTitle className="text-2xl">Gestão de Contas</CardTitle>
+                  
+                  <div className="flex gap-4 w-full md:w-auto">
+                    <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filtrar por tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="owner">Clientes</SelectItem>
+                        <SelectItem value="walker">Passeadores</SelectItem>
+                        <SelectItem value="trainer">Treinadores</SelectItem>
+                        <SelectItem value="company">Empresas</SelectItem>
+                        <SelectItem value="both">Híbridos</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <div className="relative w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Nome ou Email..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -675,17 +716,19 @@ export default function AdminDashboard() {
                     <TableRow>
                       <TableHead>Email</TableHead>
                       <TableHead>Nome</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Função</TableHead>
+                      <TableHead>Tipo de Conta</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {allUsers
-                      .filter(u =>
-                        u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
-                      )
+                      .filter(u => {
+                        const matchesSearch = u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            u.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesType = userTypeFilter === "all" || u.account_type === userTypeFilter;
+                        return matchesSearch && matchesType;
+                      })
                       .map(user => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">{user.email}</TableCell>
@@ -696,9 +739,12 @@ export default function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}>
-                              {user.role === 'admin' ? 'Admin' : 'User'}
-                            </Badge>
+                            <div className="flex gap-1 flex-wrap">
+                              <Badge className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}>
+                                {user.role === 'admin' ? 'Admin' : 'User'}
+                              </Badge>
+                              {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600">Verificado</Badge>}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
