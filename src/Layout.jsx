@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -151,19 +150,19 @@ function LayoutContent({ children, currentPageName }) {
   const navigationItems = [
     // MENU PRINCIPAL - Serviços core
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
-    { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
-    { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
-    { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
-    { title: language === 'pt' ? 'Serviços' : language === 'es' ? 'Servicios' : 'Services', url: createPageUrl("PartnerServices"), icon: Store },
-    { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
+    // { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
+    // { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
+    // { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
+    // { title: language === 'pt' ? 'Serviços' : language === 'es' ? 'Servicios' : 'Services', url: createPageUrl("PartnerServices"), icon: Store },
+    // { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
-    
+
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
-    
+
     // CONNECT - Rede Social (now a highlighted button)
     { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
-    
+
     // MINHA ATIVIDADE
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
@@ -208,7 +207,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 7; // Aumentado de 6 para 7 (incluindo Serviços)
+  const mainMenuCount = 2; // Apenas Passeadores e Adotar
   const messagesIndex = mainMenuCount;
   const connectIndex = messagesIndex + 1; // Renamed from dogConnectIndex
   const myActivityStartIndex = connectIndex + 1;
