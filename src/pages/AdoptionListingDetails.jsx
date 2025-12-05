@@ -309,7 +309,7 @@ export default function AdoptionListingDetails() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-3xl mb-2">{listing.pet_name}</CardTitle>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{listing.pet_name}</h1>
                     <div className="flex flex-wrap gap-2 mb-3">
                       <Badge variant="outline" className="text-base">{listing.breed}</Badge>
                       <Badge variant="outline" className="text-base">{listing.gender}</Badge>

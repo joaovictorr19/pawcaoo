@@ -157,9 +157,9 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     <Home className="w-8 h-8 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                    <h2 className="text-xl font-bold text-gray-900 mb-1">
                       {t('everyPetDeservesHome', language)}
-                    </h3>
+                    </h2>
                     <p className="text-gray-700">
                       {t('adoptDontShop', language)}
                     </p>
@@ -196,7 +196,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <Filter className="w-5 h-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">{t('searchAndFilter', language)}</h3>
+              <h2 className="text-lg font-semibold text-gray-900">{t('searchAndFilter', language)}</h2>
             </div>
             
             <div className="space-y-4">

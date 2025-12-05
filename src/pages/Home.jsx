@@ -630,8 +630,8 @@ export default function Home() {
               </div>
               
               <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight">
-                O Melhor Cuidado para o <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">Seu Melhor Amigo</span>
+                Passeadores, Treinadores e <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">Cuidados para o Seu Pet</span>
               </h1>
               
               <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto">
