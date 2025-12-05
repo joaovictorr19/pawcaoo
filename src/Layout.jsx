@@ -161,7 +161,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
 
     // CONNECT - Rede Social (now a highlighted button)
-    { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
+    // { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
 
     // MINHA ATIVIDADE
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
@@ -176,7 +176,7 @@ function LayoutContent({ children, currentPageName }) {
     
     // SERVIÇOS PROFISSIONAIS
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
-    { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: GraduationCap },
+    // { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: GraduationCap },
     { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
