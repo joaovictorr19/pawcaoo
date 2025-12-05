@@ -49,6 +49,7 @@ import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/components/LanguageContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -230,6 +231,13 @@ export default function AdminDashboard() {
     initialData: [],
   });
   const pendingReviews = allReviews.filter(r => !r.is_verified);
+
+  const { data: adoptionListings = [] } = useQuery({
+    queryKey: ['allAdoptionListings'],
+    queryFn: () => base44.entities.AdoptionListing.list('-created_date', 100),
+    enabled: user?.role === 'admin' && (activeTab === 'analytics' || activeTab === 'overview'),
+    initialData: [],
+  });
 
   // Mutations
   const updateUserMutation = useMutation({
@@ -548,8 +556,9 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 bg-white shadow-lg p-1">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 bg-white shadow-lg p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="badges">Emblemas</TabsTrigger>
             <TabsTrigger value="companies">Empresas</TabsTrigger>
@@ -559,6 +568,18 @@ export default function AdminDashboard() {
             <TabsTrigger value="payments">Pagamentos</TabsTrigger>
             <TabsTrigger value="reviews">Avaliações</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <div className="mt-6">
+              <AdminAnalytics 
+                users={allUsers}
+                bookings={allBookings}
+                payments={allPayments}
+                services={allPartnerServices}
+                adoptionListings={adoptionListings}
+              />
+            </div>
+          </TabsContent>
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
