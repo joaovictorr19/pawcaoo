@@ -14,15 +14,22 @@ import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
 import NotificationService from "../components/NotificationService";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
+import CheckoutModal from "../components/payments/CheckoutModal"; // Import CheckoutModal
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { useCreateNotification } from "../components/NotificationService"; // Import Notification Hook
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const createNotification = useCreateNotification(); // Use Notification Hook
+  
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedDogForRecurring, setSelectedDogForRecurring] = useState(null);
 
@@ -75,62 +82,60 @@ export default function WalkerDetails() {
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : walker?.rating || 5;
 
-  const createBookingMutation = useMutation({
-    mutationFn: async (bookingData) => {
-      // Create booking
-      const booking = await base44.entities.Booking.create({
-        ...bookingData,
-        walker_id: walker.id,
-        walker_name: walker.walker_name,
-        walker_email: walker.created_by,
-        owner_email: user?.email,
-        payment_status: "held",
-        completion_code: Math.random().toString(36).substring(2, 8).toUpperCase()
-      });
+  // Function to handle booking completion from BookingForm
+  const handleBookingInitiated = (booking) => {
+    setCurrentBooking({
+      ...booking,
+      user: user, // Add user for CheckoutModal
+      walker_email: walker.created_by,
+      walker_name: walker.walker_name,
+      paymentMethods: [ // Mock payment methods
+        { type: 'credit_card', last_four: '4242', is_default: true },
+        { type: 'paypal', last_four: 'user@email.com', is_default: false }
+      ]
+    });
+    setShowBookingForm(false);
+    setShowCheckoutModal(true);
+  };
 
-      // Create payment record
-      await base44.entities.Payment.create({
-        booking_id: booking.id,
-        payer_email: user?.email,
-        payer_name: bookingData.owner_name,
+  const handlePaymentSuccess = async (payment) => {
+    if (!currentBooking) return;
+
+    // Send notifications after payment
+    try {
+      // 1. Notify Walker
+      await createNotification.mutateAsync({
         recipient_email: walker.created_by,
-        recipient_name: walker.walker_name,
-        service_amount: bookingData.service_amount,
-        platform_fee: bookingData.platform_fee,
-        total_amount: bookingData.total_amount,
-        platform_fee_percentage: 15,
-        status: "held",
-        payment_method: bookingData.payment_method,
-        held_date: new Date().toISOString()
+        title: '🎉 Nova Reserva Confirmada!',
+        message: `${user.full_name} reservou e pagou um passeio para ${currentBooking.dog_name} em ${format(new Date(currentBooking.walk_date), 'dd/MM/yyyy')}.`,
+        type: 'booking',
+        related_id: currentBooking.id,
+        action_url: `/MyBookings?id=${currentBooking.id}`,
+        priority: 'high'
       });
 
-      // Use NotificationService for consistent notifications
-      await NotificationService.bookingCreated({
-        booking: {
-          ...booking,
-          walk_date: bookingData.walk_date,
-          walk_time: bookingData.walk_time,
-          dog_name: bookingData.dog_name,
-          total_amount: bookingData.total_amount
-        },
-        walker,
-        owner: {
-          email: user?.email,
-          owner_name: bookingData.owner_name
-        },
-        isTraining: false
+      // 2. Notify Owner
+      await createNotification.mutateAsync({
+        recipient_email: user.email,
+        title: '✅ Reserva Confirmada!',
+        message: `Sua reserva com ${walker.walker_name} foi confirmada e o pagamento de €${payment.total_amount} processado com sucesso.`,
+        type: 'booking',
+        related_id: currentBooking.id,
+        action_url: `/MyBookings?id=${currentBooking.id}`,
+        priority: 'normal'
       });
 
-      return booking;
-    },
-    onSuccess: () => {
+      // 3. Update Walker Stats
+      await base44.entities.WalkerProfile.update(walker.id, {
+        total_walks: (walker.total_walks || 0) + 1
+      });
+
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      navigate(createPageUrl('MyBookings'));
-    },
-  });
-
-  const handleBooking = async (bookingData) => {
-    await createBookingMutation.mutateAsync(bookingData);
+      navigate(createPageUrl(`MyBookings?id=${currentBooking.id}`));
+      
+    } catch (error) {
+      console.error("Error sending notifications:", error);
+    }
   };
 
   if (isLoading) {
@@ -602,11 +607,20 @@ export default function WalkerDetails() {
         {showBookingForm && (
           <BookingForm
             walker={walker}
-            onSubmit={handleBooking}
-            onCancel={() => setShowBookingForm(false)}
-            isProcessing={createBookingMutation.isPending}
+            onClose={handleBookingInitiated} // Changed prop name to match BookingForm modification
           />
         )}
+
+        {/* Checkout Modal */}
+        <AnimatePresence>
+          {showCheckoutModal && currentBooking && (
+            <CheckoutModal
+              booking={currentBooking}
+              onClose={() => setShowCheckoutModal(false)}
+              onSuccess={handlePaymentSuccess}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Recurring Booking Modal */}

@@ -338,6 +338,14 @@ export default function ProfessionalDashboard() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
+                onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
+                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Configure Payouts
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => navigate(createPageUrl('Messages'))}
                 className="relative"
               >

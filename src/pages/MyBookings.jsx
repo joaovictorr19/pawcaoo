@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, Clock, DollarSign, User, Dog, MessageCircle, XCircle, CheckCircle, Eye } from "lucide-react";
+import { Calendar, MapPin, Clock, DollarSign, User, Dog, MessageCircle, XCircle, CheckCircle, Eye, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -242,6 +242,18 @@ export default function MyBookings() {
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Concluir
+              </Button>
+            )}
+
+            {booking.status === 'completed' && !isWalker && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => toast.success("Recibo baixado com sucesso!")}
+                className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Recibo
               </Button>
             )}
             

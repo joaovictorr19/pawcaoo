@@ -95,78 +95,20 @@ export default function BookingForm({ walker, onClose }) {
     mutationFn: async (bookingData) => {
       console.log('📝 Criando booking:', bookingData);
       
-      // 1. Criar booking
-      const booking = await base44.entities.Booking.create(bookingData);
-      console.log('✅ Booking criado:', booking.id);
-
-      // 2. Criar payment record (held)
-      const payment = await base44.entities.Payment.create({
-        booking_id: booking.id,
-        payer_email: user.email,
-        payer_name: user.full_name,
-        recipient_email: walker.created_by,
-        recipient_name: walker.walker_name,
-        service_amount: amounts.walkerReceives,
-        platform_fee: amounts.platformFee,
-        total_amount: amounts.totalAmount,
-        platform_fee_percentage: walkerSubscription?.commission_rate || 15,
-        status: 'held',
-        payment_method: 'credit_card',
-        held_date: new Date().toISOString()
+      // 1. Criar booking com status pending_payment
+      const booking = await base44.entities.Booking.create({
+        ...bookingData,
+        status: 'pending_payment'
       });
-      console.log('✅ Payment criado:', payment.id);
+      console.log('✅ Booking iniciado:', booking.id);
 
-      // 3. Atualizar booking com payment_id
-      await base44.entities.Booking.update(booking.id, {
-        payment_id: payment.id,
-        payment_status: 'held'
-      });
-
-      // 4. Enviar notificação ao walker
-      await createNotification.mutateAsync({
-        recipient_email: walker.created_by,
-        title: '🎉 Nova Reserva!',
-        message: `${user.full_name} reservou um passeio para ${formData.dog_name} no dia ${format(formData.walk_date, 'dd/MM/yyyy')}.`,
-        type: 'booking',
-        related_id: booking.id,
-        action_url: `/MyBookings?id=${booking.id}`,
-        priority: 'high'
-      });
-
-      // 5. Enviar notificação ao owner (confirmação)
-      await createNotification.mutateAsync({
-        recipient_email: user.email,
-        title: '✅ Reserva Confirmada!',
-        message: `Sua reserva com ${walker.walker_name} foi confirmada para ${format(formData.walk_date, 'dd/MM/yyyy')}.`,
-        type: 'booking',
-        related_id: booking.id,
-        action_url: `/MyBookings?id=${booking.id}`,
-        priority: 'normal'
-      });
-
-      // 6. Atualizar stats do walker
-      await base44.entities.WalkerProfile.update(walker.id, {
-        total_walks: (walker.total_walks || 0) + 1
-      });
-
+      // Notifications and Payment will be handled in Checkout
+      
       return booking;
     },
     onSuccess: (booking) => {
-      toast.success('✅ Reserva criada com sucesso!', {
-        description: 'O passeador foi notificado.',
-        duration: 5000
-      });
-      
-      // Invalidar queries
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['myBookings'] });
-      queryClient.invalidateQueries({ queryKey: ['walkers'] });
-      
-      // Fechar modal e navegar
-      if (onClose) onClose();
-      setTimeout(() => {
-        navigate(createPageUrl(`MyBookings?id=${booking.id}`));
-      }, 500);
+      // Pass booking to parent for checkout
+      if (onClose) onClose(booking);
     },
     onError: (error) => {
       console.error('Erro ao criar booking:', error);
@@ -207,7 +149,7 @@ export default function BookingForm({ walker, onClose }) {
         platform_fee: amounts.platformFee,
         total_amount: amounts.totalAmount,
         special_notes: formData.special_notes,
-        status: 'confirmed'
+        // status: 'confirmed' - Removed, will be set in checkout
       });
     } finally {
       setIsProcessing(false);
@@ -218,7 +160,7 @@ export default function BookingForm({ walker, onClose }) {
     <form onSubmit={handleSubmit}>
       <Card className="border-0 shadow-xl">
         <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-          <CardTitle className="text-2xl">Reservar Passeio</CardTitle>
+          <CardTitle className="text-2xl">Agendar Passeio</CardTitle>
           <p className="text-green-50">com {walker?.walker_name}</p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
@@ -397,12 +339,12 @@ export default function BookingForm({ walker, onClose }) {
               {isProcessing ? (
                 <>
                   <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  Processando...
+                  Iniciando...
                 </>
               ) : (
                 <>
                   <DollarSign className="w-4 h-4 mr-2" />
-                  Confirmar Reserva
+                  Ir para Pagamento
                 </>
               )}
             </Button>
