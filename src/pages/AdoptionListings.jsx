@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import SEO from "../components/SEO";
-import { generateBreadcrumbSchema } from "@/utils/seoHelpers";
+import { generateBreadcrumbSchema } from "../components/seoHelpers";
 
 export default function AdoptionListings({ isEmbedded = false }) {
   const navigate = useNavigate();

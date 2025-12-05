@@ -18,7 +18,7 @@ import { format } from "date-fns";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import SEO from "../components/SEO";
-import { generatePetSchema, generateBreadcrumbSchema } from "@/utils/seoHelpers";
+import { generatePetSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
 
 export default function AdoptionListingDetails() {
   const navigate = useNavigate();

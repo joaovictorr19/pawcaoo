@@ -21,7 +21,7 @@ import { useCreateNotification } from "../components/NotificationService"; // Im
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
 import SEO from "../components/SEO";
-import { generateServiceSchema, generateBreadcrumbSchema } from "@/utils/seoHelpers";
+import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();

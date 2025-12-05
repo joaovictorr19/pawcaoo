@@ -26,7 +26,7 @@ import { Map as MapIcon, List } from "lucide-react";
 import { Label } from "@/components/ui/label"; // NEW
 import { Badge } from "@/components/ui/badge"; // NEW
 import SEO from "../components/SEO";
-import { generateWebSiteSchema, generateOrganizationSchema } from "@/utils/seoHelpers";
+import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
 
 export default function Home() {
   const { language } = useLanguage();
