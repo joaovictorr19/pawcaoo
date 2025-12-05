@@ -652,42 +652,7 @@ export default function Home() {
                     </div>
                   </>
                 ) : null}
-                  <Select value={filterSize} onValueChange={setFilterSize}>
-                    <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
-                      <SelectValue placeholder="Tamanho" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="small">Pequeno</SelectItem>
-                      <SelectItem value="medium">Médio</SelectItem>
-                      <SelectItem value="large">Grande</SelectItem>
-                      <SelectItem value="extra_large">XL</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={filterTime} onValueChange={setFilterTime}>
-                    <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
-                      <SelectValue placeholder="Horário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
-                      <SelectItem value="morning">Manhã</SelectItem>
-                      <SelectItem value="afternoon">Tarde</SelectItem>
-                      <SelectItem value="evening">Noite</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={filterAvailability} onValueChange={setFilterAvailability} className="col-span-2 md:col-span-1">
-                    <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
-                      <SelectValue placeholder="Disponível" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="available">Disponíveis</SelectItem>
-                      <SelectItem value="unavailable">Indisponíveis</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
               </div>
             </div>
           </motion.div>
