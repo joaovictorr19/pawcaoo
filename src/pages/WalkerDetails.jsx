@@ -153,12 +153,16 @@ export default function WalkerDetails() {
   }
 
   if (!walker) {
+    // Auto-redirect to Home if walker not found (prevents getting stuck)
+    // setTimeout(() => navigate(createPageUrl('Home')), 3000); 
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Walker not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Passeador não encontrado</h2>
+          <p className="text-gray-600 mb-6">O perfil que procura não existe ou foi removido.</p>
           <Button onClick={() => navigate(createPageUrl('Home'))}>
-            Back to Home
+            Voltar ao Início
           </Button>
         </div>
       </div>
