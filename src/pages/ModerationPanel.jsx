@@ -42,6 +42,7 @@ export default function ModerationPanel() {
   // New state for user badge granting
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [userEmailForBadge, setUserEmailForBadge] = useState('');
+  const [activeTab, setActiveTab] = useState("reports"); // Control tabs state manually
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -324,8 +325,8 @@ export default function ModerationPanel() {
           </div>
         </div>
 
-        <Tabs defaultValue="reports" className="w-full"> {/* Changed defaultValue from "pending" to "reports" */}
-          <TabsList className="grid w-full grid-cols-4 mb-8 bg-white shadow-lg"> {/* Updated TabsList structure */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8 bg-white shadow-lg">
             <TabsTrigger value="reports" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">
               <Flag className="w-4 h-4 mr-2" />
               Denúncias ({pendingReports.length + reviewingReports.length})
@@ -583,14 +584,15 @@ export default function ModerationPanel() {
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="ghost"
+                          variant="default"
+                          className="bg-purple-600 text-white hover:bg-purple-700"
                           onClick={() => {
                             setUserEmailForBadge(user.email);
-                            // Switch tab manually if needed or just scroll/show modal
-                            toast.info(`Email ${user.email} copiado para concessão de badge`);
+                            setActiveTab("badges");
+                            toast.success(`Selecionando badge para ${user.full_name || user.email}`);
                           }}
                         >
-                          🎖️ Badge
+                          🎖️ Conceder Badge
                         </Button>
                       </div>
                     </div>

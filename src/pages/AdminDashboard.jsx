@@ -55,7 +55,15 @@ export default function AdminDashboard() {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  // Parse query params to set initial active tab
+  const getInitialTab = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tab') || "overview";
+    }
+    return "overview";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab());
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
