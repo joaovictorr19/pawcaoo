@@ -109,7 +109,7 @@ function LayoutContent({ children, currentPageName }) {
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
     ...queryConfig.user,
@@ -396,6 +396,7 @@ function LayoutContent({ children, currentPageName }) {
         }
       `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
+        {user && (
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-200 p-4 md:p-6">
             <a 
@@ -405,7 +406,7 @@ function LayoutContent({ children, currentPageName }) {
             >
               <PawCaoLogo size="default" />
             </a>
-            
+
             {planBadge && (
               <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
                 <div className="text-xs font-semibold">
@@ -434,7 +435,7 @@ function LayoutContent({ children, currentPageName }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarHeader>
-          
+
           <SidebarContent className="p-3 md:p-4">
             {/* My Profile - Now redirects to UserProfile */}
             <SidebarGroup>
@@ -662,24 +663,33 @@ function LayoutContent({ children, currentPageName }) {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
+            </SidebarContent>
+            </Sidebar>
+            )}
 
-        <main className="flex-1 flex flex-col min-w-0">
-          <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-10">
+            <main className="flex-1 flex flex-col min-w-0">
+            <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-10">
             <div className="flex items-center gap-2 md:gap-4">
-              <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors flex-shrink-0" />
+              {user && (
+                <SidebarTrigger className="md:hidden hover:bg-green-100 p-2 rounded-lg transition-colors flex-shrink-0" />
+              )}
 
-              <Link to={createPageUrl("Home")} className="md:hidden flex-shrink-0">
-                <PawCaoLogo size="small" showText={false} />
+              <Link to={createPageUrl("Home")} className={`${user ? "md:hidden" : ""} flex-shrink-0`}>
+                <PawCaoLogo size="small" showText={!user} />
               </Link>
 
-              <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
-                <PawCaoLogo size="small" showText={false} />
-                <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
-                  {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
-                </h1>
-              </div>
+              {user && (
+                <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
+                  <PawCaoLogo size="small" showText={false} />
+                  <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
+                    {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
+                  </h1>
+                </div>
+              )}
+
+              {!user && (
+                <div className="flex-1"></div>
+              )}
 
               {planBadge && (
                 <Badge className={`${planBadge.color} text-white text-[10px] md:text-sm shadow-lg flex-shrink-0 px-2 md:px-3 py-1`}>
@@ -696,10 +706,20 @@ function LayoutContent({ children, currentPageName }) {
                   </Badge>
                 </Link>
               )}
-              
+
+              {!user && !isLoadingUser && (
+                <Button 
+                  onClick={() => base44.auth.redirectToLogin()}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm"
+                  size="sm"
+                >
+                  {language === 'pt' ? 'Entrar' : language === 'es' ? 'Entrar' : 'Login'}
+                </Button>
+              )}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 flex-shrink-0">
+                  <Button variant="ghost" size="icon" className={`${user ? "md:hidden" : ""} h-8 w-8 flex-shrink-0 ml-2`}>
                     <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -709,8 +729,8 @@ function LayoutContent({ children, currentPageName }) {
                   <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          </header>
+              </div>
+              </header>
 
           <div className="flex-1 overflow-auto">
             {children}
