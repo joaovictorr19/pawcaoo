@@ -53,7 +53,7 @@ export const translations = {
     saveAvailability: "Guardar",
     saving: "A guardar...",
     upcomingBookings: "Próximas Reservas",
-    // noUpcomingBookings: "Sem reservas", // Duplicate removed
+    noUpcomingBookings: "Sem reservas",
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -674,7 +674,7 @@ export const translations = {
     professionalCertifications: "Certificações Profissionais",
     certificationName: "Nome da Certificação",
     issuingOrganization: "Organização Emissora",
-    year: "Ano",
+    // year: "Ano", // Duplicate removed
     
     buildTrustWithClients: "✓ Construa confiança com os clientes! Carregue uma verificação de antecedentes de um fornecedor confiável.",
     
@@ -725,7 +725,7 @@ export const translations = {
     newNotification: "new",
 
     // Manage Availability
-    manageAvailability: "Manage Availability",
+    // manageAvailability: "Manage Availability", // Duplicate removed
     setAvailableTimeSlots: "Set your available time slots",
     selectDate: "Select a Date",
     timeSlots: "Time Slots",
@@ -937,7 +937,7 @@ export const translations = {
     planComparisonTitle: "Plan Comparison",
     featureLabel: "Feature",
     monthlyFeeLabel: "Monthly Fee",
-    commissionLabel: "Commission",
+    // commissionLabel: "Commission", // Duplicate removed
     bookingsPerMonthLabel: "Bookings/Month",
     upToLabel: "Up to",
     unlimitedLabel: "Unlimited",
@@ -948,7 +948,7 @@ export const translations = {
     supportLabel: "Support",
     emailSupport: "Email",
     fastSupport: "24h",
-    prioritySupport: "Priority",
+    // prioritySupport: "Priority", // Duplicate removed
     directTeamSupport: "Direct Team",
     profilePhotosLabel: "Profile Photos/Videos",
     photoLabel: "photo",
@@ -962,7 +962,7 @@ export const translations = {
     moreVisibilityTitle: "More Visibility",
     prioritySearches: "Priority placement in searches",
     fasterPaymentsTitle: "Faster Payments",
-    instantPayments: "Get paid instantly",
+    // instantPayments: "Get paid instantly", // Duplicate removed
     betterSupportTitle: "Better Support",
     priorityWhenNeeded: "Priority assistance when you need it",
     calculateEarnings: "Calculate Your Potential Earnings",
@@ -990,7 +990,7 @@ export const translations = {
     availableWalkers: "Available Walkers",
     walkersFound: "walkers found",
     dogsNeedingHelp: "dogs need help now",
-    available: "Available",
+    // available: "Available", // Duplicate removed
     unavailable: "Unavailable",
     allWalkers: "All Walkers",
     
@@ -1132,7 +1132,7 @@ export const translations = {
     trackWalkLive: "Track Walk Live",
     walkStats: "Walk Stats",
     distance: "Distance",
-    duration: "Duration",
+    // duration: "Duration", // Duplicate removed
     updates: "Updates",
     currentBehavior: "Current Behavior",
     mood: "Mood",
@@ -1151,16 +1151,16 @@ export const translations = {
     bathroomBreaks: "Bathroom breaks",
     
     // Professional Dashboard
-    professionalDashboard: "Professional Dashboard",
+    // professionalDashboard: "Professional Dashboard", // Duplicate removed
     totalEarned: "Total Earned",
     // totalBookings: "Total Bookings", // Duplicate key, keeping the one above
     averageRating: "Average Rating",
     clientRetention: "Client Retention",
     weeklyPerformance: "Weekly Performance",
     statusDistribution: "Status Distribution",
-    completed: "Completed",
-    pending: "Pending",
-    cancelled: "Cancelled",
+    // completed: "Completed", // Duplicate removed
+    // pending: "Pending", // Duplicate removed
+    // cancelled: "Cancelled", // Duplicate removed
     recurringClients: "Recurring Clients",
     recentReviews: "Recent Reviews",
     availabilityCalendar: "Availability Calendar",
@@ -1354,7 +1354,7 @@ export const translations = {
     professionalCertifications: "Professional Certifications",
     certificationName: "Certification Name",
     issuingOrganization: "Issuing Organization",
-    year: "Year",
+    // year: "Year", // Duplicate removed
     
     buildTrustWithClients: "✓ Build trust with clients! Upload a background check from a trusted provider.",
     
@@ -1405,7 +1405,7 @@ export const translations = {
     newNotification: "nueva",
     
     // Manage Availability
-    manageAvailability: "Gestionar Disponibilidad",
+    // manageAvailability: "Gestionar Disponibilidad", // Duplicate removed
     setAvailableTimeSlots: "Establece tus horarios disponibles",
     selectDate: "Seleccionar Fecha",
     timeSlots: "Horarios",
@@ -1617,7 +1617,7 @@ export const translations = {
     planComparisonTitle: "Comparación de Planes",
     featureLabel: "Función",
     monthlyFeeLabel: "Tarifa Mensual",
-    commissionLabel: "Comisión",
+    // commissionLabel: "Comisión", // Duplicate removed
     bookingsPerMonthLabel: "Reservas/Mes",
     upToLabel: "Hasta",
     unlimitedLabel: "Ilimitado",
@@ -1628,7 +1628,7 @@ export const translations = {
     supportLabel: "Soporte",
     emailSupport: "Email",
     fastSupport: "24h",
-    prioritySupport: "Prioritario",
+    // prioritySupport: "Prioritario", // Duplicate removed
     directTeamSupport: "Equipo Directo",
     profilePhotosLabel: "Fotos/Videos de Perfil",
     photoLabel: "foto",
@@ -1642,7 +1642,7 @@ export const translations = {
     moreVisibilityTitle: "Más Visibilidad",
     prioritySearches: "Colocación prioritaria en búsquedas",
     fasterPaymentsTitle: "Pagos Más Rápidos",
-    instantPayments: "Recibe el pago al instante",
+    // instantPayments: "Recibe el pago al instante", // Duplicate removed
     betterSupportTitle: "Mejor Soporte",
     priorityWhenNeeded: "Asistencia prioritaria cuando la necesites",
     calculateEarnings: "Calcula tus Ganancias Potenciales",
@@ -1670,7 +1670,7 @@ export const translations = {
     availableWalkers: "Paseadores Disponibles",
     walkersFound: "paseadores encontrados",
     dogsNeedingHelp: "perros necesitan ayuda ahora",
-    available: "Disponible",
+    // available: "Disponible", // Duplicate removed
     unavailable: "No disponible",
     allWalkers: "Todos los Paseadores",
     
@@ -1831,16 +1831,16 @@ export const translations = {
     bathroomBreaks: "Pausas para necesidades",
     
     // Professional Dashboard
-    professionalDashboard: "Panel Profesional",
+    // professionalDashboard: "Panel Profesional", // Duplicate removed
     totalEarned: "Total Ganado",
     // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
     averageRating: "Calificación Promedio",
     clientRetention: "Retención de Clientes",
     weeklyPerformance: "Rendimiento Semanal",
     statusDistribution: "Distribución de Estado",
-    completed: "Completadas",
-    pending: "Pendientes",
-    cancelled: "Canceladas",
+    // completed: "Completadas", // Duplicate removed
+    // pending: "Pendientes", // Duplicate removed
+    // cancelled: "Canceladas", // Duplicate removed
     recurringClients: "Clientes Recurrentes",
     recentReviews: "Reseñas Recientes",
     availabilityCalendar: "Calendario de Disponibilidad",
@@ -2034,7 +2034,7 @@ export const translations = {
     professionalCertifications: "Certificaciones Profesionales",
     certificationName: "Nombre de la Certificación",
     issuingOrganization: "Organización Emisora",
-    year: "Año",
+    // year: "Año", // Duplicate removed
     
     buildTrustWithClients: "✓ ¡Genera confianza con los clientes! Sube una verificación de antecedentes de un proveedor de confianza.",
     
