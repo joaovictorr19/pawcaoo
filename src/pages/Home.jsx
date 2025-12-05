@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card"; // Added import for Card
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard"; // Import TrainerCard
