@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -141,7 +140,7 @@ export default function AdminDashboard() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
     queryFn: () => base44.entities.Payment.list('-held_date', 100),
-    enabled: user?.role === 'admin' && activeTab === 'payments',
+    enabled: user?.role === 'admin',
     initialData: [],
   });
 
@@ -561,14 +560,57 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="overview">
-            <Card className="border-0 shadow-xl mt-6">
-              <CardHeader>
-                <CardTitle>Visão Geral da Plataforma</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Estatísticas e insights em breve...</p>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              {/* Revenue Stats */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle>Financial Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <p className="text-sm text-gray-600">Total Transaction Volume</p>
+                      <p className="text-2xl font-bold text-green-700">
+                        €{allPayments.reduce((sum, p) => sum + (p.total_amount || 0), 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-gray-600">Platform Revenue</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        €{allPayments.reduce((sum, p) => sum + (p.platform_fee || 0), 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* User Distribution */}
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle>User Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span>Clients (Owners)</span>
+                      <Badge className="bg-blue-500">{allUsers.filter(u => u.account_type === 'owner').length}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Walkers</span>
+                      <Badge className="bg-green-500">{allUsers.filter(u => u.account_type === 'walker' || u.account_type === 'both').length}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Trainers</span>
+                      <Badge className="bg-purple-500">{allUsers.filter(u => u.account_type === 'trainer' || u.account_type === 'both').length}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Companies</span>
+                      <Badge className="bg-orange-500">{allUsers.filter(u => u.account_type === 'company').length}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="users">

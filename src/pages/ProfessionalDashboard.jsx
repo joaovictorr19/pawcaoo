@@ -145,6 +145,8 @@ export default function ProfessionalDashboard() {
     return lastMessage && lastMessage !== user?.email;
   }).length;
 
+  const uniqueClients = new Set(allBookings.map(b => b.owner_email)).size;
+
   // Chart data
   const getLast7DaysData = () => {
     const days = [];
@@ -192,6 +194,12 @@ export default function ProfessionalDashboard() {
       value: averageRating,
       label: `Rating (${reviews.length} reviews)`,
       color: "from-yellow-500 to-orange-600",
+    },
+    {
+      icon: Users,
+      value: uniqueClients,
+      label: "Unique Clients",
+      color: "from-purple-500 to-pink-600",
     },
     {
       icon: MessageCircle,

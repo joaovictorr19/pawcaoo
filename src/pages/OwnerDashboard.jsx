@@ -71,11 +71,22 @@ export default function OwnerDashboard() {
     initialData: []
   });
 
+  const { data: myGivenReviews = [] } = useQuery({
+    queryKey: ['myGivenReviews', user?.email],
+    queryFn: () => base44.entities.Review.filter({ reviewer_email: user?.email }),
+    enabled: !!user,
+    initialData: []
+  });
+
   // Calculate statistics
   const totalSpent = allBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
   const completedBookings = allBookings.filter(b => b.status === 'completed');
   const avgBookingValue = completedBookings.length > 0 
     ? totalSpent / completedBookings.length 
+    : 0;
+
+  const avgRatingGiven = myGivenReviews.length > 0
+    ? myGivenReviews.reduce((sum, r) => sum + r.rating, 0) / myGivenReviews.length
     : 0;
 
   // Monthly spending data (last 6 months)
@@ -201,6 +212,17 @@ export default function OwnerDashboard() {
               </div>
               <div className="text-4xl font-bold mb-1">{myDogs.length}</div>
               <div className="text-sm opacity-90">Cadastrados</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-500 to-orange-500 text-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Star className="w-8 h-8 opacity-80" />
+                <Badge className="bg-white/20 text-white">Feedback</Badge>
+              </div>
+              <div className="text-4xl font-bold mb-1">{avgRatingGiven.toFixed(1)}</div>
+              <div className="text-sm opacity-90">Média Dada ({myGivenReviews.length})</div>
             </CardContent>
           </Card>
         </div>
