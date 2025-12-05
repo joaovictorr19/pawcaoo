@@ -281,9 +281,15 @@ export default function StaticExport() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Exportação de Landing Page Estática</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Gere uma página HTML ultra-rápida e otimizada para SEO para usar no seu domínio externo (Netlify, Vercel, etc).
           </p>
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
+            <p className="text-sm text-blue-700">
+              <strong>Nota sobre o banner:</strong> O banner "Criado com Base44" que aparece neste ambiente de testes 
+              será <strong>automaticamente removido</strong> na versão exportada. Seu site ficará 100% limpo no seu domínio.
+            </p>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
