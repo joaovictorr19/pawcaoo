@@ -291,8 +291,24 @@ export default function AdminDashboard() {
     mutationFn: (id) => base44.entities.CompanyAnnouncement.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
-      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); // Assuming this query key is used elsewhere for active announcements
+      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); 
       toast.success("Anúncio eliminado!");
+    },
+  });
+
+  const updateWalkerMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.WalkerProfile.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['walkerApplications'] });
+      toast.success("Perfil de passeador atualizado!");
+    },
+  });
+
+  const updateTrainerMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.TrainerProfile.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainerApplications'] });
+      toast.success("Perfil de treinador atualizado!");
     },
   });
 
@@ -560,6 +576,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="applications">Candidaturas</TabsTrigger>
             <TabsTrigger value="badges">Emblemas</TabsTrigger>
             <TabsTrigger value="companies">Empresas</TabsTrigger>
             <TabsTrigger value="announcements">Anúncios</TabsTrigger>
@@ -705,6 +722,101 @@ export default function AdminDashboard() {
                       ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="applications">
+            <Card className="border-0 shadow-xl mt-6">
+              <CardHeader>
+                <CardTitle>Candidaturas Pendentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Walkers */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Passeadores ({walkerApplications.length})</h3>
+                    {walkerApplications.length === 0 ? (
+                      <p className="text-gray-500">Nenhuma candidatura de passeador.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {walkerApplications.map(app => (
+                          <Card key={app.id} className="p-4 border border-gray-200">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-bold">{app.walker_name}</h4>
+                                <p className="text-sm text-gray-600">{app.location}</p>
+                                <p className="text-sm text-gray-600">Exp: {app.experience_years} anos</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  className="bg-green-600"
+                                  onClick={() => updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true } })}
+                                >
+                                  Aprovar
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if(confirm('Rejeitar candidatura?')) {
+                                      updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'rejected' } })
+                                    }
+                                  }}
+                                >
+                                  Rejeitar
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trainers */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Treinadores ({trainerApplications.length})</h3>
+                    {trainerApplications.length === 0 ? (
+                      <p className="text-gray-500">Nenhuma candidatura de treinador.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {trainerApplications.map(app => (
+                          <Card key={app.id} className="p-4 border border-gray-200">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-bold">{app.business_name || app.trainer_name}</h4>
+                                <p className="text-sm text-gray-600">{app.location}</p>
+                                <p className="text-sm text-gray-600">Taxa: €{app.hourly_rate}/h</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  className="bg-green-600"
+                                  onClick={() => updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true } })}
+                                >
+                                  Aprovar
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if(confirm('Rejeitar candidatura?')) {
+                                      updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'rejected' } })
+                                    }
+                                  }}
+                                >
+                                  Rejeitar
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
