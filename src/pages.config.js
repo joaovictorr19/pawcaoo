@@ -59,6 +59,7 @@ import ManageAdoptionListings from './pages/ManageAdoptionListings';
 import OwnerDashboard from './pages/OwnerDashboard';
 import Sitemap from './pages/Sitemap';
 import Home from './pages/Home';
+import ShelterDashboard from './pages/ShelterDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -124,6 +125,7 @@ export const PAGES = {
     "OwnerDashboard": OwnerDashboard,
     "Sitemap": Sitemap,
     "Home": Home,
+    "ShelterDashboard": ShelterDashboard,
 }
 
 export const pagesConfig = {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users, LogOut } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, MessageCircle, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users, LogOut, Building2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -157,6 +157,9 @@ function LayoutContent({ children, currentPageName }) {
     // { title: language === 'pt' ? 'Serviços' : language === 'es' ? 'Servicios' : 'Services', url: createPageUrl("PartnerServices"), icon: Store },
     // { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
+
+    // Shelter Dashboard (Visible to all for easy access in this demo, typically would be conditional)
+    { title: language === 'pt' ? 'Área de Abrigos' : language === 'es' ? 'Área de Refugios' : 'Shelter Area', url: createPageUrl("ShelterDashboard"), icon: Building2 },
 
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
