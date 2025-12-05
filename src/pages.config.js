@@ -60,6 +60,7 @@ import OwnerDashboard from './pages/OwnerDashboard';
 import Sitemap from './pages/Sitemap';
 import Home from './pages/Home';
 import ShelterDashboard from './pages/ShelterDashboard';
+import AdminShelterVerification from './pages/AdminShelterVerification';
 import __Layout from './Layout.jsx';
 
 
@@ -126,6 +127,7 @@ export const PAGES = {
     "Sitemap": Sitemap,
     "Home": Home,
     "ShelterDashboard": ShelterDashboard,
+    "AdminShelterVerification": AdminShelterVerification,
 }
 
 export const pagesConfig = {

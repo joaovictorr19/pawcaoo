@@ -190,8 +190,9 @@ function LayoutContent({ children, currentPageName }) {
   const adminItem = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: language === 'pt' ? 'Aprovar Anúncios' : language === 'es' ? 'Aprobar Anuncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
-    { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield }
-  ] : [];
+    { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield },
+    { title: language === 'pt' ? 'Verificar Abrigos' : language === 'es' ? 'Verificar Refugios' : 'Verify Shelters', url: createPageUrl("AdminShelterVerification"), icon: Building2 }
+    ] : [];
 
   const moderatorItem = (user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
     { title: language === 'pt' ? 'Moderação' : language === 'es' ? 'Moderación' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
