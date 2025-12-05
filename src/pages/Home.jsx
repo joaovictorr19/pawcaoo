@@ -564,7 +564,7 @@ export default function Home() {
                     <Button 
                       onClick={() => navigate(createPageUrl('OwnerDashboard'))} 
                       variant="outline" 
-                      className="border-white text-white hover:bg-white/10"
+                      className="border-white text-white bg-transparent hover:bg-white/10 hover:text-white"
                     >
                       <Users className="w-4 h-4 mr-2" />
                       Meu Painel
