@@ -232,7 +232,41 @@ export default function MyBookings() {
               <Eye className="w-4 h-4 mr-2" />
               Ver Detalhes
             </Button>
-            
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const targetId = isWalker ? booking.created_by : booking.walker_id;
+                // If we have the ID (walker), use it. If we have email (owner), we might need to find user, 
+                // but Messages.js handles creation better with ID. 
+                // Ideally for owner messaging walker: walker_id is available.
+                // For walker messaging owner: owner_id might not be directly available in booking, but created_by is email.
+                // Messages.js supports walker_id/trainer_id params to finding professionals. 
+                // For general messaging, we might need to pass email if it's not a professional.
+                // Current Messages.js logic is optimized for finding professionals via ID or email.
+                // Let's try to pass email if we don't have professional ID, or just navigate to Messages.
+
+                // Simplification: If I am the owner, I message the walker (using walker_id).
+                // If I am the walker, I message the owner (using their email/name in new chat dialog? Or just open messages).
+                // Actually, Messages page primarily supports opening chat with professional. 
+                // Let's just navigate to Messages and let user select/find. 
+                // OR improved: navigate with a new param `target_email`? Messages.js supports `newChatEmail` state but not via URL.
+
+                // Let's use walker_id if available and I am owner.
+                if (!isWalker && booking.walker_id) {
+                   navigate(createPageUrl(`Messages?walker_id=${booking.walker_id}`));
+                } else {
+                   // Fallback for walker messaging owner: just open messages
+                   navigate(createPageUrl(`Messages`));
+                }
+              }}
+              className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Mensagem
+            </Button>
+
             {booking.status === 'confirmed' && isWalker && (
               <Button
                 size="sm"

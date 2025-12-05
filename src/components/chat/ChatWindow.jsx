@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,13 +14,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import NotificationService from "../NotificationService";
+import { useCreateNotification } from "../NotificationService";
 
 export default function ChatWindow({ conversation, messages, currentUser, onMessagesUpdate }) {
   const [messageText, setMessageText] = useState("");
   const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
+  const createNotification = useCreateNotification();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -111,11 +111,13 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
       ) || [];
 
       for (const participant of otherParticipants) {
-        await NotificationService.newMessage({
-          conversation,
-          sender: currentUser,
-          message,
-          recipientEmail: participant.email
+        await createNotification.mutateAsync({
+          recipient_email: participant.email,
+          title: `Nova mensagem de ${currentUser?.full_name || 'Utilizador'}`,
+          message: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
+          type: 'message',
+          action_url: `/Messages?conversation_id=${conversation.id}`,
+          priority: 'normal'
         });
       }
 
