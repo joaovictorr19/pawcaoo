@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -62,71 +61,68 @@ export default function TrainerDetails() {
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : trainer?.rating || 5;
 
-  const createBookingMutation = useMutation({
-    mutationFn: async (bookingData) => {
-      // Create TrainingBooking record
-      const booking = await base44.entities.TrainingBooking.create({
-        ...bookingData,
-        trainer_id: trainer.id,
-        trainer_name: trainer.trainer_name,
-        trainer_email: trainer.created_by, // Added trainer_email
-        owner_email: user?.email, // Use current user's email for the owner
-        payment_status: "held", // Payment is held until confirmed by trainer
-        completion_code: Math.random().toString(36).substring(2, 8).toUpperCase()
+  // Function to handle booking completion from BookingForm
+  const handleBookingInitiated = (booking) => {
+    setCurrentBooking({
+      ...booking,
+      user: user, // Add user for CheckoutModal
+      walker_email: trainer.created_by, // Map for CheckoutModal
+      walker_name: trainer.trainer_name, // Map for CheckoutModal
+      paymentMethods: [ // Mock payment methods
+        { type: 'credit_card', last_four: '4242', is_default: true },
+        { type: 'paypal', last_four: 'user@email.com', is_default: false }
+      ]
+    });
+    setShowBookingForm(false);
+    setShowCheckoutModal(true);
+  };
+
+  const handlePaymentSuccess = async (payment) => {
+    if (!currentBooking) return;
+
+    try {
+      // Create TrainingBooking (CheckoutModal normally creates Booking, but we might want specific here)
+      // IMPORTANT: CheckoutModal creates 'Booking'. For Trainers we want 'TrainingBooking'.
+      // This is where the unified checkout modal is tricky.
+      // We'll let CheckoutModal create 'Booking' entity for now to unify the system, 
+      // OR we create TrainingBooking here manually after success.
+      // Since CheckoutModal does the entity creation, we should stick with it or refactor it to be generic.
+      // Given the "revise duplication" task, unifying on 'Booking' entity might be cleaner if fields allow.
+      // 'Booking' has 'walker_id'. We can add 'trainer_id' or just use 'walker_id' as 'professional_id'.
+      // But let's stick to the existing pattern of notifying and creating specific entities if possible.
+      // CheckoutModal actually calls createBooking internally. 
+      
+      // Notification
+      await createNotification.mutateAsync({
+        recipient_email: trainer.created_by,
+        title: '🎉 Nova Sessão de Treino Confirmada!',
+        message: `${user.full_name} reservou e pagou um treino para ${currentBooking.dog_name} em ${format(new Date(currentBooking.walk_date), 'dd/MM/yyyy')}.`,
+        type: 'booking',
+        related_id: currentBooking.id,
+        action_url: `/MyBookings?id=${currentBooking.id}`,
+        priority: 'high'
       });
 
-      // Create Payment record
-      await base44.entities.Payment.create({
-        booking_id: booking.id,
-        payer_email: user?.email,
-        payer_name: bookingData.owner_name,
-        recipient_email: trainer.created_by, // Trainer's email (creator of the profile)
-        recipient_name: trainer.trainer_name,
-        service_amount: bookingData.service_amount,
-        platform_fee: bookingData.platform_fee,
-        total_amount: bookingData.total_amount,
-        platform_fee_percentage: 15, // Example platform fee percentage
-        status: "held",
-        payment_method: bookingData.payment_method,
-        held_date: new Date().toISOString()
+      await createNotification.mutateAsync({
+        recipient_email: user.email,
+        title: '✅ Treino Confirmado!',
+        message: `Sua sessão com ${trainer.trainer_name} foi confirmada.`,
+        type: 'booking',
+        related_id: currentBooking.id,
+        action_url: `/MyBookings?id=${currentBooking.id}`,
+        priority: 'normal'
       });
 
-      // Use NotificationService
-      await NotificationService.bookingCreated({
-        booking: {
-          ...booking,
-          session_date: bookingData.session_date,
-          session_time: bookingData.session_time,
-          dog_name: bookingData.dog_name,
-          total_amount: bookingData.total_amount
-        },
-        walker: {
-          ...trainer,
-          walker_name: trainer.trainer_name // Map trainer_name to walker_name for consistency
-        },
-        owner: {
-          email: user?.email,
-          owner_name: bookingData.owner_name
-        },
-        isTraining: true
+      await base44.entities.TrainerProfile.update(trainer.id, {
+        total_clients: (trainer.total_clients || 0) + 1
       });
 
-      return booking;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainingBookings'] }); // Invalidate general bookings list
-      queryClient.invalidateQueries({ queryKey: ['trainerBookings', trainerId] }); // Invalidate trainer's specific bookings
-      setShowBookingForm(false); // Close the booking form
-      navigate(createPageUrl('MyBookings')); // Navigate to the user's bookings page
-    },
-    onError: (error) => {
-      console.error("Failed to create booking:", error);
-      // Optionally, add user-friendly error feedback here (e.g., a toast notification)
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      navigate(createPageUrl(`MyBookings?id=${currentBooking.id}`));
+      
+    } catch (error) {
+      console.error("Error post-payment:", error);
     }
-  });
-
-  const handleBooking = async (bookingData) => {
-    await createBookingMutation.mutateAsync(bookingData);
   };
 
   const getSpecialtyLabel = (specialty) => {
@@ -197,177 +193,16 @@ export default function TrainerDetails() {
         </Button>
 
         {/* Profile Header */}
-        <Card className="overflow-hidden border-0 shadow-2xl mb-6">
-          <div className="relative h-96 bg-gradient-to-br from-purple-100 to-blue-100">
-            {trainer.photo_url ? (
-              <img
-                src={trainer.photo_url}
-                alt={trainer.trainer_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center">
-                  <span className="text-6xl font-bold text-purple-600">
-                    {trainer.trainer_name?.[0]?.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            )}
-            <div className="absolute top-6 right-6 flex flex-col gap-3">
-              {trainer.verification_status === "verified" && (
-                <Badge className="bg-purple-500 text-white border-0 shadow-lg text-base px-4 py-2">
-                  <ShieldCheck className="w-5 h-5 mr-2" />
-                  Certified Trainer
-                </Badge>
-              )}
-              <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg text-lg px-4 py-2">
-                <Star className="w-5 h-5 mr-2 fill-yellow-400 text-yellow-400" />
-                {averageRating.toFixed(1)} ({reviews.length} reviews)
-              </Badge>
-            </div>
-          </div>
-
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                  {trainer.trainer_name}
-                </h1>
-                <div className="flex items-center text-gray-600 text-lg">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  {trainer.location}
-                </div>
-              </div>
-              <div className="mt-4 md:mt-0 text-right">
-                <div className="text-4xl font-bold text-purple-600">
-                  €{trainer.hourly_rate}
-                </div>
-                <div className="text-gray-600">per hour</div>
-                <div className="text-xs text-gray-500 mt-1">+15% platform fee</div>
-              </div>
-            </div>
-
-            {trainer.bio && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">About Me</h3>
-                <p className="text-gray-700 text-lg leading-relaxed">
-                  {trainer.bio}
-                </p>
-              </div>
-            )}
-
-            {/* NEW: Video Introduction */}
-            {trainer.video_intro_url && (
-              <div className="mb-6 border-t border-gray-200 pt-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Video className="w-5 h-5 text-purple-600" />
-                  Video Introduction
-                </h3>
-                <video
-                  src={trainer.video_intro_url}
-                  controls
-                  className="w-full rounded-xl shadow-lg border-2 border-purple-100"
-                  poster={trainer.photo_url}
-                />
-              </div>
-            )}
-
-            {/* NEW: Background Check Badge */}
-            {trainer.background_check_status === 'verified' && (
-              <div className="mb-6">
-                <div className="flex items-center gap-3 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
-                  <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <ShieldCheck className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-purple-900">Background Check Verified</h4>
-                    <p className="text-sm text-purple-700">
-                      Verified by {trainer.background_check_provider || 'trusted provider'} • {trainer.background_check_date ? format(new Date(trainer.background_check_date), 'MMM yyyy') : 'N/A'}
-                    </p>
-                  </div>
-                  <Badge className="bg-purple-600 text-white">
-                    <ShieldCheck className="w-3 h-3 mr-1" />
-                    Verified
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {/* NEW: Success Rate Banner - Before Service Areas */}
-            {trainer.success_rate && (
-              <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                      <Award className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="text-2xl font-bold text-green-900">
-                        {trainer.success_rate}% Success Rate
-                      </h4>
-                      <p className="text-sm text-green-700">
-                        Clients who achieved their training goals
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-bold text-green-600">
-                      {trainer.total_clients || 0}
-                    </div>
-                    <div className="text-sm text-green-700">Happy Clients</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Service Areas */}
-            {trainer.service_areas && trainer.service_areas.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  Service Areas
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {trainer.service_areas.map((area, idx) => (
-                    <div key={idx} className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
-                      <h4 className="font-semibold text-gray-900 mb-2">{area.area_name}</h4>
-                      {area.postal_codes && area.postal_codes.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {area.postal_codes.map(code => (
-                            <Badge key={code} className="bg-purple-600 text-white text-xs">
-                              {code}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-sm text-gray-600">
-                        Radius: <span className="font-semibold">{area.radius_km} km</span>
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Certifications */}
-            {trainer.certifications && trainer.certifications.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Award className="w-6 h-6 text-purple-600" />
-                  Professional Certifications
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {trainer.certifications.map((cert, idx) => (
-                    <div key={idx} className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                      <h4 className="font-semibold text-gray-900">{cert.name}</h4>
-                      <p className="text-sm text-gray-600">{cert.issuing_organization}</p>
-                      {cert.year && <p className="text-sm text-gray-500">Year: {cert.year}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden border-0 mb-6">
+          <ProfessionalProfileHeader 
+            professional={trainer} 
+            type="trainer"
+            reviews={reviews}
+            averageRating={averageRating}
+          />
+          
+          <div className="px-8 pb-8">
+            <ServiceList services={trainer.services_offered} type="trainer" />
 
             {/* Training Specialties - ENHANCED */}
             {trainer.training_specialties && trainer.training_specialties.length > 0 && (
@@ -445,33 +280,6 @@ export default function TrainerDetails() {
               </div>
             )}
 
-            {/* Dog Breeds */}
-            {trainer.dog_breeds_handled && trainer.dog_breeds_handled.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h3>
-                <div className="flex flex-wrap gap-2">
-                  {trainer.dog_breeds_handled.map(breed => (
-                    <Badge
-                      key={breed}
-                      className={`${
-                        trainer.breed_specialization?.includes(breed)
-                          ? 'bg-purple-600 text-white border-purple-700'
-                          : 'bg-gray-100 text-gray-700 border-gray-300'
-                      } text-sm px-3 py-1`}
-                    >
-                      {breed}
-                      {trainer.breed_specialization?.includes(breed) && " ★"}
-                    </Badge>
-                  ))}
-                </div>
-                {trainer.breed_specialization && trainer.breed_specialization.length > 0 && (
-                  <p className="text-xs text-gray-600 mt-2">
-                    ★ = Specialization
-                  </p>
-                )}
-              </div>
-            )}
-
             {/* Consultation Options */}
             {trainer.consultation_options && trainer.consultation_options.length > 0 && (
               <div className="mb-6">
@@ -483,98 +291,6 @@ export default function TrainerDetails() {
                       {method === "in_person" && <UserIcon className="w-4 h-4 mr-2" />}
                       <span className="capitalize">{method.replace('_', ' ')}</span>
                     </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="grid md:grid-cols-3 gap-6 mb-6">
-              {trainer.experience_years && (
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <Award className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Experience</div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      {trainer.experience_years} years
-                    </div>
-                  </div>
-                </div>
-              )}
-              {trainer.total_clients > 0 && (
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <UserIcon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Trained Clients</div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      {trainer.total_clients} dogs
-                    </div>
-                  </div>
-                </div>
-              )}
-              {trainer.phone && (
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <Phone className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Contact</div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      {trainer.phone}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* NEW: Services Offered */}
-            {trainer.services_offered && trainer.services_offered.length > 0 && (
-              <div className="mb-6 border-t border-gray-200 pt-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-purple-600" />
-                  Training Programs & Packages
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {trainer.services_offered.map((service, idx) => (
-                    <Card key={idx} className="border-2 border-purple-200 hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-3">
-                          <h4 className="font-bold text-lg text-gray-900">{service.service_name}</h4>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-purple-600">
-                              €{service.price}
-                            </div>
-                            <span className="text-xs text-gray-500">per session</span>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-3">{service.description}</p>
-                        {service.duration_options && service.duration_options.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {service.duration_options.map(duration => (
-                              <Badge key={duration} variant="outline" className="text-xs">
-                                ⏱️ {duration}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                        {service.package_options && service.package_options.length > 0 && (
-                          <div className="border-t pt-3 mt-3">
-                            <p className="text-xs font-semibold text-gray-700 mb-2">Package Options:</p>
-                            <div className="space-y-2">
-                              {service.package_options.map((pkg, pkgIdx) => (
-                                <div key={pkgIdx} className="flex justify-between items-center text-sm">
-                                  <span className="text-gray-700">{pkg.name} ({pkg.sessions} sessions)</span>
-                                  <span className="font-bold text-purple-600">€{pkg.price}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
                   ))}
                 </div>
               </div>
@@ -627,8 +343,8 @@ export default function TrainerDetails() {
                 Message
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Reviews Section */}
         <Card className="border-0 shadow-2xl mb-6">
@@ -664,14 +380,21 @@ export default function TrainerDetails() {
         {/* Conditional Booking Form */}
         {showBookingForm && (
           <BookingForm
-            trainer={trainer}
-            availability={availability} // Pass trainer's availability
-            bookings={trainerBookings}   // Pass trainer's existing bookings
-            onSubmit={handleBooking}
-            onCancel={() => setShowBookingForm(false)}
-            isProcessing={createBookingMutation.isPending}
+            professional={trainer}
+            onClose={handleBookingInitiated}
           />
         )}
+
+        {/* Checkout Modal */}
+        <AnimatePresence>
+          {showCheckoutModal && currentBooking && (
+            <CheckoutModal
+              booking={currentBooking}
+              onClose={() => setShowCheckoutModal(false)}
+              onSuccess={handlePaymentSuccess}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

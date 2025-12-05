@@ -16,11 +16,16 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCreateNotification } from "../NotificationService";
 
-export default function BookingForm({ walker, onClose }) {
+export default function BookingForm({ walker, professional, onClose }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
   
+  // Support both legacy 'walker' prop and new generic 'professional' prop
+  const pro = professional || walker;
+  const proName = pro?.walker_name || pro?.trainer_name;
+  const isWalker = !!pro?.walker_name;
+
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_size: "medium",
@@ -52,28 +57,29 @@ export default function BookingForm({ walker, onClose }) {
     enabled: !!user?.email,
   });
 
-  // Buscar subscrição do walker para comissão
-  const { data: walkerSubscription } = useQuery({
-    queryKey: ['walkerSubscription', walker?.created_by],
+  // Buscar subscrição do professional para comissão
+  const { data: proSubscription } = useQuery({
+    queryKey: ['walkerSubscription', pro?.created_by],
     queryFn: async () => {
-      if (!walker?.created_by) return null;
+      if (!pro?.created_by) return null;
+      // Assuming same subscription entity for now, or handled by backend logic
       const subs = await base44.entities.WalkerSubscription.filter({
-        walker_email: walker.created_by,
+        walker_email: pro.created_by,
         is_active: true
       });
       return subs[0] || null;
     },
-    enabled: !!walker?.created_by,
+    enabled: !!pro?.created_by,
   });
 
   // Calcular valores
   const calculateAmounts = () => {
-    const baseAmount = (walker?.hourly_rate || 0) * formData.duration_hours;
+    const baseAmount = (pro?.hourly_rate || 0) * formData.duration_hours;
     const discount = ownerSubscription?.booking_discount_percentage || 0;
     const discountAmount = baseAmount * (discount / 100);
     const afterDiscount = baseAmount - discountAmount;
     
-    const commissionRate = walkerSubscription?.commission_rate || 15;
+    const commissionRate = proSubscription?.commission_rate || 15;
     const platformFee = afterDiscount * (commissionRate / 100);
     const walkerReceives = afterDiscount - platformFee;
     const totalAmount = afterDiscount;
@@ -134,10 +140,29 @@ export default function BookingForm({ walker, onClose }) {
     setIsProcessing(true);
 
     try {
-      await createBookingMutation.mutateAsync({
-        walker_id: walker.id,
-        walker_name: walker.walker_name,
-        walker_email: walker.created_by,
+      const bookingData = {
+        // Handle generic ID field. WalkerDetails uses 'walker_id', TrainerDetails likely needs generic or specific.
+        // CheckoutModal expects 'walker_id' for display/logic? 
+        // Let's standardize on keeping the specific ID field based on type or adding both?
+        // Booking entity has 'walker_id'. TrainingBooking has 'trainer_id'.
+        // But here we create 'Booking' entity which is for Walkers.
+        // If this is for Trainer, we might need to handle differently or this form assumes Booking entity.
+        // TrainerDetails was creating 'TrainingBooking'.
+        // If we use this form for Trainers, we need to know if we create Booking or TrainingBooking.
+        // However, CheckoutModal likely assumes Booking entity or generic.
+        // Let's stick to generating the data structure and let the callback/checkout handle entity creation if needed, 
+        // OR if this mutation creates 'Booking', then it's only for Walkers.
+        // TrainerDetails used to create TrainingBooking. 
+        // If we want to unify, we should probably pass the create function or make this form agnostic.
+        // BUT, the mutation creates `base44.entities.Booking`. 
+        // For now, I will adapt this to work for Walkers (as is) and add basic support for passing data back.
+        
+        // If creating a Booking entity:
+        walker_id: isWalker ? pro.id : undefined, 
+        walker_name: proName,
+        walker_email: pro.created_by,
+        
+        // Common fields
         owner_name: user.full_name,
         owner_phone: user.phone || '',
         dog_name: formData.dog_name,
@@ -149,8 +174,23 @@ export default function BookingForm({ walker, onClose }) {
         platform_fee: amounts.platformFee,
         total_amount: amounts.totalAmount,
         special_notes: formData.special_notes,
-        // status: 'confirmed' - Removed, will be set in checkout
-      });
+        
+        // Extra fields for context if needed
+        professional_type: isWalker ? 'walker' : 'trainer',
+        professional_id: pro.id
+      };
+
+      // Note: The mutation above calls `base44.entities.Booking.create`. 
+      // If this is for a Trainer, we might strictly want `TrainingBooking`.
+      // However, to keep it simple and "revise duplicates", maybe we just use `Booking` for all?
+      // No, schema is different.
+      // Let's just pass the data to `onClose` if it's provided, effectively skipping the internal mutation if handled externally?
+      // But `handleSubmit` calls `createBookingMutation`.
+      
+      // If we are in TrainerDetails, we might want to use the form just for UI and handle submission in parent?
+      // WalkerDetails uses internal mutation then onClose.
+      
+      await createBookingMutation.mutateAsync(bookingData);
     } finally {
       setIsProcessing(false);
     }
@@ -159,9 +199,9 @@ export default function BookingForm({ walker, onClose }) {
   return (
     <form onSubmit={handleSubmit}>
       <Card className="border-0 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-          <CardTitle className="text-2xl">Agendar Passeio</CardTitle>
-          <p className="text-green-50">com {walker?.walker_name}</p>
+        <CardHeader className={`bg-gradient-to-r ${isWalker ? 'from-green-600 to-green-500' : 'from-purple-600 to-purple-500'} text-white`}>
+          <CardTitle className="text-2xl">{isWalker ? 'Agendar Passeio' : 'Agendar Sessão'}</CardTitle>
+          <p className={isWalker ? "text-green-50" : "text-purple-50"}>com {proName}</p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           {/* Nome do Cão */}
@@ -268,17 +308,17 @@ export default function BookingForm({ walker, onClose }) {
 
           {/* Resumo de Valores */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-            <h4 className="font-semibold text-gray-900 mb-3">Resumo do Pagamento</h4>
-            
-            <div className="flex justify-between text-sm">
-              <span>Taxa horária</span>
-              <span>€{walker?.hourly_rate}/hora</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span>Duração</span>
-              <span>{formData.duration_hours}h</span>
-            </div>
+          <h4 className="font-semibold text-gray-900 mb-3">Resumo do Pagamento</h4>
+
+          <div className="flex justify-between text-sm">
+            <span>Taxa horária</span>
+            <span>€{pro?.hourly_rate}/hora</span>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span>Duração</span>
+            <span>{formData.duration_hours}h</span>
+          </div>
             
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>

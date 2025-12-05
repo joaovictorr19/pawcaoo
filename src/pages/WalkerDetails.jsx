@@ -12,13 +12,14 @@ import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
-import NotificationService from "../components/NotificationService";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
 import CheckoutModal from "../components/payments/CheckoutModal"; // Import CheckoutModal
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useCreateNotification } from "../components/NotificationService"; // Import Notification Hook
+import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
+import ServiceList from "../components/professionals/ServiceList";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -196,184 +197,16 @@ export default function WalkerDetails() {
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {/* Profile Header */}
-            <Card className="overflow-hidden border-0 shadow-2xl">
-              <div className="relative h-96 bg-gradient-to-br from-green-100 to-blue-100">
-                {walker.photo_url ? (
-                  <img
-                    src={walker.photo_url}
-                    alt={walker.walker_name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center">
-                      <span className="text-6xl font-bold text-green-600">
-                        {walker.walker_name?.[0]?.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                <div className="absolute top-6 right-6 flex flex-col gap-3">
-                  {walker.verification_status === "verified" && (
-                    <Badge className="bg-green-500 text-white border-0 shadow-lg text-base px-4 py-2">
-                      <ShieldCheck className="w-5 h-5 mr-2" />
-                      Verified Walker
-                    </Badge>
-                  )}
-                  <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg text-lg px-4 py-2">
-                    <Star className="w-5 h-5 mr-2 fill-yellow-400 text-yellow-400" />
-                    {averageRating.toFixed(1)} ({reviews.length} reviews)
-                  </Badge>
-                </div>
-              </div>
-
-              <CardContent className="p-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                  <div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                      {walker.walker_name}
-                    </h1>
-                    <div className="flex items-center text-gray-600 text-lg">
-                      <MapPin className="w-5 h-5 mr-2" />
-                      {walker.location}
-                    </div>
-                  </div>
-                  <div className="mt-4 md:mt-0 text-right">
-                    <div className="text-4xl font-bold text-green-600">
-                      €{walker.hourly_rate}
-                    </div>
-                    <div className="text-gray-600">per hour</div>
-                    <div className="text-xs text-gray-500 mt-1">+15% platform fee</div>
-                  </div>
-                </div>
-
-                {walker.bio && (
-                  <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">About Me</h3>
-                    <p className="text-gray-700 text-lg leading-relaxed">
-                      {walker.bio}
-                    </p>
-                  </div>
-                )}
-
-                {/* NEW: Video Introduction */}
-                {walker.video_intro_url && (
-                  <div className="mb-6 border-t border-gray-200 pt-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <Video className="w-5 h-5 text-green-600" />
-                      Video Introduction
-                    </h3>
-                    <video
-                      src={walker.video_intro_url}
-                      controls
-                      className="w-full rounded-xl shadow-lg border-2 border-green-100"
-                      poster={walker.photo_url}
-                    />
-                  </div>
-                )}
-
-                {/* NEW: Background Check Badge */}
-                {walker.background_check_status === 'verified' && (
-                  <div className="mb-6">
-                    <div className="flex items-center gap-3 bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <ShieldCheck className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-green-900">Background Check Verified</h4>
-                        <p className="text-sm text-green-700">
-                          Verified by {walker.background_check_provider || 'trusted provider'} • {walker.background_check_date ? format(new Date(walker.background_check_date), 'MMM yyyy') : 'N/A'}
-                        </p>
-                      </div>
-                      <Badge className="bg-green-600 text-white">
-                        <ShieldCheck className="w-3 h-3 mr-1" />
-                        Verified
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  {walker.experience_years && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Experience</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          {walker.experience_years} years
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {walker.total_walks > 0 && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Completed Walks</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          {walker.total_walks} walks
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {walker.phone && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                        <Phone className="w-6 h-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Contact</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          {walker.phone}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* NEW: Services Offered */}
-                {walker.services_offered && walker.services_offered.length > 0 && (
-                  <div className="mb-6 border-t border-gray-200 pt-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-green-600" />
-                      Services & Pricing
-                    </h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {walker.services_offered.map((service, idx) => (
-                        <Card key={idx} className="border-2 border-green-200 hover:shadow-lg transition-shadow">
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between mb-3">
-                              <h4 className="font-bold text-lg text-gray-900">{service.service_name}</h4>
-                              <div className="text-right">
-                                <div className="text-2xl font-bold text-green-600">
-                                  €{service.price}
-                                </div>
-                                {service.custom_pricing && (
-                                  <span className="text-xs text-gray-500">starting from</span>
-                                )}
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-700 mb-3">{service.description}</p>
-                            {service.duration_options && service.duration_options.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {service.duration_options.map(duration => (
-                                  <Badge key={duration} variant="outline" className="text-xs">
-                                    ⏱️ {duration}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            <div className="bg-white rounded-xl shadow-2xl overflow-hidden border-0">
+              <ProfessionalProfileHeader 
+                professional={walker} 
+                type="walker" 
+                reviews={reviews}
+                averageRating={averageRating}
+              />
+              
+              <div className="px-8 pb-8">
+                <ServiceList services={walker.services_offered} type="walker" />
 
                 {/* Service Areas - NEW */}
                 {walker.service_areas && walker.service_areas.length > 0 && (
@@ -493,8 +326,8 @@ export default function WalkerDetails() {
                     Message
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* NEW: Availability Calendar */}
             <Card className="border-0 shadow-2xl">
@@ -606,8 +439,8 @@ export default function WalkerDetails() {
 
         {showBookingForm && (
           <BookingForm
-            walker={walker}
-            onClose={handleBookingInitiated} // Changed prop name to match BookingForm modification
+            professional={walker}
+            onClose={handleBookingInitiated}
           />
         )}
 
