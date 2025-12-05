@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userFormData, setUserFormData] = useState({});
@@ -749,6 +750,16 @@ export default function AdminDashboard() {
                                 <p className="text-sm text-gray-600">Exp: {app.experience_years} anos</p>
                               </div>
                               <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedApplication(app);
+                                    setShowApplicationDialog(true);
+                                  }}
+                                >
+                                  Ver Detalhes
+                                </Button>
                                 <Button 
                                   size="sm" 
                                   className="bg-green-600"

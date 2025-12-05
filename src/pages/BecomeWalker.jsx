@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -145,17 +144,8 @@ export default function BecomeWalker() {
 
   const createWalkerMutation = useMutation({
     mutationFn: async (data) => {
-      // Remove sensitive data before creating
-      const sanitizedData = { ...data };
-      delete sanitizedData.id_document_url;
-      delete sanitizedData.background_check_url;
-      delete sanitizedData.background_check_provider;
-      delete sanitizedData.proof_of_address_url;
-      delete sanitizedData.bank_account_holder;
-      delete sanitizedData.bank_account_number;
-      delete sanitizedData.bank_routing_number;
-      
-      return await base44.entities.WalkerProfile.create(sanitizedData);
+      // Data is now saved for verification purposes
+      return await base44.entities.WalkerProfile.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['walkers'] });
