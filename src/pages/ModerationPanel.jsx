@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -78,6 +77,15 @@ export default function ModerationPanel() {
     enabled: isModeratorOrAdmin,
     initialData: [],
   });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsersForModeration'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: isModeratorOrAdmin,
+    initialData: [],
+  });
+
+  const [userSearch, setUserSearch] = useState("");
 
   // Mutation for managing badges on posts (kept, but no longer directly accessible from main UI tabs)
   const updateBadgesMutation = useMutation({
@@ -525,15 +533,72 @@ export default function ModerationPanel() {
             )}
           </TabsContent>
 
-          {/* Users Tab - Empty for now, but provides a placeholder */}
+          {/* Users Tab - Full User Management */}
           <TabsContent value="users" className="space-y-4">
             <Card className="border-0 shadow-xl">
-              <CardContent className="p-12 text-center">
-                <Users className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Gestão de Usuários
-                </h3>
-                <p className="text-gray-600">Funcionalidade em desenvolvimento.</p>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Gestão de Usuários ({allUsers.length})</CardTitle>
+                  <div className="w-72">
+                    <Input 
+                      placeholder="Pesquisar por nome ou email..." 
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {allUsers
+                    .filter(u => 
+                      u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || 
+                      u.email?.toLowerCase().includes(userSearch.toLowerCase())
+                    )
+                    .map(user => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={user.profile_photo_url} />
+                          <AvatarFallback>{user.full_name?.[0] || user.email[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-gray-900">{user.full_name || 'Sem nome'}</p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">{user.role}</Badge>
+                            {user.social_role && <Badge className="bg-purple-100 text-purple-800 text-xs">{user.social_role}</Badge>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            window.location.href = `mailto:${user.email}`;
+                          }}
+                        >
+                          📧 Contactar
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => {
+                            setUserEmailForBadge(user.email);
+                            // Switch tab manually if needed or just scroll/show modal
+                            toast.info(`Email ${user.email} copiado para concessão de badge`);
+                          }}
+                        >
+                          🎖️ Badge
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {allUsers.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">Nenhum usuário encontrado.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
