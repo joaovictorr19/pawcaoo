@@ -47,6 +47,7 @@ export default function CreateAdoptionListing() {
     temperament: {},
     good_with: {},
     special_needs: "",
+    medical_history: "",
     medical_conditions: "",
     is_neutered: false,
     is_vaccinated: false,
@@ -463,11 +464,31 @@ export default function CreateAdoptionListing() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label>Medical History (Vaccines, Surgeries, etc.)</Label>
+                    <Textarea
+                      value={formData.medical_history}
+                      onChange={(e) => setFormData({...formData, medical_history: e.target.value})}
+                      rows={3}
+                      placeholder="Detailed medical history..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label>Medical Conditions (if any)</Label>
                     <Textarea
                       value={formData.medical_conditions}
                       onChange={(e) => setFormData({...formData, medical_conditions: e.target.value})}
-                      rows={3}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Special Needs</Label>
+                    <Textarea
+                      value={formData.special_needs}
+                      onChange={(e) => setFormData({...formData, special_needs: e.target.value})}
+                      rows={2}
+                      placeholder="Any special requirements..."
                     />
                   </div>
 

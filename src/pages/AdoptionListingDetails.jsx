@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, MapPin, Heart, Share2, AlertCircle, CheckCircle2, 
-  Phone, Mail, Calendar, Activity, Home, Users, Stethoscope, FileText, Shield, MessageCircle
+  Phone, Mail, Calendar, Activity, Home, Users, Stethoscope, FileText, Shield, MessageCircle, Brain, AlertTriangle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -64,6 +64,39 @@ export default function AdoptionListingDetails() {
     enabled: !!listingId && !!user,
   });
 
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['adoptionFavorites', user?.email],
+    queryFn: () => base44.entities.AdoptionFavorite.filter({ user_email: user?.email }),
+    enabled: !!user,
+  });
+
+  const isFavorite = favorites.some(f => f.listing_id === listingId);
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      const favorite = favorites.find(f => f.listing_id === listingId);
+      if (favorite) {
+        await base44.entities.AdoptionFavorite.delete(favorite.id);
+      } else {
+        await base44.entities.AdoptionFavorite.create({
+          user_email: user.email,
+          listing_id: listing.id,
+          pet_name: listing.pet_name,
+          pet_photo_url: listing.photos?.[0] || "",
+          location: listing.location_city
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adoptionFavorites'] });
+      toast.success(isFavorite ? "Removed from favorites" : "Added to favorites");
+    },
+    onError: (err) => {
+      toast.error("Failed to update favorites");
+      console.error(err);
+    }
+  });
+
   const handleApply = () => {
     if (!user) {
       const msg = language === 'pt' ? "Faça login para candidatar-se" : language === 'es' ? "Inicia sesión para postularte" : "Please log in to apply for adoption";
@@ -85,7 +118,6 @@ export default function AdoptionListingDetails() {
     }
 
     try {
-      // Check if conversation exists
       const conversations = await base44.entities.ChatConversation.filter({
         participants: {
           "$elemMatch": { email: listing.created_by }
@@ -93,7 +125,6 @@ export default function AdoptionListingDetails() {
         conversation_type: "one_on_one"
       });
 
-      // Filter locally to ensure I am also a participant (RLS should handle this but just in case)
       const existing = conversations.find(c => 
         c.participants.some(p => p.email === user.email) &&
         c.participants.some(p => p.email === listing.created_by)
@@ -102,28 +133,27 @@ export default function AdoptionListingDetails() {
       if (existing) {
         navigate(createPageUrl(`Messages?conversation_id=${existing.id}`));
       } else {
-        // Create new conversation
         const newConv = await base44.entities.ChatConversation.create({
           conversation_type: 'one_on_one',
-          conversation_name: listing.pet_name, // Initial name, usually ignored for 1on1
+          conversation_name: listing.pet_name,
           participants: [
             {
               email: user.email,
               name: user.full_name,
               photo_url: user.profile_photo_url,
-              role: 'owner' // Adopter
+              role: 'owner'
             },
             {
               email: listing.created_by,
-              name: listing.shelter_name || "Owner", // Best guess name
-              photo_url: "", // Placeholder
-              role: 'owner' // Owner
+              name: listing.shelter_name || "Owner",
+              photo_url: "",
+              role: 'owner'
             }
           ],
           last_message: `Olá! Estou interessado em adotar ${listing.pet_name}.`,
           last_message_sender: user.email,
           last_message_date: new Date().toISOString(),
-          tags: ['adoption'] // Tag as adoption related
+          tags: ['adoption']
         });
         navigate(createPageUrl(`Messages?conversation_id=${newConv.id}`));
       }
@@ -223,7 +253,6 @@ export default function AdoptionListingDetails() {
         ]}
       />
       <div className="max-w-6xl mx-auto">
-        {/* Back Button */}
         <Button
           variant="outline"
           className="mb-6"
@@ -233,11 +262,8 @@ export default function AdoptionListingDetails() {
           {t('backToListings', language)}
         </Button>
 
-        {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Photos & Info */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Photos */}
             <Card className="border-0 shadow-2xl overflow-hidden">
               <div className="relative h-96 bg-gray-200">
                 {listing.photos && listing.photos.length > 0 ? (
@@ -245,7 +271,7 @@ export default function AdoptionListingDetails() {
                     <img
                       src={listing.photos[selectedPhoto]}
                       alt={`${listing.pet_name} - ${listing.breed} for adoption`}
-                      loading="eager" // Main image on details page should load eagerly
+                      loading="eager"
                       className="w-full h-full object-cover"
                     />
                     {listing.photos.length > 1 && (
@@ -271,7 +297,6 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
-                {/* Verified Organization Badge */}
                 {listing.is_verified && (
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-green-600 text-white text-sm px-3 py-1.5 shadow-xl">
@@ -281,7 +306,6 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
-                {/* Urgency Badge */}
                 {(listing.urgency_level === "urgent" || listing.urgency_level === "critical") && (
                   <div className="absolute top-4 right-4">
                     <Badge className={
@@ -295,7 +319,6 @@ export default function AdoptionListingDetails() {
                 )}
               </div>
 
-              {/* Thumbnail Gallery */}
               {listing.photos && listing.photos.length > 1 && (
                 <div className="p-4 flex gap-2 overflow-x-auto">
                   {listing.photos.map((photo, index) => (
@@ -313,7 +336,6 @@ export default function AdoptionListingDetails() {
               )}
             </Card>
 
-            {/* About */}
             <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -327,7 +349,6 @@ export default function AdoptionListingDetails() {
                     </div>
                   </div>
                   
-                  {/* Verification Info */}
                   {listing.is_verified && (
                     <div className="text-right">
                       <div className="inline-flex items-center gap-2 bg-green-50 border-2 border-green-200 rounded-lg px-3 py-2">
@@ -348,7 +369,6 @@ export default function AdoptionListingDetails() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Description */}
                 {listing.description && (
                   <div>
                     <h3 className="font-semibold text-lg mb-2">About Me</h3>
@@ -356,7 +376,6 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
-                {/* Rescue Story */}
                 {listing.rescue_story && (
                   <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
@@ -367,43 +386,60 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
-                {/* Temperament & Personality - NEW */}
-                {listing.temperament && (
+                {/* Detailed Health & Special Needs */}
+                {(listing.medical_history || listing.medical_conditions || listing.special_needs) && (
                   <div className="mb-6">
-                    <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-purple-600" />
-                      {language === 'pt' ? 'Personalidade & Temperamento' : 'Personality & Temperament'}
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-blue-600" />
+                      {t('healthInformation', language)}
                     </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-gray-50 p-3 rounded-lg text-center">
-                        <div className="text-xs text-gray-500 uppercase mb-1">Energia</div>
-                        <div className="font-semibold text-purple-700 capitalize">
-                          {listing.temperament.energy_level?.replace('_', ' ') || '-'}
+                    <div className="bg-blue-50 rounded-xl p-4 text-blue-800 space-y-3">
+                      {listing.medical_history && (
+                        <div>
+                          <strong>{t('medicalHistory', language) || "Health History"}:</strong>
+                          <p className="mt-1">{listing.medical_history}</p>
                         </div>
-                      </div>
-                      <div className="bg-gray-50 p-3 rounded-lg text-center">
-                        <div className="text-xs text-gray-500 uppercase mb-1">Amabilidade</div>
-                        <div className="font-semibold text-purple-700 capitalize">
-                          {listing.temperament.friendliness_to_strangers?.replace('_', ' ') || '-'}
+                      )}
+                      {listing.medical_conditions && (
+                        <p><strong>{t('medicalConditions', language)}:</strong> {listing.medical_conditions}</p>
+                      )}
+                      {listing.special_needs && (
+                        <div className="flex items-start gap-2 mt-2 pt-2 border-t border-blue-200">
+                          <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                          <div>
+                            <strong>{t('specialNeeds', language)}:</strong>
+                            <p>{listing.special_needs}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="bg-gray-50 p-3 rounded-lg text-center">
-                        <div className="text-xs text-gray-500 uppercase mb-1">Brincadeira</div>
-                        <div className="font-semibold text-purple-700 capitalize">
-                          {listing.temperament.playfulness?.replace('_', ' ') || '-'}
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 p-3 rounded-lg text-center">
-                        <div className="text-xs text-gray-500 uppercase mb-1">Inteligência</div>
-                        <div className="font-semibold text-purple-700 capitalize">
-                          {listing.temperament.trainability?.replace('_', ' ') || '-'}
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Personality Traits */}
+                {/* Temperament & Personality */}
+                {listing.temperament && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Brain className="w-5 h-5 text-purple-600" />
+                      {t('temperament', language)}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 bg-purple-50 rounded-xl p-4">
+                      {Object.entries(listing.temperament).map(([key, value]) => (
+                        value && typeof value === 'string' && (
+                          <div key={key}>
+                            <span className="text-xs text-purple-600 uppercase font-bold">
+                              {key.replace(/_/g, ' ')}
+                            </span>
+                            <p className="text-purple-900 font-medium capitalize">
+                              {value.replace(/_/g, ' ')}
+                            </p>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {listing.good_with && (
                   <div>
                     <h3 className="font-semibold text-lg mb-3">Good With</h3>
@@ -436,7 +472,6 @@ export default function AdoptionListingDetails() {
                   </div>
                 )}
 
-                {/* Health Info */}
                 <div>
                   <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
                     <Stethoscope className="w-5 h-5 text-purple-600" />
@@ -468,15 +503,8 @@ export default function AdoptionListingDetails() {
                       <span>Microchipped</span>
                     </div>
                   </div>
-                  
-                  {listing.medical_conditions && (
-                    <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                      <p className="text-sm"><strong>Medical Notes:</strong> {listing.medical_conditions}</p>
-                    </div>
-                  )}
                 </div>
 
-                {/* Ideal Home */}
                 {listing.ideal_home && (
                   <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
@@ -490,12 +518,9 @@ export default function AdoptionListingDetails() {
             </Card>
           </div>
 
-          {/* Right Column - Actions & Details */}
           <div className="space-y-6">
-            {/* Apply Card */}
             <Card className="border-2 border-purple-300 shadow-xl sticky top-6">
               <CardContent className="p-6">
-                {/* Removed price section - FREE ADOPTION */}
                 <div className="text-center mb-4">
                   <Badge className="bg-green-500 text-white text-lg px-6 py-2">
                     {t('freeAdoption', language)}
@@ -557,7 +582,6 @@ export default function AdoptionListingDetails() {
                   </Button>
                 )}
 
-                {/* WhatsApp Contact */}
                 {listing.contact_whatsapp && (
                   <a
                     href={`https://wa.me/${listing.contact_whatsapp.replace(/\D/g, '')}`}
@@ -575,18 +599,33 @@ export default function AdoptionListingDetails() {
                   </a>
                 )}
 
-                <Button
-                  variant="outline"
-                  className="w-full mt-3"
-                  onClick={handleShare}
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  {t('share', language)}
-                </Button>
+                <div className="flex gap-3 mt-3">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      if (!user) {
+                        navigate(createPageUrl('Login'));
+                        return;
+                      }
+                      toggleFavoriteMutation.mutate();
+                    }}
+                  >
+                    <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                    {isFavorite ? 'Favorited' : 'Favorite'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleShare}
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    {t('share', language)}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Contact Info */}
             <Card className="border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-lg">{t('contactInformation', language)}</CardTitle>
@@ -635,7 +674,6 @@ export default function AdoptionListingDetails() {
               </CardContent>
             </Card>
 
-            {/* Stats */}
             <Card className="border-0 shadow-xl">
               <CardContent className="p-6 space-y-3">
                 <div className="flex items-center justify-between text-sm">

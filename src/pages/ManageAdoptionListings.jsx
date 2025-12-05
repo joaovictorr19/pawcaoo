@@ -183,6 +183,8 @@ export default function ManageAdoptionListings() {
         contact_phone: editingListing.contact_phone,
         contact_email: editingListing.contact_email,
         photos: editingListing.photos,
+        medical_history: editingListing.medical_history,
+        special_needs: editingListing.special_needs,
       };
 
       await updateListingMutation.mutateAsync({ listingId: editingListing.id, updates });
@@ -573,16 +575,50 @@ export default function ManageAdoptionListings() {
                     />
                   </div>
 
-                  {/* Temperament */}
+                  {/* Medical History */}
+                  <div>
+                    <Label htmlFor="medical_history" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('medicalHistory', language)}
+                    </Label>
+                    <Textarea
+                      id="medical_history"
+                      name="medical_history"
+                      value={editingListing?.medical_history || ''}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Special Needs */}
+                  <div>
+                    <Label htmlFor="special_needs" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('specialNeeds', language)}
+                    </Label>
+                    <Textarea
+                      id="special_needs"
+                      name="special_needs"
+                      value={editingListing?.special_needs || ''}
+                      onChange={handleInputChange}
+                      rows={2}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Temperament - Simplified for Edit (could be enhanced to object editor if needed) */}
                   <div>
                     <Label htmlFor="temperament" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('temperament', language)}
+                      {t('temperament', language)} (JSON or Text)
                     </Label>
                     <Input
                       id="temperament"
                       name="temperament"
-                      value={editingListing?.temperament || ''}
-                      onChange={handleInputChange}
+                      // Display as string if object, else as is
+                      value={typeof editingListing?.temperament === 'object' ? JSON.stringify(editingListing?.temperament) : editingListing?.temperament || ''}
+                      onChange={(e) => {
+                         // Simple handling, ideally should parse back to object or use specific fields
+                         setEditingListing({...editingListing, temperament: e.target.value});
+                      }}
                       className="w-full"
                     />
                   </div>
