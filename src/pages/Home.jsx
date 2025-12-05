@@ -505,40 +505,10 @@ export default function Home() {
               <PawCaoLogo size="large" />
             </div>
 
-            <div className="inline-block mb-3 md:mb-4">
-              <span className="px-3 py-1 md:px-4 md:py-2 bg-white/20 backdrop-blur-md rounded-full text-white text-xs md:text-sm font-semibold border border-white/30 shadow-lg">
-                🐕 #1 em Portugal
-              </span>
-            </div>
-            
-            <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-5 leading-tight px-2 drop-shadow-lg">
-              Encontre o{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300">
-                {activeTab === 'emergency' ? 'Ajuda' : 'Passeador'} Perfeito
-              </span>
-              <br className="hidden md:block" />
-              <span className="block md:inline"> Para o Seu Pet</span>
+            <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
+              {activeTab === 'emergency' ? 'Emergência 🚨' : 'Passeadores Disponíveis 🐕'}
             </h1>
-            
-            <p className="text-sm md:text-xl text-white/90 mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4">
-              Passeadores e Treinadores verificados e apaixonados por cães. 🐾
-            </p>
-
-            {/* Simple Stats */}
-            <div className="grid grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-10 max-w-4xl mx-auto">
-              {stats.map((stat, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg md:rounded-xl p-2 md:p-4 shadow-lg"
-                >
-                  <div className={`w-6 h-6 md:w-10 md:h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center mx-auto mb-1 md:mb-2 shadow-lg`}>
-                    <stat.icon className="w-3 h-3 md:w-5 md:h-5 text-white" />
-                  </div>
-                  <div className="text-lg md:text-2xl font-bold text-white">{stat.value}</div>
-                  <div className="text-[10px] md:text-xs text-white/80 truncate">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+            <p className="text-white/90 mb-8 text-lg">Encontre alguém de confiança perto de si</p>
           </div>
 
           {/* Simple Search Bar */}
@@ -556,102 +526,15 @@ export default function Home() {
                   currentLocation={userLocation}
                 />
                 
-                {/* Filters based on Active Tab */}
-                {activeTab === 'walkers' ? (
-                  <>
-                    {/* NOVO: Service Types Quick Filter */}
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-700 mb-2 block">
-                        🐾 Serviços Desejados
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {quickServiceTypes.map(service => (
-                          <Badge
-                            key={service.id}
-                            variant={selectedServiceTypes.includes(service.id) ? "default" : "outline"}
-                            className={getServiceBadgeClasses(service.color, selectedServiceTypes.includes(service.id))}
-                            onClick={() => toggleServiceType(service.id)}
-                          >
-                            <span className="mr-1">{service.icon}</span>
-                            {service.label}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* NOVO: Specializations Quick Filter */}
-                    <div>
-                      <Label className="text-xs font-semibold text-gray-700 mb-2 block">
-                        ⭐ Especializações
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {quickSpecializations.map(spec => (
-                          <Badge
-                            key={spec.id}
-                            variant={selectedSpecializations.includes(spec.id) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all hover:scale-105 ${
-                              selectedSpecializations.includes(spec.id)
-                                ? `bg-purple-600 text-white`
-                                : `border-gray-300 hover:bg-gray-100`
-                            }`}
-                            onClick={() => toggleSpecialization(spec.id)}
-                          >
-                            <span className="mr-1">{spec.icon}</span>
-                            {spec.label}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Walkers Specific Filters */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <Select value={filterSize} onValueChange={setFilterSize}>
-                        <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
-                          <SelectValue placeholder="Tamanho" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos</SelectItem>
-                          <SelectItem value="small">Pequeno</SelectItem>
-                          <SelectItem value="medium">Médio</SelectItem>
-                          <SelectItem value="large">Grande</SelectItem>
-                          <SelectItem value="extra_large">XL</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      <Select value={filterTime} onValueChange={setFilterTime}>
-                        <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
-                          <SelectValue placeholder="Horário" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Qualquer</SelectItem>
-                          <SelectItem value="morning">Manhã</SelectItem>
-                          <SelectItem value="afternoon">Tarde</SelectItem>
-                          <SelectItem value="evening">Noite</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      <Select value={filterAvailability} onValueChange={setFilterAvailability} className="col-span-2 md:col-span-1">
-                        <SelectTrigger className="h-10 md:h-12 text-xs md:text-sm border-2 border-transparent focus:border-green-500 rounded-xl bg-white">
-                          <SelectValue placeholder="Disponível" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos</SelectItem>
-                          <SelectItem value="available">Disponíveis</SelectItem>
-                          <SelectItem value="unavailable">Indisponíveis</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                ) : activeTab === 'trainers' ? (
-                  <>
-                    <div className="p-2 bg-purple-50 rounded-xl border border-purple-100">
-                      <p className="text-sm text-purple-800 font-medium flex items-center gap-2">
-                        <Award className="w-4 h-4" />
-                        Use os filtros avançados abaixo para encontrar especialistas em comportamento, obediência e mais.
-                      </p>
-                    </div>
-                  </>
-                ) : null}
+                {/* Filters hidden for cleaner look - available in advanced filters */}
+                {activeTab === 'trainers' && (
+                  <div className="p-2 bg-purple-50 rounded-xl border border-purple-100">
+                    <p className="text-sm text-purple-800 font-medium flex items-center gap-2">
+                      <Award className="w-4 h-4" />
+                      Use os filtros avançados para encontrar especialistas.
+                    </p>
+                  </div>
+                )}
 
               </div>
             </div>
