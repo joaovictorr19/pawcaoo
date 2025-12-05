@@ -263,6 +263,13 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
+  const { data: badgeDefinitions = [] } = useQuery({
+    queryKey: ['badgeDefinitions'],
+    queryFn: () => base44.entities.BadgeDefinition.list('-created_date'),
+    enabled: user?.role === 'admin' && activeTab === 'badges',
+    initialData: [],
+  });
+
   // Mutations
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
@@ -341,6 +348,23 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shelterApplications'] });
       toast.success("Abrigo atualizado!");
+    },
+  });
+
+  const createBadgeDefinitionMutation = useMutation({
+    mutationFn: (data) => base44.entities.BadgeDefinition.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['badgeDefinitions'] });
+      toast.success("Modelo de emblema salvo!");
+      setShowCreateCustomBadgeModal(false);
+    },
+  });
+
+  const deleteBadgeDefinitionMutation = useMutation({
+    mutationFn: (id) => base44.entities.BadgeDefinition.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['badgeDefinitions'] });
+      toast.success("Modelo de emblema removido!");
     },
   });
 
@@ -487,6 +511,23 @@ export default function AdminDashboard() {
     setSelectedUserForBadges(null);
   };
 
+  const handleSaveBadgeDefinition = () => {
+    if (!customBadgeForm.name || !customBadgeForm.description) {
+      toast.error('Preencha nome e descrição!');
+      return;
+    }
+    
+    createBadgeDefinitionMutation.mutate({
+      name: customBadgeForm.name,
+      description: customBadgeForm.description,
+      icon: customBadgeForm.icon,
+      image_url: customBadgeForm.image_url || "",
+      rarity: customBadgeForm.rarity,
+      category: customBadgeForm.category,
+      xp: 100 // Default
+    });
+  };
+
   const handleGrantCustomBadge = async () => {
     if (!customBadgeForm.name || !customBadgeForm.description) {
       toast.error('Preencha nome e descrição!');
@@ -494,7 +535,11 @@ export default function AdminDashboard() {
     }
 
     if (selectedUsersForBadge.length === 0) {
-      toast.error('Selecione pelo menos um usuário!');
+      // If no users selected, just ask if they want to save as template
+      if (confirm("Nenhum usuário selecionado. Deseja apenas salvar como Modelo de Emblema para usar depois?")) {
+        handleSaveBadgeDefinition();
+        return;
+      }
       return;
     }
 
@@ -512,6 +557,19 @@ export default function AdminDashboard() {
     };
 
     try {
+      // Optionally save definition too
+      if (confirm("Deseja também salvar este emblema na biblioteca para uso futuro?")) {
+        createBadgeDefinitionMutation.mutate({
+          name: customBadgeForm.name,
+          description: customBadgeForm.description,
+          icon: customBadgeForm.icon,
+          image_url: customBadgeForm.image_url || "",
+          rarity: customBadgeForm.rarity,
+          category: customBadgeForm.category,
+          xp: 100
+        });
+      }
+
       for (const userEmail of selectedUsersForBadge) {
         const targetUser = allUsers.find(u => u.email === userEmail);
         if (!targetUser) continue;
@@ -917,9 +975,75 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {/* Badges Pré-definidos */}
+                  {/* Modelos de Badges Salvos */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Emblemas do Sistema</h3>
+                    <h3 className="text-lg font-semibold mb-4">Biblioteca de Emblemas ({badgeDefinitions.length})</h3>
+                    {badgeDefinitions.length === 0 ? (
+                      <p className="text-gray-500 italic">Nenhum emblema salvo. Crie um novo para aparecer aqui.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {badgeDefinitions.map((badgeDef) => (
+                          <Card key={badgeDef.id} className="border border-purple-200 hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="text-3xl bg-purple-50 p-2 rounded-lg w-14 h-14 flex items-center justify-center">
+                                  {badgeDef.image_url ? (
+                                    <img src={badgeDef.image_url} alt={badgeDef.name} className="w-full h-full object-cover rounded" />
+                                  ) : (
+                                    badgeDef.icon
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-bold text-base">{badgeDef.name}</h4>
+                                  <p className="text-xs text-gray-600 line-clamp-2" title={badgeDef.description}>
+                                    {badgeDef.description}
+                                  </p>
+                                  <Badge variant="outline" className="mt-1 text-[10px]">{badgeDef.rarity}</Badge>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs"
+                                  onClick={() => {
+                                    setSelectedBadgeForAll({
+                                      badge_id: badgeDef.id, // Use ID from definition
+                                      name: badgeDef.name,
+                                      description: badgeDef.description,
+                                      icon: badgeDef.icon,
+                                      image_url: badgeDef.image_url,
+                                      rarity: badgeDef.rarity,
+                                      category: badgeDef.category,
+                                      xp: badgeDef.xp || 100
+                                    });
+                                    setShowGrantAllUsersModal(true);
+                                  }}
+                                >
+                                  Conceder
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 px-2"
+                                  onClick={() => {
+                                    if(confirm(`Excluir modelo "${badgeDef.name}"?`)) {
+                                      deleteBadgeDefinitionMutation.mutate(badgeDef.id);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Badges Pré-definidos (Sistema) */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Emblemas Padrão do Sistema</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Badge Verificado */}
                       <Card className="border-2 border-blue-200">
@@ -1890,17 +2014,28 @@ export default function AdminDashboard() {
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateCustomBadgeModal(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleGrantCustomBadge}
-                className="bg-purple-600 hover:bg-purple-700"
-                disabled={!customBadgeForm.name || !customBadgeForm.description || selectedUsersForBadge.length === 0}
-              >
-                <Award className="w-4 h-4 mr-2" />
-                Criar e Conceder Badge
-              </Button>
+              <div className="flex justify-between w-full">
+                <Button 
+                  variant="outline" 
+                  onClick={handleSaveBadgeDefinition}
+                  disabled={!customBadgeForm.name || !customBadgeForm.description || createBadgeDefinitionMutation.isPending}
+                >
+                  💾 Salvar na Biblioteca
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" onClick={() => setShowCreateCustomBadgeModal(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleGrantCustomBadge}
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={!customBadgeForm.name || !customBadgeForm.description}
+                  >
+                    <Award className="w-4 h-4 mr-2" />
+                    Conceder Agora
+                  </Button>
+                </div>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
