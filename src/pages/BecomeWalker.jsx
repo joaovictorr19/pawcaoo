@@ -74,72 +74,23 @@ export default function BecomeWalker() {
 
   const [formErrors, setFormErrors] = useState({});
 
-  // Validation function
+  // Validation function - All steps are now optional for easier registration
   const validateStep1 = () => {
-    const errors = {};
-    
-    if (!formData.walker_name || formData.walker_name.length < 3) {
-      errors.name = t("nameMinLength", language) || "Nome deve ter pelo menos 3 caracteres";
-    }
-    
-    if (!formData.phone || !/^[+]?[\d\s-()]+$/.test(formData.phone)) {
-      errors.phone = t("invalidPhoneNumber", language) || "Telefone inválido";
-    }
-    
-    // Convert hourly_rate to a number for comparison
-    const hourlyRateNum = parseFloat(formData.hourly_rate);
-    if (isNaN(hourlyRateNum) || hourlyRateNum < 5 || hourlyRateNum > 100) {
-      errors.rate = t("hourlyRateRange", language) || "Taxa deve estar entre €5 e €100";
-    }
-    
-    if (!formData.photo_url) {
-      errors.photo = t("profilePhotoRequired", language) || "Foto de perfil obrigatória";
-    }
-    
-    if (formData.dog_sizes.length === 0) {
-      errors.sizes = t("selectDogSize", language) || "Selecione pelo menos um tamanho";
-    }
-    
-    if (formData.availability.length === 0) {
-      errors.availability = t("selectAvailability", language) || "Selecione pelo menos um horário";
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    // Validation disabled - all fields are optional
+    setFormErrors({});
+    return true;
   };
 
   const validateStep2 = () => {
-    const errors = {};
-    
-    if (!formData.id_document_url) {
-      errors.id = t("idDocumentRequired", language) || "Documento de identificação obrigatório";
-    }
-    
-    if (!formData.proof_of_address_url) {
-      errors.address = t("proofOfAddressRequired", language) || "Comprovante de morada obrigatório";
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    // Validation disabled - all fields are optional
+    setFormErrors({});
+    return true;
   };
 
   const validateStep3 = () => {
-    const errors = {};
-    
-    if (!formData.bank_account_holder || formData.bank_account_holder.length < 3) {
-      errors.holder = t("accountHolderRequired", language) || "Nome do titular obrigatório";
-    }
-    
-    if (!formData.bank_account_number) {
-      errors.account = t("ibanRequired", language) || "IBAN obrigatório";
-    }
-    
-    if (!formData.bank_routing_number) {
-      errors.routing = t("swiftBicRequired", language) || "SWIFT/BIC obrigatório";
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    // Validation disabled - all fields are optional
+    setFormErrors({});
+    return true;
   };
 
   const createWalkerMutation = useMutation({
@@ -319,7 +270,7 @@ export default function BecomeWalker() {
                   >
                     {/* Profile Photo */}
                     <div className="space-y-2 mb-6">
-                      <Label htmlFor="photo">{t('profilePhoto', language)} *</Label>
+                      <Label htmlFor="photo">{t('profilePhoto', language)}</Label>
                       <div className="flex items-center gap-4">
                         {formData.photo_url ? (
                           <img
@@ -339,7 +290,7 @@ export default function BecomeWalker() {
                             accept="image/*"
                             onChange={(e) => handleFileUpload(e, 'photo_url', 'photo')}
                             disabled={uploading.photo}
-                            required
+                            // required removed
                             className={formErrors.photo ? "border-red-500" : ""}
                           />
                           <p className="text-sm text-gray-500 mt-2">
@@ -415,7 +366,7 @@ export default function BecomeWalker() {
                     {/* Basic Info */}
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="walker_name">{t('yourName', language)} *</Label>
+                        <Label htmlFor="walker_name">{t('yourName', language)}</Label>
                         <Input
                           id="walker_name"
                           required
@@ -433,7 +384,7 @@ export default function BecomeWalker() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phone">{t('phoneNumber', language)} *</Label>
+                        <Label htmlFor="phone">{t('phoneNumber', language)}</Label>
                         <Input
                           id="phone"
                           required
@@ -451,10 +402,10 @@ export default function BecomeWalker() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="location">{t('location', language)} *</Label>
+                        <Label htmlFor="location">{t('location', language)}</Label>
                         <Input
                           id="location"
-                          required
+                          // required removed
                           value={formData.location}
                           onChange={(e) => setFormData({...formData, location: e.target.value})}
                           placeholder="Lisboa, Portugal"
@@ -465,12 +416,12 @@ export default function BecomeWalker() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="space-y-2">
-                              <Label htmlFor="hourly_rate">{t('hourlyRate', language)} *</Label>
+                              <Label htmlFor="hourly_rate">{t('hourlyRate', language)}</Label>
                               <Input
                                 id="hourly_rate"
                                 type="number"
                                 step="0.01"
-                                required
+                                // required removed
                                 value={formData.hourly_rate}
                                 onChange={(e) => {
                                   setFormData({...formData, hourly_rate: e.target.value});
@@ -612,7 +563,7 @@ export default function BecomeWalker() {
 
                     {/* Dog Sizes */}
                     <div className="space-y-3">
-                      <Label>{t('dogSizesYouHandle', language)} *</Label>
+                      <Label>{t('dogSizesYouHandle', language)}</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
                           { value: "small", label: t('small', language) },
@@ -651,7 +602,7 @@ export default function BecomeWalker() {
 
                     {/* Availability */}
                     <div className="space-y-3">
-                      <Label>{t('yourAvailability', language)} *</Label>
+                      <Label>{t('yourAvailability', language)}</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
                           { value: "morning", label: t('morning', language) },
@@ -708,13 +659,13 @@ export default function BecomeWalker() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="space-y-2">
-                            <Label>{t('governmentId', language)} *</Label>
+                            <Label>{t('governmentId', language)}</Label>
                             <Input
                               type="file"
                               accept="image/*,.pdf"
                               onChange={(e) => handleFileUpload(e, 'id_document_url', 'id')}
                               disabled={uploading.id}
-                              required
+                              // required removed
                               className={formErrors.id ? "border-red-500" : ""}
                             />
                             {formData.id_document_url && (
@@ -786,13 +737,13 @@ export default function BecomeWalker() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="space-y-2">
-                            <Label>{t('proofOfAddress', language)} *</Label>
+                            <Label>{t('proofOfAddress', language)}</Label>
                             <Input
                               type="file"
                               accept="image/*,.pdf"
                               onChange={(e) => handleFileUpload(e, 'proof_of_address_url', 'address')}
                               disabled={uploading.address}
-                              required
+                              // required removed
                               className={formErrors.address ? "border-red-500" : ""}
                             />
                             {formData.proof_of_address_url && (
@@ -852,10 +803,10 @@ export default function BecomeWalker() {
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="bank_account_holder">{t('accountHolderName', language)} *</Label>
+                        <Label htmlFor="bank_account_holder">{t('accountHolderName', language)}</Label>
                         <Input
                           id="bank_account_holder"
-                          required
+                          // required removed
                           value={formData.bank_account_holder}
                           onChange={(e) => {
                             setFormData({...formData, bank_account_holder: e.target.value});
@@ -870,10 +821,10 @@ export default function BecomeWalker() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)} *</Label>
+                        <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)}</Label>
                         <Input
                           id="bank_account_number"
-                          required
+                          // required removed
                           value={formData.bank_account_number}
                           onChange={(e) => {
                             setFormData({...formData, bank_account_number: e.target.value});
@@ -888,10 +839,10 @@ export default function BecomeWalker() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)} *</Label>
+                        <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)}</Label>
                         <Input
                           id="bank_routing_number"
-                          required
+                          // required removed
                           value={formData.bank_routing_number}
                           onChange={(e) => {
                             setFormData({...formData, bank_routing_number: e.target.value});

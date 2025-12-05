@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -193,55 +192,7 @@ export default function BecomeTrainer() {
   };
 
   const canProceedToNextStep = (step) => {
-    let missingFields = [];
-
-    switch (step) {
-      case 1:
-        if (formData.trainer_name.trim() === "") missingFields.push("Your Name");
-        if (formData.photo_url.trim() === "") missingFields.push("Profile Photo");
-        if (formData.bio.trim() === "") missingFields.push("Professional Bio");
-        if (formData.location.trim() === "") missingFields.push("Location");
-        if (formData.hourly_rate === "" || isNaN(parseFloat(formData.hourly_rate))) missingFields.push("Hourly Rate");
-        if (formData.experience_years === "" || isNaN(parseFloat(formData.experience_years))) missingFields.push("Years of Experience");
-        if (formData.success_rate === null || isNaN(parseFloat(formData.success_rate)) || parseFloat(formData.success_rate) < 0 || parseFloat(formData.success_rate) > 100) missingFields.push("Success Rate");
-        if (formData.phone.trim() === "") missingFields.push("Phone Number");
-        if (formData.training_specialties.length === 0) missingFields.push("Training Specialties");
-        if (formData.training_methodologies.length === 0) missingFields.push("Training Methodologies");
-        if (formData.consultation_options.length === 0) missingFields.push("Consultation Methods");
-
-        // Validate services if any are added
-        if (formData.services_offered.length > 0) {
-          formData.services_offered.forEach((service, idx) => {
-            if (service.service_name.trim() === "") {
-              missingFields.push(`Service #${idx + 1} Name`);
-            }
-            if (service.price === null || isNaN(parseFloat(service.price))) {
-              missingFields.push(`Service #${idx + 1} Price`);
-            }
-          });
-        }
-        break;
-      case 2:
-        if (formData.id_document_url.trim() === "") missingFields.push("Government ID");
-        if (formData.proof_of_address_url.trim() === "") missingFields.push("Proof of Address");
-        // Certifications are optional, background check is optional
-        break;
-      case 3:
-        if (formData.bank_account_holder.trim() === "") missingFields.push("Account Holder Name");
-        if (formData.bank_account_number.trim() === "") missingFields.push("Bank Account Number");
-        if (formData.bank_routing_number.trim() === "") missingFields.push("Routing Number");
-        break;
-      default:
-        // Should not happen
-        missingFields.push("Unknown step validation error.");
-    }
-
-    if (missingFields.length > 0) {
-      toast.error("Missing Required Fields", {
-        description: missingFields.join(', ')
-      });
-      return false;
-    }
+    // Validation disabled - all fields are optional
     return true;
   };
 
@@ -264,8 +215,8 @@ export default function BecomeTrainer() {
     // Prepare data for submission - convert hourly_rate, experience_years, and success_rate to numbers
     const dataToSubmit = {
       ...formData,
-      hourly_rate: parseFloat(formData.hourly_rate),
-      experience_years: parseFloat(formData.experience_years),
+      hourly_rate: parseFloat(formData.hourly_rate) || 0,
+      experience_years: parseFloat(formData.experience_years) || 0,
       success_rate: formData.success_rate !== null ? parseFloat(formData.success_rate) : null,
       services_offered: formData.services_offered.map(service => ({
         ...service,
@@ -337,7 +288,7 @@ export default function BecomeTrainer() {
                 >
                   {/* Profile Photo */}
                   <div className="space-y-2">
-                    <Label htmlFor="photo">{t('profilePhoto', language)} *</Label>
+                    <Label htmlFor="photo">{t('profilePhoto', language)}</Label>
                     <div className="flex items-center gap-4">
                       {formData.photo_url ? (
                         <img
@@ -357,7 +308,7 @@ export default function BecomeTrainer() {
                           accept="image/*"
                           onChange={(e) => handleFileUpload(e, 'photo_url', 'photo')}
                           disabled={uploading.photo}
-                          required
+                          // required removed
                         />
                         <p className="text-sm text-gray-500 mt-2">
                           {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
@@ -430,10 +381,10 @@ export default function BecomeTrainer() {
                   {/* Basic Info */}
                   <div className="grid md:grid-cols-2 gap-6 border-t-2 border-purple-100 pt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="trainer_name">{t('yourName', language)} *</Label>
+                      <Label htmlFor="trainer_name">{t('yourName', language)}</Label>
                       <Input
                         id="trainer_name"
-                        required
+                        // required removed
                         value={formData.trainer_name}
                         onChange={(e) => setFormData({...formData, trainer_name: e.target.value})}
                         placeholder={t('joaoSilva', language)}
@@ -441,10 +392,10 @@ export default function BecomeTrainer() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone">{t('phoneNumber', language)} *</Label>
+                      <Label htmlFor="phone">{t('phoneNumber', language)}</Label>
                       <Input
                         id="phone"
-                        required
+                        // required removed
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
                         placeholder="+351 21 123 4567"
@@ -452,10 +403,10 @@ export default function BecomeTrainer() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="location">{t('location', language)} *</Label>
+                      <Label htmlFor="location">{t('location', language)}</Label>
                       <Input
                         id="location"
-                        required
+                        // required removed
                         value={formData.location}
                         onChange={(e) => setFormData({...formData, location: e.target.value})}
                         placeholder={t('lisboaPortugal', language)}
@@ -463,12 +414,12 @@ export default function BecomeTrainer() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="hourly_rate">{t('hourlyRate', language)} *</Label>
+                      <Label htmlFor="hourly_rate">{t('hourlyRate', language)}</Label>
                       <Input
                         id="hourly_rate"
                         type="number"
                         step="0.01"
-                        required
+                        // required removed
                         value={formData.hourly_rate}
                         onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
                         placeholder="50"
@@ -478,10 +429,10 @@ export default function BecomeTrainer() {
 
                   {/* Bio */}
                   <div className="space-y-2">
-                    <Label htmlFor="bio">{t('professionalBio', language)} *</Label>
+                    <Label htmlFor="bio">{t('professionalBio', language)}</Label>
                     <Textarea
                       id="bio"
-                      required
+                      // required removed
                       value={formData.bio}
                       onChange={(e) => setFormData({...formData, bio: e.target.value})}
                       placeholder={t('professionalBioPlaceholder', language)}
@@ -500,7 +451,7 @@ export default function BecomeTrainer() {
 
                   {/* Training Specialties */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label className="text-lg font-semibold">{t('trainingSpecialties', language)} * 🎯</Label>
+                    <Label className="text-lg font-semibold">{t('trainingSpecialties', language)} 🎯</Label>
                     <p className="text-sm text-gray-600 mb-4">
                       {t('trainingSpecialtiesDesc', language)}
                     </p>
@@ -546,7 +497,7 @@ export default function BecomeTrainer() {
 
                   {/* Training Methodologies */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label className="text-lg font-semibold">{t('trainingMethodologies', language)} * 🎓</Label>
+                    <Label className="text-lg font-semibold">{t('trainingMethodologies', language)} 🎓</Label>
                     <p className="text-sm text-gray-600 mb-3">
                       {t('trainingMethodologiesDesc', language)}
                     </p>
@@ -598,25 +549,25 @@ export default function BecomeTrainer() {
                     <h3 className="text-lg font-semibold mb-4">{t('professionalTrackRecord', language)}</h3>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="experience_years">{t('yearsOfExperience', language)} *</Label>
+                        <Label htmlFor="experience_years">{t('yearsOfExperience', language)}</Label>
                         <Input
                           id="experience_years"
                           type="number"
-                          required
+                          // required removed
                           value={formData.experience_years}
                           onChange={(e) => setFormData({...formData, experience_years: e.target.value})}
                           placeholder="5"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="success_rate">{t('successRate', language)} *</Label>
+                        <Label htmlFor="success_rate">{t('successRate', language)}</Label>
                         <Input
                           id="success_rate"
                           type="number"
                           min="0"
                           max="100"
                           step="1"
-                          required
+                          // required removed
                           value={formData.success_rate === null ? '' : formData.success_rate}
                           onChange={(e) => setFormData({...formData, success_rate: parseFloat(e.target.value)})}
                           placeholder="95"
@@ -641,7 +592,7 @@ export default function BecomeTrainer() {
 
                   {/* Consultation Options */}
                   <div className="space-y-3 border-t-2 border-purple-100 pt-6">
-                    <Label>{t('consultationMethods', language)} *</Label>
+                    <Label>{t('consultationMethods', language)}</Label>
                     <div className="grid grid-cols-3 gap-4">
                       {[
                         { value: "in_person", label: t('inPerson', language) },
@@ -802,18 +753,18 @@ export default function BecomeTrainer() {
                   <div className="border-t-2 border-purple-100 pt-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <Shield className="w-6 h-6 text-purple-600" />
-                      {t('verificationDocuments', language)} *
+                      {t('verificationDocuments', language)}
                     </h3>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="id_document_upload">{t('governmentId', language)} *</Label>
+                        <Label htmlFor="id_document_upload">{t('governmentId', language)}</Label>
                         <Input
                           id="id_document_upload"
                           type="file"
                           accept="image/*,.pdf"
                           onChange={(e) => handleFileUpload(e, 'id_document_url', 'id')}
                           disabled={uploading.id}
-                          required
+                          // required removed
                         />
                         {formData.id_document_url && <p className="text-sm text-green-600">✓ {t('documentUploaded', language)}</p>}
                       </div>
@@ -853,14 +804,14 @@ export default function BecomeTrainer() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="proof_of_address_upload">{t('proofOfAddress', language)} *</Label>
+                        <Label htmlFor="proof_of_address_upload">{t('proofOfAddress', language)}</Label>
                         <Input
                           id="proof_of_address_upload"
                           type="file"
                           accept="image/*,.pdf"
                           onChange={(e) => handleFileUpload(e, 'proof_of_address_url', 'address')}
                           disabled={uploading.address}
-                          required
+                          // required removed
                         />
                         {formData.proof_of_address_url && <p className="text-sm text-green-600">✓ {t('documentUploaded', language)}</p>}
                       </div>
@@ -878,34 +829,34 @@ export default function BecomeTrainer() {
                   className="space-y-6"
                 >
                   <div className="border-t-2 border-purple-100 pt-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">{t('paymentInformation', language)} *</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">{t('paymentInformation', language)}</h3>
                     <p className="text-gray-600 mb-4">{t('paymentInfoDesc', language)}</p>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="bank_account_holder">{t('accountHolderName', language)} *</Label>
+                        <Label htmlFor="bank_account_holder">{t('accountHolderName', language)}</Label>
                         <Input
                           id="bank_account_holder"
-                          required
+                          // required removed
                           value={formData.bank_account_holder}
                           onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
                           placeholder={t('joaoSilva', language)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)} *</Label>
+                        <Label htmlFor="bank_account_number">{t('bankAccountNumber', language)}</Label>
                         <Input
                           id="bank_account_number"
-                          required
+                          // required removed
                           value={formData.bank_account_number}
                           onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
                           placeholder="PT50000201231234567890154"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)} *</Label>
+                        <Label htmlFor="bank_routing_number">{t('swiftBicCode', language)}</Label>
                         <Input
                           id="bank_routing_number"
-                          required
+                          // required removed
                           value={formData.bank_routing_number}
                           onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
                           placeholder="BOFAPORTXXX"
