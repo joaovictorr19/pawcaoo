@@ -1920,6 +1920,102 @@ export default function AdminDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {/* Application Details Dialog */}
+        <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Detalhes da Candidatura - {selectedApplication?.walker_name}</DialogTitle>
+            </DialogHeader>
+            {selectedApplication && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-500 mb-1">Informações Pessoais</h4>
+                    <p><strong>Nome:</strong> {selectedApplication.walker_name}</p>
+                    <p><strong>Email:</strong> {selectedApplication.created_by}</p>
+                    <p><strong>Telefone:</strong> {selectedApplication.phone}</p>
+                    <p><strong>Localização:</strong> {selectedApplication.location}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-500 mb-1">Dados Bancários</h4>
+                    <p><strong>Titular:</strong> {selectedApplication.bank_account_holder || 'N/A'}</p>
+                    <p><strong>IBAN:</strong> {selectedApplication.bank_account_number || 'N/A'}</p>
+                    <p><strong>SWIFT/BIC:</strong> {selectedApplication.bank_routing_number || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-500 mb-2">Bio</h4>
+                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedApplication.bio}</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-500 mb-2">Documentos</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedApplication.id_document_url ? (
+                      <div className="border rounded-lg p-2">
+                        <p className="text-xs font-semibold mb-1">Documento de ID</p>
+                        <a href={selectedApplication.id_document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">
+                          Ver Documento
+                        </a>
+                      </div>
+                    ) : <p className="text-sm text-red-500">ID não enviado</p>}
+
+                    {selectedApplication.proof_of_address_url ? (
+                      <div className="border rounded-lg p-2">
+                        <p className="text-xs font-semibold mb-1">Comprovativo de Morada</p>
+                        <a href={selectedApplication.proof_of_address_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">
+                          Ver Documento
+                        </a>
+                      </div>
+                    ) : <p className="text-sm text-red-500">Morada não enviada</p>}
+
+                    {selectedApplication.background_check_url && (
+                      <div className="border rounded-lg p-2">
+                        <p className="text-xs font-semibold mb-1">Registo Criminal</p>
+                        <a href={selectedApplication.background_check_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">
+                          Ver Documento
+                        </a>
+                        <p className="text-xs text-gray-500 mt-1">Prov: {selectedApplication.background_check_provider}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-500 mb-2">Fotos e Vídeo</h4>
+                  <div className="flex gap-4 overflow-x-auto pb-2">
+                    {selectedApplication.photo_url && (
+                      <img src={selectedApplication.photo_url} alt="Profile" className="w-24 h-24 object-cover rounded-lg border" />
+                    )}
+                    {selectedApplication.video_intro_url && (
+                      <div className="w-24 h-24 bg-black rounded-lg flex items-center justify-center">
+                        <a href={selectedApplication.video_intro_url} target="_blank" rel="noopener noreferrer" className="text-white text-xs text-center">
+                          Ver Vídeo
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowApplicationDialog(false)}>Fechar</Button>
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  if (selectedApplication) {
+                    updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true } });
+                    setShowApplicationDialog(false);
+                  }
+                }}
+              >
+                Aprovar Candidatura
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         </ErrorBoundary>
       </div>
     </div>
