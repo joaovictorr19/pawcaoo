@@ -61,6 +61,7 @@ import Sitemap from './pages/Sitemap';
 import Home from './pages/Home';
 import ShelterDashboard from './pages/ShelterDashboard';
 import AdminShelterVerification from './pages/AdminShelterVerification';
+import StaticExport from './pages/StaticExport';
 import __Layout from './Layout.jsx';
 
 
@@ -128,6 +129,7 @@ export const PAGES = {
     "Home": Home,
     "ShelterDashboard": ShelterDashboard,
     "AdminShelterVerification": AdminShelterVerification,
+    "StaticExport": StaticExport,
 }
 
 export const pagesConfig = {
