@@ -445,7 +445,7 @@ function LayoutContent({ children, currentPageName }) {
                     <SidebarMenuButton 
                       asChild 
                       className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-3 ${
-                        location.pathname.includes('UserProfile') ? 'bg-green-600 text-white' : 'border border-gray-200'
+                        location.pathname.includes('UserProfile') ? 'bg-green-600 text-white' : 'border border-gray-200 text-gray-700'
                       }`}
                     >
                       <a 
