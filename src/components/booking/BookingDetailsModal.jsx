@@ -13,10 +13,13 @@ import { Calendar, Clock, MapPin, Dog, DollarSign, User, FileText, Info } from "
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
-export default function BookingDetailsModal({ booking, open, onOpenChange, type }) {
+export default function BookingDetailsModal({ booking, open, onOpenChange, type, currentUser, onReview }) {
   if (!booking) return null;
 
   const isTraining = type === 'training';
+  const isOwner = currentUser?.email === booking.created_by;
+  const isProfessional = currentUser?.email === (isTraining ? booking.trainer_email : booking.walker_email);
+  const canReview = booking.status === 'completed';
   
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -149,7 +152,21 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type 
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
+          {canReview && (isOwner || isProfessional) && (
+            <Button 
+              onClick={() => {
+                onReview(booking, isOwner ? 'professional' : 'client');
+                onOpenChange(false);
+              }}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">★</span> 
+                {isOwner ? "Avaliar Profissional" : "Avaliar Cliente"}
+              </div>
+            </Button>
+          )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>

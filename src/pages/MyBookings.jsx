@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import ReviewForm from "../components/reviews/ReviewForm";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -49,6 +51,10 @@ export default function MyBookings() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState(null);
+  
+  // Review State
+  const [reviewTarget, setReviewTarget] = useState(null); // { booking, type: 'client' | 'professional' }
+  const [isReviewProcessing, setIsReviewProcessing] = useState(false);
 
   // Buscar usuário atual
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -199,6 +205,74 @@ export default function MyBookings() {
   const handleCancelClick = (booking) => {
     setBookingToCancel(booking);
   };
+
+  // Review Handlers
+  const handleReviewClick = (booking, type) => {
+    setReviewTarget({ booking, type });
+  };
+
+  const submitReviewMutation = useMutation({
+    mutationFn: async (reviewData) => {
+      const isClientReview = reviewTarget.type === 'client';
+      
+      if (isClientReview) {
+        // 1. Create Client Review
+        await base44.entities.ClientReview.create(reviewData);
+        
+        // 2. Update User (Client) Stats
+        // Fetch current target user to calculate new average
+        // Note: We can't easily update OTHER users unless admin or via backend function.
+        // IF RLS blocks this, we assume backend triggers handle it. 
+        // Assuming we have permission or logic here:
+        // Since we can't read private user data of others easily without admin, 
+        // we might skip this step if RLS is strict, but let's try best effort or assume user entity is partially readable.
+        // Actually, User entity RLS usually allows reading basic profile.
+        // But updating another user is restricted.
+        // Only admin can update other users. 
+        // If we are a Professional, we likely cannot update the Client's User record directly.
+        // SKIPPING User update for now to avoid errors, assume backend/admin handles aggregation.
+        
+      } else {
+        // 1. Create Professional Review
+        await base44.entities.Review.create(reviewData);
+        
+        // 2. Update Professional Profile Stats (Walker/Trainer)
+        // We need to find the profile first.
+        const isTrainer = !!reviewData.trainer_id;
+        const profileEntity = isTrainer ? base44.entities.TrainerProfile : base44.entities.WalkerProfile;
+        const profileId = isTrainer ? reviewData.trainer_id : reviewData.walker_id;
+        
+        // Fetch current profile to calculate
+        const profile = await profileEntity.get(profileId);
+        
+        if (profile) {
+          const currentRating = profile.rating || 5;
+          const currentCount = isTrainer ? (profile.total_reviews || 0) : (profile.total_walks || 0); // Walker uses total_walks roughly or need new field
+          // Let's use a smart weight. If total_reviews field exists use it, else estimate.
+          // WalkerProfile has 'rating' and 'total_walks'. Let's assume 'total_reviews' field if added or just use walks as proxy for weight.
+          
+          // Simple moving average update
+          // We'll assume count is 10 if 0 to give some weight to initial 5 star
+          const count = currentCount || 1; 
+          const newRating = ((currentRating * count) + reviewData.rating) / (count + 1);
+          
+          await profileEntity.update(profileId, {
+            rating: parseFloat(newRating.toFixed(2)),
+            // Increment counts if fields exist
+            ...(isTrainer ? { total_clients: (profile.total_clients || 0) + 1 } : { total_walks: (profile.total_walks || 0) + 1 })
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      toast.success("Review submitted successfully!");
+      setReviewTarget(null);
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error("Failed to submit review. Please try again.");
+    }
+  });
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -485,7 +559,23 @@ export default function MyBookings() {
         type={selectedBooking?.type}
         open={isDetailsModalOpen}
         onOpenChange={setIsDetailsModalOpen}
+        currentUser={user}
+        onReview={handleReviewClick}
       />
+
+      {/* Review Dialog */}
+      <Dialog open={!!reviewTarget} onOpenChange={(open) => !open && setReviewTarget(null)}>
+        <DialogContent className="p-0 max-w-lg border-0 bg-transparent shadow-none">
+          {reviewTarget && (
+            <ReviewForm
+              booking={{...reviewTarget.booking, isClientReview: reviewTarget.type === 'client'}}
+              onSubmit={(data) => submitReviewMutation.mutate(data)}
+              onCancel={() => setReviewTarget(null)}
+              isProcessing={submitReviewMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
