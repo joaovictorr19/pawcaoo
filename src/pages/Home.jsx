@@ -585,7 +585,7 @@ export default function Home() {
                   </Card>
                 </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => setActiveTab('adoption')}>
+                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => navigate(createPageUrl('AdoptionListings'))}>
                   <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
                     <div className="bg-pink-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-pink-600 transition-colors">
                       <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
@@ -743,7 +743,13 @@ export default function Home() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={(val) => {
+              if (val === 'adoption') {
+                navigate(createPageUrl('AdoptionListings'));
+              } else {
+                setActiveTab(val);
+              }
+            }} className="w-full">
               <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
