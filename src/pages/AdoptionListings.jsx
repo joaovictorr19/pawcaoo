@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import SEO from "../components/SEO";
+import FilterBar from "../components/adoption/FilterBar";
 import { generateBreadcrumbSchema } from "../components/seoHelpers";
 
 export default function AdoptionListings({ isEmbedded = false }) {
@@ -225,166 +226,32 @@ export default function AdoptionListings({ isEmbedded = false }) {
           </div>
         )}
 
-        {/* Filters */}
-        <Card className="border-0 shadow-xl mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="w-5 h-5 text-purple-600" />
-              <h2 className="text-lg font-semibold text-gray-900">{t('searchAndFilter', language)}</h2>
-            </div>
-            
-            <div className="space-y-4">
-              {/* Row 1 - Search & Main Filters */}
-              <div className="grid md:grid-cols-4 gap-4">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder={t('searchByName', language)}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-
-                {/* Pet Type */}
-                <Select value={filterPetType} onValueChange={setFilterPetType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('petType', language)} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('allTypes', language)}</SelectItem>
-                    <SelectItem value="dog">🐕 {language === 'pt' ? 'Cães' : language === 'es' ? 'Perros' : 'Dogs'}</SelectItem>
-                    <SelectItem value="cat">🐱 {language === 'pt' ? 'Gatos' : language === 'es' ? 'Gatos' : 'Cats'}</SelectItem>
-                    <SelectItem value="bird">🦜 {language === 'pt' ? 'Pássaros' : language === 'es' ? 'Pájaros' : 'Birds'}</SelectItem>
-                    <SelectItem value="rabbit">🐰 {language === 'pt' ? 'Coelhos' : language === 'es' ? 'Conejos' : 'Rabbits'}</SelectItem>
-                    <SelectItem value="other">🐾 {language === 'pt' ? 'Outros' : language === 'es' ? 'Otros' : 'Other'}</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Size */}
-                <Select value={filterSize} onValueChange={setFilterSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={language === 'pt' ? 'Tamanho' : language === 'es' ? 'Tamaño' : 'Size'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('allSizes', language)}</SelectItem>
-                    <SelectItem value="small">{language === 'pt' ? 'Pequeno' : language === 'es' ? 'Pequeño' : 'Small'}</SelectItem>
-                    <SelectItem value="medium">{language === 'pt' ? 'Médio' : language === 'es' ? 'Mediano' : 'Medium'}</SelectItem>
-                    <SelectItem value="large">{language === 'pt' ? 'Grande' : language === 'es' ? 'Grande' : 'Large'}</SelectItem>
-                    <SelectItem value="extra_large">{language === 'pt' ? 'Extra Grande' : language === 'es' ? 'Extra Grande' : 'Extra Large'}</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Age */}
-                <Select value={filterAge} onValueChange={setFilterAge}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={language === 'pt' ? 'Idade' : language === 'es' ? 'Edad' : 'Age'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('allAges', language)}</SelectItem>
-                    <SelectItem value="puppy">{language === 'pt' ? 'Filhote (<2a)' : language === 'es' ? 'Cachorro (<2a)' : 'Puppy/Kitten (<2y)'}</SelectItem>
-                    <SelectItem value="adult">{language === 'pt' ? 'Adulto (2-7a)' : language === 'es' ? 'Adulto (2-7a)' : 'Adult (2-7y)'}</SelectItem>
-                    <SelectItem value="senior">{language === 'pt' ? 'Idoso (7a+)' : language === 'es' ? 'Mayor (7a+)' : 'Senior (7y+)'}</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Energy Level - New */}
-                <Select value={filterEnergy} onValueChange={setFilterEnergy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={language === 'pt' ? 'Energia' : 'Energy'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{language === 'pt' ? 'Qualquer Energia' : 'Any Energy'}</SelectItem>
-                    <SelectItem value="low">{language === 'pt' ? 'Baixa' : 'Low'}</SelectItem>
-                    <SelectItem value="moderate">{language === 'pt' ? 'Moderada' : 'Moderate'}</SelectItem>
-                    <SelectItem value="high">{language === 'pt' ? 'Alta' : 'High'}</SelectItem>
-                    <SelectItem value="very_high">{language === 'pt' ? 'Muito Alta' : 'Very High'}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Row 2 - Gender, Location, Special Filters */}
-              <div className="grid md:grid-cols-4 gap-4">
-                {/* Gender */}
-                <Select value={filterGender} onValueChange={setFilterGender}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={language === 'pt' ? 'Sexo' : language === 'es' ? 'Sexo' : 'Gender'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('allGenders', language)}</SelectItem>
-                    <SelectItem value="male">{language === 'pt' ? 'Macho' : language === 'es' ? 'Macho' : 'Male'}</SelectItem>
-                    <SelectItem value="female">{language === 'pt' ? 'Fêmea' : language === 'es' ? 'Hembra' : 'Female'}</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Location */}
-                <Input
-                  placeholder={`${t('location', language)}...`}
-                  value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
-                />
-
-                {/* Urgent Only Toggle */}
-                <Button
-                  variant={showUrgentOnly ? "default" : "outline"}
-                  onClick={() => setShowUrgentOnly(!showUrgentOnly)}
-                  className={showUrgentOnly ? "bg-orange-500 hover:bg-orange-600" : ""}
-                >
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  {t('urgentOnly', language)}
-                </Button>
-
-                {/* Verified Only Toggle - New Button */}
-                <Button
-                  variant={showVerifiedOnly ? "default" : "outline"}
-                  onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
-                  className={showVerifiedOnly ? "bg-green-500 hover:bg-green-600 text-white" : ""}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Verificados' : language === 'es' ? 'Verificados' : 'Verified'}
-                </Button>
-              </div>
-
-              {/* Row 3 - Good With & Special Needs - New Section */}
-              <div className="flex flex-wrap items-center gap-2">
-                <Label className="text-sm font-semibold text-gray-700">
-                  {language === 'pt' ? 'Bom com:' : language === 'es' ? 'Bueno con:' : 'Good with:'}
-                </Label>
-                {[
-                  { id: 'children', label: language === 'pt' ? '👶 Crianças' : language === 'es' ? '👶 Niños' : '👶 Children' },
-                  { id: 'dogs', label: language === 'pt' ? '🐕 Cães' : language === 'es' ? '🐕 Perros' : '🐕 Dogs' },
-                  { id: 'cats', label: language === 'pt' ? '🐱 Gatos' : language === 'es' ? '🐱 Gatos' : '🐱 Cats' },
-                  { id: 'other_pets', label: language === 'pt' ? '🐾 Outros' : language === 'es' ? '🐾 Otros' : '🐾 Other Pets' }
-                ].map(item => (
-                  <Badge
-                    key={item.id}
-                    variant={filterGoodWith.includes(item.id) ? "default" : "outline"}
-                    className="cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => {
-                      if (filterGoodWith.includes(item.id)) {
-                        setFilterGoodWith(filterGoodWith.filter(f => f !== item.id));
-                      } else {
-                        setFilterGoodWith([...filterGoodWith, item.id]);
-                      }
-                    }}
-                  >
-                    {item.label}
-                  </Badge>
-                ))}
-                
-                {/* Special Needs Badge - New */}
-                <Badge
-                  variant={filterSpecialNeeds ? "default" : "outline"}
-                  className="cursor-pointer hover:scale-105 transition-transform bg-orange-100 border-orange-400 text-orange-800"
-                  onClick={() => setFilterSpecialNeeds(!filterSpecialNeeds)}
-                >
-                  ♿ {language === 'pt' ? 'Necessidades Especiais' : language === 'es' ? 'Necesidades Especiales' : 'Special Needs'}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Modern Compact Filters */}
+        <FilterBar 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filterPetType={filterPetType}
+          setFilterPetType={setFilterPetType}
+          filterLocation={filterLocation}
+          setFilterLocation={setFilterLocation}
+          filterSize={filterSize}
+          setFilterSize={setFilterSize}
+          filterAge={filterAge}
+          setFilterAge={setFilterAge}
+          filterGender={filterGender}
+          setFilterGender={setFilterGender}
+          filterEnergy={filterEnergy}
+          setFilterEnergy={setFilterEnergy}
+          showUrgentOnly={showUrgentOnly}
+          setShowUrgentOnly={setShowUrgentOnly}
+          showVerifiedOnly={showVerifiedOnly}
+          setShowVerifiedOnly={setShowVerifiedOnly}
+          filterGoodWith={filterGoodWith}
+          setFilterGoodWith={setFilterGoodWith}
+          filterSpecialNeeds={filterSpecialNeeds}
+          setFilterSpecialNeeds={setFilterSpecialNeeds}
+          language={language}
+        />
 
         {/* Listings Grid */}
         {isLoading ? (
