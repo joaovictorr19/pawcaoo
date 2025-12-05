@@ -29,6 +29,7 @@ import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { toast } from "sonner";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Query optimization configs
 const queryConfig = {
@@ -807,8 +808,10 @@ function LayoutContent({ children, currentPageName }) {
 
 export default function Layout({ children, currentPageName }) {
   return (
-    <LanguageProvider>
-      <LayoutContent children={children} currentPageName={currentPageName} />
-    </LanguageProvider>
+    <HelmetProvider>
+      <LanguageProvider>
+        <LayoutContent children={children} currentPageName={currentPageName} />
+      </LanguageProvider>
+    </HelmetProvider>
   );
 }

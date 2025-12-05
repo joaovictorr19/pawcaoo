@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCreateNotification } from "../components/NotificationService"; // Import Notification Hook
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
+import SEO from "../components/SEO";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -185,6 +186,12 @@ export default function WalkerDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      <SEO 
+        title={`${walker.walker_name} - Passeador de Cães em ${walker.location}`}
+        description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... Avaliação: ${averageRating?.toFixed(1)}/5.`}
+        image={walker.photo_url}
+        type="profile"
+      />
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Button
           variant="outline"

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +17,7 @@ import { format } from "date-fns";
 
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import SEO from "../components/SEO";
 
 export default function AdoptionListingDetails() {
   const navigate = useNavigate();
@@ -147,6 +147,12 @@ export default function AdoptionListingDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6">
+      <SEO 
+        title={`Adotar ${listing.pet_name} - ${listing.breed}`}
+        description={`Conheça ${listing.pet_name}, ${listing.breed}, ${listing.age_years} anos. ${listing.description?.substring(0, 100)}...`}
+        image={listing.photos?.[0]}
+        type="article"
+      />
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <Button

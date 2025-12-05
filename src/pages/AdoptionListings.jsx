@@ -14,6 +14,7 @@ import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import SEO from "../components/SEO";
 
 export default function AdoptionListings({ isEmbedded = false }) {
   const navigate = useNavigate();
@@ -115,6 +116,13 @@ export default function AdoptionListings({ isEmbedded = false }) {
 
   return (
     <div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6"}>
+      {!isEmbedded && (
+        <SEO 
+          title={language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}
+          description="Descubra cães, gatos e outros animais à espera de um lar amoroso. Adote, não compre."
+          keywords="adoção, cães, gatos, adotar pet, abrigo animais, pawcão"
+        />
+      )}
       <div className={isEmbedded ? "" : "max-w-7xl mx-auto"}>
         {/* Header - Only show if not embedded or simplified version if embedded */}
         {!isEmbedded && (
