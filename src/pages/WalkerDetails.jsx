@@ -89,6 +89,16 @@ export default function WalkerDetails() {
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : walker?.rating || 5;
 
+  // Redirect if walker not found - MOVED UP before conditional return
+  React.useEffect(() => {
+    if (!isLoading && !walker) {
+      const timer = setTimeout(() => {
+        navigate(createPageUrl('Home'));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, walker, navigate]);
+
   // Function to handle booking completion from BookingForm
   const handleBookingInitiated = (booking) => {
     setCurrentBooking({
@@ -155,16 +165,6 @@ export default function WalkerDetails() {
       </div>
     );
   }
-
-  // Redirect if walker not found
-  React.useEffect(() => {
-    if (!isLoading && !walker) {
-      const timer = setTimeout(() => {
-        navigate(createPageUrl('Home'));
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, walker, navigate]);
 
   if (!walker) {
     return (
