@@ -1387,83 +1387,8 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  {/* Badges Pré-definidos (Sistema) */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Emblemas Padrão do Sistema</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Badge Verificado */}
-                      <Card className="border-2 border-blue-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex gap-3">
-                              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <CheckCircle className="w-8 h-8 text-blue-600" />
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-lg">Verificado</h4>
-                                <p className="text-sm text-gray-600">Selo de verificação azul do Twitter</p>
-                                <Badge className="mt-2 bg-blue-500">Comum</Badge>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedBadgeForAll({
-                                  badge_id: 'verified',
-                                  name: 'Verificado',
-                                  description: 'Usuário verificado pela plataforma',
-                                  icon: '✓',
-                                  rarity: 'common',
-                                  category: 'special',
-                                  xp: 50
-                                });
-                                setShowGrantAllUsersModal(true);
-                              }}
-                            >
-                              Conceder a Todos
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Badge Defensor de Adoção */}
-                      <Card className="border-2 border-pink-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex gap-3">
-                              <div className="w-16 h-16 bg-pink-100 rounded-xl flex items-center justify-center">
-                                <Heart className="w-8 h-8 text-pink-600" />
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-lg">Defensor de Adoção</h4>
-                                <p className="text-sm text-gray-600">Apoiador de adoções</p>
-                                <Badge className="mt-2 bg-pink-500">Raro</Badge>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedBadgeForAll({
-                                  badge_id: 'adoption_advocate',
-                                  name: 'Defensor de Adoção',
-                                  description: 'Apoiador ativo de adoções',
-                                  icon: '💖',
-                                  rarity: 'rare',
-                                  category: 'special',
-                                  xp: 100
-                                });
-                                setShowGrantAllUsersModal(true);
-                              }}
-                            >
-                              Conceder a Todos
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
+                  {/* Badges Pré-definidos (Sistema) - MERGED INTO LIST VISUALLY IF NEEDED OR REMOVED TO UNIFY */}
+                  {/* Seção removida para unificar com a biblioteca de emblemas customizados */}
 
                   {/* Lista de Usuários com Badges */}
                   <div>
