@@ -490,18 +490,21 @@ export default function AdminDashboard() {
       const targetUser = allUsers.find(u => u.email === email);
       if (!targetUser) throw new Error("Usuário não encontrado");
 
+      // CRÍTICO: Usar o ID da entidade BadgeDefinition como badge_id se disponível
+      const finalBadgeId = badge.badge_id || badge.id || `custom_${Date.now()}`;
+
       const currentPublicBadges = targetUser.public_badges || [];
-      if (currentPublicBadges.some(b => b.badge_id === badge.badge_id)) {
+      if (currentPublicBadges.some(b => b.badge_id === finalBadgeId)) {
         throw new Error("Usuário já possui este emblema");
       }
 
       const newBadge = {
-        badge_id: badge.badge_id || `custom_${Date.now()}`,
+        badge_id: finalBadgeId,
         name: badge.name,
         description: badge.description,
         icon: badge.icon,
         image_url: badge.image_url || "",
-        image_png_file: badge.image_png_file || badge.image_url || "", // Handle new field
+        image_png_file: badge.image_png_file || badge.image_url || "",
         rarity: badge.rarity || "common",
         category: badge.category || "special",
         xp: badge.xp || 50,
@@ -512,17 +515,17 @@ export default function AdminDashboard() {
       // Create UserBadge record (Source of Truth)
       await base44.entities.UserBadge.create({
         user_email: targetUser.email,
-        badge_id: newBadge.badge_id,
+        badge_id: newBadge.badge_id, // ID correto da definição
         name: newBadge.name,
         description: newBadge.description,
         icon: newBadge.icon,
         image_url: newBadge.image_url,
-        image_png_file: newBadge.image_png_file, // Store in UserBadge
+        image_png_file: newBadge.image_png_file,
         rarity: newBadge.rarity,
         granted_by: user.email
       });
 
-      // Update User Profile
+      // Update User Profile (Legacy sync)
       await base44.entities.User.update(targetUser.id, {
         public_badges: [...currentPublicBadges, newBadge],
         gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
