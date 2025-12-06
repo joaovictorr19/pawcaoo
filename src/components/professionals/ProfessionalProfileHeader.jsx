@@ -1,17 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, Star, MapPin, Video, Clock, Calendar, Phone, Award, User as UserIcon, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, Star, MapPin, Video, Clock, Calendar, Phone, Award, User as UserIcon, Target, Maximize2, Minimize2 } from "lucide-react";
 import { format } from "date-fns";
 
 export default function ProfessionalProfileHeader({ professional, type, reviews, averageRating }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const isWalker = type === 'walker';
   const name = isWalker ? professional.walker_name : professional.trainer_name;
   const videoUrl = professional.video_intro_url;
   
   return (
-    <Card className="overflow-hidden border-0 shadow-2xl mb-6">
-      <div className="relative h-96 bg-gradient-to-br from-green-100 to-blue-100">
+    <Card className="overflow-hidden border-0 shadow-sm mb-6">
+      <div 
+        className={`relative ${isExpanded ? 'h-96' : 'h-48'} bg-gradient-to-br from-green-100 to-blue-100 transition-all duration-300 ease-in-out group cursor-pointer`}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         {professional.photo_url ? (
           <img
             src={professional.photo_url}
@@ -27,44 +32,55 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
             </div>
           </div>
         )}
-        <div className="absolute top-6 right-6 flex flex-col gap-3">
+        <div className="absolute top-4 right-4 flex flex-col gap-2">
           {professional.verification_status === "verified" && (
-            <Badge className={`${isWalker ? 'bg-green-500' : 'bg-purple-500'} text-white border-0 shadow-lg text-base px-4 py-2`}>
-              <ShieldCheck className="w-5 h-5 mr-2" />
-              Verified {isWalker ? 'Walker' : 'Trainer'}
+            <Badge className={`${isWalker ? 'bg-green-500' : 'bg-purple-500'} text-white border-0 shadow-sm text-xs px-3 py-1.5`}>
+              <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+              Verified
             </Badge>
           )}
-          <Badge className="bg-white/95 text-gray-900 border-0 shadow-lg text-lg px-4 py-2">
-            <Star className="w-5 h-5 mr-2 fill-yellow-400 text-yellow-400" />
-            {averageRating.toFixed(1)} ({reviews.length} reviews)
+          <Badge className="bg-white/95 text-gray-900 border-0 shadow-sm text-xs px-3 py-1.5">
+            <Star className="w-3.5 h-3.5 mr-1.5 fill-yellow-400 text-yellow-400" />
+            {averageRating.toFixed(1)} ({reviews.length})
           </Badge>
         </div>
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute bottom-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+        >
+          {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </Button>
       </div>
 
-      <CardContent className="p-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <CardContent className="p-5">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">
               {name}
             </h1>
-            <div className="flex items-center text-gray-600 text-lg">
-              <MapPin className="w-5 h-5 mr-2" />
+            <div className="flex items-center text-gray-600 text-sm">
+              <MapPin className="w-4 h-4 mr-1.5" />
               {professional.location}
             </div>
           </div>
-          <div className="mt-4 md:mt-0 text-right">
-            <div className={`text-4xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
+          <div className="mt-3 md:mt-0 text-right">
+            <div className={`text-2xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
               €{professional.hourly_rate}
             </div>
-            <div className="text-gray-600">per hour</div>
-            <div className="text-xs text-gray-500 mt-1">+15% platform fee</div>
+            <div className="text-gray-500 text-xs">per hour</div>
           </div>
         </div>
 
         {professional.bio && (
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">About Me</h3>
-            <p className="text-gray-700 text-lg leading-relaxed">
+          <div className="mb-5">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">About Me</h3>
+            <p className="text-gray-600 text-sm leading-relaxed">
               {professional.bio}
             </p>
           </div>
@@ -106,15 +122,15 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
         )}
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
           {professional.experience_years && (
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${isWalker ? 'bg-green-100' : 'bg-purple-100'} rounded-xl flex items-center justify-center`}>
-                {isWalker ? <Clock className={`w-6 h-6 ${isWalker ? 'text-green-600' : 'text-purple-600'}`} /> : <Award className="w-6 h-6 text-purple-600" />}
+            <div className="flex items-center gap-2.5">
+              <div className={`w-10 h-10 ${isWalker ? 'bg-green-100' : 'bg-purple-100'} rounded-lg flex items-center justify-center shrink-0`}>
+                {isWalker ? <Clock className={`w-5 h-5 ${isWalker ? 'text-green-600' : 'text-purple-600'}`} /> : <Award className="w-5 h-5 text-purple-600" />}
               </div>
               <div>
-                <div className="text-sm text-gray-600">Experience</div>
-                <div className="text-lg font-semibold text-gray-900">
+                <div className="text-xs text-gray-500">Experience</div>
+                <div className="text-sm font-semibold text-gray-900">
                   {professional.experience_years} years
                 </div>
               </div>
@@ -122,27 +138,27 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
           )}
           
           {(isWalker ? professional.total_walks > 0 : professional.total_clients > 0) && (
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                {isWalker ? <Calendar className="w-6 h-6 text-blue-600" /> : <UserIcon className="w-6 h-6 text-blue-600" />}
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                {isWalker ? <Calendar className="w-5 h-5 text-blue-600" /> : <UserIcon className="w-5 h-5 text-blue-600" />}
               </div>
               <div>
-                <div className="text-sm text-gray-600">{isWalker ? 'Completed Walks' : 'Trained Clients'}</div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {isWalker ? `${professional.total_walks} walks` : `${professional.total_clients} dogs`}
+                <div className="text-xs text-gray-500">{isWalker ? 'Walks' : 'Clients'}</div>
+                <div className="text-sm font-semibold text-gray-900">
+                  {isWalker ? `${professional.total_walks}` : `${professional.total_clients}`}
                 </div>
               </div>
             </div>
           )}
 
           {professional.phone && (
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${isWalker ? 'bg-purple-100' : 'bg-green-100'} rounded-xl flex items-center justify-center`}>
-                <Phone className={`w-6 h-6 ${isWalker ? 'text-purple-600' : 'text-green-600'}`} />
+            <div className="flex items-center gap-2.5">
+              <div className={`w-10 h-10 ${isWalker ? 'bg-purple-100' : 'bg-green-100'} rounded-lg flex items-center justify-center shrink-0`}>
+                <Phone className={`w-5 h-5 ${isWalker ? 'text-purple-600' : 'text-green-600'}`} />
               </div>
               <div>
-                <div className="text-sm text-gray-600">Contact</div>
-                <div className="text-lg font-semibold text-gray-900">
+                <div className="text-xs text-gray-500">Contact</div>
+                <div className="text-sm font-semibold text-gray-900 truncate max-w-[100px] md:max-w-full">
                   {professional.phone}
                 </div>
               </div>
