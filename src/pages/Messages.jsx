@@ -219,7 +219,12 @@ export default function Messages() {
     }
   });
 
-  const handleCreateChat = () => {
+  const handleCreateChat = async () => {
+    if (!user || !user.email) {
+      toast.error("❌ Erro: Usuário não identificado. Tente recarregar.");
+      return;
+    }
+
     if (createGroupChat) {
       if (!groupName.trim() || groupParticipants.length === 0) {
         toast.error("❌ Preencha o nome e selecione participantes");
@@ -228,9 +233,9 @@ export default function Messages() {
       
       const participants = [
         {
-          email: user?.email,
-          name: user?.full_name,
-          photo_url: user?.profile_photo_url,
+          email: user.email,
+          name: user.full_name,
+          photo_url: user.profile_photo_url,
           role: 'owner'
         },
         ...groupParticipants
@@ -246,8 +251,7 @@ export default function Messages() {
         return;
       }
       
-      // MELHORADO: Find professional by name OR email
-      const searchTerm = newChatEmail.toLowerCase();
+      const searchTerm = newChatEmail.toLowerCase().trim();
       
       const walker = walkers.find(w => 
         w.created_by?.toLowerCase() === searchTerm ||
@@ -258,31 +262,65 @@ export default function Messages() {
         t.created_by?.toLowerCase() === searchTerm ||
         t.trainer_name?.toLowerCase().includes(searchTerm)
       );
+
+      const company = companies.find(c =>
+        c.company_email?.toLowerCase() === searchTerm ||
+        c.company_name?.toLowerCase().includes(searchTerm)
+      );
       
-      const professional = walker || trainer;
-      
+      let professional = walker || trainer || company;
+      let isGenericUser = false;
+      let genericUser = null;
+
       if (!professional) {
-        toast.error("❌ Profissional não encontrado");
-        console.log('❌ No professional found for:', newChatEmail);
-        console.log('Walkers:', walkers.map(w => ({ name: w.walker_name, email: w.created_by })));
-        console.log('Trainers:', trainers.map(t => ({ name: t.trainer_name, email: t.created_by })));
+        // Fallback: Try to find a generic user
+        try {
+          const users = await base44.entities.User.filter({ email: searchTerm });
+          if (users.length > 0) {
+            genericUser = users[0];
+            isGenericUser = true;
+          }
+        } catch (e) {
+          console.error("Search user failed", e);
+        }
+      }
+      
+      if (!professional && !isGenericUser) {
+        toast.error("❌ Conta não encontrada (Profissional, Empresa ou Usuário)");
         return;
       }
       
-      console.log('✅ Found professional:', professional);
+      console.log('✅ Found account:', professional || genericUser);
       
+      let targetEmail = "";
+      let targetName = "";
+      let targetPhoto = "";
+      let targetRole = "owner";
+
+      if (isGenericUser) {
+        targetEmail = genericUser.email;
+        targetName = genericUser.full_name;
+        targetPhoto = genericUser.profile_photo_url;
+        targetRole = "owner";
+      } else {
+        targetEmail = professional.created_by || professional.company_email;
+        targetName = walker ? professional.walker_name : (trainer ? professional.trainer_name : professional.company_name);
+        targetPhoto = professional.photo_url || professional.logo_url;
+        targetRole = walker ? 'walker' : (trainer ? 'trainer' : 'company');
+      }
+
       const participants = [
         {
-          email: user?.email,
-          name: user?.full_name,
-          photo_url: user?.profile_photo_url,
+          email: user.email,
+          name: user.full_name,
+          photo_url: user.profile_photo_url,
           role: 'owner'
         },
         {
-          email: professional.created_by,
-          name: walker ? professional.walker_name : professional.trainer_name,
-          photo_url: professional.photo_url,
-          role: walker ? 'walker' : 'trainer'
+          email: targetEmail,
+          name: targetName,
+          photo_url: targetPhoto,
+          role: targetRole
         }
       ];
       

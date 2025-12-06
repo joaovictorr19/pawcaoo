@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,6 +116,7 @@ export default function AdminDashboard() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.User.list('-created_date', 1000), // Increased limit to ensure all users are loaded
     enabled: user?.role === 'admin',
     initialData: [],
@@ -123,6 +124,7 @@ export default function AdminDashboard() {
 
   const { data: walkerApplications = [] } = useQuery({
     queryKey: ['walkerApplications'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'pending' }),
     enabled: user?.role === 'admin' && activeTab === 'applications',
     initialData: [],
@@ -130,6 +132,7 @@ export default function AdminDashboard() {
 
   const { data: trainerApplications = [] } = useQuery({
     queryKey: ['trainerApplications'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.TrainerProfile.filter({ verification_status: 'pending' }),
     enabled: user?.role === 'admin' && activeTab === 'applications',
     initialData: [],
@@ -137,6 +140,7 @@ export default function AdminDashboard() {
 
   const { data: shelterApplications = [] } = useQuery({
     queryKey: ['shelterApplications'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.ShelterProfile.filter({ verification_status: 'pending' }),
     enabled: user?.role === 'admin' && activeTab === 'applications',
     initialData: [],
@@ -144,6 +148,7 @@ export default function AdminDashboard() {
 
   const { data: activeWalkers = [] } = useQuery({
     queryKey: ['activeWalkers'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'verified' }),
     enabled: user?.role === 'admin' && activeTab === 'active_walkers',
     initialData: [],
@@ -151,6 +156,7 @@ export default function AdminDashboard() {
 
   const { data: adoptionApplications = [], isFetching: loadingAdoptions } = useQuery({
     queryKey: ['allAdoptionApplications'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.AdoptionApplication.list('-created_date', 100),
     enabled: user?.role === 'admin' && activeTab === 'adoptions',
     initialData: [],
@@ -158,6 +164,7 @@ export default function AdminDashboard() {
 
   const { data: allPartnerServices = [], isFetching: loadingServices } = useQuery({
     queryKey: ['allPartnerServices'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'services',
     initialData: [],
@@ -166,6 +173,7 @@ export default function AdminDashboard() {
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const walkerBookings = await base44.entities.Booking.list('-created_date', 100);
       const trainerBookings = await base44.entities.TrainingBooking.list('-created_date', 100);
@@ -177,6 +185,7 @@ export default function AdminDashboard() {
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.Payment.list('-held_date', 100),
     enabled: user?.role === 'admin',
     initialData: [],
@@ -191,6 +200,7 @@ export default function AdminDashboard() {
 
   const { data: allAnnouncements = [], isFetching: loadingAnnouncements } = useQuery({
     queryKey: ['allAnnouncements'],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const announcements = await base44.entities.CompanyAnnouncement.list('-created_date');
       return announcements;
@@ -201,6 +211,7 @@ export default function AdminDashboard() {
 
   const { data: companies = [], isFetching: loadingCompanies } = useQuery({
     queryKey: ['allCompanies'],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const allCompanies = await base44.entities.PartnerCompany.list();
       
@@ -250,6 +261,7 @@ export default function AdminDashboard() {
 
   const { data: allReviews = [], isFetching: loadingReviews } = useQuery({
     queryKey: ['allReviews'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.Review.list('-created_date', 100),
     enabled: user?.role === 'admin' && activeTab === 'reviews',
     initialData: [],
@@ -265,6 +277,7 @@ export default function AdminDashboard() {
 
   const { data: badgeDefinitions = [], isFetching: loadingBadges } = useQuery({
     queryKey: ['badgeDefinitions'],
+    placeholderData: keepPreviousData,
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'badges',
     initialData: [],
