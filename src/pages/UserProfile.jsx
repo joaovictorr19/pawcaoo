@@ -103,9 +103,17 @@ export default function UserProfile() {
 
       // Resolve ID to Email if needed (Public Profile fetch)
       if (targetId) {
-        // Try to fetch UserProfile by ID first
-        const profiles = await base44.entities.UserProfile.filter({ user_id: targetId });
-        if (profiles.length > 0) return profiles[0];
+        // 1. Try by Entity ID (Primary Key)
+        try {
+          const byEntityId = await base44.entities.UserProfile.filter({ id: targetId });
+          if (byEntityId && byEntityId.length > 0) return byEntityId[0];
+        } catch (e) {
+          // ignore, might not be valid ID format
+        }
+
+        // 2. Try by User ID (Auth ID)
+        const byUserId = await base44.entities.UserProfile.filter({ user_id: targetId });
+        if (byUserId && byUserId.length > 0) return byUserId[0];
       }
 
       if (isSelfView && currentUser) {
