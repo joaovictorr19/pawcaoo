@@ -102,79 +102,88 @@ export default function UserProfile() {
     queryKey: ['profileUser', targetId, targetEmail, isSelfView, currentUser?.id],
     queryFn: async () => {
       let userProfile = null;
-      let emailToFetch = targetEmail;
+      
+      // STRATEGY:
+      // 1. If we have a targetId, try to find the profile by 'id' (entity ID) or 'user_id' (auth ID).
+      // 2. If we found it, GREAT.
+      // 3. If NOT found, but it isSelfView, we MUST try to find by email (currentUser.email).
+      // 4. If still not found and isSelfView, CREATE it.
 
-      // Resolve ID to Email if needed (Public Profile fetch)
+      // 1. Try Lookup by ID if provided
       if (targetId) {
-        // 1. Try by Entity ID (Primary Key)
+        // Try Entity ID
         try {
           const byEntityId = await base44.entities.UserProfile.filter({ id: targetId });
-          if (byEntityId && byEntityId.length > 0) return byEntityId[0];
-        } catch (e) {
-          // ignore, might not be valid ID format
+          if (byEntityId && byEntityId.length > 0) userProfile = byEntityId[0];
+        } catch (e) {}
+
+        // Try User ID (if not found yet)
+        if (!userProfile) {
+          try {
+            const byUserId = await base44.entities.UserProfile.filter({ user_id: targetId });
+            if (byUserId && byUserId.length > 0) userProfile = byUserId[0];
+          } catch (e) {}
         }
-
-        // 2. Try by User ID (Auth ID)
-        const byUserId = await base44.entities.UserProfile.filter({ user_id: targetId });
-        if (byUserId && byUserId.length > 0) return byUserId[0];
       }
 
-      if (isSelfView && currentUser) {
-        emailToFetch = currentUser.email;
+      // 2. Try Lookup by Email (if targetEmail provided OR isSelfView)
+      if (!userProfile) {
+        const emailToSearch = targetEmail || (isSelfView && currentUser?.email) || null;
+        if (emailToSearch) {
+          try {
+            const byEmail = await base44.entities.UserProfile.filter({ user_email: emailToSearch });
+            if (byEmail && byEmail.length > 0) userProfile = byEmail[0];
+          } catch (e) {}
+        }
       }
 
-      if (emailToFetch) {
-        const profiles = await base44.entities.UserProfile.filter({ user_email: emailToFetch });
-        if (profiles.length > 0) userProfile = profiles[0];
-      }
-
-      // Sync/Create logic for Current User
+      // 3. Create/Sync logic (Only for Current User)
       if (isSelfView && currentUser) {
         if (!userProfile) {
-          // Create Public Profile
+          // CREATE
           try {
-            console.log("Attempting to create UserProfile for:", currentUser.email);
-            userProfile = await base44.entities.UserProfile.create({
+            console.log("Creating UserProfile for:", currentUser.email);
+            // Ensure required fields have values
+            const payload = {
               user_email: currentUser.email,
-              user_id: currentUser.id,
+              user_id: currentUser.id, // Important: Save Auth ID
               full_name: currentUser.full_name || 'Utilizador',
               profile_photo_url: currentUser.profile_photo_url,
               cover_photo_url: currentUser.cover_photo_url,
-              bio: currentUser.bio,
-              city: currentUser.city,
+              bio: currentUser.bio || '',
+              city: currentUser.city || '',
               role: currentUser.role || 'user',
               gamification_xp: currentUser.gamification_xp || 0,
               gamification_level: currentUser.gamification_level || 1,
               followers_count: 0,
               following_count: 0,
               is_verified: currentUser.is_verified || false
-            });
-            console.log("UserProfile created successfully:", userProfile);
+            };
+
+            userProfile = await base44.entities.UserProfile.create(payload);
           } catch (error) {
-            console.error("Error creating UserProfile:", error);
-            // Emergency fallback: try to fetch one last time in case of race condition
+            console.error("Creation failed:", error);
+            // Last ditch effort: did it exist but query failed before?
             const retry = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
             if (retry.length > 0) userProfile = retry[0];
           }
         } else {
-          // Sync fields if needed
+          // SYNC: Update ID if missing or stale fields
           try {
-            if (userProfile.gamification_xp !== currentUser.gamification_xp || 
-                userProfile.full_name !== currentUser.full_name ||
-                userProfile.profile_photo_url !== currentUser.profile_photo_url) {
-               
-               await base44.entities.UserProfile.update(userProfile.id, {
-                 gamification_xp: currentUser.gamification_xp || 0,
-                 gamification_level: currentUser.gamification_level || 1,
-                 full_name: currentUser.full_name,
-                 profile_photo_url: currentUser.profile_photo_url
-               });
+            const updates = {};
+            if (userProfile.user_id !== currentUser.id) updates.user_id = currentUser.id;
+            if (userProfile.full_name !== currentUser.full_name && currentUser.full_name) updates.full_name = currentUser.full_name;
+            if (userProfile.profile_photo_url !== currentUser.profile_photo_url && currentUser.profile_photo_url) updates.profile_photo_url = currentUser.profile_photo_url;
+            
+            if (Object.keys(updates).length > 0) {
+               await base44.entities.UserProfile.update(userProfile.id, updates);
+               // Update local object to reflect changes immediately
+               userProfile = { ...userProfile, ...updates };
             }
           } catch (e) {
-            console.warn("Error syncing profile:", e);
+            console.warn("Sync failed:", e);
           }
         }
-        return userProfile;
       }
 
       return userProfile;
@@ -390,7 +399,7 @@ export default function UserProfile() {
               <p className="text-xs text-gray-500 font-bold mb-1">Debug Info:</p>
               <p className="text-xs text-gray-600 font-mono">Target ID: {targetId || 'N/A'}</p>
               <p className="text-xs text-gray-600 font-mono">Target Email: {targetEmail || 'N/A'}</p>
-              <p className="text-xs text-gray-600 font-mono">Current User ID: {currentUser?.id || 'Not logged in'}</p>
+              <p className="text-xs text-gray-600 font-mono">Current User: {currentUser ? `${currentUser.full_name} (${currentUser.email})` : 'Not logged in'}</p>
               <p className="text-xs text-gray-600 font-mono">Is Self View: {isSelfView ? 'Yes' : 'No'}</p>
             </div>
             <Button onClick={() => navigate(createPageUrl('SocialFeed'))} className="w-full">
