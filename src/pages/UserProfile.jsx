@@ -93,7 +93,10 @@ export default function UserProfile() {
   const targetEmail = !targetId ? profileEmailParam : null;
   
   // If no params provided, we show current user's profile
-  const isSelfView = !targetId && !targetEmail;
+  // Also check if the params match the current user
+  const isSelfView = (!targetId && !targetEmail) || 
+                     (currentUser && targetId === currentUser.id) || 
+                     (currentUser && targetEmail === currentUser.email);
 
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, isSelfView, currentUser?.id],
@@ -367,9 +370,12 @@ export default function UserProfile() {
             <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil não encontrado</h2>
             <p className="text-gray-600 mb-4">Este perfil não está disponível ou foi removido.</p>
-            <div className="bg-gray-100 p-3 rounded-lg mb-4">
-              <p className="text-xs text-gray-500">Debug Info (só você vê):</p>
-              <p className="text-xs text-gray-600 font-mono">Email procurado: {profileEmail}</p>
+            <div className="bg-gray-100 p-3 rounded-lg mb-4 text-left">
+              <p className="text-xs text-gray-500 font-bold mb-1">Debug Info:</p>
+              <p className="text-xs text-gray-600 font-mono">Target ID: {targetId || 'N/A'}</p>
+              <p className="text-xs text-gray-600 font-mono">Target Email: {targetEmail || 'N/A'}</p>
+              <p className="text-xs text-gray-600 font-mono">Current User ID: {currentUser?.id || 'Not logged in'}</p>
+              <p className="text-xs text-gray-600 font-mono">Is Self View: {isSelfView ? 'Yes' : 'No'}</p>
             </div>
             <Button onClick={() => navigate(createPageUrl('SocialFeed'))} className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
