@@ -14,7 +14,6 @@ import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
 import { pt, enUS, es } from "date-fns/locale";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
-import CheckoutModal from "../components/payments/CheckoutModal"; 
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
@@ -36,7 +35,6 @@ export default function WalkerDetails() {
   const createNotification = useCreateNotification();
   
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [currentBooking, setCurrentBooking] = useState(null);
   
   const [showRecurringModal, setShowRecurringModal] = useState(false);
