@@ -258,8 +258,19 @@ export default function Home() {
           walker.specializations?.includes(spec)
         );
 
-      const matchesRadius = !userLocation || walker.distance === null || 
-        walker.distance <= (advancedFilters.radius || 50);
+      // Check if user is within any defined service area
+      const isInServiceArea = !userLocation || (walker.service_areas?.some(area => {
+        if (!area.latitude || !area.longitude || !area.radius_km) return false;
+        const dist = calculateDistance(
+          userLocation.lat, 
+          userLocation.lng, 
+          area.latitude, 
+          area.longitude
+        );
+        return dist <= area.radius_km;
+      }));
+
+      const matchesRadius = !userLocation || isInServiceArea || (walker.distance !== null && walker.distance <= (advancedFilters.radius || 50));
       
       const matchesLanguages = !advancedFilters.languages || advancedFilters.languages.length === 0 ||
         advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));

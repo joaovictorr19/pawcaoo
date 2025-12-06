@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCreateNotification } from "../components/NotificationService"; // Import Notification Hook
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
+import ServiceAreaMap from "../components/professionals/ServiceAreaMap";
 import SEO from "../components/SEO";
 import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
 import PawCaoLogo from "@/components/PawCaoLogo";
@@ -268,13 +269,19 @@ export default function WalkerDetails() {
               <div className="px-5 pb-5">
                 <ServiceList services={walker.services_offered || []} type="walker" />
 
-                {/* Service Areas - NEW */}
-                {walker.service_areas && walker.service_areas.length > 0 && (
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-green-600" />
-                      {t('serviceAreas', language)}
-                    </h2>
+                {/* Service Areas with Map */}
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    {t('serviceAreas', language)}
+                  </h2>
+                  
+                  {/* Interactive Map */}
+                  <div className="mb-4">
+                    <ServiceAreaMap walker={walker} />
+                  </div>
+
+                  {walker.service_areas && walker.service_areas.length > 0 && (
                     <div className="grid md:grid-cols-2 gap-4">
                       {walker.service_areas.map((area, idx) => (
                         <div key={idx} className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
@@ -294,8 +301,8 @@ export default function WalkerDetails() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {walker.dog_sizes && walker.dog_sizes.length > 0 && (
                   <div className="mb-4">
