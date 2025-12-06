@@ -143,52 +143,47 @@ export default function WalkerDetails() {
   }, [isLoading, walker, navigate, walkerId]);
 
   // Function to handle booking completion from BookingForm
-  const handleBookingInitiated = (booking) => {
-    setCurrentBooking({
-      ...booking,
-      user: user, // Add user for CheckoutModal
-      walker_email: walker.created_by,
-      walker_name: walker.walker_name,
-      paymentMethods: [ // Mock payment methods
-        { type: 'credit_card', last_four: '4242', is_default: true },
-        { type: 'paypal', last_four: 'user@email.com', is_default: false }
-      ]
-    });
+  const handleBookingInitiated = async (booking) => {
     setShowBookingForm(false);
-    setShowCheckoutModal(true);
-  };
-
-  const handlePaymentSuccess = async (payment) => {
-    if (!currentBooking) return;
-
+    
+    // Construct WhatsApp message
+    const formattedDate = format(new Date(booking.walk_date), 'dd/MM/yyyy');
+    const message = `Olá ${walker.walker_name}! 👋%0A%0AGostaria de agendar um passeio:%0A🐶 Cão: ${booking.dog_name}%0A📅 Data: ${formattedDate}%0A⏰ Hora: ${booking.walk_time}%0A⏱ Duração: ${booking.duration} min%0A%0APodemos combinar o pagamento por MBWay ou Transferência?`;
+    
+    // Create notifications asynchronously
     try {
-      // 1. Notify Walker
-      await createNotification.mutateAsync({
+      // 1. Notify Walker (System notification as backup)
+      createNotification.mutate({
         recipient_email: walker.created_by,
-        title: '📅 Nova Solicitação de Reserva!',
-        message: `${user.full_name} solicitou um passeio para ${currentBooking.dog_name} em ${format(new Date(currentBooking.walk_date), 'dd/MM/yyyy')}. Verifique o chat para combinar o pagamento MBWay.`,
+        title: '📅 Nova Solicitação de Agendamento',
+        message: `${user.full_name} iniciou um agendamento via WhatsApp para ${booking.dog_name}.`,
         type: 'booking',
-        related_id: currentBooking.id,
-        action_url: `/Messages?walker_id=${walker.id}`,
+        related_id: booking.id,
         priority: 'high'
       });
+    } catch (e) { console.error(e); }
 
-      // 2. Notify Owner
-      await createNotification.mutateAsync({
-        recipient_email: user.email,
-        title: '⏳ Solicitação Enviada',
-        message: `Sua solicitação para ${walker.walker_name} foi enviada. Combine o pagamento via MBWay no chat.`,
-        type: 'booking',
-        related_id: currentBooking.id,
-        action_url: `/Messages?walker_id=${walker.id}`,
-        priority: 'normal'
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    // Redirect to WhatsApp
+    const whatsappNumber = walker.whatsapp_number ? walker.whatsapp_number.replace(/[^0-9]/g, '') : '';
+    
+    if (whatsappNumber) {
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+      window.open(whatsappUrl, '_blank');
       
-    } catch (error) {
-      console.error("Error sending notifications:", error);
+      toast({
+        title: "Redirecionando para WhatsApp",
+        description: "Combine os detalhes e o pagamento diretamente com o passeador.",
+        duration: 5000,
+      });
+    } else {
+      toast({
+        title: "Solicitação Enviada",
+        description: "O passeador não tem WhatsApp configurado. Por favor aguarde o contato.",
+        variant: "warning",
+      });
     }
+    
+    queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
   };
 
   if (isLoading) {
@@ -528,17 +523,6 @@ export default function WalkerDetails() {
             initialDate={selectedDate}
           />
         )}
-
-        {/* Checkout Modal */}
-        <AnimatePresence>
-          {showCheckoutModal && currentBooking && (
-            <CheckoutModal
-              booking={currentBooking}
-              onClose={() => setShowCheckoutModal(false)}
-              onSuccess={handlePaymentSuccess}
-            />
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Recurring Booking Modal */}
