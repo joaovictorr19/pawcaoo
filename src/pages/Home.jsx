@@ -22,7 +22,7 @@ import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 import InteractiveMap from "../components/search/InteractiveMap";
-import { Map as MapIcon, List } from "lucide-react";
+import { Map as MapIcon, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import SEO from "../components/SEO";
@@ -46,20 +46,21 @@ export default function Home() {
   
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
-    radius: 50,
-    languages: [],
-    specializations: [],
-    certifications: [], 
-    serviceTypes: [],   
-    timeSlots: [],      
-    availableDate: null, 
-    minExperience: 0,
-    minRating: 0,
-    minPrice: 0,
-    maxPrice: 100,
-    backgroundCheck: false,
-    verifiedOnly: false, 
-    instantBooking: false 
+  radius: 50,
+  languages: [],
+  specializations: [],
+  breeds: [], // Added breeds
+  certifications: [], 
+  serviceTypes: [],   
+  timeSlots: [],      
+  availableDate: null, 
+  minExperience: 0,
+  minRating: 0,
+  minPrice: 0,
+  maxPrice: 100,
+  backgroundCheck: false,
+  verifiedOnly: false, 
+  instantBooking: false 
   });
 
   const [trainerFilters, setTrainerFilters] = useState({
@@ -76,6 +77,8 @@ export default function Home() {
 
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -257,6 +260,9 @@ export default function Home() {
       
       const matchesAdvancedSpecializations = !advancedFilters.specializations || advancedFilters.specializations.length === 0 ||
         advancedFilters.specializations.some(spec => walker.specializations?.includes(spec));
+
+      const matchesBreeds = !advancedFilters.breeds || advancedFilters.breeds.length === 0 ||
+        advancedFilters.breeds.some(breed => walker.dog_breeds_handled?.includes(breed));
       
       const matchesCertifications = !advancedFilters.certifications || advancedFilters.certifications.length === 0 ||
         advancedFilters.certifications.some(cert => 
@@ -293,7 +299,7 @@ export default function Home() {
       
       return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
              matchesDogSitting && matchesServiceTypesQuick && matchesSpecializationsQuick &&
-             matchesRadius && matchesLanguages && matchesAdvancedSpecializations &&
+             matchesRadius && matchesLanguages && matchesAdvancedSpecializations && matchesBreeds &&
              matchesCertifications && matchesAdvancedServiceTypes && matchesTimeSlots && matchesDate &&
              matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck &&
              matchesVerifiedOnly && matchesInstantBooking;
@@ -319,6 +325,18 @@ export default function Home() {
     
     return matchesLocation && matchesSize;
   });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredWalkers.length / itemsPerPage);
+  const paginatedWalkers = filteredWalkers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters]);
 
   const filteredTrainers = trainers
     .map(trainer => ({
@@ -364,6 +382,7 @@ export default function Home() {
       radius: 50,
       languages: [],
       specializations: [],
+      breeds: [],
       certifications: [],
       serviceTypes: [],
       timeSlots: [],
@@ -376,6 +395,7 @@ export default function Home() {
       verifiedOnly: false,
       instantBooking: false
     });
+    setCurrentPage(1);
   };
 
   const resetTrainerFilters = () => {
@@ -788,17 +808,77 @@ export default function Home() {
                           )}
                         </Card>
                       ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                          {filteredWalkers.map((walker) => (
-                            <WalkerCard 
-                              key={walker.id} 
-                              walker={walker}
-                              distance={walker.distance}
-                              matchScore={walker.matchScore}
-                              showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
-                            />
-                          ))}
-                        </div>
+                        <>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 mb-8">
+                            {paginatedWalkers.map((walker) => (
+                              <WalkerCard 
+                                key={walker.id} 
+                                walker={walker}
+                                distance={walker.distance}
+                                matchScore={walker.matchScore}
+                                showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Pagination Controls */}
+                          {filteredWalkers.length > itemsPerPage && (
+                            <div className="flex justify-center items-center gap-2 mt-8">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="border-green-200 hover:bg-green-50 hover:text-green-700"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                                <span className="sr-only">Anterior</span>
+                              </Button>
+                              
+                              <div className="flex items-center gap-1">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                  // Simple pagination logic for display
+                                  let pageNum = i + 1;
+                                  if (totalPages > 5 && currentPage > 3) {
+                                    pageNum = currentPage - 3 + i;
+                                    if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                                  }
+                                  
+                                  return (
+                                    <Button
+                                      key={pageNum}
+                                      variant={currentPage === pageNum ? "default" : "ghost"}
+                                      size="sm"
+                                      onClick={() => setCurrentPage(pageNum)}
+                                      className={`w-8 h-8 p-0 font-medium ${
+                                        currentPage === pageNum 
+                                          ? 'bg-green-600 text-white hover:bg-green-700' 
+                                          : 'text-gray-600 hover:bg-green-50 hover:text-green-700'
+                                      }`}
+                                    >
+                                      {pageNum}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="border-green-200 hover:bg-green-50 hover:text-green-700"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                                <span className="sr-only">Próximo</span>
+                              </Button>
+                            </div>
+                          )}
+                          
+                          <div className="text-center text-xs text-gray-500 mt-4">
+                            Mostrando {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWalkers.length)} de {filteredWalkers.length} passeadores
+                          </div>
+                        </>
                       )}
                     </>
                   )}

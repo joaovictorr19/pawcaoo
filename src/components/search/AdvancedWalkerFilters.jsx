@@ -33,6 +33,22 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
     { id: "therapy_dogs", label: "Cães de Terapia", icon: "❤️" }
   ];
 
+  const breeds = [
+    { id: "Labrador", label: "Labrador" },
+    { id: "Golden Retriever", label: "Golden Retriever" },
+    { id: "Pastor Alemão", label: "Pastor Alemão" },
+    { id: "Bulldog", label: "Bulldog" },
+    { id: "Beagle", label: "Beagle" },
+    { id: "Poodle", label: "Poodle" },
+    { id: "Chihuahua", label: "Chihuahua" },
+    { id: "Yorkshire", label: "Yorkshire" },
+    { id: "Boxer", label: "Boxer" },
+    { id: "Husky", label: "Husky" },
+    { id: "Dachshund", label: "Dachshund" },
+    { id: "Shih Tzu", label: "Shih Tzu" },
+    { id: "Mixed Breed", label: "Rafeiro / Mix" }
+  ];
+
   const certifications = [
     { id: "pet_first_aid", label: "Primeiros Socorros Pet", icon: "🏥" },
     { id: "dog_training_certified", label: "Treinador Certificado", icon: "🎓" },
@@ -78,6 +94,14 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
     onFiltersChange({ ...filters, specializations: newSpecs });
   };
 
+  const handleBreedToggle = (breed) => {
+    const currentBreeds = filters.breeds || [];
+    const newBreeds = currentBreeds.includes(breed)
+      ? currentBreeds.filter(b => b !== breed)
+      : [...currentBreeds, breed];
+    onFiltersChange({ ...filters, breeds: newBreeds });
+  };
+
   const handleCertificationToggle = (cert) => {
     const currentCerts = filters.certifications || [];
     const newCerts = currentCerts.includes(cert)
@@ -110,6 +134,7 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
   const activeFiltersCount = 
     (filters.languages?.length || 0) +
     (filters.specializations?.length || 0) +
+    (filters.breeds?.length || 0) +
     (filters.certifications?.length || 0) +
     (filters.serviceTypes?.length || 0) +
     (filters.timeSlots?.length || 0) +
@@ -327,6 +352,36 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
 
         <Separator />
 
+        {/* Breeds */}
+        <div>
+          <Label className="text-sm font-bold mb-3 block flex items-center gap-2">
+            <div className="w-4 h-4 flex items-center justify-center text-orange-600">🐕</div>
+            Experiência com Raças ({filters.breeds?.length || 0})
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {breeds.map((breed) => (
+              <label
+                key={breed.id}
+                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all border ${
+                  filters.breeds?.includes(breed.id)
+                    ? 'bg-orange-50 border-orange-300'
+                    : 'border-gray-100 hover:bg-gray-50'
+                }`}
+              >
+                <Checkbox
+                  id={`breed-${breed.id}`}
+                  checked={filters.breeds?.includes(breed.id)}
+                  onCheckedChange={() => handleBreedToggle(breed.id)}
+                  className="data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600"
+                />
+                <span className="text-xs font-medium">{breed.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
         {/* Certifications */}
         <div>
           <Label className="text-sm font-bold mb-3 block flex items-center gap-2">
@@ -507,6 +562,11 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
                     </Badge>
                   );
                 })}
+                {filters.breeds?.map(breed => (
+                  <Badge key={breed} variant="secondary" className="text-xs bg-orange-100 text-orange-800 border-orange-200">
+                    🐕 {breed}
+                  </Badge>
+                ))}
                 {filters.certifications?.map(cert => {
                   const certData = certifications.find(c => c.id === cert);
                   return (
