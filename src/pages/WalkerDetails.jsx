@@ -381,15 +381,20 @@ export default function WalkerDetails() {
                       }
                       
                       try {
-                        // 1. Verificar se já existe conversa
-                        const existing = await base44.entities.ChatConversation.filter({
-                          participant_emails: { $all: [user.email, walker.created_by] },
+                        // 1. Verificar se já existe conversa (Busca segura sem operador $all)
+                        // Buscamos as conversas do usuário e filtramos no cliente para garantir compatibilidade
+                        const myConversations = await base44.entities.ChatConversation.filter({
+                          participant_emails: user.email,
                           conversation_type: 'one_on_one'
                         });
 
-                        if (existing && existing.length > 0) {
+                        const existing = myConversations.find(c => 
+                          c.participant_emails && c.participant_emails.includes(walker.created_by)
+                        );
+
+                        if (existing) {
                           // 2. Redirecionar para conversa existente
-                          navigate(createPageUrl(`Messages?conversation_id=${existing[0].id}`));
+                          navigate(createPageUrl(`Messages?conversation_id=${existing.id}`));
                         } else {
                           // 3. Criar nova conversa
                           const newConv = await base44.entities.ChatConversation.create({

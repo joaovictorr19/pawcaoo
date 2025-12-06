@@ -176,14 +176,19 @@ export default function Messages() {
       // Check if one-on-one conversation already exists (via query for robustness)
       if (participants.length === 2) {
         const pEmails = participants.map(p => p.email);
-        const existing = await base44.entities.ChatConversation.filter({
-           participant_emails: { $all: pEmails },
+        // Busca segura: busca por um participante e filtra no cliente
+        const potentialMatches = await base44.entities.ChatConversation.filter({
+           participant_emails: pEmails[0], // Busca pelo primeiro email (ex: user logado)
            conversation_type: 'one_on_one'
         });
         
-        if (existing && existing.length > 0) {
-          console.log('✅ Found existing conversation:', existing[0].id);
-          return existing[0];
+        const existing = potentialMatches.find(c => 
+          c.participant_emails && c.participant_emails.includes(pEmails[1])
+        );
+        
+        if (existing) {
+          console.log('✅ Found existing conversation:', existing.id);
+          return existing;
         }
       }
 
