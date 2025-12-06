@@ -358,7 +358,7 @@ export default function WalkerDetails() {
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-md h-10 px-4 text-sm font-medium"
                     onClick={() => {
@@ -386,6 +386,15 @@ export default function WalkerDetails() {
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
                     {t('message', language)}
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    className="h-10 px-4 bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-200 text-sm font-medium w-full md:w-auto"
+                    onClick={() => navigate(createPageUrl(`UserProfile?email=${walker.created_by}`))}
+                  >
+                    <Award className="w-4 h-4 mr-2" />
+                    Ver Emblemas e Perfil
                   </Button>
                 </div>
               </div>

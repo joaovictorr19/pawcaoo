@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Star, DollarSign, Shield, Heart } from "lucide-react";
+import { MapPin, Star, DollarSign, Shield, Heart, User, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
@@ -230,12 +230,25 @@ export default function WalkerCard({ walker, distance, matchScore, showMatchScor
             </div>
           )}
 
-          <Button 
-            className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg text-xs md:text-sm h-9 md:h-10"
-            onClick={handleViewProfile}
-          >
-            View Profile
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg text-xs md:text-sm h-9 md:h-10"
+              onClick={handleViewProfile}
+            >
+              Ver Detalhes
+            </Button>
+            <Button 
+              variant="outline"
+              className="px-2 border-purple-200 text-purple-600 hover:bg-purple-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(createPageUrl(`UserProfile?email=${walker.created_by}`));
+              }}
+              title="Ver Perfil Social e Emblemas"
+            >
+              <User className="w-4 h-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </motion.div>

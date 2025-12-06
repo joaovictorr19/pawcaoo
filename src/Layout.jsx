@@ -164,7 +164,7 @@ function LayoutContent({ children, currentPageName }) {
     // MENSAGENS (especial)
     { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
 
-    // CONNECT - Rede Social (now a highlighted button)
+    // CONNECT - Rede Social (Desativada)
     // { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
 
     // MINHA ATIVIDADE
@@ -530,32 +530,18 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* CONNECT - Botão Destacado */}
-            <SidebarGroup>
+            {/* CONNECT - Botão Destacado (DESATIVADO/REMOVIDO) */}
+            {/* <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`mb-3 rounded-lg ${
-                        location.pathname === allNavigationItems[connectIndex].url 
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700' 
-                          : 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 hover:from-blue-100 hover:to-indigo-100 border border-blue-200'
-                      }`}
-                    >
-                      <a 
-                        href={allNavigationItems[connectIndex].url} 
-                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
-                        onClick={handleNavigation(allNavigationItems[connectIndex].url)}
-                      >
-                        <Users className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
-                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[connectIndex].title}</span>
-                      </a>
+                    <SidebarMenuButton ... >
+                      ...
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
-            </SidebarGroup>
+            </SidebarGroup> */}
 
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
