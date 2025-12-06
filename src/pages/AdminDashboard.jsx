@@ -1397,8 +1397,7 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  {/* Badges Pré-definidos (Sistema) - MERGED INTO LIST VISUALLY IF NEEDED OR REMOVED TO UNIFY */}
-                  {/* Seção removida para unificar com a biblioteca de emblemas customizados */}
+
 
                   {/* Lista de Usuários com Badges */}
                   <div>
