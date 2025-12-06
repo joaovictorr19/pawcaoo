@@ -136,6 +136,13 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
+  const { data: activeWalkers = [] } = useQuery({
+    queryKey: ['activeWalkers'],
+    queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'verified' }),
+    enabled: user?.role === 'admin' && activeTab === 'active_walkers',
+    initialData: [],
+  });
+
   const { data: adoptionApplications = [] } = useQuery({
     queryKey: ['allAdoptionApplications'],
     queryFn: () => base44.entities.AdoptionApplication.list('-created_date', 100),
@@ -667,6 +674,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Contas</TabsTrigger>
             <TabsTrigger value="applications">Verificações</TabsTrigger>
+            <TabsTrigger value="active_walkers">Passeadores Ativos</TabsTrigger>
             <TabsTrigger value="adoptions">Adoções</TabsTrigger>
             <TabsTrigger value="badges">Emblemas</TabsTrigger>
             <TabsTrigger value="companies">Empresas</TabsTrigger>
@@ -841,6 +849,77 @@ export default function AdminDashboard() {
                           </TableCell>
                         </TableRow>
                       ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="active_walkers">
+            <Card className="border-0 shadow-xl mt-6">
+              <CardHeader>
+                <CardTitle>Gestão de Passeadores Ativos ({activeWalkers.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Localização</TableHead>
+                      <TableHead>Avaliação</TableHead>
+                      <TableHead>Ganhos</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {activeWalkers.map(walker => (
+                      <TableRow key={walker.id}>
+                        <TableCell className="font-medium">{walker.walker_name}</TableCell>
+                        <TableCell>{walker.created_by}</TableCell>
+                        <TableCell>{walker.location}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                            {walker.rating?.toFixed(1) || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>€{walker.total_earnings || 0}</TableCell>
+                        <TableCell>
+                          <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
+                            {walker.is_active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(createPageUrl(`WalkerDetails?id=${walker.id}`), '_blank')}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={walker.is_active ? "outline" : "default"}
+                              className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
+                              onClick={() => {
+                                if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
+                                  updateWalkerMutation.mutate({ 
+                                    id: walker.id, 
+                                    data: { is_active: !walker.is_active } 
+                                  });
+                                  setTimeout(() => queryClient.invalidateQueries(['activeWalkers']), 500);
+                                }
+                              }}
+                            >
+                              {walker.is_active ? 'Pausar' : 'Ativar'}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>

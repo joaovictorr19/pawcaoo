@@ -265,13 +265,13 @@ export default function WalkerDetails() {
                 )}
 
                 {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Dog Sizes I Handle</h2>
-                    <div className="flex flex-wrap gap-3">
+                  <div className="mb-4">
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">Dog Sizes I Handle</h2>
+                    <div className="flex flex-wrap gap-2">
                       {walker.dog_sizes.map(size => (
                         <Badge
                           key={size}
-                          className="bg-green-100 text-green-700 border-green-200 text-base px-4 py-2"
+                          className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1"
                         >
                           {getSizeLabel(size)}
                         </Badge>
@@ -282,9 +282,9 @@ export default function WalkerDetails() {
 
                 {/* Dog Breeds - NEW */}
                 {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Breeds I Work With</h2>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="mb-4">
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">Breeds I Work With</h2>
+                    <div className="flex flex-wrap gap-1.5">
                       {walker.dog_breeds_handled.map(breed => (
                         <Badge
                           key={breed}
@@ -292,7 +292,7 @@ export default function WalkerDetails() {
                             walker.breed_specialization?.includes(breed)
                               ? 'bg-green-600 text-white border-green-700'
                               : 'bg-gray-100 text-gray-700 border-gray-300'
-                          } text-sm px-3 py-1`}
+                          } text-xs px-2 py-1`}
                         >
                           {breed}
                           {walker.breed_specialization?.includes(breed) && " ★"}
@@ -300,7 +300,7 @@ export default function WalkerDetails() {
                       ))}
                     </div>
                     {walker.breed_specialization && walker.breed_specialization.length > 0 && (
-                      <p className="text-xs text-gray-600 mt-2">
+                      <p className="text-[10px] text-gray-600 mt-1">
                         ★ = Specialization
                       </p>
                     )}
@@ -308,13 +308,13 @@ export default function WalkerDetails() {
                 )}
 
                 {walker.availability && walker.availability.length > 0 && (
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Availability</h2>
-                    <div className="flex flex-wrap gap-3">
+                  <div className="mb-4">
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">Availability</h2>
+                    <div className="flex flex-wrap gap-2">
                       {walker.availability.map(time => (
                         <Badge
                           key={time}
-                          className="bg-blue-100 text-blue-700 border-blue-200 text-base px-4 py-2"
+                          className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 py-1"
                         >
                           {getTimeLabel(time)}
                         </Badge>
@@ -323,9 +323,9 @@ export default function WalkerDetails() {
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <Button
-                    className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-md h-10 px-4 text-sm font-medium"
                     onClick={() => {
                       if (!user) {
                         base44.auth.redirectToLogin();
@@ -340,7 +340,7 @@ export default function WalkerDetails() {
 
                   <Button
                     variant="outline"
-                    className="h-14 px-6 border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                    className="h-10 px-4 border border-blue-500 text-blue-600 hover:bg-blue-50 text-sm font-medium"
                     onClick={() => {
                       if (!user) {
                         base44.auth.redirectToLogin();
@@ -349,7 +349,7 @@ export default function WalkerDetails() {
                       }
                     }}
                   >
-                    <MessageCircle className="w-5 h-5 mr-2" />
+                    <MessageCircle className="w-4 h-4 mr-2" />
                     Message
                   </Button>
                 </div>
