@@ -14,11 +14,11 @@ import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
 import { pt, enUS, es } from "date-fns/locale";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
-import CheckoutModal from "../components/payments/CheckoutModal"; // Import CheckoutModal
+import CheckoutModal from "../components/payments/CheckoutModal"; 
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { useCreateNotification } from "../components/NotificationService"; // Import Notification Hook
+import { useCreateNotification } from "../components/NotificationService";
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
 import ServiceAreaMap from "../components/professionals/ServiceAreaMap";
@@ -33,7 +33,7 @@ export default function WalkerDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const createNotification = useCreateNotification(); // Use Notification Hook
+  const createNotification = useCreateNotification();
   
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -48,11 +48,6 @@ export default function WalkerDetails() {
   // Support both 'id' and 'walker_id' parameters
   const walkerId = urlParams.get('id') || urlParams.get('walker_id');
   
-  console.log('🔍 WalkerDetails - URL Params:', { 
-    walkerId, 
-    allParams: Object.fromEntries(urlParams.entries()) 
-  });
-
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -67,66 +62,30 @@ export default function WalkerDetails() {
   const { data: walker, isLoading, isError, error } = useQuery({
     queryKey: ['walker', walkerId],
     queryFn: async () => {
-      console.log('🔎 Starting walker search for ID:', walkerId);
-      
-      if (!walkerId) {
-        console.warn('⚠️ No walkerId provided');
-        return null;
-      }
+      if (!walkerId) return null;
       
       try {
         // Try filter by ID first
-        console.log('📋 Searching by entity ID...');
         const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
-        console.log('📊 Results by ID:', results?.length || 0);
         if (results && results.length > 0) {
-          console.log('✅ Walker found by ID:', results[0]);
           return results[0];
         }
         
         // Fallback: Try by created_by (email match)
-        console.log('📋 Searching by created_by...');
         const byEmail = await base44.entities.WalkerProfile.filter({ created_by: walkerId });
-        console.log('📊 Results by email:', byEmail?.length || 0);
         if (byEmail && byEmail.length > 0) {
-          console.log('✅ Walker found by email:', byEmail[0]);
           return byEmail[0];
         }
 
-        console.warn('❌ Walker not found with ID:', walkerId);
         return null;
       } catch (e) {
-        console.error("❌ Error fetching walker:", e);
+        console.error("Error fetching walker:", e);
         throw e;
       }
     },
     enabled: !!walkerId,
     retry: false,
   });
-
-  if (isError) {
-    console.error('💥 Query error state:', error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-        <div className="text-center text-red-600 max-w-md">
-          <h2 className="text-xl font-bold mb-2">Erro ao carregar perfil</h2>
-          <p className="mb-4">{error?.message || 'Erro desconhecido'}</p>
-          <div className="bg-gray-100 p-3 rounded text-xs text-left mb-4 font-mono">
-            <p>ID pesquisado: {walkerId}</p>
-            <p>Erro: {JSON.stringify(error)}</p>
-          </div>
-          <div className="flex gap-2 justify-center">
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Tentar novamente
-            </Button>
-            <Button onClick={() => navigate(createPageUrl('Home'))}>
-              Voltar à busca
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['walkerReviews', walkerId],
@@ -165,23 +124,17 @@ export default function WalkerDetails() {
         description: t('loginToBook', language),
         variant: "destructive",
       });
-      // Optional: redirect to login but keep state? Base44 auth redirect handles nextUrl.
-      // base44.auth.redirectToLogin();
     }
   };
 
   // Redirect if walker not found
   React.useEffect(() => {
-    console.log('🔄 Redirect check:', { walkerId, isLoading, hasWalker: !!walker });
-    
     if (!walkerId) {
-      console.warn('⚠️ No walkerId - redirecting immediately');
       navigate(createPageUrl('Home'));
       return;
     }
     
     if (walkerId && !isLoading && !walker) {
-      console.warn('⚠️ Walker not found - redirecting in 3s');
       const timer = setTimeout(() => {
         navigate(createPageUrl('Home'));
       }, 3000);
@@ -208,7 +161,6 @@ export default function WalkerDetails() {
   const handlePaymentSuccess = async (payment) => {
     if (!currentBooking) return;
 
-    // Send notifications after request (Manual Payment)
     try {
       // 1. Notify Walker
       await createNotification.mutateAsync({
@@ -221,9 +173,7 @@ export default function WalkerDetails() {
         priority: 'high'
       });
 
-      // 2. Notify Owner - No need to notify owner about their own action immediately, UI feedback is enough, 
-      // but creating a notification record is good for history.
-      // Notificando apenas que o pedido foi enviado.
+      // 2. Notify Owner
       await createNotification.mutateAsync({
         recipient_email: user.email,
         title: '⏳ Solicitação Enviada',
@@ -235,7 +185,6 @@ export default function WalkerDetails() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      // Navigation is handled in CheckoutModal to go to Chat
       
     } catch (error) {
       console.error("Error sending notifications:", error);
@@ -259,9 +208,6 @@ export default function WalkerDetails() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('walkerNotFound', language)}</h2>
           <p className="text-gray-600 mb-6">{t('redirectingHome', language)}</p>
-          <div className="bg-gray-100 p-2 rounded text-xs text-gray-500 mb-4 font-mono">
-            Debug: ID searched: {walkerId || 'null'}
-          </div>
           <Button onClick={() => navigate(createPageUrl('Home'))}>
             {t('backHome', language)}
           </Button>
@@ -271,9 +217,6 @@ export default function WalkerDetails() {
   }
 
   const getSizeLabel = (size) => {
-    // Use translation keys if they matched, but since they are specific values, 
-    // we might just keep the mapping or use t() if we add them to translations
-    // for now, let's use simple translations if possible, or fallback to english labels
     const labels = {
       small: t('small', language),
       medium: t('medium', language),
@@ -298,6 +241,20 @@ export default function WalkerDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      <SEO 
+        title={`${walker.walker_name} - ${t('findWalkers', language)} in ${walker.location}`}
+        description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... ${t('rating', language)}: ${averageRating?.toFixed(1)}/5.`}
+        image={walker.photo_url}
+        type="profile"
+        schema={[
+          generateServiceSchema(walker),
+          generateBreadcrumbSchema([
+            { name: "Home", url: window.location.origin },
+            { name: "Walkers", url: window.location.origin },
+            { name: walker.walker_name, url: window.location.href }
+          ])
+        ]}
+      />
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Button
           variant="outline"
@@ -310,47 +267,66 @@ export default function WalkerDetails() {
 
         <div className="grid lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-5">
-            {/* SIMPLIFIED VERSION - TESTING BASIC DATA ONLY */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 p-6">
-              <div className="text-center mb-6">
-                {walker.photo_url ? (
-                  <img src={walker.photo_url} alt={walker.walker_name} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />
-                ) : (
-                  <div className="w-32 h-32 rounded-full mx-auto mb-4 bg-gray-200 flex items-center justify-center">
-                    <span className="text-4xl">🐕</span>
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+              <ProfessionalProfileHeader 
+                professional={walker} 
+                type="walker" 
+                reviews={reviews}
+                averageRating={averageRating}
+              />
+              
+              <div className="px-5 pb-5">
+                <ServiceList services={walker.services_offered || []} type="walker" />
+
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    {t('serviceAreas', language)}
+                  </h2>
+                  
+                  <div className="mb-4">
+                    <ServiceAreaMap walker={walker} />
+                  </div>
+
+                  {walker.service_areas && walker.service_areas.length > 0 && (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {walker.service_areas.map((area, idx) => (
+                        <div key={idx} className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                          <h4 className="font-semibold text-gray-900 mb-2">{area.area_name}</h4>
+                          {area.postal_codes && area.postal_codes.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {area.postal_codes.map(code => (
+                                <Badge key={code} className="bg-green-600 text-white text-xs">
+                                  {code}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-sm text-gray-600">
+                            {t('radius', language)}: <span className="font-semibold">{area.radius_km} km</span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {walker.dog_sizes && walker.dog_sizes.length > 0 && (
+                  <div className="mb-4">
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('dogSizesHandle', language)}</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {walker.dog_sizes.map(size => (
+                        <Badge
+                          key={size}
+                          className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1"
+                        >
+                          {getSizeLabel(size)}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{walker.walker_name}</h1>
-                <div className="flex items-center justify-center gap-2 text-gray-600 mb-2">
-                  <MapPin className="w-4 h-4" />
-                  {walker.location}
-                </div>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span className="font-semibold">{averageRating?.toFixed(1) || '5.0'}</span>
-                  <span className="text-gray-500">({reviews.length} {t('reviews', language)})</span>
-                </div>
-                {walker.verification_status === 'verified' && (
-                  <Badge className="bg-green-600 text-white">
-                    <ShieldCheck className="w-4 h-4 mr-1" />
-                    Verificado
-                  </Badge>
-                )}
-              </div>
 
-              {walker.bio && (
-                <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">Sobre</h3>
-                  <p className="text-gray-700">{walker.bio}</p>
-                </div>
-              )}
-
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Preço</h3>
-                <p className="text-2xl font-bold text-green-600">€{walker.hourly_rate}/hora</p>
-              </div>
-
-              {/* Dog Breeds */}
                 {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
                   <div className="mb-4">
                     <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('breedsWorkWith', language)}</h2>
@@ -434,11 +410,56 @@ export default function WalkerDetails() {
                     {t('viewBadgesProfile', language)}
                   </Button>
                 </div>
+              </div>
             </div>
 
-            <div className="text-center py-8 text-gray-500">
-              ⚠️ VERSÃO SIMPLIFICADA - TESTE DE ISOLAMENTO
-            </div>
+            <Card className="border-0 shadow-md">
+              <CardHeader className="py-4 px-5">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-green-600" />
+                  {t('availability', language)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-5 pt-0">
+                <AvailabilityCalendar
+                  availabilityData={availability}
+                  bookings={walkerBookings}
+                  selectedDate={selectedDate}
+                  onDateSelect={handleDateSelect}
+                  locale={currentLocale}
+                />
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md">
+              <CardHeader className="py-4 px-5">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  {t('reviews', language)} ({reviews.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-5 pt-0">
+                {loadingReviews ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-32 rounded-lg" />
+                    ))}
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
+                    <p className="text-gray-600">{t('beFirstReview', language)}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {reviews.map((review) => (
+                      <ReviewCard key={review.id} review={review} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Booking */}
