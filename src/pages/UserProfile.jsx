@@ -79,34 +79,52 @@ export default function UserProfile() {
   const [activeTab, setActiveTab] = useState("badges");
 
   const urlParams = new URLSearchParams(window.location.search);
-  const profileEmail = urlParams.get('email');
+  const profileEmailParam = urlParams.get('email');
+  const profileIdParam = urlParams.get('id');
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const isOwnProfile = currentUser?.email === profileEmail;
+  // Determine identifier to use (ID preferred over Email)
+  // If no params, default to current user if logged in
+  const targetId = profileIdParam;
+  const targetEmail = !targetId ? profileEmailParam : null;
+  
+  // If no params provided, we show current user's profile
+  const isSelfView = !targetId && !targetEmail;
 
   const { data: profileUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['profileUser', profileEmail],
+    queryKey: ['profileUser', targetId, targetEmail, isSelfView, currentUser?.id],
     queryFn: async () => {
-      if (!profileEmail) return null;
       try {
-        // Use filter instead of list to find specific user server-side
-        // This avoids pagination limits and improves performance
-        const users = await base44.entities.User.filter({ email: profileEmail });
-        return users[0] || null;
+        if (targetId) {
+          const users = await base44.entities.User.filter({ id: targetId });
+          return users[0] || null;
+        }
+        if (targetEmail) {
+          const users = await base44.entities.User.filter({ email: targetEmail });
+          return users[0] || null;
+        }
+        if (isSelfView && currentUser) {
+          return currentUser;
+        }
+        return null;
       } catch (error) {
         console.error('Error fetching profile user:', error);
         return null;
       }
     },
-    enabled: !!profileEmail,
+    enabled: !!targetId || !!targetEmail || (isSelfView && !!currentUser),
     retry: false,
     staleTime: 0,
     refetchOnMount: 'always',
   });
+
+  // Derived values
+  const profileEmail = profileUser?.email;
+  const isOwnProfile = currentUser?.id === profileUser?.id;
 
   const profileBadges = profileUser?.profile_badges || [];
   const achievementsBadges = profileUser?.achievements_badges || [];
