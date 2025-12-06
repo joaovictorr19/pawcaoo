@@ -149,7 +149,7 @@ export default function WalkerDetails() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <PawCaoLogo size="large" animated={true} showText={false} />
+          <PawCaoLogo size="large" animated={false} showText={false} />
           <p className="text-green-600 font-medium mt-4 animate-pulse">Carregando...</p>
         </div>
       </div>
