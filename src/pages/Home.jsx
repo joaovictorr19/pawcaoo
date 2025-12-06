@@ -100,8 +100,7 @@ export default function Home() {
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
     queryFn: () => base44.entities.WalkerProfile.filter({ 
-      is_active: true, 
-      verification_status: 'verified' 
+      is_active: true 
     }, '-rating', 100),
     initialData: [],
     staleTime: 0,
@@ -142,14 +141,16 @@ export default function Home() {
     if (!userLocation || !userLocation.lat || !userLocation.lng) {
       return null;
     }
-    const walkerLat = walker.latitude || 38.7223;
-    const walkerLng = walker.longitude || -9.1393;
+    // Se o passeador não tiver coordenadas, retornamos null para não filtrar incorretamente
+    if (!walker.latitude || !walker.longitude) {
+      return null;
+    }
     
     return calculateDistance(
       userLocation.lat,
       userLocation.lng,
-      walkerLat,
-      walkerLng
+      walker.latitude,
+      walker.longitude
     );
   };
 
