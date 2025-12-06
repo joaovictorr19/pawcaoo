@@ -340,7 +340,7 @@ export default function UserProfile() {
 
 
 
-  if (loadingUser || loadingFollowers || loadingFollowing) {
+  if (loadingUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -801,7 +801,7 @@ export default function UserProfile() {
       <Dialog open={showFollowers} onOpenChange={setShowFollowers}>
         <DialogContent className="max-w-md max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Seguidores ({followers.length})</DialogTitle>
+            <DialogTitle>Seguidores ({profileUser?.followers_count || 0})</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[300px] md:h-[400px]">
             <div className="space-y-4 p-1">
@@ -838,7 +838,7 @@ export default function UserProfile() {
       <Dialog open={showFollowing} onOpenChange={setShowFollowing}>
         <DialogContent className="max-w-md max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Seguindo ({following.length})</DialogTitle>
+            <DialogTitle>Seguindo ({profileUser?.following_count || 0})</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[300px] md:h-[400px]">
             <div className="space-y-4 p-1">
