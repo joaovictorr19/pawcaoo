@@ -172,6 +172,11 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
       return;
     }
 
+    if (!currentUser || !currentUser.email) {
+      toast.error("❌ Erro de autenticação. Recarregue a página.");
+      return;
+    }
+
     console.log('📝 Sending message:', messageText.substring(0, 30) + '...');
     sendMessageMutation.mutate({ message: messageText, attachments: [] });
   };
