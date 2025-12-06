@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Paperclip, MoreVertical, Phone, Video, Info, Image as ImageIcon, Check, CheckCheck } from "lucide-react";
+import { Send, Paperclip, MoreVertical, Phone, Video, Info, Image as ImageIcon, Check, CheckCheck, MapPin, Play, CheckCircle2, Car } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -66,11 +66,12 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
   }, [conversation?.id, messages, currentUser]);
 
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ message, attachments }) => {
+    mutationFn: async ({ message, attachments, type = 'text' }) => {
       console.log('📤 SENDING MESSAGE:', {
         conversation_id: conversation.id,
         sender: currentUser?.email,
-        message: message.substring(0, 50) + '...'
+        message: message.substring(0, 50) + '...',
+        type
       });
 
       // Sanitize message
@@ -89,7 +90,7 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         sender_photo_url: currentUser?.profile_photo_url,
         message: sanitizedMessage,
         original_message: message,
-        message_type: attachments?.length > 0 ? 'image' : 'text',
+        message_type: attachments?.length > 0 ? 'image' : (type || 'text'),
         attachments: attachments || [],
         visible_to: participantEmails,
         read_by: [{
@@ -250,6 +251,13 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
           <Button variant="ghost" size="icon">
             <Video className="w-5 h-5" />
           </Button>
+          {/* Botão de Informações da Reserva (se houver) */}
+          {conversation.booking_id && (
+             <Button variant="ghost" size="sm" className="hidden md:flex">
+               <Info className="w-4 h-4 mr-2" />
+               Reserva
+             </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -276,6 +284,28 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
             const isOwnMessage = message.sender_email === currentUser?.email;
             const showReadReceipt = isOwnMessage && message.read_by?.some(r => r.email !== currentUser?.email);
             
+            const isSystem = message.message_type === 'system' || message.message_type === 'booking_update';
+            
+            if (isSystem) {
+              return (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-center my-4"
+                >
+                  <div className="bg-gray-100 text-gray-600 text-xs py-1 px-3 rounded-full flex items-center gap-2 shadow-sm border border-gray-200">
+                    {message.message.includes('caminho') && <Car className="w-3 h-3" />}
+                    {message.message.includes('iniciado') && <Play className="w-3 h-3" />}
+                    {message.message.includes('finalizado') && <CheckCircle2 className="w-3 h-3" />}
+                    {message.message.includes('Cheguei') && <MapPin className="w-3 h-3" />}
+                    <span className="font-medium">{message.message}</span>
+                    <span className="text-[10px] opacity-70 ml-1">{getMessageTime(message.created_date)}</span>
+                  </div>
+                </motion.div>
+              );
+            }
+
             return (
               <motion.div
                 key={message.id}
@@ -345,6 +375,44 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Quick Actions for Professionals */}
+      {(currentUser?.account_type === 'walker' || currentUser?.account_type === 'trainer' || currentUser?.account_type === 'both') && (
+        <div className="px-4 pt-2 flex gap-2 overflow-x-auto pb-2 bg-gray-50/50">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs h-7 bg-white border-green-200 hover:bg-green-50 text-green-700 whitespace-nowrap"
+            onClick={() => sendMessageMutation.mutate({ message: "🚗 A caminho!", attachments: [], type: 'booking_update' })}
+          >
+            <Car className="w-3 h-3 mr-1" /> A caminho
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs h-7 bg-white border-green-200 hover:bg-green-50 text-green-700 whitespace-nowrap"
+            onClick={() => sendMessageMutation.mutate({ message: "📍 Cheguei!", attachments: [], type: 'booking_update' })}
+          >
+            <MapPin className="w-3 h-3 mr-1" /> Cheguei
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs h-7 bg-white border-green-200 hover:bg-green-50 text-green-700 whitespace-nowrap"
+            onClick={() => sendMessageMutation.mutate({ message: "🐕 Passeio iniciado", attachments: [], type: 'booking_update' })}
+          >
+            <Play className="w-3 h-3 mr-1" /> Iniciar
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs h-7 bg-white border-green-200 hover:bg-green-50 text-green-700 whitespace-nowrap"
+            onClick={() => sendMessageMutation.mutate({ message: "✅ Passeio finalizado", attachments: [], type: 'booking_update' })}
+          >
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Finalizar
+          </Button>
+        </div>
+      )}
 
       {/* Message Input */}
       <div className="p-4 border-t border-gray-200 bg-white">
