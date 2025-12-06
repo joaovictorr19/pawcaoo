@@ -129,6 +129,11 @@ export default function Home() {
     }
   }, [dogSittingServiceFilter]);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters]);
+
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
@@ -333,10 +338,7 @@ export default function Home() {
     currentPage * itemsPerPage
   );
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters]);
+// Removed useEffect from here to fix hook order issue
 
   const filteredTrainers = trainers
     .map(trainer => ({
