@@ -829,6 +829,15 @@ export default function AdminDashboard() {
                             if (filters.dateRange === 'week' && diffDays > 7) return false;
                             if (filters.dateRange === 'month' && diffDays > 30) return false;
                           }
+
+                          // Skills Filter
+                          if (filters.skills) {
+                            const skillSearch = filters.skills.toLowerCase();
+                            const userSkills = u.skills || [];
+                            const skillsArray = Array.isArray(userSkills) ? userSkills : (typeof userSkills === 'string' ? userSkills.split(',') : []);
+                            const hasSkill = skillsArray.some(s => s.toLowerCase().includes(skillSearch));
+                            if (!hasSkill) return false;
+                          }
                         }
 
                         return true;
