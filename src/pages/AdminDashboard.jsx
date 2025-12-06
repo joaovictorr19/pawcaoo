@@ -107,7 +107,12 @@ export default function AdminDashboard() {
   const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
   const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
   const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState(""); 
-  const [usersToGrantBadge, setUsersToGrantBadge] = useState([]); 
+  const [usersToGrantBadge, setUsersToGrantBadge] = useState([]);
+  
+  // Estado para o Modal de Concessão de Badge Individual
+  const [showGrantSingleBadgeModal, setShowGrantSingleBadgeModal] = useState(false);
+  const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
+  const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -423,15 +428,12 @@ export default function AdminDashboard() {
     mutationFn: async (badge) => {
       console.log('🎖️ Concedendo badge a todos os usuários:', badge);
       
-      const updates = allUsers.map(async (user) => {
-        const currentPublicBadges = user.public_badges || [];
+      const updates = allUsers.map(async (targetUser) => {
+        const currentPublicBadges = targetUser.public_badges || [];
         
         // Verificar se já tem o badge
         const hasBadge = currentPublicBadges.some(b => b.badge_id === badge.badge_id);
-        if (hasBadge) {
-          console.log(`⏭️ ${user.email} já tem o badge`);
-          return null;
-        }
+        if (hasBadge) return null;
 
         const newBadge = {
           badge_id: badge.badge_id || Date.now().toString(),
@@ -443,23 +445,32 @@ export default function AdminDashboard() {
           category: badge.category || "special",
           xp: badge.xp || 50,
           earned_date: new Date().toISOString(),
-          granted_by: user.email
+          granted_by: user.email // Admin ID
         };
 
-        console.log(`✅ Concedendo badge a ${user.email}`);
-        
-        await base44.entities.User.update(user.id, {
-          public_badges: [...currentPublicBadges, newBadge],
-          gamification_xp: (user.gamification_xp || 0) + (badge.xp || 50)
+        // Create UserBadge record
+        await base44.entities.UserBadge.create({
+          user_email: targetUser.email,
+          badge_id: newBadge.badge_id,
+          name: newBadge.name,
+          description: newBadge.description,
+          icon: newBadge.icon,
+          image_url: newBadge.image_url,
+          rarity: newBadge.rarity,
+          granted_by: user.email
         });
 
-        return user.email;
+        // Update User Profile (legacy/display)
+        await base44.entities.User.update(targetUser.id, {
+          public_badges: [...currentPublicBadges, newBadge],
+          gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
+        });
+
+        return targetUser.email;
       });
 
       const results = await Promise.all(updates);
       const granted = results.filter(r => r !== null);
-      
-      console.log(`🎉 Badge concedido a ${granted.length} usuários!`);
       return granted;
     },
     onSuccess: (grantedUsers) => {
@@ -469,6 +480,62 @@ export default function AdminDashboard() {
       setSelectedBadgeForAll(null);
     },
   });
+
+  // Mutation para conceder badge individual
+  const grantBadgeToUserMutation = useMutation({
+    mutationFn: async ({ email, badge }) => {
+      const targetUser = allUsers.find(u => u.email === email);
+      if (!targetUser) throw new Error("Usuário não encontrado");
+
+      const currentPublicBadges = targetUser.public_badges || [];
+      if (currentPublicBadges.some(b => b.badge_id === badge.badge_id)) {
+        throw new Error("Usuário já possui este emblema");
+      }
+
+      const newBadge = {
+        badge_id: badge.badge_id || `custom_${Date.now()}`,
+        name: badge.name,
+        description: badge.description,
+        icon: badge.icon,
+        image_url: badge.image_url || "",
+        rarity: badge.rarity || "common",
+        category: badge.category || "special",
+        xp: badge.xp || 50,
+        earned_date: new Date().toISOString(),
+        granted_by: user.email
+      };
+
+      // Create UserBadge record (Source of Truth)
+      await base44.entities.UserBadge.create({
+        user_email: targetUser.email,
+        badge_id: newBadge.badge_id,
+        name: newBadge.name,
+        description: newBadge.description,
+        icon: newBadge.icon,
+        image_url: newBadge.image_url,
+        rarity: newBadge.rarity,
+        granted_by: user.email
+      });
+
+      // Update User Profile
+      await base44.entities.User.update(targetUser.id, {
+        public_badges: [...currentPublicBadges, newBadge],
+        gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success("Emblema concedido com sucesso!");
+      setShowGrantSingleBadgeModal(false);
+      setSelectedBadgeToGrant(null);
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const openGrantBadgeDialog = (email) => {
+    setGrantBadgeTargetEmail(email);
+    setShowGrantSingleBadgeModal(true);
+  };
 
   // Handlers
   const handleEditUser = (user) => {
@@ -1145,6 +1212,49 @@ export default function AdminDashboard() {
                                     const reason = prompt("Motivo da rejeição:");
                                     if (reason) {
                                       updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, trainer: app })
+                                    }
+                                  }}
+                                >
+                                  Rejeitar
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Shelters */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Abrigos ({shelterApplications.length})</h3>
+                    {shelterApplications.length === 0 ? (
+                      <p className="text-gray-500">Nenhuma candidatura de abrigo.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {shelterApplications.map(app => (
+                          <Card key={app.id} className="p-4 border border-gray-200 bg-pink-50">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-bold">{app.shelter_name}</h4>
+                                <p className="text-sm text-gray-600">{app.location_city}</p>
+                                <p className="text-sm text-gray-600">{app.contact_email}</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  className="bg-green-600"
+                                  onClick={() => updateShelterMutation.mutate({ id: app.id, data: { verification_status: 'approved', is_verified: true }, shelter: app })}
+                                >
+                                  Aprovar
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => {
+                                    const reason = prompt("Motivo da rejeição:");
+                                    if (reason) {
+                                      updateShelterMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, shelter: app })
                                     }
                                   }}
                                 >
@@ -2129,7 +2239,53 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* NOVO: Modal para Criar Badge Customizado */}
+          {/* Modal de Concessão Individual de Badge */}
+        <Dialog open={showGrantSingleBadgeModal} onOpenChange={setShowGrantSingleBadgeModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Entregar Emblema a {grantBadgeTargetEmail}</DialogTitle>
+              <DialogDescription>Selecione um emblema da biblioteca para conceder.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+              {badgeDefinitions.length === 0 ? (
+                <p className="text-center text-gray-500">Nenhum emblema definido na biblioteca.</p>
+              ) : (
+                badgeDefinitions.map(badge => (
+                  <div 
+                    key={badge.id} 
+                    onClick={() => setSelectedBadgeToGrant(badge)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedBadgeToGrant?.id === badge.id 
+                        ? 'border-purple-600 bg-purple-50' 
+                        : 'border-gray-200 hover:border-purple-200'
+                    }`}
+                  >
+                    <div className="text-2xl w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm">
+                      {badge.image_url ? <img src={badge.image_url} className="w-full h-full object-cover rounded" /> : badge.icon}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm">{badge.name}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{badge.description}</p>
+                    </div>
+                    {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-5 h-5 text-purple-600 ml-auto" />}
+                  </div>
+                ))
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowGrantSingleBadgeModal(false)}>Cancelar</Button>
+              <Button 
+                onClick={() => grantBadgeToUserMutation.mutate({ email: grantBadgeTargetEmail, badge: selectedBadgeToGrant })}
+                disabled={!selectedBadgeToGrant || grantBadgeToUserMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {grantBadgeToUserMutation.isPending ? 'Entregando...' : 'Entregar Emblema'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+      {/* NOVO: Modal para Criar Badge Customizado */}
         <Dialog open={showCreateCustomBadgeModal} onOpenChange={setShowCreateCustomBadgeModal}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
