@@ -103,6 +103,8 @@ export default function AdminDashboard() {
   const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
   const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
   const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
+  const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState(""); // Para a busca na aba Badges
+  const [usersToGrantBadge, setUsersToGrantBadge] = useState([]); // Para a seleção na aba Badges
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
