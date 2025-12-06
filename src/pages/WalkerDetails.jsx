@@ -224,6 +224,9 @@ export default function WalkerDetails() {
     return labels[time] || time;
   };
 
+  const locales = { pt, en: enUS, es };
+  const currentLocale = locales[language] || pt;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
       <SEO 
@@ -398,6 +401,7 @@ export default function WalkerDetails() {
                   bookings={walkerBookings}
                   selectedDate={selectedDate}
                   onDateSelect={handleDateSelect}
+                  locale={currentLocale}
                 />
               </CardContent>
             </Card>

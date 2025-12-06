@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isPast, getDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { pt } from "date-fns/locale";
 
-export default function AvailabilityCalendar({ availabilityData = [], bookings = [], onDateSelect, selectedDate }) {
+export default function AvailabilityCalendar({ availabilityData = [], bookings = [], onDateSelect, selectedDate, locale = pt }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
@@ -46,7 +46,7 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-1.5 md:gap-2 text-sm md:text-base">
             <CalendarIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-green-600" />
-            <span className="truncate">{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</span>
+            <span className="truncate">{format(currentMonth, 'MMMM yyyy', { locale: locale })}</span>
           </CardTitle>
           <div className="flex gap-0.5 md:gap-1 flex-shrink-0">
             <Button
