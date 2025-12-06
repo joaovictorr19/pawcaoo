@@ -149,14 +149,14 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
-  const { data: adoptionApplications = [] } = useQuery({
+  const { data: adoptionApplications = [], isFetching: loadingAdoptions } = useQuery({
     queryKey: ['allAdoptionApplications'],
     queryFn: () => base44.entities.AdoptionApplication.list('-created_date', 100),
     enabled: user?.role === 'admin' && activeTab === 'adoptions',
     initialData: [],
   });
 
-  const { data: allPartnerServices = [] } = useQuery({
+  const { data: allPartnerServices = [], isFetching: loadingServices } = useQuery({
     queryKey: ['allPartnerServices'],
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'services',
@@ -189,47 +189,37 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
-  const { data: allAnnouncements = [] } = useQuery({
+  const { data: allAnnouncements = [], isFetching: loadingAnnouncements } = useQuery({
     queryKey: ['allAnnouncements'],
     queryFn: async () => {
       const announcements = await base44.entities.CompanyAnnouncement.list('-created_date');
-      console.log('📢 ADMIN - ALL ANNOUNCEMENTS:', announcements.map(a => ({
-        title: a.title,
-        company: a.company_name,
-        is_active: a.is_active,
-        moderation_status: a.moderation_status,
-        start_date: a.start_date,
-        end_date: a.end_date
-      })));
       return announcements;
     },
     enabled: user?.role === 'admin' && activeTab === 'announcements',
     initialData: [],
   });
 
-  const { data: companies = [] } = useQuery({
+  const { data: companies = [], isFetching: loadingCompanies } = useQuery({
     queryKey: ['allCompanies'],
     queryFn: async () => {
       const allCompanies = await base44.entities.PartnerCompany.list();
       
-      const companiesWithStats = await Promise.all(
-        allCompanies.map(async (company) => {
-          const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+      // Simplified stats fetching to prevent heavy load - filtering in memory if lists are small or fetch separately
+      // Ideally backend should provide stats, but here we optimise slightly
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+      const allServices = await base44.entities.PartnerService.list();
+
+      const companiesWithStats = allCompanies.map((company) => {
           const companyAnnouncements = allAnnouncements.filter(a => 
             a.company_email === company.company_email || a.company_id === company.id
           );
           
-          const allServices = await base44.entities.PartnerService.list();
           const companyServices = allServices.filter(s => 
             s.partner_company_email === company.company_email || s.partner_id === company.id
           );
 
           const now = new Date();
           const approvedAnnouncements = companyAnnouncements.filter(a => a.moderation_status === 'approved');
-          const expiredAnnouncements = companyAnnouncements.filter(a => {
-            if (!a.end_date) return false;
-            return new Date(a.end_date) < now;
-          });
           const activeAnnouncements = approvedAnnouncements.filter(a => {
             if (!a.start_date || !a.end_date) return false;
             const start = new Date(a.start_date);
@@ -244,24 +234,21 @@ export default function AdminDashboard() {
             ...company,
             stats: {
               total_announcements: companyAnnouncements.length,
-              approved_announcements: approvedAnnouncements.length,
               active_announcements: activeAnnouncements.length,
-              expired_announcements: expiredAnnouncements.length,
               total_services: companyServices.length,
-              approved_services: approvedServices.length,
               active_services: activeServices.length,
             }
           };
-        })
-      );
+      });
 
       return companiesWithStats;
     },
     enabled: user?.role === 'admin' && activeTab === 'companies',
     staleTime: 60000,
+    initialData: [], 
   });
 
-  const { data: allReviews = [] } = useQuery({
+  const { data: allReviews = [], isFetching: loadingReviews } = useQuery({
     queryKey: ['allReviews'],
     queryFn: () => base44.entities.Review.list('-created_date', 100),
     enabled: user?.role === 'admin' && activeTab === 'reviews',
@@ -276,7 +263,7 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
-  const { data: badgeDefinitions = [] } = useQuery({
+  const { data: badgeDefinitions = [], isFetching: loadingBadges } = useQuery({
     queryKey: ['badgeDefinitions'],
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'badges',
@@ -964,6 +951,48 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="adoptions">
+            <Card className="border-0 shadow-xl mt-6">
+              <CardHeader>
+                <CardTitle>Candidaturas de Adoção ({adoptionApplications.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingAdoptions && adoptionApplications.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+                  </div>
+                ) : adoptionApplications.length === 0 ? (
+                  <p className="text-center py-8 text-gray-600">Nenhuma candidatura de adoção recente.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {adoptionApplications.map(app => (
+                      <Card key={app.id} className="border border-gray-200">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant={app.application_status === 'pending' ? 'default' : 'outline'}>
+                                  {app.application_status}
+                                </Badge>
+                                <span className="text-xs text-gray-500">{format(new Date(app.created_date), 'dd/MM/yyyy')}</span>
+                              </div>
+                              <h4 className="font-bold text-lg">Pet: {app.pet_name}</h4>
+                              <p className="text-sm text-gray-700">Interessado: {app.applicant_name} ({app.applicant_email})</p>
+                              <p className="text-sm text-gray-600">Motivo: {app.reason_for_adoption}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">Listing ID: {app.listing_id}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="applications">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
@@ -1095,7 +1124,11 @@ export default function AdminDashboard() {
                   {/* Modelos de Badges Salvos */}
                   <div>
                     <h3 className="text-lg font-semibold mb-4">Biblioteca de Emblemas ({badgeDefinitions.length})</h3>
-                    {badgeDefinitions.length === 0 ? (
+                    {loadingBadges && badgeDefinitions.length === 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+                      </div>
+                    ) : badgeDefinitions.length === 0 ? (
                       <p className="text-gray-500 italic">Nenhum emblema salvo. Crie um novo para aparecer aqui.</p>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1317,7 +1350,11 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                {companies.length === 0 ? (
+                {loadingCompanies && companies.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
+                  </div>
+                ) : companies.length === 0 ? (
                   <p className="text-center py-8 text-gray-600">Nenhuma empresa ainda</p>
                 ) : (
                   <div className="space-y-4">
@@ -1394,7 +1431,11 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {allAnnouncements.length === 0 ? (
+                {loadingAnnouncements && allAnnouncements.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+                  </div>
+                ) : allAnnouncements.length === 0 ? (
                   <p className="text-center py-8 text-gray-600">Nenhum anúncio</p>
                 ) : (
                   <div className="space-y-4">
@@ -1490,7 +1531,11 @@ export default function AdminDashboard() {
                 </p>
               </CardHeader>
               <CardContent>
-                {allPartnerServices.length === 0 ? (
+                {loadingServices && allPartnerServices.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+                  </div>
+                ) : allPartnerServices.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-600">Nenhum serviço</p>
@@ -1706,7 +1751,11 @@ export default function AdminDashboard() {
                 <CardTitle>Avaliações Pendentes ({pendingReviews.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                {pendingReviews.length === 0 ? (
+                {loadingReviews && allReviews.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
+                  </div>
+                ) : pendingReviews.length === 0 ? (
                   <div className="text-center py-12">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                     <p className="text-gray-600">Nenhuma avaliação pendente</p>
