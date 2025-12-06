@@ -122,37 +122,37 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
-  const { data: walkerApplications = [] } = useQuery({
-    queryKey: ['walkerApplications'],
+  // Fetch ALL profiles to ensure we don't miss any pending ones due to exact filter matching
+  const { data: allWalkers = [] } = useQuery({
+    queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'pending' }),
+    queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
+    enabled: user?.role === 'admin' && (activeTab === 'applications' || activeTab === 'active_walkers'),
+    initialData: [],
+  });
+
+  const { data: allTrainers = [] } = useQuery({
+    queryKey: ['allTrainersAdmin'],
+    placeholderData: keepPreviousData,
+    queryFn: () => base44.entities.TrainerProfile.list('-created_date', 1000),
     enabled: user?.role === 'admin' && activeTab === 'applications',
     initialData: [],
   });
 
-  const { data: trainerApplications = [] } = useQuery({
-    queryKey: ['trainerApplications'],
+  const { data: allShelters = [] } = useQuery({
+    queryKey: ['allSheltersAdmin'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.TrainerProfile.filter({ verification_status: 'pending' }),
+    queryFn: () => base44.entities.ShelterProfile.list('-created_date', 1000),
     enabled: user?.role === 'admin' && activeTab === 'applications',
     initialData: [],
   });
 
-  const { data: shelterApplications = [] } = useQuery({
-    queryKey: ['shelterApplications'],
-    placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.ShelterProfile.filter({ verification_status: 'pending' }),
-    enabled: user?.role === 'admin' && activeTab === 'applications',
-    initialData: [],
-  });
-
-  const { data: activeWalkers = [] } = useQuery({
-    queryKey: ['activeWalkers'],
-    placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'verified' }),
-    enabled: user?.role === 'admin' && activeTab === 'active_walkers',
-    initialData: [],
-  });
+  // Filter in memory for robust matching
+  const walkerApplications = allWalkers.filter(w => w.verification_status === 'pending' || !w.verification_status);
+  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || !t.verification_status);
+  const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || !s.verification_status);
+  
+  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified');
 
   const { data: adoptionApplications = [], isFetching: loadingAdoptions } = useQuery({
     queryKey: ['allAdoptionApplications'],
@@ -340,27 +340,64 @@ export default function AdminDashboard() {
     },
   });
 
+  const sendModerationEmail = async (email, name, type, status, reason) => {
+    try {
+      let subject, body;
+      if (status === 'verified') {
+        subject = `🎉 Parabéns! O seu perfil de ${type} foi aprovado!`;
+        body = `Olá ${name},\n\nTemos o prazer de informar que o seu perfil de ${type} na PawCão foi verificado e aprovado!\n\nAgora você pode:\n- Receber reservas\n- Aparecer nas buscas\n- Construir sua reputação\n\nAcesse o seu painel para começar: ${window.location.origin}/ProfessionalDashboard\n\nBem-vindo à equipa!\nPawCão`;
+      } else {
+        subject = `Atualização sobre sua candidatura de ${type}`;
+        body = `Olá ${name},\n\nObrigado pelo seu interesse em se juntar à PawCão.\n\nInfelizmente, não podemos aprovar o seu perfil neste momento.\nMotivo: ${reason || 'Documentação insuficiente ou critérios não atendidos.'}\n\nSe tiver dúvidas ou quiser tentar novamente com mais informações, responda a este email.\n\nPawCão`;
+      }
+
+      await base44.integrations.Core.SendEmail({
+        to: email,
+        subject: subject,
+        body: body
+      });
+    } catch (error) {
+      console.error("Failed to send moderation email:", error);
+      toast.error("Erro ao enviar email de notificação (mas o status foi atualizado).");
+    }
+  };
+
   const updateWalkerMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.WalkerProfile.update(id, data),
+    mutationFn: async ({ id, data, walker }) => {
+      await base44.entities.WalkerProfile.update(id, data);
+      if (data.verification_status && walker?.created_by) {
+        await sendModerationEmail(walker.created_by, walker.walker_name, 'Passeador', data.verification_status, data.rejection_reason);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['walkerApplications'] });
-      toast.success("Perfil de passeador atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      toast.success("Perfil de passeador atualizado e notificado!");
     },
   });
 
   const updateTrainerMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.TrainerProfile.update(id, data),
+    mutationFn: async ({ id, data, trainer }) => {
+      await base44.entities.TrainerProfile.update(id, data);
+      if (data.verification_status && trainer?.created_by) {
+        await sendModerationEmail(trainer.created_by, trainer.trainer_name || trainer.business_name, 'Treinador', data.verification_status, data.rejection_reason);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainerApplications'] });
-      toast.success("Perfil de treinador atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+      toast.success("Perfil de treinador atualizado e notificado!");
     },
   });
 
   const updateShelterMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ShelterProfile.update(id, data),
+    mutationFn: async ({ id, data, shelter }) => {
+      await base44.entities.ShelterProfile.update(id, data);
+      if (data.verification_status && shelter?.contact_email) {
+        await sendModerationEmail(shelter.contact_email, shelter.shelter_name, 'Abrigo', data.verification_status, data.rejection_reason);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shelterApplications'] });
-      toast.success("Abrigo atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
+      toast.success("Abrigo atualizado e notificado!");
     },
   });
 
@@ -1017,8 +1054,11 @@ export default function AdminDashboard() {
 
           <TabsContent value="applications">
             <Card className="border-0 shadow-xl mt-6">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Candidaturas Pendentes</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] })}>
+                  🔄 Atualizar Lista
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -1051,7 +1091,7 @@ export default function AdminDashboard() {
                                 <Button 
                                   size="sm" 
                                   className="bg-green-600"
-                                  onClick={() => updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true } })}
+                                  onClick={() => updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true }, walker: app })}
                                 >
                                   Aprovar
                                 </Button>
@@ -1059,8 +1099,9 @@ export default function AdminDashboard() {
                                   size="sm" 
                                   variant="destructive"
                                   onClick={() => {
-                                    if(confirm('Rejeitar candidatura?')) {
-                                      updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'rejected' } })
+                                    const reason = prompt("Motivo da rejeição:");
+                                    if (reason) {
+                                      updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, walker: app })
                                     }
                                   }}
                                 >
@@ -1093,7 +1134,7 @@ export default function AdminDashboard() {
                                 <Button 
                                   size="sm" 
                                   className="bg-green-600"
-                                  onClick={() => updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true } })}
+                                  onClick={() => updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true }, trainer: app })}
                                 >
                                   Aprovar
                                 </Button>
@@ -1101,8 +1142,9 @@ export default function AdminDashboard() {
                                   size="sm" 
                                   variant="destructive"
                                   onClick={() => {
-                                    if(confirm('Rejeitar candidatura?')) {
-                                      updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'rejected' } })
+                                    const reason = prompt("Motivo da rejeição:");
+                                    if (reason) {
+                                      updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, trainer: app })
                                     }
                                   }}
                                 >
@@ -2398,17 +2440,33 @@ export default function AdminDashboard() {
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowApplicationDialog(false)}>Fechar</Button>
-              <Button 
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  if (selectedApplication) {
-                    updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true } });
-                    setShowApplicationDialog(false);
-                  }
-                }}
-              >
-                Aprovar Candidatura
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    if (selectedApplication) {
+                      const reason = prompt("Motivo da rejeição:");
+                      if (reason) {
+                        updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, walker: selectedApplication });
+                        setShowApplicationDialog(false);
+                      }
+                    }
+                  }}
+                >
+                  Rejeitar
+                </Button>
+                <Button 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    if (selectedApplication) {
+                      updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true }, walker: selectedApplication });
+                      setShowApplicationDialog(false);
+                    }
+                  }}
+                >
+                  Aprovar Candidatura
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
