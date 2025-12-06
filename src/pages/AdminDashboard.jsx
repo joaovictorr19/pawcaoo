@@ -1158,10 +1158,7 @@ export default function AdminDashboard() {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => {
-                                    setSelectedApplication(app);
-                                    setShowApplicationDialog(true);
-                                  }}
+                                  onClick={() => navigate(createPageUrl(`WalkerDetails?walker_id=${app.id}`))}
                                 >
                                   Ver Detalhes
                                 </Button>
