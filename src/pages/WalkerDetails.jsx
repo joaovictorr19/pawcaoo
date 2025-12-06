@@ -50,13 +50,16 @@ export default function WalkerDetails() {
     enabled: !!user?.id,
   });
 
-  const { data: walkers, isLoading } = useQuery({
-    queryKey: ['walkers'],
-    queryFn: () => base44.entities.WalkerProfile.list(),
-    initialData: [],
+  const { data: walker, isLoading } = useQuery({
+    queryKey: ['walker', walkerId],
+    queryFn: async () => {
+      if (!walkerId) return null;
+      // Fetch specific walker directly from DB
+      const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
+      return results[0] || null;
+    },
+    enabled: !!walkerId,
   });
-
-  const walker = walkers.find(w => w.id === walkerId);
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['walkerReviews', walkerId],

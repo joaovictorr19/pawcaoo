@@ -99,13 +99,10 @@ export default function Home() {
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
-    queryFn: async () => {
-      const allWalkers = await base44.entities.WalkerProfile.list('-rating', 100);
-      const active = allWalkers.filter(w => 
-        w.is_active === true && w.verification_status === 'verified'
-      );
-      return active;
-    },
+    queryFn: () => base44.entities.WalkerProfile.filter({ 
+      is_active: true, 
+      verification_status: 'verified' 
+    }, '-rating', 100),
     initialData: [],
     staleTime: 0,
     refetchOnMount: 'always',
