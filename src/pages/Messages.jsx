@@ -164,6 +164,7 @@ export default function Messages() {
         }
       ];
 
+      // Also pass participant_emails for RLS
       createConversationMutation.mutate({ participants });
     }
   }, [walkerIdParam, trainerIdParam, user?.email, specificWalker, specificTrainer, walkers, trainers, conversations]);
@@ -172,25 +173,24 @@ export default function Messages() {
     mutationFn: async ({ participants, conversationName }) => {
       console.log('🚀 Creating conversation with participants:', participants);
 
-      // Check if one-on-one conversation already exists
+      // Check if one-on-one conversation already exists (via query for robustness)
       if (participants.length === 2) {
-        const existing = conversations.find(conv =>
-          conv.conversation_type === 'one_on_one' &&
-          conv.participants?.length === 2 &&
-          conv.participants.every(p => 
-            participants.some(newP => newP.email === p.email)
-          )
-        );
+        const pEmails = participants.map(p => p.email);
+        const existing = await base44.entities.ChatConversation.filter({
+           participant_emails: { $all: pEmails },
+           conversation_type: 'one_on_one'
+        });
         
-        if (existing) {
-          console.log('✅ Found existing conversation:', existing.id);
-          return existing;
+        if (existing && existing.length > 0) {
+          console.log('✅ Found existing conversation:', existing[0].id);
+          return existing[0];
         }
       }
 
       const newConv = await base44.entities.ChatConversation.create({
         conversation_type: participants.length > 2 ? 'group' : 'one_on_one',
         conversation_name: conversationName,
+        participant_emails: participants.map(p => p.email), // CRUCIAL: Add this field for RLS
         participants: participants.map(p => ({
           ...p,
           last_read_at: new Date().toISOString()

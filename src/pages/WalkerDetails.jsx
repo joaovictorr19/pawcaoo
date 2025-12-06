@@ -374,11 +374,56 @@ export default function WalkerDetails() {
                   <Button
                     variant="outline"
                     className="h-10 px-4 border border-blue-500 text-blue-600 hover:bg-blue-50 text-sm font-medium"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!user) {
                         base44.auth.redirectToLogin();
-                      } else {
-                        navigate(createPageUrl(`Messages?walker_id=${walker.id}`));
+                        return;
+                      }
+                      
+                      try {
+                        // 1. Verificar se já existe conversa
+                        const existing = await base44.entities.ChatConversation.filter({
+                          participant_emails: { $all: [user.email, walker.created_by] },
+                          conversation_type: 'one_on_one'
+                        });
+
+                        if (existing && existing.length > 0) {
+                          // 2. Redirecionar para conversa existente
+                          navigate(createPageUrl(`Messages?conversation_id=${existing[0].id}`));
+                        } else {
+                          // 3. Criar nova conversa
+                          const newConv = await base44.entities.ChatConversation.create({
+                            conversation_type: 'one_on_one',
+                            participant_emails: [user.email, walker.created_by],
+                            participants: [
+                              {
+                                email: user.email,
+                                name: user.full_name,
+                                photo_url: user.profile_photo_url,
+                                role: 'owner'
+                              },
+                              {
+                                email: walker.created_by,
+                                name: walker.walker_name,
+                                photo_url: walker.photo_url,
+                                role: 'walker'
+                              }
+                            ],
+                            last_message: "Conversa iniciada",
+                            last_message_sender: user.email,
+                            last_message_date: new Date().toISOString()
+                          });
+                          
+                          // 4. Redirecionar para nova conversa
+                          navigate(createPageUrl(`Messages?conversation_id=${newConv.id}`));
+                        }
+                      } catch (error) {
+                        console.error("Erro ao iniciar conversa:", error);
+                        toast({
+                          title: "Erro",
+                          description: "Não foi possível iniciar o chat. Tente novamente.",
+                          variant: "destructive"
+                        });
                       }
                     }}
                   >
