@@ -50,6 +50,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/components/LanguageContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -64,11 +65,13 @@ export default function AdminDashboard() {
     return "overview";
   };
   const [activeTab, setActiveTab] = useState(getInitialTab());
-  const [searchTerm, setSearchTerm] = useState("");
+  // Substituindo busca simples por estado avançado
+  const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
+  
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
-  const [userTypeFilter, setUserTypeFilter] = useState("all"); // Filtro de usuários
+  // userTypeFilter removido em favor do userSearchState.filters.accountType
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userFormData, setUserFormData] = useState({});
@@ -760,30 +763,11 @@ export default function AdminDashboard() {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                   <CardTitle className="text-2xl">Gestão de Contas</CardTitle>
                   
-                  <div className="flex gap-4 w-full md:w-auto">
-                    <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Filtrar por tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="owner">Clientes</SelectItem>
-                        <SelectItem value="walker">Passeadores</SelectItem>
-                        <SelectItem value="trainer">Treinadores</SelectItem>
-                        <SelectItem value="company">Empresas</SelectItem>
-                        <SelectItem value="both">Híbridos</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <div className="relative w-64">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        placeholder="Nome ou Email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
+                  <div className="w-full md:w-auto min-w-[400px]">
+                    <UserSearchAdvanced 
+                      onSearch={setUserSearchState} 
+                      usersSource={allUsers}
+                    />
                   </div>
                 </div>
               </CardHeader>
@@ -801,10 +785,53 @@ export default function AdminDashboard() {
                   <TableBody>
                     {allUsers
                       .filter(u => {
-                        const matchesSearch = u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                            u.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
-                        const matchesType = userTypeFilter === "all" || u.account_type === userTypeFilter;
-                        return matchesSearch && matchesType;
+                        const { searchTerm, filters } = userSearchState;
+                        const searchLower = searchTerm?.toLowerCase() || "";
+                        
+                        // Filtro de Busca
+                        const matchesSearch = !searchLower || 
+                          u.email?.toLowerCase().includes(searchLower) ||
+                          u.full_name?.toLowerCase().includes(searchLower);
+                        
+                        if (!matchesSearch) return false;
+
+                        // Filtros Avançados
+                        if (filters) {
+                          // Tipo de Conta
+                          if (filters.accountType && filters.accountType !== 'all') {
+                            if (u.account_type !== filters.accountType) return false;
+                          }
+
+                          // Verificação
+                          if (filters.verification && filters.verification !== 'all') {
+                            const isVerified = u.is_verified;
+                            if (filters.verification === 'verified' && !isVerified) return false;
+                            if (filters.verification === 'unverified' && isVerified) return false;
+                          }
+
+                          // Status (Ativo/Inativo - baseado em public_badges ou verificação)
+                          // Assumindo que 'ativo' é verificado ou tem badges
+                          if (filters.status && filters.status !== 'all') {
+                            const hasBadges = u.public_badges?.length > 0;
+                            if (filters.status === 'active' && !hasBadges) return false; 
+                            // Simplificação: Status real não existe na entidade User padrão base44, 
+                            // mas podemos usar badges como proxy de atividade ou adicionar campo
+                          }
+
+                          // Data de Registro
+                          if (filters.dateRange && filters.dateRange !== 'all') {
+                            const createdDate = new Date(u.created_date);
+                            const now = new Date();
+                            const diffTime = Math.abs(now - createdDate);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            if (filters.dateRange === 'today' && diffDays > 1) return false;
+                            if (filters.dateRange === 'week' && diffDays > 7) return false;
+                            if (filters.dateRange === 'month' && diffDays > 30) return false;
+                          }
+                        }
+
+                        return true;
                       })
                       .map(user => (
                         <TableRow key={user.id}>
