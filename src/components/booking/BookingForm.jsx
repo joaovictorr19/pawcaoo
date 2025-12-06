@@ -275,8 +275,20 @@ export default function BookingForm({ walker, professional, onClose }) {
                 <Calendar
                   mode="single"
                   selected={formData.walk_date}
-                  onSelect={(date) => setFormData({...formData, walk_date: date})}
-                  disabled={(date) => date < new Date()}
+                  onSelect={(date) => setFormData({...formData, walk_date: date, walk_time: ""})}
+                  disabled={(date) => {
+                    // Disable past dates
+                    if (date < new Date().setHours(0,0,0,0)) return true;
+                    
+                    // Check availability
+                    const dateStr = format(date, 'yyyy-MM-dd');
+                    const dayAvail = availability.find(a => a.date === dateStr);
+                    
+                    // If fully booked, disable
+                    if (dayAvail?.is_fully_booked) return true;
+                    
+                    return false;
+                  }}
                 />
               </PopoverContent>
             </Popover>
@@ -288,14 +300,25 @@ export default function BookingForm({ walker, professional, onClose }) {
             <Select
               value={formData.walk_time}
               onValueChange={(value) => setFormData({...formData, walk_time: value})}
+              disabled={!formData.walk_date}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder={!formData.walk_date ? "Selecione uma data primeiro" : "Selecione um horário"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="morning">Manhã (08:00 - 12:00)</SelectItem>
-                <SelectItem value="afternoon">Tarde (12:00 - 18:00)</SelectItem>
-                <SelectItem value="evening">Noite (18:00 - 22:00)</SelectItem>
+                {availableSlots.length > 0 ? (
+                  availableSlots.map((slot, idx) => (
+                    <SelectItem key={idx} value={`${slot.start_time} - ${slot.end_time}`}>
+                      {slot.start_time} - {slot.end_time}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <>
+                    <SelectItem value="morning">Manhã (08:00 - 12:00)</SelectItem>
+                    <SelectItem value="afternoon">Tarde (12:00 - 18:00)</SelectItem>
+                    <SelectItem value="evening">Noite (18:00 - 22:00)</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
