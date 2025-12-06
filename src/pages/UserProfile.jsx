@@ -179,11 +179,12 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [] } = useQuery({
-    queryKey: ['userBadges', profileEmail, isOwnProfile, currentUser?.achievements_badges],
+    queryKey: ['userBadges', profileEmail, isSelfView, currentUser?.achievements_badges],
     queryFn: async () => {
-      // Immediate fallback to memory badges for own profile
-      const memoryBadges = (isOwnProfile && currentUser?.achievements_badges) ? currentUser.achievements_badges : [];
+      // Use isSelfView (calculated from URL) instead of waiting for profileUser to load
+      const memoryBadges = (isSelfView && currentUser?.achievements_badges) ? currentUser.achievements_badges : [];
       
+      // If we don't have a profile email yet, return memory badges if it's self view
       if (!profileEmail) return memoryBadges;
       
       try {
@@ -196,7 +197,6 @@ export default function UserProfile() {
           const missingBadges = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
           
           if (missingBadges.length > 0) {
-            // New badges from memory + existing from table
             return [...missingBadges, ...fromTable]; 
           }
           return fromTable;
@@ -205,7 +205,6 @@ export default function UserProfile() {
         console.error("Error fetching badges table:", e);
       }
 
-      // If DB empty or error, use memory badges
       return memoryBadges;
     },
     enabled: true,
@@ -539,10 +538,7 @@ export default function UserProfile() {
                     >
                       {isFollowing ? 'Seguindo' : 'Seguir'}
                     </Button>
-                    <Button variant="outline">
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Mensagem
-                    </Button>
+{/* Mensagem button removed per request */}
                   </>
                 )}
               </div>
