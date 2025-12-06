@@ -31,7 +31,8 @@ import ServiceAreaSelector from "../components/professionals/ServiceAreaSelector
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
-import { toast } from "sonner"; // Added import for toast
+import { toast } from "sonner";
+import { Link } from "react-router-dom"; // Added import for toast
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
@@ -128,6 +129,35 @@ export default function BecomeWalker() {
     setUploading(prev => ({ ...prev, [uploadingKey]: false }));
   };
 
+  // Check for user login
+  const { data: user, isLoading: userLoading } = base44.react.useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+  });
+
+  if (!userLoading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6 flex items-center justify-center">
+        <Card className="max-w-md w-full border-0 shadow-xl">
+          <CardContent className="p-8 text-center">
+            <Shield className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('loginRequired', language) || "Login Necessário"}</h2>
+            <p className="text-gray-600 mb-6">
+              {t('loginToBecomeWalker', language) || "Você precisa estar logado para se candidatar como passeador."}
+            </p>
+            <Button 
+              onClick={() => base44.auth.redirectToLogin()} 
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              {t('login', language) || "Entrar"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -135,13 +165,28 @@ export default function BecomeWalker() {
       toast.error(t("pleaseCorrectErrors", language) || "Por favor corrija os erros para prosseguir.");
       return;
     }
-    
-    await createWalkerMutation.mutateAsync({
-      ...formData,
-      hourly_rate: parseFloat(formData.hourly_rate),
-      experience_years: parseFloat(formData.experience_years),
-      verification_status: "pending"
-    });
+
+    // Validate numeric fields
+    const rate = parseFloat(formData.hourly_rate);
+    const exp = parseFloat(formData.experience_years);
+
+    if (isNaN(rate)) {
+      toast.error(t("invalidHourlyRate", language) || "Taxa horária inválida.");
+      return;
+    }
+
+    try {
+      await createWalkerMutation.mutateAsync({
+        ...formData,
+        hourly_rate: rate,
+        experience_years: isNaN(exp) ? 0 : exp,
+        verification_status: "pending",
+        created_by: user?.email // Explicitly associating with user, though RLS handles it typically
+      });
+    } catch (error) {
+      // Error is handled in onError of mutation
+      console.error("Submission error caught:", error);
+    }
   };
 
   const toggleArrayItem = (field, value) => {
