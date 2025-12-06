@@ -2053,6 +2053,12 @@ export default function AdminDashboard() {
 
               <div>
                 <Label>Selecionar Usuários</Label>
+                <Input 
+                  placeholder="Buscar por nome ou email..." 
+                  value={badgeUserSearchTerm} 
+                  onChange={(e) => setBadgeUserSearchTerm(e.target.value)} 
+                  className="mb-2 mt-1"
+                />
                 <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
                   <div className="flex items-center gap-2 p-2 bg-purple-50 rounded">
                     <input
@@ -2069,7 +2075,13 @@ export default function AdminDashboard() {
                     />
                     <span className="font-semibold">Selecionar Todos ({allUsers.length})</span>
                   </div>
-                  {allUsers.map((user) => (
+                  {allUsers
+                    .filter(u => {
+                      if (!badgeUserSearchTerm) return true;
+                      const search = badgeUserSearchTerm.toLowerCase();
+                      return (u.full_name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
+                    })
+                    .map((user) => (
                     <div key={user.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
                       <input
                         type="checkbox"
