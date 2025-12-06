@@ -122,24 +122,33 @@ export default function UserProfile() {
       // 2. Search by ID (UserProfile ID or User ID)
       if (!userProfile && targetId) {
         try {
-          // Try finding by Entity ID
+          // 2a. Try finding by UserProfile Entity ID
           const byEntityId = await base44.entities.UserProfile.filter({ id: targetId });
           if (byEntityId && byEntityId.length > 0) userProfile = byEntityId[0];
 
-          // Try finding by User ID (Auth ID)
+          // 2b. Try finding by UserProfile user_id (Auth ID)
           if (!userProfile) {
             const byUserId = await base44.entities.UserProfile.filter({ user_id: targetId });
             if (byUserId && byUserId.length > 0) userProfile = byUserId[0];
           }
 
-          // Fallback: Try WalkerProfile by ID if not found in UserProfile
+          // 2c. Fallback: WalkerProfile
           if (!userProfile) {
-            const byWalkerId = await base44.entities.WalkerProfile.filter({ id: targetId });
-            if (byWalkerId && byWalkerId.length > 0) {
-               const w = byWalkerId[0];
+             // Try WalkerProfile by Entity ID
+             let walkerMatch = await base44.entities.WalkerProfile.filter({ id: targetId });
+
+             // Try WalkerProfile by user_id (Auth ID) - if field exists and is populated
+             if (!walkerMatch || walkerMatch.length === 0) {
+                try {
+                  walkerMatch = await base44.entities.WalkerProfile.filter({ user_id: targetId });
+                } catch (e) { console.log('WalkerProfile user_id filter not supported yet or failed'); }
+             }
+
+             if (walkerMatch && walkerMatch.length > 0) {
+               const w = walkerMatch[0];
                userProfile = {
                   id: w.id, 
-                  user_id: null, // Unknown
+                  user_id: w.user_id || targetId, // Assume targetId is auth ID if we found it via user_id filter, or best guess
                   user_email: w.created_by,
                   full_name: w.walker_name,
                   profile_photo_url: w.photo_url,
@@ -149,8 +158,27 @@ export default function UserProfile() {
                   is_verified: w.verification_status === 'verified',
                   is_virtual_profile: true
                };
-            }
+             }
           }
+
+          // 2d. Admin Super Fallback: Search User Table (Auth) directly by ID
+          // This covers cases where UserProfile doesn't exist yet, but the User exists.
+          if (!userProfile && currentUser?.role === 'admin') {
+             try {
+                const sysUsers = await base44.entities.User.filter({ id: targetId });
+                if (sysUsers && sysUsers.length > 0) {
+                  const sysUser = sysUsers[0];
+                  userProfile = {
+                     ...sysUser,
+                     user_email: sysUser.email,
+                     user_id: sysUser.id,
+                     full_name: sysUser.full_name || sysUser.email.split('@')[0], // Fallback name
+                     is_virtual_profile: true
+                  };
+                }
+             } catch (err) { console.log('Admin User ID lookup failed', err); }
+          }
+
         } catch (e) {
           console.error('Error fetching by ID:', e);
         }
