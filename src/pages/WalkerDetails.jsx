@@ -381,22 +381,24 @@ export default function WalkerDetails() {
                       }
                       
                       try {
-                        // 1. Verificar se já existe conversa (Busca segura sem operador $all)
-                        // Buscamos as conversas do usuário e filtramos no cliente para garantir compatibilidade
-                        const myConversations = await base44.entities.ChatConversation.filter({
-                          participant_emails: user.email,
-                          conversation_type: 'one_on_one'
-                        });
-
+                        // PASSO 1: Lógica de Existência da Conversa
+                        // Busca todas as conversas visíveis (RLS garante que são minhas) para garantir compatibilidade com dados antigos
+                        const myConversations = await base44.entities.ChatConversation.list();
+                        
                         const existing = myConversations.find(c => 
-                          c.participant_emails && c.participant_emails.includes(walker.created_by)
+                          c.conversation_type === 'one_on_one' &&
+                          c.participants && 
+                          c.participants.some(p => p.email === walker.created_by)
                         );
 
+                        let targetConversationId;
+
                         if (existing) {
-                          // 2. Redirecionar para conversa existente
-                          navigate(createPageUrl(`Messages?conversation_id=${existing.id}`));
+                          console.log('Conversa existente encontrada:', existing.id);
+                          targetConversationId = existing.id;
                         } else {
-                          // 3. Criar nova conversa
+                          // PASSO 2: Criação Condicional da Conversa
+                          console.log('Criando nova conversa...');
                           const newConv = await base44.entities.ChatConversation.create({
                             conversation_type: 'one_on_one',
                             participant_emails: [user.email, walker.created_by],
@@ -418,15 +420,21 @@ export default function WalkerDetails() {
                             last_message_sender: user.email,
                             last_message_date: new Date().toISOString()
                           });
-                          
-                          // 4. Redirecionar para nova conversa
-                          navigate(createPageUrl(`Messages?conversation_id=${newConv.id}`));
+                          targetConversationId = newConv.id;
                         }
+
+                        // PASSO 3: Redirecionamento Final e Passagem de Dados
+                        if (targetConversationId) {
+                          navigate(createPageUrl(`Messages?conversation_id=${targetConversationId}`));
+                        } else {
+                          throw new Error("ID da conversa inválido");
+                        }
+
                       } catch (error) {
-                        console.error("Erro ao iniciar conversa:", error);
+                        console.error("Erro no workflow do chat:", error);
                         toast({
                           title: "Erro",
-                          description: "Não foi possível iniciar o chat. Tente novamente.",
+                          description: "Não foi possível abrir o chat. Tente novamente.",
                           variant: "destructive"
                         });
                       }
