@@ -71,8 +71,11 @@ export default function Partners() {
   ];
 
   const filteredPartners = partners.filter(partner => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch = !searchTerm ||
-      partner.partner_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      partner.company_name?.toLowerCase().includes(term) ||
+      partner.service_areas?.some(area => area.toLowerCase().includes(term)) ||
+      partner.services_offered?.some(service => service.toLowerCase().includes(term));
     const matchesCategory = categoryFilter === "all" || partner.company_type === categoryFilter;
     return matchesSearch && matchesCategory;
   });
