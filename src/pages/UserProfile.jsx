@@ -184,8 +184,50 @@ export default function UserProfile() {
       if (!profileEmail) return [];
       return await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
     },
-    enabled: !!profileEmail
+    enabled: !!profileEmail,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
+
+  // Sync embedded badges (from Auth User) to UserBadge table if needed
+  React.useEffect(() => {
+    const syncBadges = async () => {
+      if (!isOwnProfile || !currentUser?.achievements_badges || !profileEmail) return;
+      
+      const embeddedBadges = currentUser.achievements_badges || [];
+      if (embeddedBadges.length === 0) return;
+
+      // We need to wait for earnedBadges to be loaded
+      // But we can just check existence to avoid duplicates
+      try {
+        const existingBadges = await base44.entities.UserBadge.filter({ user_email: profileEmail });
+        const existingIds = new Set(existingBadges.map(b => b.badge_id));
+        
+        const badgesToCreate = embeddedBadges.filter(b => !existingIds.has(b.badge_id));
+        
+        if (badgesToCreate.length > 0) {
+          console.log(`Syncing ${badgesToCreate.length} badges to table...`);
+          await Promise.all(badgesToCreate.map(badge => 
+            base44.entities.UserBadge.create({
+              user_email: profileEmail,
+              badge_id: badge.badge_id,
+              name: badge.name,
+              description: badge.description,
+              icon: badge.icon,
+              image_url: badge.image_url,
+              rarity: badge.rarity || 'common',
+              earned_date: badge.earned_date || new Date().toISOString()
+            })
+          ));
+          queryClient.invalidateQueries({ queryKey: ['userBadges'] });
+        }
+      } catch (err) {
+        console.error("Error syncing badges:", err);
+      }
+    };
+
+    syncBadges();
+  }, [isOwnProfile, currentUser, profileEmail, queryClient]);
 
   const { data: walkerProfile } = useQuery({
     queryKey: ['walkerProfile', profileEmail],
@@ -220,7 +262,9 @@ export default function UserProfile() {
       }
     },
     enabled: !!profileEmail,
-    initialData: 0
+    initialData: 0,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   // Optimized Following Count (Direct Count)
@@ -236,7 +280,9 @@ export default function UserProfile() {
       }
     },
     enabled: !!profileEmail,
-    initialData: 0
+    initialData: 0,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   const [showFollowers, setShowFollowers] = useState(false);
