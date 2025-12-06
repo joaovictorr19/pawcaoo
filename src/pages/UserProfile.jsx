@@ -117,8 +117,22 @@ export default function UserProfile() {
       // 3. If NOT found, but it isSelfView, we MUST try to find by email (currentUser.email).
       // 4. If still not found and isSelfView, CREATE it.
 
-      // 1. Try Lookup by ID if provided
-      if (targetId) {
+      // 1. PRIORIDADE: Se for o próprio utilizador, buscar sempre pelo email primeiro para garantir
+      if (isSelfView && currentUser?.email) {
+        console.log('👤 Self View detected - Prioritizing Email Search:', currentUser.email);
+        try {
+          const byEmail = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+          if (byEmail && byEmail.length > 0) {
+            userProfile = byEmail[0];
+            console.log('✅ Found self profile by email');
+          }
+        } catch (e) {
+          console.error('❌ Self email search failed:', e);
+        }
+      }
+
+      // 2. Try Lookup by ID if provided (and profile not found yet)
+      if (!userProfile && targetId) {
         console.log('🔎 Searching by ID:', targetId);
         // Try Entity ID
         try {
@@ -141,9 +155,9 @@ export default function UserProfile() {
         }
       }
 
-      // 2. Try Lookup by Email (if targetEmail provided OR isSelfView)
+      // 3. Try Lookup by Email (if targetEmail provided and not found yet)
       if (!userProfile) {
-        const emailToSearch = targetEmail || (isSelfView && currentUser?.email) || null;
+        const emailToSearch = targetEmail || (!isSelfView ? null : currentUser?.email);
         console.log('📧 Searching by Email:', emailToSearch);
         if (emailToSearch) {
           try {
@@ -686,7 +700,7 @@ export default function UserProfile() {
                       <div className="text-sm text-gray-300">Likes</div>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                      <div className="text-3xl font-bold text-purple-400">{achievementsBadges.length + publicBadges.length}</div>
+                      <div className="text-3xl font-bold text-purple-400">{totalBadges}</div>
                       <div className="text-sm text-gray-300">Emblemas</div>
                     </div>
                   </div>
