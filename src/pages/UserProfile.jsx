@@ -248,11 +248,17 @@ export default function UserProfile() {
         status: 'accepted'
       });
 
-      // Update stats
+      // Invalidate queries to force refresh counts
+      queryClient.invalidateQueries({ queryKey: ['followersCount'] });
+      queryClient.invalidateQueries({ queryKey: ['followingCount'] });
+      
+      // Update stats (Legacy/Backup)
       if (profileUser.id) {
-        await base44.entities.UserProfile.update(profileUser.id, {
-          followers_count: (profileUser.followers_count || 0) + 1
-        });
+        try {
+          await base44.entities.UserProfile.update(profileUser.id, {
+            followers_count: (profileUser.followers_count || 0) + 1
+          });
+        } catch (e) { console.error(e); }
       }
 
       // Notify
@@ -267,6 +273,8 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profileUser'] });
       queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
+      queryClient.invalidateQueries({ queryKey: ['followersCount'] });
+      queryClient.invalidateQueries({ queryKey: ['followingCount'] });
       toast.success('Agora você está seguindo!');
     },
   });
@@ -282,15 +290,19 @@ export default function UserProfile() {
       if (follows[0]) {
         await base44.entities.SocialFollow.delete(follows[0].id);
         if (profileUser.id) {
-          await base44.entities.UserProfile.update(profileUser.id, {
-            followers_count: Math.max(0, (profileUser.followers_count || 0) - 1)
-          });
+          try {
+            await base44.entities.UserProfile.update(profileUser.id, {
+              followers_count: Math.max(0, (profileUser.followers_count || 0) - 1)
+            });
+          } catch(e) { console.error(e); }
         }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profileUser'] });
       queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
+      queryClient.invalidateQueries({ queryKey: ['followersCount'] });
+      queryClient.invalidateQueries({ queryKey: ['followingCount'] });
       toast.success('Deixou de seguir');
     },
   });
@@ -443,11 +455,11 @@ export default function UserProfile() {
                 <div className="text-sm text-gray-600">Emblemas</div>
               </div>
               <div className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2" onClick={() => setShowFollowers(true)}>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{profileUser.followers_count || 0}</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{followersCount}</div>
                 <div className="text-sm text-gray-600">Seguidores</div>
               </div>
               <div className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2" onClick={() => setShowFollowing(true)}>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{profileUser.following_count || 0}</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{followingCount}</div>
                 <div className="text-sm text-gray-600">Seguindo</div>
               </div>
             </div>
