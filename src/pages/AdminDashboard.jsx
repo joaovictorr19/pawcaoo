@@ -1315,15 +1315,25 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {/* Modelos de Badges Salvos */}
+                  {/* Biblioteca Unificada de Emblemas */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Biblioteca de Emblemas ({badgeDefinitions.length})</h3>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold">Meus Emblemas & Badges ({badgeDefinitions.length})</h3>
+                    </div>
+                    
                     {loadingBadges && badgeDefinitions.length === 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
                       </div>
                     ) : badgeDefinitions.length === 0 ? (
-                      <p className="text-gray-500 italic">Nenhum emblema salvo. Crie um novo para aparecer aqui.</p>
+                      <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                        <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 mb-4">Você ainda não criou nenhum emblema.</p>
+                        <Button onClick={() => setShowCreateCustomBadgeModal(true)} variant="outline">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Primeiro Emblema
+                        </Button>
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {badgeDefinitions.map((badgeDef) => (
