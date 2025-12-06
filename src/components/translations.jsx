@@ -93,6 +93,15 @@ export const translations = {
     perHour: "por hora",
     month: "mês",
     year: "ano",
+    years: "anos",
+    verified: "Verificado",
+    backgroundCheckVerified: "Verificação de Antecedentes Verificada",
+    experience: "Experiência",
+    walks: "Passeios",
+    clients: "Clientes",
+    successRate: "Taxa de Sucesso",
+    clientsAchievedGoals: "Clientes que atingiram os seus objetivos de treino",
+    happyClients: "Clientes Satisfeitos",
     
     // Profile Page
     hello: "Olá",
@@ -796,6 +805,15 @@ export const translations = {
     perHour: "per hour",
     month: "month",
     year: "year",
+    years: "years",
+    verified: "Verified",
+    backgroundCheckVerified: "Background Check Verified",
+    experience: "Experience",
+    walks: "Walks",
+    clients: "Clients",
+    successRate: "Success Rate",
+    clientsAchievedGoals: "Clients who achieved their training goals",
+    happyClients: "Happy Clients",
     
     // Profile Page
     hello: "Hello",
@@ -1496,6 +1514,15 @@ export const translations = {
     perHour: "por hora",
     month: "mes",
     year: "año",
+    years: "años",
+    verified: "Verificado",
+    backgroundCheckVerified: "Verificación de Antecedentes Verificada",
+    experience: "Experiencia",
+    walks: "Paseos",
+    clients: "Clientes",
+    successRate: "Tasa de Éxito",
+    clientsAchievedGoals: "Clientes que lograron sus objetivos de entrenamiento",
+    happyClients: "Clientes Satisfechos",
     
     // Profile Page
     hello: "Hola",

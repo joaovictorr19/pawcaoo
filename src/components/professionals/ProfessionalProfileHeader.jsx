@@ -39,7 +39,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
           {professional.verification_status === "verified" && (
             <Badge className={`${isWalker ? 'bg-green-500' : 'bg-purple-500'} text-white border-0 shadow-sm text-xs px-3 py-1.5`}>
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-              Verified
+              {t('verified', language)}
             </Badge>
           )}
           <Badge className="bg-white/95 text-gray-900 border-0 shadow-sm text-xs px-3 py-1.5">
@@ -76,7 +76,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
             <div className={`text-2xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
               €{professional.hourly_rate}
             </div>
-            <div className="text-gray-500 text-xs">per hour</div>
+            <div className="text-gray-500 text-xs">{t('perHour', language)}</div>
           </div>
         </div>
 
@@ -93,7 +93,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
           <div className="mb-6 border-t border-gray-200 pt-6">
             <h3 className={`text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2`}>
               <Video className={`w-5 h-5 ${isWalker ? 'text-green-600' : 'text-purple-600'}`} />
-              Video Introduction
+              {t('videoIntroduction', language)}
             </h3>
             <video
               src={videoUrl}
@@ -111,14 +111,14 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 <ShieldCheck className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <h4 className={`font-bold ${isWalker ? 'text-green-900' : 'text-purple-900'}`}>Background Check Verified</h4>
+                <h4 className={`font-bold ${isWalker ? 'text-green-900' : 'text-purple-900'}`}>{t('backgroundCheckVerified', language)}</h4>
                 <p className={`text-sm ${isWalker ? 'text-green-700' : 'text-purple-700'}`}>
                   Verified by {professional.background_check_provider || 'trusted provider'} • {professional.background_check_date ? format(new Date(professional.background_check_date), 'MMM yyyy') : 'N/A'}
                 </p>
               </div>
               <Badge className={`${isWalker ? 'bg-green-600' : 'bg-purple-600'} text-white`}>
                 <ShieldCheck className="w-3 h-3 mr-1" />
-                Verified
+                {t('verified', language)}
               </Badge>
             </div>
           </div>
@@ -132,9 +132,9 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 {isWalker ? <Clock className={`w-5 h-5 ${isWalker ? 'text-green-600' : 'text-purple-600'}`} /> : <Award className="w-5 h-5 text-purple-600" />}
               </div>
               <div>
-                <div className="text-xs text-gray-500">Experience</div>
+                <div className="text-xs text-gray-500">{t('experience', language)}</div>
                 <div className="text-sm font-semibold text-gray-900">
-                  {professional.experience_years} years
+                  {professional.experience_years} {t('years', language)}
                 </div>
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 {isWalker ? <Calendar className="w-5 h-5 text-blue-600" /> : <UserIcon className="w-5 h-5 text-blue-600" />}
               </div>
               <div>
-                <div className="text-xs text-gray-500">{isWalker ? 'Walks' : 'Clients'}</div>
+                <div className="text-xs text-gray-500">{isWalker ? t('walks', language) : t('clients', language)}</div>
                 <div className="text-sm font-semibold text-gray-900">
                   {isWalker ? `${professional.total_walks}` : `${professional.total_clients}`}
                 </div>
@@ -160,7 +160,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 <Phone className={`w-5 h-5 ${isWalker ? 'text-purple-600' : 'text-green-600'}`} />
               </div>
               <div>
-                <div className="text-xs text-gray-500">Contact</div>
+                <div className="text-xs text-gray-500">{t('contact', language)}</div>
                 <div className="text-sm font-semibold text-gray-900 truncate max-w-[100px] md:max-w-full">
                   {professional.phone}
                 </div>
@@ -179,10 +179,10 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                  </div>
                  <div>
                    <h4 className="text-2xl font-bold text-green-900">
-                     {professional.success_rate}% Success Rate
+                     {professional.success_rate}% {t('successRate', language)}
                    </h4>
                    <p className="text-sm text-green-700">
-                     Clients who achieved their training goals
+                     {t('clientsAchievedGoals', language)}
                    </p>
                  </div>
                </div>
@@ -190,7 +190,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                  <div className="text-4xl font-bold text-green-600">
                    {professional.total_clients || 0}
                  </div>
-                 <div className="text-sm text-green-700">Happy Clients</div>
+                 <div className="text-sm text-green-700">{t('happyClients', language)}</div>
                </div>
              </div>
            </div>
