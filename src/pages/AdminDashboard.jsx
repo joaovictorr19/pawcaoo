@@ -934,7 +934,7 @@ export default function AdminDashboard() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => window.open(createPageUrl(`WalkerDetails?id=${walker.id}`), '_blank')}
+                              onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
