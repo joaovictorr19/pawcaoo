@@ -47,6 +47,11 @@ export default function WalkerDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   // Support both 'id' and 'walker_id' parameters
   const walkerId = urlParams.get('id') || urlParams.get('walker_id');
+  
+  console.log('🔍 WalkerDetails - URL Params:', { 
+    walkerId, 
+    allParams: Object.fromEntries(urlParams.entries()) 
+  });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -62,20 +67,36 @@ export default function WalkerDetails() {
   const { data: walker, isLoading, isError, error } = useQuery({
     queryKey: ['walker', walkerId],
     queryFn: async () => {
-      if (!walkerId) return null;
-      // Fetch specific walker directly from DB - Public Access
+      console.log('🔎 Starting walker search for ID:', walkerId);
+      
+      if (!walkerId) {
+        console.warn('⚠️ No walkerId provided');
+        return null;
+      }
+      
       try {
         // Try filter by ID first
+        console.log('📋 Searching by entity ID...');
         const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
-        if (results && results.length > 0) return results[0];
+        console.log('📊 Results by ID:', results?.length || 0);
+        if (results && results.length > 0) {
+          console.log('✅ Walker found by ID:', results[0]);
+          return results[0];
+        }
         
-        // Fallback: Try to find by user_id if walkerId is a user_id (created_by_id)
-        const byUserId = await base44.entities.WalkerProfile.filter({ created_by_id: walkerId });
-        if (byUserId && byUserId.length > 0) return byUserId[0];
+        // Fallback: Try by created_by (email match)
+        console.log('📋 Searching by created_by...');
+        const byEmail = await base44.entities.WalkerProfile.filter({ created_by: walkerId });
+        console.log('📊 Results by email:', byEmail?.length || 0);
+        if (byEmail && byEmail.length > 0) {
+          console.log('✅ Walker found by email:', byEmail[0]);
+          return byEmail[0];
+        }
 
+        console.warn('❌ Walker not found with ID:', walkerId);
         return null;
       } catch (e) {
-        console.error("Error fetching walker:", e);
+        console.error("❌ Error fetching walker:", e);
         throw e;
       }
     },
@@ -84,12 +105,24 @@ export default function WalkerDetails() {
   });
 
   if (isError) {
+    console.error('💥 Query error state:', error);
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-        <div className="text-center text-red-600">
+        <div className="text-center text-red-600 max-w-md">
           <h2 className="text-xl font-bold mb-2">Erro ao carregar perfil</h2>
-          <p>{error.message}</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Tentar novamente</Button>
+          <p className="mb-4">{error?.message || 'Erro desconhecido'}</p>
+          <div className="bg-gray-100 p-3 rounded text-xs text-left mb-4 font-mono">
+            <p>ID pesquisado: {walkerId}</p>
+            <p>Erro: {JSON.stringify(error)}</p>
+          </div>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Tentar novamente
+            </Button>
+            <Button onClick={() => navigate(createPageUrl('Home'))}>
+              Voltar à busca
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -137,17 +170,22 @@ export default function WalkerDetails() {
     }
   };
 
-  // Redirect if walker not found - MOVED UP before conditional return
+  // Redirect if walker not found
   React.useEffect(() => {
-    // Only redirect if we actually have an ID but no walker found after loading
+    console.log('🔄 Redirect check:', { walkerId, isLoading, hasWalker: !!walker });
+    
+    if (!walkerId) {
+      console.warn('⚠️ No walkerId - redirecting immediately');
+      navigate(createPageUrl('Home'));
+      return;
+    }
+    
     if (walkerId && !isLoading && !walker) {
+      console.warn('⚠️ Walker not found - redirecting in 3s');
       const timer = setTimeout(() => {
         navigate(createPageUrl('Home'));
       }, 3000);
       return () => clearTimeout(timer);
-    } else if (!walkerId) {
-        // If no ID, redirect immediately
-        navigate(createPageUrl('Home'));
     }
   }, [isLoading, walker, navigate, walkerId]);
 
