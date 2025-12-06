@@ -222,9 +222,9 @@ export default function WalkerDetails() {
           Back to Walkers
         </Button>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-xl shadow-2xl overflow-hidden border-0">
+        <div className="grid lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 space-y-5">
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
               <ProfessionalProfileHeader 
                 professional={walker} 
                 type="walker" 
@@ -232,7 +232,7 @@ export default function WalkerDetails() {
                 averageRating={averageRating}
               />
               
-              <div className="px-8 pb-8">
+              <div className="px-5 pb-5">
                 <ServiceList services={walker.services_offered} type="walker" />
 
                 {/* Service Areas - NEW */}
@@ -357,14 +357,14 @@ export default function WalkerDetails() {
             </div>
 
             {/* NEW: Availability Calendar */}
-            <Card className="border-0 shadow-2xl">
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Calendar className="w-6 h-6 text-green-600" />
+            <Card className="border-0 shadow-md">
+              <CardHeader className="py-4 px-5">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-green-600" />
                   Availability
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-5 pt-0">
                 <AvailabilityCalendar
                   availabilityData={availability}
                   bookings={walkerBookings}
@@ -374,14 +374,14 @@ export default function WalkerDetails() {
             </Card>
 
             {/* Reviews Section */}
-            <Card className="border-0 shadow-2xl">
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
+            <Card className="border-0 shadow-md">
+              <CardHeader className="py-4 px-5">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
                   Reviews ({reviews.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-5 pt-0">
                 {loadingReviews ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => (
@@ -406,16 +406,16 @@ export default function WalkerDetails() {
           </div>
 
           {/* Right Column - Booking */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-5">
             {userDogs.length > 0 && (
-              <Card className="border-2 border-purple-300 shadow-xl bg-gradient-to-br from-purple-50 to-blue-50">
-                <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Repeat className="w-5 h-5" />
+              <Card className="border border-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-5">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Repeat className="w-4 h-4" />
                     Passeios Recorrentes
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-5">
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center gap-2 text-sm">
                       <CheckCircle className="w-4 h-4 text-green-600" />

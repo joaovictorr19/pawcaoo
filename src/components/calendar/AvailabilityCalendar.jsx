@@ -41,10 +41,10 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
   };
 
   return (
-    <Card className="border-0 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 p-2.5 md:p-4">
+    <Card className="border-0 shadow-sm">
+      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 p-2 md:p-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-1.5 md:gap-2 text-sm md:text-lg">
+          <CardTitle className="flex items-center gap-1.5 md:gap-2 text-sm md:text-base">
             <CalendarIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-green-600" />
             <span className="truncate">{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</span>
           </CardTitle>

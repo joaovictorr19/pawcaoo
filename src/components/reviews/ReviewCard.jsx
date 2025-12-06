@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,12 +71,12 @@ export default function ReviewCard({ review }) {
   };
 
   return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
+    <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h4 className="font-semibold text-lg text-gray-900">{review.reviewer_name}</h4>
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold text-base text-gray-900">{review.reviewer_name}</h4>
               {review.is_verified && (
                 <Badge className="bg-green-100 text-green-700 border-green-200">
                   <CheckCircle className="w-3 h-3 mr-1" />
