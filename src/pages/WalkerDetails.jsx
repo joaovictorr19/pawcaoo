@@ -62,28 +62,31 @@ export default function WalkerDetails() {
     queryKey: ['walker', walkerId],
     queryFn: async () => {
       if (!walkerId) return null;
-      
+
       try {
-        // Try filter by ID first
+        // 1. Busca Prioritária: ID exato do WalkerProfile
+        // Garante que buscamos UM registro específico
         const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
         if (results && results.length > 0) {
           return results[0];
         }
-        
-        // Fallback: Try by created_by (email match)
-        const byEmail = await base44.entities.WalkerProfile.filter({ created_by: walkerId });
-        if (byEmail && byEmail.length > 0) {
-          return byEmail[0];
+
+        // 2. Fallback Inteligente: Busca por Email (created_by) APENAS se parecer um email
+        if (walkerId.includes('@')) {
+          const byEmail = await base44.entities.WalkerProfile.filter({ created_by: walkerId });
+          if (byEmail && byEmail.length > 0) {
+            return byEmail[0];
+          }
         }
 
         return null;
       } catch (e) {
-        console.error("Error fetching walker:", e);
-        throw e;
+        console.error("Critical Error fetching walker profile:", e);
+        return null; // Evita crash, retorna null para ativar a UI de "Não encontrado"
       }
     },
     enabled: !!walkerId,
-    retry: false,
+    retry: 1, // Tenta apenas mais uma vez em caso de falha de rede
   });
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
