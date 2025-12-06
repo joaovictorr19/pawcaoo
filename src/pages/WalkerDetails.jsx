@@ -298,20 +298,6 @@ export default function WalkerDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      <SEO 
-        title={`${walker.walker_name} - ${t('findWalkers', language)} in ${walker.location}`}
-        description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... ${t('rating', language)}: ${averageRating?.toFixed(1)}/5.`}
-        image={walker.photo_url}
-        type="profile"
-        schema={[
-          generateServiceSchema(walker),
-          generateBreadcrumbSchema([
-            { name: "Home", url: window.location.origin },
-            { name: "Walkers", url: window.location.origin },
-            { name: walker.walker_name, url: window.location.href }
-          ])
-        ]}
-      />
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Button
           variant="outline"
@@ -324,25 +310,64 @@ export default function WalkerDetails() {
 
         <div className="grid lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-5">
-            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+            {/* SIMPLIFIED VERSION - TESTING BASIC DATA ONLY */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 p-6">
+              <div className="text-center mb-6">
+                {walker.photo_url ? (
+                  <img src={walker.photo_url} alt={walker.walker_name} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />
+                ) : (
+                  <div className="w-32 h-32 rounded-full mx-auto mb-4 bg-gray-200 flex items-center justify-center">
+                    <span className="text-4xl">🐕</span>
+                  </div>
+                )}
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{walker.walker_name}</h1>
+                <div className="flex items-center justify-center gap-2 text-gray-600 mb-2">
+                  <MapPin className="w-4 h-4" />
+                  {walker.location}
+                </div>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                  <span className="font-semibold">{averageRating?.toFixed(1) || '5.0'}</span>
+                  <span className="text-gray-500">({reviews.length} {t('reviews', language)})</span>
+                </div>
+                {walker.verification_status === 'verified' && (
+                  <Badge className="bg-green-600 text-white">
+                    <ShieldCheck className="w-4 h-4 mr-1" />
+                    Verificado
+                  </Badge>
+                )}
+              </div>
+
+              {walker.bio && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-2">Sobre</h3>
+                  <p className="text-gray-700">{walker.bio}</p>
+                </div>
+              )}
+
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Preço</h3>
+                <p className="text-2xl font-bold text-green-600">€{walker.hourly_rate}/hora</p>
+              </div>
+
+              {/* COMMENTED OUT TEMPORARILY - TESTING
               <ProfessionalProfileHeader 
                 professional={walker} 
                 type="walker" 
                 reviews={reviews}
                 averageRating={averageRating}
               />
-              
+
               <div className="px-5 pb-5">
                 <ServiceList services={walker.services_offered || []} type="walker" />
 
-                {/* Service Areas with Map */}
+                {/* COMMENTED OUT - TESTING
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-green-600" />
                     {t('serviceAreas', language)}
                   </h2>
-                  
-                  {/* Interactive Map */}
+
                   <div className="mb-4">
                     <ServiceAreaMap walker={walker} />
                   </div>
@@ -384,9 +409,10 @@ export default function WalkerDetails() {
                       ))}
                     </div>
                   </div>
-                )}
+                  )} 
+                  END COMMENTED OUT */}
 
-                {/* Dog Breeds - NEW */}
+                  {/* Dog Breeds */}
                 {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
                   <div className="mb-4">
                     <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('breedsWorkWith', language)}</h2>
@@ -473,7 +499,7 @@ export default function WalkerDetails() {
               </div>
             </div>
 
-            {/* NEW: Availability Calendar */}
+            {/* COMMENTED OUT - TESTING
             <Card className="border-0 shadow-md">
               <CardHeader className="py-4 px-5">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -492,7 +518,6 @@ export default function WalkerDetails() {
               </CardContent>
             </Card>
 
-            {/* Reviews Section */}
             <Card className="border-0 shadow-md">
               <CardHeader className="py-4 px-5">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -522,6 +547,11 @@ export default function WalkerDetails() {
                 )}
               </CardContent>
             </Card>
+            END COMMENTED OUT */}
+
+            <div className="text-center py-8 text-gray-500">
+              ⚠️ VERSÃO SIMPLIFICADA - TESTE DE ISOLAMENTO
+            </div>
           </div>
 
           {/* Right Column - Booking */}
