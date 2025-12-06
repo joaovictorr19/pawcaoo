@@ -41,18 +41,15 @@ export default function Messages() {
   const { data: conversations, isLoading: loadingConversations } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
-      const allConversations = await base44.entities.ChatConversation.list('-last_message_date');
-      
-      console.log('📬 ALL CONVERSATIONS:', allConversations.length);
-      
-      const mine = allConversations.filter(conv => 
-        conv.participants?.some(p => p.email === user?.email) &&
-        !conv.is_archived
-      );
-      
+      if (!user?.email) return [];
+      // Filter by participant_emails to get only my conversations
+      const mine = await base44.entities.ChatConversation.filter({
+        participant_emails: user.email
+      }, '-last_message_date');
+
       console.log('📬 MY CONVERSATIONS:', mine.length);
-      
-      return mine;
+
+      return mine.filter(c => !c.is_archived);
     },
     enabled: !!user,
     initialData: [],

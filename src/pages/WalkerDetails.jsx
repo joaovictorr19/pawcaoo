@@ -382,8 +382,10 @@ export default function WalkerDetails() {
                       
                       try {
                         // PASSO 1: Lógica de Existência da Conversa
-                        // Busca todas as conversas visíveis (RLS garante que são minhas) para garantir compatibilidade com dados antigos
-                        const myConversations = await base44.entities.ChatConversation.list();
+                        // Busca conversas onde sou participante
+                        const myConversations = await base44.entities.ChatConversation.filter({
+                          participant_emails: user.email
+                        });
                         
                         const existing = myConversations.find(c => 
                           c.conversation_type === 'one_on_one' &&

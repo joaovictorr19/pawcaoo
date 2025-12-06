@@ -214,10 +214,10 @@ function LayoutContent({ children, currentPageName }) {
 
   const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
 
-  const mainMenuCount = 2; // Apenas Passeadores e Adotar
-  const messagesIndex = mainMenuCount;
-  const connectIndex = messagesIndex + 1; // Renamed from dogConnectIndex
-  const myActivityStartIndex = connectIndex + 1;
+  const mainMenuCount = 3; // Passeadores, Adotar, Abrigos
+  const messagesIndex = 3; // Mensagens
+  // const connectIndex = 4; // Connect (Desativado)
+  const myActivityStartIndex = 4; // Início da Atividade (Index 4 = OwnerDashboard)
   const myActivityCount = 9; // Dashboard + 8 items (includes Badges)
   const professionalServicesStartIndex = myActivityStartIndex + myActivityCount;
   const professionalServicesCount = 6;
