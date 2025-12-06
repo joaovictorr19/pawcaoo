@@ -179,10 +179,26 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [] } = useQuery({
-    queryKey: ['userBadges', profileEmail],
+    queryKey: ['userBadges', profileEmail, isOwnProfile, currentUser?.achievements_badges],
     queryFn: async () => {
       if (!profileEmail) return [];
-      return await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+      
+      // 1. Try to fetch from the UserBadge table (Source of Truth)
+      try {
+        const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+        if (fromTable && fromTable.length > 0) {
+          return fromTable;
+        }
+      } catch (e) {
+        console.error("Error fetching badges table:", e);
+      }
+
+      // 2. Fallback: If viewing own profile and table is empty, show embedded badges
+      if (isOwnProfile && currentUser?.achievements_badges?.length > 0) {
+        return currentUser.achievements_badges;
+      }
+
+      return [];
     },
     enabled: !!profileEmail,
     staleTime: 0,
