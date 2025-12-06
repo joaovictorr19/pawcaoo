@@ -181,26 +181,33 @@ export default function UserProfile() {
   const { data: earnedBadges = [] } = useQuery({
     queryKey: ['userBadges', profileEmail, isOwnProfile, currentUser?.achievements_badges],
     queryFn: async () => {
-      if (!profileEmail) return [];
+      // Immediate fallback to memory badges for own profile
+      const memoryBadges = (isOwnProfile && currentUser?.achievements_badges) ? currentUser.achievements_badges : [];
       
-      // 1. Try to fetch from the UserBadge table (Source of Truth)
+      if (!profileEmail) return memoryBadges;
+      
       try {
+        // Fetch from DB
         const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+        
+        // If we have DB badges, return them
         if (fromTable && fromTable.length > 0) {
+          // Check if we need to merge with memory badges (in case sync hasn't happened yet for new badges)
+          if (memoryBadges.length > fromTable.length) {
+            const tableBadgeIds = new Set(fromTable.map(b => b.badge_id));
+            const missingBadges = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
+            return [...fromTable, ...missingBadges];
+          }
           return fromTable;
         }
       } catch (e) {
         console.error("Error fetching badges table:", e);
       }
 
-      // 2. Fallback: If viewing own profile and table is empty, show embedded badges
-      if (isOwnProfile && currentUser?.achievements_badges?.length > 0) {
-        return currentUser.achievements_badges;
-      }
-
-      return [];
+      // If DB empty or error, use memory badges
+      return memoryBadges;
     },
-    enabled: !!profileEmail,
+    enabled: true, // Always enabled to allow memory badges fallback even if email is pending
     staleTime: 0,
     refetchOnWindowFocus: true
   });
