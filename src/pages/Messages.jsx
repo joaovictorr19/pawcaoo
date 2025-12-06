@@ -42,10 +42,17 @@ export default function Messages() {
     queryKey: ['conversations'],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Filter by participant_emails to get only my conversations
-      const mine = await base44.entities.ChatConversation.filter({
-        participant_emails: user.email
-      }, '-last_message_date');
+
+      // Busca ampliada para garantir compatibilidade com conversas antigas (sem participant_emails)
+      // Aumentando o limite para 200 para garantir que encontramos as conversas do usuário
+      const allConversations = await base44.entities.ChatConversation.list('-last_message_date', 200);
+
+      console.log('📬 ALL CONVERSATIONS:', allConversations.length);
+
+      const mine = allConversations.filter(conv => 
+        (conv.participant_emails?.includes(user.email)) || 
+        (conv.participants?.some(p => p.email === user.email))
+      );
 
       console.log('📬 MY CONVERSATIONS:', mine.length);
 

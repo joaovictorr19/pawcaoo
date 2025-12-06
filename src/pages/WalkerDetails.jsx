@@ -381,16 +381,21 @@ export default function WalkerDetails() {
                       }
                       
                       try {
-                        // PASSO 1: Lógica de Existência da Conversa
-                        // Busca conversas onde sou participante
-                        const myConversations = await base44.entities.ChatConversation.filter({
-                          participant_emails: user.email
-                        });
+                        // Validação de segurança do email do walker
+                        const walkerEmail = walker.created_by || walker.contact_email;
+                        if (!walkerEmail) {
+                          throw new Error("O passeador não possui um email válido associado.");
+                        }
+
+                        // PASSO 1: Lógica de Existência da Conversa (Compatível com legado)
+                        // Busca as últimas 100 conversas para garantir que encontramos
+                        const allConversations = await base44.entities.ChatConversation.list('-last_message_date', 100);
                         
-                        const existing = myConversations.find(c => 
+                        const existing = allConversations.find(c => 
                           c.conversation_type === 'one_on_one' &&
                           c.participants && 
-                          c.participants.some(p => p.email === walker.created_by)
+                          c.participants.some(p => p.email === user.email) &&
+                          c.participants.some(p => p.email === walkerEmail)
                         );
 
                         let targetConversationId;
@@ -403,7 +408,7 @@ export default function WalkerDetails() {
                           console.log('Criando nova conversa...');
                           const newConv = await base44.entities.ChatConversation.create({
                             conversation_type: 'one_on_one',
-                            participant_emails: [user.email, walker.created_by],
+                            participant_emails: [user.email, walkerEmail],
                             participants: [
                               {
                                 email: user.email,
@@ -412,7 +417,7 @@ export default function WalkerDetails() {
                                 role: 'owner'
                               },
                               {
-                                email: walker.created_by,
+                                email: walkerEmail,
                                 name: walker.walker_name,
                                 photo_url: walker.photo_url,
                                 role: 'walker'
