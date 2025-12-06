@@ -424,64 +424,74 @@ export default function AdminDashboard() {
     },
   });
 
-  // NOVO: Mutation para conceder badge a todos
-  const grantBadgeToAllMutation = useMutation({
-    mutationFn: async (badge) => {
-      console.log('🎖️ Concedendo badge a todos os usuários:', badge);
+  // Mutation para conceder badge (a usuários selecionados ou todos)
+  const grantBadgeMutation = useMutation({
+    mutationFn: async ({ badge, targetEmails }) => {
+      const isAll = targetEmails === 'all';
+      const targets = isAll ? allUsers : allUsers.filter(u => targetEmails.includes(u.email));
       
-      const updates = allUsers.map(async (targetUser) => {
-        const currentPublicBadges = targetUser.public_badges || [];
-        
-        // Verificar se já tem o badge
-        const hasBadge = currentPublicBadges.some(b => b.badge_id === badge.badge_id);
-        if (hasBadge) return null;
+      console.log(`🎖️ Concedendo badge "${badge.name}" a ${targets.length} usuários...`);
+      
+      let grantedCount = 0;
 
-        const newBadge = {
-          badge_id: badge.badge_id || Date.now().toString(),
-          name: badge.name,
-          description: badge.description,
-          icon: badge.icon,
-          image_url: badge.image_url || "",
-          image_png_file: badge.image_png_file || badge.image_url || "", // Use new field
-          rarity: badge.rarity || "common",
-          category: badge.category || "special",
-          xp: badge.xp || 50,
-          earned_date: new Date().toISOString(),
-          granted_by: user.email // Admin ID
-        };
+      // Processar em lotes para não sobrecarregar
+      const batchSize = 5;
+      for (let i = 0; i < targets.length; i += batchSize) {
+        const batch = targets.slice(i, i + batchSize);
+        await Promise.all(batch.map(async (targetUser) => {
+          const currentPublicBadges = targetUser.public_badges || [];
+          
+          // Verificar se já tem o badge
+          const hasBadge = currentPublicBadges.some(b => b.badge_id === badge.badge_id);
+          if (hasBadge) return;
 
-        // Create UserBadge record
-        await base44.entities.UserBadge.create({
-          user_email: targetUser.email,
-          badge_id: newBadge.badge_id,
-          name: newBadge.name,
-          description: newBadge.description,
-          icon: newBadge.icon,
-          image_url: newBadge.image_url,
-          image_png_file: newBadge.image_png_file, // Store in UserBadge
-          rarity: newBadge.rarity,
-          granted_by: user.email
-        });
+          const newBadge = {
+            badge_id: badge.badge_id || Date.now().toString(),
+            name: badge.name,
+            description: badge.description,
+            icon: badge.icon,
+            image_url: badge.image_url || "",
+            image_png_file: badge.image_png_file || badge.image_url || "",
+            rarity: badge.rarity || "common",
+            category: badge.category || "special",
+            xp: badge.xp || 50,
+            earned_date: new Date().toISOString(),
+            granted_by: user.email
+          };
 
-        // Update User Profile (legacy/display)
-        await base44.entities.User.update(targetUser.id, {
-          public_badges: [...currentPublicBadges, newBadge],
-          gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
-        });
+          // Create UserBadge record
+          await base44.entities.UserBadge.create({
+            user_email: targetUser.email,
+            badge_id: newBadge.badge_id,
+            name: newBadge.name,
+            description: newBadge.description,
+            icon: newBadge.icon,
+            image_url: newBadge.image_url,
+            image_png_file: newBadge.image_png_file,
+            rarity: newBadge.rarity,
+            granted_by: user.email
+          });
 
-        return targetUser.email;
-      });
+          // Update User Profile (legacy/display)
+          await base44.entities.User.update(targetUser.id, {
+            public_badges: [...currentPublicBadges, newBadge],
+            gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
+          });
+          
+          grantedCount++;
+        }));
+      }
 
-      const results = await Promise.all(updates);
-      const granted = results.filter(r => r !== null);
-      return granted;
+      return grantedCount;
     },
-    onSuccess: (grantedUsers) => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-      toast.success(`✅ Badge concedido a ${grantedUsers.length} usuários!`);
+      toast.success(`✅ Badge concedido a ${count} usuários!`);
       setShowGrantAllUsersModal(false);
       setSelectedBadgeForAll(null);
+      setUsersToGrantBadge([]);
     },
+    onError: () => toast.error("Erro ao conceder badges.")
   });
 
   // Mutation para conceder badge individual
@@ -1341,15 +1351,17 @@ export default function AdminDashboard() {
                                   className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs"
                                   onClick={() => {
                                     setSelectedBadgeForAll({
-                                      badge_id: badgeDef.id, // Use ID from definition
+                                      badge_id: badgeDef.id,
                                       name: badgeDef.name,
                                       description: badgeDef.description,
                                       icon: badgeDef.icon,
                                       image_url: badgeDef.image_url,
+                                      image_png_file: badgeDef.image_png_file,
                                       rarity: badgeDef.rarity,
                                       category: badgeDef.category,
                                       xp: badgeDef.xp || 100
                                     });
+                                    setUsersToGrantBadge([]); // Reset selection
                                     setShowGrantAllUsersModal(true);
                                   }}
                                 >
@@ -2203,49 +2215,117 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* NOVO: Modal para Conceder Badge a Todos */}
+        {/* Modal Unificado para Conceder Badge (Seleção ou Todos) */}
         <Dialog open={showGrantAllUsersModal} onOpenChange={setShowGrantAllUsersModal}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Conceder Badge a TODOS os Usuários</DialogTitle>
+              <DialogTitle>Conceder Emblema</DialogTitle>
               <DialogDescription>
-                Esta ação irá conceder o badge a TODOS os {allUsers.length} usuários da plataforma.
+                Selecione os usuários para receber este emblema.
               </DialogDescription>
             </DialogHeader>
             {selectedBadgeForAll && (
-              <div className="py-4">
+              <div className="space-y-4">
+                {/* Badge Preview */}
                 <Card className="border-2 border-purple-200 bg-purple-50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="text-4xl">{selectedBadgeForAll.icon}</div>
-                      <div>
-                        <h4 className="font-bold text-lg">{selectedBadgeForAll.name}</h4>
-                        <p className="text-sm text-gray-600">{selectedBadgeForAll.description}</p>
-                        <Badge className="mt-2 bg-purple-500">+{selectedBadgeForAll.xp} XP</Badge>
-                      </div>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-3xl shadow-sm">
+                      {selectedBadgeForAll.image_url || selectedBadgeForAll.image_png_file ? (
+                        <img 
+                          src={selectedBadgeForAll.image_png_file || selectedBadgeForAll.image_url} 
+                          className="w-full h-full object-cover rounded"
+                        />
+                      ) : selectedBadgeForAll.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">{selectedBadgeForAll.name}</h4>
+                      <p className="text-xs text-gray-600">{selectedBadgeForAll.description}</p>
+                      <Badge className="mt-1 bg-purple-600">+{selectedBadgeForAll.xp} XP</Badge>
                     </div>
                   </CardContent>
                 </Card>
-                <div className="mt-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ <strong>Atenção:</strong> Esta ação não pode ser desfeita automaticamente. 
-                    Todos os usuários receberão este badge e {selectedBadgeForAll.xp} XP.
-                  </p>
+
+                {/* User Selection */}
+                <div>
+                  <Label className="mb-2 block">Selecione os Usuários</Label>
+                  <Input 
+                    placeholder="Buscar usuário..." 
+                    value={grantBadgeSearchTerm}
+                    onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
+                    className="mb-2"
+                  />
+                  <div className="border rounded-lg p-2 max-h-60 overflow-y-auto space-y-1">
+                    {allUsers
+                      .filter(u => !grantBadgeSearchTerm || 
+                        u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
+                        u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
+                      )
+                      .map(u => (
+                        <div key={u.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                             onClick={() => {
+                               if (usersToGrantBadge.includes(u.email)) {
+                                 setUsersToGrantBadge(usersToGrantBadge.filter(e => e !== u.email));
+                               } else {
+                                 setUsersToGrantBadge([...usersToGrantBadge, u.email]);
+                               }
+                             }}
+                        >
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center ${usersToGrantBadge.includes(u.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-300'}`}>
+                            {usersToGrantBadge.includes(u.email) && <CheckCircle className="w-3 h-3 text-white" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{u.full_name || 'Sem nome'}</p>
+                            <p className="text-xs text-gray-500">{u.email}</p>
+                          </div>
+                          {u.public_badges?.some(b => b.badge_id === selectedBadgeForAll.badge_id) && (
+                            <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">Já possui</Badge>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
+                    <span>{usersToGrantBadge.length} selecionados</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs h-auto py-1"
+                      onClick={() => setUsersToGrantBadge([])}
+                    >
+                      Limpar
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 flex-col mt-4">
+                  <Button
+                    onClick={() => grantBadgeMutation.mutate({ badge: selectedBadgeForAll, targetEmails: usersToGrantBadge })}
+                    disabled={usersToGrantBadge.length === 0 || grantBadgeMutation.isPending}
+                    className="bg-purple-600 hover:bg-purple-700 w-full"
+                  >
+                    {grantBadgeMutation.isPending ? 'Processando...' : `Conceder a ${usersToGrantBadge.length} Usuário(s)`}
+                  </Button>
+                  
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">OU</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if(confirm("Tem certeza? Isso dará o badge a TODOS os usuários do sistema!")) {
+                        grantBadgeMutation.mutate({ badge: selectedBadgeForAll, targetEmails: 'all' });
+                      }
+                    }}
+                    disabled={grantBadgeMutation.isPending}
+                    className="text-red-600 border-red-200 hover:bg-red-50 w-full"
+                  >
+                    ⚠️ Conceder a TODOS os Usuários
+                  </Button>
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowGrantAllUsersModal(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => grantBadgeToAllMutation.mutate(selectedBadgeForAll)}
-                disabled={grantBadgeToAllMutation.isPending}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {grantBadgeToAllMutation.isPending ? '⏳ Concedendo...' : '✓ Confirmar e Conceder'}
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 
