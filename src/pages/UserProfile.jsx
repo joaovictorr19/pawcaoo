@@ -132,30 +132,46 @@ export default function UserProfile() {
       if (isSelfView && currentUser) {
         if (!userProfile) {
           // Create Public Profile
-          userProfile = await base44.entities.UserProfile.create({
-            user_email: currentUser.email,
-            user_id: currentUser.id,
-            full_name: currentUser.full_name,
-            profile_photo_url: currentUser.profile_photo_url,
-            cover_photo_url: currentUser.cover_photo_url,
-            bio: currentUser.bio,
-            city: currentUser.city,
-            role: currentUser.role,
-            gamification_xp: currentUser.gamification_xp || 0,
-            gamification_level: currentUser.gamification_level || 1,
-            followers_count: 0,
-            following_count: 0,
-            is_verified: currentUser.is_verified
-          });
+          try {
+            console.log("Attempting to create UserProfile for:", currentUser.email);
+            userProfile = await base44.entities.UserProfile.create({
+              user_email: currentUser.email,
+              user_id: currentUser.id,
+              full_name: currentUser.full_name || 'Utilizador',
+              profile_photo_url: currentUser.profile_photo_url,
+              cover_photo_url: currentUser.cover_photo_url,
+              bio: currentUser.bio,
+              city: currentUser.city,
+              role: currentUser.role || 'user',
+              gamification_xp: currentUser.gamification_xp || 0,
+              gamification_level: currentUser.gamification_level || 1,
+              followers_count: 0,
+              following_count: 0,
+              is_verified: currentUser.is_verified || false
+            });
+            console.log("UserProfile created successfully:", userProfile);
+          } catch (error) {
+            console.error("Error creating UserProfile:", error);
+            // Emergency fallback: try to fetch one last time in case of race condition
+            const retry = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+            if (retry.length > 0) userProfile = retry[0];
+          }
         } else {
-          // Sync fields if needed (simplified sync)
-          if (userProfile.gamification_xp !== currentUser.gamification_xp) {
-             await base44.entities.UserProfile.update(userProfile.id, {
-               gamification_xp: currentUser.gamification_xp || 0,
-               gamification_level: currentUser.gamification_level || 1,
-               full_name: currentUser.full_name,
-               profile_photo_url: currentUser.profile_photo_url
-             });
+          // Sync fields if needed
+          try {
+            if (userProfile.gamification_xp !== currentUser.gamification_xp || 
+                userProfile.full_name !== currentUser.full_name ||
+                userProfile.profile_photo_url !== currentUser.profile_photo_url) {
+               
+               await base44.entities.UserProfile.update(userProfile.id, {
+                 gamification_xp: currentUser.gamification_xp || 0,
+                 gamification_level: currentUser.gamification_level || 1,
+                 full_name: currentUser.full_name,
+                 profile_photo_url: currentUser.profile_photo_url
+               });
+            }
+          } catch (e) {
+            console.warn("Error syncing profile:", e);
           }
         }
         return userProfile;
