@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -83,6 +82,27 @@ export default function Messages() {
     initialData: [],
   });
 
+  // Fetch specific professional if ID is provided (handling pagination limits)
+  const { data: specificWalker } = useQuery({
+    queryKey: ['walker', walkerIdParam],
+    queryFn: async () => {
+      if (!walkerIdParam) return null;
+      const res = await base44.entities.WalkerProfile.filter({ id: walkerIdParam });
+      return res[0];
+    },
+    enabled: !!walkerIdParam,
+  });
+
+  const { data: specificTrainer } = useQuery({
+    queryKey: ['trainer', trainerIdParam],
+    queryFn: async () => {
+      if (!trainerIdParam) return null;
+      const res = await base44.entities.TrainerProfile.filter({ id: trainerIdParam });
+      return res[0];
+    },
+    enabled: !!trainerIdParam,
+  });
+
   // Auto-select conversation from URL parameter
   useEffect(() => {
     if (conversationIdParam && conversations.length > 0) {
@@ -98,21 +118,22 @@ export default function Messages() {
     if (!professionalId) return;
 
     const isWalker = !!walkerIdParam;
-    const professionals = isWalker ? walkers : trainers;
-    
-    if (professionals.length === 0) return;
-
-    const professional = professionals.find(p => p.id === professionalId);
+    // Use specific fetched professional or fallback to list
+    const professional = isWalker 
+      ? (specificWalker || walkers.find(p => p.id === professionalId))
+      : (specificTrainer || trainers.find(p => p.id === professionalId));
     
     if (!professional) {
-      console.log('❌ Professional not found:', professionalId);
+      // Waiting for specific query to load
       return;
     }
 
     console.log('🔍 Found professional:', professional);
 
     // Check if conversation already exists
+    // Must match exactly 2 participants for 1-on-1 to avoid picking up group chats
     const existing = conversations.find(conv =>
+      conv.conversation_type === 'one_on_one' &&
       conv.participants?.some(p => p.email === professional.created_by)
     );
     
@@ -139,7 +160,7 @@ export default function Messages() {
 
       createConversationMutation.mutate({ participants });
     }
-  }, [walkerIdParam, trainerIdParam, user?.email, walkers, trainers, conversations, user?.full_name, user?.profile_photo_url]);
+  }, [walkerIdParam, trainerIdParam, user?.email, specificWalker, specificTrainer, walkers, trainers, conversations]);
 
   const createConversationMutation = useMutation({
     mutationFn: async ({ participants, conversationName }) => {
