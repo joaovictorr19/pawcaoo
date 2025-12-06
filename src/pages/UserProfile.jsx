@@ -117,7 +117,7 @@ export default function UserProfile() {
         }
       }
 
-      // 2. Search by ID
+      // 2. Search by ID (Tenta encontrar registo na tabela UserProfile)
       if (!userProfile && targetId) {
         try {
           const byEntityId = await base44.entities.UserProfile.filter({ id: targetId });
@@ -132,23 +132,27 @@ export default function UserProfile() {
         }
       }
 
-      // 3. Search by Email
+      // 3. Search by Email (Estratégia Principal e Fallback)
+      // Se não achou por ID ou se foi passado Email explicitamente
       if (!userProfile) {
         const emailToSearch = targetEmail || (isSelfView ? currentUser?.email : null);
+        
         if (emailToSearch) {
           try {
+            // 3a. Tenta encontrar na tabela UserProfile pelo email
             const byEmail = await base44.entities.UserProfile.filter({ user_email: emailToSearch });
             if (byEmail && byEmail.length > 0) {
               userProfile = byEmail[0];
-            } else {
-              // FALLBACK: Try to find WalkerProfile if UserProfile doesn't exist
+            } 
+            
+            // 3b. FALLBACK: Procura em WalkerProfile
+            if (!userProfile) {
               const walkers = await base44.entities.WalkerProfile.filter({ created_by: emailToSearch });
               if (walkers && walkers.length > 0) {
                 const w = walkers[0];
-                // Construct a virtual UserProfile from WalkerProfile
                 userProfile = {
-                  id: w.id, // Use walker ID as temporary ID
-                  user_id: null, // Unknown
+                  id: w.id, 
+                  user_id: null,
                   user_email: w.created_by,
                   full_name: w.walker_name,
                   profile_photo_url: w.photo_url,
@@ -161,10 +165,28 @@ export default function UserProfile() {
                   gamification_xp: 0,
                   followers_count: 0,
                   following_count: 0,
-                  is_virtual_profile: true // Flag to indicate this is generated
+                  is_virtual_profile: true
                 };
               }
             }
+
+            // 3c. FALLBACK FINAL: Se for Admin visualizando, tenta buscar dados básicos da tabela User do sistema
+            // Nota: Isso só funciona se o utilizador atual for admin e tiver permissão de leitura na tabela User
+            if (!userProfile && currentUser?.role === 'admin') {
+               try {
+                 const sysUsers = await base44.entities.User.filter({ email: emailToSearch });
+                 if (sysUsers && sysUsers.length > 0) {
+                   const sysUser = sysUsers[0];
+                   userProfile = {
+                     ...sysUser,
+                     user_email: sysUser.email,
+                     user_id: sysUser.id,
+                     is_virtual_profile: true
+                   };
+                 }
+               } catch(err) { console.log('Admin fetch fallback failed'); }
+            }
+
           } catch (e) {
             console.error('Error fetching by Email:', e);
           }
