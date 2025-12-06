@@ -211,28 +211,34 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [] } = useQuery({
-    queryKey: ['userBadges', profileEmail],
+    queryKey: ['userBadges', profileEmail, profileUser?.public_badges, currentUser?.public_badges],
     queryFn: async () => {
-      if (!profileEmail) return [];
+      const badgesMap = new Map();
 
-      try {
-        // Busca direta e prioritária na tabela UserBadge
-        const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+      // 1. Adicionar badges do objeto UserProfile/User (Legacy/Sessão)
+      // Verifica profileUser.public_badges e currentUser.public_badges (se self view)
+      const userBadges = profileUser?.public_badges || (isSelfView ? currentUser?.public_badges : []) || [];
 
-        // Se for o próprio usuário, fazer merge com dados de sessão (para feedback imediato de gamification se necessário)
-        if (isSelfView && currentUser?.achievements_badges) {
-          const tableBadgeIds = new Set((fromTable || []).map(b => b.badge_id));
-          const memoryBadges = currentUser.achievements_badges.filter(b => !tableBadgeIds.has(b.badge_id));
-          return [...memoryBadges, ...(fromTable || [])];
+      userBadges.forEach(b => {
+        if (b && b.badge_id) badgesMap.set(b.badge_id, b);
+      });
+
+      // 2. Adicionar badges da tabela UserBadge (Source of Truth)
+      if (profileEmail) {
+        try {
+          const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+          fromTable.forEach(b => {
+            // Table data overrides legacy data usually, or merges if needed
+            if (b && b.badge_id) badgesMap.set(b.badge_id, { ...badgesMap.get(b.badge_id), ...b });
+          });
+        } catch (e) {
+          console.error("Error fetching badges table:", e);
         }
-
-        return fromTable || [];
-      } catch (e) {
-        console.error("Error fetching badges:", e);
-        return [];
       }
+
+      return Array.from(badgesMap.values());
     },
-    enabled: !!profileEmail,
+    enabled: !!profileEmail || !!profileUser,
     staleTime: 0,
     refetchOnWindowFocus: true
   });
