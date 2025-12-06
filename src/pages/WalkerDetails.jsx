@@ -237,7 +237,7 @@ export default function WalkerDetails() {
               />
               
               <div className="px-5 pb-5">
-                <ServiceList services={walker.services_offered} type="walker" />
+                <ServiceList services={walker.services_offered || []} type="walker" />
 
                 {/* Service Areas - NEW */}
                 {walker.service_areas && walker.service_areas.length > 0 && (
