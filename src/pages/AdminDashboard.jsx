@@ -110,7 +110,7 @@ export default function AdminDashboard() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => base44.entities.User.list('-created_date', 1000), // Increased limit to ensure all users are loaded
     enabled: user?.role === 'admin',
     initialData: [],
   });

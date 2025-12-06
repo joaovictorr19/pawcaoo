@@ -81,7 +81,7 @@ export default function ModerationPanel() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersForModeration'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => base44.entities.User.list('-created_date', 1000), // Increased limit to ensure all users are loaded
     enabled: isModeratorOrAdmin,
     initialData: [],
   });

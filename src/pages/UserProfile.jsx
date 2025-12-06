@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -95,59 +94,21 @@ export default function UserProfile() {
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', profileEmail],
     queryFn: async () => {
-      if (!profileEmail) {
-        console.log('❌ ERRO: Nenhum email na URL');
-        return null;
-      }
-      
-      console.log('🔎 Iniciando busca por:', profileEmail);
-      
+      if (!profileEmail) return null;
       try {
-        const users = await base44.entities.User.list();
-        console.log('📊 Total de usuários no banco:', users.length);
-        console.log('📋 Primeiros 5 emails:', users.slice(0, 5).map(u => u.email));
-        
-        // Buscar com comparação case-insensitive E trim
-        const emailToFind = profileEmail.toLowerCase().trim();
-        const found = users.find(u => {
-          const userEmail = (u.email || '').toLowerCase().trim();
-          console.log(`  Comparando: "${userEmail}" === "${emailToFind}" ?`, userEmail === emailToFind);
-          return userEmail === emailToFind;
-        });
-        
-        if (found) {
-          console.log('✅ USUÁRIO ENCONTRADO!');
-          console.log('📋 Dados completos:', JSON.stringify({
-            id: found.id,
-            email: found.email,
-            full_name: found.full_name,
-            profile_photo_url: found.profile_photo_url,
-            city: found.city,
-            bio: found.bio,
-            is_verified: found.is_verified,
-            role: found.role,
-            social_role: found.social_role
-          }, null, 2));
-          return found;
-        } else {
-          console.log('❌ USUÁRIO NÃO ENCONTRADO!');
-          console.log('📧 Email procurado (normalizado):', emailToFind);
-          console.log('📋 TODOS os emails no banco:');
-          users.forEach((u, idx) => {
-            console.log(`  ${idx + 1}. "${u.email}" (${u.full_name})`);
-          });
-          return null;
-        }
+        // Use filter instead of list to find specific user server-side
+        // This avoids pagination limits and improves performance
+        const users = await base44.entities.User.filter({ email: profileEmail });
+        return users[0] || null;
       } catch (error) {
-        console.error('❌ ERRO na busca:', error);
+        console.error('Error fetching profile user:', error);
         return null;
       }
     },
     enabled: !!profileEmail,
-    retry: false, // Changed from 3
+    retry: false,
     staleTime: 0,
     refetchOnMount: 'always',
-    refetchOnWindowFocus: false, // Changed from true
   });
 
   const profileBadges = profileUser?.profile_badges || [];
