@@ -12,6 +12,7 @@ import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
+import { pt, enUS, es } from "date-fns/locale";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
 import CheckoutModal from "../components/payments/CheckoutModal"; // Import CheckoutModal
 import { AnimatePresence } from "framer-motion";
@@ -23,8 +24,11 @@ import ServiceList from "../components/professionals/ServiceList";
 import SEO from "../components/SEO";
 import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function WalkerDetails() {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -36,6 +40,8 @@ export default function WalkerDetails() {
   
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedDogForRecurring, setSelectedDogForRecurring] = useState(null);
+  
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const walkerId = urlParams.get('id');
@@ -88,6 +94,21 @@ export default function WalkerDetails() {
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : walker?.rating || 5;
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    if (user) {
+      setShowBookingForm(true);
+    } else {
+      toast({
+        title: t('loginRequired', language),
+        description: t('loginToBook', language),
+        variant: "destructive",
+      });
+      // Optional: redirect to login but keep state? Base44 auth redirect handles nextUrl.
+      // base44.auth.redirectToLogin();
+    }
+  };
 
   // Redirect if walker not found - MOVED UP before conditional return
   React.useEffect(() => {
@@ -160,7 +181,7 @@ export default function WalkerDetails() {
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <PawCaoLogo size="large" animated={false} showText={false} />
-          <p className="text-green-600 font-medium mt-4 animate-pulse">Carregando...</p>
+          <p className="text-green-600 font-medium mt-4 animate-pulse">{t('loading', language)}</p>
         </div>
       </div>
     );
@@ -170,10 +191,10 @@ export default function WalkerDetails() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Passeador não encontrado</h2>
-          <p className="text-gray-600 mb-6">Redirecionando para a página inicial em 3 segundos...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('walkerNotFound', language)}</h2>
+          <p className="text-gray-600 mb-6">{t('redirectingHome', language)}</p>
           <Button onClick={() => navigate(createPageUrl('Home'))}>
-            Voltar ao Início Agora
+            {t('backHome', language)}
           </Button>
         </div>
       </div>
@@ -181,21 +202,24 @@ export default function WalkerDetails() {
   }
 
   const getSizeLabel = (size) => {
+    // Use translation keys if they matched, but since they are specific values, 
+    // we might just keep the mapping or use t() if we add them to translations
+    // for now, let's use simple translations if possible, or fallback to english labels
     const labels = {
-      small: "Small Dogs",
-      medium: "Medium Dogs",
-      large: "Large Dogs",
-      extra_large: "Extra Large Dogs"
+      small: t('small', language),
+      medium: t('medium', language),
+      large: t('large', language),
+      extra_large: t('extraLarge', language)
     };
     return labels[size] || size;
   };
 
   const getTimeLabel = (time) => {
     const labels = {
-      morning: "Morning (6am-12pm)",
-      afternoon: "Afternoon (12pm-6pm)",
-      evening: "Evening (6pm-10pm)",
-      night: "Night (10pm-6am)"
+      morning: t('morning', language),
+      afternoon: t('afternoon', language),
+      evening: t('evening', language),
+      night: t('night', language)
     };
     return labels[time] || time;
   };
@@ -203,8 +227,8 @@ export default function WalkerDetails() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
       <SEO 
-        title={`${walker.walker_name} - Passeador de Cães em ${walker.location}`}
-        description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... Avaliação: ${averageRating?.toFixed(1)}/5.`}
+        title={`${walker.walker_name} - ${t('findWalkers', language)} in ${walker.location}`}
+        description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... ${t('rating', language)}: ${averageRating?.toFixed(1)}/5.`}
         image={walker.photo_url}
         type="profile"
         schema={[
@@ -223,7 +247,7 @@ export default function WalkerDetails() {
           onClick={() => navigate(createPageUrl('Home'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Walkers
+          {t('backToWalkers', language)}
         </Button>
 
         <div className="grid lg:grid-cols-3 gap-5">
@@ -244,7 +268,7 @@ export default function WalkerDetails() {
                   <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <MapPin className="w-5 h-5 text-green-600" />
-                      Service Areas
+                      {t('serviceAreas', language)}
                     </h2>
                     <div className="grid md:grid-cols-2 gap-4">
                       {walker.service_areas.map((area, idx) => (
@@ -260,7 +284,7 @@ export default function WalkerDetails() {
                             </div>
                           )}
                           <p className="text-sm text-gray-600">
-                            Radius: <span className="font-semibold">{area.radius_km} km</span>
+                            {t('radius', language)}: <span className="font-semibold">{area.radius_km} km</span>
                           </p>
                         </div>
                       ))}
@@ -270,7 +294,7 @@ export default function WalkerDetails() {
 
                 {walker.dog_sizes && walker.dog_sizes.length > 0 && (
                   <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">Dog Sizes I Handle</h2>
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('dogSizesHandle', language)}</h2>
                     <div className="flex flex-wrap gap-2">
                       {walker.dog_sizes.map(size => (
                         <Badge
@@ -287,7 +311,7 @@ export default function WalkerDetails() {
                 {/* Dog Breeds - NEW */}
                 {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
                   <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">Breeds I Work With</h2>
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('breedsWorkWith', language)}</h2>
                     <div className="flex flex-wrap gap-1.5">
                       {walker.dog_breeds_handled.map(breed => (
                         <Badge
@@ -305,7 +329,7 @@ export default function WalkerDetails() {
                     </div>
                     {walker.breed_specialization && walker.breed_specialization.length > 0 && (
                       <p className="text-[10px] text-gray-600 mt-1">
-                        ★ = Specialization
+                        ★ = {t('specialization', language)}
                       </p>
                     )}
                   </div>
@@ -313,7 +337,7 @@ export default function WalkerDetails() {
 
                 {walker.availability && walker.availability.length > 0 && (
                   <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">Availability</h2>
+                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('availability', language)}</h2>
                     <div className="flex flex-wrap gap-2">
                       {walker.availability.map(time => (
                         <Badge
@@ -339,7 +363,7 @@ export default function WalkerDetails() {
                     }}
                     disabled={walker.verification_status !== "verified"}
                   >
-                    {walker.verification_status === "verified" ? "Book This Walker" : "Verification Pending"}
+                    {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
                   </Button>
 
                   <Button
@@ -354,7 +378,7 @@ export default function WalkerDetails() {
                     }}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
-                    Message
+                    {t('message', language)}
                   </Button>
                 </div>
               </div>
@@ -365,14 +389,15 @@ export default function WalkerDetails() {
               <CardHeader className="py-4 px-5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-green-600" />
-                  Availability
+                  {t('availability', language)}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 pt-0">
                 <AvailabilityCalendar
                   availabilityData={availability}
                   bookings={walkerBookings}
-                  selectedDate={null}
+                  selectedDate={selectedDate}
+                  onDateSelect={handleDateSelect}
                 />
               </CardContent>
             </Card>
@@ -382,7 +407,7 @@ export default function WalkerDetails() {
               <CardHeader className="py-4 px-5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-500" />
-                  Reviews ({reviews.length})
+                  {t('reviews', language)} ({reviews.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 pt-0">
@@ -395,8 +420,8 @@ export default function WalkerDetails() {
                 ) : reviews.length === 0 ? (
                   <div className="text-center py-12">
                     <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No reviews yet</h3>
-                    <p className="text-gray-600">Be the first to leave a review!</p>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
+                    <p className="text-gray-600">{t('beFirstReview', language)}</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -416,22 +441,22 @@ export default function WalkerDetails() {
                 <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-5">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Repeat className="w-4 h-4" />
-                    Passeios Recorrentes
+                    {t('recurringWalks', language)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-5">
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center gap-2 text-sm">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Economize até <strong className="text-green-600">25%</strong></span>
+                      <span>{t('saveUpTo', language)} <strong className="text-green-600">25%</strong></span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Mesmo passeador sempre</span>
+                      <span>{t('sameWalkerAlways', language)}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Cancelamento flexível</span>
+                      <span>{t('flexibleCancellation', language)}</span>
                     </div>
                   </div>
 
@@ -443,7 +468,7 @@ export default function WalkerDetails() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione seu pet" />
+                      <SelectValue placeholder={t('selectPet', language)} />
                     </SelectTrigger>
                     <SelectContent>
                       {userDogs.map((dog) => (
@@ -460,7 +485,7 @@ export default function WalkerDetails() {
                     className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 h-12 font-bold"
                   >
                     <Repeat className="w-5 h-5 mr-2" />
-                    Configurar Agendamento
+                    {t('setupSchedule', language)}
                   </Button>
                 </CardContent>
               </Card>
@@ -472,6 +497,7 @@ export default function WalkerDetails() {
           <BookingForm
             professional={walker}
             onClose={handleBookingInitiated}
+            initialDate={selectedDate}
           />
         )}
 
