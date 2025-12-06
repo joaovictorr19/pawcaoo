@@ -119,6 +119,37 @@ export default function ProfessionalDashboard() {
     initialData: [],
   });
 
+  // Booking Actions
+  const updateBookingStatusMutation = useMutation({
+    mutationFn: async ({ id, status, isTraining }) => {
+      const entity = isTraining ? base44.entities.TrainingBooking : base44.entities.Booking;
+      return await entity.update(id, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myWalkBookings']);
+      queryClient.invalidateQueries(['myTrainingBookings']);
+      toast.success("Booking updated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update booking");
+    }
+  });
+
+  const handleBookingAction = (booking, status) => {
+    const isTraining = !!booking.training_id; // Assuming training bookings have this field or we check the source
+    // A better way is to check if it's in trainingBookings array, but we merged them. 
+    // Let's check a specific field. TrainingBooking likely has 'trainer_id' and Booking has 'walker_id'.
+    // However, the variable 'allBookings' merges them.
+    // Let's check if it has 'session_date' (Training) vs 'walk_date' (Walker).
+    const isTrainingBooking = !!booking.session_date;
+    
+    updateBookingStatusMutation.mutate({ 
+      id: booking.id, 
+      status, 
+      isTraining: isTrainingBooking 
+    });
+  };
+
   const allBookings = [...walkBookings, ...trainingBookings];
   const profile = walkerProfile || trainerProfile;
 
@@ -594,15 +625,40 @@ export default function ProfessionalDashboard() {
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold text-green-600">€{booking.service_amount}</p>
-                          <Button
-                            size="sm"
-                            onClick={() => navigate(createPageUrl('Messages'))}
-                            variant="outline"
-                            className="mt-2"
-                          >
-                            <MessageCircle className="w-3 h-3 mr-1" />
-                            Contact
-                          </Button>
+                          
+                          <div className="flex flex-col gap-2 mt-2">
+                            {booking.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleBookingAction(booking, 'confirmed')}
+                                  className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                                  disabled={updateBookingStatusMutation.isPending}
+                                >
+                                  Accept
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleBookingAction(booking, 'cancelled')}
+                                  variant="outline"
+                                  className="text-red-600 hover:bg-red-50 border-red-200 flex-1"
+                                  disabled={updateBookingStatusMutation.isPending}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            )}
+                            
+                            <Button
+                              size="sm"
+                              onClick={() => navigate(createPageUrl('Messages'))}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              <MessageCircle className="w-3 h-3 mr-1" />
+                              Contact
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}

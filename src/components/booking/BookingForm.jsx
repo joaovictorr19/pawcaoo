@@ -62,7 +62,6 @@ export default function BookingForm({ walker, professional, onClose }) {
     queryKey: ['walkerSubscription', pro?.created_by],
     queryFn: async () => {
       if (!pro?.created_by) return null;
-      // Assuming same subscription entity for now, or handled by backend logic
       const subs = await base44.entities.WalkerSubscription.filter({
         walker_email: pro.created_by,
         is_active: true
@@ -71,6 +70,31 @@ export default function BookingForm({ walker, professional, onClose }) {
     },
     enabled: !!pro?.created_by,
   });
+
+  // Fetch Professional Availability
+  const { data: availability } = useQuery({
+    queryKey: ['proAvailability', pro?.created_by],
+    queryFn: () => base44.entities.CalendarAvailability.filter({ professional_email: pro?.created_by }),
+    enabled: !!pro?.created_by,
+    initialData: []
+  });
+
+  // Get available time slots for selected date
+  const getAvailableSlots = (date) => {
+    if (!date) return [];
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayAvail = availability.find(a => a.date === dateStr);
+    
+    if (!dayAvail) return []; // If no record, assume no specific slots set (or default?)
+    // If user hasn't set availability, maybe fallback to standard? 
+    // Let's assume if record exists, use it. If not, maybe standard business hours or empty.
+    // For a "comprehensive" system, let's fallback to standard slots if no specific override, 
+    // OR assume available if not blocked. 
+    // Let's use the 'time_slots' from the record if present.
+    return dayAvail.time_slots?.filter(s => s.is_available) || [];
+  };
+
+  const availableSlots = getAvailableSlots(formData.walk_date);
 
   // Calcular valores
   const calculateAmounts = () => {

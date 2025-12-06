@@ -27,17 +27,19 @@ export default function CheckoutModal({
       // In this manual flow, 'pending' means "requested, discussing payment/details"
       // We don't create a Payment record yet as it's off-platform
       
-      // Optionally we could create a "manual" payment record as pending
-      /*
+      // Create a payment record as pending
       await base44.entities.Payment.create({
         booking_id: booking.id,
         payer_email: user.email,
+        payer_name: user.full_name,
         recipient_email: booking.walker_email,
+        recipient_name: booking.walker_name,
+        service_amount: booking.service_amount,
         total_amount: booking.total_amount,
         status: "pending",
-        payment_method: "mbway_manual"
+        payment_method: "mbway",
+        platform_fee: booking.platform_fee
       });
-      */
 
       toast.success(language === 'pt' ? "Solicitação enviada! Combine o pagamento no chat." : "Request sent! Arrange payment in chat.");
       
