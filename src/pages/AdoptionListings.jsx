@@ -356,7 +356,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                       onClick={(e) => {
                         e.stopPropagation();
                         if (!user) {
-                          navigate(createPageUrl('Login'));
+                          base44.auth.redirectToLogin();
                           return;
                         }
                         toggleFavoriteMutation.mutate(listing);

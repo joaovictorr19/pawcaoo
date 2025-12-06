@@ -99,8 +99,7 @@ export default function AdoptionListingDetails() {
 
   const handleApply = () => {
     if (!user) {
-      const msg = language === 'pt' ? "Faça login para candidatar-se" : language === 'es' ? "Inicia sesión para postularte" : "Please log in to apply for adoption";
-      toast.error(msg);
+      base44.auth.redirectToLogin();
       return;
     }
     navigate(createPageUrl(`ApplyForAdoption?listing_id=${listingId}`));
@@ -605,7 +604,7 @@ export default function AdoptionListingDetails() {
                     className="flex-1"
                     onClick={() => {
                       if (!user) {
-                        navigate(createPageUrl('Login'));
+                        base44.auth.redirectToLogin();
                         return;
                       }
                       toggleFavoriteMutation.mutate();
