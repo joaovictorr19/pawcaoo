@@ -132,8 +132,49 @@ export default function BookingForm({ walker, professional, onClose }) {
       });
       console.log('✅ Booking iniciado:', booking.id);
 
-      // Notifications and Payment will be handled in Checkout
-      
+      // 2. Atualizar Disponibilidade (Reservar Horário)
+      try {
+        const dateStr = format(bookingData.walk_date, 'yyyy-MM-dd');
+        const availRecords = await base44.entities.CalendarAvailability.filter({
+          professional_email: pro.created_by,
+          date: dateStr
+        });
+        
+        if (availRecords.length > 0) {
+          const availRecord = availRecords[0];
+          const [startTime, endTime] = bookingData.walk_time.split(' - ');
+          
+          const updatedSlots = availRecord.time_slots.map(slot => {
+            if (slot.start_time === startTime && slot.end_time === endTime) {
+              return { ...slot, is_available: false, booking_id: booking.id };
+            }
+            return slot;
+          });
+          
+          const isFullyBooked = updatedSlots.every(slot => !slot.is_available);
+          
+          await base44.entities.CalendarAvailability.update(availRecord.id, {
+            time_slots: updatedSlots,
+            is_fully_booked: isFullyBooked
+          });
+          console.log('📅 Disponibilidade atualizada');
+        }
+      } catch (err) {
+        console.error("Erro ao atualizar disponibilidade:", err);
+      }
+
+      // 3. Enviar Email de Confirmação Imediata
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: user.email,
+          subject: `Reserva Iniciada - ${proName}`,
+          body: `Olá ${user.full_name},\n\nSua reserva com ${proName} para ${formData.dog_name} no dia ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time} foi iniciada com sucesso!\n\nPor favor, conclua o processo de pagamento para confirmar.\n\nObrigado,\nEquipa PawCão`
+        });
+        console.log('📧 Email de confirmação enviado');
+      } catch (err) {
+        console.error("Erro ao enviar email:", err);
+      }
+
       return booking;
     },
     onSuccess: (booking) => {
