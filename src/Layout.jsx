@@ -161,8 +161,8 @@ function LayoutContent({ children, currentPageName }) {
     // Shelter Dashboard (Visible to all for easy access in this demo, typically would be conditional)
     { title: language === 'pt' ? 'Área de Abrigos' : language === 'es' ? 'Área de Refugios' : 'Shelter Area', url: createPageUrl("ShelterDashboard"), icon: Building2 },
 
-    // MENSAGENS (especial)
-    { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
+    // MENSAGENS (especial) - Removido
+    // { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
 
     // CONNECT - Rede Social (Desativada)
     // { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
@@ -503,32 +503,7 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENSAGENS - BOTÃO DESTACADO */}
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`mb-3 rounded-lg ${
-                        location.pathname === allNavigationItems[messagesIndex].url 
-                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                          : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-                      }`}
-                    >
-                      <a 
-                        href={allNavigationItems[messagesIndex].url} 
-                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-3 md:py-3.5"
-                        onClick={handleNavigation(allNavigationItems[messagesIndex].url)}
-                      >
-                        <MessageCircle className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
-                        <span className="font-bold text-sm md:text-base truncate">{allNavigationItems[messagesIndex].title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* MENSAGENS - BOTÃO DESTACADO - REMOVIDO */}
 
             {/* CONNECT - Botão Destacado (DESATIVADO/REMOVIDO) */}
             {/* <SidebarGroup>

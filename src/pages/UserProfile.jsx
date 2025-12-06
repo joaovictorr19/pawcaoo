@@ -181,25 +181,23 @@ export default function UserProfile() {
   const { data: earnedBadges = [] } = useQuery({
     queryKey: ['userBadges', profileEmail, isSelfView, currentUser?.achievements_badges],
     queryFn: async () => {
-      // Use isSelfView (calculated from URL) instead of waiting for profileUser to load
+      // 1. Sempre pegar os badges da memória primeiro se for o próprio perfil
       const memoryBadges = (isSelfView && currentUser?.achievements_badges) ? currentUser.achievements_badges : [];
       
-      // If we don't have a profile email yet, return memory badges if it's self view
+      // Se não tiver email de perfil ainda, retorna o que tem na memória
       if (!profileEmail) return memoryBadges;
       
       try {
-        // Fetch from DB
+        // 2. Tentar buscar da tabela
         const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
         
-        // Robust merge: always ensure we show everything from both sources (deduplicated by badge_id)
+        // 3. Merge robusto
         if (fromTable && fromTable.length > 0) {
           const tableBadgeIds = new Set(fromTable.map(b => b.badge_id));
-          const missingBadges = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
+          const missingFromTable = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
           
-          if (missingBadges.length > 0) {
-            return [...missingBadges, ...fromTable]; 
-          }
-          return fromTable;
+          // Combina tabela + memória (sem duplicados)
+          return [...missingFromTable, ...fromTable]; 
         }
       } catch (e) {
         console.error("Error fetching badges table:", e);
@@ -208,9 +206,15 @@ export default function UserProfile() {
       return memoryBadges;
     },
     enabled: true,
+    initialData: (isSelfView && currentUser?.achievements_badges) ? currentUser.achievements_badges : [],
     staleTime: 0,
     refetchOnWindowFocus: true
   });
+
+  // Força atualização visual imediata para o próprio perfil se os dados ainda estiverem carregando
+  const displayBadges = (isSelfView && (!earnedBadges || earnedBadges.length === 0) && currentUser?.achievements_badges) 
+    ? currentUser.achievements_badges 
+    : earnedBadges;
 
   // Sync embedded badges (from Auth User) to UserBadge table if needed
   React.useEffect(() => {
@@ -405,7 +409,7 @@ export default function UserProfile() {
     },
   });
 
-  const totalBadges = earnedBadges.length;
+  const totalBadges = displayBadges.length;
 
   const getBadgeImage = (badgeId) => {
     const badgeImages = {
@@ -578,15 +582,15 @@ export default function UserProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {earnedBadges.length === 0 ? (
+                {displayBadges.length === 0 ? (
                   <div className="text-center py-12">
                     <Award className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                     <p className="text-gray-400">Nenhum emblema conquistado ainda.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {earnedBadges.map((badge, idx) => (
-                      <BadgeItem key={badge.id || idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
+                    {displayBadges.map((badge, idx) => (
+                      <BadgeItem key={badge.id || badge.badge_id || idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>
                 )}
