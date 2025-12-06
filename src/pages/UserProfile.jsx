@@ -87,6 +87,7 @@ export default function UserProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmailParam = urlParams.get('email');
   const profileIdParam = urlParams.get('id');
+  const profileNameParam = urlParams.get('name');
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -94,17 +95,18 @@ export default function UserProfile() {
   });
 
   const targetId = profileIdParam;
-  const targetEmail = !targetId ? profileEmailParam : null;
-  
-  const isSelfView = (!targetId && !targetEmail) || 
+  const targetName = profileNameParam;
+  const targetEmail = !targetId && !targetName ? profileEmailParam : null;
+
+  const isSelfView = (!targetId && !targetEmail && !targetName) || 
                      (currentUser && targetId === currentUser.id) || 
                      (currentUser && targetEmail === currentUser.email);
 
   const { data: profileUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['profileUser', targetId, targetEmail, isSelfView, currentUser?.id],
+    queryKey: ['profileUser', targetId, targetEmail, targetName, isSelfView, currentUser?.id],
     queryFn: async () => {
       let userProfile = null;
-      
+
       // 1. Priority: Self View by Email
       if (isSelfView && currentUser?.email) {
         try {
@@ -117,35 +119,86 @@ export default function UserProfile() {
         }
       }
 
-      // 2. Search by ID (Tenta encontrar registo na tabela UserProfile)
+      // 2. Search by ID (UserProfile ID or User ID)
       if (!userProfile && targetId) {
         try {
+          // Try finding by Entity ID
           const byEntityId = await base44.entities.UserProfile.filter({ id: targetId });
           if (byEntityId && byEntityId.length > 0) userProfile = byEntityId[0];
-          
+
+          // Try finding by User ID (Auth ID)
           if (!userProfile) {
             const byUserId = await base44.entities.UserProfile.filter({ user_id: targetId });
             if (byUserId && byUserId.length > 0) userProfile = byUserId[0];
+          }
+
+          // Fallback: Try WalkerProfile by ID if not found in UserProfile
+          if (!userProfile) {
+            const byWalkerId = await base44.entities.WalkerProfile.filter({ id: targetId });
+            if (byWalkerId && byWalkerId.length > 0) {
+               const w = byWalkerId[0];
+               userProfile = {
+                  id: w.id, 
+                  user_id: null, // Unknown
+                  user_email: w.created_by,
+                  full_name: w.walker_name,
+                  profile_photo_url: w.photo_url,
+                  bio: w.bio,
+                  city: w.location,
+                  role: 'walker',
+                  is_verified: w.verification_status === 'verified',
+                  is_virtual_profile: true
+               };
+            }
           }
         } catch (e) {
           console.error('Error fetching by ID:', e);
         }
       }
 
-      // 3. Search by Email (Estratégia Principal e Fallback)
-      // Se não achou por ID ou se foi passado Email explicitamente
+      // 3. Search by Name
+      if (!userProfile && targetName) {
+        try {
+           // Try UserProfile full_name
+           const byName = await base44.entities.UserProfile.filter({ full_name: targetName });
+           if (byName && byName.length > 0) userProfile = byName[0];
+
+           // Fallback: Try WalkerProfile walker_name
+           if (!userProfile) {
+              const byWalkerName = await base44.entities.WalkerProfile.filter({ walker_name: targetName });
+              if (byWalkerName && byWalkerName.length > 0) {
+                 const w = byWalkerName[0];
+                 userProfile = {
+                    id: w.id,
+                    user_email: w.created_by,
+                    full_name: w.walker_name,
+                    profile_photo_url: w.photo_url,
+                    bio: w.bio,
+                    city: w.location,
+                    role: 'walker',
+                    is_verified: w.verification_status === 'verified',
+                    is_virtual_profile: true
+                 };
+              }
+           }
+        } catch (e) {
+          console.error('Error fetching by Name:', e);
+        }
+      }
+
+      // 4. Search by Email (Explicit or Fallback)
       if (!userProfile) {
         const emailToSearch = targetEmail || (isSelfView ? currentUser?.email : null);
-        
+
         if (emailToSearch) {
           try {
-            // 3a. Tenta encontrar na tabela UserProfile pelo email
+            // 4a. UserProfile by email
             const byEmail = await base44.entities.UserProfile.filter({ user_email: emailToSearch });
             if (byEmail && byEmail.length > 0) {
               userProfile = byEmail[0];
             } 
-            
-            // 3b. FALLBACK: Procura em WalkerProfile
+
+            // 4b. WalkerProfile fallback
             if (!userProfile) {
               const walkers = await base44.entities.WalkerProfile.filter({ created_by: emailToSearch });
               if (walkers && walkers.length > 0) {
@@ -156,22 +209,16 @@ export default function UserProfile() {
                   user_email: w.created_by,
                   full_name: w.walker_name,
                   profile_photo_url: w.photo_url,
-                  cover_photo_url: null,
                   bio: w.bio,
                   city: w.location,
                   role: 'walker',
                   is_verified: w.verification_status === 'verified',
-                  gamification_level: 1,
-                  gamification_xp: 0,
-                  followers_count: 0,
-                  following_count: 0,
                   is_virtual_profile: true
                 };
               }
             }
 
-            // 3c. FALLBACK FINAL: Se for Admin visualizando, tenta buscar dados básicos da tabela User do sistema
-            // Nota: Isso só funciona se o utilizador atual for admin e tiver permissão de leitura na tabela User
+            // 4c. Admin Fallback (System User Table)
             if (!userProfile && currentUser?.role === 'admin') {
                try {
                  const sysUsers = await base44.entities.User.filter({ email: emailToSearch });
@@ -193,7 +240,7 @@ export default function UserProfile() {
         }
       }
 
-      // 4. Create if Self View and Missing
+      // 5. Create if Self View and Missing
       if (isSelfView && currentUser && !userProfile) {
         try {
           const payload = {
