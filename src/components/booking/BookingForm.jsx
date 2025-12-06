@@ -85,16 +85,22 @@ export default function BookingForm({ walker, professional, onClose }) {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayAvail = availability.find(a => a.date === dateStr);
     
-    if (!dayAvail) return []; // If no record, assume no specific slots set (or default?)
-    // If user hasn't set availability, maybe fallback to standard? 
-    // Let's assume if record exists, use it. If not, maybe standard business hours or empty.
-    // For a "comprehensive" system, let's fallback to standard slots if no specific override, 
-    // OR assume available if not blocked. 
-    // Let's use the 'time_slots' from the record if present.
+    if (!dayAvail) return []; 
     return dayAvail.time_slots?.filter(s => s.is_available) || [];
   };
 
   const availableSlots = getAvailableSlots(formData.walk_date);
+
+  // Generate 30-min slots for better UX if no specific slots available
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let i = 8; i <= 20; i++) {
+      const hour = i.toString().padStart(2, '0');
+      slots.push(`${hour}:00`);
+      slots.push(`${hour}:30`);
+    }
+    return slots;
+  };
 
   // Calcular valores
   const calculateAmounts = () => {
@@ -346,7 +352,7 @@ export default function BookingForm({ walker, professional, onClose }) {
               <SelectTrigger>
                 <SelectValue placeholder={!formData.walk_date ? "Selecione uma data primeiro" : "Selecione um horário"} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60">
                 {availableSlots.length > 0 ? (
                   availableSlots.map((slot, idx) => (
                     <SelectItem key={idx} value={`${slot.start_time} - ${slot.end_time}`}>
@@ -354,11 +360,11 @@ export default function BookingForm({ walker, professional, onClose }) {
                     </SelectItem>
                   ))
                 ) : (
-                  <>
-                    <SelectItem value="morning">Manhã (08:00 - 12:00)</SelectItem>
-                    <SelectItem value="afternoon">Tarde (12:00 - 18:00)</SelectItem>
-                    <SelectItem value="evening">Noite (18:00 - 22:00)</SelectItem>
-                  </>
+                  generateTimeSlots().map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))
                 )}
               </SelectContent>
             </Select>
@@ -395,56 +401,42 @@ export default function BookingForm({ walker, professional, onClose }) {
           </div>
 
           {/* Resumo de Valores */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-          <h4 className="font-semibold text-gray-900 mb-3">Resumo do Pagamento</h4>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-100">
+            <h4 className="font-semibold text-gray-900 mb-3">Resumo do Valor Estimado</h4>
 
-          <div className="flex justify-between text-sm">
-            <span>Taxa horária</span>
-            <span>€{pro?.hourly_rate}/hora</span>
-          </div>
-
-          <div className="flex justify-between text-sm">
-            <span>Duração</span>
-            <span>{formData.duration_hours}h</span>
-          </div>
-            
             <div className="flex justify-between text-sm">
-              <span>Subtotal</span>
-              <span>€{amounts.baseAmount.toFixed(2)}</span>
+              <span>Taxa horária</span>
+              <span>€{pro?.hourly_rate}/hora</span>
             </div>
-            
+
+            <div className="flex justify-between text-sm">
+              <span>Duração</span>
+              <span>{formData.duration_hours}h</span>
+            </div>
+              
             {amounts.discount > 0 && (
               <div className="flex justify-between text-sm text-green-600">
                 <span>Desconto ({amounts.discount}%)</span>
                 <span>-€{amounts.discountAmount.toFixed(2)}</span>
               </div>
             )}
-            
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Taxa da plataforma</span>
-              <span>€{amounts.platformFee.toFixed(2)}</span>
+              
+            <div className="border-t border-gray-200 pt-3 flex justify-between font-bold text-lg">
+              <span>Valor a Combinar</span>
+              <span className="text-gray-900">€{amounts.totalAmount.toFixed(2)}</span>
             </div>
             
-            <div className="border-t pt-3 flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span className="text-green-600">€{amounts.totalAmount.toFixed(2)}</span>
-            </div>
-
-            {ownerSubscription && ownerSubscription.plan_type !== 'free' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-2">
-                <p className="text-xs text-green-700">
-                  ✨ Economizou €{amounts.discountAmount.toFixed(2)} com o plano {ownerSubscription.plan_type}!
-                </p>
-              </div>
-            )}
+            <p className="text-xs text-gray-500 text-center mt-2 italic">
+              * Valor indicativo. O pagamento final será combinado diretamente com o passeador.
+            </p>
           </div>
 
-          {/* Aviso */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-700">
-              <p className="font-semibold mb-1">Pagamento Seguro</p>
-              <p>O pagamento será retido em caução até a conclusão do passeio. O passeador receberá após confirmação.</p>
+          {/* Aviso Pagamento Direto */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex gap-3">
+            <MessageCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-green-800">
+              <p className="font-semibold mb-1">Combinar via WhatsApp</p>
+              <p>Ao continuar, você será redirecionado para o WhatsApp para combinar os detalhes e o pagamento (MBWay/Transferência) diretamente com o passeador.</p>
             </div>
           </div>
 
@@ -462,17 +454,17 @@ export default function BookingForm({ walker, professional, onClose }) {
             <Button
               type="submit"
               disabled={isProcessing}
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
+              className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white"
             >
               {isProcessing ? (
                 <>
                   <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  Processando...
+                  Criando...
                 </>
               ) : (
                 <>
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Continuar
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Agendar no WhatsApp
                 </>
               )}
             </Button>
