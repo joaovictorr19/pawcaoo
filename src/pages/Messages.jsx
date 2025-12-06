@@ -82,6 +82,12 @@ export default function Messages() {
     initialData: [],
   });
 
+  const { data: companies } = useQuery({
+    queryKey: ['allCompanies'],
+    queryFn: () => base44.entities.PartnerCompany.list(),
+    initialData: [],
+  });
+
   // Fetch specific professional if ID is provided (handling pagination limits)
   const { data: specificWalker } = useQuery({
     queryKey: ['walker', walkerIdParam],
@@ -285,19 +291,22 @@ export default function Messages() {
   };
 
   const toggleParticipant = (professional) => {
-    const exists = groupParticipants.some(p => p.email === professional.created_by);
+    const email = professional.created_by || professional.company_email;
+    const exists = groupParticipants.some(p => p.email === email);
     
     if (exists) {
-      setGroupParticipants(groupParticipants.filter(p => p.email !== professional.created_by));
+      setGroupParticipants(groupParticipants.filter(p => p.email !== email));
     } else {
       const isWalker = walkers.some(w => w.id === professional.id);
+      const isTrainer = trainers.some(t => t.id === professional.id);
+      
       setGroupParticipants([
         ...groupParticipants,
         {
-          email: professional.created_by,
-          name: isWalker ? professional.walker_name : professional.trainer_name,
-          photo_url: professional.photo_url,
-          role: isWalker ? 'walker' : 'trainer'
+          email: email,
+          name: isWalker ? professional.walker_name : (isTrainer ? professional.trainer_name : professional.company_name),
+          photo_url: professional.photo_url || professional.logo_url,
+          role: isWalker ? 'walker' : (isTrainer ? 'trainer' : 'company')
         }
       ]);
     }
@@ -362,10 +371,14 @@ export default function Messages() {
                     <div className="space-y-2">
                       <Label>Adicionar Participantes</Label>
                       <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-2">
-                        {[...walkers, ...trainers].map(professional => {
+                        {[...walkers, ...trainers, ...companies].map(professional => {
                           const isWalker = walkers.some(w => w.id === professional.id);
-                          const name = isWalker ? professional.walker_name : professional.trainer_name;
-                          const isSelected = groupParticipants.some(p => p.email === professional.created_by);
+                          const isTrainer = trainers.some(t => t.id === professional.id);
+                          const isCompany = companies.some(c => c.id === professional.id);
+                          
+                          const name = isWalker ? professional.walker_name : (isTrainer ? professional.trainer_name : professional.company_name);
+                          const email = professional.created_by || professional.company_email;
+                          const isSelected = groupParticipants.some(p => p.email === email);
                           
                           return (
                             <div
@@ -379,7 +392,7 @@ export default function Messages() {
                               <div className="flex-1">
                                 <div className="font-medium">{name}</div>
                                 <div className="text-xs text-gray-500">
-                                  {isWalker ? '🐕 Walker' : '🎓 Trainer'}
+                                  {isWalker ? '🐕 Walker' : (isTrainer ? '🎓 Trainer' : '🏢 Company')}
                                 </div>
                               </div>
                             </div>

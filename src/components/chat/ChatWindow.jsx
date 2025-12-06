@@ -78,6 +78,9 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
+      // Get all participants for visibility
+      const participantEmails = conversation.participants?.map(p => p.email) || [currentUser?.email];
+
       // Create message
       const newMessage = await base44.entities.ChatMessage.create({
         conversation_id: conversation.id,
@@ -88,6 +91,7 @@ export default function ChatWindow({ conversation, messages, currentUser, onMess
         original_message: message,
         message_type: attachments?.length > 0 ? 'image' : 'text',
         attachments: attachments || [],
+        visible_to: participantEmails,
         read_by: [{
           email: currentUser?.email,
           read_at: new Date().toISOString()
