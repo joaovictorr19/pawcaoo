@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +8,7 @@ import { ShieldCheck, Star, MapPin, Video, Clock, Calendar, Phone, Award, User a
 import { format } from "date-fns";
 
 export default function ProfessionalProfileHeader({ professional, type, reviews, averageRating }) {
+  const { language } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
   const isWalker = type === 'walker';
   const name = isWalker ? professional.walker_name : professional.trainer_name;
@@ -79,7 +82,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
 
         {professional.bio && (
           <div className="mb-5">
-            <h3 className="text-base font-semibold text-gray-900 mb-2">About Me</h3>
+            <h3 className="text-base font-semibold text-gray-900 mb-2">{t('aboutMe', language)}</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
               {professional.bio}
             </p>

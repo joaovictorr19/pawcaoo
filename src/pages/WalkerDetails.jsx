@@ -112,13 +112,17 @@ export default function WalkerDetails() {
 
   // Redirect if walker not found - MOVED UP before conditional return
   React.useEffect(() => {
-    if (!isLoading && !walker) {
+    // Only redirect if we actually have an ID but no walker found after loading
+    if (walkerId && !isLoading && !walker) {
       const timer = setTimeout(() => {
         navigate(createPageUrl('Home'));
       }, 3000);
       return () => clearTimeout(timer);
+    } else if (!walkerId) {
+        // If no ID, redirect immediately
+        navigate(createPageUrl('Home'));
     }
-  }, [isLoading, walker, navigate]);
+  }, [isLoading, walker, navigate, walkerId]);
 
   // Function to handle booking completion from BookingForm
   const handleBookingInitiated = (booking) => {
