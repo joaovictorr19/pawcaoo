@@ -434,11 +434,7 @@ export default function WalkerDetails() {
                     {t('viewBadgesProfile', language)}
                   </Button>
                 </div>
-              </div>
             </div>
-          </div>
-
-
 
             <div className="text-center py-8 text-gray-500">
               ⚠️ VERSÃO SIMPLIFICADA - TESTE DE ISOLAMENTO
