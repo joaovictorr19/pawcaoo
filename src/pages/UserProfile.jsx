@@ -202,14 +202,14 @@ export default function UserProfile() {
     queryKey: ['followersCount', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return 0;
-      // Se o SDK suportar count, usar: return await base44.entities.SocialFollow.count({ following_email: profileEmail });
-      // Fallback eficiente usando filter limit 1000 se count não explícito (SDK usually allows reading with limit)
-      // Mas para performance real, vamos confiar no campo sincronizado no UserProfile
       return profileUser?.followers_count || 0;
     },
     enabled: !!profileUser,
     initialData: 0
   });
+
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
 
   // Fetch actual list only when modal opens (lazy load)
   const { data: followersList = [] } = useQuery({
@@ -321,9 +321,6 @@ export default function UserProfile() {
     },
     enabled: !!currentUser?.email && !!profileEmail
   });
-
-  const [showFollowers, setShowFollowers] = useState(false);
-  const [showFollowing, setShowFollowing] = useState(false);
 
   const totalBadges = earnedBadges.length;
 
