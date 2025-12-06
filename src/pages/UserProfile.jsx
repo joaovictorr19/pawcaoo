@@ -207,6 +207,38 @@ export default function UserProfile() {
     initialData: [],
   });
 
+  // Optimized Followers Count (Direct Count from Relation Table)
+  const { data: followersCount = 0 } = useQuery({
+    queryKey: ['followersCount', profileEmail],
+    queryFn: async () => {
+      if (!profileEmail) return 0;
+      try {
+        const list = await base44.entities.SocialFollow.filter({ following_email: profileEmail });
+        return list.length;
+      } catch (e) {
+        return profileUser?.followers_count || 0;
+      }
+    },
+    enabled: !!profileEmail,
+    initialData: 0
+  });
+
+  // Optimized Following Count (Direct Count)
+  const { data: followingCount = 0 } = useQuery({
+    queryKey: ['followingCount', profileEmail],
+    queryFn: async () => {
+      if (!profileEmail) return 0;
+      try {
+        const list = await base44.entities.SocialFollow.filter({ follower_email: profileEmail });
+        return list.length;
+      } catch (e) {
+        return profileUser?.following_count || 0;
+      }
+    },
+    enabled: !!profileEmail,
+    initialData: 0
+  });
+
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
 
@@ -251,6 +283,7 @@ export default function UserProfile() {
       // Invalidate queries to force refresh counts
       queryClient.invalidateQueries({ queryKey: ['followersCount'] });
       queryClient.invalidateQueries({ queryKey: ['followingCount'] });
+      queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
       
       // Update stats (Legacy/Backup)
       if (profileUser.id) {
@@ -271,10 +304,6 @@ export default function UserProfile() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
-      queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
-      queryClient.invalidateQueries({ queryKey: ['followersCount'] });
-      queryClient.invalidateQueries({ queryKey: ['followingCount'] });
       toast.success('Agora você está seguindo!');
     },
   });
@@ -289,6 +318,7 @@ export default function UserProfile() {
       
       if (follows[0]) {
         await base44.entities.SocialFollow.delete(follows[0].id);
+        
         if (profileUser.id) {
           try {
             await base44.entities.UserProfile.update(profileUser.id, {
@@ -299,10 +329,9 @@ export default function UserProfile() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
-      queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
       queryClient.invalidateQueries({ queryKey: ['followersCount'] });
       queryClient.invalidateQueries({ queryKey: ['followingCount'] });
+      queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
       toast.success('Deixou de seguir');
     },
   });
