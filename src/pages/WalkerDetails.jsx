@@ -47,7 +47,7 @@ export default function WalkerDetails() {
 
   const { data: userDogs = [] } = useQuery({
     queryKey: ['userDogs', user?.id],
-    queryFn: () => base44.entities.Dog.filter({ owner_id: user?.id }),
+    queryFn: () => base44.entities.DogProfile.filter({ owner_id: user?.id }),
     enabled: !!user?.id,
   });
 
