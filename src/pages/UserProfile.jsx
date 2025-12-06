@@ -98,23 +98,59 @@ export default function UserProfile() {
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, isSelfView, currentUser?.id],
     queryFn: async () => {
-      try {
-        if (targetId) {
-          const users = await base44.entities.User.filter({ id: targetId });
-          return users[0] || null;
-        }
-        if (targetEmail) {
-          const users = await base44.entities.User.filter({ email: targetEmail });
-          return users[0] || null;
-        }
-        if (isSelfView && currentUser) {
-          return currentUser;
-        }
-        return null;
-      } catch (error) {
-        console.error('Error fetching profile user:', error);
-        return null;
+      let userProfile = null;
+      let emailToFetch = targetEmail;
+
+      // Resolve ID to Email if needed (Public Profile fetch)
+      if (targetId) {
+        // Try to fetch UserProfile by ID first
+        const profiles = await base44.entities.UserProfile.filter({ user_id: targetId });
+        if (profiles.length > 0) return profiles[0];
       }
+
+      if (isSelfView && currentUser) {
+        emailToFetch = currentUser.email;
+      }
+
+      if (emailToFetch) {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: emailToFetch });
+        if (profiles.length > 0) userProfile = profiles[0];
+      }
+
+      // Sync/Create logic for Current User
+      if (isSelfView && currentUser) {
+        if (!userProfile) {
+          // Create Public Profile
+          userProfile = await base44.entities.UserProfile.create({
+            user_email: currentUser.email,
+            user_id: currentUser.id,
+            full_name: currentUser.full_name,
+            profile_photo_url: currentUser.profile_photo_url,
+            cover_photo_url: currentUser.cover_photo_url,
+            bio: currentUser.bio,
+            city: currentUser.city,
+            role: currentUser.role,
+            gamification_xp: currentUser.gamification_xp || 0,
+            gamification_level: currentUser.gamification_level || 1,
+            followers_count: 0,
+            following_count: 0,
+            is_verified: currentUser.is_verified
+          });
+        } else {
+          // Sync fields if needed (simplified sync)
+          if (userProfile.gamification_xp !== currentUser.gamification_xp) {
+             await base44.entities.UserProfile.update(userProfile.id, {
+               gamification_xp: currentUser.gamification_xp || 0,
+               gamification_level: currentUser.gamification_level || 1,
+               full_name: currentUser.full_name,
+               profile_photo_url: currentUser.profile_photo_url
+             });
+          }
+        }
+        return userProfile;
+      }
+
+      return userProfile;
     },
     enabled: !!targetId || !!targetEmail || (isSelfView && !!currentUser),
     retry: false,
@@ -126,9 +162,16 @@ export default function UserProfile() {
   const profileEmail = profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.id;
 
-  const profileBadges = profileUser?.profile_badges || [];
-  const achievementsBadges = profileUser?.achievements_badges || [];
-  const publicBadges = profileUser?.public_badges || [];
+  // Fetch badges from UserBadge entity (Public)
+  const { data: earnedBadges = [] } = useQuery({
+    queryKey: ['userBadges', profileEmail],
+    queryFn: async () => {
+      if (!profileEmail) return [];
+      // Query eficiente na tabela Emblemas Conquistados
+      return await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+    },
+    enabled: !!profileEmail
+  });
 
   // Removido userPosts pois a rede social será o próximo passo
   // Mantendo apenas contagem de emblemas e perfil
@@ -154,30 +197,31 @@ export default function UserProfile() {
     initialData: [],
   });
 
-  const { data: followers = [], isLoading: loadingFollowers } = useQuery({
-    queryKey: ['followers', profileEmail],
+  // Optimized Followers Count (Aggregation)
+  const { data: followersCount = 0 } = useQuery({
+    queryKey: ['followersCount', profileEmail],
     queryFn: async () => {
-      if (!profileEmail) return [];
-      const all = await base44.entities.SocialFollow.list();
-      return all.filter(f => f.following_email === profileEmail);
+      if (!profileEmail) return 0;
+      // Se o SDK suportar count, usar: return await base44.entities.SocialFollow.count({ following_email: profileEmail });
+      // Fallback eficiente usando filter limit 1000 se count não explícito (SDK usually allows reading with limit)
+      // Mas para performance real, vamos confiar no campo sincronizado no UserProfile
+      return profileUser?.followers_count || 0;
     },
-    enabled: !!profileEmail,
-    initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
+    enabled: !!profileUser,
+    initialData: 0
   });
 
-  const { data: following = [], isLoading: loadingFollowing } = useQuery({
-    queryKey: ['following', profileEmail],
-    queryFn: async () => {
-      if (!profileEmail) return [];
-      const all = await base44.entities.SocialFollow.list();
-      return all.filter(f => f.follower_email === profileEmail);
-    },
-    enabled: !!profileEmail,
-    initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
+  // Fetch actual list only when modal opens (lazy load)
+  const { data: followersList = [] } = useQuery({
+    queryKey: ['followersList', profileEmail],
+    queryFn: () => base44.entities.SocialFollow.filter({ following_email: profileEmail }),
+    enabled: showFollowers && !!profileEmail,
+  });
+
+  const { data: followingList = [] } = useQuery({
+    queryKey: ['followingList', profileEmail],
+    queryFn: () => base44.entities.SocialFollow.filter({ follower_email: profileEmail }),
+    enabled: showFollowing && !!profileEmail,
   });
 
   const followMutation = useMutation({
@@ -201,10 +245,21 @@ export default function UserProfile() {
         status: 'accepted'
       });
 
-      console.log('✅ Follow criado:', newFollow.id);
+      // Atualizar contadores (Workflows de Atualização)
+      if (profileUser && profileUser.id) {
+        await base44.entities.UserProfile.update(profileUser.id, {
+          followers_count: (profileUser.followers_count || 0) + 1
+        });
+      }
+      
+      // Atualizar meu contador de following
+      const myProfile = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+      if (myProfile[0]) {
+        await base44.entities.UserProfile.update(myProfile[0].id, {
+          following_count: (myProfile[0].following_count || 0) + 1
+        });
+      }
 
-      // ENVIAR NOTIFICAÇÃO
-      console.log('📬 Enviando notificação de novo seguidor...');
       await NotificationService.newFollower({
         followerName: currentUser.full_name,
         followerEmail: currentUser.email,
@@ -214,9 +269,8 @@ export default function UserProfile() {
       return newFollow;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['followers'] });
-      queryClient.invalidateQueries({ queryKey: ['following'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['followersCount'] });
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
       toast.success('✅ Agora você está seguindo!');
     },
   });
@@ -224,26 +278,54 @@ export default function UserProfile() {
   const unfollowMutation = useMutation({
     mutationFn: async () => {
       if (!currentUser?.email || !profileEmail) return;
-      const existingFollow = followers.find(f => f.follower_email === currentUser.email);
-      if (existingFollow) {
-        await base44.entities.SocialFollow.delete(existingFollow.id);
+      const follows = await base44.entities.SocialFollow.filter({
+        follower_email: currentUser.email,
+        following_email: profileEmail
+      });
+      
+      if (follows[0]) {
+        await base44.entities.SocialFollow.delete(follows[0].id);
+        
+        // Atualizar contadores (Decrement)
+        if (profileUser && profileUser.id) {
+          await base44.entities.UserProfile.update(profileUser.id, {
+            followers_count: Math.max(0, (profileUser.followers_count || 0) - 1)
+          });
+        }
+        
+        const myProfile = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+        if (myProfile[0]) {
+          await base44.entities.UserProfile.update(myProfile[0].id, {
+            following_count: Math.max(0, (myProfile[0].following_count || 0) - 1)
+          });
+        }
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['followers'] });
-      queryClient.invalidateQueries({ queryKey: ['following'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['followersCount'] });
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
       toast.success('Deixou de seguir');
     },
   });
 
-  const isFollowing = followers.some(f => f.follower_email === currentUser?.email);
+  // Check if following status (optimized check)
+  const { data: isFollowing = false } = useQuery({
+    queryKey: ['isFollowing', currentUser?.email, profileEmail],
+    queryFn: async () => {
+      if (!currentUser?.email || !profileEmail) return false;
+      const follows = await base44.entities.SocialFollow.filter({
+        follower_email: currentUser.email,
+        following_email: profileEmail
+      });
+      return follows.length > 0;
+    },
+    enabled: !!currentUser?.email && !!profileEmail
+  });
+
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
 
-  const totalBadges = (profileUser?.achievements_badges?.length || 0) + 
-                      (profileUser?.public_badges?.length || 0) + 
-                      (profileUser?.profile_badges?.length || 0);
+  const totalBadges = earnedBadges.length;
 
   const getBadgeImage = (badgeId) => {
     const badgeImages = {
@@ -444,14 +526,14 @@ export default function UserProfile() {
                 className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition"
                 onClick={() => setShowFollowers(true)}
               >
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{followers.length}</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{profileUser.followers_count || 0}</div>
                 <div className="text-sm text-gray-600">Seguidores</div>
               </div>
               <div 
                 className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition"
                 onClick={() => setShowFollowing(true)}
               >
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{following.length}</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{profileUser.following_count || 0}</div>
                 <div className="text-sm text-gray-600">Seguindo</div>
               </div>
             </div>
@@ -555,7 +637,7 @@ export default function UserProfile() {
 
           {/* Posts Tab Removed */}
 
-          {/* Badges Tab - USANDO TODOS OS BADGES (achievements + public) */}
+          {/* Badges Tab - Sincronização com Tabela UserBadge */}
           <TabsContent value="badges">
             <Card className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
               <CardHeader>
@@ -563,15 +645,15 @@ export default function UserProfile() {
                   <Award className="w-6 h-6 text-yellow-400" />
                   Emblemas Conquistados
                   <Badge className="ml-2 bg-yellow-500 text-gray-900">
-                    {achievementsBadges.length + publicBadges.length}
+                    {totalBadges}
                   </Badge>
                 </CardTitle>
                 <p className="text-sm text-gray-400 mt-2">
-                  Clique no emblema para alternar fundo transparente
+                  Lista sincronizada de conquistas
                 </p>
               </CardHeader>
               <CardContent>
-                {(achievementsBadges.length === 0 && publicBadges.length === 0) ? (
+                {earnedBadges.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-4 border-2 border-white/20">
                       <Award className="w-12 h-12 text-gray-500" />
@@ -581,17 +663,8 @@ export default function UserProfile() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {/* Achievements Badges */}
-                    {achievementsBadges.map((badge, idx) => (
-                      <BadgeItem key={`achievement-${badge.badge_id || idx}`} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
-                    ))}
-                    {/* Public Badges (admin-granted) */}
-                    {publicBadges.map((badge, idx) => (
-                      <BadgeItem key={`public-${badge.badge_id || idx}`} badge={badge} idx={idx + achievementsBadges.length} getBadgeImage={getBadgeImage} />
-                    ))}
-                    {/* Profile Badges (moderation-granted) */}
-                    {profileBadges.map((badge, idx) => (
-                      <BadgeItem key={`profile-${badge.badge_id || idx}`} badge={badge} idx={idx + achievementsBadges.length + publicBadges.length} getBadgeImage={getBadgeImage} />
+                    {earnedBadges.map((badge, idx) => (
+                      <BadgeItem key={`badge-${badge.id || idx}`} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>
                 )}
@@ -735,10 +808,10 @@ export default function UserProfile() {
           </DialogHeader>
           <ScrollArea className="h-[300px] md:h-[400px]">
             <div className="space-y-4 p-1">
-              {followers.length === 0 ? (
+              {followersList.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">Nenhum seguidor ainda.</p>
               ) : (
-                followers.map((follower) => (
+                followersList.map((follower) => (
                   <div key={follower.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <div 
                       className="flex items-center gap-3 cursor-pointer"
@@ -772,10 +845,10 @@ export default function UserProfile() {
           </DialogHeader>
           <ScrollArea className="h-[300px] md:h-[400px]">
             <div className="space-y-4 p-1">
-              {following.length === 0 ? (
+              {followingList.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">Não está seguindo ninguém.</p>
               ) : (
-                following.map((follow) => (
+                followingList.map((follow) => (
                   <div key={follow.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <div 
                       className="flex items-center gap-3 cursor-pointer"
