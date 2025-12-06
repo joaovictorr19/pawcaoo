@@ -190,13 +190,14 @@ export default function UserProfile() {
         // Fetch from DB
         const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
         
-        // If we have DB badges, return them
+        // Robust merge: always ensure we show everything from both sources (deduplicated by badge_id)
         if (fromTable && fromTable.length > 0) {
-          // Check if we need to merge with memory badges (in case sync hasn't happened yet for new badges)
-          if (memoryBadges.length > fromTable.length) {
-            const tableBadgeIds = new Set(fromTable.map(b => b.badge_id));
-            const missingBadges = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
-            return [...fromTable, ...missingBadges];
+          const tableBadgeIds = new Set(fromTable.map(b => b.badge_id));
+          const missingBadges = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
+          
+          if (missingBadges.length > 0) {
+            // New badges from memory + existing from table
+            return [...missingBadges, ...fromTable]; 
           }
           return fromTable;
         }
@@ -207,7 +208,7 @@ export default function UserProfile() {
       // If DB empty or error, use memory badges
       return memoryBadges;
     },
-    enabled: true, // Always enabled to allow memory badges fallback even if email is pending
+    enabled: true,
     staleTime: 0,
     refetchOnWindowFocus: true
   });
