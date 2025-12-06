@@ -135,19 +135,127 @@ export default function ProfessionalDashboard() {
     }
   });
 
-  const handleBookingAction = (booking, status) => {
-    const isTraining = !!booking.training_id; // Assuming training bookings have this field or we check the source
-    // A better way is to check if it's in trainingBookings array, but we merged them. 
-    // Let's check a specific field. TrainingBooking likely has 'trainer_id' and Booking has 'walker_id'.
-    // However, the variable 'allBookings' merges them.
-    // Let's check if it has 'session_date' (Training) vs 'walk_date' (Walker).
-    const isTrainingBooking = !!booking.session_date;
+  // Helper to free up calendar slot
+  const freeUpCalendarSlot = async (booking, professionalEmail) => {
+    if (!booking.calendar_event_id) return;
     
-    updateBookingStatusMutation.mutate({ 
-      id: booking.id, 
-      status, 
-      isTraining: isTrainingBooking 
-    });
+    try {
+      // Assuming calendar_event_id points to the Availability Record ID
+      // We need to find the record and clear the slot
+      const dateStr = format(new Date(booking.walk_date || booking.session_date), 'yyyy-MM-dd');
+      const availRecords = await base44.entities.CalendarAvailability.filter({
+        professional_email: professionalEmail,
+        date: dateStr
+      });
+
+      if (availRecords.length > 0) {
+        const availRecord = availRecords[0];
+        
+        // If calendar_event_id is the RECORD ID, we check inside it.
+        // Or if we stored the SLOT index/time, we use that.
+        // For robust logic, we search slots matching the booking ID or clear based on event ID.
+        // Currently, BookingForm sets booking_id on the slot.
+        
+        const updatedSlots = availRecord.time_slots.map(slot => {
+          if (slot.booking_id === booking.id) {
+            return { ...slot, is_available: true, booking_id: null };
+          }
+          return slot;
+        });
+
+        await base44.entities.CalendarAvailability.update(availRecord.id, {
+          time_slots: updatedSlots,
+          is_fully_booked: false
+        });
+        console.log('📅 Slot liberado no calendário');
+      }
+    } catch (err) {
+      console.error("Erro ao liberar slot:", err);
+    }
+  };
+
+  // Helper to lock calendar slot and generate Event ID
+  const lockCalendarSlot = async (booking, professionalEmail) => {
+    // If already has ID, skip
+    if (booking.calendar_event_id) return booking.calendar_event_id;
+
+    try {
+      const dateStr = format(new Date(booking.walk_date || booking.session_date), 'yyyy-MM-dd');
+      const availRecords = await base44.entities.CalendarAvailability.filter({
+        professional_email: professionalEmail,
+        date: dateStr
+      });
+
+      if (availRecords.length > 0) {
+        const availRecord = availRecords[0];
+        // Generate a new Event ID (can be synthetic or the record ID + suffix)
+        const eventId = `evt_${booking.id}_${Date.now()}`;
+
+        const updatedSlots = availRecord.time_slots.map(slot => {
+          // Match time slot string "HH:MM - HH:MM"
+          const bookingTime = booking.walk_time || booking.session_time;
+          const [start, end] = bookingTime.split(' - ');
+          
+          if (slot.start_time === start && slot.end_time === end) {
+            return { 
+              ...slot, 
+              is_available: false, 
+              booking_id: booking.id,
+              // We could store eventId here too if schema supported it, but booking_id is enough link
+            };
+          }
+          return slot;
+        });
+
+        await base44.entities.CalendarAvailability.update(availRecord.id, {
+          time_slots: updatedSlots
+        });
+        
+        return eventId;
+      }
+    } catch (err) {
+      console.error("Erro ao bloquear slot:", err);
+    }
+    return null;
+  };
+
+  const handleBookingAction = async (booking, status) => {
+    const isTrainingBooking = !!booking.session_date;
+    const entity = isTrainingBooking ? base44.entities.TrainingBooking : base44.entities.Booking;
+    const professionalEmail = user?.email;
+
+    try {
+      let updateData = { status };
+
+      // WORKFLOW: ACCEPTANCE
+      if (status === 'confirmed') {
+        // 1. Create Event / Lock Slot
+        const eventId = await lockCalendarSlot(booking, professionalEmail);
+        // 2. Save Event ID to Booking
+        if (eventId) {
+          updateData.calendar_event_id = eventId;
+        }
+      }
+
+      // WORKFLOW: REFUSAL / CANCELLATION
+      if (status === 'cancelled' || status === 'rejected') { // 'rejected' mapped to cancelled usually or logic
+        // 1. Check if has Event ID and Free Slot
+        await freeUpCalendarSlot(booking, professionalEmail);
+        // 2. Clear Event ID
+        updateData.calendar_event_id = null;
+      }
+
+      // 3. Update Booking
+      await entity.update(booking.id, updateData);
+      
+      queryClient.invalidateQueries(['myWalkBookings']);
+      queryClient.invalidateQueries(['myTrainingBookings']);
+      toast.success(`Reserva ${status === 'confirmed' ? 'aceite' : 'atualizada'} com sucesso`);
+
+    } catch (error) {
+      console.error("Booking action error:", error);
+      toast.error("Erro ao atualizar reserva");
+    }
   };
 
   const allBookings = [...walkBookings, ...trainingBookings];

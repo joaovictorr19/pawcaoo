@@ -23,6 +23,14 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
     const dayBookings = bookings.filter(b => b.walk_date === dateStr || b.session_date === dateStr);
 
     if (isPast(date) && !isToday(date)) return { status: 'past' };
+    
+    // Logic for Pending vs Accepted visualization
+    const hasPending = dayBookings.some(b => b.status === 'pending');
+    const hasConfirmed = dayBookings.some(b => b.status === 'confirmed');
+    
+    if (hasPending && !hasConfirmed) return { status: 'pending', count: dayBookings.length };
+    if (hasConfirmed) return { status: 'accepted', count: dayBookings.length }; // Blocked/Confirmed
+    
     if (availability?.is_fully_booked) return { status: 'booked' };
     if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length };
     if (availability && !availability.is_fully_booked) return { status: 'available' };
@@ -34,6 +42,11 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
       available: "bg-green-100 border-green-400 text-green-700",
       partial: "bg-blue-100 border-blue-400 text-blue-700",
       booked: "bg-red-100 border-red-400 text-red-700",
+      
+      // New Visuals
+      pending: "bg-yellow-100 border-yellow-400 text-yellow-800", // Amarelo Claro para Pendente
+      accepted: "bg-green-600 border-green-700 text-white font-bold", // Verde Escuro para Bloqueio Total (Aceite)
+      
       past: "bg-gray-50 border-gray-200 text-gray-400",
       unavailable: "bg-white border-gray-200 text-gray-600"
     };
@@ -128,6 +141,14 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
             <span className="text-[10px] md:text-xs text-gray-600">Lotado</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-yellow-100 border border-yellow-400" />
+            <span className="text-[10px] md:text-xs text-gray-600">Pendente</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-600 border border-green-700" />
+            <span className="text-[10px] md:text-xs text-gray-600">Aceite</span>
           </div>
         </div>
       </CardContent>

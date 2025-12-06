@@ -166,8 +166,37 @@ export default function MyBookings() {
       
       if (!booking) throw new Error('Booking not found');
 
+      // WORKFLOW: CANCELAMENTO (Remover do Calendário)
+      const professionalEmail = type === 'walk' ? (booking.walker_email) : (booking.trainer_email);
+      
+      // Tentar liberar o slot se houver ID de evento ou booking_id associado
+      try {
+        const dateStr = format(new Date(booking.date), 'yyyy-MM-dd');
+        const availRecords = await base44.entities.CalendarAvailability.filter({
+          professional_email: professionalEmail,
+          date: dateStr
+        });
+
+        if (availRecords.length > 0) {
+          const availRecord = availRecords[0];
+          const updatedSlots = availRecord.time_slots.map(slot => {
+            if (slot.booking_id === id) {
+              return { ...slot, is_available: true, booking_id: null };
+            }
+            return slot;
+          });
+
+          await base44.entities.CalendarAvailability.update(availRecord.id, {
+            time_slots: updatedSlots,
+            is_fully_booked: false
+          });
+        }
+      } catch (err) {
+        console.error("Erro ao liberar calendário no cancelamento:", err);
+      }
+
       // Atualizar status
-      await entity.update(id, { status: 'cancelled' });
+      await entity.update(id, { status: 'cancelled', calendar_event_id: null });
 
       // Atualizar pagamento se existir
       if (booking.payment_id) {
@@ -175,12 +204,12 @@ export default function MyBookings() {
       }
 
       // Notificar profissional
-      const professionalEmail = type === 'walk' ? (booking.walker_email || booking.created_by) : (booking.trainer_email || booking.created_by);
+      const notifyEmail = type === 'walk' ? (booking.walker_email || booking.created_by) : (booking.trainer_email || booking.created_by);
       
       await createNotification.mutateAsync({
-        recipient_email: professionalEmail,
+        recipient_email: notifyEmail,
         title: '❌ Reserva Cancelada',
-        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.date), 'dd/MM/yyyy', { locale: pt })} foi cancelada.`,
+        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.date), 'dd/MM/yyyy', { locale: pt })} foi cancelada pelo cliente.`,
         type: 'booking',
         related_id: id,
         priority: 'normal'
