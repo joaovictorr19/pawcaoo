@@ -102,6 +102,7 @@ export default function AdminDashboard() {
   });
   const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
   const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
+  const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
