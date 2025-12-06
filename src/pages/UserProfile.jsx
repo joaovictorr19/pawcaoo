@@ -79,15 +79,10 @@ export default function UserProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmail = urlParams.get('email');
 
-  console.log('\n🔍 === USERPROFILE - INÍCIO ===');
-  console.log('📧 URL Email:', profileEmail);
-
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
-
-  console.log('👤 Current User:', currentUser?.email);
 
   const isOwnProfile = currentUser?.email === profileEmail;
 
@@ -119,17 +114,8 @@ export default function UserProfile() {
     queryKey: ['userPosts', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      
-      console.log('📝 Buscando posts de:', profileEmail);
       const posts = await base44.entities.SocialPost.list('-created_date');
-      const userPosts = posts.filter(p => p.author_email === profileEmail);
-      
-      console.log('✅ Posts encontrados:', userPosts.length);
-      userPosts.forEach((p, i) => {
-        console.log(`  ${i+1}. "${p.content?.substring(0, 30)}..." | moderation: ${p.moderation_status} | public: ${p.is_public}`);
-      });
-      
-      return userPosts;
+      return posts.filter(p => p.author_email === profileEmail);
     },
     enabled: !!profileEmail,
     initialData: [],
@@ -152,17 +138,8 @@ export default function UserProfile() {
     queryKey: ['followers', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      
-      console.log('👥 Buscando seguidores de:', profileEmail);
       const all = await base44.entities.SocialFollow.list();
-      const followers = all.filter(f => f.following_email === profileEmail);
-      
-      console.log('✅ Seguidores encontrados:', followers.length);
-      followers.forEach((f, i) => {
-        console.log(`  ${i+1}. ${f.follower_name} (${f.follower_email})`);
-      });
-      
-      return followers;
+      return all.filter(f => f.following_email === profileEmail);
     },
     enabled: !!profileEmail,
     initialData: [],
@@ -174,14 +151,8 @@ export default function UserProfile() {
     queryKey: ['following', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      
-      console.log('👤 Buscando quem está seguindo:', profileEmail);
       const all = await base44.entities.SocialFollow.list();
-      const following = all.filter(f => f.follower_email === profileEmail);
-      
-      console.log('✅ Seguindo:', following.length);
-      
-      return following;
+      return all.filter(f => f.follower_email === profileEmail);
     },
     enabled: !!profileEmail,
     initialData: [],
@@ -264,19 +235,7 @@ export default function UserProfile() {
     return badgeImages[badgeId] || '🏆';
   };
 
-  console.log('\n📊 === DADOS FINAIS ===');
-  console.log('Profile Email:', profileEmail);
-  console.log('Profile User:', profileUser ? '✅ OK' : '❌ NULL');
-  if (profileUser) {
-    console.log('User ID:', profileUser.id);
-    console.log('Email:', profileUser.email);
-    console.log('Nome:', profileUser.full_name);
-    console.log('Foto:', profileUser.profile_photo_url ? 'Tem foto' : 'Sem foto');
-  }
-  console.log('Posts:', userPosts?.length || 0);
-  console.log('Seguidores:', followers?.length || 0);
-  console.log('Seguindo:', following?.length || 0);
-  console.log('=======================\n');
+
 
   if (loadingUser || loadingPosts || loadingFollowers || loadingFollowing) {
     return (
@@ -628,6 +587,10 @@ export default function UserProfile() {
                     {/* Public Badges (admin-granted) */}
                     {publicBadges.map((badge, idx) => (
                       <BadgeItem key={`public-${badge.badge_id || idx}`} badge={badge} idx={idx + achievementsBadges.length} getBadgeImage={getBadgeImage} />
+                    ))}
+                    {/* Profile Badges (moderation-granted) */}
+                    {profileBadges.map((badge, idx) => (
+                      <BadgeItem key={`profile-${badge.badge_id || idx}`} badge={badge} idx={idx + achievementsBadges.length + publicBadges.length} getBadgeImage={getBadgeImage} />
                     ))}
                   </div>
                 )}
