@@ -22,6 +22,7 @@ import ProfessionalProfileHeader from "../components/professionals/ProfessionalP
 import ServiceList from "../components/professionals/ServiceList";
 import SEO from "../components/SEO";
 import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
+import PawCaoLogo from "@/components/PawCaoLogo";
 
 export default function WalkerDetails() {
   const navigate = useNavigate();
@@ -146,10 +147,10 @@ export default function WalkerDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-        <div className="max-w-5xl mx-auto">
-          <Skeleton className="h-96 w-full rounded-3xl mb-6" />
-          <Skeleton className="h-64 w-full rounded-3xl" />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <PawCaoLogo size="large" animated={true} showText={false} />
+          <p className="text-green-600 font-medium mt-4 animate-pulse">Carregando...</p>
         </div>
       </div>
     );
