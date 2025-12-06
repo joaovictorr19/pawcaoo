@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, MessageCircle, Video, Repeat, CheckCircle, Award } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, MessageCircle, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BookingForm from "../components/booking/BookingForm";
@@ -267,8 +268,43 @@ export default function WalkerDetails() {
                 reviews={reviews}
                 averageRating={averageRating}
               />
+
+              {/* Selo de Verificação em Destaque */}
+              {walker.verification_status === "verified" && (
+                <div className="px-5 pt-2 pb-0">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
+                    <div className="bg-green-100 p-2 rounded-full">
+                      <ShieldCheck className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-green-800 text-sm">Perfil Verificado pela PawCão</h3>
+                      <p className="text-xs text-green-700">Identidade, documentos e antecedentes criminais verificados.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
-              <div className="px-5 pb-5">
+              <div className="px-5 pb-5 pt-5">
+                {/* Vídeo de Apresentação */}
+                {walker.video_intro_url && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <PlayCircle className="w-5 h-5 text-purple-600" />
+                      Apresentação em Vídeo
+                    </h2>
+                    <div className="rounded-xl overflow-hidden shadow-lg bg-black aspect-video relative group">
+                      <video 
+                        src={walker.video_intro_url} 
+                        controls 
+                        className="w-full h-full object-cover"
+                        poster={walker.photo_url}
+                      >
+                        Seu navegador não suporta o elemento de vídeo.
+                      </video>
+                    </div>
+                  </div>
+                )}
+
                 <ServiceList services={walker.services_offered || []} type="walker" />
 
                 <div className="mb-6">
@@ -359,6 +395,28 @@ export default function WalkerDetails() {
                         </Badge>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* FAQ Section */}
+                {walker.faq && walker.faq.length > 0 && (
+                  <div className="mb-6 border-t border-gray-100 pt-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <HelpCircle className="w-5 h-5 text-blue-600" />
+                      Perguntas Frequentes
+                    </h2>
+                    <Accordion type="single" collapsible className="w-full">
+                      {walker.faq.map((item, idx) => (
+                        <AccordionItem key={idx} value={`item-${idx}`}>
+                          <AccordionTrigger className="text-left font-medium text-gray-800 hover:text-blue-600">
+                            {item.question}
+                          </AccordionTrigger>
+                          <AccordionContent className="text-gray-600">
+                            {item.answer}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </div>
                 )}
 
