@@ -211,42 +211,33 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [] } = useQuery({
-    queryKey: ['userBadges', profileEmail, isSelfView, currentUser?.achievements_badges],
+    queryKey: ['userBadges', profileEmail],
     queryFn: async () => {
-      // 1. Sempre pegar os badges da memória primeiro se for o próprio perfil
-      const memoryBadges = (isSelfView && currentUser?.achievements_badges) ? currentUser.achievements_badges : [];
-      
-      // Se não tiver email de perfil ainda, retorna o que tem na memória
-      if (!profileEmail) return memoryBadges;
-      
-      try {
-        // 2. Tentar buscar da tabela
-        const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
-        
-        // 3. Merge robusto
-        if (fromTable && fromTable.length > 0) {
-          const tableBadgeIds = new Set(fromTable.map(b => b.badge_id));
-          const missingFromTable = memoryBadges.filter(b => !tableBadgeIds.has(b.badge_id));
-          
-          // Combina tabela + memória (sem duplicados)
-          return [...missingFromTable, ...fromTable]; 
-        }
-      } catch (e) {
-        console.error("Error fetching badges table:", e);
-      }
+      if (!profileEmail) return [];
 
-      return memoryBadges;
+      try {
+        // Busca direta e prioritária na tabela UserBadge
+        const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+
+        // Se for o próprio usuário, fazer merge com dados de sessão (para feedback imediato de gamification se necessário)
+        if (isSelfView && currentUser?.achievements_badges) {
+          const tableBadgeIds = new Set((fromTable || []).map(b => b.badge_id));
+          const memoryBadges = currentUser.achievements_badges.filter(b => !tableBadgeIds.has(b.badge_id));
+          return [...memoryBadges, ...(fromTable || [])];
+        }
+
+        return fromTable || [];
+      } catch (e) {
+        console.error("Error fetching badges:", e);
+        return [];
+      }
     },
-    enabled: true,
-    initialData: (isSelfView && currentUser?.achievements_badges) ? currentUser.achievements_badges : [],
+    enabled: !!profileEmail,
     staleTime: 0,
     refetchOnWindowFocus: true
   });
 
-  // Força atualização visual imediata para o próprio perfil se os dados ainda estiverem carregando
-  const displayBadges = (isSelfView && (!earnedBadges || earnedBadges.length === 0) && currentUser?.achievements_badges) 
-    ? currentUser.achievements_badges 
-    : earnedBadges;
+  const displayBadges = earnedBadges;
 
   // Sync embedded badges (from Auth User) to UserBadge table if needed
   React.useEffect(() => {
