@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -50,6 +49,9 @@ export default function PartnerDashboard() {
     image_url: ""
   });
 
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [companyProfileForm, setCompanyProfileForm] = useState({});
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -65,6 +67,26 @@ export default function PartnerDashboard() {
       return companies[0] || null;
     },
     enabled: !!user,
+  });
+
+  const updateCompanyMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!company?.id) return;
+      // Clean up array strings if they are comma separated strings
+      const payload = { ...data };
+      if (typeof payload.services_offered === 'string') {
+        payload.services_offered = payload.services_offered.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      if (typeof payload.service_areas === 'string') {
+        payload.service_areas = payload.service_areas.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      await base44.entities.PartnerCompany.update(company.id, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myCompany']);
+      toast.success("Perfil da empresa atualizado!");
+      setShowEditProfile(false);
+    }
   });
 
   const { data: myServices = [] } = useQuery({
@@ -254,6 +276,25 @@ export default function PartnerDashboard() {
             Painel de Parceiro
           </h1>
           <p className="text-lg text-gray-600">{company.company_name}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2"
+            onClick={() => {
+              setCompanyProfileForm({
+                ...company,
+                services_offered: company.services_offered ? company.services_offered.join(', ') : "",
+                service_areas: company.service_areas ? company.service_areas.join(', ') : "",
+                business_hours: company.business_hours || {
+                  monday: "9:00 - 18:00", tuesday: "9:00 - 18:00", wednesday: "9:00 - 18:00",
+                  thursday: "9:00 - 18:00", friday: "9:00 - 18:00", saturday: "10:00 - 14:00", sunday: "Closed"
+                }
+              });
+              setShowEditProfile(true);
+            }}
+          >
+            Editar Perfil da Empresa
+          </Button>
         </div>
 
         {/* BOTÕES RÁPIDOS */}
@@ -613,6 +654,79 @@ export default function PartnerDashboard() {
                 </Card>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT COMPANY PROFILE */}
+      <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Perfil da Empresa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Serviços Oferecidos (Resumo)</Label>
+                <Input 
+                  value={companyProfileForm.services_offered} 
+                  onChange={(e) => setCompanyProfileForm({...companyProfileForm, services_offered: e.target.value})}
+                  placeholder="Banho, Tosa, Veterinário (separados por vírgula)"
+                />
+              </div>
+              <div>
+                <Label>Áreas de Atendimento</Label>
+                <Input 
+                  value={companyProfileForm.service_areas} 
+                  onChange={(e) => setCompanyProfileForm({...companyProfileForm, service_areas: e.target.value})}
+                  placeholder="Lisboa, Porto, Cascais (separados por vírgula)"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Horário de Funcionamento</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                  <div key={day}>
+                    <Label className="text-xs capitalize">{day}</Label>
+                    <Input 
+                      value={companyProfileForm.business_hours?.[day] || ""} 
+                      onChange={(e) => setCompanyProfileForm({
+                        ...companyProfileForm, 
+                        business_hours: { ...companyProfileForm.business_hours, [day]: e.target.value }
+                      })}
+                      className="h-8 text-xs"
+                      placeholder="9:00 - 18:00"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Website</Label>
+              <Input 
+                value={companyProfileForm.website || ""} 
+                onChange={(e) => setCompanyProfileForm({...companyProfileForm, website: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <Label>Telefone</Label>
+              <Input 
+                value={companyProfileForm.phone || ""} 
+                onChange={(e) => setCompanyProfileForm({...companyProfileForm, phone: e.target.value})}
+              />
+            </div>
+
+            <Button 
+              onClick={() => updateCompanyMutation.mutate(companyProfileForm)}
+              disabled={updateCompanyMutation.isPending}
+              className="w-full bg-blue-600"
+            >
+              {updateCompanyMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

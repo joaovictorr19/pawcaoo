@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -489,6 +488,47 @@ export default function PartnerDetails() {
                       </div>
                     )}
                   </div>
+
+                  {partner?.services_offered && partner.services_offered.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Serviços Oferecidos</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {partner.services_offered.map((service, idx) => (
+                          <Badge key={idx} variant="secondary" className="dark:bg-gray-700 dark:text-gray-200">
+                            {service}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {partner?.service_areas && partner.service_areas.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Áreas de Atendimento</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {partner.service_areas.map((area, idx) => (
+                          <Badge key={idx} variant="outline" className="dark:border-gray-600 dark:text-gray-300">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {partner?.business_hours && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Horário de Funcionamento</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        {Object.entries(partner.business_hours).map(([day, hours]) => (
+                          <div key={day} className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                            <span className="block font-medium capitalize text-gray-700 dark:text-gray-300">{day}</span>
+                            <span className="text-gray-500 dark:text-gray-400">{hours || 'Closed'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           </TabsContent>
