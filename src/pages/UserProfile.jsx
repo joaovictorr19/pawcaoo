@@ -396,21 +396,32 @@ export default function UserProfile() {
                 </div>
               </div>
 
-              {!isOwnProfile && currentUser && (
-                <div className="flex gap-2 mb-6 mt-4 md:mt-0">
+              <div className="flex flex-wrap gap-2 mb-6 mt-4 md:mt-0">
+                {!isOwnProfile && currentUser && (
+                  <>
+                    <Button
+                      onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
+                      disabled={followMutation.isPending || unfollowMutation.isPending}
+                      className={isFollowing ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}
+                    >
+                      {isFollowing ? 'Seguindo' : 'Seguir'}
+                    </Button>
+                    <Button variant="outline">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Mensagem
+                    </Button>
+                  </>
+                )}
+                {walkerProfile && (
                   <Button
-                    onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
-                    disabled={followMutation.isPending || unfollowMutation.isPending}
-                    className={isFollowing ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}
+                    onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walkerProfile.id}`))}
+                    className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md"
                   >
-                    {isFollowing ? 'Seguindo' : 'Seguir'}
+                    <Dog className="w-4 h-4 mr-2" />
+                    Ver Perfil Profissional
                   </Button>
-                  <Button variant="outline">
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Mensagem
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Stats */}

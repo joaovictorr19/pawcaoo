@@ -61,11 +61,12 @@ export default function WalkerDetails() {
     queryKey: ['walker', walkerId],
     queryFn: async () => {
       if (!walkerId) return null;
-      // Fetch specific walker directly from DB
+      // Fetch specific walker directly from DB - Public Access
       const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
       return results[0] || null;
     },
     enabled: !!walkerId,
+    retry: false, // Don't retry indefinitely if fails (e.g. 404)
   });
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({

@@ -711,7 +711,7 @@ function LayoutContent({ children, currentPageName }) {
                 </Link>
               )}
 
-              {!user && !isLoadingUser && (
+              {!user && (
                 <Button 
                   onClick={() => base44.auth.redirectToLogin()}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm"
