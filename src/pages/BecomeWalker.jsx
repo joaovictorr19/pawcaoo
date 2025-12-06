@@ -59,6 +59,7 @@ export default function BecomeWalker() {
     services_offered: [],
     experience_years: "",
     phone: "",
+    whatsapp_number: "",
     dog_sizes: [],
     dog_breeds_handled: [],
     breed_specialization: [],
@@ -77,9 +78,14 @@ export default function BecomeWalker() {
 
   // Validation function - All steps are now optional for easier registration
   const validateStep1 = () => {
-    // Validation disabled - all fields are optional
-    setFormErrors({});
-    return true;
+    const errors = {};
+    // Validate WhatsApp is present as requested
+    if (!formData.whatsapp_number) {
+      errors.whatsapp = "WhatsApp number is required";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const validateStep2 = () => {
@@ -443,6 +449,27 @@ export default function BecomeWalker() {
                         />
                         {formErrors.phone && (
                           <p className="text-sm text-red-600 mt-1">{formErrors.phone}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="whatsapp_number">WhatsApp (Obrigatório)</Label>
+                        <Input
+                          id="whatsapp_number"
+                          required
+                          value={formData.whatsapp_number}
+                          onChange={(e) => {
+                            // Allow only numbers
+                            const val = e.target.value.replace(/\D/g, '');
+                            setFormData({...formData, whatsapp_number: val});
+                            setFormErrors(prev => ({ ...prev, whatsapp: undefined }));
+                          }}
+                          placeholder="351912345678 (apenas números)"
+                          className={formErrors.whatsapp ? "border-red-500" : ""}
+                        />
+                        <p className="text-xs text-gray-500">Inclua o código do país (ex: 351 para Portugal)</p>
+                        {formErrors.whatsapp && (
+                          <p className="text-sm text-red-600 mt-1">{formErrors.whatsapp}</p>
                         )}
                       </div>
 

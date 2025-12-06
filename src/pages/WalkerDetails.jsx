@@ -378,85 +378,22 @@ export default function WalkerDetails() {
                     {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    className="h-10 px-4 border border-blue-500 text-blue-600 hover:bg-blue-50 text-sm font-medium"
-                    onClick={async () => {
-                      if (!user) {
-                        base44.auth.redirectToLogin();
-                        return;
-                      }
-                      
-                      try {
-                        // Validação de segurança do email do walker
-                        const walkerEmail = walker.created_by || walker.contact_email;
-                        if (!walkerEmail) {
-                          throw new Error("O passeador não possui um email válido associado.");
-                        }
-
-                        // PASSO 1: Lógica de Existência da Conversa (Compatível com legado)
-                        // Busca as últimas 100 conversas para garantir que encontramos
-                        const allConversations = await base44.entities.ChatConversation.list('-last_message_date', 100);
-                        
-                        const existing = allConversations.find(c => 
-                          c.conversation_type === 'one_on_one' &&
-                          c.participants && 
-                          c.participants.some(p => p.email === user.email) &&
-                          c.participants.some(p => p.email === walkerEmail)
-                        );
-
-                        let targetConversationId;
-
-                        if (existing) {
-                          console.log('Conversa existente encontrada:', existing.id);
-                          targetConversationId = existing.id;
-                        } else {
-                          // PASSO 2: Criação Condicional da Conversa
-                          console.log('Criando nova conversa...');
-                          const newConv = await base44.entities.ChatConversation.create({
-                            conversation_type: 'one_on_one',
-                            participant_emails: [user.email, walkerEmail],
-                            participants: [
-                              {
-                                email: user.email,
-                                name: user.full_name,
-                                photo_url: user.profile_photo_url,
-                                role: 'owner'
-                              },
-                              {
-                                email: walkerEmail,
-                                name: walker.walker_name,
-                                photo_url: walker.photo_url,
-                                role: 'walker'
-                              }
-                            ],
-                            last_message: "Conversa iniciada",
-                            last_message_sender: user.email,
-                            last_message_date: new Date().toISOString()
-                          });
-                          targetConversationId = newConv.id;
-                        }
-
-                        // PASSO 3: Redirecionamento Final e Passagem de Dados
-                        if (targetConversationId) {
-                          navigate(createPageUrl(`Messages?conversation_id=${targetConversationId}`));
-                        } else {
-                          throw new Error("ID da conversa inválido");
-                        }
-
-                      } catch (error) {
-                        console.error("Erro no workflow do chat:", error);
-                        toast({
-                          title: "Erro",
-                          description: "Não foi possível abrir o chat. Tente novamente.",
-                          variant: "destructive"
-                        });
-                      }
-                    }}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    {t('message', language)}
-                  </Button>
+                  {/* WhatsApp Button - Visible only if logged in and walker has number */}
+                  {user && walker.whatsapp_number && (
+                    <Button
+                      variant="outline"
+                      className="h-10 px-4 border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium"
+                      onClick={() => {
+                        // Construct WhatsApp URL
+                        const whatsappUrl = `https://wa.me/${walker.whatsapp_number}`;
+                        // Open in new tab
+                        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Falar com o Walker
+                    </Button>
+                  )}
 
                   <Button
                     variant="secondary"
