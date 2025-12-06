@@ -132,7 +132,33 @@ export default function UserProfile() {
         if (emailToSearch) {
           try {
             const byEmail = await base44.entities.UserProfile.filter({ user_email: emailToSearch });
-            if (byEmail && byEmail.length > 0) userProfile = byEmail[0];
+            if (byEmail && byEmail.length > 0) {
+              userProfile = byEmail[0];
+            } else {
+              // FALLBACK: Try to find WalkerProfile if UserProfile doesn't exist
+              const walkers = await base44.entities.WalkerProfile.filter({ created_by: emailToSearch });
+              if (walkers && walkers.length > 0) {
+                const w = walkers[0];
+                // Construct a virtual UserProfile from WalkerProfile
+                userProfile = {
+                  id: w.id, // Use walker ID as temporary ID
+                  user_id: null, // Unknown
+                  user_email: w.created_by,
+                  full_name: w.walker_name,
+                  profile_photo_url: w.photo_url,
+                  cover_photo_url: null,
+                  bio: w.bio,
+                  city: w.location,
+                  role: 'walker',
+                  is_verified: w.verification_status === 'verified',
+                  gamification_level: 1,
+                  gamification_xp: 0,
+                  followers_count: 0,
+                  following_count: 0,
+                  is_virtual_profile: true // Flag to indicate this is generated
+                };
+              }
+            }
           } catch (e) {
             console.error('Error fetching by Email:', e);
           }
