@@ -313,7 +313,10 @@ export default function WalkerDetails() {
                         title={badge.description}
                       >
                         <div className="text-2xl mb-1 h-8 w-8 flex items-center justify-center">
-                          {badge.image_url ? (
+                          {/* Prioritize image_png_file */}
+                          {badge.image_png_file ? (
+                            <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" />
+                          ) : badge.image_url ? (
                             <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded" style={{imageRendering: 'pixelated'}} />
                           ) : (
                             badge.icon

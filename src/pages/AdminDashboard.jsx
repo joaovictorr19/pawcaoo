@@ -100,6 +100,7 @@ export default function AdminDashboard() {
     description: "",
     icon: "⭐",
     image_url: "",
+    image_png_file: "", // New field
     rarity: "common",
     category: "special"
   });
@@ -441,6 +442,7 @@ export default function AdminDashboard() {
           description: badge.description,
           icon: badge.icon,
           image_url: badge.image_url || "",
+          image_png_file: badge.image_png_file || badge.image_url || "", // Use new field
           rarity: badge.rarity || "common",
           category: badge.category || "special",
           xp: badge.xp || 50,
@@ -456,6 +458,7 @@ export default function AdminDashboard() {
           description: newBadge.description,
           icon: newBadge.icon,
           image_url: newBadge.image_url,
+          image_png_file: newBadge.image_png_file, // Store in UserBadge
           rarity: newBadge.rarity,
           granted_by: user.email
         });
@@ -498,6 +501,7 @@ export default function AdminDashboard() {
         description: badge.description,
         icon: badge.icon,
         image_url: badge.image_url || "",
+        image_png_file: badge.image_png_file || badge.image_url || "", // Handle new field
         rarity: badge.rarity || "common",
         category: badge.category || "special",
         xp: badge.xp || 50,
@@ -513,6 +517,7 @@ export default function AdminDashboard() {
         description: newBadge.description,
         icon: newBadge.icon,
         image_url: newBadge.image_url,
+        image_png_file: newBadge.image_png_file, // Store in UserBadge
         rarity: newBadge.rarity,
         granted_by: user.email
       });
@@ -639,6 +644,7 @@ export default function AdminDashboard() {
       description: customBadgeForm.description,
       icon: customBadgeForm.icon,
       image_url: customBadgeForm.image_url || "",
+      image_png_file: customBadgeForm.image_png_file || "", // Save new field
       rarity: customBadgeForm.rarity,
       category: customBadgeForm.category,
       xp: 100 // Default
@@ -652,7 +658,6 @@ export default function AdminDashboard() {
     }
 
     if (selectedUsersForBadge.length === 0) {
-      // If no users selected, just ask if they want to save as template
       if (confirm("Nenhum usuário selecionado. Deseja apenas salvar como Modelo de Emblema para usar depois?")) {
         handleSaveBadgeDefinition();
         return;
@@ -666,21 +671,22 @@ export default function AdminDashboard() {
       description: customBadgeForm.description,
       icon: customBadgeForm.icon,
       image_url: customBadgeForm.image_url || "",
+      image_png_file: customBadgeForm.image_png_file || "",
       rarity: customBadgeForm.rarity,
       category: customBadgeForm.category,
-      xp: 100, // Default XP for custom badges
+      xp: 100, 
       earned_date: new Date().toISOString(),
       granted_by: user.email
     };
 
     try {
-      // Optionally save definition too
       if (confirm("Deseja também salvar este emblema na biblioteca para uso futuro?")) {
         createBadgeDefinitionMutation.mutate({
           name: customBadgeForm.name,
           description: customBadgeForm.description,
           icon: customBadgeForm.icon,
           image_url: customBadgeForm.image_url || "",
+          image_png_file: customBadgeForm.image_png_file || "",
           rarity: customBadgeForm.rarity,
           category: customBadgeForm.category,
           xp: 100
