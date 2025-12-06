@@ -45,7 +45,8 @@ export default function WalkerDetails() {
   const [selectedDate, setSelectedDate] = useState(null);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const walkerId = urlParams.get('id');
+  // Support both 'id' and 'walker_id' parameters
+  const walkerId = urlParams.get('id') || urlParams.get('walker_id');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -391,7 +392,7 @@ export default function WalkerDetails() {
                       }}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      Falar com o Walker
+                      {t('chatWithWalker', language)}
                     </Button>
                   )}
 
@@ -401,7 +402,7 @@ export default function WalkerDetails() {
                     onClick={() => navigate(createPageUrl(`UserProfile?email=${walker.created_by}`))}
                   >
                     <Award className="w-4 h-4 mr-2" />
-                    Ver Emblemas e Perfil
+                    {t('viewBadgesProfile', language)}
                   </Button>
                 </div>
               </div>
