@@ -9,11 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { X, Sliders, Calendar as CalendarIcon, Shield, Award, Clock, Star } from "lucide-react";
+import { X, Sliders, Calendar as CalendarIcon, Shield, Award, Clock, Star, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export default function AdvancedWalkerFilters({ filters, onFiltersChange, onReset }) {
+export default function AdvancedWalkerFilters({ filters, onFiltersChange, onReset, onClose }) {
   const [selectedDate, setSelectedDate] = useState(null);
 
   const languages = ["Português", "English", "Español", "Français", "Deutsch", "Italiano"];
@@ -131,10 +131,15 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
               </Badge>
             )}
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onReset} className="text-white hover:bg-white/20">
-            <X className="w-4 h-4 mr-1" />
-            Limpar
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={onReset} className="text-white hover:bg-white/20">
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Limpar
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8">
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-6 space-y-6">

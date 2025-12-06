@@ -619,12 +619,14 @@ export default function Home() {
                     filters={advancedFilters}
                     onFiltersChange={setAdvancedFilters}
                     onReset={resetAdvancedFilters}
+                    onClose={() => setShowAdvancedFilters(false)}
                   />
                 ) : activeTab === 'trainers' ? (
                   <AdvancedTrainerFilters
                     filters={trainerFilters}
                     onFiltersChange={setTrainerFilters}
                     onReset={resetTrainerFilters}
+                    onClose={() => setShowAdvancedFilters(false)}
                   />
                 ) : null}
               </motion.div>
