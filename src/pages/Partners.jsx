@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -25,11 +24,11 @@ export default function Partners() {
     queryFn: () => base44.auth.me(),
   });
 
-  // CORRIGIDO: Query para parceiros com refetch automático
+  // CORRIGIDO: Query para parceiros (PartnerCompany) com refetch automático
   const { data: partners = [], isLoading: loadingPartners } = useQuery({
-    queryKey: ['partnerships'],
+    queryKey: ['partnerships'], // Keeping key to avoid breaking caches immediately
     queryFn: async () => {
-      const allPartners = await base44.entities.Partnership.list();
+      const allPartners = await base44.entities.PartnerCompany.list();
       return allPartners.filter(p => p.is_active === true);
     },
     initialData: [],
@@ -74,7 +73,7 @@ export default function Partners() {
   const filteredPartners = partners.filter(partner => {
     const matchesSearch = !searchTerm ||
       partner.partner_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || partner.partner_type === categoryFilter;
+    const matchesCategory = categoryFilter === "all" || partner.company_type === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -259,10 +258,10 @@ export default function Partners() {
                   </div>
                   <CardContent className="p-3">
                     <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">
-                      {partner.partner_name}
+                      {partner.company_name}
                     </h3>
                     <Badge variant="outline" className="text-xs">
-                      {partner.partner_type.replace('_', ' ')}
+                      {partner.company_type?.replace('_', ' ')}
                     </Badge>
                   </CardContent>
                 </Card>

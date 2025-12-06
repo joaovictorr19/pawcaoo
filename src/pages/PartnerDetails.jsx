@@ -37,13 +37,15 @@ export default function PartnerDetails() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: partners, isLoading: loadingPartner } = useQuery({
-    queryKey: ['partners'],
-    queryFn: () => base44.entities.Partnership.list(),
-    initialData: [],
+  const { data: partner, isLoading: loadingPartner } = useQuery({
+    queryKey: ['partner', partnerId],
+    queryFn: async () => {
+      if (!partnerId) return null;
+      const res = await base44.entities.PartnerCompany.filter({ id: partnerId });
+      return res[0] || null;
+    },
+    enabled: !!partnerId,
   });
-
-  const partner = partners.find(p => p.id === partnerId);
 
   const { data: products, isLoading: loadingProducts } = useQuery({
     queryKey: ['partnerProducts', partnerId],
@@ -217,7 +219,7 @@ export default function PartnerDetails() {
                   className="max-h-40 max-w-[80%] object-contain"
                 />
               ) : (
-                <h1 className="text-5xl font-bold text-gray-700 dark:text-gray-300">{partner.partner_name}</h1>
+                <h1 className="text-5xl font-bold text-gray-700 dark:text-gray-300">{partner.company_name}</h1>
               )}
               {partner.discount_percentage > 0 && (
                 <Badge className="absolute top-6 right-6 bg-red-500 text-white text-2xl px-6 py-3 shadow-xl">
@@ -230,7 +232,7 @@ export default function PartnerDetails() {
               <div className="flex flex-col md:flex-row justify-between gap-6">
                 <div className="flex-1">
                   <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                    {partner.partner_name}
+                    {partner.company_name}
                   </h1>
                   <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
                     {partner.description}
@@ -462,7 +464,7 @@ export default function PartnerDetails() {
           <TabsContent value="about" className="space-y-4">
             <Card className="border-0 shadow-xl dark:bg-gray-800">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Sobre {partner?.partner_name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Sobre {partner?.company_name}</h3>
                 <p className="text-gray-700 dark:text-gray-300 mb-4">
                   {partner?.description || "Nenhuma descrição disponível."}
                 </p>
@@ -620,11 +622,11 @@ export default function PartnerDetails() {
                     </Button>
                     <PartnerReviewForm
                       partnerId={partnerId}
-                      partnerName={partner?.partner_name}
+                      partnerName={partner?.company_name}
                       onSuccess={() => {
                         setShowReviewForm(false);
                         queryClient.invalidateQueries(['partnerReviews', partnerId]);
-                        queryClient.invalidateQueries(['partners']); // To update average_rating/total_reviews
+                        queryClient.invalidateQueries(['partner', partnerId]); // To update average_rating/total_reviews
                       }}
                     />
                   </div>
