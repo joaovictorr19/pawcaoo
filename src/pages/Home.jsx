@@ -100,7 +100,8 @@ export default function Home() {
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
     queryFn: () => base44.entities.WalkerProfile.filter({ 
-      is_active: true 
+      is_active: true,
+      verification_status: 'verified'
     }, '-rating', 100),
     initialData: [],
     staleTime: 0,
