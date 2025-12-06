@@ -9,8 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, Calendar, Heart, MessageCircle, Camera, Edit, Share2,
   Award, TrendingUp, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
-  CheckCircle, Shield, ShieldCheck
+  CheckCircle, Shield, ShieldCheck, Users, User
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
@@ -74,7 +76,7 @@ function BadgeItem({ badge, idx, getBadgeImage }) {
 export default function UserProfile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("posts");
+  const [activeTab, setActiveTab] = useState("badges");
 
   const urlParams = new URLSearchParams(window.location.search);
   const profileEmail = urlParams.get('email');
@@ -110,17 +112,17 @@ export default function UserProfile() {
   const achievementsBadges = profileUser?.achievements_badges || [];
   const publicBadges = profileUser?.public_badges || [];
 
-  const { data: userPosts = [], isLoading: loadingPosts } = useQuery({
-    queryKey: ['userPosts', profileEmail],
+  // Removido userPosts pois a rede social será o próximo passo
+  // Mantendo apenas contagem de emblemas e perfil
+
+  const { data: walkerProfile } = useQuery({
+    queryKey: ['walkerProfile', profileEmail],
     queryFn: async () => {
-      if (!profileEmail) return [];
-      const posts = await base44.entities.SocialPost.list('-created_date');
-      return posts.filter(p => p.author_email === profileEmail);
+      if (!profileEmail) return null;
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: profileEmail });
+      return walkers[0] || null;
     },
     enabled: !!profileEmail,
-    initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
   });
 
   const { data: userDogs = [] } = useQuery({
@@ -159,8 +161,6 @@ export default function UserProfile() {
     staleTime: 0,
     refetchOnMount: 'always',
   });
-
-  const recentPhotos = userPosts.filter(p => p.media_urls?.length > 0).slice(0, 9);
 
   const followMutation = useMutation({
     mutationFn: async () => {
@@ -220,6 +220,12 @@ export default function UserProfile() {
   });
 
   const isFollowing = followers.some(f => f.follower_email === currentUser?.email);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+
+  const totalBadges = (profileUser?.achievements_badges?.length || 0) + 
+                      (profileUser?.public_badges?.length || 0) + 
+                      (profileUser?.profile_badges?.length || 0);
 
   const getBadgeImage = (badgeId) => {
     const badgeImages = {
@@ -237,7 +243,7 @@ export default function UserProfile() {
 
 
 
-  if (loadingUser || loadingPosts || loadingFollowers || loadingFollowing) {
+  if (loadingUser || loadingFollowers || loadingFollowing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -345,10 +351,14 @@ export default function UserProfile() {
                         Admin
                       </Badge>
                     )}
-                    {profileUser.is_adoption_advocate && (
-                      <Badge className="bg-pink-600 text-white flex items-center gap-1" title="Defensor de Adoção">
-                        <Heart className="w-3 h-3" />
-                        Defensor
+                    {walkerProfile && (
+                      <Badge 
+                        className="bg-green-600 text-white flex items-center gap-1 cursor-pointer hover:bg-green-700" 
+                        title="Passeador Verificado"
+                        onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walkerProfile.id}`))}
+                      >
+                        <Dog className="w-3 h-3" />
+                        Passeador
                       </Badge>
                     )}
                   </div>
@@ -388,52 +398,26 @@ export default function UserProfile() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 md:gap-8 py-4 border-t border-b border-gray-200 mt-6">
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{userPosts.length}</div>
-                <div className="text-sm text-gray-600">Posts</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalBadges}</div>
+                <div className="text-sm text-gray-600">Emblemas</div>
               </div>
-              <div className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition">
+              <div 
+                className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition"
+                onClick={() => setShowFollowers(true)}
+              >
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{followers.length}</div>
                 <div className="text-sm text-gray-600">Seguidores</div>
               </div>
-              <div className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition">
+              <div 
+                className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition"
+                onClick={() => setShowFollowing(true)}
+              >
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{following.length}</div>
                 <div className="text-sm text-gray-600">Seguindo</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Fotos Recentes - Grid Visual */}
-        {recentPhotos.length > 0 && (
-          <Card className="border-0 shadow-xl mb-6">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Camera className="w-5 h-5 text-purple-600" />
-                Fotos Recentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2">
-                {recentPhotos.map((post) => (
-                  <div
-                    key={post.id}
-                    className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity relative group"
-                    onClick={() => {/* TODO: Open post modal */}}
-                  >
-                    {post.media_urls?.[0] && (
-                      <img
-                        src={post.media_urls[0]}
-                        alt="Post"
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* My Pets Section */}
         {userDogs.length > 0 && (
@@ -475,13 +459,12 @@ export default function UserProfile() {
         )}
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
-            <TabsTrigger value="posts"><Grid className="w-4 h-4 mr-1" />Posts</TabsTrigger>
-            <TabsTrigger value="gamification"><Zap className="w-4 h-4 mr-1" />XP</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="badges">
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
+            {/* Posts removido */}
             <TabsTrigger value="badges"><Award className="w-4 h-4 mr-1" />Emblemas</TabsTrigger>
+            <TabsTrigger value="gamification"><Zap className="w-4 h-4 mr-1" />XP</TabsTrigger>
             <TabsTrigger value="activity"><TrendingUp className="w-4 h-4 mr-1" />Stats</TabsTrigger>
-            {isOwnProfile && <TabsTrigger value="saved"><Bookmark className="w-4 h-4 mr-1" />Salvos</TabsTrigger>}
           </TabsList>
 
           {/* Gamification Tab */}
@@ -531,28 +514,7 @@ export default function UserProfile() {
             </Card>
           </TabsContent>
 
-          {/* Posts Tab */}
-          <TabsContent value="posts">
-            <div className="grid grid-cols-3 gap-2">
-              {userPosts.map(post => (
-                <div key={post.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition">
-                  {post.media_urls?.[0] ? (
-                    <img src={post.media_urls[0]} alt="Post" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                      <Camera className="w-8 h-8 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            {userPosts.length === 0 && (
-              <div className="text-center py-12">
-                <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">Nenhum post ainda</p>
-              </div>
-            )}
-          </TabsContent>
+          {/* Posts Tab Removed */}
 
           {/* Badges Tab - USANDO TODOS OS BADGES (achievements + public) */}
           <TabsContent value="badges">
@@ -660,6 +622,81 @@ export default function UserProfile() {
           )}
         </Tabs>
       </div>
+
+      {/* Followers Modal */}
+      <Dialog open={showFollowers} onOpenChange={setShowFollowers}>
+        <DialogContent className="max-w-md max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Seguidores ({followers.length})</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[300px] md:h-[400px]">
+            <div className="space-y-4 p-1">
+              {followers.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Nenhum seguidor ainda.</p>
+              ) : (
+                followers.map((follower) => (
+                  <div key={follower.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => {
+                        setShowFollowers(false);
+                        navigate(createPageUrl(`UserProfile?email=${follower.follower_email}`));
+                      }}
+                    >
+                      <Avatar>
+                        <AvatarImage src={follower.follower_photo_url} />
+                        <AvatarFallback>{follower.follower_name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-sm">{follower.follower_name}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-[150px]">{follower.follower_email}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Following Modal */}
+      <Dialog open={showFollowing} onOpenChange={setShowFollowing}>
+        <DialogContent className="max-w-md max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Seguindo ({following.length})</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[300px] md:h-[400px]">
+            <div className="space-y-4 p-1">
+              {following.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Não está seguindo ninguém.</p>
+              ) : (
+                following.map((follow) => (
+                  <div key={follow.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => {
+                        setShowFollowing(false);
+                        navigate(createPageUrl(`UserProfile?email=${follow.following_email}`));
+                      }}
+                    >
+                      <Avatar>
+                        {/* Note: we might not have photo url in follow object for the person being followed if schema didn't save it, checking Entity schema */}
+                        {/* SocialFollow entity has following_name but maybe not photo? Let's assume not for now or use placeholder */}
+                        <AvatarFallback>{follow.following_name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-sm">{follow.following_name}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-[150px]">{follow.following_email}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
