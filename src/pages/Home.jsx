@@ -102,7 +102,7 @@ export default function Home() {
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
-    queryFn: () => base44.entities.WalkerProfile.filter({ verification_status: 'verified', is_active: true }, '-rating', 100),
+    queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100),
     initialData: [],
     staleTime: 0,
     refetchOnMount: 'always',
@@ -220,8 +220,8 @@ export default function Home() {
       matchScore: calculateMatchScore(walker)
     }))
     .filter(walker => {
-      // Only show active and verified walkers for public view
-      if (!walker.is_active || walker.verification_status !== 'verified') return false;
+      // Only show active walkers for public view
+      if (!walker.is_active) return false;
 
       const matchesLocation = !searchLocation || 
         walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
