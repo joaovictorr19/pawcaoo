@@ -299,40 +299,28 @@ export default function UserProfile() {
     initialData: [],
   });
 
-  // Optimized Followers Count (Direct Count from Relation Table)
+  // Optimized Followers Count (Aggregated Field)
   const { data: followersCount = 0 } = useQuery({
-    queryKey: ['followersCount', profileEmail],
+    queryKey: ['followersCount', profileEmail, profileUser?.followers_count],
     queryFn: async () => {
-      if (!profileEmail) return 0;
-      try {
-        const list = await base44.entities.SocialFollow.filter({ following_email: profileEmail });
-        return list.length;
-      } catch (e) {
-        return profileUser?.followers_count || 0;
-      }
+      // Use the aggregated count from the profile record to avoid fetching thousands of records
+      return profileUser?.followers_count || 0;
     },
-    enabled: !!profileEmail,
-    initialData: 0,
-    staleTime: 0,
-    refetchOnWindowFocus: true
+    enabled: !!profileUser,
+    initialData: profileUser?.followers_count || 0,
+    staleTime: 0
   });
 
-  // Optimized Following Count (Direct Count)
+  // Optimized Following Count (Aggregated Field)
   const { data: followingCount = 0 } = useQuery({
-    queryKey: ['followingCount', profileEmail],
+    queryKey: ['followingCount', profileEmail, profileUser?.following_count],
     queryFn: async () => {
-      if (!profileEmail) return 0;
-      try {
-        const list = await base44.entities.SocialFollow.filter({ follower_email: profileEmail });
-        return list.length;
-      } catch (e) {
-        return profileUser?.following_count || 0;
-      }
+      // Use the aggregated count from the profile record
+      return profileUser?.following_count || 0;
     },
-    enabled: !!profileEmail,
-    initialData: 0,
-    staleTime: 0,
-    refetchOnWindowFocus: true
+    enabled: !!profileUser,
+    initialData: profileUser?.following_count || 0,
+    staleTime: 0
   });
 
   const [showFollowers, setShowFollowers] = useState(false);
