@@ -350,69 +350,7 @@ export default function WalkerDetails() {
                 <p className="text-2xl font-bold text-green-600">€{walker.hourly_rate}/hora</p>
               </div>
 
-              {/* COMMENTED OUT TEMPORARILY - TESTING
-              <ProfessionalProfileHeader 
-                professional={walker} 
-                type="walker" 
-                reviews={reviews}
-                averageRating={averageRating}
-              />
-
-              <div className="px-5 pb-5">
-                <ServiceList services={walker.services_offered || []} type="walker" />
-
-                {/* COMMENTED OUT - TESTING
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-green-600" />
-                    {t('serviceAreas', language)}
-                  </h2>
-
-                  <div className="mb-4">
-                    <ServiceAreaMap walker={walker} />
-                  </div>
-
-                  {walker.service_areas && walker.service_areas.length > 0 && (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {walker.service_areas.map((area, idx) => (
-                        <div key={idx} className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-                          <h4 className="font-semibold text-gray-900 mb-2">{area.area_name}</h4>
-                          {area.postal_codes && area.postal_codes.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {area.postal_codes.map(code => (
-                                <Badge key={code} className="bg-green-600 text-white text-xs">
-                                  {code}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          <p className="text-sm text-gray-600">
-                            {t('radius', language)}: <span className="font-semibold">{area.radius_km} km</span>
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-                  <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('dogSizesHandle', language)}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {walker.dog_sizes.map(size => (
-                        <Badge
-                          key={size}
-                          className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1"
-                        >
-                          {getSizeLabel(size)}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  )} 
-                  END COMMENTED OUT */}
-
-                  {/* Dog Breeds */}
+              {/* Dog Breeds */}
                 {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
                   <div className="mb-4">
                     <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('breedsWorkWith', language)}</h2>
@@ -499,55 +437,7 @@ export default function WalkerDetails() {
               </div>
             </div>
 
-            {/* COMMENTED OUT - TESTING
-            <Card className="border-0 shadow-md">
-              <CardHeader className="py-4 px-5">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-green-600" />
-                  {t('availability', language)}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-0">
-                <AvailabilityCalendar
-                  availabilityData={availability}
-                  bookings={walkerBookings}
-                  selectedDate={selectedDate}
-                  onDateSelect={handleDateSelect}
-                  locale={currentLocale}
-                />
-              </CardContent>
-            </Card>
 
-            <Card className="border-0 shadow-md">
-              <CardHeader className="py-4 px-5">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  {t('reviews', language)} ({reviews.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-0">
-                {loadingReviews ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                      <Skeleton key={i} className="h-32 rounded-lg" />
-                    ))}
-                  </div>
-                ) : reviews.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
-                    <p className="text-gray-600">{t('beFirstReview', language)}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <ReviewCard key={review.id} review={review} />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            END COMMENTED OUT */}
 
             <div className="text-center py-8 text-gray-500">
               ⚠️ VERSÃO SIMPLIFICADA - TESTE DE ISOLAMENTO
