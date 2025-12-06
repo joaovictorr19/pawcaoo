@@ -840,6 +840,14 @@ export default function AdminDashboard() {
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
+                              <Button 
+                                size="sm" 
+                                variant="default"
+                                className="bg-purple-600 text-white hover:bg-purple-700"
+                                onClick={() => openGrantBadgeDialog(user.email)}
+                              >
+                                🎖️ Badge
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
