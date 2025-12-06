@@ -101,6 +101,14 @@ export default function UserProfile() {
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, isSelfView, currentUser?.id],
     queryFn: async () => {
+      console.log('🔍 PROFILE QUERY EXECUTING:', {
+        targetId,
+        targetEmail,
+        isSelfView,
+        currentUserEmail: currentUser?.email,
+        currentUserId: currentUser?.id
+      });
+      
       let userProfile = null;
       
       // STRATEGY:
@@ -111,38 +119,50 @@ export default function UserProfile() {
 
       // 1. Try Lookup by ID if provided
       if (targetId) {
+        console.log('🔎 Searching by ID:', targetId);
         // Try Entity ID
         try {
           const byEntityId = await base44.entities.UserProfile.filter({ id: targetId });
+          console.log('📋 By Entity ID results:', byEntityId?.length || 0);
           if (byEntityId && byEntityId.length > 0) userProfile = byEntityId[0];
-        } catch (e) {}
+        } catch (e) {
+          console.error('❌ Entity ID search failed:', e);
+        }
 
         // Try User ID (if not found yet)
         if (!userProfile) {
           try {
             const byUserId = await base44.entities.UserProfile.filter({ user_id: targetId });
+            console.log('📋 By User ID results:', byUserId?.length || 0);
             if (byUserId && byUserId.length > 0) userProfile = byUserId[0];
-          } catch (e) {}
+          } catch (e) {
+            console.error('❌ User ID search failed:', e);
+          }
         }
       }
 
       // 2. Try Lookup by Email (if targetEmail provided OR isSelfView)
       if (!userProfile) {
         const emailToSearch = targetEmail || (isSelfView && currentUser?.email) || null;
+        console.log('📧 Searching by Email:', emailToSearch);
         if (emailToSearch) {
           try {
             const byEmail = await base44.entities.UserProfile.filter({ user_email: emailToSearch });
+            console.log('📋 By Email results:', byEmail?.length || 0, byEmail);
             if (byEmail && byEmail.length > 0) userProfile = byEmail[0];
-          } catch (e) {}
+          } catch (e) {
+            console.error('❌ Email search failed:', e);
+          }
         }
       }
 
       // 3. Create/Sync logic (Only for Current User)
       if (isSelfView && currentUser) {
+        console.log('👤 Self view - checking profile creation/sync');
         if (!userProfile) {
           // CREATE
           try {
-            console.log("Creating UserProfile for:", currentUser.email);
+            console.log("✨ Creating UserProfile for:", currentUser.email, currentUser);
             // Ensure required fields have values
             const payload = {
               user_email: currentUser.email,
@@ -161,8 +181,9 @@ export default function UserProfile() {
             };
 
             userProfile = await base44.entities.UserProfile.create(payload);
+            console.log('✅ Profile created successfully:', userProfile);
           } catch (error) {
-            console.error("Creation failed:", error);
+            console.error("❌ Creation failed:", error, error.message);
             // Last ditch effort: did it exist but query failed before?
             const retry = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
             if (retry.length > 0) userProfile = retry[0];
@@ -186,6 +207,7 @@ export default function UserProfile() {
         }
       }
 
+      console.log('🎯 Final result:', userProfile ? 'Found/Created' : 'NOT FOUND');
       return userProfile;
     },
     enabled: !!targetId || !!targetEmail || (isSelfView && !!currentUser),
@@ -193,6 +215,8 @@ export default function UserProfile() {
     staleTime: 0,
     refetchOnMount: 'always',
   });
+
+  console.log('📊 Query State:', { loadingUser, profileUser: !!profileUser, isSelfView });
 
   // Derived values
   const profileEmail = profileUser?.email;
