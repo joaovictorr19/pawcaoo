@@ -59,17 +59,41 @@ export default function WalkerDetails() {
     enabled: !!user?.id,
   });
 
-  const { data: walker, isLoading } = useQuery({
+  const { data: walker, isLoading, isError, error } = useQuery({
     queryKey: ['walker', walkerId],
     queryFn: async () => {
       if (!walkerId) return null;
       // Fetch specific walker directly from DB - Public Access
-      const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
-      return results[0] || null;
+      try {
+        // Try filter by ID first
+        const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
+        if (results && results.length > 0) return results[0];
+        
+        // Fallback: Try to find by user_id if walkerId is a user_id (created_by_id)
+        const byUserId = await base44.entities.WalkerProfile.filter({ created_by_id: walkerId });
+        if (byUserId && byUserId.length > 0) return byUserId[0];
+
+        return null;
+      } catch (e) {
+        console.error("Error fetching walker:", e);
+        throw e;
+      }
     },
     enabled: !!walkerId,
-    retry: false, // Don't retry indefinitely if fails (e.g. 404)
+    retry: false,
   });
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
+        <div className="text-center text-red-600">
+          <h2 className="text-xl font-bold mb-2">Erro ao carregar perfil</h2>
+          <p>{error.message}</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Tentar novamente</Button>
+        </div>
+      </div>
+    );
+  }
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['walkerReviews', walkerId],
@@ -197,6 +221,9 @@ export default function WalkerDetails() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('walkerNotFound', language)}</h2>
           <p className="text-gray-600 mb-6">{t('redirectingHome', language)}</p>
+          <div className="bg-gray-100 p-2 rounded text-xs text-gray-500 mb-4 font-mono">
+            Debug: ID searched: {walkerId || 'null'}
+          </div>
           <Button onClick={() => navigate(createPageUrl('Home'))}>
             {t('backHome', language)}
           </Button>
