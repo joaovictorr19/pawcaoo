@@ -56,7 +56,7 @@ const prefetchQueries = {
   walkers: (queryClient, base44) => {
     queryClient.prefetchQuery({
       queryKey: ['walkers'],
-      queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating'),
+      queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100),
       staleTime: 2 * 60 * 1000,
     });
   },
