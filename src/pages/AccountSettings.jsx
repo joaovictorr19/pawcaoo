@@ -40,6 +40,16 @@ export default function AccountSettings() {
     instagram_handle: "",
     facebook_handle: "",
     twitter_handle: "",
+    about_me: "",
+    pet_preferences: "",
+    health_info: "",
+    past_experiences: "",
+    emergency_contact: {
+      name: "",
+      phone: "",
+      relation: ""
+    },
+    skills: "",
   });
 
   const [preferences, setPreferences] = useState({
@@ -61,6 +71,12 @@ export default function AccountSettings() {
         instagram_handle: user.instagram_handle || "",
         facebook_handle: user.facebook_handle || "",
         twitter_handle: user.twitter_handle || "",
+        about_me: user.about_me || "",
+        pet_preferences: user.pet_preferences || "",
+        health_info: user.health_info || "",
+        past_experiences: user.past_experiences || "",
+        emergency_contact: user.emergency_contact || { name: "", phone: "", relation: "" },
+        skills: user.skills ? user.skills.join(", ") : "",
       });
       setPreferences({
         language: user.preferences?.language || "pt",
@@ -126,7 +142,11 @@ export default function AccountSettings() {
   };
 
   const handleSaveProfile = () => {
-    updateProfileMutation.mutate(profileData);
+    const updatedData = {
+      ...profileData,
+      skills: profileData.skills.split(",").map(s => s.trim()).filter(s => s),
+    };
+    updateProfileMutation.mutate(updatedData);
   };
 
   const handleSavePreferences = () => {
@@ -306,6 +326,44 @@ export default function AccountSettings() {
                   </div>
 
                   <div>
+                    <Label>About Me (Professional)</Label>
+                    <Textarea
+                      value={profileData.about_me}
+                      onChange={(e) => setProfileData({...profileData, about_me: e.target.value})}
+                      placeholder="Detailed introduction about your professional services and philosophy..."
+                      rows={6}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Skills (comma separated)</Label>
+                    <Input
+                      value={profileData.skills}
+                      onChange={(e) => setProfileData({...profileData, skills: e.target.value})}
+                      placeholder="Dog Walking, Training, First Aid, Grooming..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Pet Preferences</Label>
+                    <Input
+                      value={profileData.pet_preferences}
+                      onChange={(e) => setProfileData({...profileData, pet_preferences: e.target.value})}
+                      placeholder="E.g., Large dogs, energetic breeds..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Past Experiences</Label>
+                    <Textarea
+                      value={profileData.past_experiences}
+                      onChange={(e) => setProfileData({...profileData, past_experiences: e.target.value})}
+                      placeholder="Share your past experiences with pets..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
                     <Label>Website</Label>
                     <Input
                       value={profileData.website}
@@ -342,6 +400,55 @@ export default function AccountSettings() {
                   <div>
                     <Label>Email</Label>
                     <Input value={user?.email} disabled className="bg-gray-100" />
+                  </div>
+
+                  <div className="border p-4 rounded-md bg-gray-50 space-y-3">
+                    <h4 className="font-medium text-sm">Emergency Contact</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs">Name</Label>
+                        <Input
+                          value={profileData.emergency_contact.name}
+                          onChange={(e) => setProfileData({
+                            ...profileData, 
+                            emergency_contact: {...profileData.emergency_contact, name: e.target.value}
+                          })}
+                          placeholder="Contact Name"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Phone</Label>
+                        <Input
+                          value={profileData.emergency_contact.phone}
+                          onChange={(e) => setProfileData({
+                            ...profileData, 
+                            emergency_contact: {...profileData.emergency_contact, phone: e.target.value}
+                          })}
+                          placeholder="Phone Number"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Relation</Label>
+                        <Input
+                          value={profileData.emergency_contact.relation}
+                          onChange={(e) => setProfileData({
+                            ...profileData, 
+                            emergency_contact: {...profileData.emergency_contact, relation: e.target.value}
+                          })}
+                          placeholder="Relation"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Health Information (Private)</Label>
+                    <Textarea
+                      value={profileData.health_info}
+                      onChange={(e) => setProfileData({...profileData, health_info: e.target.value})}
+                      placeholder="Relevant health info (e.g., allergies, physical limitations)..."
+                      rows={3}
+                    />
                   </div>
 
                   <div>

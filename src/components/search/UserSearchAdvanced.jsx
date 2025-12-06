@@ -44,7 +44,8 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
     accountType: "all",
     status: "all",
     verification: "all",
-    dateRange: "all"
+    dateRange: "all",
+    skills: "" // New filter
   });
 
   const { data: currentUser } = useQuery({
@@ -105,7 +106,8 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
       accountType: "all",
       status: "all",
       verification: "all",
-      dateRange: "all"
+      dateRange: "all",
+      skills: ""
     });
   };
 
@@ -238,6 +240,15 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
                     <SelectItem value="month">Último mês</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Skills (Keyword)</Label>
+                <Input
+                  placeholder="e.g. First Aid"
+                  value={filters.skills || ""}
+                  onChange={(e) => setFilters({...filters, skills: e.target.value})}
+                />
               </div>
 
               <div className="flex justify-end pt-2">

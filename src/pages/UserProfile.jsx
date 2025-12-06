@@ -386,6 +386,16 @@ export default function UserProfile() {
                       {profileUser.bio}
                     </p>
                   )}
+
+                  {profileUser.skills && profileUser.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {profileUser.skills.map((skill, i) => (
+                        <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                   
                   {profileUser.city && (
                     <div className="flex items-center gap-1 text-sm text-gray-500 mt-2 justify-center md:justify-start">
@@ -489,9 +499,9 @@ export default function UserProfile() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="badges">
-          <TabsList className="grid w-full grid-cols-3 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
-            {/* Posts removido */}
+          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
             <TabsTrigger value="badges"><Award className="w-4 h-4 mr-1" />Emblemas</TabsTrigger>
+            <TabsTrigger value="about"><User className="w-4 h-4 mr-1" />About</TabsTrigger>
             <TabsTrigger value="gamification"><Zap className="w-4 h-4 mr-1" />XP</TabsTrigger>
             <TabsTrigger value="activity"><TrendingUp className="w-4 h-4 mr-1" />Stats</TabsTrigger>
           </TabsList>
@@ -583,6 +593,71 @@ export default function UserProfile() {
                     {profileBadges.map((badge, idx) => (
                       <BadgeItem key={`profile-${badge.badge_id || idx}`} badge={badge} idx={idx + achievementsBadges.length + publicBadges.length} getBadgeImage={getBadgeImage} />
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* About Tab */}
+          <TabsContent value="about">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-green-600" />
+                  About {profileUser.full_name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {profileUser.about_me && (
+                  <div>
+                    <h4 className="font-semibold mb-2">About Me</h4>
+                    <p className="text-gray-700 whitespace-pre-wrap">{profileUser.about_me}</p>
+                  </div>
+                )}
+
+                {profileUser.pet_preferences && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Pet Preferences</h4>
+                    <p className="text-gray-700">{profileUser.pet_preferences}</p>
+                  </div>
+                )}
+
+                {profileUser.past_experiences && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Experience</h4>
+                    <p className="text-gray-700 whitespace-pre-wrap">{profileUser.past_experiences}</p>
+                  </div>
+                )}
+
+                {(isOwnProfile || currentUser?.role === 'admin') && profileUser.emergency_contact?.name && (
+                  <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                    <h4 className="font-semibold mb-2 text-red-800 flex items-center gap-2">
+                      <Shield className="w-4 h-4" /> Emergency Contact (Private)
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-xs text-gray-500 block">Name</span>
+                        <span className="font-medium">{profileUser.emergency_contact.name}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 block">Phone</span>
+                        <span className="font-medium">{profileUser.emergency_contact.phone}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 block">Relation</span>
+                        <span className="font-medium">{profileUser.emergency_contact.relation}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(isOwnProfile || currentUser?.role === 'admin') && profileUser.health_info && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h4 className="font-semibold mb-2 text-blue-800 flex items-center gap-2">
+                      <Heart className="w-4 h-4" /> Health Information (Private)
+                    </h4>
+                    <p className="text-gray-700">{profileUser.health_info}</p>
                   </div>
                 )}
               </CardContent>
