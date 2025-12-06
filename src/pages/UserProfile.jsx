@@ -35,7 +35,13 @@ function BadgeItem({ badge, idx, getBadgeImage }) {
       <div className={`w-20 h-20 rounded-xl flex items-center justify-center mb-2 border-2 border-white/20 hover:border-yellow-400 transition-all shadow-lg relative group ${
         transparentBg ? 'bg-transparent' : 'bg-white/10'
       }`}>
-        {badge.image_url ? (
+        {badge.image_png_file ? (
+          <img 
+            src={badge.image_png_file} 
+            alt={badge.name}
+            className="w-16 h-16 object-contain rounded-lg"
+          />
+        ) : badge.image_url ? (
           <img 
             src={badge.image_url} 
             alt={badge.name}

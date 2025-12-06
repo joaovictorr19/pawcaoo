@@ -601,8 +601,12 @@ export default function AdminDashboard() {
     setUploadingCustomBadgeImage(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setCustomBadgeForm({...customBadgeForm, image_url: file_url});
-      toast.success('✅ Imagem carregada!');
+      setCustomBadgeForm({
+        ...customBadgeForm, 
+        image_url: file_url,
+        image_png_file: file_url // Set new field
+      });
+      toast.success('✅ Imagem PNG carregada!');
     } catch (error) {
       toast.error('Erro ao carregar imagem');
     } finally {
