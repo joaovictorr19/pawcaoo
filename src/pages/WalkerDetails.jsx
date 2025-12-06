@@ -109,6 +109,18 @@ export default function WalkerDetails() {
     initialData: [],
   });
 
+  // FETCH BADGES (Sync Count & List)
+  const { data: walkerBadges = [] } = useQuery({
+    queryKey: ['walkerBadges', walker?.created_by],
+    queryFn: async () => {
+      if (!walker?.created_by) return [];
+      // Fetch UserBadge linking user_email to walker's email
+      return await base44.entities.UserBadge.filter({ user_email: walker.created_by });
+    },
+    enabled: !!walker?.created_by,
+    initialData: [],
+  });
+
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : walker?.rating || 5;
@@ -280,6 +292,38 @@ export default function WalkerDetails() {
                       <h3 className="font-semibold text-green-800 text-sm">Perfil Verificado pela PawCão</h3>
                       <p className="text-xs text-green-700">Identidade, documentos e antecedentes criminais verificados.</p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Emblemas Conquistados (Sincronizado) */}
+              {walkerBadges.length > 0 && (
+                <div className="px-5 pt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-5 h-5 text-purple-600" />
+                    <h3 className="font-semibold text-gray-900 text-sm">
+                      Conquistas ({walkerBadges.length})
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                    {walkerBadges.map((badge) => (
+                      <div 
+                        key={badge.id} 
+                        className="flex flex-col items-center text-center p-2 bg-purple-50 rounded-lg border border-purple-100 hover:shadow-sm transition-all" 
+                        title={badge.description}
+                      >
+                        <div className="text-2xl mb-1 h-8 w-8 flex items-center justify-center">
+                          {badge.image_url ? (
+                            <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded" style={{imageRendering: 'pixelated'}} />
+                          ) : (
+                            badge.icon
+                          )}
+                        </div>
+                        <span className="text-[10px] font-medium text-purple-900 leading-tight line-clamp-2">
+                          {badge.name}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
