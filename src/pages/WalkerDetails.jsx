@@ -144,37 +144,34 @@ export default function WalkerDetails() {
   const handlePaymentSuccess = async (payment) => {
     if (!currentBooking) return;
 
-    // Send notifications after payment
+    // Send notifications after request (Manual Payment)
     try {
       // 1. Notify Walker
       await createNotification.mutateAsync({
         recipient_email: walker.created_by,
-        title: '🎉 Nova Reserva Confirmada!',
-        message: `${user.full_name} reservou e pagou um passeio para ${currentBooking.dog_name} em ${format(new Date(currentBooking.walk_date), 'dd/MM/yyyy')}.`,
+        title: '📅 Nova Solicitação de Reserva!',
+        message: `${user.full_name} solicitou um passeio para ${currentBooking.dog_name} em ${format(new Date(currentBooking.walk_date), 'dd/MM/yyyy')}. Verifique o chat para combinar o pagamento MBWay.`,
         type: 'booking',
         related_id: currentBooking.id,
-        action_url: `/MyBookings?id=${currentBooking.id}`,
+        action_url: `/Messages?walker_id=${walker.id}`,
         priority: 'high'
       });
 
-      // 2. Notify Owner
+      // 2. Notify Owner - No need to notify owner about their own action immediately, UI feedback is enough, 
+      // but creating a notification record is good for history.
+      // Notificando apenas que o pedido foi enviado.
       await createNotification.mutateAsync({
         recipient_email: user.email,
-        title: '✅ Reserva Confirmada!',
-        message: `Sua reserva com ${walker.walker_name} foi confirmada e o pagamento de €${payment.total_amount} processado com sucesso.`,
+        title: '⏳ Solicitação Enviada',
+        message: `Sua solicitação para ${walker.walker_name} foi enviada. Combine o pagamento via MBWay no chat.`,
         type: 'booking',
         related_id: currentBooking.id,
-        action_url: `/MyBookings?id=${currentBooking.id}`,
+        action_url: `/Messages?walker_id=${walker.id}`,
         priority: 'normal'
       });
 
-      // 3. Update Walker Stats
-      await base44.entities.WalkerProfile.update(walker.id, {
-        total_walks: (walker.total_walks || 0) + 1
-      });
-
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      navigate(createPageUrl(`MyBookings?id=${currentBooking.id}`));
+      // Navigation is handled in CheckoutModal to go to Chat
       
     } catch (error) {
       console.error("Error sending notifications:", error);

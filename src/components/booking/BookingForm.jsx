@@ -104,7 +104,7 @@ export default function BookingForm({ walker, professional, onClose }) {
       // 1. Criar booking com status pending_payment
       const booking = await base44.entities.Booking.create({
         ...bookingData,
-        status: 'pending_payment'
+        status: 'pending'
       });
       console.log('✅ Booking iniciado:', booking.id);
 
@@ -379,12 +379,12 @@ export default function BookingForm({ walker, professional, onClose }) {
               {isProcessing ? (
                 <>
                   <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  Iniciando...
+                  Processando...
                 </>
               ) : (
                 <>
                   <DollarSign className="w-4 h-4 mr-2" />
-                  Ir para Pagamento
+                  Continuar
                 </>
               )}
             </Button>
