@@ -734,7 +734,7 @@ function LayoutContent({ children, currentPageName }) {
 
               {!user && (
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin()}
+                  onClick={() => base44.auth.redirectToLogin(window.location.href)}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm"
                   size="sm"
                 >
