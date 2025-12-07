@@ -1082,7 +1082,14 @@ export default function AdminDashboard() {
                   <TableBody>
                     {activeWalkers.map(walker => (
                       <TableRow key={walker.id}>
-                        <TableCell className="font-medium">{walker.walker_name}</TableCell>
+                        <TableCell className="font-medium">
+                          {walker.walker_name}
+                          {walker.verification_status === 'verified' && (
+                            <Badge variant="outline" className="ml-2 border-green-500 text-green-600 text-[10px] h-5">
+                              ✓ Verificado
+                            </Badge>
+                          )}
+                        </TableCell>
                         <TableCell>{walker.created_by}</TableCell>
                         <TableCell>{walker.location}</TableCell>
                         <TableCell>
