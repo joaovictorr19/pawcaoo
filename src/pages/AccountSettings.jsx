@@ -145,9 +145,7 @@ export default function AccountSettings() {
         data.last_username_change_date = new Date().toISOString();
       }
 
-      await base44.auth.updateMe(data);
-
-      // Sync with UserProfile entity
+      // 1. Sync with UserProfile entity FIRST (Source of Truth for Profile Page)
       try {
         const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (userProfiles && userProfiles.length > 0) {
@@ -180,6 +178,14 @@ export default function AccountSettings() {
         }
       } catch (err) {
         console.error("Failed to sync UserProfile:", err);
+      }
+
+      // 2. Update Auth User (Secondary for Display Name)
+      try {
+        await base44.auth.updateMe(data);
+      } catch (authErr) {
+        console.error("Auth update warning:", authErr);
+        // Don't fail the whole operation if only auth update fails but profile updated
       }
     },
     onSuccess: () => {
@@ -248,7 +254,7 @@ export default function AccountSettings() {
       ...profileData,
       username: formattedUsername,
       full_name: profileData.full_name, // Ensure full name is passed explicitly
-      skills: profileData.skills.split(",").map(s => s.trim()).filter(s => s),
+      skills: profileData.skills && typeof profileData.skills === 'string' ? profileData.skills.split(",").map(s => s.trim()).filter(s => s) : [],
     };
     updateProfileMutation.mutate(updatedData);
   };
