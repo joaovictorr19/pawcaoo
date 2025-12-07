@@ -105,13 +105,6 @@ export default function UserProfile() {
                      (currentUser && targetEmail === currentUser.email) ||
                      (currentUser && targetUsername === currentUser.username);
 
-  // Redirecionar para login se for SelfView e não estiver logado
-  React.useEffect(() => {
-    if (isSelfView && !currentUser && !loadingUser) {
-      base44.auth.redirectToLogin();
-    }
-  }, [isSelfView, currentUser, loadingUser]);
-
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, targetName, targetUsername, isSelfView, currentUser?.id],
     queryFn: async () => {
@@ -329,7 +322,14 @@ export default function UserProfile() {
     },
     enabled: !!targetId || !!targetEmail || (isSelfView && !!currentUser),
     retry: false,
-  });
+    });
+
+    // Redirecionar para login se for SelfView e não estiver logado
+    React.useEffect(() => {
+    if (isSelfView && !currentUser && !loadingUser) {
+    base44.auth.redirectToLogin();
+    }
+    }, [isSelfView, currentUser, loadingUser]);
 
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
