@@ -90,7 +90,7 @@ export default function UserProfile() {
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
 
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
@@ -326,10 +326,10 @@ export default function UserProfile() {
 
     // Redirecionar para login se for SelfView e não estiver logado
     React.useEffect(() => {
-    if (isSelfView && !currentUser && !loadingUser) {
-    base44.auth.redirectToLogin();
-    }
-    }, [isSelfView, currentUser, loadingUser]);
+      if (isSelfView && !currentUser && !loadingUser && !authLoading) {
+        base44.auth.redirectToLogin();
+      }
+    }, [isSelfView, currentUser, loadingUser, authLoading]);
 
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
