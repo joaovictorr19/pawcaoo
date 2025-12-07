@@ -851,6 +851,30 @@ export default function ProfessionalDashboard() {
                                 </Button>
                               </div>
                             )}
+
+                            {booking.status === 'confirmed' && new Date(booking.walk_date || booking.session_date) <= new Date() && (
+                               <Button
+                                  size="sm"
+                                  onClick={() => handleServiceCompleted(booking)}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md"
+                                  disabled={updateBookingStatusMutation.isPending}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Confirmar Serviço Concluído
+                                </Button>
+                            )}
+
+                            {booking.status === 'service_completed' && (
+                               <Button
+                                  size="sm"
+                                  onClick={() => handlePaymentReceived(booking)}
+                                  className="bg-purple-600 hover:bg-purple-700 text-white w-full shadow-md animate-pulse"
+                                  disabled={updateBookingStatusMutation.isPending}
+                                >
+                                  <DollarSign className="w-4 h-4 mr-2" />
+                                  Confirmar Pagamento Recebido
+                                </Button>
+                            )}
                             
                             <Button
                               size="sm"
