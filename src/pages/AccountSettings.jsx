@@ -414,8 +414,8 @@ export default function AccountSettings() {
                       <Input
                         value={profileData.username}
                         onChange={(e) => {
-                          // Allow alphanumeric, underscore, dot, hyphen. Replace spaces with underscore.
-                          const val = e.target.value.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, "");
+                          // Allow alphanumeric, underscore, dot, hyphen. Replace spaces with hyphen.
+                          const val = e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9._-]/g, "");
                           setProfileData({...profileData, username: val});
                         }}
                         placeholder="username"
