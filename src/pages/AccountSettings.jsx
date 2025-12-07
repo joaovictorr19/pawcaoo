@@ -321,18 +321,21 @@ export default function AccountSettings() {
                     <Input
                       value={profileData.full_name}
                       onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
-                      placeholder="Seu nome completo"
+                      placeholder="Ex: João da Silva (Pode conter espaços)"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Seu nome de exibição no perfil.
+                    </p>
                   </div>
 
                   <div>
-                    <Label>Nome de Usuário (Username)</Label>
+                    <Label>Nome de Usuário (@)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
                       <Input
                         value={profileData.username}
                         onChange={(e) => {
-                          // Allow only alphanumeric, underscore, dot
+                          // Allow only alphanumeric, underscore, dot - NO spaces
                           const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, "");
                           setProfileData({...profileData, username: val});
                         }}
@@ -341,7 +344,7 @@ export default function AccountSettings() {
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      Único e usado para encontrar seu perfil (ex: @joao.silva)
+                      Identificador único (sem espaços). É assim que outros usuários encontrarão você.
                     </p>
                   </div>
 

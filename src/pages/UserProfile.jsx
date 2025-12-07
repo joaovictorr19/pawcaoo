@@ -88,6 +88,7 @@ export default function UserProfile() {
   const profileEmailParam = urlParams.get('email');
   const profileIdParam = urlParams.get('id');
   const profileNameParam = urlParams.get('name');
+  const profileUsernameParam = urlParams.get('username');
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -96,16 +97,30 @@ export default function UserProfile() {
 
   const targetId = profileIdParam;
   const targetName = profileNameParam;
-  const targetEmail = !targetId && !targetName ? profileEmailParam : null;
+  const targetUsername = profileUsernameParam;
+  const targetEmail = !targetId && !targetName && !targetUsername ? profileEmailParam : null;
 
-  const isSelfView = (!targetId && !targetEmail && !targetName) || 
+  const isSelfView = (!targetId && !targetEmail && !targetName && !targetUsername) || 
                      (currentUser && targetId === currentUser.id) || 
-                     (currentUser && targetEmail === currentUser.email);
+                     (currentUser && targetEmail === currentUser.email) ||
+                     (currentUser && targetUsername === currentUser.username);
 
   const { data: profileUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['profileUser', targetId, targetEmail, targetName, isSelfView, currentUser?.id],
+    queryKey: ['profileUser', targetId, targetEmail, targetName, targetUsername, isSelfView, currentUser?.id],
     queryFn: async () => {
       let userProfile = null;
+
+      // 0. Priority: Search by Username (@handle) - Identificador principal
+      if (targetUsername) {
+        try {
+          const byUsername = await base44.entities.UserProfile.filter({ username: targetUsername });
+          if (byUsername && byUsername.length > 0) {
+            userProfile = byUsername[0];
+          }
+        } catch (e) {
+          console.error('Error fetching by Username:', e);
+        }
+      }
 
       // 1. Priority: Self View by Email
       if (isSelfView && currentUser?.email) {
