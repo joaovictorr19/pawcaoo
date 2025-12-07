@@ -134,8 +134,8 @@ export default function UserProfile() {
             console.error('Error fetching self profile:', e);
           }
         } else {
-           // Not logged in and no params -> Redirect to login or show generic message
-           // For now, let it return null so "Profile not found" or "Please login" is shown
+           // If trying to view own profile but not logged in, we can't show it.
+           // However, if we are here, it means no ID/Email was passed.
         }
       }
 
