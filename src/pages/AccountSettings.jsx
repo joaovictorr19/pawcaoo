@@ -423,19 +423,19 @@ export default function AccountSettings() {
                   <Separator />
 
                   <div>
-                    <Label>Nome Completo</Label>
+                    <Label>Nome da Conta (Nome de Exibição)</Label>
                     <Input
                       value={profileData.full_name}
                       onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
-                      placeholder="Ex: João da Silva (Pode conter espaços)"
+                      placeholder="Ex: Nuno Araujo (Pode conter espaços)"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Seu nome de exibição no perfil.
+                      Este é o nome que aparece no topo do seu perfil.
                     </p>
                   </div>
 
                   <div>
-                    <Label>Nome de Usuário (@)</Label>
+                    <Label>Nome de Usuário (@ - Identificador Único)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
                       <Input
@@ -450,7 +450,7 @@ export default function AccountSettings() {
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      Identificador único (sem espaços). É assim que outros usuários encontrarão você. 
+                      Este identificador é <strong>único</strong> e define o endereço do seu perfil. Não pode ser duplicado por outra conta.
                       <span className="text-orange-600 block mt-1 font-medium">
                         Nota: O nome de usuário (@) só pode ser alterado uma vez a cada 30 dias.
                       </span>
