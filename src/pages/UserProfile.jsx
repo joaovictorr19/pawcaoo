@@ -611,8 +611,8 @@ export default function UserProfile() {
               <div className="space-y-3">
                 <Button 
                   onClick={() => {
-                    // Simply redirect to login without params to avoid redirect loops or 404s on /login
-                    base44.auth.redirectToLogin();
+                    // Use redirect with explicit URL to handle custom domains correctly
+                    base44.auth.redirectToLogin(window.location.origin);
                   }} 
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
