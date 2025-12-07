@@ -251,31 +251,33 @@ export default function ProfessionalDashboard() {
       await entity.update(booking.id, updateData);
       
       // WORKFLOW: NOTIFICATIONS
-      const clientEmail = booking.owner_email || booking.created_by;
-      const dateFormatted = format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy');
-      const timeFormatted = booking.walk_time || booking.session_time;
+      try {
+        const clientEmail = booking.owner_email || booking.created_by;
+        const dateFormatted = format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy');
+        const timeFormatted = booking.walk_time || booking.session_time;
 
-      if (status === 'confirmed') {
-        await createNotification.mutateAsync({
-          recipient_email: clientEmail,
-          title: '✅ Reserva Confirmada!',
-          message: `Sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi aceite.`,
-          type: 'booking',
-          related_id: booking.id,
-          priority: 'high',
-          action_url: '/MyBookings'
-        });
-      } else if (status === 'cancelled' || status === 'rejected') {
-        await createNotification.mutateAsync({
-          recipient_email: clientEmail,
-          title: '❌ Reserva Cancelada/Recusada',
-          message: `Sua reserva para ${dateFormatted} foi cancelada/recusada pelo profissional.`,
-          type: 'booking',
-          related_id: booking.id,
-          priority: 'high',
-          action_url: '/MyBookings'
-        });
-      }
+        if (status === 'confirmed') {
+          await createNotification.mutateAsync({
+            recipient_email: clientEmail,
+            title: '✅ Reserva Confirmada!',
+            message: `Sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi aceite.`,
+            type: 'booking',
+            related_id: booking.id,
+            priority: 'high',
+            action_url: '/MyBookings'
+          });
+        } else if (status === 'cancelled' || status === 'rejected') {
+          await createNotification.mutateAsync({
+            recipient_email: clientEmail,
+            title: '❌ Reserva Cancelada/Recusada',
+            message: `Sua reserva para ${dateFormatted} foi cancelada/recusada pelo profissional.`,
+            type: 'booking',
+            related_id: booking.id,
+            priority: 'high',
+            action_url: '/MyBookings'
+          });
+        }
+      } catch (e) { console.error(e); }
 
       queryClient.invalidateQueries(['myWalkBookings']);
       queryClient.invalidateQueries(['myTrainingBookings']);
