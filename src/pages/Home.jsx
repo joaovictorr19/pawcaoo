@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
+import LaunchBanner from "../components/marketing/LaunchBanner";
 
 export default function Home() {
   const { language } = useLanguage();
@@ -456,6 +457,7 @@ export default function Home() {
         description="Encontre passeadores de cães confiáveis, treinadores e pets para adoção em Portugal. A comunidade PawCão conecta donos de pets a profissionais verificados."
         schema={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
+      <LaunchBanner />
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-teal-600 to-blue-600 z-0">
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '30px 30px' }}></div>
