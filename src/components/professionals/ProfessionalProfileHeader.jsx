@@ -154,19 +154,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
             </div>
           )}
 
-          {professional.phone && (
-            <div className="flex items-center gap-2.5">
-              <div className={`w-10 h-10 ${isWalker ? 'bg-purple-100' : 'bg-green-100'} rounded-lg flex items-center justify-center shrink-0`}>
-                <Phone className={`w-5 h-5 ${isWalker ? 'text-purple-600' : 'text-green-600'}`} />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">{t('contact', language)}</div>
-                <div className="text-sm font-semibold text-gray-900 truncate max-w-[100px] md:max-w-full">
-                  {professional.phone}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Contact hidden for privacy */}
         </div>
         
         {/* Additional Trainer Specifics */}
