@@ -114,6 +114,7 @@ export default function AdminDashboard() {
   const [showGrantSingleBadgeModal, setShowGrantSingleBadgeModal] = useState(false);
   const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
   const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -423,6 +424,36 @@ export default function AdminDashboard() {
       toast.success("Modelo de emblema removido!");
     },
   });
+
+  const handleAdminDocUpload = async (e, field) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedApplication) return;
+
+    setUploadingDoc(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Determine entity type based on application data
+      const isWalker = !!selectedApplication.walker_name;
+      const entity = isWalker ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+      
+      await entity.update(selectedApplication.id, { [field]: file_url });
+      
+      // Update local state
+      setSelectedApplication(prev => ({ ...prev, [field]: file_url }));
+      
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+      
+      toast.success("Documento carregado e associado com sucesso!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Erro ao carregar documento.");
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
 
   // Mutation para conceder badge (a usuários selecionados ou todos)
   const grantBadgeMutation = useMutation({
@@ -2571,33 +2602,99 @@ export default function AdminDashboard() {
                 <div>
                   <h4 className="font-semibold text-sm text-gray-500 mb-2">Documentos</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedApplication.id_document_url ? (
-                      <div className="border rounded-lg p-2">
-                        <p className="text-xs font-semibold mb-1">Documento de ID</p>
-                        <a href={selectedApplication.id_document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">
-                          Ver Documento
-                        </a>
+                    <div className="border rounded-lg p-3 bg-white">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="text-xs font-semibold">Documento de ID</p>
+                        {uploadingDoc && <span className="text-xs text-blue-600 animate-pulse">Enviando...</span>}
                       </div>
-                    ) : <p className="text-sm text-red-500">ID não enviado</p>}
+                      {selectedApplication.id_document_url ? (
+                        <div className="flex items-center justify-between">
+                          <a href={selectedApplication.id_document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
+                            Ver Documento
+                          </a>
+                          <Label htmlFor="upload-id" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
+                            Substituir
+                          </Label>
+                        </div>
+                      ) : (
+                        <div className="text-center py-2">
+                          <p className="text-sm text-red-500 mb-2">Não enviado</p>
+                          <Label htmlFor="upload-id" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
+                            <Upload className="w-3 h-3 inline mr-1" /> Carregar
+                          </Label>
+                        </div>
+                      )}
+                      <Input 
+                        id="upload-id" 
+                        type="file" 
+                        className="hidden" 
+                        onChange={(e) => handleAdminDocUpload(e, 'id_document_url')}
+                        disabled={uploadingDoc}
+                      />
+                    </div>
 
-                    {selectedApplication.proof_of_address_url ? (
-                      <div className="border rounded-lg p-2">
-                        <p className="text-xs font-semibold mb-1">Comprovativo de Morada</p>
-                        <a href={selectedApplication.proof_of_address_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">
-                          Ver Documento
-                        </a>
+                    <div className="border rounded-lg p-3 bg-white">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="text-xs font-semibold">Comprovativo de Morada</p>
                       </div>
-                    ) : <p className="text-sm text-red-500">Morada não enviada</p>}
+                      {selectedApplication.proof_of_address_url ? (
+                        <div className="flex items-center justify-between">
+                          <a href={selectedApplication.proof_of_address_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
+                            Ver Documento
+                          </a>
+                          <Label htmlFor="upload-addr" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
+                            Substituir
+                          </Label>
+                        </div>
+                      ) : (
+                        <div className="text-center py-2">
+                          <p className="text-sm text-red-500 mb-2">Não enviado</p>
+                          <Label htmlFor="upload-addr" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
+                            <Upload className="w-3 h-3 inline mr-1" /> Carregar
+                          </Label>
+                        </div>
+                      )}
+                      <Input 
+                        id="upload-addr" 
+                        type="file" 
+                        className="hidden" 
+                        onChange={(e) => handleAdminDocUpload(e, 'proof_of_address_url')}
+                        disabled={uploadingDoc}
+                      />
+                    </div>
 
-                    {selectedApplication.background_check_url && (
-                      <div className="border rounded-lg p-2">
-                        <p className="text-xs font-semibold mb-1">Registo Criminal</p>
-                        <a href={selectedApplication.background_check_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">
-                          Ver Documento
-                        </a>
-                        <p className="text-xs text-gray-500 mt-1">Prov: {selectedApplication.background_check_provider}</p>
+                    <div className="border rounded-lg p-3 bg-white">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="text-xs font-semibold">Registo Criminal</p>
                       </div>
-                    )}
+                      {selectedApplication.background_check_url ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <a href={selectedApplication.background_check_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
+                              Ver Documento
+                            </a>
+                            <Label htmlFor="upload-bg" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
+                              Substituir
+                            </Label>
+                          </div>
+                          <p className="text-xs text-gray-500">Prov: {selectedApplication.background_check_provider || 'N/A'}</p>
+                        </div>
+                      ) : (
+                        <div className="text-center py-2">
+                          <p className="text-sm text-gray-500 mb-2">Opcional / Não enviado</p>
+                          <Label htmlFor="upload-bg" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
+                            <Upload className="w-3 h-3 inline mr-1" /> Carregar
+                          </Label>
+                        </div>
+                      )}
+                      <Input 
+                        id="upload-bg" 
+                        type="file" 
+                        className="hidden" 
+                        onChange={(e) => handleAdminDocUpload(e, 'background_check_url')}
+                        disabled={uploadingDoc}
+                      />
+                    </div>
                   </div>
                 </div>
 
