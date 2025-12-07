@@ -111,9 +111,18 @@ function LayoutContent({ children, currentPageName }) {
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
 
-  const { data: user, isLoading: isLoadingUser } = useQuery({
+  const { data: user, isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        const userData = await base44.auth.me();
+        console.log("User loaded:", userData?.email);
+        return userData;
+      } catch (err) {
+        console.error("Auth error:", err);
+        return null;
+      }
+    },
     ...queryConfig.user,
     retry: 1,
   });
