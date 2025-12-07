@@ -281,12 +281,68 @@ export default function ProfessionalDashboard() {
 
       queryClient.invalidateQueries(['myWalkBookings']);
       queryClient.invalidateQueries(['myTrainingBookings']);
-      toast.success(`Reserva ${status === 'confirmed' ? 'aceite' : 'atualizada'} com sucesso`);
+      
+      let message = 'Reserva atualizada com sucesso';
+      if (status === 'confirmed') message = 'Reserva aceite com sucesso';
+      if (status === 'service_completed') message = 'Serviço marcado como concluído! Cliente notificado.';
+      if (status === 'completed') message = 'Pagamento confirmado e reserva finalizada!';
+      
+      toast.success(message);
 
     } catch (error) {
       console.error("Booking action error:", error);
       toast.error("Erro ao atualizar reserva");
     }
+  };
+
+  const handleServiceCompleted = async (booking) => {
+    // 1. Update status to 'service_completed'
+    await handleBookingAction(booking, 'service_completed');
+    
+    // 2. Notify Client specifically for Payment
+    try {
+      const clientEmail = booking.owner_email || booking.created_by;
+      const amount = booking.total_amount || 0;
+      await createNotification.mutateAsync({
+        recipient_email: clientEmail,
+        title: '✅ Serviço Concluído - Pagamento Necessário',
+        message: `O seu Walker marcou o serviço como concluído. Por favor, confirme o pagamento de €${amount} ao profissional (MBWay/Dinheiro) para finalizar.`,
+        type: 'payment',
+        related_id: booking.id,
+        priority: 'high',
+        action_url: '/MyBookings'
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const handlePaymentReceived = async (booking) => {
+    // 1. Update status to 'completed' (Final)
+    // We update completed_date as well
+    const entity = booking.type === 'training' ? base44.entities.TrainingBooking : base44.entities.Booking;
+    await entity.update(booking.id, {
+        status: 'completed',
+        completed_date: new Date().toISOString(),
+        payment_status: 'released' // Assuming direct payment implies released
+    });
+    
+    queryClient.invalidateQueries(['myWalkBookings']);
+    queryClient.invalidateQueries(['myTrainingBookings']);
+    
+    toast.success('Pagamento confirmado! Reserva finalizada.');
+
+    // 2. Notify Client
+    try {
+      const clientEmail = booking.owner_email || booking.created_by;
+      await createNotification.mutateAsync({
+        recipient_email: clientEmail,
+        title: '🎉 Pagamento Confirmado!',
+        message: `O Walker confirmou o recebimento. Obrigado! Por favor, avalie o serviço.`,
+        type: 'booking',
+        related_id: booking.id,
+        priority: 'normal',
+        action_url: `/MyBookings?review=${booking.id}`
+      });
+    } catch (e) { console.error(e); }
   };
 
   const allBookings = [...walkBookings, ...trainingBookings];
