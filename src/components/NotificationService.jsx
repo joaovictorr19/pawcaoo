@@ -134,13 +134,74 @@ export default function NotificationService() {
     const timeoutId = setTimeout(checkUpcomingWalks, 5000);
 
     return () => {
-    clearInterval(intervalId);
-    clearTimeout(timeoutId);
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
     };
-    }, [user?.email, createNotification]);
+  }, [user?.email, createNotification]);
 
-    return null; // Component não renderiza nada
-    }
+  // Review Reminders Logic
+  useEffect(() => {
+    const checkReviewReminders = async () => {
+      if (!user?.email) return;
+
+      try {
+        // Find completed bookings from past 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const completedBookings = await base44.entities.Booking.filter({
+          created_by: user.email, // As owner
+          status: 'completed',
+          completed_date: { '$gte': sevenDaysAgo.toISOString() }
+        });
+
+        for (const booking of completedBookings) {
+          const reminderKey = `reminder-review-${booking.id}`;
+          if (localStorage.getItem(reminderKey)) continue;
+
+          // Check if review exists
+          const reviews = await base44.entities.Review.filter({ booking_id: booking.id });
+          if (reviews.length === 0) {
+             // Check if we already notified in DB
+             const existingNotifs = await base44.entities.Notification.filter({
+               related_id: booking.id,
+               type: 'review_reminder',
+               recipient_email: user.email
+             });
+
+             if (existingNotifs.length === 0) {
+               await createNotification.mutateAsync({
+                 recipient_email: user.email,
+                 title: `⭐ Avalie seu passeio com ${booking.walker_name}`,
+                 message: `Como foi o passeio de ${booking.dog_name}? Sua avaliação ajuda a comunidade!`,
+                 type: 'review_reminder',
+                 related_id: booking.id,
+                 action_url: `/MyBookings?review=${booking.id}`, // Deep link logic to be handled in MyBookings
+                 priority: 'normal',
+                 // Skip email if preferences say so (logic would be here if we fetched prefs)
+               });
+               localStorage.setItem(reminderKey, 'sent');
+             }
+          } else {
+            localStorage.setItem(reminderKey, 'reviewed');
+          }
+        }
+      } catch (error) {
+        console.error("Error checking review reminders:", error);
+      }
+    };
+
+    const intervalId = setInterval(checkReviewReminders, 30 * 60 * 1000); // Check every 30 mins
+    const timeoutId = setTimeout(checkReviewReminders, 15000); // Initial check delay
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [user?.email, createNotification]);
+
+  return null;
+}
 
 // Hook personalizado para criar notificações
 export function useCreateNotification() {
@@ -148,35 +209,63 @@ export function useCreateNotification() {
   
   return useMutation({
     mutationFn: async (notificationData) => {
+      // Fetch user to check preferences (lightweight check, or we rely on frontend passing 'canEmail')
+      // For robustness, we'll try to fetch the recipient user if we don't have preference data.
+      // NOTE: We can't easily fetch another user's preferences due to RLS if we are not admin. 
+      // Assumption: The system (this hook) is typically called when *interacting* with someone, or by admin.
+      // If we can't check preferences, we default to sending (opt-out model).
+      
+      let shouldSendEmail = true;
+      let shouldCreateInApp = true;
+
+      try {
+        // Only try to check if we are the user or admin, otherwise we assume default true 
+        // OR we assume the caller of this hook has checked. 
+        // But 'useCreateNotification' is generic. 
+        // Let's try to fetch recipient public info if possible, or just send.
+        // Better approach: The NotificationService in backend usually handles this. 
+        // Since we are frontend-only logic, we proceed.
+        // FUTURE: Backend function 'create_notification' would check this.
+      } catch (e) {}
+
       // Cria notificação no banco
       const notification = await base44.entities.Notification.create(notificationData);
       
-      // Envia email (se configurado)
+      // Envia email (se configurado e não for apenas in-app)
       try {
-        await base44.integrations.Core.SendEmail({
-          to: notificationData.recipient_email,
-          subject: notificationData.title,
-          body: `
-            <html>
-              <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 30px; border-radius: 10px;">
-                  <h2 style="color: #16a34a;">${notificationData.title}</h2>
-                  <p style="font-size: 16px; color: #333;">${notificationData.message}</p>
-                  ${notificationData.action_url ? `
-                    <a href="${notificationData.action_url}" 
-                       style="display: inline-block; background: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">
-                      Ver Detalhes
-                    </a>
-                  ` : ''}
-                  <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-                  <p style="font-size: 12px; color: #666;">
-                    Esta é uma notificação automática do PawCão. Não responda este email.
-                  </p>
-                </div>
-              </body>
-            </html>
-          `
-        });
+        // Check if we can see the user's email preference? 
+        // If we are sending to 'recipient_email', we assume we want to email them.
+        // We will wrap this in a check if we had access to the user object.
+        // For now, we send always unless 'skipEmail' flag is passed in notificationData (custom prop).
+        
+        if (!notificationData.skipEmail) {
+           await base44.integrations.Core.SendEmail({
+            to: notificationData.recipient_email,
+            subject: notificationData.title,
+            body: `
+              <html>
+                <body style="font-family: Arial, sans-serif; padding: 20px;">
+                  <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 30px; border-radius: 10px;">
+                    <h2 style="color: #16a34a;">${notificationData.title}</h2>
+                    <p style="font-size: 16px; color: #333;">${notificationData.message}</p>
+                    ${notificationData.action_url ? `
+                      <a href="${window.location.origin}${notificationData.action_url}" 
+                         style="display: inline-block; background: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">
+                        Ver Detalhes
+                      </a>
+                    ` : ''}
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+                    <p style="font-size: 12px; color: #666;">
+                      Esta é uma notificação automática do PawCão.
+                      <br/>
+                      <a href="${window.location.origin}/AccountSettings" style="color: #999;">Gerenciar preferências</a>
+                    </p>
+                  </div>
+                </body>
+              </html>
+            `
+          });
+        }
       } catch (error) {
         console.error('Erro ao enviar email:', error);
       }

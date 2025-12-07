@@ -57,6 +57,9 @@ export default function AccountSettings() {
     language: "pt",
     notifications_enabled: true,
     email_notifications: true,
+    push_booking_updates: true,
+    push_messages: true,
+    push_marketing: false,
   });
 
   useEffect(() => {
@@ -80,10 +83,15 @@ export default function AccountSettings() {
         skills: user.skills ? user.skills.join(", ") : "",
         username: user.username || "",
       });
+      
+      // Initialize preferences safely with defaults
       setPreferences({
         language: user.preferences?.language || "pt",
         notifications_enabled: user.preferences?.notifications_enabled ?? true,
         email_notifications: user.preferences?.email_notifications ?? true,
+        push_booking_updates: user.preferences?.push_booking_updates ?? true,
+        push_messages: user.preferences?.push_messages ?? true,
+        push_marketing: user.preferences?.push_marketing ?? false,
       });
     }
   }, [user]);
@@ -548,6 +556,48 @@ export default function AccountSettings() {
                         checked={preferences.email_notifications}
                         onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
                       />
+                    </div>
+
+                    <Separator />
+                    
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-gray-700">Tipos de Notificação</h4>
+                      
+                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">Reservas & Agendamentos</p>
+                          <p className="text-xs text-gray-500">Atualizações sobre seus passeios e treinos</p>
+                        </div>
+                        <Switch
+                          checked={preferences.push_booking_updates}
+                          onCheckedChange={(checked) => setPreferences({...preferences, push_booking_updates: checked})}
+                          disabled={!preferences.notifications_enabled}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">Mensagens</p>
+                          <p className="text-xs text-gray-500">Novas mensagens de chat</p>
+                        </div>
+                        <Switch
+                          checked={preferences.push_messages}
+                          onCheckedChange={(checked) => setPreferences({...preferences, push_messages: checked})}
+                          disabled={!preferences.notifications_enabled}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">Marketing & Novidades</p>
+                          <p className="text-xs text-gray-500">Promoções e atualizações do app</p>
+                        </div>
+                        <Switch
+                          checked={preferences.push_marketing}
+                          onCheckedChange={(checked) => setPreferences({...preferences, push_marketing: checked})}
+                          disabled={!preferences.notifications_enabled}
+                        />
+                      </div>
                     </div>
                   </div>
 
