@@ -312,7 +312,7 @@ function LayoutContent({ children, currentPageName }) {
             gamification_level: user.gamification_level || 1,
             followers_count: 0,
             following_count: 0,
-            is_verified: user.is_verified || false
+            is_verified: false // Always start as unverified
           });
         }
       } catch (err) {

@@ -97,7 +97,7 @@ export default function AdminDashboard() {
             profile_photo_url: user.profile_photo_url,
             role: user.role || 'user',
             gamification_xp: user.gamification_xp || 0,
-            is_verified: user.is_verified || false,
+            is_verified: false, // Always start as unverified
             is_private: false
           });
           createdCount++;
