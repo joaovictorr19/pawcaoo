@@ -129,6 +129,40 @@ export default function AccountSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
+      // 1. Update Auth User first
+      await base44.auth.updateMe(data);
+      
+      // 2. Sync with UserProfile entity
+      try {
+        const updateData = {
+          username: data.username,
+          full_name: data.full_name,
+          bio: data.bio,
+          profile_photo_url: data.profile_photo_url,
+          cover_photo_url: data.cover_photo_url,
+          city: data.city,
+          is_private: data.is_private,
+          user_id: user.id
+        };
+
+        // Find and update by user_id (most reliable)
+        const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+        
+        if (profiles && profiles.length > 0) {
+          await Promise.all(profiles.map(p => base44.entities.UserProfile.update(p.id, updateData)));
+        } else {
+          // Create if doesn't exist
+          await base44.entities.UserProfile.create({
+            user_email: user.email,
+            ...updateData,
+            role: user.role || 'user'
+          });
+        }
+      } catch (err) {
+        console.error("UserProfile sync error (non-critical):", err);
+      }
+      
+      return data;
       // Logic to handle username change restriction
       if (data.username && data.username !== user.username) {
         // Check last change date
