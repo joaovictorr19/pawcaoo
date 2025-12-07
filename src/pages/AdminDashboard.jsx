@@ -1057,7 +1057,38 @@ export default function AdminDashboard() {
                     <TableBody>
                       {filteredUsers.map(user => (
                         <TableRow key={user.id}>
-...
+                          <TableCell className="font-medium">{user.email}</TableCell>
+                          <TableCell>{user.full_name || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">
+                              {user.account_type || 'owner'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1 flex-wrap">
+                              <Badge className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}>
+                                {user.role === 'admin' ? 'Admin' : 'User'}
+                              </Badge>
+                              {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600">{t('verified', language)}</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title={t('viewPublicProfile', language)}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="default" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => openGrantBadgeDialog(user.email)}>
+                                🎖️ {t('grantBadge', language)}
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user)} className="text-red-600 border-red-200">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
                     </TableBody>
                   </Table>
