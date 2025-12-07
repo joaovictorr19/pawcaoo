@@ -13,6 +13,8 @@ import TrainerCard from "../components/trainers/TrainerCard";
 import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters";
 import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters";
 import AdoptionListings from "./AdoptionListings";
+import AISearchAssistant from "../components/ai/AISearchAssistant";
+import PersonalizedRecommendations from "../components/ai/PersonalizedRecommendations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -563,24 +565,49 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white rounded-2xl shadow-2xl p-4 max-w-3xl mx-auto flex flex-col md:flex-row gap-4 items-center"
+                className="bg-white rounded-2xl shadow-2xl p-4 max-w-3xl mx-auto flex flex-col gap-4"
               >
-                <div className="flex-1 w-full">
-                  <LocationSearch
-                    onLocationChange={setUserLocation}
-                    currentLocation={userLocation}
-                    className="border-0 shadow-none bg-gray-50"
-                  />
+                <div className="flex flex-col md:flex-row gap-4 items-center w-full">
+                  <div className="flex-1 w-full">
+                    <LocationSearch
+                      onLocationChange={setUserLocation}
+                      currentLocation={userLocation}
+                      className="border-0 shadow-none bg-gray-50"
+                    />
+                  </div>
+                  <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+                  <div className="w-full md:w-auto flex gap-2">
+                    <Button 
+                      size="lg" 
+                      onClick={() => setActiveTab('walkers')}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-lg shadow-green-600/20"
+                    >
+                      {t('findWalkerBtn', language)}
+                    </Button>
+                  </div>
                 </div>
-                <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
-                <div className="w-full md:w-auto flex gap-2">
-                  <Button 
-                    size="lg" 
-                    onClick={() => setActiveTab('walkers')}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-lg shadow-green-600/20"
-                  >
-                    {t('findWalkerBtn', language)}
-                  </Button>
+                
+                {/* AI Search Assistant Embedded */}
+                <div className="w-full border-t pt-4 mt-2">
+                   <p className="text-xs text-gray-500 font-semibold mb-2 uppercase text-center md:text-left">Ou tente a Busca Inteligente</p>
+                   <AISearchAssistant 
+                      currentMode="walkers"
+                      onApplyFilters={(aiFilters) => {
+                        // Map AI filters to local state
+                        if (aiFilters.location) setSearchLocation(aiFilters.location);
+                        if (aiFilters.maxPrice) setAdvancedFilters(prev => ({ ...prev, maxPrice: aiFilters.maxPrice }));
+                        if (aiFilters.serviceType) {
+                           if (aiFilters.serviceType.includes('boarding')) setFilterDogSitting('boarding');
+                           else if (aiFilters.serviceType.includes('sitting')) setFilterDogSitting('house_sitting');
+                           else if (aiFilters.serviceType.includes('drop')) setFilterDogSitting('drop_in');
+                        }
+                        if (aiFilters.keywords && aiFilters.keywords.length > 0) {
+                           // Map specific keywords if needed, or show success toast
+                        }
+                        // Scroll to results
+                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                   />
                 </div>
               </motion.div>
 
@@ -635,7 +662,12 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6 mb-6">
+        {/* AI Recommendations Section */}
+        {user && (
+          <PersonalizedRecommendations user={user} />
+        )}
+
+        <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
             {showAdvancedFilters && (
               <motion.div
