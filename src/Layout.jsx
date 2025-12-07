@@ -131,11 +131,16 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['unreadNotifications'],
     queryFn: async () => {
       if (!user?.email) return [];
-      const allNotifications = await base44.entities.Notification.filter({ 
-        recipient_email: user.email,
-        is_read: false 
-      });
-      return allNotifications;
+      try {
+        const allNotifications = await base44.entities.Notification.filter({ 
+          recipient_email: user.email,
+          is_read: false 
+        });
+        return Array.isArray(allNotifications) ? allNotifications : [];
+      } catch (error) {
+        console.error("Notifications fetch error:", error);
+        return [];
+      }
     },
     enabled: !!user,
     initialData: [],
@@ -146,11 +151,16 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['ownerSubscription'],
     queryFn: async () => {
       if (!user?.email) return null;
-      const subs = await base44.entities.OwnerSubscription.filter({
-        owner_email: user.email,
-        is_active: true
-      });
-      return subs[0];
+      try {
+        const subs = await base44.entities.OwnerSubscription.filter({
+          owner_email: user.email,
+          is_active: true
+        });
+        return Array.isArray(subs) ? subs[0] : null;
+      } catch (error) {
+        console.error("Subscription fetch error:", error);
+        return null;
+      }
     },
     enabled: !!user,
     ...queryConfig.static,

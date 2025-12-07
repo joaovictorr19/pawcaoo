@@ -101,19 +101,32 @@ export default function Home() {
     queryKey: ['nextWalk', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      const bookings = await base44.entities.Booking.filter({
-        created_by: user.email,
-        status: 'confirmed',
-        walk_date: { '$gte': new Date().toISOString().split('T')[0] }
-      }, 'walk_date', 1);
-      return bookings[0];
+      try {
+        const bookings = await base44.entities.Booking.filter({
+          created_by: user.email,
+          status: 'confirmed',
+          walk_date: { '$gte': new Date().toISOString().split('T')[0] }
+        }, 'walk_date', 1);
+        return Array.isArray(bookings) ? bookings[0] : null;
+      } catch (error) {
+        console.error("Upcoming walk fetch error:", error);
+        return null;
+      }
     },
     enabled: !!user?.email,
   });
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
-    queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100),
+    queryFn: async () => {
+      try {
+        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
+        return Array.isArray(res) ? res : [];
+      } catch (error) {
+        console.error("Walkers fetch error:", error);
+        return [];
+      }
+    },
     initialData: [],
     staleTime: 0,
     refetchOnMount: 'always',
@@ -121,13 +134,29 @@ export default function Home() {
 
   const { data: trainers, isLoading: loadingTrainers } = useQuery({
     queryKey: ['trainers'],
-    queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
+    queryFn: async () => {
+      try {
+        const res = await base44.entities.TrainerProfile.filter({ is_active: true }, '-rating');
+        return Array.isArray(res) ? res : [];
+      } catch (error) {
+        console.error("Trainers fetch error:", error);
+        return [];
+      }
+    },
     initialData: [],
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
-    queryFn: () => base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20),
+    queryFn: async () => {
+      try {
+        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20);
+        return Array.isArray(res) ? res : [];
+      } catch (error) {
+        console.error("Emergency walks fetch error:", error);
+        return [];
+      }
+    },
     initialData: [],
     staleTime: 30000,
   });
