@@ -148,13 +148,13 @@ export default function WalkerDetails() {
       return;
     }
     
-    if (walkerId && !isLoading && !walker) {
+    if (walkerId && !isLoading && !walker && !isError) {
       const timer = setTimeout(() => {
         navigate(createPageUrl('Home'));
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isLoading, walker, navigate, walkerId]);
+  }, [isLoading, walker, navigate, walkerId, isError]);
 
   // Function to handle booking completion from BookingForm
   const handleBookingInitiated = async (booking) => {
@@ -455,7 +455,8 @@ export default function WalkerDetails() {
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm h-11"
                     onClick={() => {
                       if (!user) {
-                        base44.auth.redirectToLogin();
+                        // Use redirect with explicit URL to handle custom domains correctly
+                        base44.auth.redirectToLogin(window.location.href);
                       } else {
                         setShowBookingForm(true);
                       }
