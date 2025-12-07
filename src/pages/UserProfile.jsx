@@ -123,14 +123,19 @@ export default function UserProfile() {
       }
 
       // 1. Priority: Self View by Email
-      if (isSelfView && currentUser?.email) {
-        try {
-          const byEmail = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
-          if (byEmail && byEmail.length > 0) {
-            userProfile = byEmail[0];
+      if (isSelfView) {
+        if (currentUser?.email) {
+          try {
+            const byEmail = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+            if (byEmail && byEmail.length > 0) {
+              userProfile = byEmail[0];
+            }
+          } catch (e) {
+            console.error('Error fetching self profile:', e);
           }
-        } catch (e) {
-          console.error('Error fetching self profile:', e);
+        } else {
+           // Not logged in and no params -> Redirect to login or show generic message
+           // For now, let it return null so "Profile not found" or "Please login" is shown
         }
       }
 
