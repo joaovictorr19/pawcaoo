@@ -85,8 +85,21 @@ export default function UserProfile() {
   const createNotification = useCreateNotification();
 
   const urlParams = new URLSearchParams(window.location.search);
+  // Handle potentially double-encoded emails from redirect loops
   const rawEmail = urlParams.get('email');
-  const profileEmailParam = rawEmail ? decodeURIComponent(rawEmail) : null;
+  let profileEmailParam = rawEmail;
+  if (rawEmail) {
+    try {
+      profileEmailParam = decodeURIComponent(rawEmail);
+      // Try decoding again if it still looks encoded (contains %40)
+      if (profileEmailParam.includes('%40')) {
+        profileEmailParam = decodeURIComponent(profileEmailParam);
+      }
+    } catch (e) {
+      console.error("Error decoding email:", e);
+    }
+  }
+  
   const profileIdParam = urlParams.get('id');
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
@@ -597,7 +610,13 @@ export default function UserProfile() {
             {!currentUser ? (
               <div className="space-y-3">
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin(window.location.href)} 
+                  onClick={() => {
+                    // Reconstruct clean URL to avoid double-encoding issues
+                    const cleanUrl = profileEmailParam 
+                      ? `${window.location.origin}/UserProfile?email=${encodeURIComponent(profileEmailParam)}`
+                      : window.location.href;
+                    base44.auth.redirectToLogin(cleanUrl);
+                  }} 
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
                   Entrar na minha conta
