@@ -76,28 +76,27 @@ export default function NotificationService() {
     const todayStr = now.toISOString().split('T')[0];
 
     try {
-      // 1. Fetch upcoming confirmed bookings for today/tomorrow
-      // Buscar tanto como Owner quanto como Walker para garantir cobertura
+      // 1. Fetch upcoming confirmed bookings for today/tomorrow (Owner & Walker)
       const bookingsAsOwner = await base44.entities.Booking.filter({
-        owner_email: user.email, 
+        owner_email: user.email,
         status: 'confirmed',
-        walk_date: { '$gte': todayStr } 
+        walk_date: { '$gte': todayStr }
       });
       
       const bookingsAsWalker = await base44.entities.Booking.filter({
-        walker_email: user.email, 
+        walker_email: user.email,
         status: 'confirmed',
-        walk_date: { '$gte': todayStr } 
+        walk_date: { '$gte': todayStr }
       });
 
-      const allRelevantBookings = [...bookingsAsOwner, ...bookingsAsWalker];
-      // Remove duplicates just in case
-      const uniqueBookings = Array.from(new Map(allRelevantBookings.map(item => [item.id, item])).values());
+      // Combine unique bookings
+      const bookingsMap = new Map();
+      [...bookingsAsOwner, ...bookingsAsWalker].forEach(b => bookingsMap.set(b.id, b));
+      const bookings = Array.from(bookingsMap.values());
 
       // Filter for walks in the next 24h locally to be precise with time
-      const upcomingBookings = uniqueBookings.filter(booking => {
+      const upcomingBookings = bookings.filter(booking => {
         if (!booking.walk_date) return false;
-        // Handle time format potentially being range "10:00 - 11:00" or single "10:00"
         const timePart = booking.walk_time ? booking.walk_time.split(' - ')[0] : '00:00';
         const walkDateTime = new Date(`${booking.walk_date}T${timePart}`);
         const diffHours = (walkDateTime - now) / (1000 * 60 * 60);
@@ -105,12 +104,13 @@ export default function NotificationService() {
       });
 
       for (const booking of upcomingBookings) {
+        // Unique key per user/booking to allow multiple notifications if needed but avoid spam
         const reminderKey = `reminder-booking-${booking.id}-${user.email}`;
 
         // Check local storage first to avoid API calls
         if (localStorage.getItem(reminderKey)) continue;
 
-        // Check if notification already exists in DB
+        // Check if notification already exists in DB for THIS user
         const existingNotifications = await base44.entities.Notification.filter({
           related_id: booking.id,
           type: 'booking_reminder',
@@ -121,7 +121,7 @@ export default function NotificationService() {
           // Create reminder
           const walkDate = new Date(booking.walk_date).toLocaleDateString();
           const partnerName = user.email === booking.owner_email ? booking.walker_name : booking.owner_name;
-          
+
           await createNotification.mutateAsync({
             recipient_email: user.email,
             title: `🔔 Lembrete de Serviço: ${booking.dog_name}`,
