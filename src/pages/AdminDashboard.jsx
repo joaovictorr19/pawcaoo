@@ -1090,7 +1090,7 @@ export default function AdminDashboard() {
           <TabsContent value="active_walkers">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>Gestão de Passeadores Ativos ({activeWalkers.length})</CardTitle>
+                <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Mobile View */}
@@ -1103,7 +1103,7 @@ export default function AdminDashboard() {
                           <div className="text-sm text-gray-500">{walker.created_by}</div>
                         </div>
                         <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                          {walker.is_active ? 'Ativo' : 'Inativo'}
+                          {walker.is_active ? t('active', language) : t('inactive', language)}
                         </Badge>
                       </div>
                       <div className="text-sm space-y-1 mb-3">
@@ -1113,7 +1113,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}>
-                          <Eye className="w-4 h-4 mr-2" /> Ver
+                          <Eye className="w-4 h-4 mr-2" /> {t('viewDetails', language)}
                         </Button>
                         <Button
                           size="sm"
@@ -1125,7 +1125,7 @@ export default function AdminDashboard() {
                             }
                           }}
                         >
-                          {walker.is_active ? 'Pausar' : 'Ativar'}
+                          {walker.is_active ? t('pause', language) : t('activate', language)}
                         </Button>
                         <Button
                           size="sm"
@@ -1149,13 +1149,13 @@ export default function AdminDashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Localização</TableHead>
-                        <TableHead>Avaliação</TableHead>
-                        <TableHead>Ganhos</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Ações</TableHead>
+                        <TableHead>{t('fullName', language)}</TableHead>
+                        <TableHead>{t('email', language)}</TableHead>
+                        <TableHead>{t('location', language)}</TableHead>
+                        <TableHead>{t('rating', language)}</TableHead>
+                        <TableHead>{t('earnings', language)}</TableHead>
+                        <TableHead>{t('status', language)}</TableHead>
+                        <TableHead>{t('actions', language)}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1165,7 +1165,7 @@ export default function AdminDashboard() {
                             {walker.walker_name}
                             {walker.verification_status === 'verified' && (
                               <Badge variant="outline" className="ml-2 border-green-500 text-green-600 text-[10px] h-5">
-                                ✓ Verificado
+                                ✓ {t('verified', language)}
                               </Badge>
                             )}
                           </TableCell>
@@ -1180,7 +1180,7 @@ export default function AdminDashboard() {
                           <TableCell>€{walker.total_earnings || 0}</TableCell>
                           <TableCell>
                             <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                              {walker.is_active ? 'Ativo' : 'Inativo'}
+                              {walker.is_active ? t('active', language) : t('inactive', language)}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -1205,7 +1205,7 @@ export default function AdminDashboard() {
                                   }
                                 }}
                               >
-                                {walker.is_active ? 'Pausar' : 'Ativar'}
+                                {walker.is_active ? t('pause', language) : t('activate', language)}
                               </Button>
                               <Button
                                 size="sm"
@@ -1233,7 +1233,7 @@ export default function AdminDashboard() {
           <TabsContent value="adoptions">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>Candidaturas de Adoção ({adoptionApplications.length})</CardTitle>
+                <CardTitle>{t('adoptionApplications', language)} ({adoptionApplications.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingAdoptions && adoptionApplications.length === 0 ? (
@@ -1241,7 +1241,7 @@ export default function AdminDashboard() {
                     {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
                   </div>
                 ) : adoptionApplications.length === 0 ? (
-                  <p className="text-center py-8 text-gray-600">Nenhuma candidatura de adoção recente.</p>
+                  <p className="text-center py-8 text-gray-600">{t('noAdoptions', language)}</p>
                 ) : (
                   <div className="space-y-4">
                     {adoptionApplications.map(app => (
@@ -1275,18 +1275,18 @@ export default function AdminDashboard() {
           <TabsContent value="applications">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Candidaturas Pendentes</CardTitle>
+                <CardTitle>{t('pendingApplications', language)}</CardTitle>
                 <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] })}>
-                  🔄 Atualizar Lista
+                  🔄 {t('updateList', language)}
                 </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   {/* Walkers */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Passeadores ({walkerApplications.length})</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('walkers', language)} ({walkerApplications.length})</h3>
                     {walkerApplications.length === 0 ? (
-                      <p className="text-gray-500">Nenhuma candidatura de passeador.</p>
+                      <p className="text-gray-500">{t('noResults', language)}</p>
                     ) : (
                       <div className="space-y-4">
                         {walkerApplications.map(app => (
@@ -1303,14 +1303,14 @@ export default function AdminDashboard() {
                                   variant="outline"
                                   onClick={() => navigate(createPageUrl(`WalkerDetails?walker_id=${app.id}`))}
                                 >
-                                  Ver Detalhes
+                                  {t('viewDetails', language)}
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   className="bg-green-600"
                                   onClick={() => updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true }, walker: app })}
                                 >
-                                  Aprovar
+                                  {t('approve', language)}
                                 </Button>
                                 <Button 
                                   size="sm" 
@@ -1322,7 +1322,7 @@ export default function AdminDashboard() {
                                     }
                                   }}
                                 >
-                                  Rejeitar
+                                  {t('reject', language)}
                                 </Button>
                               </div>
                             </div>
@@ -1334,9 +1334,9 @@ export default function AdminDashboard() {
 
                   {/* Trainers */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Treinadores ({trainerApplications.length})</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('trainers', language)} ({trainerApplications.length})</h3>
                     {trainerApplications.length === 0 ? (
-                      <p className="text-gray-500">Nenhuma candidatura de treinador.</p>
+                      <p className="text-gray-500">{t('noResults', language)}</p>
                     ) : (
                       <div className="space-y-4">
                         {trainerApplications.map(app => (
@@ -1377,9 +1377,9 @@ export default function AdminDashboard() {
 
                   {/* Shelters */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Abrigos ({shelterApplications.length})</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('shelters', language)} ({shelterApplications.length})</h3>
                     {shelterApplications.length === 0 ? (
-                      <p className="text-gray-500">Nenhuma candidatura de abrigo.</p>
+                      <p className="text-gray-500">{t('noResults', language)}</p>
                     ) : (
                       <div className="space-y-4">
                         {shelterApplications.map(app => (
@@ -1430,16 +1430,16 @@ export default function AdminDashboard() {
                   <div>
                     <CardTitle className="text-2xl flex items-center gap-2">
                       <Award className="w-6 h-6 text-purple-600" />
-                      Gestão de Emblemas
+                      {t('badgeManagement', language)}
                     </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">Conceder emblemas especiais aos usuários</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('grantSpecialBadges', language)}</p>
                   </div>
                   <Button
                     onClick={() => setShowCreateCustomBadgeModal(true)}
                     className="bg-purple-600 hover:bg-purple-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Criar Emblema Customizado
+                    {t('createCustomBadge', language)}
                   </Button>
                 </div>
               </CardHeader>
@@ -1448,7 +1448,7 @@ export default function AdminDashboard() {
                   {/* Biblioteca Unificada de Emblemas */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold">Meus Emblemas & Badges ({badgeDefinitions.length})</h3>
+                      <h3 className="text-lg font-semibold">{t('myBadges', language)} ({badgeDefinitions.length})</h3>
                     </div>
                     
                     {loadingBadges && badgeDefinitions.length === 0 ? (
@@ -1458,10 +1458,10 @@ export default function AdminDashboard() {
                     ) : badgeDefinitions.length === 0 ? (
                       <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
                         <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 mb-4">Você ainda não criou nenhum emblema.</p>
+                        <p className="text-gray-500 mb-4">{t('noBadgesCreated', language)}</p>
                         <Button onClick={() => setShowCreateCustomBadgeModal(true)} variant="outline">
                           <Plus className="w-4 h-4 mr-2" />
-                          Criar Primeiro Emblema
+                          {t('createFirstBadge', language)}
                         </Button>
                       </div>
                     ) : (
@@ -1505,14 +1505,14 @@ export default function AdminDashboard() {
                                     setShowGrantAllUsersModal(true);
                                   }}
                                 >
-                                  Conceder
+                                  {t('grant', language)}
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   className="text-red-600 px-2"
                                   onClick={() => {
-                                    if(confirm(`Excluir modelo "${badgeDef.name}"?`)) {
+                                    if(confirm(`${t('deleteBadge', language)} "${badgeDef.name}"?`)) {
                                       deleteBadgeDefinitionMutation.mutate(badgeDef.id);
                                     }
                                   }}
@@ -1531,7 +1531,7 @@ export default function AdminDashboard() {
 
                   {/* Lista de Usuários com Badges */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Usuários e seus Emblemas</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('usersAndBadges', language)}</h3>
                     <div className="space-y-3">
                       {allUsers.map((user) => (
                         <Card key={user.id} className="border-2 border-gray-200">
@@ -1549,10 +1549,10 @@ export default function AdminDashboard() {
                                   <p className="text-sm text-gray-600">{user.email}</p>
                                   <div className="flex gap-1 mt-1 flex-wrap">
                                     {user.is_verified && (
-                                      <Badge className="bg-blue-500 text-white text-xs">✓ Verificado</Badge>
+                                      <Badge className="bg-blue-500 text-white text-xs">✓ {t('verified', language)}</Badge>
                                     )}
                                     {user.is_adoption_advocate && (
-                                      <Badge className="bg-pink-500 text-white text-xs">💖 Defensor</Badge>
+                                      <Badge className="bg-pink-500 text-white text-xs">💖 {t('advocate', language) || 'Advocate'}</Badge>
                                     )}
                                     {user.social_role && user.social_role !== 'user' && (
                                       <Badge className="bg-orange-500 text-white text-xs capitalize">{user.social_role}</Badge>
@@ -1571,7 +1571,7 @@ export default function AdminDashboard() {
                                 onClick={() => handleOpenBadgesDialog(user)}
                               >
                                 <Edit className="w-4 h-4 mr-2" />
-                                Editar Badges
+                                {t('editBadges', language)}
                               </Button>
                             </div>
                           </CardContent>
@@ -1589,8 +1589,8 @@ export default function AdminDashboard() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-2xl">Gestão de Empresas</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">Gerir empresas parceiras</p>
+                    <CardTitle className="text-2xl">{t('companyManagement', language)}</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">{t('managePartners', language)}</p>
                   </div>
                   <Button
                     onClick={() => {
@@ -1605,7 +1605,7 @@ export default function AdminDashboard() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Empresa
+                    {t('addCompany', language)}
                   </Button>
                 </div>
               </CardHeader>
@@ -1615,7 +1615,7 @@ export default function AdminDashboard() {
                     {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
                   </div>
                 ) : companies.length === 0 ? (
-                  <p className="text-center py-8 text-gray-600">Nenhuma empresa ainda</p>
+                  <p className="text-center py-8 text-gray-600">{t('noCompanies', language)}</p>
                 ) : (
                   <div className="space-y-4">
                     {companies.map((company) => (
@@ -1630,7 +1630,7 @@ export default function AdminDashboard() {
                               </Badge>
                             </div>
                             <Badge className={company.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                              {company.is_active ? 'Ativa' : 'Inativa'}
+                              {company.is_active ? t('active', language) : t('inactive', language)}
                             </Badge>
                           </div>
 
@@ -1639,19 +1639,19 @@ export default function AdminDashboard() {
                               <div className="text-xl font-bold text-blue-600">
                                 {company.stats?.total_services || 0}
                               </div>
-                              <div className="text-xs text-gray-600">Serviços</div>
+                              <div className="text-xs text-gray-600">{t('services', language)}</div>
                             </div>
                             <div className="bg-purple-50 rounded-lg p-2 border border-purple-200">
                               <div className="text-xl font-bold text-purple-600">
                                 {company.stats?.total_announcements || 0}
                               </div>
-                              <div className="text-xs text-gray-600">Anúncios</div>
+                              <div className="text-xs text-gray-600">{t('announcements', language)}</div>
                             </div>
                             <div className="bg-green-50 rounded-lg p-2 border border-green-200">
                               <div className="text-xl font-bold text-green-600">
                                 {company.stats?.active_announcements || 0}
                               </div>
-                              <div className="text-xs text-gray-600">Ativos</div>
+                              <div className="text-xs text-gray-600">{t('active', language)}</div>
                             </div>
                           </div>
 
@@ -1687,7 +1687,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Megaphone className="w-6 h-6 text-pink-600" />
-                  Todos os Anúncios ({allAnnouncements.length})
+                  {t('allAnnouncements', language)} ({allAnnouncements.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1696,7 +1696,7 @@ export default function AdminDashboard() {
                     {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
                   </div>
                 ) : allAnnouncements.length === 0 ? (
-                  <p className="text-center py-8 text-gray-600">Nenhum anúncio</p>
+                  <p className="text-center py-8 text-gray-600">{t('noAnnouncements', language)}</p>
                 ) : (
                   <div className="space-y-4">
                     {allAnnouncements.map((announcement) => {
@@ -1727,13 +1727,13 @@ export default function AdminDashboard() {
                                   <p className="text-sm text-gray-700 mt-1 line-clamp-2">{announcement.message}</p>
                                   <div className="flex gap-2 mt-2 flex-wrap">
                                     <Badge className={announcement.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                                      {announcement.is_active ? '✓ Ativo' : 'Inativo'}
+                                      {announcement.is_active ? `✓ ${t('active', language)}` : t('inactive', language)}
                                     </Badge>
                                     <Badge variant="outline">
                                       {announcement.moderation_status}
                                     </Badge>
                                     {isExpired && (
-                                      <Badge className="bg-orange-600">Expirado</Badge>
+                                      <Badge className="bg-orange-600">{t('expired', language)}</Badge>
                                     )}
                                     {announcement.discount_percentage > 0 && (
                                       <Badge className="bg-red-500">-{announcement.discount_percentage}%</Badge>
@@ -1756,7 +1756,7 @@ export default function AdminDashboard() {
                                   }}
                                   className={announcement.is_active ? 'text-orange-600 border-orange-300' : 'text-green-600 border-green-300'}
                                 >
-                                  {announcement.is_active ? 'Desativar' : 'Ativar'}
+                                  {announcement.is_active ? t('disable', language) : t('activate', language)}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -1785,9 +1785,9 @@ export default function AdminDashboard() {
           <TabsContent value="services">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>Todos os Serviços ({allPartnerServices.length})</CardTitle>
+                <CardTitle>{t('allServices', language)} ({allPartnerServices.length})</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
-                  {pendingApprovalServices.length} pendentes • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} ativos
+                  {pendingApprovalServices.length} {t('pendingApproval', language)} • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} {t('active', language).toLowerCase()}
                 </p>
               </CardHeader>
               <CardContent>
@@ -1798,7 +1798,7 @@ export default function AdminDashboard() {
                 ) : allPartnerServices.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhum serviço</p>
+                    <p className="text-gray-600">{t('noServices', language)}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1838,7 +1838,7 @@ export default function AdminDashboard() {
                                     {service.moderation_status}
                                   </Badge>
                                   <Badge variant="outline">
-                                    {isActive ? '🟢 Ativo' : '🔴 Inativo'}
+                                    {isActive ? `🟢 ${t('active', language)}` : `🔴 ${t('inactive', language)}`}
                                   </Badge>
                                   <Badge variant="outline">€{service.base_price}</Badge>
                                   <Badge variant="outline" className="text-xs">
@@ -2062,7 +2062,7 @@ export default function AdminDashboard() {
           <TabsContent value="reviews">
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>Avaliações Pendentes ({pendingReviews.length})</CardTitle>
+                <CardTitle>{t('pendingReviews', language)} ({pendingReviews.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingReviews && allReviews.length === 0 ? (
@@ -2072,7 +2072,7 @@ export default function AdminDashboard() {
                 ) : pendingReviews.length === 0 ? (
                   <div className="text-center py-12">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhuma avaliação pendente</p>
+                    <p className="text-gray-600">{t('noPendingReviews', language)}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -2109,11 +2109,11 @@ export default function AdminDashboard() {
         <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Criar Empresa Parceira</DialogTitle>
+              <DialogTitle>{t('createPartnerCompany', language)}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <Label>Email da Empresa *</Label>
+                <Label>{t('companyEmail', language)} *</Label>
                 <Input
                   type="email"
                   value={companyFormData.company_email || ""}
@@ -2124,7 +2124,7 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <Label>Nome da Empresa *</Label>
+                <Label>{t('companyName', language)} *</Label>
                 <Input
                   value={companyFormData.company_name || ""}
                   onChange={(e) => setCompanyFormData({...companyFormData, company_name: e.target.value})}
@@ -2134,7 +2134,7 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <Label>Tipo *</Label>
+                <Label>{t('companyType', language)} *</Label>
                 <Select 
                   value={companyFormData.company_type || "pet_store"} 
                   onValueChange={(value) => setCompanyFormData({...companyFormData, company_type: value})}
@@ -2163,14 +2163,14 @@ export default function AdminDashboard() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowCompanyDialog(false)}>
-                Cancelar
+                {t('cancel', language)}
               </Button>
               <Button
                 onClick={handleCreateCompany}
                 disabled={createCompanyMutation.isPending}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
+                {createCompanyMutation.isPending ? `${t('createCompany', language)}...` : t('createCompany', language)}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -2180,7 +2180,7 @@ export default function AdminDashboard() {
         <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Editar Utilizador</DialogTitle>
+              <DialogTitle>{t('editUser', language)}</DialogTitle>
             </DialogHeader>
             {selectedUser && (
               <div className="space-y-4 py-4">
@@ -2253,7 +2253,7 @@ export default function AdminDashboard() {
 
                 {/* NOVO: Role (Admin/User) */}
                 <div>
-                  <Label>Role (Permissões de Sistema)</Label>
+                  <Label>{t('roleSystem', language)}</Label>
                   <Select 
                     value={userFormData.role || 'user'} 
                     onValueChange={(value) => setUserFormData({...userFormData, role: value})}
@@ -2263,14 +2263,14 @@ export default function AdminDashboard() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="user">User (Normal)</SelectItem>
-                      <SelectItem value="admin">Admin (Acesso Total)</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* NOVO: Social Role */}
                 <div>
-                  <Label>Role Social (Dog Connect)</Label>
+                  <Label>{t('socialRole', language)}</Label>
                   <Select 
                     value={userFormData.social_role || 'user'} 
                     onValueChange={(value) => setUserFormData({...userFormData, social_role: value})}
@@ -2337,9 +2337,9 @@ export default function AdminDashboard() {
         <Dialog open={showGrantAllUsersModal} onOpenChange={setShowGrantAllUsersModal}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Conceder Emblema</DialogTitle>
+              <DialogTitle>{t('grantBadgeTitle', language)}</DialogTitle>
               <DialogDescription>
-                Selecione os usuários para receber este emblema.
+                {t('selectUsers', language)}
               </DialogDescription>
             </DialogHeader>
             {selectedBadgeForAll && (
@@ -2365,9 +2365,9 @@ export default function AdminDashboard() {
 
                 {/* User Selection */}
                 <div>
-                  <Label className="mb-2 block">Selecione os Usuários</Label>
+                  <Label className="mb-2 block">{t('selectUsers', language)}</Label>
                   <Input 
-                    placeholder="Buscar usuário..." 
+                    placeholder={t('searchUser', language)}
                     value={grantBadgeSearchTerm}
                     onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
                     className="mb-2"
@@ -2420,26 +2420,26 @@ export default function AdminDashboard() {
                     disabled={usersToGrantBadge.length === 0 || grantBadgeMutation.isPending}
                     className="bg-purple-600 hover:bg-purple-700 w-full"
                   >
-                    {grantBadgeMutation.isPending ? 'Processando...' : `Conceder a ${usersToGrantBadge.length} Usuário(s)`}
+                    {grantBadgeMutation.isPending ? `${t('loading', language)}...` : `${t('grantToSelected', language)} ${usersToGrantBadge.length} User(s)`}
                   </Button>
                   
                   <div className="relative flex py-2 items-center">
                     <div className="flex-grow border-t border-gray-200"></div>
-                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">OU</span>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">OR</span>
                     <div className="flex-grow border-t border-gray-200"></div>
                   </div>
 
                   <Button
                     variant="outline"
                     onClick={() => {
-                      if(confirm("Tem certeza? Isso dará o badge a TODOS os usuários do sistema!")) {
+                      if(confirm("Are you sure? This will grant the badge to ALL users in the system!")) {
                         grantBadgeMutation.mutate({ badge: selectedBadgeForAll, targetEmails: 'all' });
                       }
                     }}
                     disabled={grantBadgeMutation.isPending}
                     className="text-red-600 border-red-200 hover:bg-red-50 w-full"
                   >
-                    ⚠️ Conceder a TODOS os Usuários
+                    ⚠️ {t('grantToAll', language)}
                   </Button>
                 </div>
               </div>
@@ -2727,53 +2727,53 @@ export default function AdminDashboard() {
         <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Detalhes da Candidatura - {selectedApplication?.walker_name}</DialogTitle>
+              <DialogTitle>{t('applicationDetails', language)} - {selectedApplication?.walker_name}</DialogTitle>
             </DialogHeader>
             {selectedApplication && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-semibold text-sm text-gray-500 mb-1">Informações Pessoais</h4>
-                    <p><strong>Nome:</strong> {selectedApplication.walker_name}</p>
-                    <p><strong>Email:</strong> {selectedApplication.created_by}</p>
-                    <p><strong>Telefone:</strong> {selectedApplication.phone}</p>
-                    <p><strong>Localização:</strong> {selectedApplication.location}</p>
+                    <h4 className="font-semibold text-sm text-gray-500 mb-1">{t('personalInfo', language)}</h4>
+                    <p><strong>{t('fullName', language)}:</strong> {selectedApplication.walker_name}</p>
+                    <p><strong>{t('email', language)}:</strong> {selectedApplication.created_by}</p>
+                    <p><strong>{t('phoneNumber', language)}:</strong> {selectedApplication.phone}</p>
+                    <p><strong>{t('location', language)}:</strong> {selectedApplication.location}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm text-gray-500 mb-1">Dados Bancários</h4>
-                    <p><strong>Titular:</strong> {selectedApplication.bank_account_holder || 'N/A'}</p>
+                    <h4 className="font-semibold text-sm text-gray-500 mb-1">{t('bankDetails', language)}</h4>
+                    <p><strong>{t('accountHolderName', language)}:</strong> {selectedApplication.bank_account_holder || 'N/A'}</p>
                     <p><strong>IBAN:</strong> {selectedApplication.bank_account_number || 'N/A'}</p>
                     <p><strong>SWIFT/BIC:</strong> {selectedApplication.bank_routing_number || 'N/A'}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 mb-2">Bio</h4>
+                  <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('bio', language)}</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedApplication.bio}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 mb-2">Documentos</h4>
+                  <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('documents', language)}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border rounded-lg p-3 bg-white">
                       <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-semibold">Documento de ID</p>
-                        {uploadingDoc && <span className="text-xs text-blue-600 animate-pulse">Enviando...</span>}
+                        <p className="text-xs font-semibold">{t('idDocument', language)}</p>
+                        {uploadingDoc && <span className="text-xs text-blue-600 animate-pulse">{t('uploading', language)}</span>}
                       </div>
                       {selectedApplication.id_document_url ? (
                         <div className="flex items-center justify-between">
                           <a href={selectedApplication.id_document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
-                            Ver Documento
+                            {t('viewDocument', language)}
                           </a>
                           <Label htmlFor="upload-id" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
-                            Substituir
+                            {t('replace', language)}
                           </Label>
                         </div>
                       ) : (
                         <div className="text-center py-2">
-                          <p className="text-sm text-red-500 mb-2">Não enviado</p>
+                          <p className="text-sm text-red-500 mb-2">{t('notUploaded', language)}</p>
                           <Label htmlFor="upload-id" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
-                            <Upload className="w-3 h-3 inline mr-1" /> Carregar
+                            <Upload className="w-3 h-3 inline mr-1" /> {t('upload', language)}
                           </Label>
                         </div>
                       )}
@@ -2788,22 +2788,22 @@ export default function AdminDashboard() {
 
                     <div className="border rounded-lg p-3 bg-white">
                       <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-semibold">Comprovativo de Morada</p>
+                        <p className="text-xs font-semibold">{t('addressProof', language)}</p>
                       </div>
                       {selectedApplication.proof_of_address_url ? (
                         <div className="flex items-center justify-between">
                           <a href={selectedApplication.proof_of_address_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
-                            Ver Documento
+                            {t('viewDocument', language)}
                           </a>
                           <Label htmlFor="upload-addr" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
-                            Substituir
+                            {t('replace', language)}
                           </Label>
                         </div>
                       ) : (
                         <div className="text-center py-2">
-                          <p className="text-sm text-red-500 mb-2">Não enviado</p>
+                          <p className="text-sm text-red-500 mb-2">{t('notUploaded', language)}</p>
                           <Label htmlFor="upload-addr" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
-                            <Upload className="w-3 h-3 inline mr-1" /> Carregar
+                            <Upload className="w-3 h-3 inline mr-1" /> {t('upload', language)}
                           </Label>
                         </div>
                       )}
@@ -2818,25 +2818,25 @@ export default function AdminDashboard() {
 
                     <div className="border rounded-lg p-3 bg-white">
                       <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-semibold">Registo Criminal</p>
+                        <p className="text-xs font-semibold">{t('criminalRecord', language)}</p>
                       </div>
                       {selectedApplication.background_check_url ? (
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
                             <a href={selectedApplication.background_check_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
-                              Ver Documento
+                              {t('viewDocument', language)}
                             </a>
                             <Label htmlFor="upload-bg" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
-                              Substituir
+                              {t('replace', language)}
                             </Label>
                           </div>
                           <p className="text-xs text-gray-500">Prov: {selectedApplication.background_check_provider || 'N/A'}</p>
                         </div>
                       ) : (
                         <div className="text-center py-2">
-                          <p className="text-sm text-gray-500 mb-2">Opcional / Não enviado</p>
+                          <p className="text-sm text-gray-500 mb-2">{t('optional', language)} / {t('notUploaded', language)}</p>
                           <Label htmlFor="upload-bg" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
-                            <Upload className="w-3 h-3 inline mr-1" /> Carregar
+                            <Upload className="w-3 h-3 inline mr-1" /> {t('upload', language)}
                           </Label>
                         </div>
                       )}
@@ -2852,7 +2852,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 mb-2">Fotos e Vídeo</h4>
+                  <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('photosAndVideo', language)}</h4>
                   <div className="flex gap-4 overflow-x-auto pb-2">
                     {selectedApplication.photo_url && (
                       <img src={selectedApplication.photo_url} alt="Profile" className="w-24 h-24 object-cover rounded-lg border" />
@@ -2860,7 +2860,7 @@ export default function AdminDashboard() {
                     {selectedApplication.video_intro_url && (
                       <div className="w-24 h-24 bg-black rounded-lg flex items-center justify-center">
                         <a href={selectedApplication.video_intro_url} target="_blank" rel="noopener noreferrer" className="text-white text-xs text-center">
-                          Ver Vídeo
+                          {t('viewVideo', language)}
                         </a>
                       </div>
                     )}
@@ -2869,7 +2869,7 @@ export default function AdminDashboard() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowApplicationDialog(false)}>Fechar</Button>
+              <Button variant="outline" onClick={() => setShowApplicationDialog(false)}>{t('cancel', language)}</Button>
               <div className="flex gap-2">
                 <Button 
                   variant="destructive"
@@ -2883,7 +2883,7 @@ export default function AdminDashboard() {
                     }
                   }}
                 >
-                  Rejeitar
+                  {t('reject', language)}
                 </Button>
                 <Button 
                   className="bg-green-600 hover:bg-green-700"
@@ -2894,7 +2894,7 @@ export default function AdminDashboard() {
                     }
                   }}
                 >
-                  Aprovar Candidatura
+                  {t('approveApplication', language)}
                 </Button>
               </div>
             </DialogFooter>
