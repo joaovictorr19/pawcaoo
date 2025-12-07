@@ -13,11 +13,18 @@ export default function Landing() {
   const navigate = useNavigate(); // Initialize useNavigate hook
 
   // Check if user is logged in
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading, isError } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
     retry: false,
   });
+
+  useEffect(() => {
+    if (isError) {
+      // Silently handle auth check errors (usually just means not logged in or network issue)
+      console.log("Auth check failed - user likely not logged in");
+    }
+  }, [isError]);
 
   // Redirect to Home if user is logged in using navigate
   useEffect(() => {
