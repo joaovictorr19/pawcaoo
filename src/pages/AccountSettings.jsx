@@ -203,14 +203,18 @@ export default function AccountSettings() {
         console.error("Auth update warning:", authErr);
       }
     },
-    onSuccess: (data, variables) => {
-      // Invalidate everything aggressively to force refresh
-      queryClient.invalidateQueries();
+    onSuccess: async (data, variables) => {
+      // Invalidate queries and wait for them to be marked as stale
+      await queryClient.invalidateQueries();
+      
       toast.success("Perfil atualizado com sucesso!");
       
       // Redirect to profile page to see changes (only if not saving preferences)
       if (!variables.preferences) {
-        navigate(createPageUrl('UserProfile'));
+        // Small delay to ensure DB propagation and avoid race conditions on the profile page fetch
+        setTimeout(() => {
+            navigate(createPageUrl('UserProfile'));
+        }, 800);
       }
     },
     onError: (error) => {
