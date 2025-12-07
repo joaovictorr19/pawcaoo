@@ -441,9 +441,20 @@ export default function AccountSettings() {
                       <Input
                         value={profileData.username}
                         onChange={(e) => {
-                          // Allow spaces while typing, will be formatted on save
-                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._\s-]/g, "");
-                          setProfileData({...profileData, username: val});
+                          // Allow user to type freely to avoid "broken keyboard" feeling
+                          setProfileData({...profileData, username: e.target.value});
+                        }}
+                        onBlur={() => {
+                          // Format on blur: lowercase, remove accents, spaces to hyphens
+                          if (profileData.username) {
+                            const formatted = profileData.username
+                              .toLowerCase()
+                              .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+                              .replace(/[^a-z0-9._\s-]/g, "") // Remove invalid chars
+                              .trim()
+                              .replace(/\s+/g, '-'); // Spaces to hyphens
+                            setProfileData({...profileData, username: formatted});
+                          }
                         }}
                         placeholder="username"
                         className="pl-7"
