@@ -203,19 +203,13 @@ export default function AccountSettings() {
         console.error("Auth update warning:", authErr);
       }
     },
-    onSuccess: async (data, variables) => {
-      // Invalidate queries and wait for them to be marked as stale
-      await queryClient.invalidateQueries();
-      
+    onSuccess: () => {
+      // Invalidate everything aggressively to force refresh
+      queryClient.invalidateQueries();
       toast.success("Perfil atualizado com sucesso!");
       
-      // Redirect to profile page to see changes (only if not saving preferences)
-      if (!variables.preferences) {
-        // Small delay to ensure DB propagation and avoid race conditions on the profile page fetch
-        setTimeout(() => {
-            navigate(createPageUrl('UserProfile'));
-        }, 800);
-      }
+      // Optional: Force a small delay reload if needed, but react-query should handle it
+      // setTimeout(() => window.location.reload(), 1000); 
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao atualizar perfil");
