@@ -96,22 +96,57 @@ export default function AdminAnalytics({
     ];
   }, [adoptionListings]);
 
-  // 4. Map Data (Mocking coordinates for demo if missing)
+  // 4. Active Users (Last 30 days)
+  const activeMetrics = useMemo(() => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const activeUserIds = new Set();
+    bookings.forEach(b => {
+      if (new Date(b.created_date) >= thirtyDaysAgo) {
+        if (b.created_by) activeUserIds.add(b.created_by);
+        if (b.walker_id) activeUserIds.add(b.walker_id);
+        if (b.trainer_id) activeUserIds.add(b.trainer_id);
+      }
+    });
+
+    const activeCompanies = users.filter(u => u.account_type === 'company' && u.is_active).length;
+
+    return {
+      activeUsers: activeUserIds.size,
+      activeCompanies,
+      totalUsers: users.length,
+      activePercentage: users.length > 0 ? ((activeUserIds.size / users.length) * 100).toFixed(1) : 0
+    };
+  }, [bookings, users]);
+
+  // 5. Booking Stats & Conversion
+  const bookingStats = useMemo(() => {
+    const total = bookings.length;
+    const completed = bookings.filter(b => b.status === 'completed').length;
+    const cancelled = bookings.filter(b => b.status === 'cancelled').length;
+    const conversionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
+
+    return { total, completed, cancelled, conversionRate };
+  }, [bookings]);
+
+  // 6. Popular Services
+  const popularServices = useMemo(() => {
+    const counts = { 'Passeios': 0, 'Treinos': 0, 'Sitting': 0 };
+    bookings.forEach(b => {
+       if (b.type === 'walk' || b.walker_id) counts['Passeios']++;
+       else if (b.type === 'training' || b.trainer_id) counts['Treinos']++;
+       else counts['Sitting']++;
+    });
+    return Object.entries(counts).map(([name, value]) => ({ name, value })).filter(d => d.value > 0);
+  }, [bookings]);
+
+  // 7. Map Data (Mocking coordinates for demo if missing)
   const mapMarkers = useMemo(() => {
-    // Filter users with city/location to map roughly
-    // Since we don't have real geocoding, we'll focus on users who might have coords
-    // Or we just show a few representative markers for visual effect in this demo
-    
-    // Mix of users and services
     const markers = [];
-    
-    // Add some random professionals (who usually have locations)
     users.filter(u => ['walker', 'trainer'].includes(u.account_type)).slice(0, 20).forEach(u => {
-        // Mock coordinates around Lisbon/Porto for demo if missing
-        // In real app, we would use u.latitude/u.longitude
         const lat = u.latitude || 38.7223 + (Math.random() - 0.5) * 0.1;
         const lng = u.longitude || -9.1393 + (Math.random() - 0.5) * 0.1;
-        
         markers.push({
             id: u.id,
             position: [lat, lng],
@@ -120,12 +155,43 @@ export default function AdminAnalytics({
             image: u.profile_photo_url
         });
     });
-
     return markers;
   }, [users]);
 
   return (
     <div className="space-y-6">
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm border-l-4 border-l-blue-500">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-500 font-medium">Total de Usuários</p>
+            <h3 className="text-2xl font-bold text-gray-900">{activeMetrics.totalUsers}</h3>
+            <p className="text-xs text-blue-600 mt-1">+{userGrowthData[userGrowthData.length-1]?.Clientes - userGrowthData[0]?.Clientes} nos últimos 6 meses</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-l-4 border-l-green-500">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-500 font-medium">Usuários Ativos (30d)</p>
+            <h3 className="text-2xl font-bold text-gray-900">{activeMetrics.activeUsers}</h3>
+            <p className="text-xs text-green-600 mt-1">{activeMetrics.activePercentage}% da base</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-l-4 border-l-purple-500">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-500 font-medium">Taxa de Conversão</p>
+            <h3 className="text-2xl font-bold text-gray-900">{bookingStats.conversionRate}%</h3>
+            <p className="text-xs text-purple-600 mt-1">{bookingStats.completed} reservas completas</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-l-4 border-l-orange-500">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-500 font-medium">Empresas Ativas</p>
+            <h3 className="text-2xl font-bold text-gray-900">{activeMetrics.activeCompanies}</h3>
+            <p className="text-xs text-orange-600 mt-1">Parceiros verificados</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Growth Chart */}
         <Card className="shadow-lg border-0">
@@ -158,8 +224,32 @@ export default function AdminAnalytics({
           </CardContent>
         </Card>
 
-        {/* Revenue Distribution */}
+        {/* Popular Services */}
         <Card className="shadow-lg border-0">
+          <CardHeader>
+            <CardTitle>Serviços Mais Populares</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={popularServices} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={100} />
+                <Tooltip />
+                <Bar dataKey="value" fill="#8884d8" radius={[0, 4, 4, 0]}>
+                  {popularServices.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Distribution */}
+        <Card className="lg:col-span-1 shadow-lg border-0">
           <CardHeader>
             <CardTitle>Receita por Categoria</CardTitle>
           </CardHeader>
@@ -172,7 +262,7 @@ export default function AdminAnalytics({
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -181,13 +271,12 @@ export default function AdminAnalytics({
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend verticalAlign="bottom" height={36}/>
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          {/* Adoption Stats */}
          <Card className="lg:col-span-1 shadow-lg border-0">
           <CardHeader>
@@ -211,14 +300,14 @@ export default function AdminAnalytics({
         </Card>
 
         {/* Map */}
-        <Card className="lg:col-span-2 shadow-lg border-0">
+        <Card className="lg:col-span-1 shadow-lg border-0">
           <CardHeader>
-            <CardTitle>Distribuição Geográfica</CardTitle>
+            <CardTitle>Mapa de Profissionais</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] p-0 overflow-hidden rounded-b-xl">
              <MapContainer 
                 center={[38.7223, -9.1393]} 
-                zoom={11} 
+                zoom={10} 
                 style={{ height: "100%", width: "100%" }}
              >
                 <TileLayer
