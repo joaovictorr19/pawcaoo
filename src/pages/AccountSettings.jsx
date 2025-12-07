@@ -151,12 +151,13 @@ export default function AccountSettings() {
         if (userProfiles && userProfiles.length > 0) {
           const profileId = userProfiles[0].id;
           const updateData = {};
-          if (data.username) updateData.username = data.username;
-          if (data.full_name) updateData.full_name = data.full_name;
-          if (data.bio) updateData.bio = data.bio;
-          if (data.profile_photo_url) updateData.profile_photo_url = data.profile_photo_url;
-          if (data.cover_photo_url) updateData.cover_photo_url = data.cover_photo_url;
-          if (data.city) updateData.city = data.city;
+          // Explicitly map fields to ensure clean update
+          if (data.username !== undefined) updateData.username = data.username;
+          if (data.full_name !== undefined) updateData.full_name = data.full_name;
+          if (data.bio !== undefined) updateData.bio = data.bio;
+          if (data.profile_photo_url !== undefined) updateData.profile_photo_url = data.profile_photo_url;
+          if (data.cover_photo_url !== undefined) updateData.cover_photo_url = data.cover_photo_url;
+          if (data.city !== undefined) updateData.city = data.city;
           if (data.is_private !== undefined) updateData.is_private = data.is_private;
           
           if (Object.keys(updateData).length > 0) {
@@ -182,10 +183,14 @@ export default function AccountSettings() {
 
       // 2. Update Auth User (Secondary for Display Name)
       try {
-        await base44.auth.updateMe(data);
+        // Prepare auth payload carefully to avoid overwriting standard fields with garbage
+        const authPayload = { ...data };
+        // Ensure full_name is explicitly set
+        if (data.full_name) authPayload.full_name = data.full_name;
+        
+        await base44.auth.updateMe(authPayload);
       } catch (authErr) {
         console.error("Auth update warning:", authErr);
-        // Don't fail the whole operation if only auth update fails but profile updated
       }
     },
     onSuccess: () => {
@@ -253,7 +258,7 @@ export default function AccountSettings() {
     const updatedData = {
       ...profileData,
       username: formattedUsername,
-      full_name: profileData.full_name, // Ensure full name is passed explicitly
+      full_name: profileData.full_name.trim(), // Ensure full name is passed explicitly and trimmed
       skills: profileData.skills && typeof profileData.skills === 'string' ? profileData.skills.split(",").map(s => s.trim()).filter(s => s) : [],
     };
     updateProfileMutation.mutate(updatedData);
