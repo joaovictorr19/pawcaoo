@@ -232,7 +232,9 @@ export default function AccountSettings() {
 
   const handleSaveProfile = () => {
     // Ensure username follows handle rules (no spaces) on save
-    const formattedUsername = profileData.username.trim().replace(/\s+/g, '-');
+    // If username is empty or just spaces, use the existing one to avoid errors or clearing it unintentionally
+    const currentUsername = profileData.username || "";
+    const formattedUsername = currentUsername.trim().replace(/\s+/g, '-');
     
     const updatedData = {
       ...profileData,
@@ -419,7 +421,7 @@ export default function AccountSettings() {
                         value={profileData.username}
                         onChange={(e) => {
                           // Allow spaces while typing, will be formatted on save
-                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._-\s]/g, "");
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._\s-]/g, "");
                           setProfileData({...profileData, username: val});
                         }}
                         placeholder="username"
