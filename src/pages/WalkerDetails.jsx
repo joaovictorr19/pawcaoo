@@ -18,7 +18,6 @@ import RecurringBookingModal from "../components/booking/RecurringBookingModal";
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useCreateNotification } from "../components/NotificationService";
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
@@ -139,8 +138,6 @@ export default function WalkerDetails() {
         description: t('loginToBook', language),
         variant: "destructive",
       });
-      // Redirect to login if user clicks date and is not logged in, for efficiency
-      setTimeout(() => base44.auth.redirectToLogin(), 1500);
     }
   };
 
@@ -433,9 +430,9 @@ export default function WalkerDetails() {
                   </div>
                 )}
 
-                <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex gap-3">
+                <div className="flex gap-3 flex-wrap mt-4">
                   <Button
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-md h-12 text-lg font-semibold rounded-xl"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm h-11"
                     onClick={() => {
                       if (!user) {
                         base44.auth.redirectToLogin();
@@ -447,13 +444,10 @@ export default function WalkerDetails() {
                   >
                     {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
                   </Button>
-                </div>
 
-                <div className="hidden md:flex gap-3 flex-wrap mt-4">
-                   {/* Desktop Buttons moved to right sidebar for efficiency, keeping Profile link here */}
                   <Button
                     variant="outline"
-                    className="h-10 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 ml-auto"
+                    className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
                     onClick={() => navigate(createPageUrl(`UserProfile?email=${walker.created_by}`))}
                   >
                     <UserIcon className="w-4 h-4 mr-2" />
@@ -513,42 +507,7 @@ export default function WalkerDetails() {
           </div>
 
           {/* Right Column - Booking */}
-          <div className="lg:col-span-1 space-y-5 h-full">
-            <div className="sticky top-24 space-y-5">
-            {/* Quick Booking Card (Desktop) */}
-            <Card className="border-0 shadow-xl bg-white overflow-hidden hidden md:block">
-              <div className="bg-gradient-to-r from-green-600 to-green-500 p-4 text-white">
-                 <div className="flex justify-between items-baseline">
-                    <h3 className="font-bold text-lg">{t('bookPasseio', language)}</h3>
-                    <span className="text-2xl font-bold">€{walker.hourly_rate}<span className="text-sm font-normal opacity-90">/h</span></span>
-                 </div>
-              </div>
-              <CardContent className="p-5 space-y-4">
-                 <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                    <Clock className="w-4 h-4 text-green-600" />
-                    <span>{t('responseTime', language)}: <span className="font-semibold text-gray-900">~1h</span></span>
-                 </div>
-
-                 <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white shadow-md h-12 text-lg font-semibold rounded-xl"
-                    onClick={() => {
-                      if (!user) {
-                        base44.auth.redirectToLogin();
-                      } else {
-                        setShowBookingForm(true);
-                      }
-                    }}
-                    disabled={walker.verification_status !== "verified"}
-                 >
-                    {walker.verification_status === "verified" ? t('bookNow', language) : t('verificationPending', language)}
-                 </Button>
-                 
-                 <div className="text-center text-xs text-gray-500">
-                   {t('noPaymentNow', language)}
-                 </div>
-              </CardContent>
-            </Card>
-
+          <div className="lg:col-span-1 space-y-5">
             {userDogs.length > 0 && (
               <Card className="border border-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-5">
@@ -603,24 +562,16 @@ export default function WalkerDetails() {
                 </CardContent>
               </Card>
             )}
-            </div>
           </div>
         </div>
 
-        <Dialog open={showBookingForm} onOpenChange={setShowBookingForm}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white border-0">
-             <div className="max-h-[90vh] overflow-y-auto">
-                <BookingForm
-                  professional={walker}
-                  onClose={(val) => {
-                     if(val) handleBookingInitiated(val);
-                     else setShowBookingForm(false);
-                  }}
-                  initialDate={selectedDate}
-                />
-             </div>
-          </DialogContent>
-        </Dialog>
+        {showBookingForm && (
+          <BookingForm
+            professional={walker}
+            onClose={handleBookingInitiated}
+            initialDate={selectedDate}
+          />
+        )}
       </div>
 
       {/* Recurring Booking Modal */}
