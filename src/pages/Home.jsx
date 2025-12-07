@@ -15,6 +15,7 @@ import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters"
 import AdoptionListings from "./AdoptionListings";
 import AISearchAssistant from "../components/ai/AISearchAssistant";
 import PersonalizedRecommendations from "../components/ai/PersonalizedRecommendations";
+import TestimonialsSection from "../components/home/TestimonialsSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
