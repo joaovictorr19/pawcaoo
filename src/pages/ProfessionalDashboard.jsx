@@ -85,19 +85,7 @@ export default function ProfessionalDashboard() {
     refetchInterval: 10000,
   });
 
-  // Real-time messages
-  const { data: conversations = [] } = useQuery({
-    queryKey: ['myConversations'],
-    queryFn: async () => {
-      const allConvs = await base44.entities.ChatConversation.list('-last_message_date');
-      return allConvs.filter(conv => 
-        conv.participants?.some(p => p.email === user?.email) && !conv.is_archived
-      );
-    },
-    enabled: !!user,
-    initialData: [],
-    refetchInterval: 5000, // Very frequent for messages
-  });
+  // Real-time messages query removed
 
   // Reviews
   const { data: reviews = [] } = useQuery({
@@ -391,10 +379,7 @@ export default function ProfessionalDashboard() {
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : profile?.rating || 5;
 
-  const unreadMessages = conversations.filter(conv => {
-    const lastMessage = conv.last_message_sender;
-    return lastMessage && lastMessage !== user?.email;
-  }).length;
+  const unreadMessages = 0;
 
   const uniqueClients = new Set(allBookings.map(b => b.owner_email)).size;
 
