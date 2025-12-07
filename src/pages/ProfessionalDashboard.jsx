@@ -29,11 +29,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useCreateNotification } from "../components/NotificationService";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 export default function ProfessionalDashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const createNotification = useCreateNotification();
   const [activeTab, setActiveTab] = useState("overview");
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
@@ -248,6 +250,33 @@ export default function ProfessionalDashboard() {
       // 3. Update Booking
       await entity.update(booking.id, updateData);
       
+      // WORKFLOW: NOTIFICATIONS
+      const clientEmail = booking.owner_email || booking.created_by;
+      const dateFormatted = format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy');
+      const timeFormatted = booking.walk_time || booking.session_time;
+
+      if (status === 'confirmed') {
+        await createNotification.mutateAsync({
+          recipient_email: clientEmail,
+          title: '✅ Reserva Confirmada!',
+          message: `Sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi aceite.`,
+          type: 'booking',
+          related_id: booking.id,
+          priority: 'high',
+          action_url: '/MyBookings'
+        });
+      } else if (status === 'cancelled' || status === 'rejected') {
+        await createNotification.mutateAsync({
+          recipient_email: clientEmail,
+          title: '❌ Reserva Cancelada/Recusada',
+          message: `Sua reserva para ${dateFormatted} foi cancelada/recusada pelo profissional.`,
+          type: 'booking',
+          related_id: booking.id,
+          priority: 'high',
+          action_url: '/MyBookings'
+        });
+      }
+
       queryClient.invalidateQueries(['myWalkBookings']);
       queryClient.invalidateQueries(['myTrainingBookings']);
       toast.success(`Reserva ${status === 'confirmed' ? 'aceite' : 'atualizada'} com sucesso`);
