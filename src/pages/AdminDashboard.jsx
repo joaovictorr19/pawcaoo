@@ -69,8 +69,72 @@ export default function AdminDashboard() {
   // Substituindo busca simples por estado avançado
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
 
-  // Filtered Users Memo
+
+  
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [verificationNotes, setVerificationNotes] = useState("");
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  // userTypeFilter removido em favor do userSearchState.filters.accountType
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [userFormData, setUserFormData] = useState({});
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
+  const [companyFormData, setCompanyFormData] = useState({});
+  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+  const [selectedUserForBadges, setSelectedUserForBadges] = useState(null);
+  const [badgesFormData, setBadgesFormData] = useState({});
+  const [newCustomBadge, setNewCustomBadge] = useState({
+    name: "",
+    description: "",
+    icon: "⭐",
+    image_url: "",
+    rarity: "common",
+    category: "special"
+  });
+  const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false);
+  const [announcementFormData, setAnnouncementFormData] = useState({});
+  const [showGrantAllUsersModal, setShowGrantAllUsersModal] = useState(false);
+  const [selectedBadgeForAll, setSelectedBadgeForAll] = useState(null);
+  const [showCreateCustomBadgeModal, setShowCreateCustomBadgeModal] = useState(false);
+  const [customBadgeForm, setCustomBadgeForm] = useState({
+    name: "",
+    description: "",
+    icon: "⭐",
+    image_url: "",
+    image_png_file: "", // New field
+    rarity: "common",
+    category: "special"
+  });
+  const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
+  const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
+  const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
+  const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState(""); 
+  const [usersToGrantBadge, setUsersToGrantBadge] = useState([]);
+  
+  // Estado para o Modal de Concessão de Badge Individual
+  const [showGrantSingleBadgeModal, setShowGrantSingleBadgeModal] = useState(false);
+  const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
+  const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+
+  const { data: user, isLoading: loadingUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: allUsers = [], isLoading: loadingAllUsers } = useQuery({
+    queryKey: ['allUsers'],
+    placeholderData: keepPreviousData,
+    queryFn: () => base44.entities.User.list('-created_date', 1000),
+    enabled: user?.role === 'admin',
+    initialData: [],
+  });
+
+  // Filtered Users Memo - Moved here to avoid ReferenceError (Temporal Dead Zone)
   const filteredUsers = useMemo(() => {
+    if (!allUsers) return [];
     return allUsers.filter(u => {
       const { searchTerm, filters } = userSearchState;
       const searchLower = searchTerm?.toLowerCase() || "";
@@ -127,67 +191,6 @@ export default function AdminDashboard() {
       return true;
     });
   }, [allUsers, userSearchState]);
-  
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [verificationNotes, setVerificationNotes] = useState("");
-  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
-  // userTypeFilter removido em favor do userSearchState.filters.accountType
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserDialog, setShowUserDialog] = useState(false);
-  const [userFormData, setUserFormData] = useState({});
-  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
-  const [companyFormData, setCompanyFormData] = useState({});
-  const [showBadgesDialog, setShowBadgesDialog] = useState(false);
-  const [selectedUserForBadges, setSelectedUserForBadges] = useState(null);
-  const [badgesFormData, setBadgesFormData] = useState({});
-  const [newCustomBadge, setNewCustomBadge] = useState({
-    name: "",
-    description: "",
-    icon: "⭐",
-    image_url: "",
-    rarity: "common",
-    category: "special"
-  });
-  const [uploadingBadgeImage, setUploadingBadgeImage] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
-  const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false);
-  const [announcementFormData, setAnnouncementFormData] = useState({});
-  const [showGrantAllUsersModal, setShowGrantAllUsersModal] = useState(false);
-  const [selectedBadgeForAll, setSelectedBadgeForAll] = useState(null);
-  const [showCreateCustomBadgeModal, setShowCreateCustomBadgeModal] = useState(false);
-  const [customBadgeForm, setCustomBadgeForm] = useState({
-    name: "",
-    description: "",
-    icon: "⭐",
-    image_url: "",
-    image_png_file: "", // New field
-    rarity: "common",
-    category: "special"
-  });
-  const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
-  const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
-  const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
-  const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState(""); 
-  const [usersToGrantBadge, setUsersToGrantBadge] = useState([]);
-  
-  // Estado para o Modal de Concessão de Badge Individual
-  const [showGrantSingleBadgeModal, setShowGrantSingleBadgeModal] = useState(false);
-  const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
-  const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
-  const [uploadingDoc, setUploadingDoc] = useState(false);
-
-  const { data: user, isLoading: loadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['allUsers'],
-    placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.User.list('-created_date', 1000), // Increased limit to ensure all users are loaded
-    enabled: user?.role === 'admin',
-    initialData: [],
-  });
 
   // Fetch ALL profiles to ensure we don't miss any pending ones due to exact filter matching
   const { data: allWalkers = [] } = useQuery({
@@ -1003,6 +1006,13 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
+                {loadingAllUsers && allUsers.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                    {t('loading', language)}
+                  </div>
+                ) : (
+                  <>
                 {/* Mobile View */}
                 <div className="md:hidden space-y-4">
                   {filteredUsers.map(user => (
