@@ -402,28 +402,27 @@ export default function UserProfile() {
     initialData: [],
   });
 
-  // Optimized Followers Count (Aggregated Field)
+  // Real-time Followers Count
   const { data: followersCount = 0 } = useQuery({
-    queryKey: ['followersCount', profileEmail, profileUser?.followers_count],
+    queryKey: ['followersCount', profileEmail],
     queryFn: async () => {
-      // Use the aggregated count from the profile record to avoid fetching thousands of records
-      return profileUser?.followers_count || 0;
+      if (!profileEmail) return 0;
+      // Fetch actual records to ensure accuracy (limit 1000 for performance)
+      const res = await base44.entities.SocialFollow.filter({ following_email: profileEmail }, '-created_date', 1000);
+      return res.length;
     },
-    enabled: !!profileUser,
-    initialData: profileUser?.followers_count || 0,
-    staleTime: 0
+    enabled: !!profileEmail,
   });
 
-  // Optimized Following Count (Aggregated Field)
+  // Real-time Following Count
   const { data: followingCount = 0 } = useQuery({
-    queryKey: ['followingCount', profileEmail, profileUser?.following_count],
+    queryKey: ['followingCount', profileEmail],
     queryFn: async () => {
-      // Use the aggregated count from the profile record
-      return profileUser?.following_count || 0;
+      if (!profileEmail) return 0;
+      const res = await base44.entities.SocialFollow.filter({ follower_email: profileEmail }, '-created_date', 1000);
+      return res.length;
     },
-    enabled: !!profileUser,
-    initialData: profileUser?.following_count || 0,
-    staleTime: 0
+    enabled: !!profileEmail,
   });
 
   const [showFollowers, setShowFollowers] = useState(false);
