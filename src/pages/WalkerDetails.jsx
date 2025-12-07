@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, MessageCircle, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, MessageCircle, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -339,96 +339,74 @@ export default function WalkerDetails() {
 
                 <ServiceList services={walker.services_offered || []} type="walker" />
 
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-green-600" />
-                    {t('serviceAreas', language)}
-                  </h2>
-                  
-                  <div className="mb-4">
-                    <ServiceAreaMap walker={walker} />
-                  </div>
-
-                  {walker.service_areas && walker.service_areas.length > 0 && (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {walker.service_areas.map((area, idx) => (
-                        <div key={idx} className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-                          <h4 className="font-semibold text-gray-900 mb-2">{area.area_name}</h4>
-                          {area.postal_codes && area.postal_codes.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {area.postal_codes.map(code => (
-                                <Badge key={code} className="bg-green-600 text-white text-xs">
-                                  {code}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          <p className="text-sm text-gray-600">
-                            {t('radius', language)}: <span className="font-semibold">{area.radius_km} km</span>
-                          </p>
-                        </div>
-                      ))}
+                {/* Compact Details Section */}
+                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                  {/* Service Areas & Map */}
+                  <div className="space-y-3">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                      {t('serviceAreas', language)}
+                    </h2>
+                    <div className="h-48 rounded-lg overflow-hidden border border-gray-200">
+                      <ServiceAreaMap walker={walker} />
                     </div>
-                  )}
-                </div>
-
-                {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-                  <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('dogSizesHandle', language)}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {walker.dog_sizes.map(size => (
-                        <Badge
-                          key={size}
-                          className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1"
-                        >
-                          {getSizeLabel(size)}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
-                  <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('breedsWorkWith', language)}</h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {walker.dog_breeds_handled.map(breed => (
-                        <Badge
-                          key={breed}
-                          className={`${
-                            walker.breed_specialization?.includes(breed)
-                              ? 'bg-green-600 text-white border-green-700'
-                              : 'bg-gray-100 text-gray-700 border-gray-300'
-                          } text-xs px-2 py-1`}
-                        >
-                          {breed}
-                          {walker.breed_specialization?.includes(breed) && " ★"}
-                        </Badge>
-                      ))}
-                    </div>
-                    {walker.breed_specialization && walker.breed_specialization.length > 0 && (
-                      <p className="text-[10px] text-gray-600 mt-1">
-                        ★ = {t('specialization', language)}
-                      </p>
+                    {walker.service_areas && walker.service_areas.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {walker.service_areas.map((area, idx) => (
+                          <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            {area.area_name} ({area.radius_km}km)
+                          </Badge>
+                        ))}
+                      </div>
                     )}
                   </div>
-                )}
 
-                {walker.availability && walker.availability.length > 0 && (
-                  <div className="mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('availability', language)}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {walker.availability.map(time => (
-                        <Badge
-                          key={time}
-                          className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 py-1"
-                        >
-                          {getTimeLabel(time)}
-                        </Badge>
-                      ))}
-                    </div>
+                  {/* Preferences & Capabilities */}
+                  <div className="space-y-4">
+                    {walker.dog_sizes && walker.dog_sizes.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('dogSizesHandle', language)}</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {walker.dog_sizes.map(size => (
+                            <Badge key={size} className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-0 text-xs">
+                              {getSizeLabel(size)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {walker.availability && walker.availability.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('availability', language)}</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {walker.availability.map(time => (
+                            <Badge key={time} className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-0 text-xs">
+                              {getTimeLabel(time)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('breedsWorkWith', language)}</h3>
+                        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                          {walker.dog_breeds_handled.map(breed => (
+                            <Badge 
+                              key={breed}
+                              variant="outline"
+                              className={`${walker.breed_specialization?.includes(breed) ? 'bg-green-50 border-green-600 text-green-700 font-medium' : 'text-gray-600'} text-[10px]`}
+                            >
+                              {breed}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* FAQ Section */}
                 {walker.faq && walker.faq.length > 0 && (
@@ -452,9 +430,9 @@ export default function WalkerDetails() {
                   </div>
                 )}
 
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-3 flex-wrap mt-4">
                   <Button
-                    className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-md h-10 px-4 text-sm font-medium"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm h-11"
                     onClick={() => {
                       if (!user) {
                         base44.auth.redirectToLogin();
@@ -467,15 +445,13 @@ export default function WalkerDetails() {
                     {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
                   </Button>
 
-                  {/* Contact hidden until booking confirmed */}
-
                   <Button
-                    variant="secondary"
-                    className="h-10 px-4 bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-200 text-sm font-medium w-full md:w-auto"
+                    variant="outline"
+                    className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
                     onClick={() => navigate(createPageUrl(`UserProfile?email=${walker.created_by}`))}
                   >
-                    <Award className="w-4 h-4 mr-2" />
-                    {t('viewBadgesProfile', language)}
+                    <UserIcon className="w-4 h-4 mr-2" />
+                    Perfil
                   </Button>
                 </div>
               </div>
