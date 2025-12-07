@@ -265,7 +265,23 @@ export default function MyBookings() {
         // 1. Create Professional Review
         await base44.entities.Review.create(reviewData);
         
-        // 2. Update Professional Profile Stats (Walker/Trainer)
+        // 2. Update Booking with Tip if present
+        if (reviewData.tip_amount && reviewData.tip_amount > 0) {
+          const bookingId = reviewData.booking_id || reviewData.training_booking_id;
+          const entity = reviewData.training_booking_id ? base44.entities.TrainingBooking : base44.entities.Booking;
+          
+          // Fetch current booking to get total
+          const currentBooking = await entity.get(bookingId);
+          if (currentBooking) {
+            await entity.update(bookingId, {
+              tip_amount: reviewData.tip_amount,
+              total_amount: (currentBooking.total_amount || 0) + reviewData.tip_amount
+            });
+            toast.success(`Tip of €${reviewData.tip_amount} added!`);
+          }
+        }
+
+        // 3. Update Professional Profile Stats (Walker/Trainer)
         // We need to find the profile first.
         const isTrainer = !!reviewData.trainer_id;
         const profileEntity = isTrainer ? base44.entities.TrainerProfile : base44.entities.WalkerProfile;
@@ -277,8 +293,6 @@ export default function MyBookings() {
         if (profile) {
           const currentRating = profile.rating || 5;
           const currentCount = isTrainer ? (profile.total_reviews || 0) : (profile.total_walks || 0); // Walker uses total_walks roughly or need new field
-          // Let's use a smart weight. If total_reviews field exists use it, else estimate.
-          // WalkerProfile has 'rating' and 'total_walks'. Let's assume 'total_reviews' field if added or just use walks as proxy for weight.
           
           // Simple moving average update
           // We'll assume count is 10 if 0 to give some weight to initial 5 star

@@ -272,7 +272,22 @@ export default function ProfessionalDashboard() {
   
   const totalEarnings = rangeBookings
     .filter(b => b.status === 'completed')
-    .reduce((sum, b) => sum + (b.service_amount || 0), 0);
+    .reduce((sum, b) => sum + (b.service_amount || 0) + (b.tip_amount || 0), 0);
+
+  // Calculate profile completeness
+  const calculateCompleteness = () => {
+    if (!profile) return 0;
+    let score = 0;
+    if (profile.photo_url) score += 20;
+    if (profile.bio && profile.bio.length > 50) score += 20;
+    if (profile.location) score += 10;
+    if (profile.services_offered && profile.services_offered.length > 0) score += 20;
+    if (profile.availability && profile.availability.length > 0) score += 10;
+    if (profile.verification_status === 'verified') score += 20;
+    return score;
+  };
+  
+  const profileCompleteness = calculateCompleteness();
 
   const pendingBookings = allBookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
   const completedBookings = rangeBookings.filter(b => b.status === 'completed');
@@ -336,17 +351,11 @@ export default function ProfessionalDashboard() {
       color: "from-yellow-500 to-orange-600",
     },
     {
-      icon: Users,
-      value: uniqueClients,
-      label: "Unique Clients",
-      color: "from-purple-500 to-pink-600",
-    },
-    {
-      icon: MessageCircle,
-      value: unreadMessages,
-      label: "Unread Messages",
-      color: "from-blue-500 to-cyan-600",
-      badge: unreadMessages > 0 ? "New" : null
+      icon: CheckCircle,
+      value: `${profileCompleteness}%`,
+      label: "Profile Health",
+      color: profileCompleteness === 100 ? "from-teal-500 to-teal-600" : "from-blue-500 to-indigo-600",
+      badge: profileCompleteness < 100 ? "Improve" : "Perfect"
     }
   ];
 
@@ -568,14 +577,13 @@ export default function ProfessionalDashboard() {
               <Package className="w-4 h-4 mr-2" />
               Services
             </TabsTrigger>
-            <TabsTrigger value="messages" className="rounded-lg relative">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Messages
-              {unreadMessages > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white px-1.5 py-0 text-xs">
-                  {unreadMessages}
-                </Badge>
-              )}
+            <TabsTrigger value="calendar" className="rounded-lg">
+              <Calendar className="w-4 h-4 mr-2" />
+              Calendar
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="rounded-lg">
+              <Star className="w-4 h-4 mr-2" />
+              Reviews
             </TabsTrigger>
           </TabsList>
 
@@ -901,52 +909,75 @@ export default function ProfessionalDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Messages Tab */}
-          <TabsContent value="messages">
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle>Recent Conversations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {conversations.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">No messages yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {conversations.slice(0, 10).map((conv) => {
-                      const otherParticipant = conv.participants?.find(p => p.email !== user?.email);
-                      const isUnread = conv.last_message_sender !== user?.email;
-                      
-                      return (
-                        <div
-                          key={conv.id}
-                          onClick={() => navigate(createPageUrl('Messages') + `?conversation_id=${conv.id}`)}
-                          className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-colors ${
-                            isUnread ? 'bg-blue-50 border-2 border-blue-200' : 'bg-gray-50 hover:bg-gray-100'
-                          }`}
-                        >
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {otherParticipant?.name?.charAt(0) || '?'}
+          {/* Calendar Tab */}
+          <TabsContent value="calendar">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-2 border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle>Availability Calendar</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AvailabilityCalendar 
+                    availabilityData={availability}
+                    bookings={allBookings}
+                    locale={ptBR}
+                  />
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full mb-4" 
+                    onClick={() => navigate(createPageUrl('ManageAvailability'))}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Manage Slots
+                  </Button>
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-sm text-gray-600">Upcoming</h4>
+                    {allBookings
+                      .filter(b => b.status === 'confirmed' && new Date(b.walk_date || b.session_date) >= new Date())
+                      .slice(0, 5)
+                      .map((booking) => (
+                        <div key={booking.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="bg-green-100 p-2 rounded-full">
+                            <Calendar className="w-4 h-4 text-green-600" />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-semibold text-gray-900">{otherParticipant?.name}</h3>
-                              <span className="text-xs text-gray-500">
-                                {format(new Date(conv.last_message_date), 'MMM d, HH:mm')}
-                              </span>
-                            </div>
-                            <p className={`text-sm ${isUnread ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
-                              {conv.last_message?.substring(0, 50)}...
+                          <div>
+                            <p className="font-bold text-sm">{booking.dog_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {format(new Date(booking.walk_date || booking.session_date), 'MMM d')} • {booking.walk_time || booking.session_time}
                             </p>
                           </div>
-                          {isUnread && (
-                            <Badge className="bg-blue-600 text-white">New</Badge>
-                          )}
                         </div>
-                      );
-                    })}
+                      ))
+                    }
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Reviews Tab */}
+          <TabsContent value="reviews">
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle>Reviews ({reviews.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {reviews.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">No reviews yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <ReviewCard key={review.id} review={review} />
+                    ))}
                   </div>
                 )}
               </CardContent>

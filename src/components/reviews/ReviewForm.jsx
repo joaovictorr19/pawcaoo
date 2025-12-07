@@ -19,7 +19,8 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
       effectiveness: 5,
       knowledge: 5
     },
-    would_recommend: true
+    would_recommend: true,
+    tip_amount: 0
   });
 
   const isClientReview = booking.isClientReview; // Passed via prop or augmented booking object
@@ -273,6 +274,30 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
                   : `I would recommend this ${targetType.toLowerCase()} to others`}
               </label>
             </div>
+
+            {!isClientReview && (
+              <div className="pt-4 border-t border-gray-100 mt-4">
+                <Label className="mb-3 block">Leave a Tip (Optional)</Label>
+                <div className="flex gap-3 flex-wrap">
+                  {[0, 2, 5, 10, 15, 20].map((amount) => (
+                    <Button
+                      key={amount}
+                      type="button"
+                      variant={formData.tip_amount === amount ? "default" : "outline"}
+                      className={`flex-1 min-w-[60px] ${formData.tip_amount === amount ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      onClick={() => setFormData({ ...formData, tip_amount: amount })}
+                    >
+                      {amount === 0 ? 'No Tip' : `€${amount}`}
+                    </Button>
+                  ))}
+                </div>
+                {formData.tip_amount > 0 && (
+                  <p className="text-sm text-green-600 mt-2 font-medium">
+                    + €{formData.tip_amount} tip will be added to your payment.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-6">
               <Button
