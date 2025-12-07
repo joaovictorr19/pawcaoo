@@ -596,14 +596,14 @@ export default function UserProfile() {
             {!currentUser ? (
               <div className="space-y-3">
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin()} 
+                  onClick={() => base44.auth.redirectToLogin(window.location.href)} 
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
                   Entrar na minha conta
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => navigate(createPageUrl('Home'))} 
+                  onClick={() => window.location.href = '/'} 
                   className="w-full"
                 >
                   Voltar ao Início
@@ -614,7 +614,7 @@ export default function UserProfile() {
                 <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded border">
                   Dica: Se você é o administrador, vá ao Painel Admin &gt; Contas e clique em "Sincronizar Perfis" para garantir que todos os usuários tenham perfis públicos.
                 </p>
-                <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full">
+                <Button onClick={() => window.location.href = '/'} className="w-full">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar ao Início
                 </Button>
