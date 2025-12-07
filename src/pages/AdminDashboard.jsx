@@ -69,6 +69,44 @@ export default function AdminDashboard() {
   // Substituindo busca simples por estado avançado
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
 
+  const [isSyncingProfiles, setIsSyncingProfiles] = useState(false);
+
+  const handleSyncUserProfiles = async () => {
+    if (!confirm("Isto irá verificar todos os usuários e criar perfis públicos (UserProfile) para quem não tem. Continuar?")) return;
+    
+    setIsSyncingProfiles(true);
+    try {
+      const allUsers = await base44.entities.User.list();
+      let createdCount = 0;
+      
+      for (const user of allUsers) {
+        // Check if UserProfile exists
+        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (!profiles || profiles.length === 0) {
+          // Create UserProfile
+          await base44.entities.UserProfile.create({
+            user_email: user.email,
+            user_id: user.id,
+            username: user.username,
+            full_name: user.full_name || 'Utilizador',
+            profile_photo_url: user.profile_photo_url,
+            role: user.role || 'user',
+            gamification_xp: user.gamification_xp || 0,
+            is_verified: user.is_verified || false
+          });
+          createdCount++;
+        }
+      }
+      
+      toast.success(`Sincronização concluída! ${createdCount} perfis criados.`);
+    } catch (error) {
+      console.error("Error syncing profiles:", error);
+      toast.error("Erro ao sincronizar perfis.");
+    } finally {
+      setIsSyncingProfiles(false);
+    }
+  };
+
 
   
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -997,11 +1035,26 @@ export default function AdminDashboard() {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                   <CardTitle className="text-2xl">{t('accountManagement', language)}</CardTitle>
                   
-                  <div className="w-full md:w-auto min-w-[400px]">
-                    <UserSearchAdvanced 
-                      onSearch={setUserSearchState} 
-                      usersSource={allUsers}
-                    />
+                  <div className="flex gap-2 items-center w-full md:w-auto">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleSyncUserProfiles} 
+                      disabled={isSyncingProfiles}
+                      size="icon"
+                      title="Sincronizar Perfis Públicos"
+                    >
+                      {isSyncingProfiles ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <div className="w-full md:w-auto min-w-[400px]">
+                      <UserSearchAdvanced 
+                        onSearch={setUserSearchState} 
+                        usersSource={allUsers}
+                      />
+                    </div>
                   </div>
                 </div>
               </CardHeader>
