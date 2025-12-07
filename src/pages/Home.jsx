@@ -658,6 +658,9 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Testimonials Section */}
+      {!user && <TestimonialsSection />}
+
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
         <div className="flex justify-between items-center mb-4">
           <Button
