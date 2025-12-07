@@ -204,8 +204,9 @@ export default function AccountSettings() {
             });
         }
       } catch (err) {
-        console.error("Profile sync error:", err);
-        throw new Error("Erro ao atualizar perfil público. Por favor, tente novamente.");
+        console.error("Profile sync warning:", err);
+        // Do NOT throw here, proceed to Auth update so at least the display name updates in the session
+        toast.error("Atenção: Houve uma falha ao sincronizar o perfil público, mas vamos tentar atualizar sua conta.");
       }
 
       // 2. Update Auth User (Secondary for Display Name)
