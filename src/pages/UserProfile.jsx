@@ -611,11 +611,8 @@ export default function UserProfile() {
               <div className="space-y-3">
                 <Button 
                   onClick={() => {
-                    // Reconstruct clean URL to avoid double-encoding issues
-                    const cleanUrl = profileEmailParam 
-                      ? `${window.location.origin}/UserProfile?email=${encodeURIComponent(profileEmailParam)}`
-                      : window.location.href;
-                    base44.auth.redirectToLogin(cleanUrl);
+                    // Simply redirect to login without params to avoid redirect loops or 404s on /login
+                    base44.auth.redirectToLogin();
                   }} 
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
