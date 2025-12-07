@@ -139,19 +139,19 @@ export default function UserProfile() {
       // 1. Priority: Self View
       if (isSelfView && currentUser) {
         try {
-          // 1a. Try by User ID FIRST (Most stable identifier)
-          if (currentUser.id) {
-            const byId = await base44.entities.UserProfile.filter({ user_id: currentUser.id });
-            if (byId && byId.length > 0) {
-              userProfile = byId[0];
-            }
-          }
-
-          // 1b. Try by Email if not found by ID
-          if (!userProfile && currentUser.email) {
+          // 1a. Try by Email FIRST (This is the one the user can edit in Settings)
+          if (currentUser.email) {
             const byEmail = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
             if (byEmail && byEmail.length > 0) {
               userProfile = byEmail[0];
+            }
+          }
+
+          // 1b. Fallback to ID if not found by Email (e.g. old accounts with different email)
+          if (!userProfile && currentUser.id) {
+            const byId = await base44.entities.UserProfile.filter({ user_id: currentUser.id });
+            if (byId && byId.length > 0) {
+              userProfile = byId[0];
             }
           }
         } catch (e) {
