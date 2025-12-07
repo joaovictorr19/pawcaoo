@@ -86,7 +86,14 @@ export default function Home() {
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch (err) {
+        console.error("Home auth error:", err);
+        return null;
+      }
+    },
     retry: false,
   });
 
@@ -217,137 +224,143 @@ export default function Home() {
     return Math.round((score / totalPossibleScore) * 100);
   };
 
-  const filteredWalkers = walkers
-    .map(walker => ({
-      ...walker,
-      distance: getWalkerDistance(walker),
-      matchScore: calculateMatchScore(walker)
-    }))
-    .filter(walker => {
-      // Only show active walkers for public view
-      if (!walker.is_active) return false;
+  // Safe Memoized Walkers Filter
+  const filteredWalkers = React.useMemo(() => {
+    if (!Array.isArray(walkers)) return [];
+    
+    return walkers
+      .map(walker => ({
+        ...walker,
+        distance: getWalkerDistance(walker),
+        matchScore: calculateMatchScore(walker)
+      }))
+      .filter(walker => {
+        // Only show active walkers for public view
+        if (!walker.is_active) return false;
 
-      const matchesLocation = !searchLocation || 
-        walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
-      const matchesSize = filterSize === "all" || 
-        walker.dog_sizes?.includes(filterSize);
-      const matchesTime = filterTime === "all" || 
-        walker.availability?.includes(filterTime);
-      const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
+        const matchesLocation = !searchLocation || 
+          walker.location?.toLowerCase().includes(searchLocation.toLowerCase());
+        const matchesSize = filterSize === "all" || 
+          walker.dog_sizes?.includes(filterSize);
+        const matchesTime = filterTime === "all" || 
+          walker.availability?.includes(filterTime);
+        const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
 
-      const matchesDogSitting = filterDogSitting === "all" || (() => {
-        const services = walker.services_offered || [];
-        if (filterDogSitting === "boarding") {
-          return services.some(s => s.service_name?.toLowerCase().includes('boarding') || s.service_name?.toLowerCase().includes('alojamento'));
+        const matchesDogSitting = filterDogSitting === "all" || (() => {
+          const services = walker.services_offered || [];
+          if (filterDogSitting === "boarding") {
+            return services.some(s => s.service_name?.toLowerCase().includes('boarding') || s.service_name?.toLowerCase().includes('alojamento'));
+          }
+          if (filterDogSitting === "house_sitting") {
+            return services.some(s => s.service_name?.toLowerCase().includes('house sitting') || s.service_name?.toLowerCase().includes('casa'));
+          }
+          if (filterDogSitting === "drop_in") {
+            return services.some(s => s.service_name?.toLowerCase().includes('drop') || s.service_name?.toLowerCase().includes('visit') || s.service_name?.toLowerCase().includes('alimentação'));
+          }
+          return true;
+        })();
+        
+        const matchesServiceTypesQuick = selectedServiceTypes.length === 0 ||
+          selectedServiceTypes.every(type =>
+            walker.services_offered?.some(s =>
+              s.service_name?.toLowerCase().includes(type.toLowerCase().replace('_', ' ')) ||
+              type.toLowerCase().replace('_', ' ').includes(s.service_name?.toLowerCase())
+            )
+          );
+
+        const matchesSpecializationsQuick = selectedSpecializations.length === 0 ||
+          selectedSpecializations.every(spec =>
+            walker.specializations?.includes(spec)
+          );
+
+        // Check if user is within any defined service area
+        const isInServiceArea = !userLocation || (walker.service_areas?.some(area => {
+          if (!area.latitude || !area.longitude || !area.radius_km) return false;
+          const dist = calculateDistance(
+            userLocation.lat, 
+            userLocation.lng, 
+            area.latitude, 
+            area.longitude
+          );
+          return dist <= area.radius_km;
+        }));
+
+        const matchesRadius = !userLocation || isInServiceArea || (walker.distance !== null && walker.distance <= (advancedFilters.radius || 50));
+        
+        const matchesLanguages = !advancedFilters.languages || advancedFilters.languages.length === 0 ||
+          advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));
+        
+        const matchesAdvancedSpecializations = !advancedFilters.specializations || advancedFilters.specializations.length === 0 ||
+          advancedFilters.specializations.some(spec => walker.specializations?.includes(spec));
+
+        const matchesBreeds = !advancedFilters.breeds || advancedFilters.breeds.length === 0 ||
+          advancedFilters.breeds.some(breed => walker.dog_breeds_handled?.includes(breed));
+        
+        const matchesCertifications = !advancedFilters.certifications || advancedFilters.certifications.length === 0 ||
+          advancedFilters.certifications.some(cert => 
+            walker.certifications_detailed?.some(wCert => 
+              wCert.name?.toLowerCase().includes(cert.toLowerCase())
+            )
+          );
+        
+        const matchesAdvancedServiceTypes = !advancedFilters.serviceTypes || advancedFilters.serviceTypes.length === 0 ||
+          advancedFilters.serviceTypes.some(type => 
+            walker.services_offered?.some(s => {
+              const name = s.service_name?.toLowerCase() || '';
+              // Enhanced matching for PT/EN
+              if (type === 'regular_walks') return name.includes('walk') || name.includes('passeio');
+              if (type === 'boarding') return name.includes('boarding') || name.includes('alojamento');
+              if (type === 'house_sitting') return name.includes('sitting') || name.includes('casa');
+              if (type === 'drop_in') return name.includes('drop') || name.includes('visita');
+              if (type === 'training') return name.includes('train') || name.includes('treino');
+              if (type === 'grooming') return name.includes('groom') || name.includes('tosquia') || name.includes('banho');
+              if (type === 'pet_taxi') return name.includes('taxi') || name.includes('transporte');
+              if (type === 'daycare') return name.includes('day') || name.includes('creche');
+              return name.includes(type.replace('_', ' '));
+            })
+          );
+        
+        const matchesTimeSlots = !advancedFilters.timeSlots || advancedFilters.timeSlots.length === 0 ||
+          advancedFilters.timeSlots.some(slot => walker.availability?.includes(slot));
+        
+        const matchesDate = !advancedFilters.availableDate;
+        
+        const matchesExperience = (walker.experience_years || 0) >= (advancedFilters.minExperience || 0);
+        const matchesRating = (walker.rating || 0) >= (advancedFilters.minRating || 0);
+        const matchesPrice = (walker.hourly_rate || 0) >= (advancedFilters.minPrice || 0) && 
+                             (walker.hourly_rate || 0) <= (advancedFilters.maxPrice || 100);
+        
+        const matchesBackgroundCheck = !advancedFilters.backgroundCheck || 
+                                       walker.background_check_status === 'verified';
+        
+        const matchesVerifiedOnly = !advancedFilters.verifiedOnly ||
+                                     walker.verification_status === 'verified';
+        
+        const matchesInstantBooking = !advancedFilters.instantBooking ||
+                                       walker.instant_booking === true;
+        
+        return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
+               matchesDogSitting && matchesServiceTypesQuick && matchesSpecializationsQuick &&
+               matchesRadius && matchesLanguages && matchesAdvancedSpecializations && matchesBreeds &&
+               matchesCertifications && matchesAdvancedServiceTypes && matchesTimeSlots && matchesDate &&
+               matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck &&
+               matchesVerifiedOnly && matchesInstantBooking;
+      })
+      .sort((a, b) => {
+        if (selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) {
+          if (a.matchScore !== b.matchScore) {
+            return b.matchScore - a.matchScore;
+          }
         }
-        if (filterDogSitting === "house_sitting") {
-          return services.some(s => s.service_name?.toLowerCase().includes('house sitting') || s.service_name?.toLowerCase().includes('casa'));
+
+        if (userLocation && a.distance !== null && b.distance !== null) {
+          return a.distance - b.distance;
         }
-        if (filterDogSitting === "drop_in") {
-          return services.some(s => s.service_name?.toLowerCase().includes('drop') || s.service_name?.toLowerCase().includes('visit') || s.service_name?.toLowerCase().includes('alimentação'));
-        }
-        return true;
-      })();
-      
-      const matchesServiceTypesQuick = selectedServiceTypes.length === 0 ||
-        selectedServiceTypes.every(type =>
-          walker.services_offered?.some(s =>
-            s.service_name?.toLowerCase().includes(type.toLowerCase().replace('_', ' ')) ||
-            type.toLowerCase().replace('_', ' ').includes(s.service_name?.toLowerCase())
-          )
-        );
-
-      const matchesSpecializationsQuick = selectedSpecializations.length === 0 ||
-        selectedSpecializations.every(spec =>
-          walker.specializations?.includes(spec)
-        );
-
-      // Check if user is within any defined service area
-      const isInServiceArea = !userLocation || (walker.service_areas?.some(area => {
-        if (!area.latitude || !area.longitude || !area.radius_km) return false;
-        const dist = calculateDistance(
-          userLocation.lat, 
-          userLocation.lng, 
-          area.latitude, 
-          area.longitude
-        );
-        return dist <= area.radius_km;
-      }));
-
-      const matchesRadius = !userLocation || isInServiceArea || (walker.distance !== null && walker.distance <= (advancedFilters.radius || 50));
-      
-      const matchesLanguages = !advancedFilters.languages || advancedFilters.languages.length === 0 ||
-        advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));
-      
-      const matchesAdvancedSpecializations = !advancedFilters.specializations || advancedFilters.specializations.length === 0 ||
-        advancedFilters.specializations.some(spec => walker.specializations?.includes(spec));
-
-      const matchesBreeds = !advancedFilters.breeds || advancedFilters.breeds.length === 0 ||
-        advancedFilters.breeds.some(breed => walker.dog_breeds_handled?.includes(breed));
-      
-      const matchesCertifications = !advancedFilters.certifications || advancedFilters.certifications.length === 0 ||
-        advancedFilters.certifications.some(cert => 
-          walker.certifications_detailed?.some(wCert => 
-            wCert.name?.toLowerCase().includes(cert.toLowerCase())
-          )
-        );
-      
-      const matchesAdvancedServiceTypes = !advancedFilters.serviceTypes || advancedFilters.serviceTypes.length === 0 ||
-        advancedFilters.serviceTypes.some(type => 
-          walker.services_offered?.some(s => {
-            const name = s.service_name?.toLowerCase() || '';
-            // Enhanced matching for PT/EN
-            if (type === 'regular_walks') return name.includes('walk') || name.includes('passeio');
-            if (type === 'boarding') return name.includes('boarding') || name.includes('alojamento');
-            if (type === 'house_sitting') return name.includes('sitting') || name.includes('casa');
-            if (type === 'drop_in') return name.includes('drop') || name.includes('visita');
-            if (type === 'training') return name.includes('train') || name.includes('treino');
-            if (type === 'grooming') return name.includes('groom') || name.includes('tosquia') || name.includes('banho');
-            if (type === 'pet_taxi') return name.includes('taxi') || name.includes('transporte');
-            if (type === 'daycare') return name.includes('day') || name.includes('creche');
-            return name.includes(type.replace('_', ' '));
-          })
-        );
-      
-      const matchesTimeSlots = !advancedFilters.timeSlots || advancedFilters.timeSlots.length === 0 ||
-        advancedFilters.timeSlots.some(slot => walker.availability?.includes(slot));
-      
-      const matchesDate = !advancedFilters.availableDate;
-      
-      const matchesExperience = (walker.experience_years || 0) >= (advancedFilters.minExperience || 0);
-      const matchesRating = (walker.rating || 0) >= (advancedFilters.minRating || 0);
-      const matchesPrice = (walker.hourly_rate || 0) >= (advancedFilters.minPrice || 0) && 
-                           (walker.hourly_rate || 0) <= (advancedFilters.maxPrice || 100);
-      
-      const matchesBackgroundCheck = !advancedFilters.backgroundCheck || 
-                                     walker.background_check_status === 'verified';
-      
-      const matchesVerifiedOnly = !advancedFilters.verifiedOnly ||
-                                   walker.verification_status === 'verified';
-      
-      const matchesInstantBooking = !advancedFilters.instantBooking ||
-                                     walker.instant_booking === true;
-      
-      return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
-             matchesDogSitting && matchesServiceTypesQuick && matchesSpecializationsQuick &&
-             matchesRadius && matchesLanguages && matchesAdvancedSpecializations && matchesBreeds &&
-             matchesCertifications && matchesAdvancedServiceTypes && matchesTimeSlots && matchesDate &&
-             matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck &&
-             matchesVerifiedOnly && matchesInstantBooking;
-    })
-    .sort((a, b) => {
-      if (selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) {
-        if (a.matchScore !== b.matchScore) {
-          return b.matchScore - a.matchScore;
-        }
-      }
-
-      if (userLocation && a.distance !== null && b.distance !== null) {
-        return a.distance - b.distance;
-      }
-      
-      return (b.rating || 0) - (a.rating || 0);
-    });
+        
+        return (b.rating || 0) - (a.rating || 0);
+      });
+  }, [walkers, searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, 
+      selectedServiceTypes, selectedSpecializations, advancedFilters, userLocation]);
 
   const filteredEmergencyWalks = emergencyWalks.filter(walk => {
     const matchesLocation = !searchLocation || 
@@ -366,44 +379,49 @@ export default function Home() {
 
 // Removed useEffect from here to fix hook order issue
 
-  const filteredTrainers = trainers
-    .map(trainer => ({
-      ...trainer,
-      distance: getTrainerDistance(trainer)
-    }))
-    .filter(trainer => {
-      const matchesSearch = !searchLocation ||
-        trainer.location?.toLowerCase().includes(searchLocation.toLowerCase()) ||
-        trainer.trainer_name?.toLowerCase().includes(searchLocation.toLowerCase());
+  // Safe Memoized Trainers Filter
+  const filteredTrainers = React.useMemo(() => {
+    if (!Array.isArray(trainers)) return [];
 
-      const matchesSpecialties = trainerFilters.specialties.length === 0 ||
-        trainerFilters.specialties.some(spec => trainer.training_specialties?.includes(spec));
-      
-      const matchesMethodologies = trainerFilters.methodologies.length === 0 ||
-        trainerFilters.methodologies.some(method => 
-          trainer.training_methodologies?.some(m => m.methodology_name === method)
-        );
-      
-      const matchesConsultation = trainerFilters.consultationTypes.length === 0 ||
-        trainerFilters.consultationTypes.some(type => trainer.consultation_options?.includes(type));
-      
-      const matchesExperience = (trainer.experience_years || 0) >= (trainerFilters.minExperience || 0);
-      const matchesRating = (trainer.rating || 0) >= (trainerFilters.minRating || 0);
-      const matchesVerified = !trainerFilters.verifiedOnly || trainer.verification_status === 'verified';
-      
-      const matchesRadius = !userLocation || trainer.distance === null || 
-        trainer.distance <= (advancedFilters.radius || 50);
+    return trainers
+      .map(trainer => ({
+        ...trainer,
+        distance: getTrainerDistance(trainer)
+      }))
+      .filter(trainer => {
+        const matchesSearch = !searchLocation ||
+          trainer.location?.toLowerCase().includes(searchLocation.toLowerCase()) ||
+          trainer.trainer_name?.toLowerCase().includes(searchLocation.toLowerCase());
 
-      return matchesSearch && matchesSpecialties && matchesMethodologies && 
-             matchesConsultation && matchesExperience && matchesRating && 
-             matchesVerified && matchesRadius;
-    })
-    .sort((a, b) => {
-      if (userLocation && a.distance !== null && b.distance !== null) {
-        return a.distance - b.distance;
-      }
-      return (b.rating || 0) - (a.rating || 0);
-    });
+        const matchesSpecialties = trainerFilters.specialties.length === 0 ||
+          trainerFilters.specialties.some(spec => trainer.training_specialties?.includes(spec));
+        
+        const matchesMethodologies = trainerFilters.methodologies.length === 0 ||
+          trainerFilters.methodologies.some(method => 
+            trainer.training_methodologies?.some(m => m.methodology_name === method)
+          );
+        
+        const matchesConsultation = trainerFilters.consultationTypes.length === 0 ||
+          trainerFilters.consultationTypes.some(type => trainer.consultation_options?.includes(type));
+        
+        const matchesExperience = (trainer.experience_years || 0) >= (trainerFilters.minExperience || 0);
+        const matchesRating = (trainer.rating || 0) >= (trainerFilters.minRating || 0);
+        const matchesVerified = !trainerFilters.verifiedOnly || trainer.verification_status === 'verified';
+        
+        const matchesRadius = !userLocation || trainer.distance === null || 
+          trainer.distance <= (advancedFilters.radius || 50);
+
+        return matchesSearch && matchesSpecialties && matchesMethodologies && 
+               matchesConsultation && matchesExperience && matchesRating && 
+               matchesVerified && matchesRadius;
+      })
+      .sort((a, b) => {
+        if (userLocation && a.distance !== null && b.distance !== null) {
+          return a.distance - b.distance;
+        }
+        return (b.rating || 0) - (a.rating || 0);
+      });
+  }, [trainers, searchLocation, trainerFilters, userLocation, advancedFilters.radius]);
 
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
