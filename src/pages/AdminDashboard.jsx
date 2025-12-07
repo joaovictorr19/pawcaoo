@@ -378,6 +378,7 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['walkers'] }); // Update public list
       toast.success("Perfil de passeador atualizado e notificado!");
     },
   });
@@ -391,6 +392,7 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['trainers'] }); // Update public list
       toast.success("Perfil de treinador atualizado e notificado!");
     },
   });
@@ -1123,7 +1125,6 @@ export default function AdminDashboard() {
                                     id: walker.id, 
                                     data: { is_active: !walker.is_active } 
                                   });
-                                  setTimeout(() => queryClient.invalidateQueries(['activeWalkers']), 500);
                                 }
                               }}
                             >
