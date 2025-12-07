@@ -257,10 +257,19 @@ export default function ProfessionalDashboard() {
         const timeFormatted = booking.walk_time || booking.session_time;
 
         if (status === 'confirmed') {
+          // Add WhatsApp link if available
+          let message = `Sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi aceite.`;
+          
+          const profile = walkerProfile || trainerProfile;
+          if (profile && profile.whatsapp_number) {
+             const waLink = `https://wa.me/${profile.whatsapp_number.replace(/[^0-9]/g, '')}`;
+             message += `\n\nFale com o profissional pelo WhatsApp: ${waLink}`;
+          }
+
           await createNotification.mutateAsync({
             recipient_email: clientEmail,
             title: '✅ Reserva Confirmada!',
-            message: `Sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi aceite.`,
+            message: message,
             type: 'booking',
             related_id: booking.id,
             priority: 'high',
@@ -589,19 +598,7 @@ export default function ProfessionalDashboard() {
                 <DollarSign className="w-4 h-4 mr-2" />
                 Configure Payouts
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate(createPageUrl('Messages'))}
-                className="relative"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Messages
-                {unreadMessages > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-red-500 text-white px-2">
-                    {unreadMessages}
-                  </Badge>
-                )}
-              </Button>
+              {/* Messages button removed as per request to use WhatsApp */}
               <Button onClick={() => navigate(createPageUrl('ManageAvailability'))}>
                 <Calendar className="w-4 h-4 mr-2" />
                 Manage Availability

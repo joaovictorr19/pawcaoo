@@ -6,7 +6,6 @@ import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
 import PostEmergency from './pages/PostEmergency';
 import Favorites from './pages/Favorites';
 import DogSittingServices from './pages/DogSittingServices';
-import Messages from './pages/Messages';
 import ScheduledWalks from './pages/ScheduledWalks';
 import Notifications from './pages/Notifications';
 import WalkHistory from './pages/WalkHistory';
@@ -76,7 +75,6 @@ export const PAGES = {
     "PostEmergency": PostEmergency,
     "Favorites": Favorites,
     "DogSittingServices": DogSittingServices,
-    "Messages": Messages,
     "ScheduledWalks": ScheduledWalks,
     "Notifications": Notifications,
     "WalkHistory": WalkHistory,
