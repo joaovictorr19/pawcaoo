@@ -17,6 +17,7 @@ import { t } from "@/components/translations";
 import SEO from "../components/SEO";
 import FilterBar from "../components/adoption/FilterBar";
 import { generateBreadcrumbSchema } from "../components/seoHelpers";
+import ContactShelterModal from "../components/adoption/ContactShelterModal";
 
 export default function AdoptionListings({ isEmbedded = false }) {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
   const [filterGoodWith, setFilterGoodWith] = useState([]);
   const [filterSpecialNeeds, setFilterSpecialNeeds] = useState(false);
   const [filterEnergy, setFilterEnergy] = useState("all"); // New state
+  const [selectedListingForContact, setSelectedListingForContact] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -428,11 +430,31 @@ export default function AdoptionListings({ isEmbedded = false }) {
                         📍 {listing.shelter_name}
                       </div>
                     )}
+
+                    <Button 
+                      className="w-full mt-4 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedListingForContact(listing);
+                      }}
+                    >
+                      <Home className="w-4 h-4 mr-2" />
+                      Contactar Abrigo
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.article>
             ))}
           </div>
+        )}
+
+        {selectedListingForContact && (
+          <ContactShelterModal
+            isOpen={!!selectedListingForContact}
+            onClose={() => setSelectedListingForContact(null)}
+            listing={selectedListingForContact}
+            user={user}
+          />
         )}
       </div>
     </div>
