@@ -30,18 +30,29 @@ export default function AccountSettings() {
   });
 
   const { data: userProfileEntity } = useQuery({
-    queryKey: ['userProfileEntity', user?.email],
+    queryKey: ['userProfileEntity', user?.email, user?.id],
     queryFn: async () => {
-      if (!user?.email) return null;
+      if (!user) return null;
       try {
-        const res = await base44.entities.UserProfile.filter({ user_email: user.email });
-        return res?.[0] || null;
+        // 1. Try by User ID (Most reliable)
+        if (user.id) {
+          const byId = await base44.entities.UserProfile.filter({ user_id: user.id });
+          if (byId && byId.length > 0) return byId[0];
+        }
+        
+        // 2. Fallback to Email
+        if (user.email) {
+          const byEmail = await base44.entities.UserProfile.filter({ user_email: user.email });
+          if (byEmail && byEmail.length > 0) return byEmail[0];
+        }
+
+        return null;
       } catch (e) {
         console.error("Error fetching user profile entity:", e);
         return null;
       }
     },
-    enabled: !!user?.email,
+    enabled: !!user,
   });
 
   const [profileData, setProfileData] = useState({
@@ -147,9 +158,22 @@ export default function AccountSettings() {
 
       // 1. Sync with UserProfile entity FIRST (Source of Truth for Profile Page)
       try {
-        const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-        if (userProfiles && userProfiles.length > 0) {
-          const profileId = userProfiles[0].id;
+        let profileToUpdate = null;
+
+        // Try finding by ID first
+        if (user.id) {
+           const byId = await base44.entities.UserProfile.filter({ user_id: user.id });
+           if (byId && byId.length > 0) profileToUpdate = byId[0];
+        }
+
+        // Try finding by Email if not found
+        if (!profileToUpdate && user.email) {
+           const byEmail = await base44.entities.UserProfile.filter({ user_email: user.email });
+           if (byEmail && byEmail.length > 0) profileToUpdate = byEmail[0];
+        }
+
+        if (profileToUpdate) {
+          const profileId = profileToUpdate.id;
           const updateData = {};
           // Explicitly map fields to ensure clean update
           if (data.username !== undefined) updateData.username = data.username;
@@ -160,6 +184,11 @@ export default function AccountSettings() {
           if (data.city !== undefined) updateData.city = data.city;
           if (data.is_private !== undefined) updateData.is_private = data.is_private;
           
+          // Ensure user_id is linked if missing in old profiles
+          if (!profileToUpdate.user_id && user.id) {
+             updateData.user_id = user.id;
+          }
+
           if (Object.keys(updateData).length > 0) {
             await base44.entities.UserProfile.update(profileId, updateData);
           }
