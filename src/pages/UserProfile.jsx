@@ -105,6 +105,13 @@ export default function UserProfile() {
                      (currentUser && targetEmail === currentUser.email) ||
                      (currentUser && targetUsername === currentUser.username);
 
+  // Redirecionar para login se for SelfView e não estiver logado
+  React.useEffect(() => {
+    if (isSelfView && !currentUser && !loadingUser) {
+      base44.auth.redirectToLogin();
+    }
+  }, [isSelfView, currentUser, loadingUser]);
+
   const { data: profileUser, isLoading: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, targetName, targetUsername, isSelfView, currentUser?.id],
     queryFn: async () => {
@@ -577,9 +584,13 @@ export default function UserProfile() {
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <User className="w-10 h-10 text-gray-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil Não Encontrado</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {isSelfView && !currentUser ? "Faça Login" : "Perfil Não Encontrado"}
+            </h2>
             <p className="text-gray-600 mb-6">
-              O perfil que procura não existe, é privado, ou você precisa fazer login para visualizá-lo.
+              {isSelfView && !currentUser 
+                ? "Para visualizar seu próprio perfil, você precisa entrar na sua conta." 
+                : "O perfil que você está procurando não está disponível publicamente ou não existe."}
             </p>
             
             {!currentUser ? (
@@ -588,7 +599,7 @@ export default function UserProfile() {
                   onClick={() => base44.auth.redirectToLogin()} 
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Fazer Login / Criar Conta
+                  Entrar na minha conta
                 </Button>
                 <Button 
                   variant="outline" 
@@ -599,10 +610,15 @@ export default function UserProfile() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar ao Início
-              </Button>
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded border">
+                  Dica: Se você é o administrador, vá ao Painel Admin &gt; Contas e clique em "Sincronizar Perfis" para garantir que todos os usuários tenham perfis públicos.
+                </p>
+                <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar ao Início
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
