@@ -189,8 +189,8 @@ export default function BookingForm({ walker, professional, onClose }) {
     },
     onError: (error) => {
       console.error('Erro ao criar booking:', error);
-      toast.error('❌ Erro ao criar reserva', {
-        description: 'Tente novamente mais tarde.',
+      toast.error('Não foi possível criar a sua reserva neste momento.', {
+        description: 'Por favor, tente novamente ou contacte o suporte.',
       });
     }
   });
