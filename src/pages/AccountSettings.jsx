@@ -231,8 +231,12 @@ export default function AccountSettings() {
   };
 
   const handleSaveProfile = () => {
+    // Ensure username follows handle rules (no spaces) on save
+    const formattedUsername = profileData.username.trim().replace(/\s+/g, '-');
+    
     const updatedData = {
       ...profileData,
+      username: formattedUsername,
       skills: profileData.skills.split(",").map(s => s.trim()).filter(s => s),
     };
     updateProfileMutation.mutate(updatedData);
@@ -414,8 +418,8 @@ export default function AccountSettings() {
                       <Input
                         value={profileData.username}
                         onChange={(e) => {
-                          // Allow alphanumeric, underscore, dot, hyphen. Replace spaces with hyphen.
-                          const val = e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9._-]/g, "");
+                          // Allow spaces while typing, will be formatted on save
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._-\s]/g, "");
                           setProfileData({...profileData, username: val});
                         }}
                         placeholder="username"
