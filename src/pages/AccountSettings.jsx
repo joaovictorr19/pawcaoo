@@ -225,6 +225,7 @@ export default function AccountSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
       toast.success("Perfil atualizado com sucesso!");
     },
     onError: (error) => {
