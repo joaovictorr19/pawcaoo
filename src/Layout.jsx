@@ -32,7 +32,7 @@ import { toast, Toaster } from "sonner";
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
-// Query optimization configs
+// Query optimization configs - v1.1
 const queryConfig = {
   user: {
     staleTime: 5 * 60 * 1000,
