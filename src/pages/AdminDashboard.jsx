@@ -427,6 +427,16 @@ export default function AdminDashboard() {
     },
   });
 
+  const deleteWalkerMutation = useMutation({
+    mutationFn: (id) => base44.entities.WalkerProfile.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['activeWalkers'] });
+      queryClient.invalidateQueries({ queryKey: ['walkers'] });
+      toast.success("Perfil de passeador eliminado com sucesso!");
+    },
+  });
+
   const handleAdminDocUpload = async (e, field) => {
     const file = e.target.files?.[0];
     if (!file || !selectedApplication) return;
@@ -1129,6 +1139,18 @@ export default function AdminDashboard() {
                               }}
                             >
                               {walker.is_active ? 'Pausar' : 'Ativar'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => {
+                                if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.\nEsta ação não pode ser desfeita.`)) {
+                                  deleteWalkerMutation.mutate(walker.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
