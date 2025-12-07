@@ -572,15 +572,38 @@ export default function UserProfile() {
   if (!profileUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full">
+        <Card className="max-w-md w-full shadow-xl border-0">
           <CardContent className="p-12 text-center">
-            <Dog className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil não encontrado</h2>
-            <p className="text-gray-600 mb-4">Este perfil não está disponível ou foi removido.</p>
-            <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar ao Início
-            </Button>
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <User className="w-10 h-10 text-gray-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil Não Encontrado</h2>
+            <p className="text-gray-600 mb-6">
+              O perfil que procura não existe, é privado, ou você precisa fazer login para visualizá-lo.
+            </p>
+            
+            {!currentUser ? (
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => base44.auth.redirectToLogin()} 
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Fazer Login / Criar Conta
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate(createPageUrl('Home'))} 
+                  className="w-full"
+                >
+                  Voltar ao Início
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar ao Início
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

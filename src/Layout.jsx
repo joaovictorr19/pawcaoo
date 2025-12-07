@@ -252,12 +252,12 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [user?.email, user?.achievements_badges, language, queryClient]);
 
-  // Ensure Dog Connect profile for every user
+  // Ensure Dog Connect profile and UserProfile entity for every user
   React.useEffect(() => {
-    const setupDogConnectProfile = async () => {
+    const setupProfiles = async () => {
       if (!user?.email) return;
-      
-      // Check if user has Dog Connect stats
+
+      // 1. Setup Dog Connect Stats on User Object (Auth)
       if (user.profile_stats === undefined || user.profile_stats === null) {
         try {
           await base44.auth.updateMe({
@@ -284,9 +284,35 @@ function LayoutContent({ children, currentPageName }) {
           console.error('Error setting up Dog Connect profile:', error);
         }
       }
+
+      // 2. Ensure UserProfile Entity exists (for public access)
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (!profiles || profiles.length === 0) {
+          console.log("Creating missing UserProfile entity...");
+          await base44.entities.UserProfile.create({
+            user_email: user.email,
+            user_id: user.id,
+            username: user.username, // might be undefined, allowed if optional or handled
+            full_name: user.full_name || 'Utilizador',
+            profile_photo_url: user.profile_photo_url,
+            cover_photo_url: user.cover_photo_url,
+            bio: user.bio || '',
+            city: user.city || '',
+            role: user.role || 'user',
+            gamification_xp: user.gamification_xp || 0,
+            gamification_level: user.gamification_level || 1,
+            followers_count: 0,
+            following_count: 0,
+            is_verified: user.is_verified || false
+          });
+        }
+      } catch (err) {
+        console.error("Error ensuring UserProfile entity:", err);
+      }
     };
-    
-    setupDogConnectProfile();
+
+    setupProfiles();
   }, [user?.email, queryClient]);
 
 
