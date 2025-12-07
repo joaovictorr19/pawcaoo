@@ -590,6 +590,31 @@ export default function UserProfile() {
     );
   }
 
+  // Private Profile Check
+  if (profileUser && profileUser.is_private && !isOwnProfile && currentUser?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full shadow-xl border-0">
+          <CardContent className="p-12 text-center">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-10 h-10 text-gray-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Este Perfil é Privado
+            </h2>
+            <p className="text-gray-600 mb-6">
+              As informações deste utilizador não estão visíveis publicamente.
+            </p>
+            <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full bg-green-600 hover:bg-green-700 text-white">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar ao Início
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!profileUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">

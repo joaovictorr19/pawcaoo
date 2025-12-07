@@ -66,6 +66,7 @@ export default function AccountSettings() {
     },
     skills: "",
     username: "",
+    is_private: false,
   });
 
   const [preferences, setPreferences] = useState({
@@ -100,6 +101,7 @@ export default function AccountSettings() {
         emergency_contact: user.emergency_contact || { name: "", phone: "", relation: "" },
         skills: user.skills ? user.skills.join(", ") : "",
         username: source.username || user.username || "",
+        is_private: source.is_private || false,
       });
       
       // Initialize preferences safely with defaults
@@ -157,22 +159,24 @@ export default function AccountSettings() {
           if (data.profile_photo_url) updateData.profile_photo_url = data.profile_photo_url;
           if (data.cover_photo_url) updateData.cover_photo_url = data.cover_photo_url;
           if (data.city) updateData.city = data.city;
+          if (data.is_private !== undefined) updateData.is_private = data.is_private;
           
           if (Object.keys(updateData).length > 0) {
             await base44.entities.UserProfile.update(profileId, updateData);
           }
         } else {
             // Create UserProfile if it doesn't exist
-             await base44.entities.UserProfile.create({
-                user_email: user.email,
-                user_id: user.id,
-                username: data.username || user.username,
-                full_name: data.full_name || user.full_name,
-                profile_photo_url: data.profile_photo_url || user.profile_photo_url,
-                bio: data.bio || user.bio,
-                city: data.city || user.city,
-                role: user.role || 'user'
-             });
+            await base44.entities.UserProfile.create({
+               user_email: user.email,
+               user_id: user.id,
+               username: data.username || user.username,
+               full_name: data.full_name || user.full_name,
+               profile_photo_url: data.profile_photo_url || user.profile_photo_url,
+               bio: data.bio || user.bio,
+               city: data.city || user.city,
+               role: user.role || 'user',
+               is_private: data.is_private || false
+            });
         }
       } catch (err) {
         console.error("Failed to sync UserProfile:", err);
@@ -337,6 +341,23 @@ export default function AccountSettings() {
                   <p className="text-sm text-gray-600">Informações visíveis para todos</p>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  
+                  <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
+                    <div>
+                      <h4 className="font-semibold text-blue-900 flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Perfil Privado
+                      </h4>
+                      <p className="text-sm text-blue-700">
+                        Quando ativado, apenas você e administradores poderão ver seu perfil completo.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={profileData.is_private}
+                      onCheckedChange={(checked) => setProfileData({...profileData, is_private: checked})}
+                    />
+                  </div>
+
                   {/* Photos */}
                   <div>
                     <Label className="mb-3 block">Foto de Perfil</Label>
