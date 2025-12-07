@@ -48,6 +48,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
@@ -865,10 +866,10 @@ export default function AdminDashboard() {
   }
 
   const stats = [
-    { icon: Users, value: allUsers.length, label: "Total Users", color: "from-blue-600 to-cyan-600" },
-    { icon: Briefcase, value: walkerApplications.length + trainerApplications.length, label: "Pending Apps", color: "from-purple-600 to-pink-600" },
-    { icon: Package, value: pendingApprovalServices.length, label: "Services Pending", color: "from-orange-600 to-red-600" },
-    { icon: Calendar, value: allBookings.length, label: "Total Bookings", color: "from-green-600 to-emerald-600" },
+    { icon: Users, value: allUsers.length, label: "Total Users", key: "totalUsersStats", color: "from-blue-600 to-cyan-600" },
+    { icon: Briefcase, value: walkerApplications.length + trainerApplications.length, label: "Pending Apps", key: "pendingAppsStats", color: "from-purple-600 to-pink-600" },
+    { icon: Package, value: pendingApprovalServices.length, label: "Services Pending", key: "servicesPendingStats", color: "from-orange-600 to-red-600" },
+    { icon: Calendar, value: allBookings.length, label: "Total Bookings", key: "totalBookingsStats", color: "from-green-600 to-emerald-600" },
   ];
 
   return (
@@ -882,8 +883,8 @@ export default function AdminDashboard() {
               <Shield className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 font-medium">Gestão completa da plataforma</p>
+              <h1 className="text-4xl font-black text-gray-900">{t('adminDashboard', language)}</h1>
+              <p className="text-gray-600 font-medium">{t('adminSubtitle', language)}</p>
             </div>
           </div>
 
@@ -896,7 +897,7 @@ export default function AdminDashboard() {
                     <stat.icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+                  <div className="text-sm text-gray-600 font-medium">{t(stat.key || stat.label, language) === stat.key ? stat.label : t(stat.key || stat.label, language)}</div>
                 </CardContent>
               </Card>
             ))}
@@ -905,19 +906,19 @@ export default function AdminDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap justify-center w-full gap-2 bg-white shadow-lg p-2 h-auto rounded-xl min-h-[3rem]">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="users">Contas</TabsTrigger>
-            <TabsTrigger value="applications">Verificações</TabsTrigger>
-            <TabsTrigger value="active_walkers">Passeadores Ativos</TabsTrigger>
-            <TabsTrigger value="adoptions">Adoções</TabsTrigger>
-            <TabsTrigger value="badges">Emblemas</TabsTrigger>
-            <TabsTrigger value="companies">Empresas</TabsTrigger>
-            <TabsTrigger value="announcements">Anúncios</TabsTrigger>
-            <TabsTrigger value="services">Serviços</TabsTrigger>
-            <TabsTrigger value="bookings">Reservas</TabsTrigger>
-            <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-            <TabsTrigger value="reviews">Avaliações</TabsTrigger>
+            <TabsTrigger value="overview">{t('overview', language)}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('analytics', language)}</TabsTrigger>
+            <TabsTrigger value="users">{t('accounts', language)}</TabsTrigger>
+            <TabsTrigger value="applications">{t('verifications', language)}</TabsTrigger>
+            <TabsTrigger value="active_walkers">{t('activeWalkers', language)}</TabsTrigger>
+            <TabsTrigger value="adoptions">{t('adoptions', language)}</TabsTrigger>
+            <TabsTrigger value="badges">{t('badges', language)}</TabsTrigger>
+            <TabsTrigger value="companies">{t('companies', language)}</TabsTrigger>
+            <TabsTrigger value="announcements">{t('announcements', language)}</TabsTrigger>
+            <TabsTrigger value="services">{t('services', language)}</TabsTrigger>
+            <TabsTrigger value="bookings">{t('bookings', language)}</TabsTrigger>
+            <TabsTrigger value="payments">{t('payments', language)}</TabsTrigger>
+            <TabsTrigger value="reviews">{t('reviews', language)}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics">
@@ -938,18 +939,18 @@ export default function AdminDashboard() {
               {/* Revenue Stats */}
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Financial Overview</CardTitle>
+                  <CardTitle>{t('financialOverview', language)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-green-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Total Transaction Volume</p>
+                      <p className="text-sm text-gray-600">{t('totalTransactionVolume', language)}</p>
                       <p className="text-2xl font-bold text-green-700">
                         €{allPayments.reduce((sum, p) => sum + (p.total_amount || 0), 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Platform Revenue</p>
+                      <p className="text-sm text-gray-600">{t('platformRevenue', language)}</p>
                       <p className="text-2xl font-bold text-blue-700">
                         €{allPayments.reduce((sum, p) => sum + (p.platform_fee || 0), 0).toLocaleString()}
                       </p>
@@ -961,24 +962,24 @@ export default function AdminDashboard() {
               {/* User Distribution */}
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>User Distribution</CardTitle>
+                  <CardTitle>{t('userDistribution', language)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span>Clients (Owners)</span>
+                      <span>{t('clients', language)} (Owners)</span>
                       <Badge className="bg-blue-500">{allUsers.filter(u => u.account_type === 'owner').length}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Walkers</span>
+                      <span>{t('walkers', language)}</span>
                       <Badge className="bg-green-500">{allUsers.filter(u => u.account_type === 'walker' || u.account_type === 'both').length}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Trainers</span>
+                      <span>{t('trainers', language)}</span>
                       <Badge className="bg-purple-500">{allUsers.filter(u => u.account_type === 'trainer' || u.account_type === 'both').length}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Companies</span>
+                      <span>{t('companies', language)}</span>
                       <Badge className="bg-orange-500">{allUsers.filter(u => u.account_type === 'company').length}</Badge>
                     </div>
                   </div>
@@ -991,7 +992,7 @@ export default function AdminDashboard() {
             <Card className="border-0 shadow-xl mt-6">
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                  <CardTitle className="text-2xl">Gestão de Contas</CardTitle>
+                  <CardTitle className="text-2xl">{t('accountManagement', language)}</CardTitle>
                   
                   <div className="w-full md:w-auto min-w-[400px]">
                     <UserSearchAdvanced 
@@ -1019,7 +1020,7 @@ export default function AdminDashboard() {
                         <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-xs`}>
                           {user.role === 'admin' ? 'Admin' : 'User'}
                         </Badge>
-                        {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 text-xs">Verificado</Badge>}
+                        {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 text-xs">{t('verified', language)}</Badge>}
                       </div>
                       <div className="flex gap-2 justify-end">
                         <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0"><Eye className="w-4 h-4" /></Button>
@@ -1036,11 +1037,11 @@ export default function AdminDashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Tipo de Conta</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Ações</TableHead>
+                        <TableHead>{t('email', language)}</TableHead>
+                        <TableHead>{t('fullName', language)}</TableHead>
+                        <TableHead>{t('accountType', language)}</TableHead>
+                        <TableHead>{t('status', language)}</TableHead>
+                        <TableHead>{t('actions', language)}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
