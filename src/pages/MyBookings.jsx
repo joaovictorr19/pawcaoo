@@ -420,14 +420,7 @@ export default function MyBookings() {
               </Button>
             )}
              
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-blue-600 bg-blue-50 hover:bg-blue-100"
-              onClick={() => navigate(createPageUrl('Messages'))}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
+            {/* Contact button removed - Use WhatsApp via Walker Profile */}
           </div>
         </CardContent>
       </Card>
