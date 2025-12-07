@@ -696,7 +696,7 @@ export default function UserProfile() {
 
           <CardContent className="pt-6 pb-6">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24 relative z-10">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
                   <AvatarImage src={profileUser.profile_photo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
