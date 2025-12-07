@@ -705,18 +705,20 @@ export default function UserProfile() {
                 </Avatar>
                 
                 <div className="text-center md:text-left mb-4 md:mb-6">
-                  <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap">
-                    <div className="flex flex-col">
-                      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
-                        {profileUser.full_name}
-                      </h1>
-                      {profileUser.username && (
-                        <p className="text-gray-500 font-medium text-sm md:text-base">
-                          @{profileUser.username}
-                        </p>
-                      )}
-                    </div>
-                    
+                  {/* Name and Username Block */}
+                  <div className="mb-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                      {profileUser.full_name}
+                    </h1>
+                    {profileUser.username && (
+                      <p className="text-gray-500 font-medium text-sm md:text-base">
+                        @{profileUser.username}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Badges Block - Separated for better layout */}
+                  <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap mb-3">
                     {(profileUser.is_verified || walkerProfile?.verification_status === 'verified') && (
                       <Badge className="bg-blue-500 text-white" title="Verificado">
                         <CheckCircle className="w-3 h-3 mr-1" />
