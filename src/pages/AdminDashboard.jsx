@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +67,65 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState(getInitialTab());
   // Substituindo busca simples por estado avançado
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
+
+  // Filtered Users Memo
+  const filteredUsers = useMemo(() => {
+    return allUsers.filter(u => {
+      const { searchTerm, filters } = userSearchState;
+      const searchLower = searchTerm?.toLowerCase() || "";
+      
+      // Filtro de Busca
+      const matchesSearch = !searchLower || 
+        u.email?.toLowerCase().includes(searchLower) ||
+        u.full_name?.toLowerCase().includes(searchLower);
+      
+      if (!matchesSearch) return false;
+
+      // Filtros Avançados
+      if (filters) {
+        // Tipo de Conta
+        if (filters.accountType && filters.accountType !== 'all') {
+          if (u.account_type !== filters.accountType) return false;
+        }
+
+        // Verificação
+        if (filters.verification && filters.verification !== 'all') {
+          const isVerified = u.is_verified;
+          if (filters.verification === 'verified' && !isVerified) return false;
+          if (filters.verification === 'unverified' && isVerified) return false;
+        }
+
+        // Status
+        if (filters.status && filters.status !== 'all') {
+          const hasBadges = u.public_badges?.length > 0;
+          if (filters.status === 'active' && !hasBadges) return false; 
+        }
+
+        // Data de Registro
+        if (filters.dateRange && filters.dateRange !== 'all') {
+          const createdDate = new Date(u.created_date);
+          const now = new Date();
+          const diffTime = Math.abs(now - createdDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (filters.dateRange === 'today' && diffDays > 1) return false;
+          if (filters.dateRange === 'week' && diffDays > 7) return false;
+          if (filters.dateRange === 'month' && diffDays > 30) return false;
+        }
+
+        // Skills Filter
+        if (filters.skills) {
+          const skillSearch = filters.skills.toLowerCase();
+          const userSkills = u.skills || [];
+          const skillsArray = Array.isArray(userSkills) ? userSkills : (typeof userSkills === 'string' ? userSkills.split(',') : []);
+          const hasSkill = skillsArray.some(s => s.toLowerCase().includes(skillSearch));
+          if (!hasSkill) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allUsers, userSearchState]);
   
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");

@@ -367,8 +367,18 @@ function LayoutContent({ children, currentPageName }) {
           [data-sidebar="sidebar"] {
             width: 280px !important;
           }
+          input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+            width: 100% !important;
+            max-width: 100%;
+            box-sizing: border-box;
+          }
+          .table-responsive-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
         }
-      `}</style>
+        `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         {user && (
         <Sidebar className="border-r border-gray-200 bg-white">
