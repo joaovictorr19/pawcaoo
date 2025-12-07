@@ -161,28 +161,6 @@ export default function Home() {
     staleTime: 30000,
   });
 
-  useEffect(() => {
-    if (dogSittingServiceFilter) {
-      setFilterDogSitting(dogSittingServiceFilter);
-    }
-  }, [dogSittingServiceFilter]);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters]);
-
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
-        <div>
-          <PawCaoLogo size="large" animated={true} />
-          <p className="text-gray-600 text-center mt-4">A carregar...</p>
-        </div>
-      </div>
-    );
-  }
-
   const getWalkerDistance = (walker) => {
     if (!userLocation || !userLocation.lat || !userLocation.lng) {
       return null;
@@ -406,8 +384,6 @@ export default function Home() {
     currentPage * itemsPerPage
   );
 
-// Removed useEffect from here to fix hook order issue
-
   // Safe Memoized Trainers Filter
   const filteredTrainers = React.useMemo(() => {
     if (!Array.isArray(trainers)) return [];
@@ -451,6 +427,28 @@ export default function Home() {
         return (b.rating || 0) - (a.rating || 0);
       });
   }, [trainers, searchLocation, trainerFilters, userLocation, advancedFilters.radius]);
+
+  useEffect(() => {
+    if (dogSittingServiceFilter) {
+      setFilterDogSitting(dogSittingServiceFilter);
+    }
+  }, [dogSittingServiceFilter]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters]);
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <div>
+          <PawCaoLogo size="large" animated={true} />
+          <p className="text-gray-600 text-center mt-4">A carregar...</p>
+        </div>
+      </div>
+    );
+  }
 
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
