@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, DollarSign, Clock, AlertCircle } from "lucide-react";
+import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -131,7 +131,7 @@ export default function BookingForm({ walker, professional, onClose }) {
     mutationFn: async (bookingData) => {
       console.log('📝 Criando booking:', bookingData);
       
-      // 1. Criar booking com status pending_payment
+      // 1. Criar booking com status pending
       const booking = await base44.entities.Booking.create({
         ...bookingData,
         status: 'pending'
@@ -232,6 +232,7 @@ export default function BookingForm({ walker, professional, onClose }) {
         walker_id: isWalker ? pro.id : undefined, 
         walker_name: proName,
         walker_email: pro.created_by,
+        walker_payment_contact: pro.whatsapp_number || pro.phone, // Store contact for payment
         
         // Common fields
         owner_name: user.full_name,
@@ -431,12 +432,12 @@ export default function BookingForm({ walker, professional, onClose }) {
             </p>
           </div>
 
-          {/* Aviso Pagamento Direto */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex gap-3">
-            <MessageCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-green-800">
-              <p className="font-semibold mb-1">Combinar via WhatsApp</p>
-              <p>Ao continuar, você será redirecionado para o WhatsApp para combinar os detalhes e o pagamento (MBWay/Transferência) diretamente com o passeador.</p>
+          {/* Aviso Pagamento */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-semibold mb-1">Pagamento após Confirmação</p>
+              <p>O contacto para pagamento (MBWay) será disponibilizado aqui na plataforma assim que o profissional aceitar o seu pedido.</p>
             </div>
           </div>
 
@@ -454,17 +455,17 @@ export default function BookingForm({ walker, professional, onClose }) {
             <Button
               type="submit"
               disabled={isProcessing}
-              className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
               {isProcessing ? (
                 <>
                   <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  Criando...
+                  Enviando...
                 </>
               ) : (
                 <>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Agendar no WhatsApp
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  Enviar Pedido
                 </>
               )}
             </Button>
