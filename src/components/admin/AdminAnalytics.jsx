@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, subDays, isAfter, startOfWeek, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Users, Calendar, CheckCircle, Trophy, TrendingUp } from "lucide-react";
 
 // Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -23,14 +24,41 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function AdminAnalytics({ 
   users = [], 
+  walkers = [],
   bookings = [], 
   payments = [], 
   services = [], 
   adoptionListings = [] 
 }) {
 
-  // 1. User Growth Over Time
-  const userGrowthData = useMemo(() => {
+  // 1. KPIs no Topo
+  const kpis = useMemo(() => {
+    // Total de Walkers Ativos
+    const activeWalkersCount = walkers.filter(w => w.is_active).length;
+
+    // Reservas no Último Mês (30 dias)
+    const thirtyDaysAgo = subDays(new Date(), 30);
+    const bookingsLastMonth = bookings.filter(b => {
+      const date = new Date(b.walk_date || b.session_date || b.created_date);
+      return isAfter(date, thirtyDaysAgo);
+    }).length;
+
+    // Taxa de Conclusão de Serviço
+    const relevantBookings = bookings.filter(b => ['confirmed', 'completed', 'service_completed', 'finalizada'].includes(b.status));
+    const completedBookings = bookings.filter(b => ['completed', 'finalizada'].includes(b.status)).length;
+    const completionRate = relevantBookings.length > 0 
+      ? ((completedBookings / relevantBookings.length) * 100).toFixed(1) 
+      : 0;
+
+    return {
+      activeWalkersCount,
+      bookingsLastMonth,
+      completionRate
+    };
+  }, [walkers, bookings]);
+
+  // 2. Gráfico de Desempenho (Novas Reservas Criadas por Mês)
+  const bookingsTrendData = useMemo(() => {
     const last6Months = eachMonthOfInterval({
       start: subMonths(new Date(), 5),
       end: new Date()
@@ -38,294 +66,202 @@ export default function AdminAnalytics({
 
     return last6Months.map(date => {
       const monthStr = format(date, 'MMM', { locale: ptBR });
-      const endOfThisMonth = endOfMonth(date);
+      const start = startOfMonth(date);
+      const end = endOfMonth(date);
 
-      // Cumulative counts up to end of this month
-      const owners = users.filter(u => u.account_type === 'owner' && new Date(u.created_date || new Date()) <= endOfThisMonth).length;
-      const professionals = users.filter(u => ['walker', 'trainer', 'both'].includes(u.account_type) && new Date(u.created_date || new Date()) <= endOfThisMonth).length;
-      const companies = users.filter(u => u.account_type === 'company' && new Date(u.created_date || new Date()) <= endOfThisMonth).length;
+      const count = bookings.filter(b => {
+        const created = new Date(b.created_date);
+        return created >= start && created <= end;
+      }).length;
 
       return {
         name: monthStr,
-        Clientes: owners,
-        Profissionais: professionals,
-        Empresas: companies
+        Reservas: count
       };
     });
-  }, [users]);
-
-  // 2. Revenue by Service Category
-  const revenueData = useMemo(() => {
-    let walks = 0;
-    let training = 0;
-    let servicesRevenue = 0;
-
-    // We infer type from bookings or payment metadata if available
-    // Assuming bookings link to payments via ID or we can guess from payment descriptions/amounts
-    // For simplicity, let's use the bookings data since it has 'type' and 'total_amount'
-    
-    // Summing from bookings (more accurate for category)
-    bookings.forEach(b => {
-      const amount = b.total_amount || 0;
-      if (b.type === 'walk' || b.walker_id) walks += amount;
-      else if (b.type === 'training' || b.trainer_id) training += amount;
-    });
-
-    // We don't have direct partner service bookings in 'bookings' prop usually, 
-    // unless they are ServiceBooking entity. 
-    // Let's assume 'services' prop has some usage stats or we skip if no data.
-    // Placeholder for partner services if we had transaction data
-    
-    return [
-      { name: 'Passeios', value: walks },
-      { name: 'Treinos', value: training },
-      { name: 'Serviços Parceiros', value: servicesRevenue } // Would need ServiceBooking data
-    ].filter(d => d.value > 0);
   }, [bookings]);
 
-  // 3. Adoption Trends
-  const adoptionData = useMemo(() => {
-    const available = adoptionListings.filter(a => a.status === 'available').length;
-    const adopted = adoptionListings.filter(a => a.status === 'adopted').length;
-    const pending = adoptionListings.filter(a => a.status === 'pending').length;
-
-    return [
-      { name: 'Disponíveis', value: available },
-      { name: 'Adotados', value: adopted },
-      { name: 'Em Processo', value: pending }
-    ];
-  }, [adoptionListings]);
-
-  // 4. Active Users (Last 30 days)
-  const activeMetrics = useMemo(() => {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  // 3. Top 5 Walkers (Últimos 90 dias)
+  const topWalkers = useMemo(() => {
+    const ninetyDaysAgo = subDays(new Date(), 90);
     
-    const activeUserIds = new Set();
-    bookings.forEach(b => {
-      if (new Date(b.created_date) >= thirtyDaysAgo) {
-        if (b.created_by) activeUserIds.add(b.created_by);
-        if (b.walker_id) activeUserIds.add(b.walker_id);
-        if (b.trainer_id) activeUserIds.add(b.trainer_id);
+    // Filtra reservas finalizadas nos últimos 90 dias
+    const recentCompleted = bookings.filter(b => {
+      const date = new Date(b.walk_date || b.session_date || b.created_date);
+      return isAfter(date, ninetyDaysAgo) && (b.status === 'completed' || b.status === 'finalizada');
+    });
+
+    // Agrupa por walker_id ou walker_name
+    const walkerCounts = {};
+    recentCompleted.forEach(b => {
+      const id = b.walker_id || b.walker_email; // Fallback to email if id missing
+      const name = b.walker_name || 'Desconhecido';
+      if (!id) return;
+      
+      if (!walkerCounts[id]) {
+        walkerCounts[id] = { name, count: 0, id };
       }
+      walkerCounts[id].count += 1;
     });
 
-    const activeCompanies = users.filter(u => u.account_type === 'company' && u.is_active).length;
-
-    return {
-      activeUsers: activeUserIds.size,
-      activeCompanies,
-      totalUsers: users.length,
-      activePercentage: users.length > 0 ? ((activeUserIds.size / users.length) * 100).toFixed(1) : 0
-    };
-  }, [bookings, users]);
-
-  // 5. Booking Stats & Conversion
-  const bookingStats = useMemo(() => {
-    const total = bookings.length;
-    const completed = bookings.filter(b => b.status === 'completed').length;
-    const cancelled = bookings.filter(b => b.status === 'cancelled').length;
-    const conversionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
-
-    return { total, completed, cancelled, conversionRate };
+    // Transforma em array, ordena e pega top 5
+    return Object.values(walkerCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
   }, [bookings]);
 
-  // 6. Popular Services
-  const popularServices = useMemo(() => {
-    const counts = { 'Passeios': 0, 'Treinos': 0, 'Sitting': 0 };
-    bookings.forEach(b => {
-       if (b.type === 'walk' || b.walker_id) counts['Passeios']++;
-       else if (b.type === 'training' || b.trainer_id) counts['Treinos']++;
-       else counts['Sitting']++;
-    });
-    return Object.entries(counts).map(([name, value]) => ({ name, value })).filter(d => d.value > 0);
-  }, [bookings]);
-
-  // 7. Map Data (Mocking coordinates for demo if missing)
+  // Map Data (Existing functionality maintained as useful context)
   const mapMarkers = useMemo(() => {
     const markers = [];
-    users.filter(u => ['walker', 'trainer'].includes(u.account_type)).slice(0, 20).forEach(u => {
-        const lat = u.latitude || 38.7223 + (Math.random() - 0.5) * 0.1;
-        const lng = u.longitude || -9.1393 + (Math.random() - 0.5) * 0.1;
+    walkers.filter(w => w.latitude && w.longitude).slice(0, 20).forEach(w => {
         markers.push({
-            id: u.id,
-            position: [lat, lng],
-            title: u.full_name,
-            type: u.account_type,
-            image: u.profile_photo_url
+            id: w.id,
+            position: [w.latitude, w.longitude],
+            title: w.walker_name,
+            type: 'walker',
+            image: w.photo_url
         });
     });
     return markers;
-  }, [users]);
+  }, [walkers]);
 
   return (
     <div className="space-y-6">
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm border-l-4 border-l-blue-500">
-          <CardContent className="p-4">
-            <p className="text-sm text-gray-500 font-medium">Total de Usuários</p>
-            <h3 className="text-2xl font-bold text-gray-900">{activeMetrics.totalUsers}</h3>
-            <p className="text-xs text-blue-600 mt-1">+{userGrowthData[userGrowthData.length-1]?.Clientes - userGrowthData[0]?.Clientes} nos últimos 6 meses</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-l-4 border-l-green-500">
-          <CardContent className="p-4">
-            <p className="text-sm text-gray-500 font-medium">Usuários Ativos (30d)</p>
-            <h3 className="text-2xl font-bold text-gray-900">{activeMetrics.activeUsers}</h3>
-            <p className="text-xs text-green-600 mt-1">{activeMetrics.activePercentage}% da base</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-l-4 border-l-purple-500">
-          <CardContent className="p-4">
-            <p className="text-sm text-gray-500 font-medium">Taxa de Conversão</p>
-            <h3 className="text-2xl font-bold text-gray-900">{bookingStats.conversionRate}%</h3>
-            <p className="text-xs text-purple-600 mt-1">{bookingStats.completed} reservas completas</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-l-4 border-l-orange-500">
-          <CardContent className="p-4">
-            <p className="text-sm text-gray-500 font-medium">Empresas Ativas</p>
-            <h3 className="text-2xl font-bold text-gray-900">{activeMetrics.activeCompanies}</h3>
-            <p className="text-xs text-orange-600 mt-1">Parceiros verificados</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* User Growth Chart */}
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <CardTitle>Crescimento de Usuários</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={userGrowthData}>
-                <defs>
-                  <linearGradient id="colorClients" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorPros" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Area type="monotone" dataKey="Clientes" stroke="#8884d8" fillOpacity={1} fill="url(#colorClients)" />
-                <Area type="monotone" dataKey="Profissionais" stroke="#82ca9d" fillOpacity={1} fill="url(#colorPros)" />
-                <Area type="monotone" dataKey="Empresas" stroke="#ffc658" fillOpacity={1} fill="#ffc658" />
-              </AreaChart>
-            </ResponsiveContainer>
+      {/* 1. KPIs Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-l-4 border-l-green-500 shadow-sm">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Walkers Ativos</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.activeWalkersCount}</h3>
+              <p className="text-xs text-green-600 mt-1">Profissionais disponíveis</p>
+            </div>
+            <div className="bg-green-100 p-3 rounded-full">
+              <Users className="w-6 h-6 text-green-600" />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Popular Services */}
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <CardTitle>Serviços Mais Populares</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={popularServices} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#8884d8" radius={[0, 4, 4, 0]}>
-                  {popularServices.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        <Card className="border-l-4 border-l-blue-500 shadow-sm">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Reservas (30 dias)</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.bookingsLastMonth}</h3>
+              <p className="text-xs text-blue-600 mt-1">Demanda recente</p>
+            </div>
+            <div className="bg-blue-100 p-3 rounded-full">
+              <Calendar className="w-6 h-6 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500 shadow-sm">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Taxa de Conclusão</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.completionRate}%</h3>
+              <p className="text-xs text-purple-600 mt-1">Serviços finalizados com sucesso</p>
+            </div>
+            <div className="bg-purple-100 p-3 rounded-full">
+              <CheckCircle className="w-6 h-6 text-purple-600" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Distribution */}
-        <Card className="lg:col-span-1 shadow-lg border-0">
+        {/* 2. Gráfico de Desempenho */}
+        <Card className="lg:col-span-2 shadow-lg border-0">
           <CardHeader>
-            <CardTitle>Receita por Categoria</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              Tendência de Novas Reservas
+            </CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={revenueData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {revenueData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend verticalAlign="bottom" height={36}/>
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-         {/* Adoption Stats */}
-         <Card className="lg:col-span-1 shadow-lg border-0">
-          <CardHeader>
-            <CardTitle>Status de Adoções</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={adoptionData}>
+              <AreaChart data={bookingsTrendData}>
+                <defs>
+                  <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#FF8042" radius={[4, 4, 0, 0]}>
-                  {adoptionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 1 ? '#00C49F' : '#FF8042'} />
-                  ))}
-                </Bar>
-              </BarChart>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area type="monotone" dataKey="Reservas" stroke="#3b82f6" fillOpacity={1} fill="url(#colorBookings)" strokeWidth={3} />
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Map */}
+        {/* 3. Top Walkers Widget */}
         <Card className="lg:col-span-1 shadow-lg border-0">
           <CardHeader>
-            <CardTitle>Mapa de Profissionais</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              Top 5 Walkers (90d)
+            </CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px] p-0 overflow-hidden rounded-b-xl">
-             <MapContainer 
-                center={[38.7223, -9.1393]} 
-                zoom={10} 
-                style={{ height: "100%", width: "100%" }}
-             >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {mapMarkers.map(marker => (
-                  <Marker key={marker.id} position={marker.position}>
-                    <Popup>
-                       <div className="font-semibold">{marker.title}</div>
-                       <Badge className="mt-1">{marker.type}</Badge>
-                    </Popup>
-                  </Marker>
+          <CardContent>
+            {topWalkers.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">Sem dados suficientes recentes.</p>
+            ) : (
+              <div className="space-y-4">
+                {topWalkers.map((walker, idx) => (
+                  <div key={walker.id || idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
+                        idx === 0 ? 'bg-yellow-100 text-yellow-700' : 
+                        idx === 1 ? 'bg-gray-200 text-gray-700' :
+                        idx === 2 ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-50 text-blue-700'
+                      }`}>
+                        #{idx + 1}
+                      </div>
+                      <span className="font-semibold text-gray-800 truncate max-w-[120px]">{walker.name}</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-white">
+                      {walker.count} serviços
+                    </Badge>
+                  </div>
                 ))}
-             </MapContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Map (Optional context) */}
+      <Card className="shadow-lg border-0">
+        <CardHeader>
+          <CardTitle>Mapa de Cobertura</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px] p-0 overflow-hidden rounded-b-xl">
+            <MapContainer 
+              center={[38.7223, -9.1393]} 
+              zoom={6} 
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {mapMarkers.map(marker => (
+                <Marker key={marker.id} position={marker.position}>
+                  <Popup>
+                      <div className="font-semibold">{marker.title}</div>
+                      <Badge className="mt-1">Walker</Badge>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+        </CardContent>
+      </Card>
     </div>
   );
 }

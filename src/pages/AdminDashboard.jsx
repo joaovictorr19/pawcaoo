@@ -134,7 +134,7 @@ export default function AdminDashboard() {
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin' && (activeTab === 'applications' || activeTab === 'active_walkers'),
+    enabled: user?.role === 'admin' && (activeTab === 'applications' || activeTab === 'active_walkers' || activeTab === 'analytics' || activeTab === 'overview'),
     initialData: [],
   });
 
@@ -853,6 +853,7 @@ export default function AdminDashboard() {
             <div className="mt-6">
               <AdminAnalytics 
                 users={allUsers}
+                walkers={allWalkers}
                 bookings={allBookings}
                 payments={allPayments}
                 services={allPartnerServices}
