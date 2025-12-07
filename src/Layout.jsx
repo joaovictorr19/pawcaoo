@@ -148,26 +148,14 @@ function LayoutContent({ children, currentPageName }) {
 
   const unreadCount = notifications?.length || 0;
 
-  const navigationItems = [
-    // MENU PRINCIPAL - Serviços core
+  // Definição clara dos grupos de menu para evitar problemas de índice
+  const mainMenu = [
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
-    // { title: t('findTrainers', language), url: createPageUrl("Trainers"), icon: Award },
-    // { title: t('dogSitting', language), url: createPageUrl("DogSittingServices"), icon: HomeIcon },
-    // { title: language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop', url: createPageUrl("Partners"), icon: ShoppingBag },
-    // { title: language === 'pt' ? 'Serviços' : language === 'es' ? 'Servicios' : 'Services', url: createPageUrl("PartnerServices"), icon: Store },
-    // { title: t('loyaltyRewards', language), url: createPageUrl("LoyaltyRewards"), icon: Gift },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
-
-    // Shelter Dashboard (Visible to all for easy access in this demo, typically would be conditional)
     { title: language === 'pt' ? 'Área de Abrigos' : language === 'es' ? 'Área de Refugios' : 'Shelter Area', url: createPageUrl("ShelterDashboard"), icon: Building2 },
+  ];
 
-    // MENSAGENS (especial) - Removido
-    // { title: t('messages', language), url: createPageUrl("Messages"), icon: MessageCircle, isSpecial: true },
-
-    // CONNECT - Rede Social (Desativada)
-    // { title: "Connect", url: createPageUrl("SocialFeed"), icon: Users },
-
-    // MINHA ATIVIDADE
+  const myActivityMenu = [
     { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
@@ -177,56 +165,34 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
     { title: language === 'pt' ? 'Emblemas' : language === 'es' ? 'Emblemas' : 'Badges', url: createPageUrl("Gamification"), icon: Award },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
-    
-    // SERVIÇOS PROFISSIONAIS
+  ];
+
+  const professionalMenu = [
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
-    // { title: t('becomeTrainer', language), url: createPageUrl("BecomeTrainer"), icon: GraduationCap },
     { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
+    ...(user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both' ? [
+      { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
+    ] : [])
   ];
 
-  const adminItem = user?.role === 'admin' ? [
+  const adminMenu = user?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: language === 'pt' ? 'Verificar Passeadores' : 'Verify Walkers', url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
     { title: language === 'pt' ? 'Aprovar Anúncios' : language === 'es' ? 'Aprobar Anuncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
     { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield },
     { title: language === 'pt' ? 'Verificar Abrigos' : language === 'es' ? 'Verificar Refugios' : 'Verify Shelters', url: createPageUrl("AdminShelterVerification"), icon: Building2 },
-    { title: "Static Export", url: createPageUrl("StaticExport"), icon: Download }
-    ] : [];
-
-  const moderatorItem = (user?.social_role === 'moderator' || user?.social_role === 'admin') ? [
+    { title: "Static Export", url: createPageUrl("StaticExport"), icon: Download },
+    // Moderação também aqui para admins
     { title: language === 'pt' ? 'Moderação' : language === 'es' ? 'Moderación' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
-  const companyItem = user?.account_type === 'company' ? [
-    { title: language === 'pt' ? 'Minha Empresa' : 'My Company', url: createPageUrl("PartnerDashboard"), icon: Store } 
+  const companyMenu = user?.account_type === 'company' ? [
+    { title: language === 'pt' ? 'Minha Empresa' : 'My Company', url: createPageUrl("PartnerDashboard"), icon: Store },
+    ...(user?.company_type === 'veterinary' ? [{ title: language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard', url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
   ] : [];
-
-  const veterinaryItem = user?.account_type === 'company' && user?.company_type === 'veterinary' ? [
-    { title: language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard', url: createPageUrl("VeterinaryDashboard"), icon: Award }
-  ] : [];
-
-  const stripeConnectItem = (user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both') ? [
-    { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
-  ] : [];
-
-  const allNavigationItems = [...navigationItems, ...adminItem, ...moderatorItem, ...companyItem, ...veterinaryItem, ...stripeConnectItem];
-
-  const mainMenuCount = 3; // Passeadores, Adotar, Abrigos
-  const messagesIndex = 3; // Mensagens
-  // const connectIndex = 4; // Connect (Desativado)
-  const myActivityStartIndex = 4; // Início da Atividade (Index 4 = OwnerDashboard)
-  const myActivityCount = 9; // Dashboard + 8 items (includes Badges)
-  const professionalServicesStartIndex = myActivityStartIndex + myActivityCount;
-  const professionalServicesCount = 6;
-  
-  const mainMenuStartIndex = 0;
-  const mainMenuEndIndex = mainMenuStartIndex + mainMenuCount;
-  const myActivityEndIndex = myActivityStartIndex + myActivityCount;
-  const professionalServicesEndIndex = professionalServicesStartIndex + professionalServicesCount;
-  const adminAndOtherStartIndex = professionalServicesEndIndex;
 
   // Award welcome badge on mount if user doesn't have it
   React.useEffect(() => {
@@ -470,14 +436,14 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENU PRINCIPAL - PROFISSIONAL */}
+            {/* MENU PRINCIPAL */}
             <SidebarGroup>
               <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
                 {t('mainMenu', language)}
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {allNavigationItems.slice(mainMenuStartIndex, mainMenuEndIndex).map((item) => ( 
+                  {mainMenu.map((item) => ( 
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
@@ -503,21 +469,6 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* MENSAGENS - BOTÃO DESTACADO - REMOVIDO */}
-
-            {/* CONNECT - Botão Destacado (DESATIVADO/REMOVIDO) */}
-            {/* <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton ... >
-                      ...
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup> */}
-
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
@@ -530,7 +481,7 @@ function LayoutContent({ children, currentPageName }) {
               {myActivityExpanded && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(myActivityStartIndex, myActivityEndIndex).map((item) => ( 
+                    {myActivityMenu.map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
@@ -555,7 +506,7 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
-            {/* TORNAR-ME PROFISSIONAL */}
+            {/* PROFISSIONAL */}
             <SidebarGroup>
               <SidebarGroupLabel 
                 className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
@@ -567,7 +518,7 @@ function LayoutContent({ children, currentPageName }) {
               {professionalServicesExpanded && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(professionalServicesStartIndex, professionalServicesEndIndex).map((item) => ( 
+                    {professionalMenu.map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
@@ -587,17 +538,46 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
-            {allNavigationItems.slice(adminAndOtherStartIndex).length > 0 && ( 
+            {/* COMPANY */}
+            {companyMenu.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 font-semibold uppercase">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 font-semibold uppercase">
+                  {language === 'pt' ? 'Empresa' : 'Company'}
+                </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {allNavigationItems.slice(adminAndOtherStartIndex).map((item) => ( 
+                    {companyMenu.map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
                             location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
+                          }`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+
+            {/* ADMINISTRAÇÃO */}
+            {adminMenu.length > 0 && ( 
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-[10px] md:text-xs text-red-600 px-2 font-semibold uppercase">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {adminMenu.map((item) => ( 
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-red-50 transition-all duration-200 rounded-lg mb-1 ${
+                            location.pathname === item.url ? 'bg-red-600 text-white' : 'text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
