@@ -50,6 +50,7 @@ export default function AccountSettings() {
       relation: ""
     },
     skills: "",
+    username: "",
   });
 
   const [preferences, setPreferences] = useState({
@@ -77,6 +78,7 @@ export default function AccountSettings() {
         past_experiences: user.past_experiences || "",
         emergency_contact: user.emergency_contact || { name: "", phone: "", relation: "" },
         skills: user.skills ? user.skills.join(", ") : "",
+        username: user.username || "",
       });
       setPreferences({
         language: user.preferences?.language || "pt",
@@ -313,6 +315,26 @@ export default function AccountSettings() {
                       onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
                       placeholder="Seu nome completo"
                     />
+                  </div>
+
+                  <div>
+                    <Label>Nome de Usuário (Username)</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                      <Input
+                        value={profileData.username}
+                        onChange={(e) => {
+                          // Allow only alphanumeric, underscore, dot
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, "");
+                          setProfileData({...profileData, username: val});
+                        }}
+                        placeholder="username"
+                        className="pl-7"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Único e usado para encontrar seu perfil (ex: @joao.silva)
+                    </p>
                   </div>
 
                   <div>
