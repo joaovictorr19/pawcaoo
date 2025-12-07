@@ -30,29 +30,18 @@ export default function AccountSettings() {
   });
 
   const { data: userProfileEntity } = useQuery({
-    queryKey: ['userProfileEntity', user?.email, user?.id],
+    queryKey: ['userProfileEntity', user?.email],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user?.email) return null;
       try {
-        // 1. Try by User ID (Most reliable)
-        if (user.id) {
-          const byId = await base44.entities.UserProfile.filter({ user_id: user.id });
-          if (byId && byId.length > 0) return byId[0];
-        }
-        
-        // 2. Fallback to Email
-        if (user.email) {
-          const byEmail = await base44.entities.UserProfile.filter({ user_email: user.email });
-          if (byEmail && byEmail.length > 0) return byEmail[0];
-        }
-
-        return null;
+        const res = await base44.entities.UserProfile.filter({ user_email: user.email });
+        return res?.[0] || null;
       } catch (e) {
         console.error("Error fetching user profile entity:", e);
         return null;
       }
     },
-    enabled: !!user,
+    enabled: !!user?.email,
   });
 
   const [profileData, setProfileData] = useState({
@@ -143,11 +132,11 @@ export default function AccountSettings() {
         }
 
         // Check if username is taken (basic check via UserProfile entity)
+        // Note: This check relies on UserProfile entity being up to date
         const existingUsers = await base44.entities.UserProfile.filter({ username: data.username });
         if (existingUsers && existingUsers.length > 0) {
            // Double check it's not the current user's profile
-           const isSelf = existingUsers.some(u => u.user_email === user.email || u.user_id === user.id);
-           if (!isSelf) {
+           if (existingUsers[0].user_email !== user.email) {
              throw new Error("Este nome de usuário já está em uso.");
            }
         }
@@ -156,60 +145,53 @@ export default function AccountSettings() {
         data.last_username_change_date = new Date().toISOString();
       }
 
-      // 1. Sync with UserProfile entity (SAFE MODE: Target Email only to ensure RLS compliance)
+      // 1. Sync with UserProfile entity FIRST (Source of Truth for Profile Page)
       try {
-        const updateData = {};
-        if (data.username !== undefined) updateData.username = data.username;
-        if (data.full_name !== undefined) updateData.full_name = data.full_name;
-        if (data.bio !== undefined) updateData.bio = data.bio;
-        if (data.profile_photo_url !== undefined) updateData.profile_photo_url = data.profile_photo_url;
-        if (data.cover_photo_url !== undefined) updateData.cover_photo_url = data.cover_photo_url;
-        if (data.city !== undefined) updateData.city = data.city;
-        if (data.is_private !== undefined) updateData.is_private = data.is_private;
-        if (user.id) updateData.user_id = user.id; // Ensure user_id is linked
-
-        // Only search by user_email because that's the only record we are guaranteed permission to update
-        const byEmail = await base44.entities.UserProfile.filter({ user_email: user.email });
-        
-        if (byEmail && byEmail.length > 0) {
-          // Update existing profile(s)
-          await Promise.all(byEmail.map(p => base44.entities.UserProfile.update(p.id, updateData)));
+        const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (userProfiles && userProfiles.length > 0) {
+          const profileId = userProfiles[0].id;
+          const updateData = {};
+          if (data.username) updateData.username = data.username;
+          if (data.full_name) updateData.full_name = data.full_name;
+          if (data.bio) updateData.bio = data.bio;
+          if (data.profile_photo_url) updateData.profile_photo_url = data.profile_photo_url;
+          if (data.cover_photo_url) updateData.cover_photo_url = data.cover_photo_url;
+          if (data.city) updateData.city = data.city;
+          if (data.is_private !== undefined) updateData.is_private = data.is_private;
+          
+          if (Object.keys(updateData).length > 0) {
+            await base44.entities.UserProfile.update(profileId, updateData);
+          }
         } else {
-          // Create new profile if none exists for this email
-          await base44.entities.UserProfile.create({
-             user_email: user.email,
-             user_id: user.id,
-             username: data.username || user.username,
-             full_name: data.full_name || user.full_name,
-             profile_photo_url: data.profile_photo_url || user.profile_photo_url,
-             bio: data.bio || user.bio,
-             city: data.city || user.city,
-             role: user.role || 'user',
-             is_private: data.is_private || false
-          });
+            // Create UserProfile if it doesn't exist
+            await base44.entities.UserProfile.create({
+               user_email: user.email,
+               user_id: user.id,
+               username: data.username || user.username,
+               full_name: data.full_name || user.full_name,
+               profile_photo_url: data.profile_photo_url || user.profile_photo_url,
+               bio: data.bio || user.bio,
+               city: data.city || user.city,
+               role: user.role || 'user',
+               is_private: data.is_private || false
+            });
         }
       } catch (err) {
-        console.error("Warning: Public profile sync issue:", err);
-        // We do NOT throw here anymore, so the Auth update (below) still completes and user sees success.
-        // This avoids blocking the user if the secondary profile sync fails.
+        console.error("Failed to sync UserProfile:", err);
       }
 
       // 2. Update Auth User (Secondary for Display Name)
       try {
-        const authPayload = { ...data };
-        if (data.full_name) authPayload.full_name = data.full_name;
-        await base44.auth.updateMe(authPayload);
+        await base44.auth.updateMe(data);
       } catch (authErr) {
         console.error("Auth update warning:", authErr);
+        // Don't fail the whole operation if only auth update fails but profile updated
       }
     },
     onSuccess: () => {
-      // Invalidate everything aggressively to force refresh
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
       toast.success("Perfil atualizado com sucesso!");
-      
-      // Optional: Force a small delay reload if needed, but react-query should handle it
-      // setTimeout(() => window.location.reload(), 1000); 
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao atualizar perfil");
@@ -271,7 +253,7 @@ export default function AccountSettings() {
     const updatedData = {
       ...profileData,
       username: formattedUsername,
-      full_name: profileData.full_name.trim(), // Ensure full name is passed explicitly and trimmed
+      full_name: profileData.full_name, // Ensure full name is passed explicitly
       skills: profileData.skills && typeof profileData.skills === 'string' ? profileData.skills.split(",").map(s => s.trim()).filter(s => s) : [],
     };
     updateProfileMutation.mutate(updatedData);
