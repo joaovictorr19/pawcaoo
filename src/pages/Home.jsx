@@ -21,7 +21,7 @@ import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
-import InteractiveMap from "../components/search/InteractiveMap";
+const InteractiveMap = React.lazy(() => import("../components/search/InteractiveMap"));
 import { Map as MapIcon, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -487,7 +487,7 @@ export default function Home() {
                       className="bg-white text-green-700 hover:bg-green-50 border-0 font-bold"
                     >
                       <Search className="w-4 h-4 mr-2" />
-                      Encontrar Passeador
+                      {t('findWalkerBtn', language)}
                     </Button>
                     <Button 
                       onClick={() => navigate(createPageUrl('OwnerDashboard'))} 
@@ -495,7 +495,7 @@ export default function Home() {
                       className="border-white text-white bg-transparent hover:bg-white/10 hover:text-white"
                     >
                       <Users className="w-4 h-4 mr-2" />
-                      Meu Painel
+                      {t('myDashboard', language)}
                     </Button>
                   </div>
                 )}
@@ -507,8 +507,8 @@ export default function Home() {
                     <div className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-green-600 transition-colors">
                       <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
                     </div>
-                    <h2 className="font-bold text-gray-900 text-lg mb-1">Passeadores</h2>
-                    <p className="text-sm text-gray-500">Encontre profissionais verificados perto de você.</p>
+                    <h2 className="font-bold text-gray-900 text-lg mb-1">{t('findWalkers', language)}</h2>
+                    <p className="text-sm text-gray-500">{t('homeSubtitle', language)}</p>
                   </Card>
                 </motion.div>
 
@@ -517,8 +517,8 @@ export default function Home() {
                     <div className="bg-pink-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-pink-600 transition-colors">
                       <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
                     </div>
-                    <h2 className="font-bold text-gray-900 text-lg mb-1">Adotar</h2>
-                    <p className="text-sm text-gray-500">Dê um lar para um pet que precisa de amor.</p>
+                    <h2 className="font-bold text-gray-900 text-lg mb-1">{t('adoptAPet', language)}</h2>
+                    <p className="text-sm text-gray-500">{t('helpFindHome', language)}</p>
                   </Card>
                 </motion.div>
 
@@ -527,8 +527,8 @@ export default function Home() {
                     <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-600 transition-colors">
                       <Zap className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
                     </div>
-                    <h2 className="font-bold text-gray-900 text-lg mb-1">Emergência</h2>
-                    <p className="text-sm text-gray-500">Precisa de ajuda agora? Publique um alerta.</p>
+                    <h2 className="font-bold text-gray-900 text-lg mb-1">{t('emergency', language)}</h2>
+                    <p className="text-sm text-gray-500">{t('dogsNeedingHelp', language)}</p>
                   </Card>
                 </motion.div>
 
@@ -537,8 +537,8 @@ export default function Home() {
                     <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
                       <TrendingUp className="w-6 h-6 text-white" />
                     </div>
-                    <h2 className="font-bold text-white text-lg mb-1">Meu Painel</h2>
-                    <p className="text-sm text-blue-100">Gerencie reservas, pets e pagamentos.</p>
+                    <h2 className="font-bold text-white text-lg mb-1">{t('myDashboard', language)}</h2>
+                    <p className="text-sm text-blue-100">{t('yourCompleteDashboard', language)}</p>
                   </Card>
                 </motion.div>
               </div>
@@ -556,8 +556,7 @@ export default function Home() {
               </h1>
               
               <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto">
-                Conectamos donos de pets a passeadores, treinadores e veterinários de confiança. 
-                Seguro, rápido e com muito amor.
+                {t('connectOwners', language)}
               </p>
 
               <motion.div
@@ -580,7 +579,7 @@ export default function Home() {
                     onClick={() => setActiveTab('walkers')}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-lg shadow-green-600/20"
                   >
-                    Buscar Passeador
+                    {t('findWalkerBtn', language)}
                   </Button>
                 </div>
               </motion.div>
@@ -588,15 +587,15 @@ export default function Home() {
               <div className="mt-12 flex flex-wrap justify-center gap-6 text-white/80 text-sm font-medium">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-300" />
-                  Profissionais Verificados
+                  {t('verifiedProfessionals', language)}
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-300" />
-                  Pagamento Seguro
+                  {t('securePayment', language)}
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-300" />
-                  Suporte 24/7
+                  {t('support247', language)}
                 </div>
               </div>
             </div>
@@ -612,7 +611,7 @@ export default function Home() {
             className="border-2 border-green-200 hover:bg-green-50"
           >
             <Sliders className="w-4 h-4 mr-2" />
-            {showAdvancedFilters ? 'Ocultar' : 'Mostrar'} Filtros Avançados
+            {showAdvancedFilters ? t('hideAdvancedFilters', language) : t('showAdvancedFilters', language)}
           </Button>
           
           <div className="flex gap-2">
@@ -622,7 +621,7 @@ export default function Home() {
               size="sm"
             >
               <List className="w-4 h-4 mr-2" />
-              Lista
+              {t('list', language)}
             </Button>
             <Button
               variant={viewMode === "map" ? "default" : "outline"}
@@ -631,7 +630,7 @@ export default function Home() {
               className={`bg-gradient-to-r from-green-600 to-emerald-600 text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'} `}
             >
               <MapIcon className="w-4 h-4 mr-2" />
-              Mapa
+              {t('map', language)}
             </Button>
           </div>
         </div>
@@ -679,7 +678,7 @@ export default function Home() {
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  Passeadores
+                  {t('findWalkers', language)}
                 </TabsTrigger>
                 
                 <TabsTrigger 
@@ -687,7 +686,7 @@ export default function Home() {
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  Adotar
+                  {t('adoptAPet', language)}
                 </TabsTrigger>
 
                 <TabsTrigger 
@@ -695,7 +694,7 @@ export default function Home() {
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  Emergência
+                  {t('emergency', language)}
                 </TabsTrigger>
               </TabsList>
 
@@ -706,53 +705,53 @@ export default function Home() {
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900">
                         {filterDogSitting !== "all" ? (
                           <>
-                            {filterDogSitting === "boarding" && (language === 'pt' ? 'Passeadores com Alojamento' : language === 'es' ? 'Paseadores con Alojamento' : 'Walkers with Boarding')}
-                            {filterDogSitting === "house_sitting" && (language === 'pt' ? 'Passeadores para Casa-Sitting' : language === 'es' ? 'Paseadores para Cuidado en Casa' : 'Walkers for House Sitting')}
-                            {filterDogSitting === "drop_in" && (language === 'pt' ? 'Passeadores para Visitas' : language === 'es' ? 'Paseadores para Visitas' : 'Walkers for Drop-in Visits')}
+                            {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
+                            {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
+                            {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
                           </>
                         ) : (
-                          language === 'pt' ? 'Passeadores Disponíveis' : language === 'es' ? 'Paseadores Disponibles' : 'Available Walkers'
+                          t('availableWalkersTitle', language)
                         )}
                       </h2>
                       <div className="flex items-center gap-2 flex-wrap mt-2">
                         <p className="text-xs md:text-base text-gray-600 flex items-center gap-1">
                           <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-                          {filteredWalkers.length} {language === 'pt' ? 'encontrados' : language === 'es' ? 'encontrados' : 'found'}
+                          {filteredWalkers.length} {t('found', language)}
                         </p>
                         
                         {selectedServiceTypes.length > 0 && (
                           <Badge className="bg-blue-100 text-blue-800 text-xs">
-                            {selectedServiceTypes.length} serviço{selectedServiceTypes.length > 1 ? 's' : ''}
+                            {selectedServiceTypes.length} {t('serviceCount', language)}
                           </Badge>
                         )}
                         {selectedSpecializations.length > 0 && (
                           <Badge className="bg-purple-100 text-purple-800 text-xs">
-                            {selectedSpecializations.length} especialização{selectedSpecializations.length > 1 ? 'ões' : ''}
+                            {selectedSpecializations.length} {t('specializationCount', language)}
                           </Badge>
                         )}
                         
                         {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
                           <Badge className="bg-green-100 text-green-800 text-xs">
-                            📊 Ordenado por Match
+                            📊 {t('sortedByMatch', language)}
                           </Badge>
                         )}
                         
                         {filterDogSitting !== "all" && (
                           <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                            {filterDogSitting === "boarding" && "🏠 Alojamento"}
-                            {filterDogSitting === "house_sitting" && "🏡 Casa-Sitting"}
-                            {filterDogSitting === "drop_in" && "🚪 Visitas"}
+                            {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
+                            {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
+                            {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
                           </span>
                         )}
                         {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
                           <span className="text-purple-600 font-semibold ml-2">
-                            ({language === 'pt' ? 'até' : language === 'es' ? 'hasta' : 'up to'} {advancedFilters.radius}km)
+                            ({t('upToDistance', language)} {advancedFilters.radius}km)
                           </span>
                         )}
                         {filteredWalkers.some(w => w.distance !== null) && 
                          !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
                           <span className="text-purple-600 font-semibold ml-2">
-                            ({language === 'pt' ? 'ordenado por distância' : language === 'es' ? 'ordenado por distancia' : 'sorted by distance'})
+                            ({t('sortedByDistance', language)})
                           </span>
                         )}
                       </div>
@@ -766,19 +765,21 @@ export default function Home() {
                         }}
                         className="text-sm"
                       >
-                        {language === 'pt' ? 'Ver Todos' : language === 'es' ? 'Ver Todos' : 'View All'}
+                        {t('viewAll', language)}
                       </Button>
                     )}
                   </div>
 
                   {viewMode === "map" ? (
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
-                      <InteractiveMap
-                        walkers={filteredWalkers}
-                        userLocation={userLocation}
-                        radiusKm={advancedFilters.radius || 50}
-                        onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                      />
+                      <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
+                        <InteractiveMap
+                          walkers={filteredWalkers}
+                          userLocation={userLocation}
+                          radiusKm={advancedFilters.radius || 50}
+                          onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                        />
+                      </React.Suspense>
                     </div>
                   ) : ( 
                     <>
@@ -797,8 +798,8 @@ export default function Home() {
                           <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                             <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                           </div>
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhum passeador encontrado</h3>
-                          <p className="text-sm md:text-base text-gray-600 mb-4">Tente ajustar os filtros</p>
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{t('noWalkersFound', language)}</h3>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">{t('tryAdjustingFilters', language)}</p>
                           
                           {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
                             <div className="flex flex-wrap gap-2 justify-center mt-4">
@@ -808,7 +809,7 @@ export default function Home() {
                                 onClick={() => setSelectedServiceTypes([])}
                                 className="text-xs"
                               >
-                                Limpar Serviços ({selectedServiceTypes.length})
+                                {t('clearServices', language)} ({selectedServiceTypes.length})
                               </Button>
                               <Button
                                 variant="outline"
@@ -816,7 +817,7 @@ export default function Home() {
                                 onClick={() => setSelectedSpecializations([])}
                                 className="text-xs"
                               >
-                                Limpar Especializações ({selectedSpecializations.length})
+                                {t('clearSpecializations', language)} ({selectedSpecializations.length})
                               </Button>
                             </div>
                           )}
@@ -846,7 +847,7 @@ export default function Home() {
                                 className="border-green-200 hover:bg-green-50 hover:text-green-700"
                               >
                                 <ChevronLeft className="w-4 h-4" />
-                                <span className="sr-only">Anterior</span>
+                                <span className="sr-only">{t('previousPage', language)}</span>
                               </Button>
                               
                               <div className="flex items-center gap-1">
@@ -884,13 +885,13 @@ export default function Home() {
                                 className="border-green-200 hover:bg-green-50 hover:text-green-700"
                               >
                                 <ChevronRight className="w-4 h-4" />
-                                <span className="sr-only">Próximo</span>
+                                <span className="sr-only">{t('nextPage', language)}</span>
                               </Button>
                             </div>
                           )}
                           
                           <div className="text-center text-xs text-gray-500 mt-4">
-                            Mostrando {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWalkers.length)} de {filteredWalkers.length} passeadores
+                            {t('showingResults', language)} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWalkers.length)} {t('of', language)} {filteredWalkers.length} {t('findWalkers', language)}
                           </div>
                         </>
                       )}
@@ -909,10 +910,10 @@ export default function Home() {
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
                         <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
-                        Cães Precisando Urgente
+                        {t('dogsNeedingHelpTitle', language)}
                       </h2>
                       <p className="text-xs md:text-base text-gray-600 mt-1">
-                        {filteredEmergencyWalks.length} cães precisam de ajuda
+                        {filteredEmergencyWalks.length} {t('dogsNeedHelpCount', language)}
                       </p>
                     </div>
                   </div>
@@ -932,8 +933,8 @@ export default function Home() {
                       <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                         <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
                       </div>
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Sem emergências no momento</h3>
-                      <p className="text-sm md:text-base text-gray-600">Verifique mais tarde</p>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{t('noEmergencies', language)}</h3>
+                      <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">

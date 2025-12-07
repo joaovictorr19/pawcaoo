@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCreateNotification } from "../components/NotificationService";
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
-import ServiceAreaMap from "../components/professionals/ServiceAreaMap";
+const ServiceAreaMap = lazy(() => import("../components/professionals/ServiceAreaMap"));
 import SEO from "../components/SEO";
 import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
 import PawCaoLogo from "@/components/PawCaoLogo";
@@ -300,9 +300,9 @@ export default function WalkerDetails() {
                         <div className="text-2xl mb-1 h-8 w-8 flex items-center justify-center">
                           {/* Prioritize image_png_file */}
                           {badge.image_png_file ? (
-                            <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" />
+                            <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" loading="lazy" />
                           ) : badge.image_url ? (
-                            <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded" style={{imageRendering: 'pixelated'}} />
+                            <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded" style={{imageRendering: 'pixelated'}} loading="lazy" />
                           ) : (
                             badge.icon
                           )}
@@ -348,7 +348,9 @@ export default function WalkerDetails() {
                       {t('serviceAreas', language)}
                     </h2>
                     <div className="h-48 rounded-lg overflow-hidden border border-gray-200">
-                      <ServiceAreaMap walker={walker} />
+                      <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
+                        <ServiceAreaMap walker={walker} />
+                      </Suspense>
                     </div>
                     {walker.service_areas && walker.service_areas.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">

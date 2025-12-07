@@ -30,6 +30,7 @@ import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { toast, Toaster } from "sonner";
 import { HelmetProvider } from 'react-helmet-async';
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 // Query optimization configs
 const queryConfig = {
@@ -758,7 +759,9 @@ export default function Layout({ children, currentPageName }) {
   return (
     <HelmetProvider>
       <LanguageProvider>
-        <LayoutContent children={children} currentPageName={currentPageName} />
+        <ErrorBoundary>
+          <LayoutContent children={children} currentPageName={currentPageName} />
+        </ErrorBoundary>
         <Toaster />
       </LanguageProvider>
     </HelmetProvider>
