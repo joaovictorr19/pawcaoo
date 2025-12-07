@@ -1002,77 +1002,49 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Tipo de Conta</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allUsers
-                      .filter(u => {
-                        const { searchTerm, filters } = userSearchState;
-                        const searchLower = searchTerm?.toLowerCase() || "";
-                        
-                        // Filtro de Busca
-                        const matchesSearch = !searchLower || 
-                          u.email?.toLowerCase().includes(searchLower) ||
-                          u.full_name?.toLowerCase().includes(searchLower);
-                        
-                        if (!matchesSearch) return false;
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                  {filteredUsers.map(user => (
+                    <Card key={user.id} className="p-4 border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-bold text-sm">{user.full_name || 'N/A'}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[200px]">{user.email}</div>
+                        </div>
+                        <Badge variant="outline" className="capitalize text-xs">
+                          {user.account_type || 'owner'}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2 mb-3 flex-wrap">
+                        <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-xs`}>
+                          {user.role === 'admin' ? 'Admin' : 'User'}
+                        </Badge>
+                        {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 text-xs">Verificado</Badge>}
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0"><Eye className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => handleEditUser(user)} className="h-8 w-8 p-0"><Edit className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="default" className="bg-purple-600 hover:bg-purple-700 h-8 w-8 p-0" onClick={() => openGrantBadgeDialog(user.email)}>🎖️</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user)} className="text-red-600 border-red-200 h-8 w-8 p-0"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
 
-                        // Filtros Avançados
-                        if (filters) {
-                          // Tipo de Conta
-                          if (filters.accountType && filters.accountType !== 'all') {
-                            if (u.account_type !== filters.accountType) return false;
-                          }
-
-                          // Verificação
-                          if (filters.verification && filters.verification !== 'all') {
-                            const isVerified = u.is_verified;
-                            if (filters.verification === 'verified' && !isVerified) return false;
-                            if (filters.verification === 'unverified' && isVerified) return false;
-                          }
-
-                          // Status (Ativo/Inativo - baseado em public_badges ou verificação)
-                          // Assumindo que 'ativo' é verificado ou tem badges
-                          if (filters.status && filters.status !== 'all') {
-                            const hasBadges = u.public_badges?.length > 0;
-                            if (filters.status === 'active' && !hasBadges) return false; 
-                            // Simplificação: Status real não existe na entidade User padrão base44, 
-                            // mas podemos usar badges como proxy de atividade ou adicionar campo
-                          }
-
-                          // Data de Registro
-                          if (filters.dateRange && filters.dateRange !== 'all') {
-                            const createdDate = new Date(u.created_date);
-                            const now = new Date();
-                            const diffTime = Math.abs(now - createdDate);
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                            if (filters.dateRange === 'today' && diffDays > 1) return false;
-                            if (filters.dateRange === 'week' && diffDays > 7) return false;
-                            if (filters.dateRange === 'month' && diffDays > 30) return false;
-                          }
-
-                          // Skills Filter
-                          if (filters.skills) {
-                            const skillSearch = filters.skills.toLowerCase();
-                            const userSkills = u.skills || [];
-                            const skillsArray = Array.isArray(userSkills) ? userSkills : (typeof userSkills === 'string' ? userSkills.split(',') : []);
-                            const hasSkill = skillsArray.some(s => s.toLowerCase().includes(skillSearch));
-                            if (!hasSkill) return false;
-                          }
-                        }
-
-                        return true;
-                      })
-                      .map(user => (
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Tipo de Conta</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map(user => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">{user.email}</TableCell>
                           <TableCell>{user.full_name || 'N/A'}</TableCell>
@@ -1091,43 +1063,25 @@ export default function AdminDashboard() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')}
-                                title="Ver Perfil Público"
-                              >
+                              <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil Público">
                                 <Eye className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditUser(user)}
-                              >
+                              <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              <Button 
-                                size="sm" 
-                                variant="default"
-                                className="bg-purple-600 text-white hover:bg-purple-700"
-                                onClick={() => openGrantBadgeDialog(user.email)}
-                              >
+                              <Button size="sm" variant="default" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => openGrantBadgeDialog(user.email)}>
                                 🎖️ Badge
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDeleteUser(user)}
-                                className="text-red-600 border-red-200"
-                              >
+                              <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user)} className="text-red-600 border-red-200">
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
                           </TableCell>
                         </TableRow>
                       ))}
-                  </TableBody>
-                </Table>
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1138,85 +1092,139 @@ export default function AdminDashboard() {
                 <CardTitle>Gestão de Passeadores Ativos ({activeWalkers.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Localização</TableHead>
-                      <TableHead>Avaliação</TableHead>
-                      <TableHead>Ganhos</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeWalkers.map(walker => (
-                      <TableRow key={walker.id}>
-                        <TableCell className="font-medium">
-                          {walker.walker_name}
-                          {walker.verification_status === 'verified' && (
-                            <Badge variant="outline" className="ml-2 border-green-500 text-green-600 text-[10px] h-5">
-                              ✓ Verificado
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>{walker.created_by}</TableCell>
-                        <TableCell>{walker.location}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                            {walker.rating?.toFixed(1) || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>€{walker.total_earnings || 0}</TableCell>
-                        <TableCell>
-                          <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                            {walker.is_active ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={walker.is_active ? "outline" : "default"}
-                              className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
-                              onClick={() => {
-                                if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
-                                  updateWalkerMutation.mutate({ 
-                                    id: walker.id, 
-                                    data: { is_active: !walker.is_active } 
-                                  });
-                                }
-                              }}
-                            >
-                              {walker.is_active ? 'Pausar' : 'Ativar'}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                              onClick={() => {
-                                if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.\nEsta ação não pode ser desfeita.`)) {
-                                  deleteWalkerMutation.mutate(walker.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                  {activeWalkers.map(walker => (
+                    <Card key={walker.id} className="p-4 border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-bold">{walker.walker_name}</div>
+                          <div className="text-sm text-gray-500">{walker.created_by}</div>
+                        </div>
+                        <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
+                          {walker.is_active ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </div>
+                      <div className="text-sm space-y-1 mb-3">
+                        <div>📍 {walker.location}</div>
+                        <div>⭐ {walker.rating?.toFixed(1)}</div>
+                        <div>💰 €{walker.total_earnings || 0}</div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}>
+                          <Eye className="w-4 h-4 mr-2" /> Ver
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={walker.is_active ? "outline" : "default"}
+                          className={`flex-1 ${walker.is_active ? "text-orange-600 border-orange-200" : "bg-green-600"}`}
+                          onClick={() => {
+                            if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
+                              updateWalkerMutation.mutate({ id: walker.id, data: { is_active: !walker.is_active } });
+                            }
+                          }}
+                        >
+                          {walker.is_active ? 'Pausar' : 'Ativar'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 border-red-200 px-3"
+                          onClick={() => {
+                            if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.`)) {
+                              deleteWalkerMutation.mutate(walker.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Localização</TableHead>
+                        <TableHead>Avaliação</TableHead>
+                        <TableHead>Ganhos</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {activeWalkers.map(walker => (
+                        <TableRow key={walker.id}>
+                          <TableCell className="font-medium">
+                            {walker.walker_name}
+                            {walker.verification_status === 'verified' && (
+                              <Badge variant="outline" className="ml-2 border-green-500 text-green-600 text-[10px] h-5">
+                                ✓ Verificado
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{walker.created_by}</TableCell>
+                          <TableCell>{walker.location}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              {walker.rating?.toFixed(1) || 'N/A'}
+                            </div>
+                          </TableCell>
+                          <TableCell>€{walker.total_earnings || 0}</TableCell>
+                          <TableCell>
+                            <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
+                              {walker.is_active ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={walker.is_active ? "outline" : "default"}
+                                className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
+                                onClick={() => {
+                                  if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
+                                    updateWalkerMutation.mutate({ 
+                                      id: walker.id, 
+                                      data: { is_active: !walker.is_active } 
+                                    });
+                                  }
+                                }}
+                              >
+                                {walker.is_active ? 'Pausar' : 'Ativar'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-200 hover:bg-red-50"
+                                onClick={() => {
+                                  if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.\nEsta ação não pode ser desfeita.`)) {
+                                    deleteWalkerMutation.mutate(walker.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1925,37 +1933,67 @@ export default function AdminDashboard() {
                 <CardTitle>Todas as Reservas ({allBookings.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Owner</TableHead>
-                      <TableHead>Professional</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allBookings.slice(0, 20).map(booking => (
-                      <TableRow key={booking.id}>
-                        <TableCell>{booking.owner_name}</TableCell>
-                        <TableCell>{booking.walker_name || booking.trainer_name}</TableCell>
-                        <TableCell>
-                          {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy')}
-                        </TableCell>
-                        <TableCell className="font-semibold">€{booking.total_amount?.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge className={
-                            booking.status === 'completed' ? 'bg-green-500' :
-                            booking.status === 'confirmed' ? 'bg-blue-500' : 'bg-yellow-500'
-                          }>
-                            {booking.status}
-                          </Badge>
-                        </TableCell>
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                  {allBookings.slice(0, 20).map(booking => (
+                    <Card key={booking.id} className="p-4 border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-bold">{booking.dog_name || 'Pet'}</div>
+                          <div className="text-xs text-gray-500">
+                            {format(new Date(booking.walk_date || booking.session_date || new Date()), 'dd/MM/yyyy')}
+                          </div>
+                        </div>
+                        <Badge className={
+                          booking.status === 'completed' ? 'bg-green-500' :
+                          booking.status === 'confirmed' ? 'bg-blue-500' : 'bg-yellow-500'
+                        }>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <div>👤 {booking.owner_name}</div>
+                        <div>🐕 {booking.walker_name || booking.trainer_name}</div>
+                        <div className="font-semibold">💰 €{booking.total_amount?.toFixed(2)}</div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Owner</TableHead>
+                        <TableHead>Professional</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {allBookings.slice(0, 20).map(booking => (
+                        <TableRow key={booking.id}>
+                          <TableCell>{booking.owner_name}</TableCell>
+                          <TableCell>{booking.walker_name || booking.trainer_name}</TableCell>
+                          <TableCell>
+                            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy')}
+                          </TableCell>
+                          <TableCell className="font-semibold">€{booking.total_amount?.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge className={
+                              booking.status === 'completed' ? 'bg-green-500' :
+                              booking.status === 'confirmed' ? 'bg-blue-500' : 'bg-yellow-500'
+                            }>
+                              {booking.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1966,32 +2004,56 @@ export default function AdminDashboard() {
                 <CardTitle>Pagamentos ({allPayments.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Payer</TableHead>
-                      <TableHead>Recipient</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Taxa</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allPayments.slice(0, 20).map(payment => (
-                      <TableRow key={payment.id}>
-                        <TableCell>{payment.payer_name}</TableCell>
-                        <TableCell>{payment.recipient_name}</TableCell>
-                        <TableCell className="font-semibold">€{payment.total_amount?.toFixed(2)}</TableCell>
-                        <TableCell className="text-green-600">€{payment.platform_fee?.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge className={payment.status === 'released' ? 'bg-green-500' : 'bg-blue-500'}>
-                            {payment.status}
-                          </Badge>
-                        </TableCell>
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                  {allPayments.slice(0, 20).map(payment => (
+                    <Card key={payment.id} className="p-4 border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-bold text-green-700">€{payment.total_amount?.toFixed(2)}</div>
+                          <div className="text-xs text-green-600">Fee: €{payment.platform_fee?.toFixed(2)}</div>
+                        </div>
+                        <Badge className={payment.status === 'released' ? 'bg-green-500' : 'bg-blue-500'}>
+                          {payment.status}
+                        </Badge>
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <div>📤 {payment.payer_name}</div>
+                        <div>📥 {payment.recipient_name}</div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Payer</TableHead>
+                        <TableHead>Recipient</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Taxa</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {allPayments.slice(0, 20).map(payment => (
+                        <TableRow key={payment.id}>
+                          <TableCell>{payment.payer_name}</TableCell>
+                          <TableCell>{payment.recipient_name}</TableCell>
+                          <TableCell className="font-semibold">€{payment.total_amount?.toFixed(2)}</TableCell>
+                          <TableCell className="text-green-600">€{payment.platform_fee?.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge className={payment.status === 'released' ? 'bg-green-500' : 'bg-blue-500'}>
+                              {payment.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
