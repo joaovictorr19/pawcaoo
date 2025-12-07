@@ -696,7 +696,7 @@ export default function UserProfile() {
 
           <CardContent className="pt-6 pb-6">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24 relative z-10">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 -mt-20 md:-mt-24 relative z-10">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
                   <AvatarImage src={profileUser.profile_photo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
@@ -704,7 +704,7 @@ export default function UserProfile() {
                   </AvatarFallback>
                 </Avatar>
                 
-                <div className="text-center md:text-left mb-4 md:mb-6">
+                <div className="text-center md:text-left mb-4 md:mb-6 md:mt-28">
                   {/* Name and Username Block */}
                   <div className="mb-2">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
