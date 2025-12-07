@@ -156,7 +156,7 @@ export default function AccountSettings() {
         data.last_username_change_date = new Date().toISOString();
       }
 
-      // 1. Sync with UserProfile entity (SAFE MODE: Target Email only to ensure RLS compliance)
+      // 1. Sync with UserProfile entity
       try {
         const updateData = {};
         if (data.username !== undefined) updateData.username = data.username;
@@ -166,32 +166,46 @@ export default function AccountSettings() {
         if (data.cover_photo_url !== undefined) updateData.cover_photo_url = data.cover_photo_url;
         if (data.city !== undefined) updateData.city = data.city;
         if (data.is_private !== undefined) updateData.is_private = data.is_private;
-        if (user.id) updateData.user_id = user.id; // Ensure user_id is linked
+        if (user.id) updateData.user_id = user.id;
 
-        // Only search by user_email because that's the only record we are guaranteed permission to update
-        const byEmail = await base44.entities.UserProfile.filter({ user_email: user.email });
-        
-        if (byEmail && byEmail.length > 0) {
-          // Update existing profile(s)
-          await Promise.all(byEmail.map(p => base44.entities.UserProfile.update(p.id, updateData)));
+        const idsToUpdate = new Set();
+
+        // A. Find by Email
+        if (user.email) {
+            const byEmail = await base44.entities.UserProfile.filter({ user_email: user.email });
+            if (byEmail && byEmail.length > 0) {
+                byEmail.forEach(p => idsToUpdate.add(p.id));
+            }
+        }
+
+        // B. Find by User ID
+        if (user.id) {
+            const byId = await base44.entities.UserProfile.filter({ user_id: user.id });
+            if (byId && byId.length > 0) {
+                byId.forEach(p => idsToUpdate.add(p.id));
+            }
+        }
+
+        if (idsToUpdate.size > 0) {
+            // Update all found records
+            await Promise.all(Array.from(idsToUpdate).map(id => base44.entities.UserProfile.update(id, updateData)));
         } else {
-          // Create new profile if none exists for this email
-          await base44.entities.UserProfile.create({
-             user_email: user.email,
-             user_id: user.id,
-             username: data.username || user.username,
-             full_name: data.full_name || user.full_name,
-             profile_photo_url: data.profile_photo_url || user.profile_photo_url,
-             bio: data.bio || user.bio,
-             city: data.city || user.city,
-             role: user.role || 'user',
-             is_private: data.is_private || false
-          });
+            // Create new profile if none exists
+            await base44.entities.UserProfile.create({
+                user_email: user.email,
+                user_id: user.id,
+                username: data.username || user.username,
+                full_name: data.full_name || user.full_name,
+                profile_photo_url: data.profile_photo_url || user.profile_photo_url,
+                bio: data.bio || user.bio,
+                city: data.city || user.city,
+                role: user.role || 'user',
+                is_private: data.is_private || false
+            });
         }
       } catch (err) {
-        console.error("Warning: Public profile sync issue:", err);
-        // We do NOT throw here anymore, so the Auth update (below) still completes and user sees success.
-        // This avoids blocking the user if the secondary profile sync fails.
+        console.error("Profile sync error:", err);
+        throw new Error("Erro ao atualizar perfil público. Por favor, tente novamente.");
       }
 
       // 2. Update Auth User (Secondary for Display Name)
