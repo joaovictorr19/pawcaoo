@@ -235,14 +235,19 @@ export default function AccountSettings() {
   };
 
   const handleSaveProfile = () => {
-    // Ensure username follows handle rules (no spaces) on save
-    // If username is empty or just spaces, use the existing one to avoid errors or clearing it unintentionally
+    // Ensure username follows handle rules on save (double check)
     const currentUsername = profileData.username || "";
-    const formattedUsername = currentUsername.trim().replace(/\s+/g, '-');
+    const formattedUsername = currentUsername
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9._\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, '-');
     
     const updatedData = {
       ...profileData,
       username: formattedUsername,
+      full_name: profileData.full_name, // Ensure full name is passed explicitly
       skills: profileData.skills.split(",").map(s => s.trim()).filter(s => s),
     };
     updateProfileMutation.mutate(updatedData);
