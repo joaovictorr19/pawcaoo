@@ -436,7 +436,7 @@ export default function OwnerDashboard() {
                   onClick={() => navigate(createPageUrl('Home'))}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Novo Agendamento
+                  Procurar um Passeador
                 </Button>
                 {completedBookings.length > 0 && (
                   <Button
