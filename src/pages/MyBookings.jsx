@@ -375,6 +375,27 @@ export default function MyBookings() {
              </div>
           </div>
 
+          {booking.status === 'confirmed' && !isProfessional && booking.walker_payment_contact && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+              <p className="text-xs font-bold text-green-800 mb-1">Pagamento (MBWay):</p>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-green-700 font-mono">{booking.walker_payment_contact}</span>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-6 px-2 text-green-700 hover:bg-green-100"
+                  onClick={() => {
+                    navigator.clipboard.writeText(booking.walker_payment_contact);
+                    toast.success("Número copiado!");
+                  }}
+                >
+                  Copiar
+                </Button>
+              </div>
+              <p className="text-[10px] text-green-600 mt-1">Envie o comprovativo pelo chat.</p>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-2">
             <Button 
               variant="outline" 

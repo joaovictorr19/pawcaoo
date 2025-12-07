@@ -159,44 +159,26 @@ export default function WalkerDetails() {
   // Function to handle booking completion from BookingForm
   const handleBookingInitiated = async (booking) => {
     setShowBookingForm(false);
-    
-    // Construct WhatsApp message
-    const formattedDate = format(new Date(booking.walk_date), 'dd/MM/yyyy');
-    const message = `Olá ${walker.walker_name}! 👋%0A%0AGostaria de agendar um passeio:%0A🐶 Cão: ${booking.dog_name}%0A📅 Data: ${formattedDate}%0A⏰ Hora: ${booking.walk_time}%0A⏱ Duração: ${booking.duration} min%0A%0APodemos combinar o pagamento por MBWay ou Transferência?`;
-    
+
     // Create notifications asynchronously
     try {
-      // 1. Notify Walker (System notification as backup)
+      // 1. Notify Walker
       createNotification.mutate({
         recipient_email: walker.created_by,
         title: '📅 Nova Solicitação de Agendamento',
-        message: `${user.full_name} iniciou um agendamento via WhatsApp para ${booking.dog_name}.`,
+        message: `${user.full_name} solicitou um agendamento para ${booking.dog_name}. Aceite para liberar os detalhes de pagamento.`,
         type: 'booking',
         related_id: booking.id,
         priority: 'high'
       });
     } catch (e) { console.error(e); }
 
-    // Redirect to WhatsApp
-    const whatsappNumber = walker.whatsapp_number ? walker.whatsapp_number.replace(/[^0-9]/g, '') : '';
-    
-    if (whatsappNumber) {
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
-      window.open(whatsappUrl, '_blank');
-      
-      toast({
-        title: "Redirecionando para WhatsApp",
-        description: "Combine os detalhes e o pagamento diretamente com o passeador.",
-        duration: 5000,
-      });
-    } else {
-      toast({
-        title: "Solicitação Enviada",
-        description: "O passeador não tem WhatsApp configurado. Por favor aguarde o contato.",
-        variant: "warning",
-      });
-    }
-    
+    toast({
+      title: "Solicitação Enviada!",
+      description: "Aguarde a confirmação do profissional. O contacto para pagamento (MBWay) será exibido após a aceitação.",
+      duration: 6000,
+    });
+
     queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
   };
 
@@ -485,22 +467,7 @@ export default function WalkerDetails() {
                     {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
                   </Button>
 
-                  {/* WhatsApp Button - Visible only if logged in and walker has number */}
-                  {user && walker.whatsapp_number && (
-                    <Button
-                      variant="outline"
-                      className="h-10 px-4 border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium"
-                      onClick={() => {
-                        // Construct WhatsApp URL
-                        const whatsappUrl = `https://wa.me/${walker.whatsapp_number}`;
-                        // Open in new tab
-                        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      {t('chatWithWalker', language)}
-                    </Button>
-                  )}
+                  {/* Contact hidden until booking confirmed */}
 
                   <Button
                     variant="secondary"
