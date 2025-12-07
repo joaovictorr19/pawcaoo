@@ -558,53 +558,68 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20 animate-fade-in">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                 #1 Plataforma de Pet Services em Portugal
               </div>
-              
+
               <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight">
-                Passeadores, Treinadores e <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">Cuidados para o Seu Pet</span>
+                Encontre o <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">Passeador Perfeito</span><br/>
+                para o seu Cão
               </h1>
-              
-              <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto">
-                {t('connectOwners', language)}
+
+              <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto font-medium">
+                Passeadores verificados, treinadores experientes e muito carinho.
+                Comece agora mesmo a sua busca.
               </p>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white rounded-2xl shadow-2xl p-4 max-w-3xl mx-auto flex flex-col gap-4"
+                className="bg-white rounded-2xl shadow-2xl p-6 max-w-3xl mx-auto flex flex-col gap-4 border-4 border-white/20 bg-clip-padding"
               >
+                <h3 className="text-gray-800 font-bold text-lg text-left mb-1 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                  Onde procura um Walker?
+                </h3>
                 <div className="flex flex-col md:flex-row gap-4 items-center w-full">
-                  <div className="flex-1 w-full">
+                  <div className="flex-1 w-full relative">
                     <LocationSearch
-                      onLocationChange={setUserLocation}
+                      onLocationChange={(loc) => {
+                          setUserLocation(loc);
+                          // Auto scroll to results when location is picked for instant gratification
+                          if(loc && loc.lat) {
+                            setTimeout(() => {
+                              document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                            }, 500);
+                          }
+                      }}
                       currentLocation={userLocation}
-                      className="border-0 shadow-none bg-gray-50"
+                      className="border-2 border-gray-100 shadow-sm bg-gray-50 h-14 text-lg focus:border-green-500 transition-all rounded-xl"
+                      placeholder="Ex: Porto, Lisboa, Matosinhos..."
                     />
                   </div>
-                  <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
                   <div className="w-full md:w-auto flex gap-2">
                     <Button 
                       size="lg" 
-                      onClick={() => setActiveTab('walkers')}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-8 shadow-lg shadow-green-600/20"
+                      onClick={() => {
+                        setActiveTab('walkers');
+                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-14 px-8 shadow-lg shadow-green-600/20 text-lg rounded-xl transition-transform hover:scale-105"
                     >
+                      <Search className="w-5 h-5 mr-2" />
                       {t('findWalkerBtn', language)}
                     </Button>
                   </div>
                 </div>
-                
-                {/* AI Search Assistant Embedded */}
-                <div className="w-full border-t pt-4 mt-2">
-                   <p className="text-xs text-gray-500 font-semibold mb-2 uppercase text-center md:text-left">Ou tente a Busca Inteligente</p>
+
+                {/* AI Search Assistant Embedded - Compact Mode */}
+                <div className="w-full border-t border-gray-100 pt-3 mt-1">
                    <AISearchAssistant 
                       currentMode="walkers"
                       onApplyFilters={(aiFilters) => {
-                        // Map AI filters to local state
                         if (aiFilters.location) setSearchLocation(aiFilters.location);
                         if (aiFilters.maxPrice) setAdvancedFilters(prev => ({ ...prev, maxPrice: aiFilters.maxPrice }));
                         if (aiFilters.serviceType) {
@@ -612,27 +627,29 @@ export default function Home() {
                            else if (aiFilters.serviceType.includes('sitting')) setFilterDogSitting('house_sitting');
                            else if (aiFilters.serviceType.includes('drop')) setFilterDogSitting('drop_in');
                         }
-                        if (aiFilters.keywords && aiFilters.keywords.length > 0) {
-                           // Map specific keywords if needed, or show success toast
-                        }
-                        // Scroll to results
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
                    />
                 </div>
               </motion.div>
 
-              <div className="mt-12 flex flex-wrap justify-center gap-6 text-white/80 text-sm font-medium">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
+              <div className="mt-12 flex flex-wrap justify-center gap-8 text-white font-semibold">
+                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors cursor-default">
+                  <div className="bg-green-500 p-1 rounded-full">
+                     <Shield className="w-4 h-4 text-white" />
+                  </div>
                   {t('verifiedProfessionals', language)}
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
+                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors cursor-default">
+                  <div className="bg-green-500 p-1 rounded-full">
+                     <ShieldCheck className="w-4 h-4 text-white" />
+                  </div>
                   {t('securePayment', language)}
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
+                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors cursor-default">
+                  <div className="bg-green-500 p-1 rounded-full">
+                     <MessageCircle className="w-4 h-4 text-white" />
+                  </div>
                   {t('support247', language)}
                 </div>
               </div>
