@@ -77,25 +77,34 @@ export default function AdminDashboard() {
     
     setIsSyncingProfiles(true);
     try {
-      const allUsers = await base44.entities.User.list();
+      // Fetch more users to ensure we cover existing base
+      const allUsers = await base44.entities.User.list('-created_date', 1000);
       let createdCount = 0;
       
       for (const user of allUsers) {
         // Check if UserProfile exists
         const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (!profiles || profiles.length === 0) {
+          // Generate default username from email if missing
+          const defaultUsername = user.username || user.email.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase();
+
           // Create UserProfile
           await base44.entities.UserProfile.create({
             user_email: user.email,
             user_id: user.id,
-            username: user.username,
+            username: defaultUsername,
             full_name: user.full_name || 'Utilizador',
             profile_photo_url: user.profile_photo_url,
             role: user.role || 'user',
             gamification_xp: user.gamification_xp || 0,
-            is_verified: user.is_verified || false
+            is_verified: user.is_verified || false,
+            is_private: false
           });
           createdCount++;
+        } else if (!profiles[0].username) {
+           // If profile exists but has no username, update it
+           const defaultUsername = user.username || user.email.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase();
+           await base44.entities.UserProfile.update(profiles[0].id, { username: defaultUsername });
         }
       }
       
