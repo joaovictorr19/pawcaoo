@@ -29,6 +29,21 @@ export default function AccountSettings() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: userProfileEntity } = useQuery({
+    queryKey: ['userProfileEntity', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      try {
+        const res = await base44.entities.UserProfile.filter({ user_email: user.email });
+        return res?.[0] || null;
+      } catch (e) {
+        console.error("Error fetching user profile entity:", e);
+        return null;
+      }
+    },
+    enabled: !!user?.email,
+  });
+
   const [profileData, setProfileData] = useState({
     full_name: "",
     phone: "",
@@ -64,13 +79,16 @@ export default function AccountSettings() {
 
   useEffect(() => {
     if (user) {
+      // Prioritize UserProfile entity data for editable fields
+      const source = userProfileEntity || user;
+      
       setProfileData({
-        full_name: user.full_name || "",
+        full_name: source.full_name || user.full_name || "",
         phone: user.phone || "",
         address: user.address || "",
-        city: user.city || "",
+        city: source.city || user.city || "",
         postal_code: user.postal_code || "",
-        bio: user.bio || "",
+        bio: source.bio || user.bio || "",
         website: user.website || "",
         instagram_handle: user.instagram_handle || "",
         facebook_handle: user.facebook_handle || "",
@@ -81,7 +99,7 @@ export default function AccountSettings() {
         past_experiences: user.past_experiences || "",
         emergency_contact: user.emergency_contact || { name: "", phone: "", relation: "" },
         skills: user.skills ? user.skills.join(", ") : "",
-        username: user.username || "",
+        username: source.username || user.username || "",
       });
       
       // Initialize preferences safely with defaults
@@ -94,7 +112,7 @@ export default function AccountSettings() {
         push_marketing: user.preferences?.push_marketing ?? false,
       });
     }
-  }, [user]);
+  }, [user, userProfileEntity]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
@@ -162,6 +180,7 @@ export default function AccountSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
       toast.success("Perfil atualizado com sucesso!");
     },
     onError: (error) => {
