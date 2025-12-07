@@ -356,9 +356,12 @@ function LayoutContent({ children, currentPageName }) {
 
   const handleNavigationToProfile = (e) => {
     e.preventDefault();
-    if (user?.id) {
-      // Usando ID para maior privacidade na URL
-      const profileUrl = createPageUrl(`UserProfile?id=${user.id}`);
+    if (user) {
+      // Prioritize username for cleaner URLs
+      const profileUrl = user.username 
+        ? createPageUrl(`UserProfile?username=${user.username}`)
+        : createPageUrl(`UserProfile?id=${user.id}`);
+
       console.log('Navigating to profile:', profileUrl);
       window.location.href = profileUrl;
     } else {
@@ -452,7 +455,7 @@ function LayoutContent({ children, currentPageName }) {
                       }`}
                     >
                       <a 
-                        href={user?.id ? createPageUrl(`UserProfile?id=${user.id}`) : '#'} 
+                        href={user ? (user.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`)) : '#'} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
                         onClick={handleNavigationToProfile}
                       >

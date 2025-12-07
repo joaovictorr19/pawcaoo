@@ -98,14 +98,74 @@ export default function AccountSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
+      // Logic to handle username change restriction
+      if (data.username && data.username !== user.username) {
+        // Check last change date
+        if (user.last_username_change_date) {
+          const lastChange = new Date(user.last_username_change_date);
+          const now = new Date();
+          const daysDiff = (now - lastChange) / (1000 * 60 * 60 * 24);
+          
+          if (daysDiff < 30) {
+            throw new Error(`Você só pode alterar seu nome de usuário uma vez a cada 30 dias. Próxima alteração disponível em ${Math.ceil(30 - daysDiff)} dias.`);
+          }
+        }
+
+        // Check if username is taken (basic check via UserProfile entity)
+        // Note: This check relies on UserProfile entity being up to date
+        const existingUsers = await base44.entities.UserProfile.filter({ username: data.username });
+        if (existingUsers && existingUsers.length > 0) {
+           // Double check it's not the current user's profile
+           if (existingUsers[0].user_email !== user.email) {
+             throw new Error("Este nome de usuário já está em uso.");
+           }
+        }
+
+        // Add last change date to update
+        data.last_username_change_date = new Date().toISOString();
+      }
+
       await base44.auth.updateMe(data);
+
+      // Sync with UserProfile entity
+      try {
+        const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (userProfiles && userProfiles.length > 0) {
+          const profileId = userProfiles[0].id;
+          const updateData = {};
+          if (data.username) updateData.username = data.username;
+          if (data.full_name) updateData.full_name = data.full_name;
+          if (data.bio) updateData.bio = data.bio;
+          if (data.profile_photo_url) updateData.profile_photo_url = data.profile_photo_url;
+          if (data.cover_photo_url) updateData.cover_photo_url = data.cover_photo_url;
+          if (data.city) updateData.city = data.city;
+          
+          if (Object.keys(updateData).length > 0) {
+            await base44.entities.UserProfile.update(profileId, updateData);
+          }
+        } else {
+            // Create UserProfile if it doesn't exist
+             await base44.entities.UserProfile.create({
+                user_email: user.email,
+                user_id: user.id,
+                username: data.username || user.username,
+                full_name: data.full_name || user.full_name,
+                profile_photo_url: data.profile_photo_url || user.profile_photo_url,
+                bio: data.bio || user.bio,
+                city: data.city || user.city,
+                role: user.role || 'user'
+             });
+        }
+      } catch (err) {
+        console.error("Failed to sync UserProfile:", err);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      toast.success("Configurações atualizadas!");
+      toast.success("Perfil atualizado com sucesso!");
     },
-    onError: () => {
-      toast.error("Erro ao atualizar");
+    onError: (error) => {
+      toast.error(error.message || "Erro ao atualizar perfil");
     }
   });
 
@@ -344,7 +404,10 @@ export default function AccountSettings() {
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      Identificador único (sem espaços). É assim que outros usuários encontrarão você.
+                      Identificador único (sem espaços). É assim que outros usuários encontrarão você. 
+                      <span className="text-orange-600 block mt-1 font-medium">
+                        Nota: O nome de usuário (@) só pode ser alterado uma vez a cada 30 dias.
+                      </span>
                     </p>
                   </div>
 
