@@ -292,9 +292,19 @@ export default function Home() {
       
       const matchesAdvancedServiceTypes = !advancedFilters.serviceTypes || advancedFilters.serviceTypes.length === 0 ||
         advancedFilters.serviceTypes.some(type => 
-          walker.services_offered?.some(s => 
-            s.service_name?.toLowerCase().includes(type.replace('_', ' '))
-          )
+          walker.services_offered?.some(s => {
+            const name = s.service_name?.toLowerCase() || '';
+            // Enhanced matching for PT/EN
+            if (type === 'regular_walks') return name.includes('walk') || name.includes('passeio');
+            if (type === 'boarding') return name.includes('boarding') || name.includes('alojamento');
+            if (type === 'house_sitting') return name.includes('sitting') || name.includes('casa');
+            if (type === 'drop_in') return name.includes('drop') || name.includes('visita');
+            if (type === 'training') return name.includes('train') || name.includes('treino');
+            if (type === 'grooming') return name.includes('groom') || name.includes('tosquia') || name.includes('banho');
+            if (type === 'pet_taxi') return name.includes('taxi') || name.includes('transporte');
+            if (type === 'daycare') return name.includes('day') || name.includes('creche');
+            return name.includes(type.replace('_', ' '));
+          })
         );
       
       const matchesTimeSlots = !advancedFilters.timeSlots || advancedFilters.timeSlots.length === 0 ||

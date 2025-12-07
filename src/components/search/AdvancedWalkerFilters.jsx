@@ -307,15 +307,22 @@ export default function AdvancedWalkerFilters({ filters, onFiltersChange, onRese
           </Label>
           <div className="grid grid-cols-2 gap-2">
             {serviceTypes.map((service) => (
-              <Badge
+              <label
                 key={service.id}
-                variant={filters.serviceTypes?.includes(service.id) ? "default" : "outline"}
-                className="cursor-pointer justify-start p-3 h-auto flex-col items-start hover:scale-105 transition-transform"
-                onClick={() => handleServiceToggle(service.id)}
+                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                  filters.serviceTypes?.includes(service.id)
+                    ? 'bg-blue-50 border-2 border-blue-300'
+                    : 'hover:bg-gray-50 border border-gray-100'
+                }`}
               >
-                <div className="text-lg mb-1">{service.icon}</div>
-                <div className="text-xs font-semibold">{service.label}</div>
-              </Badge>
+                <Checkbox
+                  id={`svc-${service.id}`}
+                  checked={filters.serviceTypes?.includes(service.id)}
+                  onCheckedChange={() => handleServiceToggle(service.id)}
+                />
+                <span className="text-lg">{service.icon}</span>
+                <span className="text-xs font-semibold">{service.label}</span>
+              </label>
             ))}
           </div>
         </div>
