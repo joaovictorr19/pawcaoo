@@ -861,11 +861,28 @@ export default function Home() {
                           <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                             <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                           </div>
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{t('noWalkersFound', language)}</h3>
-                          <p className="text-sm md:text-base text-gray-600 mb-4">{t('tryAdjustingFilters', language)}</p>
-                          
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Não encontrámos nenhum Passeador com os filtros selecionados.</h3>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">Tente alargar o raio de busca ou remover alguns filtros.</p>
+
+                          <div className="flex flex-wrap gap-2 justify-center mt-4">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => {
+                                  resetAdvancedFilters();
+                                  setSelectedServiceTypes([]);
+                                  setSelectedSpecializations([]);
+                                  setSearchLocation("");
+                                  setFilterDogSitting("all");
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              Limpar Todos os Filtros
+                            </Button>
+                          </div>
+
                           {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
-                            <div className="flex flex-wrap gap-2 justify-center mt-4">
+                            <div className="flex flex-wrap gap-2 justify-center mt-2">
                               <Button
                                 variant="outline"
                                 size="sm"
