@@ -203,13 +203,15 @@ export default function AccountSettings() {
         console.error("Auth update warning:", authErr);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       // Invalidate everything aggressively to force refresh
       queryClient.invalidateQueries();
       toast.success("Perfil atualizado com sucesso!");
       
-      // Optional: Force a small delay reload if needed, but react-query should handle it
-      // setTimeout(() => window.location.reload(), 1000); 
+      // Redirect to profile page to see changes (only if not saving preferences)
+      if (!variables.preferences) {
+        navigate(createPageUrl('UserProfile'));
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao atualizar perfil");
