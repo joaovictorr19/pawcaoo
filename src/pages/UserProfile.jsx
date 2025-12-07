@@ -85,7 +85,8 @@ export default function UserProfile() {
   const createNotification = useCreateNotification();
 
   const urlParams = new URLSearchParams(window.location.search);
-  const profileEmailParam = urlParams.get('email');
+  const rawEmail = urlParams.get('email');
+  const profileEmailParam = rawEmail ? decodeURIComponent(rawEmail) : null;
   const profileIdParam = urlParams.get('id');
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
