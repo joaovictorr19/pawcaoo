@@ -20,14 +20,22 @@ export default function TestimonialsSection() {
   const { data: reviews, isLoading } = useQuery({
     queryKey: ['featuredReviews'],
     queryFn: async () => {
-      // Fetch 5-star reviews, sorted by newest
-      const result = await base44.entities.Review.filter(
-        { rating: 5, is_verified: true }, 
-        '-created_date', 
-        6
-      );
-      // Filter out reviews without comments to ensure quality content
-      return result.filter(r => r.comment && r.comment.length > 20);
+      try {
+        // Fetch 5-star reviews, sorted by newest
+        const result = await base44.entities.Review.filter(
+          { rating: 5, is_verified: true }, 
+          '-created_date', 
+          6
+        );
+        // Ensure result is array before filtering
+        if (!Array.isArray(result)) return [];
+        
+        // Filter out reviews without comments to ensure quality content
+        return result.filter(r => r.comment && r.comment.length > 20);
+      } catch (err) {
+        console.error("Error fetching testimonials:", err);
+        return [];
+      }
     },
     staleTime: 1000 * 60 * 60, // 1 hour
   });
