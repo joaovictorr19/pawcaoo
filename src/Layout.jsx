@@ -111,6 +111,14 @@ function LayoutContent({ children, currentPageName }) {
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
 
+  // Fix 404 on /login route by redirecting to Home
+  React.useEffect(() => {
+    if (location.pathname === '/login' || location.pathname === '/login/') {
+      window.location.href = createPageUrl('Home');
+      toast.info("Redirecionando para a página inicial...");
+    }
+  }, [location.pathname]);
+
   const { data: user, isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
