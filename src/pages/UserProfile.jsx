@@ -45,6 +45,12 @@ function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
         
         {badge.image_png_file ? (
           <img src={badge.image_png_file} alt={badge.name} className="w-14 h-14 object-contain z-10 drop-shadow-lg" />
+        ) : badge.image_url ? (
+          <img 
+            src={badge.image_url} 
+            alt={badge.name}
+            className="w-14 h-14 object-contain z-10 drop-shadow-lg rounded-md"
+          />
         ) : (
           <span className="text-4xl z-10 drop-shadow-md filter">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
         )}
