@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { HomeIcon, MapPin, Phone, Mail, Globe, Facebook, Instagram, ArrowLeft, CheckCircle } from "lucide-react";
+import { HomeIcon, MapPin, Phone, Mail, Globe, Facebook, Instagram, ArrowLeft, CheckCircle, Clock, Star, Quote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ShelterNeedsList from "../components/shelters/ShelterNeedsList";
@@ -20,6 +20,15 @@ export default function ShelterProfile() {
       if (!shelterId) return null;
       const results = await base44.entities.ShelterProfile.filter({ id: shelterId });
       return results[0] || null;
+    },
+    enabled: !!shelterId,
+  });
+
+  const { data: successStories = [] } = useQuery({
+    queryKey: ['shelterPublicStories', shelterId],
+    queryFn: async () => {
+      if (!shelterId) return [];
+      return await base44.entities.SuccessStory.filter({ shelter_id: shelterId }, '-created_date');
     },
     enabled: !!shelterId,
   });
@@ -96,9 +105,33 @@ export default function ShelterProfile() {
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-wrap">{shelter.description}</p>
               </CardContent>
-            </Card>
+              </Card>
 
-            {/* Needs Section - CRITICAL */}
+              {/* Opening Hours & Services */}
+              {(shelter.opening_hours || (shelter.services_offered && shelter.services_offered.length > 0)) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                 {shelter.opening_hours && (
+                   <Card>
+                     <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-blue-600" /> Horário</CardTitle></CardHeader>
+                     <CardContent>
+                       <p className="text-sm whitespace-pre-line">{shelter.opening_hours}</p>
+                     </CardContent>
+                   </Card>
+                 )}
+                 {shelter.services_offered && shelter.services_offered.length > 0 && (
+                   <Card>
+                      <CardHeader><CardTitle className="text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> Serviços</CardTitle></CardHeader>
+                      <CardContent>
+                        <ul className="text-sm list-disc list-inside">
+                          {shelter.services_offered.map((s, i) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </CardContent>
+                   </Card>
+                 )}
+              </div>
+              )}
+
+              {/* Needs Section - CRITICAL */}
             <Card className="shadow-lg border-2 border-orange-200">
               <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50">
                 <CardTitle className="text-orange-800 flex items-center gap-2">
@@ -122,7 +155,39 @@ export default function ShelterProfile() {
                 </CardContent>
               </Card>
             )}
-          </div>
+
+            {/* Success Stories */}
+            {successStories.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold flex items-center gap-2 text-yellow-600">
+                  <Star className="w-6 h-6 fill-yellow-500" /> Finais Felizes
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {successStories.map(story => (
+                    <Card key={story.id} className="overflow-hidden hover:shadow-xl transition-shadow">
+                      <div className="h-48 overflow-hidden relative">
+                         {story.photo_url ? (
+                           <img src={story.photo_url} alt={story.pet_name} className="w-full h-full object-cover transition-transform hover:scale-105" />
+                         ) : (
+                           <div className="w-full h-full bg-yellow-100 flex items-center justify-center"><Star className="w-12 h-12 text-yellow-300" /></div>
+                         )}
+                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                           <p className="text-white font-bold">{story.pet_name}</p>
+                           <p className="text-white/80 text-xs">Adotado em {story.adoption_date}</p>
+                         </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex gap-2 mb-2">
+                           <Quote className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                           <p className="text-sm text-gray-600 italic line-clamp-4">{story.story}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            </div>
 
           {/* Sidebar - Contact Info */}
           <div className="space-y-6">
