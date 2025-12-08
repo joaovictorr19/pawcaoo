@@ -48,7 +48,7 @@ export const translations = {
     verifications: "Verificações",
     activeWalkers: "Passeadores Ativos",
     adoptions: "Adoções",
-    badges: "Emblemas",
+    // badges: "Emblemas", // Duplicate
     companies: "Empresas",
     announcements: "Anúncios",
     services: "Serviços",
@@ -962,7 +962,7 @@ export const translations = {
     verifications: "Verifications",
     activeWalkers: "Active Walkers",
     adoptions: "Adoptions",
-    badges: "Badges",
+    // badges: "Badges", // Duplicate
     companies: "Companies",
     announcements: "Announcements",
     services: "Services",
@@ -1873,7 +1873,7 @@ export const translations = {
     verifications: "Verificaciones",
     activeWalkers: "Paseadores Activos",
     adoptions: "Adopciones",
-    badges: "Insignias",
+    // badges: "Insignias", // Duplicate
     companies: "Empresas",
     announcements: "Anuncios",
     services: "Servicios",
