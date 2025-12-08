@@ -21,6 +21,9 @@ export default function AccountSettings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("profile");
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState(null);
+  const [cropType, setCropType] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 

@@ -654,7 +654,7 @@ export default function UserProfile() {
         <Card className="border-0 shadow-xl mb-6 overflow-hidden bg-white">
           <div className="relative h-48 md:h-64 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             {profileUser.cover_photo_url && (
-              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
+              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" />
             )}
             {isOwnProfile && (
               <Button
@@ -673,7 +673,7 @@ export default function UserProfile() {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
               <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
-                  <AvatarImage src={profileUser.profile_photo_url} />
+                  <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
                     {profileUser.full_name?.[0]?.toUpperCase()}
                   </AvatarFallback>

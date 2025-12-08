@@ -32,7 +32,8 @@ import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
 import { toast } from "sonner";
-import { Link } from "react-router-dom"; // Added import for toast
+import { Link } from "react-router-dom";
+import ImageCropModal from "../components/ui/ImageCropModal";
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
@@ -47,6 +48,9 @@ export default function BecomeWalker() {
     background: false,
     address: false
   });
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState(null);
+  const [cropFieldName, setCropFieldName] = useState(null);
   
   const [formData, setFormData] = useState({
     walker_name: "",
@@ -122,17 +126,48 @@ export default function BecomeWalker() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Se for foto de perfil, abrir modal de crop
+    if (fieldName === 'photo_url' && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setTempImageUrl(event.target.result);
+        setCropFieldName(fieldName);
+        setCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Upload direto para outros tipos
     setUploading(prev => ({ ...prev, [uploadingKey]: true }));
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setFormData({ ...formData, [fieldName]: file_url });
-      // Clear specific error for the field after successful upload
       setFormErrors(prev => ({ ...prev, [uploadingKey]: undefined }));
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error(t("fileUploadError", language) || "Erro ao fazer upload do ficheiro.");
     }
     setUploading(prev => ({ ...prev, [uploadingKey]: false }));
+  };
+
+  const handleCroppedImage = async (croppedFile) => {
+    setUploading(prev => ({ ...prev, photo: true }));
+    setCropModalOpen(false);
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
+      setFormData({ ...formData, [cropFieldName]: file_url });
+      setFormErrors(prev => ({ ...prev, photo: undefined }));
+      toast.success("Foto ajustada com sucesso!");
+    } catch (error) {
+      console.error("Error uploading cropped image:", error);
+      toast.error("Erro ao fazer upload da imagem.");
+    }
+    
+    setUploading(prev => ({ ...prev, photo: false }));
+    setTempImageUrl(null);
+    setCropFieldName(null);
   };
 
   // Check for user login
@@ -292,6 +327,17 @@ export default function BecomeWalker() {
           )}
         </AnimatePresence>
 
+        <ImageCropModal
+          isOpen={cropModalOpen}
+          onClose={() => {
+            setCropModalOpen(false);
+            setTempImageUrl(null);
+          }}
+          imageUrl={tempImageUrl}
+          onSave={handleCroppedImage}
+          aspectRatio={1}
+        />
+
         <Alert className="mb-6 border-blue-200 bg-blue-50">
           <Shield className="h-5 w-5 text-blue-600" />
           <AlertDescription className="text-blue-900">
@@ -324,11 +370,18 @@ export default function BecomeWalker() {
                       <Label htmlFor="photo">{t('profilePhoto', language)}</Label>
                       <div className="flex items-center gap-4">
                         {formData.photo_url ? (
-                          <img
-                            src={formData.photo_url}
-                            alt="Preview"
-                            className="w-32 h-32 rounded-xl object-cover border-4 border-green-100"
-                          />
+                          <div className="relative w-32 h-32 rounded-xl overflow-hidden border-4 border-green-100 group">
+                            <img
+                              src={formData.photo_url}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <label htmlFor="photo" className="cursor-pointer">
+                                <Upload className="w-6 h-6 text-white" />
+                              </label>
+                            </div>
+                          </div>
                         ) : (
                           <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200">
                             <Upload className="w-8 h-8 text-gray-400" />
