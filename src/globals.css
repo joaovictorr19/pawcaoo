@@ -77,12 +77,10 @@ css
     position: relative;
   }
 
-  /* Fix global para evitar botões com texto vazando */
   button {
     @apply whitespace-normal h-auto min-h-[2.5rem] break-words !important;
   }
   
-  /* Garante que imagens não estourem containers */
   img, video {
     @apply max-w-full h-auto;
   }
