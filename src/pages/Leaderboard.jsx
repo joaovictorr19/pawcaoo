@@ -333,7 +333,7 @@ export default function Leaderboard() {
         </motion.div>
 
         {/* Top 3 Podium */}
-        <div className="relative pt-12 mb-20 mt-12">
+        <div className="relative pt-20 mb-20 mt-12">
           <div className="flex justify-center items-end gap-4 md:gap-8 max-w-3xl mx-auto h-64">
             
             {/* 2nd Place */}
@@ -377,7 +377,9 @@ export default function Leaderboard() {
                 onClick={() => navigate(createPageUrl(`UserProfile?email=${activeData[0].email}`))}
               >
                 <div className="relative mb-3 transform transition-transform group-hover:-translate-y-2">
-                  <Crown className="w-10 h-10 text-yellow-500 absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_2s_infinite]" />
+                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-20">
+                    <Crown className="w-12 h-12 text-yellow-500 fill-yellow-400 drop-shadow-lg animate-[bounce_3s_infinite]" />
+                  </div>
                   <Avatar className="w-20 h-20 md:w-28 md:h-28 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-100/50">
                     <AvatarImage src={activeData[0].profile_photo_url} />
                     <AvatarFallback className="bg-yellow-100 text-yellow-600 text-3xl font-bold">
@@ -470,20 +472,23 @@ export default function Leaderboard() {
               value="streak"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg text-xs md:text-sm"
             >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="flex items-center justify-center w-full h-full">
-                    <Flame className="w-4 h-4 mr-1" />
-                    {t('streak', language)}
-                    <Info className="w-3 h-3 ml-1 opacity-50 hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('streakDescription', language)}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Flame className="w-4 h-4 mr-1" />
+              {t('streak', language)}
             </TabsTrigger>
           </TabsList>
+
+          <div className="bg-white/50 p-3 rounded-lg text-center mb-4 text-sm text-gray-600 flex items-center justify-center gap-2">
+            <Info className="w-4 h-4 text-blue-500" />
+            <span>
+              {activeCategory === 'streak' 
+                ? t('streakDescription', language) 
+                : activeCategory === 'badges' 
+                  ? "Colecione emblemas completando missões especiais!"
+                  : activeCategory === 'level'
+                    ? "Suba de nível ganhando XP em atividades na plataforma."
+                    : "Acumule XP participando e contratando serviços."}
+            </span>
+          </div>
 
           <TabsContent value="xp">
             <div className="space-y-2">
