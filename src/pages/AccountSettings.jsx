@@ -27,6 +27,8 @@ export default function AccountSettings() {
   const [cropType, setCropType] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const photoInputRef = React.useRef(null);
+  const coverInputRef = React.useRef(null);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -271,12 +273,9 @@ export default function AccountSettings() {
     const file = e.target.files?.[0];
     if (file) {
       setCropType(type); // 'photo' or 'cover'
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setTempImageUrl(ev.target.result);
-        setCropModalOpen(true);
-      };
-      reader.readAsDataURL(file);
+      const url = URL.createObjectURL(file);
+      setTempImageUrl(url);
+      setCropModalOpen(true);
     }
   };
 
@@ -409,7 +408,7 @@ export default function AccountSettings() {
                       </Avatar>
                       <div>
                         <input
-                          id="photo-upload"
+                          ref={photoInputRef}
                           type="file"
                           accept="image/*"
                           className="hidden"
@@ -419,7 +418,7 @@ export default function AccountSettings() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => document.getElementById('photo-upload').click()}
+                          onClick={() => photoInputRef.current?.click()}
                           disabled={uploadingPhoto}
                         >
                           <Upload className="w-4 h-4 mr-2" />
@@ -439,7 +438,7 @@ export default function AccountSettings() {
                       </div>
                       <div>
                         <input
-                          id="cover-upload"
+                          ref={coverInputRef}
                           type="file"
                           accept="image/*"
                           className="hidden"
@@ -449,7 +448,7 @@ export default function AccountSettings() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => document.getElementById('cover-upload').click()}
+                          onClick={() => coverInputRef.current?.click()}
                           disabled={uploadingCover}
                         >
                           <Upload className="w-4 h-4 mr-2" />
@@ -798,12 +797,11 @@ export default function AccountSettings() {
           isOpen={cropModalOpen}
           onClose={() => {
             setCropModalOpen(false);
+            if (tempImageUrl) URL.revokeObjectURL(tempImageUrl);
             setTempImageUrl(null);
             // Reset input values to allow re-selecting same file
-            const photoInput = document.getElementById('photo-upload');
-            if (photoInput) photoInput.value = '';
-            const coverInput = document.getElementById('cover-upload');
-            if (coverInput) coverInput.value = '';
+            if (photoInputRef.current) photoInputRef.current.value = '';
+            if (coverInputRef.current) coverInputRef.current.value = '';
           }}
           imageUrl={tempImageUrl}
           onSave={handleCroppedImage}
