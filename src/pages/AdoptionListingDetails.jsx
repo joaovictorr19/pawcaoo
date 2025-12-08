@@ -335,6 +335,26 @@ export default function AdoptionListingDetails() {
               )}
             </Card>
 
+            {listing.video_url && (
+              <Card className="border-0 shadow-xl overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="aspect-video w-full">
+                    {listing.video_url.includes('youtube.com') || listing.video_url.includes('youtu.be') ? (
+                      <iframe
+                        src={listing.video_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                        className="w-full h-full"
+                        title="Pet Video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video src={listing.video_url} controls className="w-full h-full bg-black" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="border-0 shadow-xl">
               <CardHeader>
                 <div className="flex items-start justify-between">

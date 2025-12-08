@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -88,13 +87,13 @@ export default function ApplyForAdoption() {
 
       // Notify listing owner
       await base44.entities.Notification.create({
-        recipient_email: listing.created_by,
-        title: `New Adoption Application for ${listing.pet_name}`,
-        message: `${data.applicant_name} has applied to adopt ${listing.pet_name}`,
-        type: "system",
-        related_id: application.id,
-        priority: "high",
-        action_url: `ManageAdoptionListings`
+      recipient_email: listing.created_by,
+      title: `New Adoption Application for ${listing.pet_name}`,
+      message: `${data.applicant_name} has applied to adopt ${listing.pet_name}`,
+      type: "system",
+      related_id: application.id,
+      priority: "high",
+      action_url: `ManageAdoptionListings?tab=applications`
       });
 
       return application;

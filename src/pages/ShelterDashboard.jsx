@@ -50,6 +50,23 @@ export default function ShelterDashboard() {
     enabled: !!myShelter?.id,
   });
 
+  const { data: pendingApplications = [] } = useQuery({
+    queryKey: ['shelterPendingApplications', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      // 1. Get my listings
+      const listings = await base44.entities.AdoptionListing.filter({ created_by: user.email });
+      const listingIds = listings.map(l => l.id);
+      
+      if (listingIds.length === 0) return [];
+
+      // 2. Get applications for these listings
+      const apps = await base44.entities.AdoptionApplication.list(); // Filtering client-side as we need OR logic potentially or 'in' which might not be supported directly in simple filter
+      return apps.filter(a => listingIds.includes(a.listing_id) && a.application_status === 'pending');
+    },
+    enabled: !!user?.email,
+  });
+
   const addNeedMutation = useMutation({
     mutationFn: async (data) => {
       return await base44.entities.ShelterNeed.create({
@@ -150,6 +167,53 @@ export default function ShelterDashboard() {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Pending Applications Alert */}
+        {pendingApplications.length > 0 && (
+          <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0 shadow-xl mb-8">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-full">
+                  <HomeIcon className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">
+                    {pendingApplications.length} Candidatura{pendingApplications.length !== 1 && 's'} Pendente{pendingApplications.length !== 1 && 's'}
+                  </h3>
+                  <p className="text-purple-100">Existem interessados à espera de resposta.</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate(createPageUrl('ManageAdoptionListings'))}
+                className="bg-white text-purple-600 hover:bg-purple-50 font-semibold"
+              >
+                Gerir Candidaturas
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('ManageAdoptionListings'))}>
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="bg-blue-100 p-4 rounded-full mb-4">
+                <Eye className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Gerir Animais</h3>
+              <p className="text-gray-500 text-sm mt-1">Adicionar, editar ou remover animais para adoção</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setShowAddNeed(true)}>
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="bg-green-100 p-4 rounded-full mb-4">
+                <Plus className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Pedir Doações</h3>
+              <p className="text-gray-500 text-sm mt-1">Publicar nova necessidade de doação</p>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="shadow-xl mb-6">
