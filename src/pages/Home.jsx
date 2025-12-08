@@ -740,7 +740,7 @@ export default function Home() {
                     </Card>
                   </motion.div>
 
-                  <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('Notifications'))} className="cursor-pointer">
+                  <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('Inbox'))} className="cursor-pointer">
                     <Card className="bg-white/90 hover:bg-white backdrop-blur-md border-0 p-4 shadow-lg group transition-all">
                       <div className="flex items-center gap-4">
                         <div className="bg-blue-100 p-3 rounded-xl group-hover:bg-blue-600 transition-colors">
