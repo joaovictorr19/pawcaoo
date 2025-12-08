@@ -12,6 +12,7 @@ import {
   CheckCircle, Shield, ShieldCheck, Users, User
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -20,72 +21,67 @@ import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 
 function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
-  const [showDetails, setShowDetails] = useState(false);
-
   return (
-    <motion.div
-      key={badge.id || badge.badge_id || idx}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05 }}
-      transition={{ delay: idx * 0.03 }}
-      className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all ${showDetails ? 'bg-white/10 z-10' : ''} ${locked ? 'opacity-60 grayscale' : ''}`}
-      onClick={() => setShowDetails(!showDetails)}
-    >
-      <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-3 border-2 shadow-lg relative overflow-hidden ${
-        locked 
-          ? 'border-gray-700 bg-gray-800/50 border-dashed' 
-          : badge.rarity === 'legendary' ? 'border-yellow-400/50 bg-gradient-to-br from-yellow-900/40 to-orange-900/40' 
-          : badge.rarity === 'epic' ? 'border-purple-400/50 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
-          : badge.rarity === 'rare' ? 'border-blue-400/50 bg-gradient-to-br from-blue-900/40 to-cyan-900/40'
-          : 'border-white/20 bg-white/5'
-      }`}>
-        {/* Glow Effect */}
-        {!locked && <div className="absolute inset-0 bg-white/5 blur-xl rounded-full transform scale-75" />}
-        
-        {badge.image_png_file ? (
-          <img src={badge.image_png_file} alt={badge.name} className="w-14 h-14 object-contain z-10 drop-shadow-lg" />
-        ) : badge.image_url ? (
-          <img 
-            src={badge.image_url} 
-            alt={badge.name}
-            className="w-14 h-14 object-contain z-10 drop-shadow-lg rounded-md"
-          />
-        ) : (
-          <span className="text-4xl z-10 drop-shadow-md filter">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
-        )}
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.div
+            key={badge.id || badge.badge_id || idx}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ delay: idx * 0.03 }}
+            className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all ${locked ? 'opacity-60 grayscale' : ''}`}
+          >
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-3 border-2 shadow-lg relative overflow-hidden ${
+              locked 
+                ? 'border-gray-700 bg-gray-800/50 border-dashed' 
+                : badge.rarity === 'legendary' ? 'border-yellow-400/50 bg-gradient-to-br from-yellow-900/40 to-orange-900/40' 
+                : badge.rarity === 'epic' ? 'border-purple-400/50 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
+                : badge.rarity === 'rare' ? 'border-blue-400/50 bg-gradient-to-br from-blue-900/40 to-cyan-900/40'
+                : 'border-white/20 bg-white/5'
+            }`}>
+              {/* Glow Effect */}
+              {!locked && <div className="absolute inset-0 bg-white/5 blur-xl rounded-full transform scale-75" />}
+              
+              {badge.image_png_file ? (
+                <img src={badge.image_png_file} alt={badge.name} className="w-14 h-14 object-contain z-10 drop-shadow-lg" />
+              ) : badge.image_url ? (
+                <img 
+                  src={badge.image_url} 
+                  alt={badge.name}
+                  className="w-14 h-14 object-contain z-10 drop-shadow-lg rounded-md"
+                />
+              ) : (
+                <span className="text-4xl z-10 drop-shadow-md filter">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
+              )}
 
-        {/* Locked Overlay */}
-        {locked && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20">
-            <div className="w-6 h-6 rounded-full border-2 border-white/30 flex items-center justify-center">
-              <div className="w-1 h-3 bg-white/30 rotate-45 transform translate-x-0.5 -translate-y-0.5" />
+              {/* Locked Overlay */}
+              {locked && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20">
+                  <div className="w-6 h-6 rounded-full border-2 border-white/30 flex items-center justify-center">
+                    <div className="w-1 h-3 bg-white/30 rotate-45 transform translate-x-0.5 -translate-y-0.5" />
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-      </div>
 
-      <div className="text-center w-full">
-        <p className={`text-xs font-bold leading-tight line-clamp-2 ${locked ? 'text-gray-500' : 'text-gray-100'}`}>
-          {badge.name}
-        </p>
-        
-        {/* XP Pill */}
-        {badge.xp > 0 && (
-          <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-black/30 border border-white/10">
-            <Zap className="w-2 h-2 text-yellow-400 mr-1" />
-            <span className="text-[10px] font-mono text-yellow-400">{badge.xp} XP</span>
-          </div>
-        )}
-      </div>
-
-      {/* Popover Details */}
-      {showDetails && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-2xl z-50 text-center"
-        >
+            <div className="text-center w-full">
+              <p className={`text-xs font-bold leading-tight line-clamp-2 ${locked ? 'text-gray-500' : 'text-gray-100'}`}>
+                {badge.name}
+              </p>
+              
+              {/* XP Pill */}
+              {badge.xp > 0 && (
+                <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-black/30 border border-white/10">
+                  <Zap className="w-2 h-2 text-yellow-400 mr-1" />
+                  <span className="text-[10px] font-mono text-yellow-400">{badge.xp} XP</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent className="bg-gray-900/95 backdrop-blur-md border border-white/10 text-white rounded-xl p-3 shadow-2xl max-w-[200px] text-center z-50">
           <div className="text-xs text-gray-300 mb-2">{badge.description}</div>
           <Badge className={`text-[10px] px-2 h-5 capitalize ${
             badge.rarity === 'legendary' ? 'bg-yellow-500 text-black' :
@@ -100,9 +96,9 @@ function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
               Conquistado em {new Date(badge.earnedDate).toLocaleDateString()}
             </div>
           )}
-        </motion.div>
-      )}
-    </motion.div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
