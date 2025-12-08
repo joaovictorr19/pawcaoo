@@ -23,6 +23,59 @@ import ProfessionalProfileHeader from "../components/professionals/ProfessionalP
 import ServiceList from "../components/professionals/ServiceList";
 const ServiceAreaMap = lazy(() => import("../components/professionals/ServiceAreaMap"));
 import SEO from "../components/SEO";
+
+// Mini component for favorite button logic
+function FavoriteButton({ walker, user }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['myFavorites'],
+    queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
+    enabled: !!user?.email
+  });
+
+  const isFavorite = favorites.some(f => f.walker_id === walker.id);
+  const favoriteRecord = favorites.find(f => f.walker_id === walker.id);
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+        if (!user) {
+            toast({ title: "Faça login para adicionar aos favoritos", variant: "destructive" });
+            return;
+        }
+        if (isFavorite) {
+            await base44.entities.Favorite.delete(favoriteRecord.id);
+        } else {
+            await base44.entities.Favorite.create({
+                walker_id: walker.id,
+                walker_name: walker.walker_name,
+                walker_photo_url: walker.photo_url,
+                walker_location: walker.location,
+                walker_hourly_rate: walker.hourly_rate
+            });
+        }
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries(['myFavorites']);
+        toast({ title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos" });
+    },
+    onError: () => {
+        toast({ title: "Erro ao atualizar favoritos", variant: "destructive" });
+    }
+  });
+
+  return (
+      <Button
+        variant="outline"
+        className="h-11 w-11 p-0 border-gray-200 text-gray-700 hover:bg-gray-50"
+        onClick={() => toggleFavoriteMutation.mutate()}
+        title={isFavorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+      >
+         <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}`} />
+      </Button>
+  );
+}
 import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
@@ -485,6 +538,9 @@ export default function WalkerDetails() {
                     <UserIcon className="w-4 h-4 mr-2" />
                     Perfil
                   </Button>
+                  
+                  {/* Favorite Button in Details - Fully Implemented */}
+                  <FavoriteButton walker={walker} user={user} />
                 </div>
               </div>
             </div>

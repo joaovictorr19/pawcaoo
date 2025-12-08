@@ -1,4 +1,6 @@
 import React from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +8,7 @@ import { MapPin, Star, DollarSign, Shield, Heart, User, Award } from "lucide-rea
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 // Dummy data for specializations for the purpose of this component
 // In a real application, this would likely be imported from a constants file or fetched from an API.
@@ -23,6 +26,48 @@ const quickSpecializations = [
 
 export default function WalkerCard({ walker, distance, matchScore, showMatchScore }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({ 
+    queryKey: ['currentUser'], 
+    queryFn: () => base44.auth.me() 
+  });
+
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['myFavorites'],
+    queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
+    enabled: !!user?.email
+  });
+
+  const isFavorite = favorites.some(f => f.walker_id === walker.id);
+  const favoriteRecord = favorites.find(f => f.walker_id === walker.id);
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+        if (!user) {
+            toast.error("Faça login para adicionar aos favoritos");
+            return;
+        }
+        if (isFavorite) {
+            await base44.entities.Favorite.delete(favoriteRecord.id);
+        } else {
+            await base44.entities.Favorite.create({
+                walker_id: walker.id,
+                walker_name: walker.walker_name,
+                walker_photo_url: walker.photo_url,
+                walker_location: walker.location,
+                walker_hourly_rate: walker.hourly_rate
+            });
+        }
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries(['myFavorites']);
+        toast.success(isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos");
+    },
+    onError: () => {
+        toast.error("Erro ao atualizar favoritos");
+    }
+  });
 
   const handleViewProfile = (e) => {
     e.preventDefault();
@@ -117,10 +162,10 @@ export default function WalkerCard({ walker, distance, matchScore, showMatchScor
             className="absolute top-2 md:top-3 left-2 md:left-3 w-8 h-8 md:w-10 md:h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              // Add to favorites logic
+              toggleFavoriteMutation.mutate();
             }}
           >
-            <Heart className="w-4 h-4 md:w-5 md:h-5 text-red-500" />
+            <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}`} />
           </motion.button>
         </div>
 
