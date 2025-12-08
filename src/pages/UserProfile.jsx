@@ -815,11 +815,12 @@ export default function UserProfile() {
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white"
+                className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
                 onClick={() => navigate(createPageUrl('AccountSettings'))}
               >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar Perfil
+                <Camera className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Alterar Capa</span>
+                <span className="sm:hidden">Capa</span>
               </Button>
             )}
           </div>
@@ -829,12 +830,23 @@ export default function UserProfile() {
               
               {/* Avatar Column - Pulled up to overlap cover */}
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
-                <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
-                  <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
-                    {profileUser.full_name?.[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
+                    <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
+                      {profileUser.full_name?.[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isOwnProfile && (
+                    <button 
+                      onClick={() => navigate(createPageUrl('AccountSettings'))}
+                      className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white"
+                      title="Alterar foto de perfil"
+                    >
+                      <Camera className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Info Column - Starts below cover photo line to prevent overlap */}
@@ -992,18 +1004,18 @@ export default function UserProfile() {
 
             {/* Pinned Badges Showcase (Removed duplicate as requested) */}
 
-            <div className="grid grid-cols-3 gap-4 md:gap-8 py-4 border-t border-b border-gray-200 mt-6">
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalBadges}</div>
-                <div className="text-sm text-gray-600">Emblemas</div>
+            <div className="flex justify-between items-center py-4 border-t border-b border-gray-200 mt-6 px-2 md:px-8">
+              <div className="flex-1 text-center border-r border-gray-100 last:border-0">
+                <div className="text-xl md:text-3xl font-bold text-gray-900">{totalBadges}</div>
+                <div className="text-xs md:text-sm text-gray-600 truncate">Emblemas</div>
               </div>
-              <div className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2" onClick={() => setShowFollowers(true)}>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{followersCount}</div>
-                <div className="text-sm text-gray-600">Seguidores</div>
+              <div className="flex-1 text-center border-r border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition-colors" onClick={() => setShowFollowers(true)}>
+                <div className="text-xl md:text-3xl font-bold text-gray-900">{followersCount}</div>
+                <div className="text-xs md:text-sm text-gray-600 truncate">Seguidores</div>
               </div>
-              <div className="text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2" onClick={() => setShowFollowing(true)}>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{followingCount}</div>
-                <div className="text-sm text-gray-600">Seguindo</div>
+              <div className="flex-1 text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition-colors" onClick={() => setShowFollowing(true)}>
+                <div className="text-xl md:text-3xl font-bold text-gray-900">{followingCount}</div>
+                <div className="text-xs md:text-sm text-gray-600 truncate">Seguindo</div>
               </div>
             </div>
           </CardContent>
