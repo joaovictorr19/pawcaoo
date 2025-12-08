@@ -34,6 +34,8 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MobileNavBar from "@/components/layout/MobileNavBar";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import NotificationArea from "@/components/notifications/NotificationArea";
+import PullToRefresh from "@/components/ui/PullToRefresh";
+import PullToRefresh from "@/components/ui/PullToRefresh";
 
 // Query optimization configs - v1.1
 const queryConfig = {
@@ -897,7 +899,14 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Main Content Area with bottom padding for mobile nav */}
           <div className="flex-1 pb-24 md:pb-0 md:overflow-auto">
-            {children}
+            <div className="md:hidden">
+              <PullToRefresh>
+                {children}
+              </PullToRefresh>
+            </div>
+            <div className="hidden md:block">
+              {children}
+            </div>
           </div>
 
           {/* Mobile Navigation Bar */}
