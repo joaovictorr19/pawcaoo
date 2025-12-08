@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users, LogOut, Building2, Download, MessageCircle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -106,18 +106,49 @@ const usePrefetchOnHover = (prefetchFn) => {
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
 
+  // Dictionary for menu translations
+  const menuTranslations = {
+    shelterArea: { pt: 'Área de Abrigos', es: 'Área de Refugios', en: 'Shelter Area' },
+    myDashboard: { pt: 'Meu Dashboard', es: 'Mi Panel', en: 'My Dashboard' },
+    badges: { pt: 'Emblemas', es: 'Emblemas', en: 'Badges' },
+    becomeProfessional: { pt: 'Tornar-me Profissional', es: 'Ser Profesional', en: 'Become Professional' },
+    verifyWalkers: { pt: 'Verificar Passeadores', es: 'Verificar Paseadores', en: 'Verify Walkers' },
+    approveAds: { pt: 'Aprovar Anúncios', es: 'Aprobar Anuncios', en: 'Approve Ads' },
+    paymentSetup: { pt: 'Config. Pagamentos', es: 'Config. Pagos', en: 'Payment Setup' },
+    verifyShelters: { pt: 'Verificar Abrigos', es: 'Verificar Refugios', en: 'Verify Shelters' },
+    moderation: { pt: 'Moderação', es: 'Moderación', en: 'Moderation' },
+    myCompany: { pt: 'Minha Empresa', es: 'Mi Empresa', en: 'My Company' },
+    vetDashboard: { pt: 'Painel Veterinário', es: 'Panel Veterinario', en: 'Vet Dashboard' },
+    administration: { pt: 'Administração', es: 'Administración', en: 'Administration' },
+    company: { pt: 'Empresa', es: 'Empresa', en: 'Company' },
+    logout: { pt: 'Sair', es: 'Salir', en: 'Logout' },
+    login: { pt: 'Entrar', es: 'Entrar', en: 'Login' }
+  };
+
+  const getMenuText = (key) => menuTranslations[key]?.[language] || menuTranslations[key]?.en;
+
+  // Helper for active state
+  const isRouteActive = (path) => {
+    if (!path) return false;
+    // Remove leading slash for comparison if needed, but usually paths match
+    if (path === createPageUrl("Home") && location.pathname === path) return true;
+    if (path !== createPageUrl("Home") && location.pathname.startsWith(path)) return true;
+    return location.pathname === path;
+  };
+
   // Fix 404 on /login route by redirecting to Home
   React.useEffect(() => {
     if (location.pathname === '/login' || location.pathname === '/login/') {
-      window.location.href = createPageUrl('Home');
+      navigate(createPageUrl('Home'), { replace: true });
       toast.info("Redirecionando para a página inicial...");
     }
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
 
   const { data: authUser, isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['currentUser'],
@@ -181,17 +212,17 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap, className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
-    { title: language === 'pt' ? 'Área de Abrigos' : language === 'es' ? 'Área de Refugios' : 'Shelter Area', url: createPageUrl("ShelterDashboard"), icon: Building2 },
+    { title: getMenuText('shelterArea'), url: createPageUrl("ShelterDashboard"), icon: Building2 },
   ];
 
   const myActivityMenu = [
-    { title: language === 'pt' ? 'Meu Dashboard' : language === 'es' ? 'Mi Panel' : 'My Dashboard', url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
+    { title: getMenuText('myDashboard'), url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
-    { title: language === 'pt' ? 'Emblemas' : language === 'es' ? 'Emblemas' : 'Badges', url: createPageUrl("Gamification"), icon: Award },
+    { title: getMenuText('badges'), url: createPageUrl("Gamification"), icon: Award },
   ];
 
   const professionalMenu = [
@@ -207,18 +238,18 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminMenu = authUser?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
-    { title: language === 'pt' ? 'Verificar Passeadores' : 'Verify Walkers', url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
-    { title: language === 'pt' ? 'Aprovar Anúncios' : language === 'es' ? 'Aprobar Anuncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
-    { title: language === 'pt' ? 'Config. Pagamentos' : language === 'es' ? 'Config. Pagos' : 'Payment Setup', url: createPageUrl("PaymentSetup"), icon: Shield },
-    { title: language === 'pt' ? 'Verificar Abrigos' : language === 'es' ? 'Verificar Refugios' : 'Verify Shelters', url: createPageUrl("AdminShelterVerification"), icon: Building2 },
+    { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
+    { title: getMenuText('approveAds'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
+    { title: getMenuText('paymentSetup'), url: createPageUrl("PaymentSetup"), icon: Shield },
+    { title: getMenuText('verifyShelters'), url: createPageUrl("AdminShelterVerification"), icon: Building2 },
     { title: "Static Export", url: createPageUrl("StaticExport"), icon: Download },
     // Moderação também aqui para admins
-    { title: language === 'pt' ? 'Moderação' : language === 'es' ? 'Moderación' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
+    { title: getMenuText('moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
   const companyMenu = authUser?.account_type === 'company' ? [
-    { title: language === 'pt' ? 'Minha Empresa' : 'My Company', url: createPageUrl("PartnerDashboard"), icon: Store },
-    ...(authUser?.company_type === 'veterinary' ? [{ title: language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard', url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
+    { title: getMenuText('myCompany'), url: createPageUrl("PartnerDashboard"), icon: Store },
+    ...(authUser?.company_type === 'veterinary' ? [{ title: getMenuText('vetDashboard'), url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
   ] : [];
 
   // Award welcome badge on mount if user doesn't have it
@@ -385,7 +416,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const handleNavigation = (url) => (e) => {
     e.preventDefault();
-    window.location.href = url;
+    navigate(url);
   };
 
   const handleNavigationToProfile = (e) => {
@@ -397,7 +428,7 @@ function LayoutContent({ children, currentPageName }) {
         : createPageUrl(`UserProfile?id=${authUser.id}`);
 
       console.log('Navigating to profile:', profileUrl);
-      window.location.href = profileUrl;
+      navigate(profileUrl);
     } else {
       toast.error('Erro ao carregar perfil. Faça login novamente.');
     }
@@ -417,6 +448,46 @@ function LayoutContent({ children, currentPageName }) {
           --primary-foreground: 0 0% 100%;
           --accent: 142 76% 92%;
           --accent-foreground: 142 76% 20%;
+        }
+
+        /* --- 1. MELHORIA NOS BOTÕES (Micro-interações) --- */
+        /* Aplica-se a qualquer botão do shadcn ou html padrão */
+        button, .button-premium {
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          position: relative;
+        }
+
+        /* Estado Hover: Sobe levemente */
+        button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estado Active (Clique): Afunda */
+        button:active:not(:disabled) {
+          transform: translateY(1px) !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          filter: brightness(0.95);
+        }
+
+        /* --- 2. GLASSMORPHISM PREMIUM (Vidro Fosco) --- */
+        .glass-panel {
+          background: rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- 3. ANIMAÇÃO 4D PARA O SELO (Flutuar) --- */
+        @keyframes float-badge {
+          0%, 100% { transform: translateY(0px); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
+          50% { transform: translateY(-8px); filter: drop-shadow(0 15px 10px rgba(0,0,0,0.1)); }
+        }
+        
+        .badge-4d-anim {
+          animation: float-badge 4s ease-in-out infinite;
+          will-change: transform;
         }
         
         @media (max-width: 768px) {
@@ -439,13 +510,12 @@ function LayoutContent({ children, currentPageName }) {
         {authUser && (
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-200 p-4 md:p-6">
-            <a 
-              href={createPageUrl("Home")} 
+            <Link 
+              to={createPageUrl("Home")} 
               className="block hover:opacity-80 transition-opacity"
-              onClick={handleNavigation(createPageUrl("Home"))}
             >
               <PawCaoLogo size="default" />
-            </a>
+            </Link>
 
             {planBadge && (
               <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
@@ -488,14 +558,13 @@ function LayoutContent({ children, currentPageName }) {
                         location.pathname.includes('UserProfile') ? 'bg-green-600 text-white' : 'border border-gray-200 text-gray-700'
                       }`}
                     >
-                      <a 
-                        href={authUser ? (authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)) : '#'} 
+                      <Link 
+                        to={authUser ? (authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)) : '#'} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
-                        onClick={handleNavigationToProfile}
                       >
                         <User className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                         <span className="font-semibold text-xs md:text-sm truncate">{t('myProfile', language)}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -514,20 +583,19 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuButton 
                         asChild 
                         className={`mb-1.5 rounded-lg transition-colors ${
-                          location.pathname === item.url 
+                          isRouteActive(item.url)
                             ? 'bg-green-600 text-white hover:bg-green-700' 
                             : (item.className || 'hover:bg-gray-100 text-gray-700')
                         }`}
                       >
-                        <a 
-                          href={item.url} 
+                        <Link 
+                          to={item.url} 
                           className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 ${item.className ? '' : ''}`}
-                          onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
                           <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
                           <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -552,7 +620,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
                           } ${item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : ''}`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -578,7 +646,7 @@ function LayoutContent({ children, currentPageName }) {
                 className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
-                <span>{language === 'pt' ? 'Tornar-me Profissional' : language === 'es' ? 'Ser Profesional' : 'Become Professional'}</span>
+                <span>{getMenuText('becomeProfessional')}</span>
                 <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {professionalServicesExpanded && (
@@ -589,7 +657,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -608,7 +676,7 @@ function LayoutContent({ children, currentPageName }) {
             {companyMenu.length > 0 && (
               <SidebarGroup>
                 <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 font-semibold uppercase">
-                  {language === 'pt' ? 'Empresa' : 'Company'}
+                  {getMenuText('company')}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
@@ -617,7 +685,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-green-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -635,7 +703,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* ADMINISTRAÇÃO */}
             {adminMenu.length > 0 && ( 
               <SidebarGroup>
-                <SidebarGroupLabel className="text-[10px] md:text-xs text-red-600 px-2 font-semibold uppercase">{language === 'pt' ? 'Administração' : 'Administration'}</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-[10px] md:text-xs text-red-600 px-2 font-semibold uppercase">{getMenuText('administration')}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {adminMenu.map((item) => ( 
@@ -643,7 +711,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-red-50 transition-all duration-200 rounded-lg mb-1 ${
-                            location.pathname === item.url ? 'bg-red-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? 'bg-red-600 text-white' : 'text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -670,7 +738,7 @@ function LayoutContent({ children, currentPageName }) {
                       <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3">
                         <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                         <span className="font-semibold text-xs md:text-sm truncate">
-                          {language === 'pt' ? 'Sair' : language === 'es' ? 'Salir' : 'Logout'}
+                          {getMenuText('logout')}
                         </span>
                       </div>
                     </SidebarMenuButton>
@@ -683,19 +751,18 @@ function LayoutContent({ children, currentPageName }) {
             )}
 
             <main className="flex-1 flex flex-col min-w-0">
-            <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-10">
+            <header className="glass-panel px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300">
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
                 <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
               )}
 
-              <a 
-                href={createPageUrl("Home")} 
+              <Link 
+                to={createPageUrl("Home")} 
                 className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
-                onClick={handleNavigation(createPageUrl("Home"))}
               >
                 <PawCaoLogo size="small" showText={!authUser} />
-              </a>
+              </Link>
 
               {authUser && (
                 <div className="hidden md:flex items-center justify-center gap-2 flex-1">
@@ -704,18 +771,17 @@ function LayoutContent({ children, currentPageName }) {
                       key={item.url}
                       to={item.url}
                       className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
-                        location.pathname === item.url
+                        isRouteActive(item.url)
                           ? "bg-green-600 text-white shadow-md"
                           : "text-gray-600 hover:bg-gray-100"
-                      } ${item.className && location.pathname !== item.url ? item.className.replace('bg-red-50', '').replace('text-red-600', 'text-gray-600') : ""}`}
+                      } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', 'text-gray-600') : ""}`}
                     >
-                      <item.icon className={`w-4 h-4 ${location.pathname === item.url ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
+                      <item.icon className={`w-4 h-4 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
                       <span>{item.title}</span>
                     </Link>
                   ))}
-                  <a 
-                    href={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
-                    onClick={handleNavigationToProfile}
+                  <Link 
+                    to={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                       location.pathname.includes('UserProfile')
                         ? "bg-green-600 text-white shadow-md"
@@ -724,7 +790,13 @@ function LayoutContent({ children, currentPageName }) {
                   >
                     <User className={`w-4 h-4 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
                     <span>{t('myProfile', language)}</span>
-                  </a>
+                    {authUser?.is_verified && (
+                      <div className="relative group cursor-help ml-1 inline-flex" title="Verificado Oficialmente">
+                        <div className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-20 animate-pulse"></div>
+                        <ShieldCheck className="w-4 h-4 text-blue-500 badge-4d-anim" />
+                      </div>
+                    )}
+                  </Link>
                 </div>
               )}
 
@@ -754,7 +826,7 @@ function LayoutContent({ children, currentPageName }) {
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm"
                   size="sm"
                 >
-                  {language === 'pt' ? 'Entrar' : language === 'es' ? 'Entrar' : 'Login'}
+                  {getMenuText('login')}
                 </Button>
               )}
 
