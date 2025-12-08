@@ -54,7 +54,7 @@ export default function EmergencyDogCard({ walk }) {
             src={walk.dog_photo_url}
             alt={`Emergency Walk needed for ${walk.dog_name} in ${walk.location}`}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
