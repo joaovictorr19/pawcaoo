@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -245,6 +245,52 @@ export default function MyBookings() {
   // Helper to handle cancellation click
   const handleCancelClick = (booking) => {
     setBookingToCancel(booking);
+  };
+
+  // Mutation para apagar booking (Limpeza de Dados)
+  const deleteBookingMutation = useMutation({
+    mutationFn: async ({ id, type }) => {
+      const entity = type === 'walk' ? base44.entities.Booking : base44.entities.TrainingBooking;
+      
+      // 1. Excluir Reviews associadas
+      const reviews = await base44.entities.Review.filter(
+        type === 'walk' ? { booking_id: id } : { training_booking_id: id }
+      );
+      
+      if (reviews.length > 0) {
+        await Promise.all(reviews.map(r => base44.entities.Review.delete(r.id)));
+      }
+
+      // 2. Excluir Rastro GPS (WalkCheckpoints) - Apenas para passeios
+      if (type === 'walk') {
+        const checkpoints = await base44.entities.WalkCheckpoint.filter({ booking_id: id });
+        if (checkpoints.length > 0) {
+          await Promise.all(checkpoints.map(c => base44.entities.WalkCheckpoint.delete(c.id)));
+        }
+      }
+
+      // 3. Excluir a Reserva Principal
+      await entity.delete(id);
+
+      return id;
+    },
+    onSuccess: () => {
+      toast.success("Reserva e histórico eliminados com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['myWalks'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerWalks'] });
+      queryClient.invalidateQueries({ queryKey: ['myTrainings'] });
+      queryClient.invalidateQueries({ queryKey: ['trainerTrainings'] });
+    },
+    onError: (error) => {
+      console.error("Erro ao excluir reserva:", error);
+      toast.error("Erro ao excluir reserva. Tente novamente.");
+    }
+  });
+
+  const handleDeleteClick = async (booking) => {
+    if (window.confirm("ATENÇÃO: Esta ação é irreversível. Deseja eliminar esta reserva e todo o seu histórico (GPS, Reviews)?")) {
+      deleteBookingMutation.mutate({ id: booking.id, type: booking.type });
+    }
   };
 
   // Review Handlers
@@ -517,7 +563,18 @@ export default function MyBookings() {
               </Button>
             )}
              
-            {/* Contact button removed - Use WhatsApp via Walker Profile */}
+            {/* Botão de Eliminar (Limpeza de Dados) */}
+            {['completed', 'cancelled', 'rejected'].includes(booking.status) && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-400 hover:text-red-600 hover:bg-red-50"
+                onClick={() => handleDeleteClick(booking)}
+                title="Eliminar histórico"
+              >
+                 <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
