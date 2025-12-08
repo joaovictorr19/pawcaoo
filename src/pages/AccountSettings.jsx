@@ -413,7 +413,7 @@ export default function AccountSettings() {
                           type="file"
                           accept="image/*"
                           className="hidden"
-                          onChange={handlePhotoUpload}
+                          onChange={(e) => handlePhotoSelect(e, 'photo')}
                           disabled={uploadingPhoto}
                         />
                         <Button
