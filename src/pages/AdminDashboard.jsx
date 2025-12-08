@@ -952,6 +952,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="analytics">{t('analytics', language)}</TabsTrigger>
             <TabsTrigger value="users">{t('accounts', language)}</TabsTrigger>
             <TabsTrigger value="applications">{t('verifications', language)}</TabsTrigger>
+            <TabsTrigger value="profile_edits">✏️ Edições</TabsTrigger>
             <TabsTrigger value="active_walkers">{t('activeWalkers', language)}</TabsTrigger>
             <TabsTrigger value="adoptions">{t('adoptions', language)}</TabsTrigger>
             <TabsTrigger value="badges">{t('badges', language)}</TabsTrigger>
@@ -1336,6 +1337,12 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="profile_edits">
+            <div className="mt-6">
+              <ProfileEditRequests />
+            </div>
           </TabsContent>
 
           <TabsContent value="applications">
