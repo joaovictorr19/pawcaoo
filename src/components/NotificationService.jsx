@@ -26,8 +26,8 @@ export default function NotificationService() {
       return notifications;
     },
     enabled: !!user?.email,
-    refetchInterval: 30000, // 30 segundos
-    refetchOnWindowFocus: true,
+    refetchInterval: 60000, // 60 segundos
+    refetchOnWindowFocus: false,
   });
 
   // Mostrar toast para novas notificações

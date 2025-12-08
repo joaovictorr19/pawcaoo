@@ -40,10 +40,10 @@ const queryConfig = {
     refetchOnWindowFocus: false,
   },
   notifications: {
-    staleTime: 10 * 1000,
-    cacheTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000,
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Reduced aggressiveness
+    refetchInterval: 60 * 1000, // Reduced to 1 minute
   },
   static: {
     staleTime: 10 * 60 * 1000,

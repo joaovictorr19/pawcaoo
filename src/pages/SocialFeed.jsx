@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -154,8 +153,8 @@ export default function SocialFeed() {
     initialData: [],
     staleTime: 0,
     refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 15000,
     enabled: !!user?.email
   });
 
