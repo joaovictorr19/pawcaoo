@@ -18,8 +18,8 @@ export default function PersonalizedRecommendations({ user }) {
   const { data: topProfessionals, isLoading: isLoadingData } = useQuery({
     queryKey: ['topProfessionalsForAI'],
     queryFn: async () => {
-      // Busca passeadores e treinadores ativos e bem avaliados
-      const walkers = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 15);
+      // Busca passeadores e treinadores ativos e bem avaliados e VERIFICADOS
+      const walkers = await base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }, '-rating', 15);
       return walkers;
     },
     staleTime: 1000 * 60 * 10, // 10 minutos
