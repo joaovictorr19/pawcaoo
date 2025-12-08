@@ -8,8 +8,11 @@ import { Progress } from "@/components/ui/progress";
 import {
   TrendingUp, DollarSign, Calendar, Heart, Award, Target,
   PawPrint, Activity, Clock, Star, BarChart3, Download,
-  TrendingDown, AlertCircle, CheckCircle, Zap, Dog
+  TrendingDown, AlertCircle, CheckCircle, Zap, Dog, Loader2
 } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 import { Line, Bar, Pie } from "recharts";
 import { LineChart, BarChart, PieChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
+  const [isExporting, setIsExporting] = React.useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -157,6 +161,40 @@ export default function OwnerDashboard() {
   const walkGoal = 12; // 3x per week
   const goalProgress = (walksThisMonth / walkGoal) * 100;
 
+  const handleDownloadReport = async () => {
+    setIsExporting(true);
+    try {
+      const element = document.getElementById('dashboard-content');
+      if (!element) return;
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`Relatorio_PawCao_${format(new Date(), 'yyyy_MM')}.pdf`);
+      
+      toast.success("Relatório baixado com sucesso!");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Erro ao gerar relatório. Tente novamente.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (loadingUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-6">
@@ -173,7 +211,7 @@ export default function OwnerDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto" id="dashboard-content">
         <ErrorBoundary>
         {/* Header */}
         <div className="mb-8">
@@ -476,11 +514,16 @@ export default function OwnerDashboard() {
             {/* Export Report */}
             <Button
               variant="outline"
-              className="w-full border-2 border-purple-300"
-              onClick={() => toast.info("Relatório PDF em breve!")}
+              className="w-full border-2 border-purple-300 hover:bg-purple-50"
+              onClick={handleDownloadReport}
+              disabled={isExporting}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Baixar Relatório Mensal
+              {isExporting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              {isExporting ? "Gerando PDF..." : "Baixar Relatório Mensal"}
             </Button>
           </div>
         </div>

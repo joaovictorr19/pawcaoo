@@ -129,11 +129,15 @@ export default function WalkerCard({ walker, distance, matchScore, showMatchScor
             <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors truncate flex-1">
               {walker.walker_name}
             </h3>
-            {walker.rating && (
+            {(walker.rating > 0 && walker.total_walks > 0) ? (
               <div className="flex items-center gap-0.5 md:gap-1 bg-yellow-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-lg flex-shrink-0">
                 <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-bold text-xs md:text-sm">{walker.rating.toFixed(1)}</span>
               </div>
+            ) : (
+              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0 text-xs px-2 py-0.5">
+                Novo
+              </Badge>
             )}
           </div>
 
