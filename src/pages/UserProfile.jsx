@@ -774,23 +774,30 @@ export default function UserProfile() {
             )}
           </div>
 
-          <CardContent className="pt-6 pb-6">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between">
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24">
+          <CardContent className="pt-0 pb-6">
+            <div className="flex flex-col md:flex-row w-full">
+              
+              {/* Avatar Column - Pulled up to overlap cover */}
+              <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
                   <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
                     {profileUser.full_name?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
+              </div>
+
+              {/* Info Column - Starts below cover photo line to prevent overlap */}
+              <div className="flex-1 flex flex-col md:flex-row justify-between items-start pt-4 px-4 md:pl-6 md:pr-0">
                 
-                <div className="text-center md:text-left mb-4 md:mb-6">
+                {/* User Details (Left) */}
+                <div className="text-center md:text-left w-full md:w-auto">
                   <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                       {profileUser.full_name}
                     </h1>
                     
-                    {/* Lógica de verificação corrigida e Novo Badge 3D */}
+                    {/* Lógica de verificação e Badges */}
                     {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified') && (
                       <div className="ml-1">
                         <VerifiedBadge />
@@ -803,7 +810,7 @@ export default function UserProfile() {
                     )}
                     {walkerProfile && (
                       <Badge 
-                        className="bg-green-600 text-white cursor-pointer hover:bg-green-700" 
+                        className="bg-green-600 text-white cursor-pointer hover:bg-green-700 ml-1" 
                         onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walkerProfile.id}`))}
                       >
                         <Dog className="w-3 h-3 mr-1" />
@@ -813,7 +820,7 @@ export default function UserProfile() {
                   </div>
                   
                   {profileUser.bio && (
-                    <p className="text-gray-600 mt-2 max-w-2xl">{profileUser.bio}</p>
+                    <p className="text-gray-600 mt-2 max-w-lg mx-auto md:mx-0 leading-relaxed">{profileUser.bio}</p>
                   )}
                   
                   {profileUser.city && (
@@ -822,12 +829,71 @@ export default function UserProfile() {
                       {profileUser.city}
                     </div>
                   )}
-                </div>
-              </div>
 
-              <div className="flex flex-wrap gap-2 mb-6 mt-4 md:mt-0">
-                {!isOwnProfile && currentUser && (
-                  <>
+                  {/* Actions Buttons Mobile */}
+                  <div className="flex md:hidden flex-wrap gap-2 justify-center mt-4">
+                    {!isOwnProfile && currentUser && (
+                      <Button
+                        onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
+                        disabled={followMutation.isPending || unfollowMutation.isPending}
+                        className={isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}
+                        size="sm"
+                      >
+                        {isFollowing ? 'Seguindo' : 'Seguir'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Badge Showcase (RPG Inventory Style) & Actions */}
+                <div className="hidden md:flex flex-col items-end gap-3 mt-1">
+                  
+                  {/* Badge Showcase */}
+                  <div className="bg-gray-50/80 backdrop-blur-sm border border-gray-100 rounded-xl p-2 shadow-sm">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 text-right px-1">
+                      Destaques
+                    </div>
+                    <div className="flex gap-2">
+                      {[0, 1].map((slotIdx) => {
+                        // Get pinned badge ID or null
+                        const pinnedId = profileUser.pinned_badge_ids?.[slotIdx];
+                        // Find badge object if ID exists
+                        const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
+
+                        return (
+                          <div 
+                            key={slotIdx} 
+                            className={`w-12 h-12 rounded-lg flex items-center justify-center relative transition-all group ${
+                              badge 
+                                ? 'bg-white border border-gray-200 shadow-sm' 
+                                : 'bg-gray-100/50 border-2 border-dashed border-gray-300'
+                            }`}
+                            title={badge ? badge.name : "Slot Vazio"}
+                          >
+                            {badge ? (
+                              <>
+                                <div className={`absolute inset-0 bg-gradient-to-br opacity-10 rounded-lg ${
+                                  badge.rarity === 'legendary' ? 'from-yellow-400 to-orange-500' :
+                                  badge.rarity === 'epic' ? 'from-purple-400 to-pink-500' :
+                                  'from-blue-400 to-cyan-500'
+                                }`} />
+                                {badge.image_png_file ? (
+                                  <img src={badge.image_png_file} alt={badge.name} className="w-8 h-8 object-contain drop-shadow-sm transform group-hover:scale-110 transition-transform" />
+                                ) : (
+                                  <span className="text-2xl transform group-hover:scale-110 transition-transform">{badge.icon || "🛡️"}</span>
+                                )}
+                              </>
+                            ) : (
+                              <div className="w-2 h-2 rounded-full bg-gray-300 opacity-50" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Desktop Actions */}
+                  {!isOwnProfile && currentUser && (
                     <Button
                       onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
                       disabled={followMutation.isPending || unfollowMutation.isPending}
@@ -835,9 +901,9 @@ export default function UserProfile() {
                     >
                       {isFollowing ? 'Seguindo' : 'Seguir'}
                     </Button>
-{/* Mensagem button removed per request */}
-                  </>
-                )}
+                  )}
+                </div>
+
               </div>
             </div>
 

@@ -6,12 +6,6 @@ const VerifiedBadge = ({ className = "" }) => {
     <div className={`verified-badge-container relative flex items-center justify-center w-8 h-8 ${className}`} title="Conta Verificada Oficial">
       <style>
         {`
-          @keyframes floatBadge {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-4px); }
-            100% { transform: translateY(0px); }
-          }
-          
           .verified-badge-3d {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             box-shadow: 
@@ -19,7 +13,6 @@ const VerifiedBadge = ({ className = "" }) => {
               0 2px 4px -1px rgba(37, 99, 235, 0.15),
               inset 0 2px 4px rgba(255, 255, 255, 0.4),
               inset 0 -2px 4px rgba(0, 0, 0, 0.1);
-            animation: floatBadge 3s ease-in-out infinite;
           }
           
           .verified-badge-shine {

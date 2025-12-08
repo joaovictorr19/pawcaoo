@@ -790,12 +790,7 @@ function LayoutContent({ children, currentPageName }) {
                   >
                     <User className={`w-4 h-4 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
                     <span>{t('myProfile', language)}</span>
-                    {authUser?.is_verified && (
-                      <div className="relative group cursor-help ml-1 inline-flex" title="Verificado Oficialmente">
-                        <div className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-20 animate-pulse"></div>
-                        <ShieldCheck className="w-4 h-4 text-blue-500 badge-4d-anim" />
-                      </div>
-                    )}
+
                   </Link>
                 </div>
               )}
