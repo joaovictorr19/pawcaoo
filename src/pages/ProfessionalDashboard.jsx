@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCreateNotification } from "../components/NotificationService";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 
 export default function ProfessionalDashboard() {
   const queryClient = useQueryClient();

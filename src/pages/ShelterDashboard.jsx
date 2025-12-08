@@ -90,7 +90,7 @@ export default function ShelterDashboard() {
         <Card className="max-w-md">
           <CardContent className="p-12 text-center">
             <h2 className="text-2xl font-bold mb-4">Login Necessário</h2>
-            <Button onClick={() => base44.auth.redirectToLogin()}>Fazer Login</Button>
+            <Button onClick={() => base44.auth.redirectToLogin(window.location.href)}>Fazer Login</Button>
           </CardContent>
         </Card>
       </div>
