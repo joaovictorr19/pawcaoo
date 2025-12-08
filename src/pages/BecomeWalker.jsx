@@ -77,6 +77,8 @@ export default function BecomeWalker() {
     bank_account_number: "",
     bank_routing_number: "",
     portfolio: [],
+    cover_photo_url: "",
+    languages_spoken: [],
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -410,6 +412,45 @@ export default function BecomeWalker() {
                       )}
                     </div>
 
+                    {/* Cover Photo */}
+                    <div className="space-y-2 mb-6">
+                      <Label>{t('coverPhoto', language) || "Foto de Capa (Opcional)"}</Label>
+                      <div className="w-full h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden relative">
+                        {formData.cover_photo_url ? (
+                          <>
+                            <img src={formData.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="absolute bottom-2 right-2 opacity-90"
+                              onClick={() => document.getElementById('cover_photo_input').click()}
+                            >
+                              Alterar
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => document.getElementById('cover_photo_input').click()}
+                            disabled={Object.values(uploading).some(v => v)}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Carregar Capa
+                          </Button>
+                        )}
+                        <Input
+                          id="cover_photo_input"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, 'cover_photo_url', 'photo')}
+                          disabled={Object.values(uploading).some(v => v)}
+                        />
+                      </div>
+                    </div>
+
                     {/* Video Introduction */}
                     <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
                       <Label htmlFor="video">{t('videoIntroduction', language)} 📹</Label>
@@ -442,6 +483,25 @@ export default function BecomeWalker() {
                           {uploading.video ? t('uploadingVideo', language) : t('videoFormats', language)}
                         </p>
                       </div>
+                    </div>
+
+                    {/* Languages Spoken */}
+                    <div className="space-y-2 mb-6 border-t-2 border-green-100 pt-6">
+                        <Label>{t('languagesSpoken', language) || "Idiomas Falados"}</Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {["Português", "English", "Español", "Français", "Deutsch"].map(lang => (
+                            <div key={lang} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+                                <Checkbox
+                                id={`lang-${lang}`}
+                                checked={formData.languages_spoken?.includes(lang)}
+                                onCheckedChange={() => toggleArrayItem('languages_spoken', lang)}
+                                />
+                                <label htmlFor={`lang-${lang}`} className="text-sm cursor-pointer select-none">
+                                {lang}
+                                </label>
+                            </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Portfolio Photos - Using Optimized Component */}
