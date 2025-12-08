@@ -372,7 +372,7 @@ function LayoutContent({ children, currentPageName }) {
   );
   
   const prefetchBookings = usePrefetchOnHover(() => 
-    prefetchQueries.bookings(queryClient, base44, user?.email)
+    prefetchQueries.bookings(queryClient, base44, authUser?.email)
   );
 
   const getPrefetchHandlers = (item) => {
@@ -390,11 +390,11 @@ function LayoutContent({ children, currentPageName }) {
 
   const handleNavigationToProfile = (e) => {
     e.preventDefault();
-    if (user) {
+    if (authUser) {
       // Prioritize username for cleaner URLs
-      const profileUrl = user.username 
-        ? createPageUrl(`UserProfile?username=${user.username}`)
-        : createPageUrl(`UserProfile?id=${user.id}`);
+      const profileUrl = authUser.username 
+        ? createPageUrl(`UserProfile?username=${authUser.username}`)
+        : createPageUrl(`UserProfile?id=${authUser.id}`);
 
       console.log('Navigating to profile:', profileUrl);
       window.location.href = profileUrl;
@@ -436,7 +436,7 @@ function LayoutContent({ children, currentPageName }) {
         }
         `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
-        {user && (
+        {authUser && (
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-200 p-4 md:p-6">
             <a 
@@ -489,7 +489,7 @@ function LayoutContent({ children, currentPageName }) {
                       }`}
                     >
                       <a 
-                        href={user ? (user.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`)) : '#'} 
+                        href={authUser ? (authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)) : '#'} 
                         className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
                         onClick={handleNavigationToProfile}
                       >
@@ -685,19 +685,19 @@ function LayoutContent({ children, currentPageName }) {
             <main className="flex-1 flex flex-col min-w-0">
             <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-10">
             <div className="flex items-center gap-2 md:gap-4">
-              {user && (
+              {authUser && (
                 <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
               )}
 
               <a 
                 href={createPageUrl("Home")} 
-                className={`${user ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
+                className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
                 onClick={handleNavigation(createPageUrl("Home"))}
               >
-                <PawCaoLogo size="small" showText={!user} />
+                <PawCaoLogo size="small" showText={!authUser} />
               </a>
 
-              {user && (
+              {authUser && (
                 <div className="hidden md:flex items-center justify-center gap-2 flex-1">
                   {mainMenu.map((item) => (
                     <Link
@@ -714,7 +714,7 @@ function LayoutContent({ children, currentPageName }) {
                     </Link>
                   ))}
                   <a 
-                    href={user.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`)}
+                    href={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
                     onClick={handleNavigationToProfile}
                     className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                       location.pathname.includes('UserProfile')
@@ -728,7 +728,7 @@ function LayoutContent({ children, currentPageName }) {
                 </div>
               )}
 
-              {!user && (
+              {!authUser && (
                 <div className="flex-1"></div>
               )}
 
@@ -748,7 +748,7 @@ function LayoutContent({ children, currentPageName }) {
                 </Link>
               )}
 
-              {!user && (
+              {!authUser && (
                 <Button 
                   onClick={() => base44.auth.redirectToLogin(window.location.href)}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm"
@@ -760,7 +760,7 @@ function LayoutContent({ children, currentPageName }) {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`${user ? "md:hidden" : ""} h-8 w-8 flex-shrink-0 ml-2`} aria-label="Change language">
+                  <Button variant="ghost" size="icon" className={`${authUser ? "md:hidden" : ""} h-8 w-8 flex-shrink-0 ml-2`} aria-label="Change language">
                     <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
