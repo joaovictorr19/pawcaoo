@@ -881,12 +881,22 @@ export default function UserProfile() {
                   )}
 
                   {/* Actions Buttons Mobile */}
-                  <div className="flex md:hidden flex-wrap gap-2 justify-center mt-4">
+                  <div className="flex md:hidden flex-wrap gap-2 justify-center mt-4 w-full px-4">
+                    {isOwnProfile && (
+                      <Button
+                        onClick={() => navigate(createPageUrl('AccountSettings'))}
+                        className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm"
+                        size="sm"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar Perfil
+                      </Button>
+                    )}
                     {!isOwnProfile && currentUser && (
                       <Button
                         onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
                         disabled={followMutation.isPending || unfollowMutation.isPending}
-                        className={isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}
+                        className={isFollowing ? 'bg-gray-200 text-gray-700 w-full' : 'bg-blue-600 text-white w-full'}
                         size="sm"
                       >
                         {isFollowing ? 'Seguindo' : 'Seguir'}
