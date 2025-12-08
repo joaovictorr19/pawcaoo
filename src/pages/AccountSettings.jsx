@@ -216,40 +216,75 @@ export default function AccountSettings() {
   const uploadPhotoMutation = useMutation({
     mutationFn: async (file) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Update User Auth
       await base44.auth.updateMe({ profile_photo_url: file_url });
+      
+      // Sync with UserProfile entity
+      if (userProfileEntity) {
+        await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: file_url });
+      }
+
+      // Sync with WalkerProfile
+      if (walkerProfile) {
+        await base44.entities.WalkerProfile.update(walkerProfile.id, { photo_url: file_url });
+      }
+
+      // Sync with TrainerProfile
+      if (trainerProfile) {
+        await base44.entities.TrainerProfile.update(trainerProfile.id, { photo_url: file_url });
+      }
+
       return file_url;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      toast.success("Foto atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
+      toast.success("Foto atualizada e sincronizada com seus perfis!");
       setUploadingPhoto(false);
+      setCropModalOpen(false);
     },
   });
 
   const uploadCoverMutation = useMutation({
     mutationFn: async (file) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
       await base44.auth.updateMe({ cover_photo_url: file_url });
+      
+      if (userProfileEntity) {
+        await base44.entities.UserProfile.update(userProfileEntity.id, { cover_photo_url: file_url });
+      }
+
       return file_url;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
       toast.success("Capa atualizada!");
       setUploadingCover(false);
+      setCropModalOpen(false);
     },
   });
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoSelect = (e, type) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadingPhoto(true);
-      uploadPhotoMutation.mutate(file);
+      setCropType(type); // 'photo' or 'cover'
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setTempImageUrl(ev.target.result);
+        setCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleCoverUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleCroppedImage = (file) => {
+    if (cropType === 'photo') {
+      setUploadingPhoto(true);
+      uploadPhotoMutation.mutate(file);
+    } else if (cropType === 'cover') {
       setUploadingCover(true);
       uploadCoverMutation.mutate(file);
     }
