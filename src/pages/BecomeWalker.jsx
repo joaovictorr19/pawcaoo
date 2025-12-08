@@ -336,6 +336,7 @@ export default function BecomeWalker() {
           imageUrl={tempImageUrl}
           onSave={handleCroppedImage}
           aspectRatio={1}
+          circularCrop={cropFieldName === 'photo_url'}
         />
 
         <Alert className="mb-6 border-blue-200 bg-blue-50">
