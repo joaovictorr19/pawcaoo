@@ -213,19 +213,19 @@ export default function ChatWindow({ conversationId, currentUser }) {
                   })}
                 </div>
                 {/* Input */}
-                <div className="p-4 bg-white border-t shrink-0">
-                  <form onSubmit={handleSend} className="flex gap-2">
+                <div className="p-3 bg-white border-t shrink-0">
+                  <form onSubmit={handleSend} className="flex gap-2 items-center">
                     <Input 
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Escreva a sua mensagem..."
-                      className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4"
+                      className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4 h-9 text-sm"
                     />
                     <Button 
                       type="submit" 
                       size="icon" 
                       disabled={!message.trim()}
-                      className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shadow-sm transition-all hover:scale-105 active:scale-95"
+                      className="rounded-full bg-blue-600 hover:bg-blue-700 w-9 h-9 shadow-sm transition-all hover:scale-105 active:scale-95 shrink-0"
                     >
                       <Send className="w-4 h-4 text-white" />
                     </Button>
@@ -268,19 +268,19 @@ export default function ChatWindow({ conversationId, currentUser }) {
                 );
               })}
             </div>
-            <div className="p-4 bg-white border-t shrink-0">
-              <form onSubmit={handleSend} className="flex gap-2">
+            <div className="p-3 bg-white border-t shrink-0">
+              <form onSubmit={handleSend} className="flex gap-2 items-center">
                 <Input 
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Escreva a sua mensagem..."
-                  className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4"
+                  className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4 h-9 text-sm"
                 />
                 <Button 
                   type="submit" 
                   size="icon" 
                   disabled={!message.trim()}
-                  className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shadow-sm transition-all hover:scale-105 active:scale-95"
+                  className="rounded-full bg-blue-600 hover:bg-blue-700 w-9 h-9 shadow-sm transition-all hover:scale-105 active:scale-95 shrink-0"
                 >
                   <Send className="w-4 h-4 text-white" />
                 </Button>
