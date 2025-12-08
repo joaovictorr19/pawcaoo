@@ -1025,11 +1025,19 @@ export default function ProfessionalDashboard() {
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    className="w-full mb-4" 
+                    className="w-full mb-4 bg-green-600 hover:bg-green-700" 
                     onClick={() => navigate(createPageUrl('ManageAvailability'))}
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     Manage Slots
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full mb-4" 
+                    onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Editar Perfil
                   </Button>
                   <div className="space-y-4">
                     <h4 className="font-semibold text-sm text-gray-600">Upcoming</h4>
