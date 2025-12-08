@@ -170,24 +170,14 @@ export default function ChatWindow({ conversationId, currentUser }) {
 
   const closeChatMutation = useMutation({
     mutationFn: async () => {
-      await base44.entities.ChatConversation.update(conversationId, {
-        status: 'closed',
-        last_message: 'Atendimento encerrado.',
-        last_message_date: new Date().toISOString()
-      });
-      // Also send a system message
-      await base44.entities.ChatMessage.create({
-        conversation_id: conversationId,
-        sender_email: 'system',
-        sender_name: 'Sistema',
-        content: 'Este atendimento foi encerrado.',
-        timestamp: new Date().toISOString()
-      });
+      // User requested to delete the chat when ending support
+      await base44.entities.ChatConversation.delete(conversationId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['conversation', conversationId]);
-      queryClient.invalidateQueries(['chatMessages', conversationId]);
-      toast.success("Atendimento encerrado com sucesso.");
+      queryClient.invalidateQueries(['myConversations']);
+      queryClient.invalidateQueries(['unreadChatCount']);
+      toast.success("Atendimento encerrado e conversa apagada.");
+      navigate(createPageUrl('Inbox'));
     }
   });
 
@@ -236,7 +226,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
               size="sm" 
               className="mr-2 text-xs h-8 border-red-200 text-red-600 hover:bg-red-50"
               onClick={() => {
-                if(confirm("Tem certeza que deseja encerrar este atendimento?")) {
+                if(confirm("Tem certeza que deseja encerrar e apagar este atendimento?")) {
                   closeChatMutation.mutate();
                 }
               }}
