@@ -33,7 +33,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       icon: Trophy,
       path: createPageUrl("Leaderboard"),
       activeColor: "text-yellow-500",
-      isSpecial: true
+      isSpecial: true,
+      id: "nav-gamification"
     },
     {
       label: "Alertas",

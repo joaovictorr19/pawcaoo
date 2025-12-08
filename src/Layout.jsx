@@ -463,6 +463,8 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <SidebarProvider>
       <Helmet>
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-9LBZ1D08FT"></script>
         <script>
@@ -906,25 +908,28 @@ function LayoutContent({ children, currentPageName }) {
             onClose={() => setIsNotificationPanelOpen(false)} 
           />
 
-          <OnboardingWizard 
-            steps={[
-              {
-                targetId: '#nav-home',
-                title: 'Encontre Ajuda',
-                content: 'Aqui podes encontrar passeadores e treinadores verificados perto de ti.'
-              },
-              {
-                targetId: '#nav-gamification',
-                title: 'Ganhe Prémios',
-                content: 'Acumule XP em cada passeio e desbloqueie emblemas exclusivos para o teu perfil!'
-              },
-              {
-                targetId: '#header-profile',
-                title: 'O Teu Perfil',
-                content: 'Aqui vês o teu nível, estatísticas e podes editar as tuas preferências.'
-              }
-            ]}
-          />
+          {authUser && (
+            <OnboardingWizard 
+              user={authUser}
+              steps={[
+                {
+                  targetId: '#nav-home',
+                  title: 'Encontre Ajuda',
+                  content: 'Aqui podes encontrar passeadores e treinadores verificados perto de ti.'
+                },
+                {
+                  targetId: '#nav-gamification',
+                  title: 'Ganhe Prémios',
+                  content: 'Acumule XP em cada passeio e desbloqueie emblemas exclusivos para o teu perfil!'
+                },
+                {
+                  targetId: '#header-profile',
+                  title: 'O Teu Perfil',
+                  content: 'Aqui vês o teu nível, estatísticas e podes editar as tuas preferências.'
+                }
+              ]}
+            />
+          )}
 
           <footer className="bg-white border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto px-6 py-8">
