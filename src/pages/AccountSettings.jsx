@@ -794,6 +794,21 @@ export default function AccountSettings() {
             )}
           </div>
         </div>
+        <ImageCropModal
+          isOpen={cropModalOpen}
+          onClose={() => {
+            setCropModalOpen(false);
+            setTempImageUrl(null);
+            // Reset input values to allow re-selecting same file
+            const photoInput = document.getElementById('photo-upload');
+            if (photoInput) photoInput.value = '';
+            const coverInput = document.getElementById('cover-upload');
+            if (coverInput) coverInput.value = '';
+          }}
+          imageUrl={tempImageUrl}
+          onSave={handleCroppedImage}
+          aspectRatio={cropType === 'cover' ? 3 : 1}
+        />
       </div>
     </div>
   );
