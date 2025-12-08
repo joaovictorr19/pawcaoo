@@ -31,6 +31,7 @@ import PawCaoLogo from "@/components/PawCaoLogo";
 import { toast, Toaster } from "sonner";
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import MobileNavBar from "@/components/layout/MobileNavBar";
 
 // Query optimization configs - v1.1
 const queryConfig = {
@@ -840,9 +841,13 @@ function LayoutContent({ children, currentPageName }) {
               </div>
               </header>
 
-          <div className="flex-1 overflow-auto">
+          {/* Main Content Area with bottom padding for mobile nav */}
+          <div className="flex-1 overflow-auto pb-24 md:pb-0">
             {children}
           </div>
+
+          {/* Mobile Navigation Bar */}
+          <MobileNavBar user={authUser} unreadCount={unreadCount} />
 
           <footer className="bg-white border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto px-6 py-8">
