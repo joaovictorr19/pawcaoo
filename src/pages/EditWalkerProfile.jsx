@@ -23,6 +23,7 @@ export default function EditWalkerProfile() {
   const [uploading, setUploading] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState(null);
+  const [editingImageType, setEditingImageType] = useState('photo'); // 'photo' or 'cover'
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
