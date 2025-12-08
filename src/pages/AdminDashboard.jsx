@@ -143,9 +143,11 @@ export default function AdminDashboard() {
     description: "",
     icon: "⭐",
     image_url: "",
-    image_png_file: "", // New field
+    image_png_file: "", 
+    animation_url: "", // New field for GIFs
     rarity: "common",
-    category: "special"
+    category: "special",
+    criteria: { type: "manual", action: "", count: 0 } // New field for complex conditions
   });
   const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
   const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
@@ -807,9 +809,11 @@ export default function AdminDashboard() {
       description: customBadgeForm.description,
       icon: customBadgeForm.icon,
       image_url: customBadgeForm.image_url || "",
-      image_png_file: customBadgeForm.image_png_file || "", // Save new field
+      image_png_file: customBadgeForm.image_png_file || "",
+      animation_url: customBadgeForm.animation_url || "",
       rarity: customBadgeForm.rarity,
       category: customBadgeForm.category,
+      criteria: customBadgeForm.criteria, // Save complex criteria
       xp: 100 // Default
     });
   };
@@ -2636,6 +2640,22 @@ export default function AdminDashboard() {
                 </div>
                 {customBadgeForm.image_url && (
                   <img src={customBadgeForm.image_url} alt="Badge Preview" className="w-16 h-16 mt-2 rounded-lg object-cover" />
+                )}
+              </div>
+
+              <div>
+                <Label>URL da Animação (GIF/WebP) - Opcional</Label>
+                <Input
+                  value={customBadgeForm.animation_url || ""}
+                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, animation_url: e.target.value})}
+                  placeholder="https://.../badge.gif"
+                  className="mt-1"
+                />
+                {customBadgeForm.animation_url && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-1">Preview Animação:</p>
+                    <img src={customBadgeForm.animation_url} alt="Animated Badge" className="w-16 h-16 object-contain rounded-lg border border-purple-200" />
+                  </div>
                 )}
               </div>
 
