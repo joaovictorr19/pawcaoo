@@ -617,9 +617,6 @@ export default function MyBookings() {
              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Tipo de Serviço</label>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Tipo de Serviço</label>
                   <Select 
                     value={filters.type} 
                     onValueChange={(v) => { setFilters({...filters, type: v}); setCurrentPage(1); }}
