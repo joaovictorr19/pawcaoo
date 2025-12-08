@@ -896,56 +896,70 @@ export default function UserProfile() {
                 </div>
 
                 {/* Right Column: Badge Showcase (RPG Inventory Style) & Actions */}
-                <div className="hidden md:flex flex-col items-end gap-3 mt-1">
+                <div className="flex flex-col items-center md:items-end gap-3 mt-4 md:mt-1 w-full md:w-auto">
                   
-                  {/* Badge Showcase - Fixed Visuals */}
+                  {/* Badge Showcase - Unified (4 Slots) */}
                   <div className="bg-gray-50/80 backdrop-blur-sm border border-gray-100 rounded-xl p-2 shadow-sm">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 text-right px-1">
-                      Destaques
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 px-1 flex justify-between items-center">
+                      <span>Destaques</span>
+                      {isOwnProfile && <span className="text-[9px] text-blue-500 cursor-pointer hover:underline" onClick={() => handleSlotClick(0)}>Editar</span>}
                     </div>
-                    <div className="flex gap-2">
-                      {[0, 1].map((slotIdx) => {
+                    <div className="grid grid-cols-4 gap-2">
+                      {[0, 1, 2, 3].map((slotIdx) => {
                         const pinnedId = (profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) 
                           ? profileUser.pinned_badge_ids[slotIdx] 
                           : null;
                         const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
 
                         return (
-                          <div 
-                            key={slotIdx} 
-                            onClick={() => isOwnProfile && handleSlotClick(slotIdx)}
-                            className={`w-14 h-14 rounded-lg flex items-center justify-center relative transition-all overflow-hidden ${
-                              isOwnProfile ? 'cursor-pointer hover:scale-105' : ''
-                            } ${!badge ? 'bg-gray-50/50' : 'bg-white shadow-sm border border-gray-200'}`}
-                            title={isOwnProfile ? (badge ? `Alterar: ${badge.name}` : "Adicionar Destaque") : (badge ? badge.name : "Slot Vazio")}
-                          >
-                            {badge ? (
-                              <>
-                                <div className={`absolute inset-0 opacity-20 ${
-                                  badge.rarity === 'legendary' ? 'bg-yellow-400' :
-                                  badge.rarity === 'epic' ? 'bg-purple-400' :
-                                  badge.rarity === 'rare' ? 'bg-blue-400' :
-                                  'bg-gray-200'
-                                }`} />
-                                
-                                {badge.image_png_file || badge.image_url ? (
-                                  <img 
-                                    src={badge.image_png_file || badge.image_url} 
-                                    alt={badge.name} 
-                                    className="w-full h-full object-contain p-1 z-10" 
-                                  />
-                                ) : (
-                                  <span className="text-3xl z-10 select-none transform hover:scale-110 transition-transform">
-                                    {badge.icon || "🛡️"}
+                          <TooltipProvider key={slotIdx} delayDuration={100}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div 
+                                  onClick={() => isOwnProfile && handleSlotClick(slotIdx)}
+                                  className={`w-12 h-12 rounded-lg flex items-center justify-center relative transition-all overflow-hidden group ${
+                                    isOwnProfile ? 'cursor-pointer hover:scale-105 hover:border-blue-300' : ''
+                                  } ${!badge ? 'bg-white/40 border-2 border-dashed border-gray-200' : 'bg-white shadow-sm border border-gray-200'}`}
+                                >
+                                  {badge ? (
+                                    <>
+                                      <div className={`absolute inset-0 opacity-20 ${
+                                        badge.rarity === 'legendary' ? 'bg-yellow-400' :
+                                        badge.rarity === 'epic' ? 'bg-purple-400' :
+                                        badge.rarity === 'rare' ? 'bg-blue-400' :
+                                        'bg-gray-200'
+                                      }`} />
+                                      
+                                      {badge.image_png_file || badge.image_url ? (
+                                        <img 
+                                          src={badge.image_png_file || badge.image_url} 
+                                          alt={badge.name} 
+                                          className="w-full h-full object-contain p-1 z-10" 
+                                        />
+                                      ) : (
+                                        <span className="text-2xl z-10 select-none transform group-hover:scale-110 transition-transform">
+                                          {badge.icon || "🛡️"}
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center opacity-30">
+                                       {isOwnProfile && <Plus className="w-4 h-4 text-gray-400" />}
+                                    </div>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              {badge && (
+                                <TooltipContent className="bg-gray-900 text-white border-gray-800 z-50 shadow-xl">
+                                  <p className="font-bold text-xs">{badge.name}</p>
+                                  {badge.description && <p className="text-[10px] text-gray-300 mb-1 max-w-[150px] leading-tight">{badge.description}</p>}
+                                  <span className="text-[10px] font-mono text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded inline-block mt-1">
+                                    +{badge.xp || 0} XP
                                   </span>
-                                )}
-                              </>
-                            ) : (
-                              <div className="border-2 border-dashed border-gray-300 w-full h-full rounded-lg flex items-center justify-center opacity-50 m-1">
-                                 {isOwnProfile && <Plus className="w-5 h-5 text-gray-400" />}
-                              </div>
-                            )}
-                          </div>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         );
                       })}
                     </div>
@@ -966,29 +980,7 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Pinned Badges Showcase */}
-            {profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > 0 && (
-              <div className="mb-6 mt-4 px-4 md:px-0">
-                <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-yellow-500" />
-                  Destaques
-                </h3>
-                <div className="flex gap-4 justify-center md:justify-start flex-wrap">
-                  {profileUser.pinned_badge_ids.map(pinnedId => {
-                    const badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || 
-                                  allBadgeDefinitions.find(b => b.id === pinnedId);
-                    
-                    if (!badge) return null;
-                    
-                    return (
-                      <div key={pinnedId} className="transform hover:scale-110 transition-transform duration-200">
-                        <BadgeItem badge={badge} idx={0} getBadgeImage={getBadgeImage} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {/* Pinned Badges Showcase (Removed duplicate as requested) */}
 
             <div className="grid grid-cols-3 gap-4 md:gap-8 py-4 border-t border-b border-gray-200 mt-6">
               <div className="text-center">
