@@ -472,11 +472,11 @@ function LayoutContent({ children, currentPageName }) {
 
         /* --- 2. GLASSMORPHISM PREMIUM (Vidro Fosco) --- */
         .glass-panel {
-          background: rgba(255, 255, 255, 0.75);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         /* --- 3. ANIMAÇÃO 4D PARA O SELO (Flutuar) --- */
@@ -508,8 +508,8 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         {authUser && (
-        <Sidebar className="border-r border-gray-200 bg-white">
-          <SidebarHeader className="border-b border-gray-200 p-4 md:p-6">
+        <Sidebar className="glass-panel border-r border-white/30">
+          <SidebarHeader className="border-b border-white/20 p-4 md:p-6">
             <Link 
               to={createPageUrl("Home")} 
               className="block hover:opacity-80 transition-opacity"
