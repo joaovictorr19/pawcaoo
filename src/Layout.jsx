@@ -478,7 +478,7 @@ function LayoutContent({ children, currentPageName }) {
 
           <SidebarContent className="p-3 md:p-4">
             {/* My Profile - Now redirects to UserProfile */}
-            <SidebarGroup>
+            <SidebarGroup className="md:hidden">
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
@@ -503,7 +503,7 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
 
             {/* MENU PRINCIPAL */}
-            <SidebarGroup>
+            <SidebarGroup className="md:hidden">
               <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
                 {t('mainMenu', language)}
               </SidebarGroupLabel>
@@ -698,35 +698,33 @@ function LayoutContent({ children, currentPageName }) {
               </a>
 
               {user && (
-                <div className="hidden md:flex items-center gap-4 flex-1 min-w-0">
+                <div className="hidden md:flex items-center justify-center gap-2 flex-1">
+                  {mainMenu.map((item) => (
+                    <Link
+                      key={item.url}
+                      to={item.url}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
+                        location.pathname === item.url
+                          ? "bg-green-600 text-white shadow-md"
+                          : "text-gray-600 hover:bg-gray-100"
+                      } ${item.className && location.pathname !== item.url ? item.className.replace('bg-red-50', '').replace('text-red-600', 'text-gray-600') : ""}`}
+                    >
+                      <item.icon className={`w-4 h-4 ${location.pathname === item.url ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
+                      <span>{item.title}</span>
+                    </Link>
+                  ))}
                   <a 
-                    href={createPageUrl("Home")}
-                    className="hover:opacity-80 transition-opacity cursor-pointer mr-2"
-                    onClick={handleNavigation(createPageUrl("Home"))}
+                    href={user.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`)}
+                    onClick={handleNavigationToProfile}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
+                      location.pathname.includes('UserProfile')
+                        ? "bg-green-600 text-white shadow-md"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
                   >
-                    <PawCaoLogo size="small" showText={false} />
+                    <User className={`w-4 h-4 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
+                    <span>{t('myProfile', language)}</span>
                   </a>
-                  <nav className="flex items-center gap-1">
-                    <Link 
-                      to={createPageUrl("Home")} 
-                      className="px-3 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-green-50 hover:text-green-700 transition-all"
-                    >
-                      Home
-                    </Link>
-                    <Link 
-                      to={createPageUrl("Home")} 
-                      className="px-3 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-green-50 hover:text-green-700 transition-all"
-                    >
-                      {t('findWalkers', language)}
-                    </Link>
-                    <Link 
-                      to={createPageUrl("PostEmergency")} 
-                      className="ml-2 px-4 py-2 rounded-full text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 hover:text-red-700 transition-all flex items-center gap-2 shadow-sm"
-                    >
-                      <Zap className="w-4 h-4" />
-                      {t('postEmergency', language)}
-                    </Link>
-                  </nav>
                 </div>
               )}
 
