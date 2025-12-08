@@ -815,12 +815,14 @@ export default function UserProfile() {
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
-                onClick={() => navigate(createPageUrl('AccountSettings'))}
+                className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm z-20 pointer-events-auto h-8 px-2 md:h-9 md:px-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(createPageUrl('AccountSettings'));
+                }}
               >
-                <Camera className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Alterar Capa</span>
-                <span className="sm:hidden">Capa</span>
+                <Camera className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Alterar Capa</span>
               </Button>
             )}
           </div>
@@ -1139,7 +1141,22 @@ export default function UserProfile() {
             <DialogHeader><DialogTitle>Seguidores</DialogTitle></DialogHeader>
             <ScrollArea className="h-[300px]">
               {followersList.map(f => (
-                <div key={f.id} className="p-2 border-b">{f.follower_name}</div>
+                <div 
+                  key={f.id} 
+                  className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                  onClick={() => {
+                    setShowFollowers(false);
+                    navigate(createPageUrl(`UserProfile?email=${f.follower_email}`));
+                  }}
+                >
+                  <Avatar className="w-8 h-8 border border-gray-200">
+                    <AvatarImage src={f.follower_photo_url} />
+                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                      {f.follower_name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-sm text-gray-700">{f.follower_name}</span>
+                </div>
               ))}
             </ScrollArea>
           </DialogContent>
@@ -1150,7 +1167,22 @@ export default function UserProfile() {
             <DialogHeader><DialogTitle>Seguindo</DialogTitle></DialogHeader>
             <ScrollArea className="h-[300px]">
               {followingList.map(f => (
-                <div key={f.id} className="p-2 border-b">{f.following_name}</div>
+                <div 
+                  key={f.id} 
+                  className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                  onClick={() => {
+                    setShowFollowing(false);
+                    navigate(createPageUrl(`UserProfile?email=${f.following_email}`));
+                  }}
+                >
+                  <Avatar className="w-8 h-8 border border-gray-200">
+                    <AvatarImage src={f.following_photo_url} />
+                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                      {f.following_name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-sm text-gray-700">{f.following_name}</span>
+                </div>
               ))}
             </ScrollArea>
           </DialogContent>

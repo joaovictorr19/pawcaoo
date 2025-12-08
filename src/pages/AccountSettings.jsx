@@ -301,24 +301,35 @@ export default function AccountSettings() {
         // 1. Atualiza Auth/User
         await base44.auth.updateMe({ profile_photo_url: newUrl });
         
-        // 2. Atualiza UserProfile Entity
+        // 2. Atualiza UserProfile Entity (ou cria se não existir)
         if (userProfileEntity) {
             await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: newUrl });
+        } else {
+            // Tenta encontrar de novo
+            const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+            if (profiles.length > 0) {
+                await base44.entities.UserProfile.update(profiles[0].id, { profile_photo_url: newUrl });
+            }
         }
 
         // 3. Sincroniza Walker
-        if (walkerProfile) {
-            await base44.entities.WalkerProfile.update(walkerProfile.id, { photo_url: newUrl });
+        const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+        if (walkers.length > 0) {
+            await Promise.all(walkers.map(w => base44.entities.WalkerProfile.update(w.id, { photo_url: newUrl })));
         }
 
         // 4. Sincroniza Trainer
-        if (trainerProfile) {
-            await base44.entities.TrainerProfile.update(trainerProfile.id, { photo_url: newUrl });
+        const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+        if (trainers.length > 0) {
+            await Promise.all(trainers.map(t => base44.entities.TrainerProfile.update(t.id, { photo_url: newUrl })));
         }
 
         // 5. Refresh na tela
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        toast.success("Foto atualizada em todos os seus perfis!");
+        queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
+        queryClient.invalidateQueries({ queryKey: ['walkerProfile'] });
+        queryClient.invalidateQueries({ queryKey: ['trainerProfile'] });
+        toast.success("Foto sincronizada em todo o site!");
     } catch (error) {
         console.error("Erro ao sincronizar foto:", error);
         toast.error("Erro ao salvar foto.");
