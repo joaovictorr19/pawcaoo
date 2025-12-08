@@ -685,6 +685,9 @@ export const translations = {
     
     // Profile Step
     profilePhoto: "Foto de Perfil",
+    coverPhoto: "Foto de Capa",
+    portfolioPhotos: "Fotos de Portfólio",
+    portfolioPhotosTip: "Adicione fotos suas a passear cães para mostrar a sua experiência!",
     uploadingPhoto: "A carregar...",
     uploadFriendlyPhoto: "Carregue uma foto amigável sua",
     videoIntroduction: "Vídeo de Apresentação (Opcional mas Recomendado)",
@@ -1596,6 +1599,9 @@ export const translations = {
     
     // Profile Step
     profilePhoto: "Profile Photo",
+    coverPhoto: "Cover Photo",
+    portfolioPhotos: "Portfolio Photos",
+    portfolioPhotosTip: "Add photos of you walking dogs to show your experience!",
     uploadingPhoto: "Uploading...",
     uploadFriendlyPhoto: "Upload a friendly photo of yourself",
     videoIntroduction: "Video Introduction (Optional but Recommended)",
@@ -2507,6 +2513,9 @@ export const translations = {
     
     // Profile Step
     profilePhoto: "Foto de Perfil",
+    coverPhoto: "Foto de Portada",
+    portfolioPhotos: "Fotos de Portafolio",
+    portfolioPhotosTip: "¡Añade fotos tuyas paseando perros para mostrar tu experiencia!",
     uploadingPhoto: "Subiendo...",
     uploadFriendlyPhoto: "Sube una foto amigable tuya",
     videoIntroduction: "Video de Presentación (Opcional pero Recomendado)",

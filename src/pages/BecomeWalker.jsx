@@ -53,6 +53,7 @@ export default function BecomeWalker() {
   
   const [formData, setFormData] = useState({
     walker_name: "",
+    age: "",
     photo_url: "",
     video_intro_url: "",
     bio: "",
@@ -182,6 +183,7 @@ export default function BecomeWalker() {
     // Validate numeric fields
     const rate = parseFloat(formData.hourly_rate);
     const exp = parseFloat(formData.experience_years);
+    const ageNum = parseFloat(formData.age);
 
     if (isNaN(rate)) {
       toast.error(t("invalidHourlyRate", language) || "Taxa horária inválida.");
@@ -193,6 +195,7 @@ export default function BecomeWalker() {
         ...formData,
         hourly_rate: rate,
         experience_years: isNaN(exp) ? 0 : exp,
+        age: isNaN(ageNum) ? 0 : ageNum,
         verification_status: "pending",
         created_by: user?.email // Explicitly associating with user, though RLS handles it typically
       });
@@ -271,9 +274,9 @@ export default function BecomeWalker() {
   const progress = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 md:mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
             <Dog className="w-10 h-10 text-white" />
           </div>
@@ -514,6 +517,18 @@ export default function BecomeWalker() {
                         {formErrors.name && (
                           <p className="text-sm text-red-600 mt-1">{formErrors.name}</p>
                         )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="age">{t('age', language) || "Idade"}</Label>
+                        <Input
+                          id="age"
+                          type="number"
+                          required
+                          value={formData.age}
+                          onChange={(e) => setFormData({...formData, age: e.target.value})}
+                          placeholder="25"
+                        />
                       </div>
 
                       <div className="space-y-2">
@@ -834,9 +849,11 @@ export default function BecomeWalker() {
                             toast.error(t("pleaseCorrectErrors", language) || "Por favor corrija os erros para prosseguir.");
                           }
                         }}
-                        className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
+                        className="w-full md:w-auto bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 h-auto min-h-[2.5rem] py-2 whitespace-normal"
                       >
-                        {t('next', language)}: {t('step2Documents', language).split(':')[1]} →
+                        <span className="flex items-center justify-center gap-2">
+                          {t('next', language)}: {t('step2Documents', language).split(':')[1] || t('step2Documents', language)} →
+                        </span>
                       </Button>
                     </div>
                   </motion.div>
@@ -960,12 +977,12 @@ export default function BecomeWalker() {
                       </Tooltip>
                     </TooltipProvider>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-col md:flex-row gap-3">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setCurrentStep(1)}
-                        className="flex-1"
+                        className="flex-1 h-auto min-h-[2.5rem] py-2"
                       >
                         ← {t('previous', language)}
                       </Button>
@@ -978,7 +995,7 @@ export default function BecomeWalker() {
                             toast.error(t("pleaseCorrectErrors", language) || "Por favor corrija os erros para prosseguir.");
                           }
                         }}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
+                        className="flex-1 bg-gradient-to-r from-green-600 to-green-500 h-auto min-h-[2.5rem] py-2 whitespace-normal"
                       >
                         {t('next', language)}: Info de Pagamento →
                       </Button>
@@ -1053,27 +1070,27 @@ export default function BecomeWalker() {
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-6">
+                    <div className="flex flex-col md:flex-row gap-3 pt-6">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setCurrentStep(2)}
-                        className="flex-1"
+                        className="flex-1 h-auto min-h-[3rem] py-2"
                       >
                         ← {t('previous', language)}
                       </Button>
                       <Button
                         type="submit"
                         disabled={createWalkerMutation.isPending || Object.values(uploading).some(v => v)}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white h-14 text-lg font-semibold shadow-xl"
+                        className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white h-auto min-h-[3.5rem] py-3 text-base md:text-lg font-semibold shadow-xl whitespace-normal"
                       >
                         {createWalkerMutation.isPending ? (
                           t('submitting', language)
                         ) : (
-                          <>
-                            <CheckCircle2 className="w-5 h-5 mr-2" />
-                            {t('submitForVerification', language)}
-                          </>
+                          <span className="flex items-center justify-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                            <span>{t('submitForVerification', language)}</span>
+                          </span>
                         )}
                       </Button>
                     </div>
