@@ -921,7 +921,7 @@ export default function ProfessionalDashboard() {
                                 <div className="flex flex-col gap-1 mb-2">
                                     <Button 
                                       className="w-full bg-purple-600 hover:bg-purple-700 font-bold h-10 shadow-md transition-all hover:scale-[1.02]"
-                                      onClick={() => navigate(`/walk/track/${booking.id}`)}
+                                      onClick={() => navigate(createPageUrl('WalkerTrack') + `?bookingId=${booking.id}`)}
                                     >
                                       <MapPin className="w-4 h-4 mr-2" />
                                       INICIAR PASSEIO & CHAT
@@ -950,7 +950,7 @@ export default function ProfessionalDashboard() {
                                 <div className="flex flex-col gap-1 mb-2">
                                     <Button 
                                       className="w-full bg-red-600 hover:bg-red-700 animate-pulse font-bold h-10 shadow-md"
-                                      onClick={() => navigate(`/walk/track/${booking.id}`)}
+                                      onClick={() => navigate(createPageUrl('WalkerTrack') + `?bookingId=${booking.id}`)}
                                     >
                                       <MapPin className="w-4 h-4 mr-2" />
                                       VOLTAR AO PASSEIO
