@@ -1,110 +1,140 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Camera, MapPin, Navigation, StopCircle, AlertTriangle } from "lucide-react";
+import { Navigation, StopCircle, AlertTriangle, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { getDistance } from "geolib"; // Assuming geolib or custom helper
 
-// Simple Haversine formula if geolib is not installed
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371e3; // metres
-  const φ1 = lat1 * Math.PI/180;
-  const φ2 = lat2 * Math.PI/180;
-  const Δφ = (lat2-lat1) * Math.PI/180;
-  const Δλ = (lon2-lon1) * Math.PI/180;
-
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
-          Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
+// Haversine formula for distance in meters
+const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000; // Radius of the earth in m
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
+const deg2rad = (deg) => deg * (Math.PI / 180);
+
 export default function WalkerTracker({ bookingId }) {
   const [isTracking, setIsTracking] = useState(false);
-  const [currentPos, setCurrentPos] = useState(null);
-  const [totalDistance, setTotalDistance] = useState(0);
   const [wakeLock, setWakeLock] = useState(null);
-  const [path, setPath] = useState([]);
+  const [distance, setDistance] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [lastPos, setLastPos] = useState(null);
+  
   const watchId = useRef(null);
-  const lastUpdateRef = useRef(null);
+  const timerRef = useRef(null);
 
-  // Fetch Booking
+  // Fetch initial booking state
   const { data: booking } = useQuery({
     queryKey: ['booking', bookingId],
     queryFn: () => base44.entities.Booking.filter({ id: bookingId }).then(res => res[0]),
     enabled: !!bookingId
   });
 
-  // Wake Lock API
-  const requestWakeLock = async () => {
-    try {
-      if ('wakeLock' in navigator) {
-        const lock = await navigator.wakeLock.request('screen');
-        setWakeLock(lock);
-        toast.info("Ecrã mantido ligado para GPS");
-        
-        lock.addEventListener('release', () => {
-          console.log('Wake Lock released');
-          setWakeLock(null);
-        });
+  // Wake Lock Logic
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          const lock = await navigator.wakeLock.request('screen');
+          setWakeLock(lock);
+          toast("⚠️ Ecrã mantido ligado para GPS. Não feche esta aba.");
+          
+          lock.addEventListener('release', () => {
+            console.log('Wake Lock released');
+            setWakeLock(null);
+          });
+        }
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
       }
-    } catch (err) {
-      console.error(`${err.name}, ${err.message}`);
+    };
+
+    requestWakeLock();
+
+    return () => {
+      if (wakeLock) wakeLock.release();
+    };
+  }, []);
+
+  // Timer Logic
+  useEffect(() => {
+    if (isTracking) {
+      timerRef.current = setInterval(() => {
+        setDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
     }
+    return () => clearInterval(timerRef.current);
+  }, [isTracking]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Start Tracking
-  const startTracking = async () => {
-    await requestWakeLock();
-    setIsTracking(true);
-    
+  const startTracking = () => {
     if (!navigator.geolocation) {
-      toast.error("GPS não suportado neste dispositivo.");
+      toast.error("GPS não suportado.");
       return;
     }
 
+    setIsTracking(true);
+    
+    // Resume previous distance/route if continuing (simplified here to start fresh/append)
+    if (booking?.route_coordinates?.length > 0) {
+      const lastPoint = booking.route_coordinates[booking.route_coordinates.length - 1];
+      setLastPos(lastPoint);
+    }
+
     watchId.current = navigator.geolocation.watchPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        
-        // 1. Accuracy Check (< 20m preferred)
-        if (accuracy > 30) return; // Skip inaccurate points
+        const newPoint = { lat: latitude, lng: longitude, timestamp: new Date().toISOString() };
 
-        const newPoint = { 
-          lat: latitude, 
-          lng: longitude, 
-          timestamp: new Date().toISOString() 
-        };
+        // GPS Filter Logic
+        if (accuracy < 30) {
+          let shouldUpdate = false;
+          let dist = 0;
 
-        setCurrentPos(newPoint);
-
-        // 2. Distance Check (> 10m from last saved point)
-        let shouldUpdate = false;
-        if (!lastUpdateRef.current) {
-          shouldUpdate = true;
-        } else {
-          const dist = calculateDistance(
-            lastUpdateRef.current.lat, lastUpdateRef.current.lng,
-            latitude, longitude
-          );
-          if (dist > 10) {
+          if (!lastPos) {
             shouldUpdate = true;
-            setTotalDistance(prev => prev + dist);
+          } else {
+            dist = getDistanceFromLatLonInM(lastPos.lat, lastPos.lng, latitude, longitude);
+            if (dist > 10) {
+              shouldUpdate = true;
+            }
           }
-        }
 
-        if (shouldUpdate) {
-          lastUpdateRef.current = newPoint;
-          setPath(prev => {
-            const newPath = [...prev, newPoint];
-            // Update Backend
-            updateRoute(newPath);
-            return newPath;
-          });
+          if (shouldUpdate) {
+            setLastPos(newPoint);
+            setDistance(prev => prev + dist);
+            
+            // Optimistic update to local state could happen here
+            // Persist to backend
+            try {
+              // We need to fetch current route first or rely on backend push if available (using standard update here)
+              // In a real high-freq scenario, we might batch these or use a specialized endpoint.
+              // For this demo, we append to the array.
+              const currentRoute = booking?.route_coordinates || [];
+              const updatedRoute = [...currentRoute, newPoint];
+              
+              await base44.entities.Booking.update(bookingId, {
+                route_coordinates: updatedRoute
+              });
+            } catch (err) {
+              console.error("Failed to update location", err);
+            }
+          }
         }
       },
       (error) => console.error(error),
@@ -112,116 +142,60 @@ export default function WalkerTracker({ bookingId }) {
     );
   };
 
-  const updateRoute = async (newPath) => {
-    if (!bookingId) return;
-    await base44.entities.Booking.update(bookingId, {
-      route_coordinates: newPath
-    });
-  };
-
   const stopTracking = async () => {
     if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
-    if (wakeLock) await wakeLock.release();
     setIsTracking(false);
-    
-    // Finalize Booking Logic here
+    clearInterval(timerRef.current);
+
     await base44.entities.Booking.update(bookingId, {
       status: 'service_completed',
-      completed_date: new Date().toISOString()
+      completed_date: new Date().toISOString(),
+      distance_km: (distance / 1000).toFixed(2)
     });
-    toast.success("Passeio finalizado com sucesso!");
-  };
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-      toast.loading("Enviando foto...");
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Create Checkpoint / Message
-      await base44.entities.WalkCheckpoint.create({
-        booking_id: bookingId,
-        walker_email: booking.walker_email,
-        checkpoint_type: "photo_update",
-        photo_url: file_url,
-        latitude: currentPos?.lat || 0,
-        longitude: currentPos?.lng || 0,
-        timestamp: new Date().toISOString()
-      });
-
-      toast.dismiss();
-      toast.success("Foto enviada para o chat!");
-    } catch (err) {
-      toast.error("Erro ao enviar foto");
-    }
+    
+    toast.success("Passeio finalizado!");
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto space-y-4">
-      {/* Status Card */}
-      <Card className="bg-slate-900 text-white p-6 rounded-2xl shadow-xl border-slate-800">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full animate-pulse ${isTracking ? 'bg-green-500' : 'bg-red-500'}`} />
-            <span className="font-mono text-sm uppercase tracking-wider">
-              {isTracking ? "GRAVANDO GPS" : "PARADO"}
-            </span>
-          </div>
-          {wakeLock && <span className="text-[10px] text-yellow-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Screen Lock</span>}
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-50">
+      <div className="max-w-md mx-auto space-y-4">
         
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div>
-            <div className="text-3xl font-bold font-mono">
-              {(totalDistance / 1000).toFixed(2)}
-            </div>
-            <div className="text-xs text-slate-400 uppercase">Quilómetros</div>
+        {/* Status Display */}
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-gray-500" />
+            <span className="text-2xl font-mono font-bold text-gray-800">{formatTime(duration)}</span>
           </div>
-          <div>
-            <div className="text-3xl font-bold font-mono">
-              {path.length}
-            </div>
-            <div className="text-xs text-slate-400 uppercase">Waypoints</div>
+          <div className="text-right">
+            <div className="text-sm text-gray-500 uppercase font-bold">Distância</div>
+            <div className="text-xl font-bold text-blue-600">{(distance / 1000).toFixed(2)} km</div>
           </div>
         </div>
-      </Card>
 
-      {/* Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <Button 
-          className="h-24 flex flex-col gap-2 bg-blue-600 hover:bg-blue-700 rounded-xl relative overflow-hidden"
-          onClick={() => document.getElementById('cameraInput').click()}
-        >
-          <Camera className="w-8 h-8" />
-          <span className="font-bold">FOTO</span>
-          <input 
-            id="cameraInput" 
-            type="file" 
-            accept="image/*" 
-            capture="environment" 
-            className="hidden"
-            onChange={handlePhotoUpload}
-          />
-        </Button>
-
+        {/* Controls */}
         {!isTracking ? (
           <Button 
-            className="h-24 flex flex-col gap-2 bg-green-600 hover:bg-green-700 rounded-xl"
+            className="w-full h-14 text-lg bg-green-600 hover:bg-green-700 rounded-xl shadow-lg flex items-center justify-center gap-2"
             onClick={startTracking}
           >
-            <Navigation className="w-8 h-8" />
-            <span className="font-bold">INICIAR</span>
+            <Navigation className="w-6 h-6" />
+            INICIAR PASSEIO
           </Button>
         ) : (
           <Button 
-            className="h-24 flex flex-col gap-2 bg-red-600 hover:bg-red-700 rounded-xl animate-pulse"
+            className="w-full h-14 text-lg bg-red-600 hover:bg-red-700 rounded-xl shadow-lg flex items-center justify-center gap-2 animate-pulse"
             onClick={stopTracking}
           >
-            <StopCircle className="w-8 h-8" />
-            <span className="font-bold">TERMINAR</span>
+            <StopCircle className="w-6 h-6" />
+            PARAR PASSEIO
           </Button>
+        )}
+        
+        {wakeLock && (
+          <div className="text-center text-xs text-orange-500 flex items-center justify-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            Ecrã mantido ligado para GPS
+          </div>
         )}
       </div>
     </div>
