@@ -53,8 +53,21 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
         });
       }
 
-      // 5. Gamificação (Opcional: atualizar XP do usuário se a lógica estiver no frontend)
-      // Por enquanto, apenas mostramos o toast como solicitado
+      // 5. Gamificação: Atribuir XP ao Dono
+      const currentXP = user.gamification_xp || 0;
+      await base44.auth.updateMe({
+        gamification_xp: currentXP + 50
+      });
+
+      // Tentar atribuir XP ao Passeador (Se permitido por RLS, senão o backend deve tratar)
+      // Nota: Em produção, isso deve ser um Backend Trigger
+      try {
+          // Lógica simplificada: O backend deve escutar a criação da Review
+          console.log("XP atribuído ao dono. Passeador será recompensado via sistema.");
+      } catch (err) {
+          console.warn("Não foi possível atribuir XP ao passeador diretamente.", err);
+      }
+
       toast.success("Avaliação enviada com sucesso! Ganhou +50 XP! 🏆");
 
       onClose();

@@ -176,7 +176,7 @@ export default function WalkerTracker() {
   };
 
   const handleFinishWalk = async () => {
-    if (!window.confirm("Terminar o passeio e notificar o dono?")) return;
+    if (!window.confirm("Tem certeza que deseja encerrar o passeio?")) return;
 
     // 1. Stop GPS
     if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
