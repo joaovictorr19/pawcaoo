@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import BadgeInventory from "@/components/gamification/BadgeInventory";
 
 export default function Gamification() {
   const navigate = useNavigate();
@@ -463,91 +464,44 @@ export default function Gamification() {
         {/* Admin Controls removed - please use Admin Dashboard */}
 
         <Tabs defaultValue="badges" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
-            <TabsTrigger value="badges">Meus Emblemas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
+            <TabsTrigger value="badges">Inventário</TabsTrigger>
             <TabsTrigger value="leaderboard">Ranking</TabsTrigger>
+            <TabsTrigger value="showcase">Destaques</TabsTrigger>
           </TabsList>
 
-
-          {/* Badges Tab - SINCRONIZADO */}
           <TabsContent value="badges">
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-6 h-6 text-yellow-600" />
-                  Meus Emblemas ({allEarnedBadges.length})
+                  <Award className="w-6 h-6 text-purple-600" />
+                  Inventário de Emblemas
                 </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  {earnedAchievementsBadges.length} conquistas automáticas + {earnedPublicBadges.length} especiais
+                <p className="text-sm text-gray-600">
+                  Gerencie seus emblemas e escolha quais fixar no perfil.
                 </p>
               </CardHeader>
               <CardContent>
-                {allEarnedBadges.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">Nenhum emblema ainda</p>
-                    <Button onClick={() => document.querySelector('[value="missions"]')?.click()}>
-                      Ver Missões
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {allEarnedBadges.map((badge, idx) => {
-                      const rarityColors = {
-                        common: "bg-gray-100 border-gray-300",
-                        rare: "bg-blue-100 border-blue-300",
-                        epic: "bg-purple-100 border-purple-300",
-                        legendary: "bg-yellow-100 border-yellow-300"
-                      };
-                      const colors = rarityColors[badge.rarity] || rarityColors.common;
-
-                      return (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: idx * 0.02 }}
-                          className={`relative p-3 rounded-lg border-2 ${colors} text-center hover:scale-105 transition-transform cursor-pointer`}
-                          title={badge.name}
-                        >
-                          {badge.image_url ? (
-                            <img
-                              src={badge.image_url}
-                              alt={badge.name}
-                              className="w-full aspect-square object-cover rounded-lg mb-2"
-                              style={{ imageRendering: 'pixelated' }}
-                            />
-                          ) : (
-                            <div className="text-4xl mb-2">{badge.icon}</div>
-                          )}
-                          <p className="text-xs font-bold truncate">{badge.name}</p>
-                          {badge.xp && (
-                            <Badge className="mt-1 bg-green-600 text-white text-[10px]">
-                              +{badge.xp} XP
-                            </Badge>
-                          )}
-                          {badge.rarity && (
-                            <Badge className={`mt-1 text-[10px] ${
-                              badge.rarity === 'legendary' ? 'bg-yellow-500' :
-                              badge.rarity === 'epic' ? 'bg-purple-500' :
-                              badge.rarity === 'rare' ? 'bg-blue-500' :
-                              'bg-gray-500'
-                            } text-white`}>
-                              {badge.rarity}
-                            </Badge>
-                          )}
-                          {badge.earned_date && (
-                            <p className="text-[10px] text-gray-500 mt-1">
-                              {new Date(badge.earned_date).toLocaleDateString('pt-PT')}
-                            </p>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
+                <BadgeInventory 
+                  badges={allEarnedBadges}
+                  pinnedBadgeIds={user?.pinned_badge_ids || []}
+                  userProfileId={user?.id} // Using auth ID for now, assuming user entity match
+                  isOwner={true}
+                />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="showcase">
+             {/* Legacy Badges View (Simplified) */}
+             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {allEarnedBadges.map((badge, idx) => (
+                  <div key={idx} className="text-center p-4 bg-white rounded-xl shadow-sm">
+                    <div className="text-4xl mb-2">{badge.icon || "🏆"}</div>
+                    <p className="font-bold text-sm">{badge.name}</p>
+                  </div>
+                ))}
+             </div>
           </TabsContent>
 
           {/* Leaderboard Preview */}

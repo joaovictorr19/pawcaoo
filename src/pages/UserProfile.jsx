@@ -840,6 +840,30 @@ export default function UserProfile() {
               </div>
             </div>
 
+            {/* Pinned Badges Showcase */}
+            {profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > 0 && (
+              <div className="mb-6 mt-4 px-4 md:px-0">
+                <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-yellow-500" />
+                  Destaques
+                </h3>
+                <div className="flex gap-4 justify-center md:justify-start flex-wrap">
+                  {profileUser.pinned_badge_ids.map(pinnedId => {
+                    const badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || 
+                                  allBadgeDefinitions.find(b => b.id === pinnedId);
+                    
+                    if (!badge) return null;
+                    
+                    return (
+                      <div key={pinnedId} className="transform hover:scale-110 transition-transform duration-200">
+                        <BadgeItem badge={badge} idx={0} getBadgeImage={getBadgeImage} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-3 gap-4 md:gap-8 py-4 border-t border-b border-gray-200 mt-6">
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalBadges}</div>
