@@ -26,17 +26,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
   // 2. Poll Messages
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessages', conversationId],
-    queryFn: () => base44.entities.ChatMessage.filter({ booking_id: conversationId }, '-created_date', 50), // Using booking_id field to store conversation_id for generic chats, or we need to update ChatMessage schema to have conversation_id. 
-    // Wait, the previous ChatMessage schema had "booking_id". 
-    // We should probably check if we are using "booking_id" to store the conversation ID or if we strictly link to bookings.
-    // For support chats, we don't have a booking ID. 
-    // Let's assume we use the 'booking_id' field in ChatMessage to store the 'conversation_id' for now (polyfilling) OR we should add 'conversation_id' to ChatMessage.
-    // The prompt earlier created ChatMessage with booking_id. I should probably use that field as a generic "context_id".
-    // Or, I can add 'conversation_id' to ChatMessage. Ideally, I'd update the schema.
-    // For this immediate fix, I'll assume 'booking_id' acts as the foreign key to EITHER Booking OR ChatConversation. 
-    // Actually, Inbox.js creates ChatConversation. The ID is conversation.id.
-    // So messages should link to conversation.id.
-    // I will use 'booking_id' field to store conversation.id.
+    queryFn: () => base44.entities.ChatMessage.filter({ conversation_id: conversationId }, '-created_date', 50),
     refetchInterval: 1000,
     enabled: !!conversationId
   });
@@ -53,7 +43,9 @@ export default function ChatWindow({ conversationId, currentUser }) {
     mutationFn: async (content) => {
       // 1. Create Message
       await base44.entities.ChatMessage.create({
-        booking_id: conversationId, // Storing conversation ID here
+        conversation_id: conversationId,
+        booking_id: conversation.booking_id || null, // Optional now
+        participants: conversation.participants || [], // Denormalized for RLS
         sender_email: currentUser.email,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         content: content,
