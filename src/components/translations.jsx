@@ -878,6 +878,14 @@ export const translations = {
     emergencyPostedSuccess: "Pedido de emergência publicado! Os passeadores próximos estão a ser notificados.",
     emergencyPostFailed: "Falha ao publicar pedido de emergência",
     uploadFailed: "Falha ao carregar foto",
+    
+    // Professional Dashboard Metrics
+    profileHealth: "Saúde do Perfil",
+    pendingBookingsCount: "Reservas Pendentes",
+    requiresAction: "Requer Ação",
+    improve: "Melhorar",
+    perfect: "Perfeito",
+    vsLastPeriod: "vs período anterior",
   },
   
   en: {
@@ -1756,6 +1764,14 @@ export const translations = {
     emergencyPostedSuccess: "Emergency walk posted! Nearby walkers are being notified.",
     emergencyPostFailed: "Failed to post emergency walk",
     uploadFailed: "Failed to upload photo",
+
+    // Professional Dashboard Metrics
+    profileHealth: "Profile Health",
+    pendingBookingsCount: "Pending Bookings",
+    requiresAction: "Requires Action",
+    improve: "Improve",
+    perfect: "Perfect",
+    vsLastPeriod: "vs last period",
   },
   
   es: {
@@ -2633,6 +2649,14 @@ export const translations = {
     emergencyPostedSuccess: "¡Paseo de emergencia publicado! Se está notificando a los paseadores cercanos.",
     emergencyPostFailed: "Error al publicar paseo de emergencia",
     uploadFailed: "Error al subir foto",
+
+    // Professional Dashboard Metrics
+    profileHealth: "Salud del Perfil",
+    pendingBookingsCount: "Reservas Pendientes",
+    requiresAction: "Requiere Acción",
+    improve: "Mejorar",
+    perfect: "Perfecto",
+    vsLastPeriod: "vs período anterior",
   }
 };
 
