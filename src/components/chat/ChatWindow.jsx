@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { createPageUrl } from "@/utils";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck, MapPin } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck, MapPin, Trash2 } from "lucide-react";
 import CallModal from "./CallModal";
 import LiveWalkMap from "../tracking/LiveWalkMap";
 import { format } from "date-fns";
@@ -19,6 +21,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
   const queryClient = useQueryClient();
   const [callState, setCallState] = useState({ isOpen: false, type: 'audio' });
   const [activeTab, setActiveTab] = useState("chat");
+  const navigate = useNavigate();
 
   // 1. Fetch Conversation Details (to get participant info)
   const { data: conversation } = useQuery({
@@ -27,7 +30,8 @@ export default function ChatWindow({ conversationId, currentUser }) {
       const res = await base44.entities.ChatConversation.filter({ id: conversationId });
       return res[0];
     },
-    enabled: !!conversationId
+    enabled: !!conversationId,
+    refetchInterval: 3000 // Polling para manter status e unread_counts sincronizados
   });
 
   // 1.5 Fetch Linked Booking (to check status)
@@ -43,13 +47,57 @@ export default function ChatWindow({ conversationId, currentUser }) {
 
   const isLiveWalk = booking?.status === 'in_progress';
 
-  // 2. Poll Messages
+  // 2. Poll Messages & Mark as Read
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessages', conversationId],
-    queryFn: () => base44.entities.ChatMessage.filter({ conversation_id: conversationId }, '-created_date', 50),
-    refetchInterval: 1000,
+    queryFn: async () => {
+      // Fetch messages
+      const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversationId }, '-created_date', 50);
+      
+      // Efficient Mark as Read: Check if unread count > 0 in conversation object (refetched by parent or here)
+      // We can do a quick check if the last message wasn't from me, or just rely on unread_counts logic.
+      // Ideally, we update the conversation 'unread_counts' field.
+      // To avoid infinite loops, we only update if we know it's unread.
+      // We can check the conversation object from the other query.
+      return msgs;
+    },
+    refetchInterval: 2000, // Slightly reduced polling for efficiency
     enabled: !!conversationId
   });
+
+  // Mark as Read Effect - Robustez melhorada
+  useEffect(() => {
+    let isMarking = false;
+    const markAsRead = async () => {
+      if (!conversation || !currentUser || isMarking) return;
+      
+      const myUnread = conversation.unread_counts?.[currentUser.email] || 0;
+      if (myUnread > 0) {
+        isMarking = true;
+        // Atualiza localmente antes para evitar loops visuais se o refetch demorar
+        const newCounts = { ...conversation.unread_counts, [currentUser.email]: 0 };
+        
+        try {
+          await base44.entities.ChatConversation.update(conversationId, { unread_counts: newCounts });
+          
+          // Invalidações críticas para limpar notificações
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] }),
+            queryClient.invalidateQueries({ queryKey: ['unreadChatCount'] }), // Global badge no Layout
+            queryClient.invalidateQueries({ queryKey: ['myConversations'] }), // Lista lateral
+            queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] }) // Notificações gerais se houver
+          ]);
+        } catch (e) { 
+          console.error("Error marking as read", e); 
+        } finally {
+          isMarking = false;
+        }
+      }
+    };
+    
+    // Executa quando entra na conversa ou quando novas mensagens chegam (mudança em 'messages' ou 'conversation')
+    markAsRead();
+  }, [messages.length, conversation?.unread_counts?.[currentUser?.email], conversationId, currentUser?.email, queryClient]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -57,6 +105,20 @@ export default function ChatWindow({ conversationId, currentUser }) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, activeTab]);
+
+  const deleteChatMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.ChatConversation.delete(conversationId);
+    },
+    onSuccess: () => {
+      toast.success("Conversa apagada com sucesso.");
+      queryClient.invalidateQueries(['myConversations']);
+      queryClient.invalidateQueries(['unreadChatCount']);
+      // Navegar para a Inbox limpa (sem ID na URL)
+      navigate(createPageUrl('Inbox')); 
+    },
+    onError: (err) => toast.error("Erro ao apagar conversa.")
+  });
 
   // 3. Send Message Mutation
   const sendMessageMutation = useMutation({
