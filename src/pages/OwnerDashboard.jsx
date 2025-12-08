@@ -238,6 +238,29 @@ export default function OwnerDashboard() {
           </p>
         </div>
 
+        {/* Live Walk Banner */}
+        {allBookings.some(b => b.status === 'in_progress') && (
+          <Card className="mb-8 bg-gradient-to-r from-red-600 to-purple-600 text-white border-0 shadow-2xl animate-pulse">
+            <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
+                  <Zap className="w-8 h-8 text-white animate-bounce" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Passeio em Andamento!</h2>
+                  <p className="text-white/90">O seu Walker iniciou o serviço. Acompanhe em tempo real.</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate(`/walk/live/${allBookings.find(b => b.status === 'in_progress').id}`)}
+                className="bg-white text-purple-600 hover:bg-gray-100 font-bold px-8 py-6 text-lg shadow-lg transition-transform hover:scale-105"
+              >
+                JUNTAR-SE À SESSÃO LIVE
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Quick Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white">
