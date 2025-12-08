@@ -561,6 +561,16 @@ export default function UserProfile() {
     enabled: !!profileEmail,
   });
 
+  const { data: trainerProfile } = useQuery({
+    queryKey: ['trainerProfile', profileEmail],
+    queryFn: async () => {
+      if (!profileEmail) return null;
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: profileEmail });
+      return trainers[0] || null;
+    },
+    enabled: !!profileEmail,
+  });
+
   const { data: userDogs = [] } = useQuery({
     queryKey: ['userDogs', profileEmail],
     queryFn: async () => {
