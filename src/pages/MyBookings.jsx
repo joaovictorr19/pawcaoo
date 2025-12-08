@@ -56,6 +56,13 @@ export default function MyBookings() {
   const [reviewTarget, setReviewTarget] = useState(null); // { booking, type: 'client' | 'professional' }
   const [isReviewProcessing, setIsReviewProcessing] = useState(false);
 
+  // Buscar Reviews dadas pelo usuário (para saber o que já foi avaliado)
+  const { data: myGivenReviews = [] } = useQuery({
+    queryKey: ['myGivenReviews', user?.email],
+    queryFn: () => base44.entities.Review.filter({ reviewer_email: user?.email }),
+    enabled: !!user?.email,
+  });
+
   // Buscar usuário atual
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -335,6 +342,9 @@ export default function MyBookings() {
       : booking.trainer_email === user?.email;
 
     const professionalName = booking.type === 'walk' ? booking.walker_name : booking.trainer_name;
+    
+    // Check if already reviewed
+    const hasReview = myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
 
     return (
       <Card className="border hover:shadow-md transition-shadow overflow-hidden">
@@ -375,8 +385,19 @@ export default function MyBookings() {
              </div>
           </div>
 
+          {/* Botão de Avaliação para Cliente */}
+          {booking.status === 'completed' && !isProfessional && !hasReview && (
+            <Button 
+              className="w-full mt-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-md"
+              onClick={() => handleReviewClick(booking, 'professional')}
+            >
+              <Star className="w-4 h-4 mr-2 fill-white" />
+              Avaliar Profissional
+            </Button>
+          )}
+
           {booking.status === 'confirmed' && !isProfessional && booking.walker_payment_contact && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
               <p className="text-xs font-bold text-green-800 mb-1">Pagamento (MBWay):</p>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-green-700 font-mono">{booking.walker_payment_contact}</span>

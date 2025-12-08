@@ -126,7 +126,7 @@ export default function WalkerDetails() {
 
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : walker?.rating || 5;
+    : (walker?.total_walks > 0 ? walker?.rating : 0);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -512,6 +512,7 @@ export default function WalkerDetails() {
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-500" />
                   {t('reviews', language)} ({reviews.length})
+                  {averageRating > 0 && <span className="text-sm font-normal text-gray-500 ml-2">Média: {averageRating.toFixed(1)}</span>}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 pt-0">
