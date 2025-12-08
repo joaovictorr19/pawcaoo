@@ -118,40 +118,39 @@ export default function ChatWindow({ conversationId, currentUser }) {
         recipientAvatar={displayAvatar}
       />
       
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white shrink-0">
+      {/* Header Compacto */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-9 w-9 border border-gray-100">
             <AvatarFallback className={isSupport ? "bg-blue-100 text-blue-700" : "bg-gray-100"}>
-              {isSupport ? <Info className="w-5 h-5" /> : displayName[0].toUpperCase()}
+              {isSupport ? <Info className="w-4 h-4" /> : displayName[0].toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h3 className="font-bold text-gray-900">{displayName}</h3>
-            <p className="text-xs text-green-600 flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/> 
+          <div className="leading-tight">
+            <h3 className="font-bold text-sm text-gray-900">{displayName}</h3>
+            <p className="text-[10px] text-green-600 flex items-center gap-1 font-medium">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> 
               Online
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-gray-400">
+        <div className="flex items-center gap-1 text-gray-400">
           <Button 
             variant="ghost" 
             size="icon" 
+            className="h-8 w-8"
             onClick={() => setCallState({ isOpen: true, type: 'audio' })}
-            title="Chamada de Voz (Beta)"
           >
-            <Phone className="w-5 h-5" />
+            <Phone className="w-4 h-4" />
           </Button>
           <Button 
             variant="ghost" 
-            size="icon" 
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setCallState({ isOpen: true, type: 'video' })}
-            title="Chamada de Vídeo (Beta)"
           >
-            <Video className="w-5 h-5" />
+            <Video className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon"><MoreVertical className="w-5 h-5" /></Button>
         </div>
       </div>
 
@@ -184,9 +183,9 @@ export default function ChatWindow({ conversationId, currentUser }) {
 
              <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden data-[state=inactive]:hidden mt-0">
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50" ref={scrollRef}>
+                <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-slate-50" ref={scrollRef}>
                   {sortedMessages.length === 0 && (
-                      <div className="text-center text-gray-400 my-10 text-sm">
+                      <div className="text-center text-gray-400 my-10 text-xs">
                           Esta é o início da sua conversa.<br/>Diga olá! 👋
                       </div>
                   )}
@@ -194,17 +193,17 @@ export default function ChatWindow({ conversationId, currentUser }) {
                     const isMe = msg.sender_email === currentUser.email;
                     return (
                       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
                           <div 
-                            className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                            className={`px-3 py-2 rounded-xl text-[13px] md:text-sm shadow-sm leading-relaxed ${
                               isMe 
-                                ? 'bg-blue-600 text-white rounded-br-none' 
-                                : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                                ? 'bg-blue-600 text-white rounded-br-sm' 
+                                : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
                             }`}
                           >
                             {msg.content}
                           </div>
-                          <span className="text-[10px] text-gray-400 mt-1 px-1 flex items-center gap-1 justify-end">
+                          <span className="text-[10px] text-gray-400 mt-0.5 px-1 flex items-center gap-1 justify-end opacity-70">
                             {format(new Date(msg.created_date), 'HH:mm')}
                             {isMe && (
                               <CheckCheck className="w-3 h-3 text-blue-500" />
@@ -215,22 +214,27 @@ export default function ChatWindow({ conversationId, currentUser }) {
                     );
                   })}
                 </div>
-                {/* Input */}
-                <div className="p-3 bg-white border-t shrink-0">
-                  <form onSubmit={handleSend} className="flex gap-2 items-center">
+                {/* Input Area Otimizada */}
+                <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
+                  <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                     <Input 
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Escreva a sua mensagem..."
-                      className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4 h-9 text-sm"
+                      placeholder="Escreva sua mensagem..."
+                      className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
+                      autoComplete="off"
                     />
                     <Button 
                       type="submit" 
                       size="icon" 
                       disabled={!message.trim()}
-                      className="rounded-full bg-blue-600 hover:bg-blue-700 w-9 h-9 shadow-sm transition-all hover:scale-105 active:scale-95 shrink-0"
+                      className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
+                        message.trim() 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
+                          : 'bg-gray-200 text-gray-400 scale-95'
+                      }`}
                     >
-                      <Send className="w-4 h-4 text-white" />
+                      <Send className="w-5 h-5 ml-0.5" />
                     </Button>
                   </form>
                 </div>
@@ -243,9 +247,9 @@ export default function ChatWindow({ conversationId, currentUser }) {
         ) : (
           /* Standard Chat View (No Tabs) */
           <>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50" ref={scrollRef}>
+            <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-slate-50" ref={scrollRef}>
               {sortedMessages.length === 0 && (
-                  <div className="text-center text-gray-400 my-10 text-sm">
+                  <div className="text-center text-gray-400 my-10 text-xs">
                       Esta é o início da sua conversa.<br/>Diga olá! 👋
                   </div>
               )}
@@ -253,17 +257,17 @@ export default function ChatWindow({ conversationId, currentUser }) {
                 const isMe = msg.sender_email === currentUser.email;
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                    <div className={`max-w-[85%] md:max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
                       <div 
-                        className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                        className={`px-3 py-2 rounded-xl text-[13px] md:text-sm shadow-sm leading-relaxed ${
                           isMe 
-                            ? 'bg-blue-600 text-white rounded-br-none' 
-                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                            ? 'bg-blue-600 text-white rounded-br-sm' 
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
                         }`}
                       >
                         {msg.content}
                       </div>
-                      <span className="text-[10px] text-gray-400 mt-1 px-1">
+                      <span className="text-[10px] text-gray-400 mt-0.5 px-1 opacity-70">
                         {format(new Date(msg.created_date), 'HH:mm')}
                       </span>
                     </div>
@@ -271,21 +275,26 @@ export default function ChatWindow({ conversationId, currentUser }) {
                 );
               })}
             </div>
-            <div className="p-3 bg-white border-t shrink-0">
-              <form onSubmit={handleSend} className="flex gap-2 items-center">
+            <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
+              <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                 <Input 
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Escreva a sua mensagem..."
-                  className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4 h-9 text-sm"
+                  placeholder="Escreva sua mensagem..."
+                  className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
+                  autoComplete="off"
                 />
                 <Button 
                   type="submit" 
                   size="icon" 
                   disabled={!message.trim()}
-                  className="rounded-full bg-blue-600 hover:bg-blue-700 w-9 h-9 shadow-sm transition-all hover:scale-105 active:scale-95 shrink-0"
+                  className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
+                    message.trim() 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
+                      : 'bg-gray-200 text-gray-400 scale-95'
+                  }`}
                 >
-                  <Send className="w-4 h-4 text-white" />
+                  <Send className="w-5 h-5 ml-0.5" />
                 </Button>
               </form>
             </div>

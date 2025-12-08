@@ -217,7 +217,7 @@ export default function Inbox() {
                         animate={{ opacity: 1 }}
                         whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                         onClick={() => handleConversationClick(conv)}
-                        className={`p-4 cursor-pointer transition-colors flex gap-3 items-start ${isSelected ? 'bg-blue-50 border-l-4 border-blue-600' : ''} ${unread > 0 ? 'bg-blue-50/30' : ''}`}
+                        className={`p-3 md:p-4 cursor-pointer transition-colors flex gap-3 items-center ${isSelected ? 'bg-blue-50 border-l-4 border-blue-600' : ''} ${unread > 0 ? 'bg-blue-50/30' : ''}`}
                       >
                         <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
                           <AvatarImage src={other.avatar} />
