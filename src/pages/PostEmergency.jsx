@@ -106,7 +106,7 @@ export default function PostEmergency() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Dog Photo Upload */}
               <div className="space-y-2">
-                <Label htmlFor="photo">Dog Photo *</Label>
+                <Label htmlFor="photo">{t('dogPhoto', language)} *</Label>
                 <div className="flex items-center gap-4">
                   {formData.dog_photo_url ? (
                     <img
@@ -130,7 +130,7 @@ export default function PostEmergency() {
                       required
                     />
                     <p className="text-sm text-gray-500 mt-2">
-                      {uploading ? "Uploading..." : "Upload a clear photo of your dog"}
+                      {uploading ? t('uploading', language) : t('uploadClearPhoto', language)}
                     </p>
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function PostEmergency() {
               {/* Dog Info */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="dog_name">Dog's Name *</Label>
+                  <Label htmlFor="dog_name">{t('dogName', language)} *</Label>
                   <Input
                     id="dog_name"
                     required
@@ -150,7 +150,7 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dog_breed">Breed</Label>
+                  <Label htmlFor="dog_breed">{t('breed', language)}</Label>
                   <Input
                     id="dog_breed"
                     value={formData.dog_breed}
@@ -160,26 +160,26 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dog_size">Dog Size *</Label>
+                  <Label htmlFor="dog_size">{t('dogSize', language)} *</Label>
                   <Select 
                     required
                     value={formData.dog_size}
                     onValueChange={(value) => setFormData({...formData, dog_size: value})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select size" />
+                      <SelectValue placeholder={t('selectSize', language)} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="small">Small</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="large">Large</SelectItem>
-                      <SelectItem value="extra_large">Extra Large</SelectItem>
+                      <SelectItem value="small">{t('small', language)}</SelectItem>
+                      <SelectItem value="medium">{t('medium', language)}</SelectItem>
+                      <SelectItem value="large">{t('large', language)}</SelectItem>
+                      <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="urgency_level">Urgency Level *</Label>
+                  <Label htmlFor="urgency_level">{t('urgencyLevel', language)} *</Label>
                   <Select 
                     required
                     value={formData.urgency_level}
@@ -189,9 +189,9 @@ export default function PostEmergency() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="urgent">Urgent (within 2 hours)</SelectItem>
-                      <SelectItem value="very_urgent">Very Urgent (within 1 hour)</SelectItem>
-                      <SelectItem value="immediate">IMMEDIATE (now!)</SelectItem>
+                      <SelectItem value="urgent">{t('urgentTime', language)}</SelectItem>
+                      <SelectItem value="very_urgent">{t('veryUrgentTime', language)}</SelectItem>
+                      <SelectItem value="immediate">{t('immediateTime', language)}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
