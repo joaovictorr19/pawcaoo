@@ -699,13 +699,17 @@ export default function UserProfile() {
       }
 
       // Notify
-      await createNotification.mutateAsync({
-        recipient_email: profileEmail,
-        title: "Novo Seguidor!",
-        message: `${currentUser.full_name} começou a seguir-te.`,
-        type: "social",
-        action_url: `/UserProfile?email=${currentUser.email}`
-      });
+      try {
+        await createNotification.mutateAsync({
+          recipient_email: profileEmail,
+          title: "Novo Seguidor!",
+          message: `${currentUser.full_name} começou a seguir-te.`,
+          type: "social",
+          action_url: `/UserProfile?email=${currentUser.email}`
+        });
+      } catch (err) {
+        console.error("Failed to send notification:", err);
+      }
     },
     onSuccess: () => {
       toast.success('Agora você está seguindo!');
