@@ -541,7 +541,7 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
+      <div className="flex w-full min-h-screen md:h-screen md:overflow-hidden bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         {authUser && (
         <Sidebar className="glass-panel border-r border-white/30">
           <SidebarHeader className="border-b border-white/20 p-4 md:p-6">
@@ -896,7 +896,7 @@ function LayoutContent({ children, currentPageName }) {
               </header>
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 overflow-auto pb-24 md:pb-0">
+          <div className="flex-1 pb-24 md:pb-0 md:overflow-auto">
             {children}
           </div>
 

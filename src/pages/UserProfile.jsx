@@ -815,7 +815,7 @@ export default function UserProfile() {
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm z-20 pointer-events-auto h-8 px-2 md:h-9 md:px-4"
+                className="hidden md:inline-flex absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm z-20 pointer-events-auto h-8 px-2 md:h-9 md:px-4"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(createPageUrl('AccountSettings'));
@@ -842,7 +842,7 @@ export default function UserProfile() {
                   {isOwnProfile && (
                     <button 
                       onClick={() => navigate(createPageUrl('AccountSettings'))}
-                      className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white"
+                      className="hidden md:block absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white"
                       title="Alterar foto de perfil"
                     >
                       <Camera className="w-4 h-4" />
