@@ -50,11 +50,15 @@ export default function EditWalkerProfile() {
 
   const submitEditRequestMutation = useMutation({
     mutationFn: async (changes) => {
+      // Ensure we have the latest user data for RLS compliance
+      const currentUser = await base44.auth.me();
+      if (!currentUser) throw new Error("Sessão expirada. Por favor faça login novamente.");
+
       return await base44.entities.ProfileEditRequest.create({
         profile_type: 'walker',
         profile_id: walkerProfile.id,
-        requester_email: user.email,
-        requester_name: user.full_name,
+        requester_email: currentUser.email,
+        requester_name: currentUser.full_name,
         changes_requested: changes,
         status: 'pending'
       });
