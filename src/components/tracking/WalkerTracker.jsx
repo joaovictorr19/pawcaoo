@@ -24,9 +24,12 @@ const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
 
 const deg2rad = (deg) => deg * (Math.PI / 180);
 
-export default function WalkerTracker() {
-  // 1. Pegar o ID da URL
-  const { bookingId } = useParams();
+export default function WalkerTracker({ bookingId: propBookingId }) {
+  // 1. Pegar o ID da URL (Prioridade: Prop > Query Param > Route Param)
+  const { bookingId: paramBookingId } = useParams();
+  const [queryBookingId] = useState(() => new URLSearchParams(window.location.search).get('bookingId'));
+  
+  const bookingId = propBookingId || queryBookingId || paramBookingId;
   const navigate = useNavigate();
 
   // Fetch current user for chat
