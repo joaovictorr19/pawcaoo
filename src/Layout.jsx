@@ -105,6 +105,8 @@ const usePrefetchOnHover = (prefetchFn) => {
 };
 
 function LayoutContent({ children, currentPageName }) {
+  // Initialize user variable to avoid TDZ errors
+  let user = null;
   const location = useLocation();
   const { language, setLanguage } = useLanguage();
   const queryClient = useQueryClient();
@@ -134,7 +136,7 @@ function LayoutContent({ children, currentPageName }) {
     ...queryConfig.user,
     retry: 1,
   });
-  const user = currentUser;
+  user = currentUser;
 
   const { data: notifications } = useQuery({
     queryKey: ['unreadNotifications'],
