@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -142,18 +144,23 @@ export default function WalkerTracker({ bookingId }) {
     );
   };
 
+  const navigate = useNavigate();
+
   const stopTracking = async () => {
+    if (!window.confirm("Tem certeza que deseja encerrar o passeio?")) return;
+
     if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
     setIsTracking(false);
     clearInterval(timerRef.current);
 
     await base44.entities.Booking.update(bookingId, {
-      status: 'service_completed',
+      status: 'completed',
       completed_date: new Date().toISOString(),
       distance_km: (distance / 1000).toFixed(2)
     });
     
-    toast.success("Passeio finalizado!");
+    toast.success("Passeio concluído! O pagamento será libertado em breve.");
+    setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 1500);
   };
 
   return (
