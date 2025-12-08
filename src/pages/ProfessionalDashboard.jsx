@@ -20,7 +20,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { Download, ExternalLink, Share2, Calendar as CalendarIcon } from "lucide-react";
-import { bookingToEvent, generateMultiICS, downloadICS } from "@/utils/calendarHelpers";
+import { bookingToEvent, generateMultiICS, downloadICS } from "../components/calendar/calendarHelpers";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
