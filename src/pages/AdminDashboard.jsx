@@ -38,7 +38,7 @@ import {
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send,
   XCircle, Upload, Eye,
-  RefreshCw, Loader2
+  RefreshCw, Loader2, ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
