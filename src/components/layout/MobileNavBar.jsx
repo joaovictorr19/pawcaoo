@@ -5,7 +5,7 @@ import { Home, Calendar, Trophy, Bell, User, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function MobileNavBar({ user, unreadCount = 0 }) {
+export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
 
   const isActive = (path) => {
@@ -64,6 +64,12 @@ export default function MobileNavBar({ user, unreadCount = 0 }) {
               key={index}
               id={item.id}
               to={item.path}
+              onClick={(e) => {
+                if (item.label === "Alertas" && onNotificationsClick) {
+                  e.preventDefault();
+                  onNotificationsClick();
+                }
+              }}
               className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group ${
                 active ? "transform -translate-y-1" : "text-gray-500 hover:text-gray-700"
               }`}
