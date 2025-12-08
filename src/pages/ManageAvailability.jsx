@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Plus, X, CalendarOff, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, Plus, X, CalendarOff, CheckCircle2, Sun, Moon, Sunset, Sunrise } from "lucide-react";
 import { format } from "date-fns";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { toast } from "sonner";
@@ -27,6 +27,38 @@ export default function ManageAvailability() {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
+
+  const { data: walkerProfile } = useQuery({
+    queryKey: ['walkerProfile', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      return profiles && profiles.length > 0 ? profiles[0] : null;
+    },
+    enabled: !!user?.email,
+  });
+
+  const updateGeneralAvailabilityMutation = useMutation({
+    mutationFn: async (newAvailability) => {
+      if (!walkerProfile?.id) return;
+      return await base44.entities.WalkerProfile.update(walkerProfile.id, {
+        availability: newAvailability
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['walkerProfile'] });
+      toast.success("Disponibilidade geral atualizada!");
+    },
+  });
+
+  const toggleGeneralAvailability = (slot) => {
+    if (!walkerProfile) return;
+    const current = walkerProfile.availability || [];
+    const updated = current.includes(slot)
+      ? current.filter(s => s !== slot)
+      : [...current, slot];
+    updateGeneralAvailabilityMutation.mutate(updated);
+  };
 
   const { data: availabilityData } = useQuery({
     queryKey: ['availability'],
@@ -138,6 +170,49 @@ export default function ManageAvailability() {
           </h1>
           <p className="text-gray-600 text-sm md:text-lg">{t('setAvailableTimeSlots', language)}</p>
         </div>
+
+        {walkerProfile && (
+          <Card className="mb-6 border-0 shadow-md bg-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-blue-600" />
+                Disponibilidade Geral (Perfil)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { id: 'morning', label: t('morning', language), icon: Sunrise, color: 'bg-orange-100 text-orange-700 border-orange-200' },
+                  { id: 'afternoon', label: t('afternoon', language), icon: Sun, color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+                  { id: 'evening', label: t('evening', language), icon: Sunset, color: 'bg-purple-100 text-purple-700 border-purple-200' },
+                  { id: 'night', label: t('night', language), icon: Moon, color: 'bg-indigo-100 text-indigo-700 border-indigo-200' }
+                ].map((slot) => {
+                  const isActive = walkerProfile.availability?.includes(slot.id);
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => toggleGeneralAvailability(slot.id)}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all
+                        ${isActive 
+                          ? slot.color + ' border-current font-bold shadow-sm' 
+                          : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                        }
+                      `}
+                    >
+                      <slot.icon className="w-4 h-4" />
+                      {slot.label}
+                      {isActive && <CheckCircle2 className="w-4 h-4 ml-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                * Isso atualiza os filtros de pesquisa do seu perfil público. Para dias específicos, use o calendário abaixo.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-3 md:gap-6">
           {/* Calendar - Responsive */}
