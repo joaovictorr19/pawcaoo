@@ -59,7 +59,7 @@ export default function Leaderboard() {
           type: 'user',
           email: p.user_email
         };
-      }).sort((a, b) => b.value - a.value);
+      }).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
 
       // Process Walkers
       const topWalkers = walkers.map(w => ({
@@ -72,7 +72,7 @@ export default function Leaderboard() {
         rating: w.rating,
         type: 'walker',
         email: w.created_by
-      })).sort((a, b) => b.value - a.value);
+      })).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
 
       // Process Dogs (Mock Popularity for now as per schema limitation)
       const popularDogs = dogs.map(d => ({
@@ -83,7 +83,7 @@ export default function Leaderboard() {
         value: Math.floor(Math.random() * 500) + 50, // Mock "Likes"
         type: 'dog',
         owner_email: d.owner_email
-      })).sort((a, b) => b.value - a.value);
+      })).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
 
       return { users, walkers: topWalkers, dogs: popularDogs };
     },
@@ -171,25 +171,24 @@ export default function Leaderboard() {
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: idx * 0.15 }}
-                    className={`relative flex flex-col items-center w-1/3 md:w-40`}
+                    className={`relative flex flex-col items-center w-1/3 md:w-40 ${rank === 1 ? 'mt-10' : ''}`}
                     onClick={() => {
                         if(item.type === 'user') navigate(createPageUrl(`UserProfile?email=${item.email}`));
                         if(item.type === 'walker') navigate(createPageUrl(`WalkerDetails?id=${item.id}`));
                     }}
                   >
-                    {rank === 1 && (
-                      <div className="absolute -top-10 animate-bounce">
-                        <Crown className="w-10 h-10 text-yellow-500 fill-yellow-400 drop-shadow-lg" />
-                      </div>
-                    )}
-                    
                     <div className={`
                       relative rounded-2xl p-4 w-full flex flex-col items-center text-center
                       border-2 bg-gradient-to-b glass-panel
                       ${getPodiumStyle(rank)}
                     `}>
-                      <div className="relative">
-                        <Avatar className={`w-16 h-16 md:w-24 md:h-24 border-4 mb-2 shadow-lg ${
+                      <div className="relative overflow-visible">
+                        {rank === 1 && (
+                          <div className="absolute -top-[35px] left-1/2 -translate-x-1/2 z-50">
+                            <Crown className="w-10 h-10 text-yellow-500 fill-yellow-400 drop-shadow-lg" />
+                          </div>
+                        )}
+                        <Avatar className={`relative z-10 w-16 h-16 md:w-24 md:h-24 border-4 mb-2 shadow-lg ${
                           rank === 1 ? 'border-yellow-400' : 
                           rank === 2 ? 'border-slate-300' : 'border-orange-400'
                         }`}>
@@ -197,7 +196,7 @@ export default function Leaderboard() {
                           <AvatarFallback>{item.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <Badge className={`
-                          absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-xs font-bold
+                          absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-xs font-bold z-20
                           ${rank === 1 ? 'bg-yellow-500' : rank === 2 ? 'bg-slate-500' : 'bg-orange-500'}
                         `}>
                           #{rank}

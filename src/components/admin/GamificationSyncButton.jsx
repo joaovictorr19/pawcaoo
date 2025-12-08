@@ -110,7 +110,7 @@ export default function GamificationSyncButton() {
                 if (currentXP !== stats.totalXP) {
                     // Update
                     await base44.entities.UserProfile.update(profile.id, {
-                        gamification_xp: stats.totalXP,
+                        gamification_xp: parseInt(stats.totalXP),
                         gamification_level: stats.currentLevel
                     });
                     
