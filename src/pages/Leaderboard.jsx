@@ -105,9 +105,9 @@ export default function Leaderboard() {
   }, [currentUser, activeList, activeCategory]);
 
   const getPodiumStyle = (rank) => {
-    if (rank === 1) return "border-yellow-400 from-yellow-500/20 to-yellow-100/50 scale-110 z-20 shadow-[0_0_30px_rgba(234,179,8,0.3)]";
-    if (rank === 2) return "border-slate-300 from-slate-400/20 to-slate-100/50 mt-8 z-10 shadow-[0_0_20px_rgba(148,163,184,0.2)]";
-    if (rank === 3) return "border-orange-400 from-orange-500/20 to-orange-100/50 mt-12 z-0 shadow-[0_0_20px_rgba(249,115,22,0.2)]";
+    if (rank === 1) return "border-yellow-400/80 bg-gradient-to-br from-yellow-200/80 via-yellow-50/50 to-white/90 scale-110 z-20 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.6)] ring-4 ring-yellow-400/20 transform-gpu";
+    if (rank === 2) return "border-slate-300/80 bg-gradient-to-br from-slate-200/80 via-slate-50/50 to-white/90 mt-8 z-10 shadow-[0_10px_30px_-10px_rgba(148,163,184,0.4)] ring-2 ring-slate-300/20 transform-gpu";
+    if (rank === 3) return "border-orange-300/80 bg-gradient-to-br from-orange-200/80 via-orange-50/50 to-white/90 mt-16 z-0 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.4)] ring-2 ring-orange-300/20 transform-gpu";
     return "";
   };
 
