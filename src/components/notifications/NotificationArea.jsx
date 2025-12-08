@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, CheckCheck, Trash2, AlertCircle, X, ChevronRight } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, AlertCircle, X, ChevronRight, Megaphone } from "lucide-react";
 import { format } from "date-fns";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -38,18 +38,56 @@ export default function NotificationArea({ isOpen, onClose }) {
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const allNotifications = await base44.entities.Notification.list('-created_date');
-      return allNotifications.filter(n => n.recipient_email === user?.email);
+      // Fetch personal notifications
+      const personalNotifications = await base44.entities.Notification.list('-created_date');
+      const myNotifications = personalNotifications.filter(n => n.recipient_email === user?.email);
+
+      // Fetch system notifications (broadcasts)
+      const systemNotifications = await base44.entities.SystemNotification.filter({ is_active: true });
+      
+      // Fetch read status for system notifications
+      const readStatuses = await base44.entities.SystemNotificationRead.filter({ user_email: user?.email });
+      const readIds = new Set(readStatuses.map(r => r.notification_id));
+
+      // Map system notifications to the common notification format
+      const formattedSystemNotifications = systemNotifications.map(sn => ({
+        id: sn.id,
+        title: sn.subject,
+        message: sn.content,
+        type: 'system',
+        created_date: sn.created_date || new Date().toISOString(), // Fallback if created_date missing
+        is_read: readIds.has(sn.id),
+        is_system: true,
+        priority: sn.priority
+      }));
+
+      // Merge and sort by date descending
+      const all = [...myNotifications, ...formattedSystemNotifications].sort((a, b) => 
+        new Date(b.created_date) - new Date(a.created_date)
+      );
+      
+      return all;
     },
     enabled: !!user && isOpen,
     initialData: [],
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { is_read: true }),
+    mutationFn: async (notification) => {
+      if (notification.is_system) {
+        // Create a read record for system notification
+        await base44.entities.SystemNotificationRead.create({
+          notification_id: notification.id,
+          user_email: user.email
+        });
+      } else {
+        // Update regular notification
+        await base44.entities.Notification.update(notification.id, { is_read: true });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] }); // Update layout badge
+      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
     },
   });
 
@@ -57,9 +95,16 @@ export default function NotificationArea({ isOpen, onClose }) {
     mutationFn: async () => {
       const unreadNotifications = notifications.filter(n => !n.is_read);
       await Promise.all(
-        unreadNotifications.map(n => 
-          base44.entities.Notification.update(n.id, { is_read: true })
-        )
+        unreadNotifications.map(n => {
+          if (n.is_system) {
+            return base44.entities.SystemNotificationRead.create({
+              notification_id: n.id,
+              user_email: user.email
+            });
+          } else {
+            return base44.entities.Notification.update(n.id, { is_read: true });
+          }
+        })
       );
     },
     onSuccess: () => {
@@ -93,7 +138,7 @@ export default function NotificationArea({ isOpen, onClose }) {
 
   const handleNotificationClick = async (notification) => {
     if (!notification.is_read) {
-      markAsReadMutation.mutate(notification.id);
+      markAsReadMutation.mutate(notification);
     }
     if (notification.action_url) {
       handleNavigation(notification.action_url);
@@ -113,6 +158,7 @@ export default function NotificationArea({ isOpen, onClose }) {
       case "emergency": return <AlertCircle className="w-5 h-5 text-red-500" />;
       case "payment": return <CheckCheck className="w-5 h-5 text-green-500" />;
       case "booking": return <Bell className="w-5 h-5 text-blue-500" />;
+      case "system": return <Megaphone className="w-5 h-5 text-purple-600" />;
       default: return <Bell className="w-5 h-5 text-gray-500" />;
     }
   };
@@ -207,6 +253,7 @@ export default function NotificationArea({ isOpen, onClose }) {
                     >
                       <Card 
                         className={`relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group ${
+                          notification.is_system ? 'bg-purple-50/50 ring-1 ring-purple-100' : 
                           !notification.is_read ? 'bg-white ring-1 ring-blue-100' : 'bg-white/60'
                         }`}
                         onClick={() => handleNotificationClick(notification)}
@@ -250,7 +297,7 @@ export default function NotificationArea({ isOpen, onClose }) {
                                     className="h-6 w-6 text-blue-600"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      markAsReadMutation.mutate(notification.id);
+                                      markAsReadMutation.mutate(notification);
                                     }}
                                   >
                                     <Check className="w-3 h-3" />
