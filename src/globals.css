@@ -71,13 +71,7 @@ css
   * {
     @apply border-border;
   }
-  html, body {
+  body {
     @apply bg-background text-foreground;
-    overflow-x: hidden;
-    max-width: 100vw;
-  }
-  img, video, iframe, svg {
-    max-width: 100%;
-    height: auto;
   }
 }
