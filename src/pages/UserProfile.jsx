@@ -687,6 +687,37 @@ export default function UserProfile() {
     updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId });
   };
 
+  const handleMessageUser = async (targetEmail) => {
+    if (!currentUser || !targetEmail) return;
+    
+    try {
+      // Check existing chat
+      const existingChats = await base44.entities.ChatConversation.filter({});
+      const myChat = existingChats.find(c => 
+        c.participants?.includes(currentUser.email) && 
+        c.participants?.includes(targetEmail) &&
+        !c.booking_id // Prefer general chat
+      );
+      
+      if (myChat) {
+        navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
+      } else {
+        // Create new chat
+        const newChat = await base44.entities.ChatConversation.create({
+          participants: [currentUser.email, targetEmail],
+          tags: ['general'],
+          last_message: 'Nova conversa iniciada.',
+          last_message_date: new Date().toISOString(),
+          unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 }
+        });
+        navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
+      }
+    } catch (error) {
+      toast.error("Erro ao abrir conversa.");
+      console.error(error);
+    }
+  };
+
   const { data: followersList = [] } = useQuery({
     queryKey: ['followersList', profileEmail],
     queryFn: () => base44.entities.SocialFollow.filter({ following_email: profileEmail }),
@@ -1017,34 +1048,7 @@ export default function UserProfile() {
                           {isFollowing ? 'Seguindo' : 'Seguir'}
                         </Button>
                         <Button
-                          onClick={async () => {
-                            try {
-                              // Check existing chat
-                              const existingChats = await base44.entities.ChatConversation.filter({});
-                              const myChat = existingChats.find(c => 
-                                c.participants?.includes(currentUser.email) && 
-                                c.participants?.includes(profileEmail) &&
-                                !c.booking_id // Prefer general chat
-                              );
-                              
-                              if (myChat) {
-                                navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
-                              } else {
-                                // Create new chat
-                                const newChat = await base44.entities.ChatConversation.create({
-                                  participants: [currentUser.email, profileEmail],
-                                  tags: ['general'],
-                                  last_message: 'Nova conversa iniciada.',
-                                  last_message_date: new Date().toISOString(),
-                                  unread_counts: { [currentUser.email]: 0, [profileEmail]: 1 }
-                                });
-                                navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
-                              }
-                            } catch (error) {
-                              toast.error("Erro ao abrir conversa.");
-                              console.error(error);
-                            }
-                          }}
+                          onClick={() => handleMessageUser(profileEmail)}
                           className="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"
                           size="sm"
                         >
@@ -1136,34 +1140,7 @@ export default function UserProfile() {
                         {isFollowing ? 'Seguindo' : 'Seguir'}
                       </Button>
                       <Button
-                        onClick={async () => {
-                          try {
-                            // Check existing chat
-                            const existingChats = await base44.entities.ChatConversation.filter({});
-                            const myChat = existingChats.find(c => 
-                              c.participants?.includes(currentUser.email) && 
-                              c.participants?.includes(profileEmail) &&
-                              !c.booking_id 
-                            );
-                            
-                            if (myChat) {
-                              navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
-                            } else {
-                              // Create new chat
-                              const newChat = await base44.entities.ChatConversation.create({
-                                participants: [currentUser.email, profileEmail],
-                                tags: ['general'],
-                                last_message: 'Nova conversa iniciada.',
-                                last_message_date: new Date().toISOString(),
-                                unread_counts: { [currentUser.email]: 0, [profileEmail]: 1 }
-                              });
-                              navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
-                            }
-                          } catch (error) {
-                            toast.error("Erro ao abrir conversa.");
-                            console.error(error);
-                          }
-                        }}
+                        onClick={() => handleMessageUser(profileEmail)}
                         className="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 px-3"
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -1326,7 +1303,21 @@ export default function UserProfile() {
                       {f.follower_name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-sm text-gray-700">{f.follower_name}</span>
+                  <span className="font-medium text-sm text-gray-700 flex-1 truncate">{f.follower_name}</span>
+                  {currentUser && f.follower_email !== currentUser.email && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-blue-600 hover:bg-blue-50 rounded-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMessageUser(f.follower_email);
+                      }}
+                      title="Enviar Mensagem"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </ScrollArea>
@@ -1352,7 +1343,21 @@ export default function UserProfile() {
                       {f.following_name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-sm text-gray-700">{f.following_name}</span>
+                  <span className="font-medium text-sm text-gray-700 flex-1 truncate">{f.following_name}</span>
+                  {currentUser && f.following_email !== currentUser.email && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-blue-600 hover:bg-blue-50 rounded-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMessageUser(f.following_email);
+                      }}
+                      title="Enviar Mensagem"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </ScrollArea>
