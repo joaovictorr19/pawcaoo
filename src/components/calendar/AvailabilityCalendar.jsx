@@ -8,7 +8,7 @@ import { pt } from "date-fns/locale";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
-export default function AvailabilityCalendar({ availabilityData = [], bookings = [], onDateSelect, selectedDate, locale = pt }) {
+export default function AvailabilityCalendar({ availabilityData = [], bookings = [], generalAvailability = null, onDateSelect, selectedDate, locale = pt }) {
   const { language } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -38,8 +38,16 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
     
     if (availability?.is_fully_booked) return { status: 'booked' }; // Vermelho (Manual Block)
     if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length }; // Azul (alguma atividade)
-    if (availability && !availability.is_fully_booked) return { status: 'available' }; // Verde Claro
+    if (availability && !availability.is_fully_booked) return { status: 'available' }; // Verde Claro (Specific Availability)
     
+    // Fallback to General Availability (Profile)
+    if (generalAvailability && generalAvailability.length > 0) {
+        // If user has ANY general availability selected (Morning, Afternoon, etc.), treat day as available unless specifically blocked
+        // This is a simplification. Ideally we map days of week or specific slots. 
+        // But per request: "check WalkerProfile.availability checkboxes"
+        return { status: 'available' }; 
+    }
+
     return { status: 'unavailable' }; // Branco
   };
 

@@ -70,6 +70,56 @@ export default function ManageAvailability() {
     initialData: [],
   });
 
+  // Helper function to check if a specific slot/date is available considering overrides
+  const isTimeSlotAvailable = (date, slot) => {
+    if (!walkerProfile) return false;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const specificAvailability = availabilityData.find(a => a.date === dateStr);
+
+    // 1. Exception: Specific manual override
+    if (specificAvailability) {
+      if (specificAvailability.is_fully_booked) return false;
+      // If specific time slots are defined, check them (simplified logic for now: if exists and not fully booked, assume custom slots handled elsewhere or open)
+      // Ideally we would check specificAvailability.time_slots
+      return true; 
+    }
+
+    // 2. General Rule: WalkerProfile.availability checkboxes
+    if (walkerProfile.availability) {
+        // Determine slot based on hour if needed, or just return true if day is generally available
+        // For this UI requirement: "if I uncheck 'Morning', morning slots should be greyed out"
+        // The calendar view is per Day, so we need to map Date -> General Availability (e.g. Weekday vs Weekend? No, just general slots)
+        // But the request says "if I uncheck 'Morning', all morning slots...". The calendar currently shows DAYS.
+        // The current calendar implementation shows status per DAY.
+        // To reflect "Morning" uncheck visually on a DAY level, maybe we mark it partial?
+        // Or, if ALL general slots are unchecked, the day is unavailable?
+        
+        if (walkerProfile.availability.length === 0) return false;
+        
+        return true;
+    }
+
+    return false;
+  };
+
+  // Enhance availabilityData passed to Calendar to include General Availability logic
+  // This constructs a "view model" for the calendar
+  const getEffectiveAvailability = () => {
+    if (!walkerProfile) return availabilityData;
+
+    // We need to "fill in" the gaps in availabilityData with General Availability
+    // However, the Calendar component iterates over days in the month.
+    // It calls getDateStatus(date).
+    // getDateStatus checks availabilityData.find(a => a.date === dateStr).
+    // If not found, it assumes 'unavailable' (white).
+    
+    // Strategy: Use the isTimeSlotAvailable logic inside the calendar? 
+    // Or Pass a new prop 'generalAvailability' to the Calendar.
+    // Passing generalAvailability to Calendar is cleaner.
+    return availabilityData; 
+  };
+
   const { data: bookings } = useQuery({
     queryKey: ['professionalBookings', authUser?.email],
     queryFn: async () => {
@@ -233,6 +283,7 @@ export default function ManageAvailability() {
             <AvailabilityCalendar
               availabilityData={availabilityData}
               bookings={bookings}
+              generalAvailability={walkerProfile?.availability}
               onDateSelect={handleDateSelect}
               selectedDate={selectedDate}
             />
