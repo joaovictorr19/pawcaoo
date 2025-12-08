@@ -19,19 +19,96 @@ export default function Leaderboard() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("xp");
 
-  const { data: allProfiles, isLoading } = useQuery({
-    queryKey: ['allUserProfiles'],
-    queryFn: () => base44.entities.UserProfile.list(),
+  const { data: leaderboardData, isLoading } = useQuery({
+    queryKey: ['leaderboardData'],
+    queryFn: async () => {
+      const [profiles, points, badges, users] = await Promise.all([
+        base44.entities.UserProfile.list(),
+        base44.entities.LoyaltyPoints.list(),
+        base44.entities.UserBadge.list(),
+        base44.entities.User.list()
+      ]);
+
+      // Create a map of users by email
+      const userMap = new Map();
+      users.forEach(u => {
+        userMap.set(u.email, {
+          id: u.id,
+          email: u.email,
+          full_name: u.full_name,
+          profile_photo_url: null, // Will be updated from profile if exists
+          gamification_xp: 0,
+          gamification_level: 1,
+          badges_count: 0,
+          daily_streak: 0,
+          ...u // Keep other props
+        });
+      });
+
+      // Merge Profile Data (XP, Level, Streak)
+      profiles.forEach(p => {
+        if (userMap.has(p.user_email)) {
+          const user = userMap.get(p.user_email);
+          user.profile_photo_url = p.profile_photo_url || user.profile_photo_url;
+          user.gamification_xp = p.gamification_xp || 0;
+          user.gamification_level = p.gamification_level || 1;
+          user.daily_streak = p.daily_streak || 0;
+          user.badges_count = p.badges_count || 0;
+        } else {
+          // If user not in User list (rare), add from profile
+          userMap.set(p.user_email, {
+            id: p.id,
+            email: p.user_email,
+            full_name: p.full_name || p.user_email.split('@')[0],
+            profile_photo_url: p.profile_photo_url,
+            gamification_xp: p.gamification_xp || 0,
+            gamification_level: p.gamification_level || 1,
+            badges_count: p.badges_count || 0,
+            daily_streak: p.daily_streak || 0
+          });
+        }
+      });
+
+      // Merge Loyalty Points (Fallback for XP if 0)
+      points.forEach(pt => {
+        if (userMap.has(pt.user_email)) {
+          const user = userMap.get(pt.user_email);
+          // If XP is 0 but has points, use points as XP proxy
+          if (user.gamification_xp === 0 && pt.total_earned > 0) {
+            user.gamification_xp = pt.total_earned;
+            user.gamification_level = 1 + Math.floor(pt.total_earned / 1000);
+          }
+        }
+      });
+
+      // Merge Badges Count (Calculate real count)
+      const badgeCounts = {};
+      badges.forEach(b => {
+        badgeCounts[b.user_email] = (badgeCounts[b.user_email] || 0) + 1;
+      });
+      
+      Object.keys(badgeCounts).forEach(email => {
+        if (userMap.has(email)) {
+          const user = userMap.get(email);
+          // Use real count if greater than stored count
+          if (badgeCounts[email] > user.badges_count) {
+            user.badges_count = badgeCounts[email];
+          }
+        }
+      });
+
+      return Array.from(userMap.values());
+    },
     initialData: [],
   });
 
   // Leaderboards by category
-  const sortedByXP = [...allProfiles]
+  const sortedByXP = [...leaderboardData]
     .filter(u => (u.gamification_xp || 0) > 0)
     .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0))
     .slice(0, 50);
 
-  const sortedByLevel = [...allProfiles]
+  const sortedByLevel = [...leaderboardData]
     .filter(u => (u.gamification_level || 1) > 1)
     .sort((a, b) => 
       (b.gamification_level || 1) - (a.gamification_level || 1) ||
@@ -39,12 +116,12 @@ export default function Leaderboard() {
     )
     .slice(0, 50);
 
-  const sortedByBadges = [...allProfiles]
+  const sortedByBadges = [...leaderboardData]
     .filter(u => (u.badges_count || 0) > 0)
     .sort((a, b) => (b.badges_count || 0) - (a.badges_count || 0))
     .slice(0, 50);
 
-  const sortedByStreak = [...allProfiles]
+  const sortedByStreak = [...leaderboardData]
     .filter(u => (u.daily_streak || 0) > 0)
     .sort((a, b) => (b.daily_streak || 0) - (a.daily_streak || 0))
     .slice(0, 50);
