@@ -697,18 +697,36 @@ function LayoutContent({ children, currentPageName }) {
                 <PawCaoLogo size="small" showText={!user} />
               </a>
 
-              {user && currentPageName !== 'Home' && (
-                <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
+              {user && (
+                <div className="hidden md:flex items-center gap-4 flex-1 min-w-0">
                   <a 
                     href={createPageUrl("Home")}
-                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                    className="hover:opacity-80 transition-opacity cursor-pointer mr-2"
                     onClick={handleNavigation(createPageUrl("Home"))}
                   >
                     <PawCaoLogo size="small" showText={false} />
                   </a>
-                  <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">
-                    {currentPageName && currentPageName.replace(/([A-Z])/g, ' $1').trim()}
-                  </h1>
+                  <nav className="flex items-center gap-1">
+                    <Link 
+                      to={createPageUrl("Home")} 
+                      className="px-3 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-green-50 hover:text-green-700 transition-all"
+                    >
+                      Home
+                    </Link>
+                    <Link 
+                      to={createPageUrl("Home")} 
+                      className="px-3 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-green-50 hover:text-green-700 transition-all"
+                    >
+                      {t('findWalkers', language)}
+                    </Link>
+                    <Link 
+                      to={createPageUrl("PostEmergency")} 
+                      className="ml-2 px-4 py-2 rounded-full text-sm font-bold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 hover:text-red-700 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                      <Zap className="w-4 h-4" />
+                      {t('postEmergency', language)}
+                    </Link>
+                  </nav>
                 </div>
               )}
 
