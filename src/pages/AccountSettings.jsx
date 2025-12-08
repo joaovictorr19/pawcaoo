@@ -443,7 +443,7 @@ export default function AccountSettings() {
                           type="file"
                           accept="image/*"
                           className="hidden"
-                          onChange={handleCoverUpload}
+                          onChange={(e) => handlePhotoSelect(e, 'cover')}
                           disabled={uploadingCover}
                         />
                         <Button
