@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Upload, Save, AlertCircle, PlusCircle } from "lucide-react";
+import { ArrowLeft, Upload, Save, AlertCircle, PlusCircle, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -227,20 +227,20 @@ export default function EditWalkerProfile() {
                 <Label>Foto de Perfil</Label>
                 <div className="flex items-center gap-4">
                   {formData.photo_url ? (
-                    <div className="relative w-32 h-32 rounded-xl overflow-hidden border-4 border-green-100 group">
+                    <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-green-100 group">
                       <img
                         src={formData.photo_url}
                         alt="Preview"
-                        className="w-full h-full object-cover object-center"
+                        className="w-full h-full object-cover object-center rounded-full"
                       />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
                         <label htmlFor="photo" className="cursor-pointer">
                           <Upload className="w-6 h-6 text-white" />
                         </label>
                       </div>
                     </div>
                   ) : (
-                    <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200">
+                    <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center border-4 border-gray-200">
                       <Upload className="w-8 h-8 text-gray-400" />
                     </div>
                   )}
