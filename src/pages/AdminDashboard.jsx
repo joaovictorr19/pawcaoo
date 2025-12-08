@@ -162,6 +162,16 @@ export default function AdminDashboard() {
   const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
 
+  // Query para buscar badges do usuário selecionado no modal de edição (Source of Truth)
+  const { data: userBadgesList = [], isLoading: loadingUserBadges } = useQuery({
+    queryKey: ['adminUserBadges', selectedUserForBadges?.email],
+    queryFn: async () => {
+      if (!selectedUserForBadges?.email) return [];
+      return await base44.entities.UserBadge.filter({ user_email: selectedUserForBadges.email });
+    },
+    enabled: !!selectedUserForBadges?.email && showBadgesDialog,
+  });
+
   // Broadcast state
   const [broadcastSubject, setBroadcastSubject] = useState("");
   const [broadcastContent, setBroadcastContent] = useState("");
@@ -2801,49 +2811,85 @@ export default function AdminDashboard() {
                   </Select>
                 </div>
 
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">Badges Públicos Atuais:</h4>
-                  {selectedUserForBadges.public_badges?.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedUserForBadges.public_badges.map((badge, idx) => (
-                        <div key={idx} className="relative group">
-                          <Badge className="bg-purple-500 pr-6">
-                            {badge.icon} {badge.name}
-                          </Badge>
-                          <button
+                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <Award className="w-4 h-4 text-purple-600" />
+                      Emblemas Conquistados ({userBadgesList.length})
+                    </h4>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-xs h-8 border-purple-200 text-purple-700 hover:bg-purple-50"
+                      onClick={() => {
+                        // Abre o modal de conceder badge para este usuário
+                        setGrantBadgeTargetEmail(selectedUserForBadges.email);
+                        setShowGrantSingleBadgeModal(true);
+                      }}
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Conceder Badge
+                    </Button>
+                  </div>
+                  
+                  {loadingUserBadges ? (
+                    <div className="flex justify-center py-4"><Loader2 className="animate-spin text-gray-400" /></div>
+                  ) : userBadgesList.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                      {userBadgesList.map((badge) => (
+                        <div key={badge.id} className="flex items-center justify-between p-2 border border-gray-100 rounded-lg bg-gray-50 hover:bg-white hover:shadow-sm transition-all group">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-8 h-8 flex-shrink-0 bg-white rounded border flex items-center justify-center text-lg shadow-sm">
+                              {badge.image_png_file || badge.image_url ? (
+                                <img src={badge.image_png_file || badge.image_url} className="w-full h-full object-cover rounded" />
+                              ) : badge.icon}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm text-gray-900 truncate">{badge.name}</p>
+                              <p className="text-[10px] text-gray-500 flex items-center gap-1">
+                                {format(new Date(badge.earned_date || badge.created_date), 'dd/MM/yyyy')}
+                                {badge.xp > 0 && <span className="text-green-600 font-medium">+{badge.xp} XP</span>}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
+                            title="Remover Emblema"
                             onClick={() => {
-                              if (confirm(`Remover emblema "${badge.name}" de ${selectedUserForBadges.full_name}?`)) {
+                              if (confirm(`Remover emblema "${badge.name}" de ${selectedUserForBadges.full_name}?\nIsto removerá o XP associado também.`)) {
                                 removeBadgeFromUserMutation.mutate({
                                   userId: selectedUserForBadges.id,
                                   badgeId: badge.badge_id,
+                                  badgeRecordId: badge.id, // ID da tabela UserBadge
                                   badgeXP: badge.xp
                                 });
                               }
                             }}
-                            className="absolute top-0 right-0 bottom-0 px-1.5 flex items-center justify-center bg-red-500 text-white text-xs rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Remover Emblema"
                           >
-                            <X className="w-3 h-3" />
-                          </button>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600">Nenhum badge customizado</p>
+                    <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                      <p className="text-sm text-gray-500">Nenhum badge concedido ainda.</p>
+                    </div>
                   )}
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowBadgesDialog(false)}>
-                Cancelar
+            <DialogFooter className="flex justify-between sm:justify-end gap-2">
+              <Button variant="ghost" onClick={() => setShowBadgesDialog(false)}>
+                Fechar
               </Button>
               <Button
                 onClick={handleSaveBadges}
                 disabled={updateUserMutation.isPending}
-                className="bg-purple-600"
+                className="bg-purple-600 hover:bg-purple-700"
               >
-                Guardar
+                Salvar Alterações Gerais
               </Button>
             </DialogFooter>
           </DialogContent>
