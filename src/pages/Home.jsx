@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
+import ReviewModal from "../components/reviews/ReviewModal";
+import { LEVEL_THRESHOLDS } from "../components/gamification/gamificationRules";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
 import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters";
@@ -97,24 +99,47 @@ export default function Home() {
     retry: false,
   });
 
-  const { data: upcomingWalk } = useQuery({
-    queryKey: ['nextWalk', user?.email],
+  const [reviewBooking, setReviewBooking] = useState(null);
+
+  const { data: activeBookings = [] } = useQuery({
+    queryKey: ['activeBookings', user?.email],
     queryFn: async () => {
-      if (!user?.email) return null;
+      if (!user?.email) return [];
       try {
-        const bookings = await base44.entities.Booking.filter({
+        const res = await base44.entities.Booking.filter({
           created_by: user.email,
-          status: 'confirmed',
-          walk_date: { '$gte': new Date().toISOString().split('T')[0] }
-        }, 'walk_date', 1);
-        return Array.isArray(bookings) ? bookings[0] : null;
+          status: { '$in': ['confirmed', 'in_progress', 'completed'] }
+        }, '-walk_date', 20);
+        return Array.isArray(res) ? res : [];
       } catch (error) {
-        console.error("Upcoming walk fetch error:", error);
-        return null;
+        console.error("Active bookings fetch error:", error);
+        return [];
       }
     },
     enabled: !!user?.email,
   });
+
+  const getLevelInfo = (xp = 0) => {
+      return LEVEL_THRESHOLDS.slice().reverse().find(t => xp >= t.min) || LEVEL_THRESHOLDS[0];
+  };
+
+  const priorityData = React.useMemo(() => {
+      const live = activeBookings.find(b => b.status === 'in_progress');
+      if (live) return { type: 'live', booking: live };
+
+      const reviewPending = activeBookings.find(b => b.status === 'completed' && !b.review_id);
+      if (reviewPending) return { type: 'review', booking: reviewPending };
+
+      // Find next confirmed (closest date)
+      const upcoming = activeBookings
+          .filter(b => b.status === 'confirmed')
+          .sort((a, b) => new Date(a.walk_date + 'T' + a.walk_time) - new Date(b.walk_date + 'T' + b.walk_time))
+          .find(b => new Date(b.walk_date) >= new Date().setHours(0,0,0,0));
+      
+      if (upcoming) return { type: 'next', booking: upcoming };
+
+      return null;
+  }, [activeBookings]);
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
@@ -518,97 +543,232 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
-            <div className="grid md:grid-cols-2 gap-8 items-center relative z-20">
-              <div className="text-white">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                    <PawCaoLogo size="small" showText={false} />
-                  </div>
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
-                    Área do Cliente
+            <div className="relative z-20">
+              {/* Header Mobile Clean */}
+              <div className="md:hidden flex items-center gap-3 mb-6 text-white">
+                <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                  <PawCaoLogo size="small" showText={false} />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-extrabold leading-tight">Olá, {user.full_name?.split(' ')[0]}!</h1>
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 text-[10px]">
+                    {getLevelInfo(user.gamification_xp).title} • {user.gamification_xp || 0} XP
                   </Badge>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
-                  Olá, {user.full_name?.split(' ')[0]}! 👋
-                </h1>
-                <p className="text-green-50 text-lg mb-8 max-w-md">
-                  O que o seu pet precisa hoje? Estamos aqui para ajudar com passeios, companhia ou emergências.
-                </p>
-                
-                {upcomingWalk ? (
-                  <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-4 max-w-md mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-green-500 p-3 rounded-xl shadow-lg">
-                        <Calendar className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-green-100 font-medium uppercase tracking-wide">Próximo Passeio</p>
-                        <h3 className="font-bold text-lg">{upcomingWalk.walk_date} às {upcomingWalk.walk_time}</h3>
-                        <p className="text-sm text-green-50">com {upcomingWalk.walker_name}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ) : (
-                  <div className="flex flex-wrap gap-3 mb-8">
-                    <Button 
-                      onClick={() => setActiveTab('walkers')} 
-                      className="bg-white text-green-700 hover:bg-green-50 border-0 font-bold"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      {t('findWalkerBtn', language)}
-                    </Button>
-                    <Button 
-                      onClick={() => navigate(createPageUrl('OwnerDashboard'))} 
-                      variant="outline" 
-                      className="border-white text-white bg-transparent hover:bg-white/10 hover:text-white"
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      {t('myDashboard', language)}
-                    </Button>
-                  </div>
-                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => setActiveTab('walkers')}>
-                  <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
-                    <div className="bg-green-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-green-600 transition-colors">
-                      <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+              {/* Grid Layout 1x3 (Desktop) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                
+                {/* 1. Widget de Gamificação (Esquerda) */}
+                <div className="hidden md:flex flex-col justify-between h-full text-white">
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                        <PawCaoLogo size="small" showText={false} />
+                      </div>
+                      <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
+                        Área do Cliente
+                      </Badge>
                     </div>
-                    <h2 className="font-bold text-gray-900 text-lg mb-1">{t('findWalkers', language)}</h2>
-                    <p className="text-sm text-gray-500">{t('homeSubtitle', language)}</p>
-                  </Card>
-                </motion.div>
+                    <h1 className="text-4xl font-extrabold mb-2 leading-tight">
+                      Olá, {user.full_name?.split(' ')[0]}! 👋
+                    </h1>
+                    <p className="text-green-50 text-lg mb-6">
+                      Seu centro de comando pet.
+                    </p>
+                  </div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => navigate(createPageUrl('AdoptionListings'))}>
-                  <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
-                    <div className="bg-pink-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-pink-600 transition-colors">
-                      <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
+                  <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-5 mt-auto">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-xs text-green-200 uppercase font-bold tracking-wider">Nível Atual</p>
+                        <h3 className="text-2xl font-bold text-yellow-300 flex items-center gap-2">
+                          <Award className="w-6 h-6" />
+                          {getLevelInfo(user.gamification_xp).title}
+                        </h3>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-mono font-bold">{user.gamification_xp || 0}</p>
+                        <p className="text-xs text-green-200">Total XP</p>
+                      </div>
                     </div>
-                    <h2 className="font-bold text-gray-900 text-lg mb-1">{t('adoptAPet', language)}</h2>
-                    <p className="text-sm text-gray-500">{t('helpFindHome', language)}</p>
-                  </Card>
-                </motion.div>
+                    
+                    <div className="h-2 bg-black/20 rounded-full overflow-hidden mb-4">
+                      <div 
+                        className="h-full bg-gradient-to-r from-yellow-400 to-orange-500" 
+                        style={{ width: `${Math.min(((user.gamification_xp || 0) / 7500) * 100, 100)}%` }}
+                      />
+                    </div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => setActiveTab('emergency')}>
-                  <Card className="h-full bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all p-5 group">
-                    <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-600 transition-colors">
-                      <Zap className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
-                    </div>
-                    <h2 className="font-bold text-gray-900 text-lg mb-1">{t('emergency', language)}</h2>
-                    <p className="text-sm text-gray-500">{t('dogsNeedingHelp', language)}</p>
+                    {user.achievements_badges && user.achievements_badges.length > 0 && (
+                      <div className="flex gap-2 mt-2 overflow-x-auto pb-2">
+                        {user.achievements_badges.slice(0, 3).map((badge, i) => (
+                          <TooltipProvider key={i}>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-lg border border-white/10 shadow-sm cursor-default">
+                                  {badge.icon || '🏅'}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent><p>{badge.name}</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                      </div>
+                    )}
                   </Card>
-                </motion.div>
+                </div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => navigate(createPageUrl('OwnerDashboard'))}>
-                  <Card className="h-full bg-gradient-to-br from-blue-500 to-indigo-600 border-0 shadow-xl hover:shadow-2xl transition-all p-5 text-white">
-                    <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
-                      <TrendingUp className="w-6 h-6 text-white" />
-                    </div>
-                    <h2 className="font-bold text-white text-lg mb-1">{t('myDashboard', language)}</h2>
-                    <p className="text-sm text-blue-100">{t('yourCompleteDashboard', language)}</p>
-                  </Card>
-                </motion.div>
+                {/* 2. Painel de Status Dinâmico (Centro) */}
+                <div className="flex flex-col justify-center">
+                  {priorityData ? (
+                    <motion.div 
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring" }}
+                    >
+                      {/* CASO A: Live Walk */}
+                      {priorityData.type === 'live' && (
+                        <Card className="bg-red-600/90 border-red-400/50 backdrop-blur-md text-white p-6 shadow-[0_0_30px_rgba(220,38,38,0.4)] relative overflow-hidden">
+                          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-20 animate-pulse"></div>
+                          <div className="relative z-10 text-center">
+                            <div className="inline-flex items-center gap-2 bg-black/30 px-3 py-1 rounded-full text-xs font-bold mb-4 animate-bounce">
+                              <div className="w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
+                              AO VIVO AGORA
+                            </div>
+                            <h3 className="text-2xl font-bold mb-2">Passeio em Andamento!</h3>
+                            <p className="text-red-100 mb-6 text-sm">
+                              {priorityData.booking.walker_name} está a passear o {priorityData.booking.dog_name}.
+                            </p>
+                            <Button 
+                              onClick={() => navigate(`/walk/live/${priorityData.booking.id}`)}
+                              className="w-full bg-white text-red-600 hover:bg-red-50 font-bold h-12 text-lg shadow-lg"
+                            >
+                              <PlayCircle className="w-5 h-5 mr-2" />
+                              ACOMPANHAR NO MAPA
+                            </Button>
+                          </div>
+                        </Card>
+                      )}
+
+                      {/* CASO B: Review Pendente */}
+                      {priorityData.type === 'review' && (
+                        <Card className="bg-orange-500/90 border-orange-300/50 backdrop-blur-md text-white p-6 shadow-xl relative overflow-hidden">
+                          <div className="relative z-10 text-center">
+                            <div className="mx-auto bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                              <StarHalf className="w-6 h-6 text-yellow-300" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-1">Passeio Concluído!</h3>
+                            <p className="text-orange-100 mb-4 text-sm">
+                              Como foi a experiência com {priorityData.booking.walker_name}?
+                            </p>
+                            <Button 
+                              onClick={() => setReviewBooking(priorityData.booking)}
+                              className="w-full bg-white text-orange-600 hover:bg-orange-50 font-bold h-10 shadow-md"
+                            >
+                              <Star className="w-4 h-4 mr-2" />
+                              Avaliar e Ganhar +50 XP
+                            </Button>
+                          </div>
+                        </Card>
+                      )}
+
+                      {/* CASO C: Próximo Evento */}
+                      {priorityData.type === 'next' && (
+                        <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-6 shadow-xl">
+                          <div className="flex items-start gap-4">
+                            <div className="bg-green-500 p-3 rounded-xl shadow-lg shrink-0">
+                              <Calendar className="w-8 h-8 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-green-200 font-bold uppercase tracking-wide mb-1">Próximo Agendamento</p>
+                              <h3 className="font-bold text-xl leading-tight mb-1">
+                                {priorityData.booking.walk_date} às {priorityData.booking.walk_time}
+                              </h3>
+                              <p className="text-sm text-green-100 mb-3">
+                                com {priorityData.booking.walker_name}
+                              </p>
+                              {priorityData.booking.pickup_address && (
+                                <div className="flex items-center gap-2 text-xs bg-black/20 p-2 rounded-lg">
+                                  <MapPin className="w-3 h-3 text-green-300" />
+                                  <span className="truncate max-w-[180px]">{priorityData.booking.pickup_address}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      )}
+                    </motion.div>
+                  ) : (
+                    // Fallback se não houver nada urgente
+                    <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-6 text-center">
+                      <div className="mb-4 bg-white/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                        <Search className="w-8 h-8 text-white/80" />
+                      </div>
+                      <h3 className="font-bold text-lg mb-2">Vamos agendar algo?</h3>
+                      <p className="text-sm text-white/70 mb-4">Seu pet merece um passeio hoje!</p>
+                      <Button 
+                        onClick={() => {
+                          setActiveTab('walkers');
+                          document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full bg-green-600 hover:bg-green-700 border-0"
+                      >
+                        Encontrar Passeador
+                      </Button>
+                    </Card>
+                  )}
+                </div>
+
+                {/* 3. Ações Rápidas (Direita) */}
+                <div className="flex flex-col gap-4 justify-center">
+                  <motion.div whileHover={{ scale: 1.02 }} onClick={() => {
+                    setActiveTab('walkers');
+                    document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }} className="cursor-pointer">
+                    <Card className="bg-white/90 hover:bg-white backdrop-blur-md border-0 p-4 shadow-lg group transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-green-100 p-3 rounded-xl group-hover:bg-green-600 transition-colors">
+                          <Search className="w-6 h-6 text-green-600 group-hover:text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900">{t('findWalkers', language)}</h3>
+                          <p className="text-xs text-gray-500">Buscar profissionais perto de si</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('Notifications'))} className="cursor-pointer">
+                    <Card className="bg-white/90 hover:bg-white backdrop-blur-md border-0 p-4 shadow-lg group transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-blue-100 p-3 rounded-xl group-hover:bg-blue-600 transition-colors">
+                          <MessageCircle className="w-6 h-6 text-blue-600 group-hover:text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900">Mensagens & Suporte</h3>
+                          <p className="text-xs text-gray-500">Fale com passeadores ou suporte</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('OwnerDashboard'))} className="cursor-pointer">
+                    <Card className="bg-gradient-to-r from-indigo-600 to-blue-600 border-0 p-4 shadow-lg text-white">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-white/20 p-3 rounded-xl">
+                          <TrendingUp className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-white">Dashboard Completo</h3>
+                          <p className="text-xs text-blue-100">Ver estatísticas e histórico</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                </div>
+
               </div>
             </div>
           ) : (
@@ -715,6 +875,15 @@ export default function Home() {
 
       {/* Testimonials Section */}
       {!user && <TestimonialsSection />}
+
+      {/* Modal de Avaliação */}
+      {reviewBooking && (
+        <ReviewModal 
+          booking={reviewBooking} 
+          isOpen={!!reviewBooking} 
+          onClose={() => setReviewBooking(null)} 
+        />
+      )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
         <div className="flex justify-between items-center mb-4">
