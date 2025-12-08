@@ -200,12 +200,12 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
-    ...(user?.account_type === 'walker' || user?.account_type === 'trainer' || user?.account_type === 'both' ? [
+    ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
       { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
     ] : [])
   ];
 
-  const adminMenu = user?.role === 'admin' ? [
+  const adminMenu = authUser?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: language === 'pt' ? 'Verificar Passeadores' : 'Verify Walkers', url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
     { title: language === 'pt' ? 'Aprovar Anúncios' : language === 'es' ? 'Aprobar Anuncios' : 'Approve Ads', url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
@@ -216,17 +216,17 @@ function LayoutContent({ children, currentPageName }) {
     { title: language === 'pt' ? 'Moderação' : language === 'es' ? 'Moderación' : 'Moderation', url: createPageUrl("ModerationPanel"), icon: Shield }
   ] : [];
 
-  const companyMenu = user?.account_type === 'company' ? [
+  const companyMenu = authUser?.account_type === 'company' ? [
     { title: language === 'pt' ? 'Minha Empresa' : 'My Company', url: createPageUrl("PartnerDashboard"), icon: Store },
-    ...(user?.company_type === 'veterinary' ? [{ title: language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard', url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
+    ...(authUser?.company_type === 'veterinary' ? [{ title: language === 'pt' ? 'Painel Veterinário' : 'Vet Dashboard', url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
   ] : [];
 
   // Award welcome badge on mount if user doesn't have it
   React.useEffect(() => {
     const awardWelcomeBadge = async () => {
-      if (!user?.email) return;
+      if (!authUser?.email) return;
       
-      const badges = user.achievements_badges || [];
+      const badges = authUser.achievements_badges || [];
       const hasWelcomeBadge = badges.some(b => b.badge_id === 'welcome');
       
       if (!hasWelcomeBadge) {
@@ -243,7 +243,7 @@ function LayoutContent({ children, currentPageName }) {
           
           await base44.auth.updateMe({
             achievements_badges: [...badges, newBadge],
-            gamification_xp: (user.gamification_xp || 0) + 50
+            gamification_xp: (authUser.gamification_xp || 0) + 50
           });
           
           queryClient.invalidateQueries(['currentUser']);
@@ -255,18 +255,18 @@ function LayoutContent({ children, currentPageName }) {
     };
     
     // Delay to ensure user data is loaded and badges are initialized
-    if (user?.email && user.achievements_badges !== undefined) {
+    if (authUser?.email && authUser.achievements_badges !== undefined) {
       awardWelcomeBadge();
     }
-  }, [user?.email, user?.achievements_badges, language, queryClient]);
+  }, [authUser?.email, authUser?.achievements_badges, language, queryClient]);
 
   // Ensure Dog Connect profile and UserProfile entity for every user
   React.useEffect(() => {
     const setupProfiles = async () => {
-      if (!user?.email) return;
+      if (!authUser?.email) return;
 
       // 1. Setup Dog Connect Stats on User Object (Auth)
-      if (user.profile_stats === undefined || user.profile_stats === null) {
+      if (authUser.profile_stats === undefined || authUser.profile_stats === null) {
         try {
           await base44.auth.updateMe({
             profile_stats: {
@@ -295,24 +295,24 @@ function LayoutContent({ children, currentPageName }) {
 
       // 2. Ensure UserProfile Entity exists (for public access)
       try {
-        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        const profiles = await base44.entities.UserProfile.filter({ user_email: authUser.email });
         if (!profiles || profiles.length === 0) {
           console.log("Creating missing UserProfile entity...");
           await base44.entities.UserProfile.create({
-            user_email: user.email,
-            user_id: user.id,
-            username: user.username, // might be undefined, allowed if optional or handled
-            full_name: user.full_name || 'Utilizador',
-            profile_photo_url: user.profile_photo_url,
-            cover_photo_url: user.cover_photo_url,
-            bio: user.bio || '',
-            city: user.city || '',
-            role: user.role || 'user',
-            gamification_xp: user.gamification_xp || 0,
-            gamification_level: user.gamification_level || 1,
+            user_email: authUser.email,
+            user_id: authUser.id,
+            username: authUser.username, // might be undefined, allowed if optional or handled
+            full_name: authUser.full_name || 'Utilizador',
+            profile_photo_url: authUser.profile_photo_url,
+            cover_photo_url: authUser.cover_photo_url,
+            bio: authUser.bio || '',
+            city: authUser.city || '',
+            role: authUser.role || 'user',
+            gamification_xp: authUser.gamification_xp || 0,
+            gamification_level: authUser.gamification_level || 1,
             followers_count: 0,
             following_count: 0,
-            is_verified: user.is_verified || false
+            is_verified: authUser.is_verified || false
           });
         }
       } catch (err) {
@@ -321,7 +321,7 @@ function LayoutContent({ children, currentPageName }) {
     };
 
     setupProfiles();
-  }, [user?.email, queryClient]);
+  }, [authUser?.email, queryClient]);
 
 
   const languageFlags = {
