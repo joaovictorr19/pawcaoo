@@ -863,7 +863,7 @@ export default function ProfessionalDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {allBookings.map((booking) => (
-                     <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 gap-3">
+                     <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white/90 backdrop-blur-md rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-all gap-3">
                        <div className="flex-1">
                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                            <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
@@ -879,6 +879,12 @@ export default function ProfessionalDashboard() {
                          <p className="text-sm text-gray-500">
                            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time}
                          </p>
+                         {booking.pickup_address && (
+                           <p className="text-sm text-gray-600 flex items-center gap-1 mt-1 font-medium">
+                             <MapPin className="w-3.5 h-3.5 text-purple-500" /> 
+                             {booking.pickup_address}
+                           </p>
+                         )}
                          <p className="text-xl md:text-2xl font-bold text-green-600 mt-2 md:hidden">€{booking.service_amount}</p>
                        </div>
                        <div className="md:text-right">
@@ -907,17 +913,32 @@ export default function ProfessionalDashboard() {
                               </div>
                             )}
 
-                            {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
+                            {booking.status === 'confirmed' && (
                                 <div className="flex flex-col gap-1 mb-2">
                                     <Button 
-                                      className="w-full bg-purple-600 hover:bg-purple-700 animate-pulse font-bold h-10 shadow-md"
-                                      onClick={() => navigate(createPageUrl('WalkerTrack') + '?booking_id=' + booking.id)}
+                                      className="w-full bg-purple-600 hover:bg-purple-700 font-bold h-10 shadow-md transition-all hover:scale-[1.02]"
+                                      onClick={() => navigate(`/walk/track/${booking.id}`)}
                                     >
                                       <MapPin className="w-4 h-4 mr-2" />
-                                      {booking.status === 'in_progress' ? 'VOLTAR AO PASSEIO' : 'INICIAR PASSEIO & CHAT'}
+                                      INICIAR PASSEIO & CHAT
                                     </Button>
                                     <div className="text-[10px] text-center text-gray-500 mb-1">
                                       * Isto abrirá o mapa e avisará o cliente.
+                                    </div>
+                                </div>
+                            )}
+
+                            {booking.status === 'in_progress' && (
+                                <div className="flex flex-col gap-1 mb-2">
+                                    <Button 
+                                      className="w-full bg-red-600 hover:bg-red-700 animate-pulse font-bold h-10 shadow-md"
+                                      onClick={() => navigate(`/walk/track/${booking.id}`)}
+                                    >
+                                      <MapPin className="w-4 h-4 mr-2" />
+                                      VOLTAR AO PASSEIO
+                                    </Button>
+                                    <div className="text-[10px] text-center text-gray-500 mb-1">
+                                      * Passeio em andamento
                                     </div>
                                 </div>
                             )}
