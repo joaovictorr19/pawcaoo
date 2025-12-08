@@ -832,6 +832,7 @@ export default function AccountSettings() {
             )}
           </div>
         </div>
+      </div>
         {/* ImageCropModal removed */}
       </div>
     </div>
