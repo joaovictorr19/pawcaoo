@@ -125,6 +125,17 @@ export default function MyBookings() {
   // Merge and Normalize Data
   const allBookings = useMemo(() => {
     const walks = [...ownerWalks, ...walkerWalks].map(b => ({ ...b, type: 'walk', date: b.walk_date, time: b.walk_time }));
+    // Enrich bookings with walker_whatsapp_number if available (this assumes the backend populates it or we need to fetch it)
+    // Since we can't easily join here without complex logic, we'll rely on the booking entity having it or fetching it on demand.
+    // However, the user asked to show it WHEN accepted.
+    // The booking entity in snapshot doesn't have whatsapp_number explicitly, but maybe `walker_payment_contact`.
+    // Let's assume we might need to use `walker_payment_contact` or we need to fetch profile.
+    // For simplicity and performance, I'll assume for now that `walker_payment_contact` might hold this info or we add a small lookup in the card.
+    // Actually, let's try to use `walker_payment_contact` if it matches phone format, or check if we can get it.
+    // But the cleanest way is if the backend booking creation copied it.
+    // Given I can't change backend logic easily to copy it on creation for existing bookings,
+    // I will implement a lightweight fetch in BookingCard for the contact info if confirmed.
+
     const trainings = [...ownerTrainings, ...trainerTrainings].map(t => ({ ...t, type: 'training', date: t.session_date, time: t.session_time }));
     
     // Remove duplicates if any (e.g. if I book myself, unlikely but possible)
@@ -467,6 +478,21 @@ export default function MyBookings() {
     const professionalName = booking.type === 'walk' ? booking.walker_name : booking.trainer_name;
     const hasReview = myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
 
+    // Fetch professional contact if confirmed (Client View Only)
+    const { data: professionalContact } = useQuery({
+      queryKey: ['profContact', booking.walker_id || booking.trainer_id],
+      queryFn: async () => {
+        if (isProfessional || (booking.status !== 'confirmed' && booking.status !== 'in_progress')) return null;
+        if (booking.type === 'walk' && booking.walker_id) {
+           const w = await base44.entities.WalkerProfile.get(booking.walker_id);
+           return w?.whatsapp_number;
+        }
+        // Trainer logic if needed
+        return null;
+      },
+      enabled: !isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress')
+    });
+
     return (
       <Card className="border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
         <div className="p-4 flex flex-col gap-3">
@@ -528,6 +554,19 @@ export default function MyBookings() {
               >
                 <Star className="w-3.5 h-3.5 mr-1.5" />
                 Avaliar
+              </Button>
+            )}
+
+            {/* Contact for Confirmed/InProgress Bookings */}
+            {professionalContact && (
+              <Button 
+                size="sm" 
+                variant="ghost"
+                className="h-8 w-8 p-0 text-green-600 hover:bg-green-50"
+                onClick={() => window.open(`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`, '_blank')}
+                title="WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4" />
               </Button>
             )}
 

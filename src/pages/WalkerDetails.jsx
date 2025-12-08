@@ -532,16 +532,7 @@ export default function WalkerDetails() {
                     {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
                   </Button>
 
-                  {walker.whatsapp_number && (
-                    <Button
-                      variant="outline"
-                      className="h-11 px-6 border-green-200 text-green-700 hover:bg-green-50"
-                      onClick={() => window.open(`https://wa.me/${walker.whatsapp_number.replace(/[^0-9]/g, '')}`, '_blank')}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      WhatsApp
-                    </Button>
-                  )}
+
 
 
                   
