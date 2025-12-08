@@ -601,9 +601,9 @@ export default function Home() {
                       />
                     </div>
 
-                    {user.achievements_badges && user.achievements_badges.length > 0 && (
+                    {(user.achievements_badges || user.public_badges) && (user.achievements_badges || user.public_badges).length > 0 && (
                       <div className="flex gap-2 mt-2 overflow-x-auto pb-2">
-                        {user.achievements_badges.slice(0, 3).map((badge, i) => (
+                        {(user.achievements_badges || user.public_badges).slice(0, 3).map((badge, i) => (
                           <TooltipProvider key={i}>
                             <Tooltip>
                               <TooltipTrigger>
@@ -646,7 +646,7 @@ export default function Home() {
                               className="w-full bg-white text-red-600 hover:bg-red-50 font-bold h-12 text-lg shadow-lg"
                             >
                               <PlayCircle className="w-5 h-5 mr-2" />
-                              ACOMPANHAR NO MAPA
+                              Acompanhar ao Vivo
                             </Button>
                           </div>
                         </Card>
@@ -668,7 +668,7 @@ export default function Home() {
                               className="w-full bg-white text-orange-600 hover:bg-orange-50 font-bold h-10 shadow-md"
                             >
                               <Star className="w-4 h-4 mr-2" />
-                              Avaliar e Ganhar +50 XP
+                              Deixar Review
                             </Button>
                           </div>
                         </Card>

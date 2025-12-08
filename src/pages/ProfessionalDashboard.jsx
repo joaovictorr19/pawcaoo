@@ -33,6 +33,7 @@ import { useCreateNotification } from "../components/NotificationService";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
+import VerificationBanner from "../components/professionals/VerificationBanner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -602,6 +603,9 @@ export default function ProfessionalDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         <ErrorBoundary>
+        {/* Verification Banner */}
+        <VerificationBanner profile={profile} type={walkerProfile ? 'walker' : 'trainer'} />
+
         {/* Header */}
         <div className="mb-4 md:mb-6">
           <div className="mb-4">
