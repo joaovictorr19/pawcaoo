@@ -54,6 +54,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
+import AdminUserTable from "../components/admin/AdminUserTable";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -68,8 +69,7 @@ export default function AdminDashboard() {
     return "overview";
   };
   const [activeTab, setActiveTab] = useState(getInitialTab());
-  // Substituindo busca simples por estado avançado
-  const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
+  // userSearchState movido para AdminUserTable
 
   const [isSyncingProfiles, setIsSyncingProfiles] = useState(false);
 
@@ -174,65 +174,7 @@ export default function AdminDashboard() {
     initialData: [],
   });
 
-  // Filtered Users Memo - Moved here to avoid ReferenceError (Temporal Dead Zone)
-  const filteredUsers = useMemo(() => {
-    if (!allUsers) return [];
-    return allUsers.filter(u => {
-      const { searchTerm, filters } = userSearchState;
-      const searchLower = searchTerm?.toLowerCase() || "";
-      
-      // Filtro de Busca
-      const matchesSearch = !searchLower || 
-        u.email?.toLowerCase().includes(searchLower) ||
-        u.full_name?.toLowerCase().includes(searchLower);
-      
-      if (!matchesSearch) return false;
-
-      // Filtros Avançados
-      if (filters) {
-        // Tipo de Conta
-        if (filters.accountType && filters.accountType !== 'all') {
-          if (u.account_type !== filters.accountType) return false;
-        }
-
-        // Verificação
-        if (filters.verification && filters.verification !== 'all') {
-          const isVerified = u.is_verified;
-          if (filters.verification === 'verified' && !isVerified) return false;
-          if (filters.verification === 'unverified' && isVerified) return false;
-        }
-
-        // Status
-        if (filters.status && filters.status !== 'all') {
-          const hasBadges = u.public_badges?.length > 0;
-          if (filters.status === 'active' && !hasBadges) return false; 
-        }
-
-        // Data de Registro
-        if (filters.dateRange && filters.dateRange !== 'all') {
-          const createdDate = new Date(u.created_date);
-          const now = new Date();
-          const diffTime = Math.abs(now - createdDate);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-          if (filters.dateRange === 'today' && diffDays > 1) return false;
-          if (filters.dateRange === 'week' && diffDays > 7) return false;
-          if (filters.dateRange === 'month' && diffDays > 30) return false;
-        }
-
-        // Skills Filter
-        if (filters.skills) {
-          const skillSearch = filters.skills.toLowerCase();
-          const userSkills = u.skills || [];
-          const skillsArray = Array.isArray(userSkills) ? userSkills : (typeof userSkills === 'string' ? userSkills.split(',') : []);
-          const hasSkill = skillsArray.some(s => s.toLowerCase().includes(skillSearch));
-          if (!hasSkill) return false;
-        }
-      }
-
-      return true;
-    });
-  }, [allUsers, userSearchState]);
+  // Lógica de filtragem movida para AdminUserTable
 
   // Fetch ALL profiles to ensure we don't miss any pending ones due to exact filter matching
   const { data: allWalkers = [] } = useQuery({
@@ -1081,124 +1023,15 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users">
-            <Card className="border-0 shadow-xl mt-6">
-              <CardHeader>
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                  <CardTitle className="text-2xl">{t('accountManagement', language)}</CardTitle>
-                  
-                  <div className="flex gap-2 items-center w-full md:w-auto">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleSyncUserProfiles} 
-                      disabled={isSyncingProfiles}
-                      size="icon"
-                      title="Sincronizar Perfis Públicos"
-                    >
-                      {isSyncingProfiles ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <div className="w-full md:w-auto min-w-[400px]">
-                      <UserSearchAdvanced 
-                        onSearch={setUserSearchState} 
-                        usersSource={allUsers}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingAllUsers && allUsers.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-                    {t('loading', language)}
-                  </div>
-                ) : (
-                  <>
-                <div className="md:hidden space-y-4">
-                  {filteredUsers.map(user => (
-                    <Card key={user.id} className="p-4 border border-gray-200">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="font-bold text-sm">{user.full_name || 'N/A'}</div>
-                          <div className="text-xs text-gray-500 truncate max-w-[200px]">{user.email}</div>
-                        </div>
-                        <Badge variant="outline" className="capitalize text-xs">
-                          {user.account_type || 'owner'}
-                        </Badge>
-                      </div>
-                      <div className="flex gap-2 mb-3 flex-wrap">
-                        <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-xs`}>
-                          {user.role === 'admin' ? 'Admin' : 'User'}
-                        </Badge>
-                        {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 text-xs">{t('verified', language)}</Badge>}
-                      </div>
-                      <div className="flex gap-2 justify-end">
-                        <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0"><Eye className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="outline" onClick={() => handleEditUser(user)} className="h-8 w-8 p-0"><Edit className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="default" className="bg-purple-600 hover:bg-purple-700 h-8 w-8 p-0" onClick={() => openGrantBadgeDialog(user.email)}>🎖️</Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user)} className="text-red-600 border-red-200 h-8 w-8 p-0"><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="hidden md:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t('email', language)}</TableHead>
-                        <TableHead>{t('fullName', language)}</TableHead>
-                        <TableHead>{t('accountType', language)}</TableHead>
-                        <TableHead>{t('status', language)}</TableHead>
-                        <TableHead>{t('actions', language)}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.map(user => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.email}</TableCell>
-                          <TableCell>{user.full_name || 'N/A'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                              {user.account_type || 'owner'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1 flex-wrap">
-                              <Badge className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}>
-                                {user.role === 'admin' ? 'Admin' : 'User'}
-                              </Badge>
-                              {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600">{t('verified', language)}</Badge>}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title={t('viewPublicProfile', language)}>
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="default" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => openGrantBadgeDialog(user.email)}>
-                                🎖️ {t('grantBadge', language)}
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user)} className="text-red-600 border-red-200">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <AdminUserTable 
+              users={allUsers}
+              isLoading={loadingAllUsers}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              onGrantBadge={(email) => openGrantBadgeDialog(email)}
+              onSyncProfiles={handleSyncUserProfiles}
+              isSyncing={isSyncingProfiles}
+            />
           </TabsContent>
 
           <TabsContent value="active_walkers">
