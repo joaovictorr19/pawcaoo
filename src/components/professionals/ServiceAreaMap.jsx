@@ -13,13 +13,52 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-function MapUpdater({ center }) {
+function MapUpdater({ center, areas, mainLocation }) {
   const map = useMap();
   useEffect(() => {
-    if (center) {
+    if (!map) return;
+
+    // Create bounds
+    const bounds = L.latLngBounds([]);
+    let hasPoints = false;
+
+    // Add main location to bounds
+    if (mainLocation && mainLocation[0] && mainLocation[1]) {
+      bounds.extend(mainLocation);
+      hasPoints = true;
+    }
+
+    // Add service areas to bounds
+    if (areas && areas.length > 0) {
+      areas.forEach(area => {
+        const lat = area.latitude || (mainLocation && mainLocation[0]);
+        const lng = area.longitude || (mainLocation && mainLocation[1]);
+        
+        if (lat && lng) {
+          // Extend by the center
+          bounds.extend([lat, lng]);
+          
+          // Estimate bounds of the circle (approximate)
+          // 1 degree lat is ~111km. 
+          // area.radius_km 
+          // Simple bounding box extension
+          if (area.radius_km) {
+             const latOffset = area.radius_km / 111;
+             const lngOffset = area.radius_km / (111 * Math.cos(lat * (Math.PI / 180)));
+             bounds.extend([lat + latOffset, lng + lngOffset]);
+             bounds.extend([lat - latOffset, lng - lngOffset]);
+          }
+          hasPoints = true;
+        }
+      });
+    }
+
+    if (hasPoints && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+    } else if (center) {
       map.setView(center, 12);
     }
-  }, [center, map]);
+  }, [center, map, areas, mainLocation]);
   return null;
 }
 
@@ -47,7 +86,11 @@ export default function ServiceAreaMap({ walker }) {
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
-        <MapUpdater center={mapCenter} />
+        <MapUpdater 
+          center={mapCenter} 
+          mainLocation={walker?.latitude && walker?.longitude ? [walker.latitude, walker.longitude] : null}
+          areas={walker?.service_areas}
+        />
         
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

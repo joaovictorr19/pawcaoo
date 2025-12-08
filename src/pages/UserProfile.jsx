@@ -396,20 +396,31 @@ export default function UserProfile() {
           legacySources = profileUser.public_badges || [];
       }
 
+      // Helper to generate a unique key for deduplication
+      const getBadgeKey = (b) => {
+        if (b.badge_id) return b.badge_id;
+        if (b.id && !b.id.startsWith('legacy-')) return b.id; // definitions have 'id'
+        if (b.name) return b.name.toLowerCase().trim().replace(/\s+/g, '_');
+        return null;
+      };
+
       legacySources.forEach(b => {
-        const key = b.badge_id || b.name;
-        if (key) badgesMap.set(key, b);
+        const key = getBadgeKey(b);
+        if (key && !badgesMap.has(key)) {
+           badgesMap.set(key, { ...b, source: 'legacy' });
+        }
       });
 
       // 2. Add badges from UserBadge table (Source of Truth)
       if (profileEmail) {
         try {
-          // Ensure email is trimmed/lowercased if needed, but strict for now
           const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
           fromTable.forEach(b => {
-            const key = b.badge_id || b.name;
-            // Overwrite legacy with table data (usually more consistent)
-            if (key) badgesMap.set(key, { ...badgesMap.get(key), ...b });
+            const key = getBadgeKey(b);
+            if (key) {
+              // Always overwrite legacy with table data
+              badgesMap.set(key, { ...b, source: 'table' });
+            }
           });
         } catch (e) {
           // console.error("Error fetching badges table:", e);
@@ -449,18 +460,21 @@ export default function UserProfile() {
 
     // 2. Find Earned Badges not in Definitions (Legacy)
     const definitionIds = new Set(allBadgeDefinitions.map(d => d.id));
-    const definitionNames = new Set(allBadgeDefinitions.map(d => d.name));
+    // Normalize definition names for comparison
+    const definitionNames = new Set(allBadgeDefinitions.map(d => d.name.toLowerCase().trim()));
     const uniqueLegacyMap = new Map();
 
     earnedBadges.forEach(b => {
       const matchId = b.badge_id && definitionIds.has(b.badge_id);
-      const matchName = b.name && definitionNames.has(b.name);
+      const matchName = b.name && definitionNames.has(b.name.toLowerCase().trim());
+      
+      // Only add if it DOESN'T match a known definition ID or Name
       if (!matchId && !matchName) {
-        const key = b.badge_id || b.name;
+        const key = b.badge_id || b.name.toLowerCase().trim();
         if (!uniqueLegacyMap.has(key)) {
           uniqueLegacyMap.set(key, {
             ...b,
-            id: b.badge_id || `legacy-${b.name ? b.name.replace(/\s+/g, '-').toLowerCase() : Math.random()}`,
+            id: b.badge_id || `legacy-${key.replace(/\s+/g, '-')}`,
             isEarned: true,
             rarity: b.rarity || 'common',
             description: b.description || 'Emblema Especial',
