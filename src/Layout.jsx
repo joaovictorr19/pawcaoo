@@ -465,6 +465,7 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <SidebarProvider>
       <Helmet>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
         {/* Google tag (gtag.js) */}

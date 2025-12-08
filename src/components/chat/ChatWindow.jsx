@@ -217,7 +217,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative">
+    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative w-full">
       <CallModal 
         isOpen={callState.isOpen}
         onClose={() => setCallState({ ...callState, isOpen: false })}

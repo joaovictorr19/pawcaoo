@@ -139,10 +139,10 @@ export default function Inbox() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Ajuste de altura para não ocupar 100% da tela e dar respiro */}
-      <div className="max-w-7xl mx-auto h-[calc(90vh-64px)] min-h-[500px] md:py-6 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+    <div className="min-h-[100dvh] bg-gray-50 flex flex-col">
+      {/* Ajuste de altura para mobile usar 100dvh (altura real da viewport) e desktop manter margem */}
+      <div className="flex-1 w-full max-w-7xl mx-auto h-[calc(100dvh-120px)] md:h-[calc(90vh-64px)] min-h-[500px] py-2 md:py-6 px-2 md:px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 h-full">
           
           {/* Left Column: Conversation List */}
           <Card className={`md:col-span-1 h-full flex flex-col border-0 shadow-xl bg-white/80 backdrop-blur-sm ${selectedChatId ? 'hidden md:flex' : 'flex'}`}>
