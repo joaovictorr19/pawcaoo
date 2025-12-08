@@ -125,45 +125,41 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     ctx.fillStyle = "#1a1a1a"; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw image
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
-    
-    const scaleX = canvas.width / image.width;
-    const scaleY = canvas.height / image.height;
-    // 'cover' logic for better initial UX with avatars/banners
-    // If circular or fixed aspect, usually we want to fill the area
-    const baseScale = Math.max(scaleX, scaleY); 
+    // Draw image safely
+    if (image && image.width > 0) {
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      
+      const scaleX = canvas.width / image.width;
+      const scaleY = canvas.height / image.height;
+      // 'cover' logic
+      const baseScale = Math.max(scaleX, scaleY); 
+      
+      const currentScale = baseScale * zoom;
 
-    
-    const currentScale = baseScale * zoom;
+      ctx.scale(currentScale, currentScale);
+      
+      // Position logic
+      const rad = (rotation * Math.PI) / 180;
+      const cos = Math.cos(-rad);
+      const sin = Math.sin(-rad);
+      
+      const rotX = position.x * cos - position.y * sin;
+      const rotY = position.x * sin + position.y * cos;
 
-    ctx.scale(currentScale, currentScale);
-    
-    // Apply position (panning)
-    // We want the panning to be 1:1 with mouse movement regardless of zoom/rotation
-    // The transformation matrix order matters:
-    // 1. Translate to center
-    // 2. Rotate
-    // 3. Scale
-    // 4. Translate by position (adjusted for scale and rotation)
-    
-    // To make panning intuitive (moving mouse right moves image right on screen),
-    // we need to apply the translation relative to the current rotation.
-    
-    const rad = (rotation * Math.PI) / 180;
-    const cos = Math.cos(-rad);
-    const sin = Math.sin(-rad);
-    
-    // Rotate the position vector to match the image's rotation
-    const rotX = position.x * cos - position.y * sin;
-    const rotY = position.x * sin + position.y * cos;
-
-    ctx.translate(rotX / currentScale, rotY / currentScale);
-    
-    ctx.drawImage(image, -image.width / 2, -image.height / 2);
-    ctx.restore();
+      ctx.translate(rotX / currentScale, rotY / currentScale);
+      
+      ctx.drawImage(image, -image.width / 2, -image.height / 2);
+      ctx.restore();
+    } else {
+      // Loading or empty state
+      ctx.fillStyle = "#666";
+      ctx.font = "14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Carregando...", canvas.width / 2, canvas.height / 2);
+    }
 
     // Draw Circular Mask if enabled
     if (circularCrop) {
