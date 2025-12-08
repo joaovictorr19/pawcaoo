@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,8 +12,11 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import NotificationService from "../components/NotificationService";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function PostEmergency() {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
@@ -49,12 +51,12 @@ export default function PostEmergency() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
-      toast.success("Emergency walk posted! Nearby walkers are being notified.");
+      toast.success(t('emergencyPostedSuccess', language));
       navigate(createPageUrl('MyBookings'));
     },
     onError: (error) => {
       console.error("Error posting emergency walk:", error);
-      toast.error("Failed to post emergency walk");
+      toast.error(t('emergencyPostFailed', language));
     }
   });
 
@@ -68,7 +70,7 @@ export default function PostEmergency() {
       setFormData({ ...formData, dog_photo_url: file_url });
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Failed to upload photo");
+      toast.error(t('uploadFailed', language));
     }
     setUploading(false);
   };
@@ -89,15 +91,15 @@ export default function PostEmergency() {
           <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
             <Zap className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Emergency Walk Request</h1>
-          <p className="text-gray-600 text-lg">Find a walker for your dog right now</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('emergencyWalkRequest', language)}</h1>
+          <p className="text-gray-600 text-lg">{t('findWalkerNow', language)}</p>
         </div>
 
         <Card className="border-2 border-orange-300 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
             <CardTitle className="text-2xl flex items-center gap-2">
               <Zap className="w-6 h-6" />
-              Post Emergency Walk
+              {t('postEmergency', language)}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -198,7 +200,7 @@ export default function PostEmergency() {
               {/* Owner Info */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="owner_name">Your Name *</Label>
+                  <Label htmlFor="owner_name">{t('yourName', language)} *</Label>
                   <Input
                     id="owner_name"
                     required
@@ -209,7 +211,7 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="owner_phone">Your Phone *</Label>
+                  <Label htmlFor="owner_phone">{t('phoneNumber', language)} *</Label>
                   <Input
                     id="owner_phone"
                     required
@@ -223,7 +225,7 @@ export default function PostEmergency() {
               {/* Walk Details */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="location">Pickup Location *</Label>
+                  <Label htmlFor="location">{t('pickupLocation', language)} *</Label>
                   <Input
                     id="location"
                     required
@@ -234,7 +236,7 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="needed_time">When Needed *</Label>
+                  <Label htmlFor="needed_time">{t('whenNeeded', language)} *</Label>
                   <Input
                     id="needed_time"
                     required
@@ -245,7 +247,7 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="duration_hours">Duration (hours) *</Label>
+                  <Label htmlFor="duration_hours">{t('durationHours', language)} *</Label>
                   <Input
                     id="duration_hours"
                     type="number"
@@ -258,7 +260,7 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="offered_amount">Offered Payment ($) *</Label>
+                  <Label htmlFor="offered_amount">{t('offeredPayment', language)} *</Label>
                   <Input
                     id="offered_amount"
                     type="number"
@@ -273,12 +275,12 @@ export default function PostEmergency() {
 
               {/* Special Notes */}
               <div className="space-y-2">
-                <Label htmlFor="special_notes">Special Notes (Optional)</Label>
+                <Label htmlFor="special_notes">{t('specialNotesOptional', language)}</Label>
                 <Textarea
                   id="special_notes"
                   value={formData.special_notes}
                   onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
-                  placeholder="Any important info walkers should know (behavior, health issues, favorite routes, etc.)"
+                  placeholder={t('specialNotesPlaceholder', language)}
                   rows={4}
                 />
               </div>
@@ -288,8 +290,7 @@ export default function PostEmergency() {
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-blue-900">
-                    Your request will be visible to all available walkers immediately. 
-                    They will contact you directly at the phone number provided.
+                    {t('emergencyWalkDisclaimer', language)}
                   </p>
                 </div>
               </div>
@@ -301,7 +302,7 @@ export default function PostEmergency() {
                   onClick={() => navigate(createPageUrl('Home'))}
                   className="flex-1"
                 >
-                  Cancel
+                  {t('cancel', language)}
                 </Button>
                 <Button
                   type="submit"
@@ -309,11 +310,11 @@ export default function PostEmergency() {
                   className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-12 text-base font-semibold"
                 >
                   {createEmergencyWalkMutation.isPending ? (
-                    "Posting..."
+                    t('posting', language)
                   ) : (
                     <>
                       <Zap className="w-5 h-5 mr-2" />
-                      Post Emergency Walk
+                      {t('postEmergency', language)}
                     </>
                   )}
                 </Button>
