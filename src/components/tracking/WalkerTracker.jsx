@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Navigation, StopCircle, AlertTriangle, Clock } from "lucide-react";
+import { Navigation, StopCircle, AlertTriangle, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Haversine formula for distance in meters
@@ -23,7 +23,11 @@ const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
 
 const deg2rad = (deg) => deg * (Math.PI / 180);
 
-export default function WalkerTracker({ bookingId }) {
+export default function WalkerTracker() {
+  // 1. Pegar o ID da URL
+  const { bookingId } = useParams();
+  const navigate = useNavigate();
+
   const [isTracking, setIsTracking] = useState(false);
   const [wakeLock, setWakeLock] = useState(null);
   const [distance, setDistance] = useState(0);
@@ -33,45 +37,36 @@ export default function WalkerTracker({ bookingId }) {
   const watchId = useRef(null);
   const timerRef = useRef(null);
 
-  // Fetch initial booking state
-  const { data: booking, isLoading } = useQuery({
+  // 2. Buscar dados da reserva (Protegido)
+  const { data: booking, isLoading, error } = useQuery({
     queryKey: ['booking', bookingId],
     queryFn: () => base44.entities.Booking.filter({ id: bookingId }).then(res => res[0]),
-    enabled: !!bookingId
+    enabled: !!bookingId, // Só busca se o ID existir na URL
+    retry: 1
   });
 
-  // Shielding: Validações de segurança antes de renderizar
-  if (!bookingId) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-50 text-center border-t border-red-200 bg-red-50">
-        <div className="flex flex-col items-center text-red-600 gap-2">
-          <AlertTriangle className="w-6 h-6" />
-          <span className="font-bold">Erro: Reserva não especificada</span>
-          <span className="text-xs">URL inválida ou ID ausente.</span>
-        </div>
-      </div>
-    );
-  }
-
+  // 3. Estado de Loading (Mostra Spinner enquanto carrega)
   if (isLoading) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-50 text-center border-t border-gray-200">
-        <div className="flex items-center justify-center gap-2 text-gray-500">
-          <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-          <span>Carregando dados do passeio...</span>
-        </div>
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50">
+        <Loader2 className="w-10 h-10 text-purple-600 animate-spin mb-4" />
+        <p className="text-gray-500">A carregar dados do passeio...</p>
       </div>
     );
   }
 
-  if (!booking) {
+  // 4. Tratamento de Erro (Se o ID for inválido ou a reserva não existir)
+  if (!booking || error || !bookingId) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-50 text-center border-t border-red-200 bg-red-50">
-        <div className="flex flex-col items-center text-red-600 gap-2">
-          <AlertTriangle className="w-6 h-6" />
-          <span className="font-bold">Erro: Reserva não encontrada</span>
-          <span className="text-xs">Verifique se o agendamento existe.</span>
-        </div>
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-red-50 p-6 text-center">
+        <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-red-700 mb-2">Reserva não encontrada</h2>
+        <p className="text-gray-600 mb-6">
+          Não foi possível identificar o passeio (ID: {bookingId || 'Não especificado'}).
+        </p>
+        <Button onClick={() => navigate(createPageUrl('ProfessionalDashboard'))} variant="outline">
+          Voltar aos Agendamentos
+        </Button>
       </div>
     );
   }
