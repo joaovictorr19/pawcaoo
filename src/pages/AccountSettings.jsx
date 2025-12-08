@@ -33,6 +33,27 @@ export default function AccountSettings() {
     queryFn: () => base44.auth.me(),
   });
 
+  // Fetch Walker/Trainer profiles to sync photo updates
+  const { data: walkerProfile } = useQuery({
+    queryKey: ['myWalkerProfileForSync', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const res = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      return res?.[0] || null;
+    },
+    enabled: !!user?.email
+  });
+
+  const { data: trainerProfile } = useQuery({
+    queryKey: ['myTrainerProfileForSync', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const res = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+      return res?.[0] || null;
+    },
+    enabled: !!user?.email
+  });
+
   const { data: userProfileEntity } = useQuery({
     queryKey: ['userProfileEntity', user?.email],
     queryFn: async () => {
