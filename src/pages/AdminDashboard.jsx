@@ -161,6 +161,8 @@ export default function AdminDashboard() {
   const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
   const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [showAllBadges, setShowAllBadges] = useState(false); // State for expanding badge list
+  const [badgeSearchTerm, setBadgeSearchTerm] = useState(""); // Search for badges
 
   // Broadcast state
   const [broadcastSubject, setBroadcastSubject] = useState("");
@@ -1428,8 +1430,16 @@ export default function AdminDashboard() {
                 <div className="space-y-6">
                   {/* Biblioteca Unificada de Emblemas */}
                   <div>
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
                       <h3 className="text-lg font-semibold">{t('myBadges', language)} ({badgeDefinitions.length})</h3>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Buscar emblemas..." 
+                          value={badgeSearchTerm}
+                          onChange={(e) => setBadgeSearchTerm(e.target.value)}
+                          className="w-full md:w-64"
+                        />
+                      </div>
                     </div>
                     
                     {loadingBadges && badgeDefinitions.length === 0 ? (
@@ -1446,64 +1456,81 @@ export default function AdminDashboard() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {badgeDefinitions.map((badgeDef) => (
-                          <Card key={badgeDef.id} className="border border-purple-200 hover:shadow-md transition-shadow">
-                            <CardContent className="p-4">
-                              <div className="flex items-start gap-3">
-                                <div className="text-3xl bg-purple-50 p-2 rounded-lg w-14 h-14 flex items-center justify-center">
-                                  {badgeDef.image_url ? (
-                                    <img src={badgeDef.image_url} alt={badgeDef.name} className="w-full h-full object-cover rounded" />
-                                  ) : (
-                                    badgeDef.icon
-                                  )}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {badgeDefinitions
+                            .filter(b => !badgeSearchTerm || b.name.toLowerCase().includes(badgeSearchTerm.toLowerCase()))
+                            .slice(0, showAllBadges ? undefined : 6)
+                            .map((badgeDef) => (
+                            <Card key={badgeDef.id} className="border border-purple-200 hover:shadow-md transition-shadow">
+                              <CardContent className="p-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="text-3xl bg-purple-50 p-2 rounded-lg w-14 h-14 flex items-center justify-center">
+                                    {badgeDef.image_url ? (
+                                      <img src={badgeDef.image_url} alt={badgeDef.name} className="w-full h-full object-cover rounded" />
+                                    ) : (
+                                      badgeDef.icon
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-bold text-base">{badgeDef.name}</h4>
+                                    <p className="text-xs text-gray-600 line-clamp-2" title={badgeDef.description}>
+                                      {badgeDef.description}
+                                    </p>
+                                    <Badge variant="outline" className="mt-1 text-[10px]">{badgeDef.rarity}</Badge>
+                                  </div>
                                 </div>
-                                <div className="flex-1">
-                                  <h4 className="font-bold text-base">{badgeDef.name}</h4>
-                                  <p className="text-xs text-gray-600 line-clamp-2" title={badgeDef.description}>
-                                    {badgeDef.description}
-                                  </p>
-                                  <Badge variant="outline" className="mt-1 text-[10px]">{badgeDef.rarity}</Badge>
+                                <div className="flex gap-2 mt-3">
+                                  <Button
+                                    size="sm"
+                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs"
+                                    onClick={() => {
+                                      setSelectedBadgeForAll({
+                                        badge_id: badgeDef.id,
+                                        name: badgeDef.name,
+                                        description: badgeDef.description,
+                                        icon: badgeDef.icon,
+                                        image_url: badgeDef.image_url,
+                                        image_png_file: badgeDef.image_png_file,
+                                        rarity: badgeDef.rarity,
+                                        category: badgeDef.category,
+                                        xp: badgeDef.xp || 100
+                                      });
+                                      setUsersToGrantBadge([]); // Reset selection
+                                      setShowGrantAllUsersModal(true);
+                                    }}
+                                  >
+                                    {t('grant', language)}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-red-600 px-2"
+                                    onClick={() => {
+                                      if(confirm(`${t('deleteBadge', language)} "${badgeDef.name}"?`)) {
+                                        deleteBadgeDefinitionMutation.mutate(badgeDef.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                 </div>
-                              </div>
-                              <div className="flex gap-2 mt-3">
-                                <Button
-                                  size="sm"
-                                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs"
-                                  onClick={() => {
-                                    setSelectedBadgeForAll({
-                                      badge_id: badgeDef.id,
-                                      name: badgeDef.name,
-                                      description: badgeDef.description,
-                                      icon: badgeDef.icon,
-                                      image_url: badgeDef.image_url,
-                                      image_png_file: badgeDef.image_png_file,
-                                      rarity: badgeDef.rarity,
-                                      category: badgeDef.category,
-                                      xp: badgeDef.xp || 100
-                                    });
-                                    setUsersToGrantBadge([]); // Reset selection
-                                    setShowGrantAllUsersModal(true);
-                                  }}
-                                >
-                                  {t('grant', language)}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-red-600 px-2"
-                                  onClick={() => {
-                                    if(confirm(`${t('deleteBadge', language)} "${badgeDef.name}"?`)) {
-                                      deleteBadgeDefinitionMutation.mutate(badgeDef.id);
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                        
+                        {badgeDefinitions.length > 6 && (
+                          <div className="flex justify-center pt-2">
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setShowAllBadges(!showAllBadges)}
+                              className="w-full md:w-auto border-purple-200 text-purple-700 hover:bg-purple-50"
+                            >
+                              {showAllBadges ? 'Mostrar Menos' : `Ver Todos (${badgeDefinitions.length})`}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -2450,47 +2477,94 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-          {/* Modal de Concessão Individual de Badge */}
+          {/* Modal de Concessão Individual de Badge Melhorado */}
         <Dialog open={showGrantSingleBadgeModal} onOpenChange={setShowGrantSingleBadgeModal}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md h-[80vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle>Entregar Emblema a {grantBadgeTargetEmail}</DialogTitle>
-              <DialogDescription>Selecione um emblema da biblioteca para conceder.</DialogDescription>
+              <DialogTitle>Entregar Emblema</DialogTitle>
+              <DialogDescription>
+                Para: <span className="font-semibold text-gray-900">{grantBadgeTargetEmail}</span>
+              </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            
+            <div className="relative mb-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input 
+                placeholder="Buscar emblema..." 
+                value={badgeSearchTerm}
+                onChange={(e) => setBadgeSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 space-y-2">
               {badgeDefinitions.length === 0 ? (
-                <p className="text-center text-gray-500">Nenhum emblema definido na biblioteca.</p>
+                <div className="text-center py-10">
+                  <p className="text-gray-500">Nenhum emblema na biblioteca.</p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => {
+                      setShowGrantSingleBadgeModal(false);
+                      setShowCreateCustomBadgeModal(true);
+                    }}
+                  >
+                    Criar Novo
+                  </Button>
+                </div>
               ) : (
-                badgeDefinitions.map(badge => (
+                badgeDefinitions
+                  .filter(b => !badgeSearchTerm || b.name.toLowerCase().includes(badgeSearchTerm.toLowerCase()))
+                  .map(badge => (
                   <div 
                     key={badge.id} 
                     onClick={() => setSelectedBadgeToGrant(badge)}
-                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group ${
                       selectedBadgeToGrant?.id === badge.id 
-                        ? 'border-purple-600 bg-purple-50' 
-                        : 'border-gray-200 hover:border-purple-200'
+                        ? 'border-purple-600 bg-purple-50 shadow-sm ring-1 ring-purple-600' 
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
                     }`}
                   >
-                    <div className="text-2xl w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm">
-                      {badge.image_url ? <img src={badge.image_url} className="w-full h-full object-cover rounded" /> : badge.icon}
+                    <div className="w-12 h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center shadow-sm text-2xl border border-gray-100">
+                      {badge.image_url || badge.image_png_file ? (
+                        <img 
+                          src={badge.image_png_file || badge.image_url} 
+                          className="w-full h-full object-cover rounded-lg" 
+                          alt={badge.name}
+                        />
+                      ) : (
+                        badge.icon
+                      )}
                     </div>
-                    <div>
-                      <p className="font-bold text-sm">{badge.name}</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-sm text-gray-900 truncate">{badge.name}</h4>
                       <p className="text-xs text-gray-500 line-clamp-1">{badge.description}</p>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1">{badge.rarity}</Badge>
+                        {badge.xp > 0 && <span className="text-[10px] text-green-600 font-medium">+{badge.xp} XP</span>}
+                      </div>
                     </div>
-                    {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-5 h-5 text-purple-600 ml-auto" />}
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      selectedBadgeToGrant?.id === badge.id ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
+                    }`}>
+                      {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-3 h-3 text-white" />}
+                    </div>
                   </div>
                 ))
               )}
             </div>
-            <DialogFooter>
+
+            <DialogFooter className="mt-4 pt-2 border-t">
               <Button variant="outline" onClick={() => setShowGrantSingleBadgeModal(false)}>Cancelar</Button>
               <Button 
                 onClick={() => grantBadgeToUserMutation.mutate({ email: grantBadgeTargetEmail, badge: selectedBadgeToGrant })}
                 disabled={!selectedBadgeToGrant || grantBadgeToUserMutation.isPending}
                 className="bg-purple-600 hover:bg-purple-700"
               >
-                {grantBadgeToUserMutation.isPending ? 'Entregando...' : 'Entregar Emblema'}
+                {grantBadgeToUserMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Entregando...</>
+                ) : (
+                  <>Entregar <ArrowLeft className="w-4 h-4 ml-2 rotate-180" /></>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
