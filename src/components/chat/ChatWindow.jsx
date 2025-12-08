@@ -183,10 +183,36 @@ export default function ChatWindow({ conversationId, currentUser }) {
 
   if (!conversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
 
-  const otherEmail = conversation.participants?.find(p => p !== currentUser.email) || "Participante";
+  // Determine Other Email (Handle potential undefined participants)
+  const otherEmail = React.useMemo(() => {
+    if (!conversation?.participants) return "Participante";
+    return conversation.participants.find(p => p !== currentUser?.email) || "Participante";
+  }, [conversation?.participants, currentUser?.email]);
+
+  // Determine Display Info
   const isSupport = conversation.tags?.includes('support');
   const displayName = isSupport && otherEmail.includes('pawcao.net') ? "Suporte PawCão" : otherEmail.split('@')[0];
-  const displayAvatar = isSupport ? null : null; // Add avatar logic if available from participants
+  const displayAvatar = isSupport ? null : null;
+
+  // Fetch Other User Profile for Status
+  const { data: otherUserProfile } = useQuery({
+    queryKey: ['chatUserProfile', otherEmail],
+    queryFn: async () => {
+      if (!otherEmail || otherEmail === "Participante" || isSupport) return null;
+      const res = await base44.entities.UserProfile.filter({ user_email: otherEmail });
+      return res[0];
+    },
+    enabled: !!otherEmail && otherEmail !== "Participante" && !isSupport
+  });
+
+  // Calculate Online Status
+  const isOnline = React.useMemo(() => {
+    if (!otherUserProfile?.last_activity_date) return false;
+    const lastActive = new Date(otherUserProfile.last_activity_date);
+    const now = new Date();
+    const diffMins = (now - lastActive) / 1000 / 60;
+    return diffMins < 15 && diffMins >= 0;
+  }, [otherUserProfile]);
 
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
