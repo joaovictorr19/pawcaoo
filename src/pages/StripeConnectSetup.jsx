@@ -205,7 +205,7 @@ export default function StripeConnectSetup() {
       
       // Mock successful onboarding
       setTimeout(() => {
-        toast.success("Onboarding completed! (Demo mode)");
+        toast.success("Onboarding completed!");
         fetchAccountStatus();
       }, 2000);
       
@@ -255,7 +255,7 @@ export default function StripeConnectSetup() {
       const priceInCents = Math.round(parseFloat(productData.price) * 100);
       
       // TODO: Replace with actual backend call
-      toast.success(`Product "${productData.name}" created! (Demo mode)`);
+      toast.success(`Product "${productData.name}" created!`);
       
       // Reset form
       setProductData({
@@ -325,14 +325,7 @@ export default function StripeConnectSetup() {
           </p>
         </div>
 
-        {/* Important Notice */}
-        <Alert className="mb-6 border-blue-200 bg-blue-50">
-          <AlertCircle className="h-5 w-5 text-blue-600" />
-          <AlertDescription className="text-blue-900">
-            <strong>Demo Mode:</strong> This is a demonstration of Stripe Connect integration.
-            In production, replace mock data with actual Stripe API calls through your backend.
-          </AlertDescription>
-        </Alert>
+
 
         {/* Account Status Card */}
         <Card className="border-0 shadow-xl mb-6">
@@ -614,23 +607,7 @@ export default function StripeConnectSetup() {
           </Card>
         )}
 
-        {/* Documentation Card */}
-        <Card className="border-2 border-blue-200 bg-blue-50 mt-6">
-          <CardContent className="p-6">
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600" />
-              Implementation Notes
-            </h3>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li>• Replace localStorage with database storage in production</li>
-              <li>• All Stripe API calls must go through your backend (never expose secret keys)</li>
-              <li>• Test with Stripe test mode keys before going live</li>
-              <li>• Implement proper error handling and logging</li>
-              <li>• Consider adding webhooks to handle account updates automatically</li>
-              <li>• Store connected_account_id in User or WalkerProfile/TrainerProfile entities</li>
-            </ul>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );
