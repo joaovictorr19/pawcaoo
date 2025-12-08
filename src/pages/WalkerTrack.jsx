@@ -96,5 +96,6 @@ export default function WalkerTrack() {
         );
     }
 
-    return <WalkerTracker bookingId={bookingId} />;
+    // We no longer pass bookingId as prop because WalkerTracker uses useParams
+    return <WalkerTracker />;
 }
