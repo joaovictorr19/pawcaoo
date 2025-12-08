@@ -807,7 +807,7 @@ export default function UserProfile() {
         </Button>
 
         <Card className="border-0 shadow-xl mb-6 overflow-hidden bg-white">
-          <div className="relative h-48 md:h-64 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+          <div className="relative w-full aspect-[21/9] overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             {profileUser.cover_photo_url && (
               <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" />
             )}

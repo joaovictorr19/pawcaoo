@@ -17,7 +17,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
   return (
     <Card className="overflow-hidden border-0 shadow-sm mb-6">
       {/* Banner Area */}
-      <div className={`relative h-48 md:h-56 ${professional.cover_photo_url ? '' : (isWalker ? 'bg-gradient-to-r from-green-400 to-emerald-600' : 'bg-gradient-to-r from-purple-400 to-indigo-600')}`}>
+      <div className={`relative w-full aspect-[21/9] overflow-hidden ${professional.cover_photo_url ? '' : (isWalker ? 'bg-gradient-to-r from-green-400 to-emerald-600' : 'bg-gradient-to-r from-purple-400 to-indigo-600')}`}>
         {professional.cover_photo_url && (
           <img 
             src={professional.cover_photo_url} 
