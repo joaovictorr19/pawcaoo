@@ -260,47 +260,6 @@ export default function ManageAvailability() {
                         <p className="text-sm">{language === 'pt' ? 'Nenhum horário disponível para este dia.' : 'No slots available for this day.'}</p>
                       </div>
                     )}
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                checked={slot.is_available}
-                                onCheckedChange={(checked) => updateTimeSlot(index, 'is_available', checked)}
-                              />
-                              <Label className="text-xs md:text-sm">{t('available', language)}</Label>
-                            </div>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => removeTimeSlot(index)}
-                              disabled={timeSlots.length === 1}
-                              className="h-6 w-6 md:h-8 md:w-8"
-                            >
-                              <X className="w-3 h-3 md:w-4 md:h-4" />
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <Label className="text-[10px] md:text-xs">{t('startTime', language)}</Label>
-                              <Input
-                                type="time"
-                                value={slot.start_time}
-                                onChange={(e) => updateTimeSlot(index, 'start_time', e.target.value)}
-                                className="h-8 md:h-10 text-xs md:text-sm"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-[10px] md:text-xs">{t('endTime', language)}</Label>
-                              <Input
-                                type="time"
-                                value={slot.end_time}
-                                onChange={(e) => updateTimeSlot(index, 'end_time', e.target.value)}
-                                className="h-8 md:h-10 text-xs md:text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
 
                     <Button
                       className="w-full bg-gradient-to-r from-green-600 to-green-500 h-9 md:h-11 text-sm md:text-base"
