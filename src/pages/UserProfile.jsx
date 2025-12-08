@@ -376,25 +376,36 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [] } = useQuery({
-    queryKey: ['userBadges', profileEmail, profileUser?.public_badges, currentUser?.public_badges],
+    queryKey: ['userBadges', profileEmail, profileUser?.public_badges, currentUser?.achievements_badges],
     queryFn: async () => {
       const badgesMap = new Map();
 
-      // 1. Adicionar badges do objeto UserProfile/User (Legacy/Sessão)
-      const userBadges = profileUser?.public_badges || (isSelfView ? currentUser?.public_badges : []) || [];
+      // 1. Collect Legacy Badges from Auth User or Profile (combine both fields for safety)
+      // currentUser.achievements_badges is the main auth field
+      // profileUser.public_badges is the profile legacy field
+      let legacySources = [];
+      if (isSelfView && currentUser) {
+          legacySources = [
+              ...(currentUser.achievements_badges || []),
+              ...(currentUser.public_badges || [])
+          ];
+      } else if (profileUser) {
+          legacySources = profileUser.public_badges || [];
+      }
 
-      userBadges.forEach(b => {
-        // Use badge_id if available, otherwise use name (legacy support)
+      legacySources.forEach(b => {
         const key = b.badge_id || b.name;
         if (key) badgesMap.set(key, b);
       });
 
-      // 2. Adicionar badges da tabela UserBadge (Source of Truth)
+      // 2. Add badges from UserBadge table (Source of Truth)
       if (profileEmail) {
         try {
+          // Ensure email is trimmed/lowercased if needed, but strict for now
           const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
           fromTable.forEach(b => {
             const key = b.badge_id || b.name;
+            // Overwrite legacy with table data (usually more consistent)
             if (key) badgesMap.set(key, { ...badgesMap.get(key), ...b });
           });
         } catch (e) {
@@ -409,24 +420,23 @@ export default function UserProfile() {
     refetchOnWindowFocus: true
   });
 
-  // Fetch ALL Badge Definitions to show what's possible
+  // Fetch ALL Badge Definitions
   const { data: allBadgeDefinitions = [] } = useQuery({
     queryKey: ['allBadgeDefinitions'],
-    queryFn: () => base44.entities.BadgeDefinition.list(null, 1000), // Fetch all (up to 1000)
-    staleTime: 300000 // 5 minutes cache
+    queryFn: () => base44.entities.BadgeDefinition.list(null, 1000),
+    staleTime: 300000 
   });
 
   const displayBadges = earnedBadges;
 
-  // Merge earned with definitions for Gallery View, handling Legacy Badges
+  // Merge earned with definitions
   const galleryBadges = React.useMemo(() => {
-    // 1. Process definitions (New System) - Filter to show ONLY earned ones
+    // 1. Process definitions (New System)
     const processedDefinitions = allBadgeDefinitions.map(def => {
       const earnedMatch = earnedBadges.find(b => 
         (b.badge_id && b.badge_id === def.id) || 
         (b.name && b.name === def.name)
       );
-      
       return {
         ...def,
         isEarned: !!earnedMatch,
@@ -434,17 +444,14 @@ export default function UserProfile() {
       };
     }).filter(b => b.isEarned);
 
-    // 2. Find Earned Badges that didn't match any definition (Legacy System)
+    // 2. Find Earned Badges not in Definitions (Legacy)
     const definitionIds = new Set(allBadgeDefinitions.map(d => d.id));
     const definitionNames = new Set(allBadgeDefinitions.map(d => d.name));
-
-    // Deduplicate legacy badges by name/id to avoid repetition
     const uniqueLegacyMap = new Map();
 
     earnedBadges.forEach(b => {
       const matchId = b.badge_id && definitionIds.has(b.badge_id);
       const matchName = b.name && definitionNames.has(b.name);
-      
       if (!matchId && !matchName) {
         const key = b.badge_id || b.name;
         if (!uniqueLegacyMap.has(key)) {
@@ -459,45 +466,61 @@ export default function UserProfile() {
         }
       }
     });
-
     const legacyBadges = Array.from(uniqueLegacyMap.values());
 
-    // 3. Combine and Sort: Rarity then XP
     const combined = [...legacyBadges, ...processedDefinitions];
-    
     return combined.sort((a, b) => {
-      // 1. Rarity (Legendary > Epic > Rare > Common)
       const rarityOrder = { legendary: 3, epic: 2, rare: 1, common: 0 };
       const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
       const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
       if (rA !== rB) return rB - rA;
-
-      // 2. XP (Higher first)
-      if ((a.xp || 0) !== (b.xp || 0)) return (b.xp || 0) - (a.xp || 0);
-
-      return 0;
+      return (b.xp || 0) - (a.xp || 0);
     });
   }, [allBadgeDefinitions, earnedBadges]);
 
-  // Sync embedded badges (from Auth User) to UserBadge table if needed
+  // Optimized Badge Synchronization
   React.useEffect(() => {
     const syncBadges = async () => {
-      if (!isOwnProfile || !profileEmail) return;
-      
+      if (!isOwnProfile || !profileEmail || !currentUser) return;
+
       try {
-        // 1. Sync Legacy Badges to Table
-        if (currentUser?.achievements_badges?.length > 0) {
+        // 1. Consolidate Source Badges (Legacy fields: achievements_badges OR public_badges)
+        // NOTE: User entity has achievements_badges, UserProfile has public_badges (deprecated but used)
+        const legacyBadges = [
+          ...(currentUser.achievements_badges || []),
+          ...(currentUser.public_badges || [])
+        ];
+
+        if (legacyBadges.length > 0) {
+          // Fetch current table badges
           const existingBadges = await base44.entities.UserBadge.filter({ user_email: profileEmail });
           const existingIds = new Set(existingBadges.map(b => b.badge_id));
-          
-          const badgesToCreate = currentUser.achievements_badges.filter(b => !existingIds.has(b.badge_id));
-          
-          if (badgesToCreate.length > 0) {
-            console.log(`Syncing ${badgesToCreate.length} badges to table...`);
-            await Promise.all(badgesToCreate.map(badge => 
+          const existingNames = new Set(existingBadges.map(b => b.name));
+
+          // Determine badges to sync to table
+          const badgesToCreate = legacyBadges.filter(b => {
+              const hasId = b.badge_id && existingIds.has(b.badge_id);
+              const hasName = b.name && existingNames.has(b.name);
+              return !hasId && !hasName;
+          });
+
+          // Deduplicate items to create
+          const uniqueToCreate = [];
+          const seenKeys = new Set();
+          badgesToCreate.forEach(b => {
+              const key = b.badge_id || b.name;
+              if(!seenKeys.has(key)) {
+                  seenKeys.add(key);
+                  uniqueToCreate.push(b);
+              }
+          });
+
+          if (uniqueToCreate.length > 0) {
+            console.log(`Syncing ${uniqueToCreate.length} missing badges to table...`);
+            await Promise.all(uniqueToCreate.map(badge => 
               base44.entities.UserBadge.create({
                 user_email: profileEmail,
-                badge_id: badge.badge_id,
+                badge_id: badge.badge_id || `migrated-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,
                 name: badge.name,
                 description: badge.description,
                 icon: badge.icon,
@@ -510,15 +533,14 @@ export default function UserProfile() {
           }
         }
 
-        // 2. Sync Badge Count to UserProfile (for Leaderboard consistency)
-        if (profileUser?.id && earnedBadges.length > 0) {
+        // 2. Sync Badge Count to UserProfile (source of truth for leaderboard)
+        // We use earnedBadges.length (which comes from query above)
+        if (profileUser?.id) {
+          // Ensure count matches what we show
           if ((profileUser.badges_count || 0) !== earnedBadges.length) {
-            console.log('Syncing badge count to profile...');
             await base44.entities.UserProfile.update(profileUser.id, {
               badges_count: earnedBadges.length
             });
-            // Optional: invalidate profile query to show new count immediately
-            // queryClient.invalidateQueries({ queryKey: ['profileUser'] });
           }
         }
       } catch (err) {
@@ -872,13 +894,21 @@ export default function UserProfile() {
                         <AdminBadgeGlass />
                       </div>
                     )}
-                    {(profileUser.is_adoption_advocate || earnedBadges.some(b => b.badge_id === 'adoption_advocate' || b.id === 'adoption_advocate')) && (
+                    {(profileUser.is_adoption_advocate || (isSelfView && currentUser?.is_adoption_advocate) || earnedBadges.some(b => b.badge_id === 'adoption_advocate' || b.id === 'adoption_advocate')) && (
                       <div className="ml-1">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-sm border-2 border-white text-white cursor-help">
-                                <Heart className="w-3 h-3 fill-white" />
+                              {/* Styled to match VerifiedBadge/AdminBadgeGlass dimensions (w-6 h-6 with shadows) */}
+                              <div 
+                                className="w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden shadow-sm border border-pink-400/30 cursor-help"
+                                style={{
+                                  background: 'linear-gradient(135deg, #f472b6 0%, #e11d48 100%)', // Pink to Rose
+                                  boxShadow: '0 4px 6px -1px rgba(225, 29, 72, 0.3), 0 2px 4px -1px rgba(225, 29, 72, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.4)'
+                                }}
+                              >
+                                <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)' }} />
+                                <Heart className="w-3.5 h-3.5 text-white drop-shadow-md z-10 fill-white" strokeWidth={2.5} />
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>

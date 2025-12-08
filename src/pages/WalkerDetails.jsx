@@ -530,14 +530,7 @@ export default function WalkerDetails() {
                     </Button>
                   )}
 
-                  <Button
-                    variant="outline"
-                    className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
-                    onClick={() => navigate(createPageUrl(`UserProfile?email=${walker.created_by}`))}
-                  >
-                    <UserIcon className="w-4 h-4 mr-2" />
-                    Perfil
-                  </Button>
+
                   
                   {/* Favorite Button in Details - Fully Implemented */}
                   <FavoriteButton walker={walker} user={user} />
