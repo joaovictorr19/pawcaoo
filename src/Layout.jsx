@@ -179,6 +179,7 @@ function LayoutContent({ children, currentPageName }) {
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
     { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
+    { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap, className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
     { title: language === 'pt' ? 'Área de Abrigos' : language === 'es' ? 'Área de Refugios' : 'Shelter Area', url: createPageUrl("ShelterDashboard"), icon: Building2 },
   ];
@@ -191,7 +192,6 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
     { title: language === 'pt' ? 'Emblemas' : language === 'es' ? 'Emblemas' : 'Badges', url: createPageUrl("Gamification"), icon: Award },
-    { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap },
   ];
 
   const professionalMenu = [
@@ -516,16 +516,16 @@ function LayoutContent({ children, currentPageName }) {
                         className={`mb-1.5 rounded-lg transition-colors ${
                           location.pathname === item.url 
                             ? 'bg-green-600 text-white hover:bg-green-700' 
-                            : 'hover:bg-gray-100 text-gray-700'
+                            : (item.className || 'hover:bg-gray-100 text-gray-700')
                         }`}
                       >
                         <a 
                           href={item.url} 
-                          className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
+                          className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 ${item.className ? '' : ''}`}
                           onClick={handleNavigation(item.url)}
                           {...getPrefetchHandlers(item)}
                         >
-                          <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                          <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
                           <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                         </a>
                       </SidebarMenuButton>
