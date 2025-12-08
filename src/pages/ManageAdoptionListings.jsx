@@ -17,6 +17,7 @@ import { t } from "@/components/translations";
 import { useCreateNotification } from "@/components/NotificationService";
 
 import OptimizedImageUpload from "@/components/adoption/OptimizedImageUpload";
+import AdoptionApplicationDetails from "@/components/adoption/AdoptionApplicationDetails";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function ManageAdoptionListings() {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ export default function ManageAdoptionListings() {
   const { language } = useLanguage();
   const [selectedListing, setSelectedListing] = useState(null);
   const [editingListing, setEditingListing] = useState(null); // State for the listing being edited
+  const [viewingApplication, setViewingApplication] = useState(null); // State for viewing full application details
   const [isSubmitting, setIsSubmitting] = useState(false); // State for form submission loading
   const createNotification = useCreateNotification();
 
@@ -378,8 +381,19 @@ export default function ManageAdoptionListings() {
                           <p className="text-gray-800">{app.reason_for_adoption}</p>
                         </div>
 
+                        <div className="pt-4">
+                          <Button 
+                            variant="default"
+                            className="w-full bg-purple-600 hover:bg-purple-700"
+                            onClick={() => setViewingApplication(app)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Detalhes Completos da Candidatura
+                          </Button>
+                        </div>
+
                         {app.application_status === 'pending' && (
-                          <div className="flex gap-3 pt-4">
+                          <div className="flex gap-3 pt-2">
                             <Button
                               variant="outline"
                               className="flex-1 border-green-500 text-green-600 hover:bg-green-50"
@@ -414,6 +428,57 @@ export default function ManageAdoptionListings() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* View Application Modal */}
+        <Dialog open={!!viewingApplication} onOpenChange={(open) => !open && setViewingApplication(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Candidatura para {viewingApplication?.pet_name}</DialogTitle>
+            </DialogHeader>
+            
+            {viewingApplication && (
+              <>
+                <div className="flex-1 overflow-hidden">
+                  <AdoptionApplicationDetails application={viewingApplication} />
+                </div>
+                
+                {viewingApplication.application_status === 'pending' && (
+                  <div className="border-t pt-4 mt-4 flex gap-3 justify-end">
+                    <Button
+                      variant="outline"
+                      className="border-red-500 text-red-600 hover:bg-red-50"
+                      onClick={() => {
+                        updateApplicationMutation.mutate({
+                          appId: viewingApplication.id,
+                          status: 'rejected',
+                          notes: t('applicationRejectedNote', language)
+                        });
+                        setViewingApplication(null);
+                      }}
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      {t('reject', language)}
+                    </Button>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => {
+                        updateApplicationMutation.mutate({
+                          appId: viewingApplication.id,
+                          status: 'approved',
+                          notes: t('applicationApprovedNote', language)
+                        });
+                        setViewingApplication(null);
+                      }}
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      {t('approve', language)}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Modal */}
         <AnimatePresence>
