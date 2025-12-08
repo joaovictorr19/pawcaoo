@@ -11,12 +11,19 @@ import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import BookingForm from "../components/booking/BookingForm";
 import { format } from 'date-fns';
-import NotificationService from "../components/NotificationService"; // Added import
+import { useCreateNotification } from "../components/NotificationService";
+import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
+import ServiceList from "../components/professionals/ServiceList";
+import { AnimatePresence } from "framer-motion";
+import CheckoutModal from "../components/payments/CheckoutModal";
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  const createNotification = useCreateNotification();
 
   const urlParams = new URLSearchParams(window.location.search);
   const trainerId = urlParams.get('id');
