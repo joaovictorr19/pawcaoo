@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck } from "lucide-react";
 import CallModal from "./CallModal";
 import LiveWalkMap from "../tracking/LiveWalkMap";
 import { format } from "date-fns";
@@ -204,8 +204,11 @@ export default function ChatWindow({ conversationId, currentUser }) {
                           >
                             {msg.content}
                           </div>
-                          <span className="text-[10px] text-gray-400 mt-1 px-1">
+                          <span className="text-[10px] text-gray-400 mt-1 px-1 flex items-center gap-1 justify-end">
                             {format(new Date(msg.created_date), 'HH:mm')}
+                            {isMe && (
+                              <CheckCheck className="w-3 h-3 text-blue-500" />
+                            )}
                           </span>
                         </div>
                       </div>

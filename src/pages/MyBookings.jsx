@@ -449,13 +449,13 @@ export default function MyBookings() {
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-      confirmed: { label: 'Confirmado', color: 'bg-blue-100 text-blue-800' },
-      in_progress: { label: 'Em Andamento', color: 'bg-purple-100 text-purple-800' },
-      completed: { label: 'Concluído', color: 'bg-green-100 text-green-800' },
+      confirmed: { label: 'Confirmado', color: 'bg-green-100 text-green-800' },
+      in_progress: { label: 'Em Andamento', color: 'bg-blue-100 text-blue-800' },
+      completed: { label: 'Concluído', color: 'bg-gray-100 text-gray-800' },
       cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
     };
     const config = statusConfig[status] || statusConfig.pending;
-    return <Badge className={config.color}>{config.label}</Badge>;
+    return <Badge className={`text-xs font-medium ${config.color}`}>{config.label}</Badge>;
   };
 
   const BookingCard = ({ booking }) => {
@@ -464,119 +464,88 @@ export default function MyBookings() {
       : booking.trainer_email === user?.email;
 
     const professionalName = booking.type === 'walk' ? booking.walker_name : booking.trainer_name;
-    
-    // Check if already reviewed
     const hasReview = myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
 
     return (
-      <Card className="border hover:shadow-md transition-shadow overflow-hidden">
-        <div className={`h-2 w-full ${booking.type === 'walk' ? 'bg-green-500' : 'bg-indigo-500'}`} />
-        <CardHeader className="pb-2">
+      <Card className="border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
+        <div className="p-4 flex flex-col gap-3">
+          {/* Header Compacto */}
           <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className={`${booking.type === 'walk' ? 'border-green-200 bg-green-50 text-green-700' : 'border-indigo-200 bg-indigo-50 text-indigo-700'}`}>
-                 {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'}
-              </Badge>
-              <span className="text-xs text-gray-400">ID: {booking.id.slice(-4)}</span>
+            <div>
+              <h3 className="font-bold text-gray-900 line-clamp-1">
+                {isProfessional ? booking.owner_name : professionalName}
+              </h3>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'} com {booking.dog_name}
+              </p>
             </div>
             {getStatusBadge(booking.status)}
           </div>
-          <CardTitle className="text-lg mt-2 flex items-center gap-2">
-            {booking.dog_name}
-          </CardTitle>
-          <p className="text-sm text-gray-500">
-            {isProfessional 
-              ? `Cliente: ${booking.owner_name}` 
-              : `Profissional: ${professionalName}`
-            }
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-y-2 text-sm">
-             <div className="flex items-center gap-2 text-gray-600">
-               <Calendar className="w-4 h-4" />
-               {booking.date ? format(new Date(booking.date), 'dd MMM', { locale: pt }) : 'N/A'}
-             </div>
-             <div className="flex items-center gap-2 text-gray-600">
-               <Clock className="w-4 h-4" />
-               {booking.time} ({booking.duration_hours}h)
-             </div>
-             <div className="flex items-center gap-2 font-semibold text-gray-900">
-               <DollarSign className="w-4 h-4 text-green-600" />
-               €{booking.total_amount}
-             </div>
-          </div>
 
-          {/* Botão de Avaliação para Cliente */}
-          {booking.status === 'completed' && !isProfessional && !hasReview && (
-            <Button 
-              className="w-full mt-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-md"
-              onClick={() => handleReviewClick(booking, 'professional')}
-            >
-              <Star className="w-4 h-4 mr-2 fill-white" />
-              Avaliar Profissional
-            </Button>
-          )}
-
-          {booking.status === 'confirmed' && !isProfessional && booking.walker_payment_contact && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
-              <p className="text-xs font-bold text-green-800 mb-1">Pagamento (MBWay):</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-green-700 font-mono">{booking.walker_payment_contact}</span>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="h-6 px-2 text-green-700 hover:bg-green-100"
-                  onClick={() => {
-                    navigator.clipboard.writeText(booking.walker_payment_contact);
-                    toast.success("Número copiado!");
-                  }}
-                >
-                  Copiar
-                </Button>
-              </div>
-              <p className="text-[10px] text-green-600 mt-1">Envie o comprovativo pelo chat.</p>
+          {/* Info Grid */}
+          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-gray-400" />
+              {booking.date ? format(new Date(booking.date), 'dd/MM', { locale: pt }) : 'N/A'}
             </div>
-          )}
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-gray-400" />
+              {booking.time}
+            </div>
+          </div>
 
-          <div className="flex gap-2 pt-2">
+          {/* Actions Row */}
+          <div className="flex items-center gap-2 mt-1">
+            {/* Botão de Chat Universal */}
             <Button 
-              variant="outline" 
               size="sm" 
-              className="flex-1"
-              onClick={() => {
-                setSelectedBooking(booking);
-                setIsDetailsModalOpen(true);
-              }}
+              variant="outline" 
+              className="flex-1 h-8 text-xs"
+              onClick={() => navigate(createPageUrl('Inbox'))} // Idealmente linkar direto para conversa
             >
-              Detalhes
+              <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+              Chat
             </Button>
-            
-            {['pending', 'confirmed'].includes(booking.status) && !isProfessional && (
+
+            {/* Ações Condicionais */}
+            {booking.status === 'in_progress' && (
               <Button 
-                variant="destructive" 
                 size="sm" 
-                className="flex-1"
-                onClick={() => handleCancelClick(booking)}
+                className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => navigate(createPageUrl(`walk/live/${booking.id}`))}
               >
-                 Cancelar
+                <MapIcon className="w-3.5 h-3.5 mr-1.5" /> {/* Assuming MapIcon is imported or use another icon */}
+                Acompanhar
               </Button>
             )}
-             
-            {/* Botão de Eliminar (Limpeza de Dados) */}
-            {['completed', 'cancelled', 'rejected'].includes(booking.status) && (
+
+            {booking.status === 'completed' && !isProfessional && !hasReview && (
               <Button 
-                variant="ghost" 
                 size="sm" 
-                className="text-gray-400 hover:text-red-600 hover:bg-red-50"
-                onClick={() => handleDeleteClick(booking)}
-                title="Eliminar histórico"
+                className="flex-1 h-8 text-xs bg-yellow-500 hover:bg-yellow-600 text-white"
+                onClick={() => handleReviewClick(booking, 'professional')}
               >
-                 <Trash2 className="w-4 h-4" />
+                <Star className="w-3.5 h-3.5 mr-1.5" />
+                Avaliar
+              </Button>
+            )}
+
+            {/* Botão Detalhes (Sempre visível se não houver ação prioritária ocupando tudo) */}
+            {booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview) && (
+               <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0"
+                onClick={() => {
+                  setSelectedBooking(booking);
+                  setIsDetailsModalOpen(true);
+                }}
+              >
+                <ChevronRight className="w-4 h-4" />
               </Button>
             )}
           </div>
-        </CardContent>
+        </div>
       </Card>
     );
   };
@@ -620,29 +589,34 @@ export default function MyBookings() {
           </div>
         </div>
 
-        {/* Filters Bar */}
-        <Card className="mb-8 border-none shadow-sm bg-white/80 backdrop-blur">
+        {/* Quick Filters (Mobile Friendly) */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+          {['all', 'confirmed', 'in_progress', 'completed', 'cancelled'].map((status) => (
+            <Button
+              key={status}
+              variant={filters.status === status ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => { setFilters({...filters, status: status}); setCurrentPage(1); }}
+              className={`rounded-full text-xs whitespace-nowrap ${
+                filters.status === status 
+                  ? 'bg-gray-900 text-white' 
+                  : 'bg-white text-gray-600 border-gray-200'
+              }`}
+            >
+              {status === 'all' ? 'Todos' : 
+               status === 'confirmed' ? 'Confirmados' :
+               status === 'in_progress' ? 'Ativos' :
+               status === 'completed' ? 'Concluídos' : 'Cancelados'}
+            </Button>
+          ))}
+        </div>
+
+        {/* Filters Bar (Collapsible or Simplified) */}
+        <Card className="mb-8 border-none shadow-sm bg-white/80 backdrop-blur hidden md:block">
           <CardContent className="p-4">
              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Status</label>
-                  <Select 
-                    value={filters.status} 
-                    onValueChange={(v) => { setFilters({...filters, status: v}); setCurrentPage(1); }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="confirmed">Confirmado</SelectItem>
-                      <SelectItem value="in_progress">Em Andamento</SelectItem>
-                      <SelectItem value="completed">Concluído</SelectItem>
-                      <SelectItem value="cancelled">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <label className="text-sm font-medium text-gray-700">Tipo de Serviço</label>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Tipo de Serviço</label>

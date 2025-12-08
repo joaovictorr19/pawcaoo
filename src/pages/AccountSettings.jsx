@@ -359,53 +359,96 @@ export default function AccountSettings() {
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <Card className="lg:col-span-1 h-fit border-gray-200 shadow-sm">
-            <CardContent className="p-4">
-              <nav className="space-y-1">
-                <Button
-                  variant={activeSection === "profile" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  size="sm"
-                  onClick={() => setActiveSection("profile")}
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Perfil Público
-                </Button>
-                <Button
-                  variant={activeSection === "private" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  size="sm"
-                  onClick={() => setActiveSection("private")}
-                >
-                  <Lock className="w-4 h-4 mr-2" />
-                  Dados Privados
-                </Button>
-                <Button
-                  variant={activeSection === "preferences" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  size="sm"
-                  onClick={() => setActiveSection("preferences")}
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Preferências
-                </Button>
-                <Button
-                  variant={activeSection === "security" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  size="sm"
-                  onClick={() => setActiveSection("security")}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Segurança
-                </Button>
-              </nav>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col gap-6">
+          {/* Mobile Navigation (Tabs) */}
+          <div className="lg:hidden overflow-x-auto pb-2">
+            <div className="flex gap-2 min-w-max">
+              <Button
+                variant={activeSection === "profile" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection("profile")}
+                className="rounded-full"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Perfil
+              </Button>
+              <Button
+                variant={activeSection === "private" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection("private")}
+                className="rounded-full"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Privado
+              </Button>
+              <Button
+                variant={activeSection === "preferences" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection("preferences")}
+                className="rounded-full"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Preferências
+              </Button>
+              <Button
+                variant={activeSection === "security" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection("security")}
+                className="rounded-full"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Segurança
+              </Button>
+            </div>
+          </div>
 
-          {/* Content */}
-          <div className="lg:col-span-3">
+          <div className="grid lg:grid-cols-4 gap-6">
+            {/* Desktop Sidebar */}
+            <Card className="hidden lg:block lg:col-span-1 h-fit border-gray-200 shadow-sm">
+              <CardContent className="p-4">
+                <nav className="space-y-1">
+                  <Button
+                    variant={activeSection === "profile" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    size="sm"
+                    onClick={() => setActiveSection("profile")}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Perfil Público
+                  </Button>
+                  <Button
+                    variant={activeSection === "private" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    size="sm"
+                    onClick={() => setActiveSection("private")}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Dados Privados
+                  </Button>
+                  <Button
+                    variant={activeSection === "preferences" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    size="sm"
+                    onClick={() => setActiveSection("preferences")}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Preferências
+                  </Button>
+                  <Button
+                    variant={activeSection === "security" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    size="sm"
+                    onClick={() => setActiveSection("security")}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Segurança
+                  </Button>
+                </nav>
+              </CardContent>
+            </Card>
+
+            {/* Content */}
+            <div className="lg:col-span-3">
             {/* Profile Section */}
             {activeSection === "profile" && (
               <Card className="border-gray-200 shadow-sm">

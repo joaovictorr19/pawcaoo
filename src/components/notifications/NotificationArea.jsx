@@ -257,6 +257,7 @@ export default function NotificationArea({ isOpen, onClose }) {
                           !notification.is_read ? 'bg-white ring-1 ring-blue-100' : 'bg-white/60'
                         }`}
                         onClick={() => handleNotificationClick(notification)}
+                        onMouseEnter={() => !notification.is_read && markAsReadMutation.mutate(notification)}
                       >
                         {!notification.is_read && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
