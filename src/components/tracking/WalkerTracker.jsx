@@ -175,8 +175,6 @@ export default function WalkerTracker() {
     );
   };
 
-  const navigate = useNavigate();
-
   const handleFinishWalk = async () => {
     if (!window.confirm("Terminar o passeio e notificar o dono?")) return;
 

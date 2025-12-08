@@ -596,10 +596,10 @@ export const translations = {
     bathroomBreaks: "Pausas para necessidades",
     
     // Professional Dashboard
-    professionalDashboard: "Painel Profissional", 
-    totalEarned: "Total Ganho",
+    // professionalDashboard: "Painel Profissional", // Duplicate removed
+    // totalEarned: "Total Ganho", // Duplicate removed
     // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
-    averageRating: "Rating Médio",
+    // averageRating: "Rating Médio", // Duplicate removed
     clientRetention: "Retenção de Clientes",
     weeklyPerformance: "Performance Semanal",
     statusDistribution: "Distribuição de Status",
