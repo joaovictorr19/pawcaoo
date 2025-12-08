@@ -55,6 +55,7 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminUserTable from "../components/admin/AdminUserTable";
+import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -456,6 +457,46 @@ export default function AdminDashboard() {
       toast.success("Abrigo atualizado e notificado!");
     },
   });
+
+  // Handlers para o AdminVerificationQueue
+  const handleApproveApplication = (type, item) => {
+    if (type === 'walker') {
+      updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, walker: item });
+    } else if (type === 'trainer') {
+      updateTrainerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, trainer: item });
+    } else if (type === 'shelter') {
+      updateShelterMutation.mutate({ id: item.id, data: { verification_status: 'approved', is_verified: true }, shelter: item });
+    }
+  };
+
+  const handleRejectApplication = (type, item) => {
+    const reason = prompt("Motivo da rejeição:");
+    if (!reason) return;
+
+    const data = { verification_status: 'rejected', rejection_reason: reason };
+    
+    if (type === 'walker') {
+      updateWalkerMutation.mutate({ id: item.id, data, walker: item });
+    } else if (type === 'trainer') {
+      updateTrainerMutation.mutate({ id: item.id, data, trainer: item });
+    } else if (type === 'shelter') {
+      updateShelterMutation.mutate({ id: item.id, data, shelter: item });
+    }
+  };
+
+  const handleViewApplicationDetails = (item, type) => {
+    // Adaptar o item para o formato esperado pelo Dialog (que é focado em walkers, mas pode ser expandido)
+    // Se for walker, já está ok. Se for trainer, campos podem variar ligeiramente.
+    setSelectedApplication({ ...item, type }); // Passar type para o dialog se necessário ajustar renderização
+    setShowApplicationDialog(true);
+  };
+
+  const handleRefreshApplications = () => {
+    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
+    toast.success("Listas atualizadas!");
+  };
 
   const createBadgeDefinitionMutation = useMutation({
     mutationFn: (data) => base44.entities.BadgeDefinition.create(data),
@@ -1224,153 +1265,15 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="applications">
-            <Card className="border-0 shadow-xl mt-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>{t('pendingApplications', language)}</CardTitle>
-                <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] })}>
-                  🔄 {t('updateList', language)}
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {/* Walkers */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('walkers', language)} ({walkerApplications.length})</h3>
-                    {walkerApplications.length === 0 ? (
-                      <p className="text-gray-500">{t('noResults', language)}</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {walkerApplications.map(app => (
-                          <Card key={app.id} className="p-4 border border-gray-200">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-bold">{app.walker_name}</h4>
-                                <p className="text-sm text-gray-600">{app.location}</p>
-                                <p className="text-sm text-gray-600">Exp: {app.experience_years} anos</p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => navigate(createPageUrl(`WalkerDetails?walker_id=${app.id}`))}
-                                >
-                                  {t('viewDetails', language)}
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  className="bg-green-600"
-                                  onClick={() => updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true }, walker: app })}
-                                >
-                                  {t('approve', language)}
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive"
-                                  onClick={() => {
-                                    const reason = prompt("Motivo da rejeição:");
-                                    if (reason) {
-                                      updateWalkerMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, walker: app })
-                                    }
-                                  }}
-                                >
-                                  {t('reject', language)}
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Trainers */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('trainers', language)} ({trainerApplications.length})</h3>
-                    {trainerApplications.length === 0 ? (
-                      <p className="text-gray-500">{t('noResults', language)}</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {trainerApplications.map(app => (
-                          <Card key={app.id} className="p-4 border border-gray-200">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-bold">{app.business_name || app.trainer_name}</h4>
-                                <p className="text-sm text-gray-600">{app.location}</p>
-                                <p className="text-sm text-gray-600">Taxa: €{app.hourly_rate}/h</p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  className="bg-green-600"
-                                  onClick={() => updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'verified', is_active: true }, trainer: app })}
-                                >
-                                  Aprovar
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive"
-                                  onClick={() => {
-                                    const reason = prompt("Motivo da rejeição:");
-                                    if (reason) {
-                                      updateTrainerMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, trainer: app })
-                                    }
-                                  }}
-                                >
-                                  Rejeitar
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Shelters */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('shelters', language)} ({shelterApplications.length})</h3>
-                    {shelterApplications.length === 0 ? (
-                      <p className="text-gray-500">{t('noResults', language)}</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {shelterApplications.map(app => (
-                          <Card key={app.id} className="p-4 border border-gray-200 bg-pink-50">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-bold">{app.shelter_name}</h4>
-                                <p className="text-sm text-gray-600">{app.location_city}</p>
-                                <p className="text-sm text-gray-600">{app.contact_email}</p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  className="bg-green-600"
-                                  onClick={() => updateShelterMutation.mutate({ id: app.id, data: { verification_status: 'approved', is_verified: true }, shelter: app })}
-                                >
-                                  Aprovar
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive"
-                                  onClick={() => {
-                                    const reason = prompt("Motivo da rejeição:");
-                                    if (reason) {
-                                      updateShelterMutation.mutate({ id: app.id, data: { verification_status: 'rejected', rejection_reason: reason }, shelter: app })
-                                    }
-                                  }}
-                                >
-                                  Rejeitar
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AdminVerificationQueue 
+              walkers={walkerApplications}
+              trainers={trainerApplications}
+              shelters={shelterApplications}
+              onApprove={handleApproveApplication}
+              onReject={handleRejectApplication}
+              onViewDetails={handleViewApplicationDetails}
+              onRefresh={handleRefreshApplications}
+            />
           </TabsContent>
 
           {/* NOVA TAB: BADGES */}
