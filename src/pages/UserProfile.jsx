@@ -379,7 +379,9 @@ export default function UserProfile() {
       const userBadges = profileUser?.public_badges || (isSelfView ? currentUser?.public_badges : []) || [];
 
       userBadges.forEach(b => {
-        if (b && b.badge_id) badgesMap.set(b.badge_id, b);
+        // Use badge_id if available, otherwise use name (legacy support)
+        const key = b.badge_id || b.name;
+        if (key) badgesMap.set(key, b);
       });
 
       // 2. Adicionar badges da tabela UserBadge (Source of Truth)
@@ -387,7 +389,8 @@ export default function UserProfile() {
         try {
           const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
           fromTable.forEach(b => {
-            if (b && b.badge_id) badgesMap.set(b.badge_id, { ...badgesMap.get(b.badge_id), ...b });
+            const key = b.badge_id || b.name;
+            if (key) badgesMap.set(key, { ...badgesMap.get(key), ...b });
           });
         } catch (e) {
           console.error("Error fetching badges table:", e);
@@ -410,20 +413,57 @@ export default function UserProfile() {
 
   const displayBadges = earnedBadges;
 
-  // Merge earned with definitions for Gallery View
+  // Merge earned with definitions for Gallery View, handling Legacy Badges
   const galleryBadges = React.useMemo(() => {
-    if (!allBadgeDefinitions.length) return [];
-    
-    const earnedSet = new Set(earnedBadges.map(b => b.badge_id || b.name)); // Match by ID or Name fallback
-    
-    return allBadgeDefinitions.map(def => {
-      const isEarned = earnedSet.has(def.id) || earnedSet.has(def.name) || earnedBadges.some(b => b.name === def.name);
+    // 1. Process definitions (New System)
+    const processedDefinitions = allBadgeDefinitions.map(def => {
+      const earnedMatch = earnedBadges.find(b => 
+        (b.badge_id && b.badge_id === def.id) || 
+        (b.name && b.name === def.name)
+      );
+      
       return {
         ...def,
-        isEarned,
-        earnedDate: isEarned ? earnedBadges.find(b => b.name === def.name)?.earned_date : null
+        isEarned: !!earnedMatch,
+        earnedDate: earnedMatch?.earned_date || null
       };
-    }).sort((a, b) => (b.isEarned === a.isEarned ? 0 : b.isEarned ? 1 : -1)); // Earned first
+    });
+
+    // 2. Find Earned Badges that didn't match any definition (Legacy System)
+    const definitionIds = new Set(processedDefinitions.map(d => d.id));
+    const definitionNames = new Set(processedDefinitions.map(d => d.name));
+
+    const legacyBadges = earnedBadges.filter(b => {
+      const matchId = b.badge_id && definitionIds.has(b.badge_id);
+      const matchName = b.name && definitionNames.has(b.name);
+      return !matchId && !matchName;
+    }).map(b => ({
+      ...b,
+      id: b.badge_id || `legacy-${b.name ? b.name.replace(/\s+/g, '-').toLowerCase() : Math.random()}`,
+      isEarned: true,
+      rarity: b.rarity || 'common',
+      description: b.description || 'Emblema Especial',
+      xp: b.xp || 0
+    }));
+
+    // 3. Combine and Sort: Earned First, then by Rarity, then Name
+    const combined = [...legacyBadges, ...processedDefinitions];
+    
+    return combined.sort((a, b) => {
+      // 1. Earned status (Earned first)
+      if (a.isEarned !== b.isEarned) return b.isEarned ? 1 : -1;
+      
+      // 2. Rarity (Legendary > Epic > Rare > Common)
+      const rarityOrder = { legendary: 3, epic: 2, rare: 1, common: 0 };
+      const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
+      const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
+      if (rA !== rB) return rB - rA;
+
+      // 3. XP (Higher first)
+      if ((a.xp || 0) !== (b.xp || 0)) return (b.xp || 0) - (a.xp || 0);
+
+      return 0;
+    });
   }, [allBadgeDefinitions, earnedBadges]);
 
   // Sync embedded badges (from Auth User) to UserBadge table if needed
