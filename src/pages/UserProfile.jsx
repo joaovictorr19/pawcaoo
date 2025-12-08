@@ -11,6 +11,8 @@ import {
   Award, TrendingUp, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
   CheckCircle, Shield, ShieldCheck, Users, User, Plus
 } from "lucide-react";
+import { t } from "@/components/translations";
+import { useLanguage } from "@/components/LanguageContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
@@ -107,6 +109,7 @@ function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
 
 export default function UserProfile() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("badges");
   const createNotification = useCreateNotification();
@@ -736,22 +739,22 @@ export default function UserProfile() {
         } catch (e) { console.error(e); }
       }
 
-      // Notify
-      try {
-        await createNotification.mutateAsync({
-          recipient_email: profileEmail,
-          title: "Novo Seguidor!",
-          message: `${currentUser.full_name} começou a seguir-te.`,
-          type: "social",
-          action_url: `/UserProfile?email=${currentUser.email}`
-        });
-      } catch (err) {
-        console.error("Failed to send notification:", err);
-      }
+      // Notify (Assíncrono, não bloqueia)
+      createNotification.mutateAsync({
+        recipient_email: profileEmail,
+        title: "Novo Seguidor!",
+        message: `${currentUser.full_name} começou a seguir-te.`,
+        type: "social",
+        action_url: `/UserProfile?email=${currentUser.email}`
+      }).catch(err => console.error("Failed to send notification:", err));
     },
     onSuccess: () => {
       toast.success('Agora você está seguindo!');
     },
+    onError: (error) => {
+      console.error("Follow mutation error:", error);
+      toast.error("Erro ao seguir usuário. Tente novamente.");
+    }
   });
 
   const unfollowMutation = useMutation({
@@ -966,7 +969,16 @@ export default function UserProfile() {
                         onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walkerProfile.id}`))}
                       >
                         <Dog className="w-3 h-3 mr-1" />
-                        Passeador
+                        {t('walkService', language || 'pt') || 'Passeador'}
+                      </Badge>
+                    )}
+                    {trainerProfile && (
+                      <Badge 
+                        className="bg-blue-600 text-white cursor-pointer hover:bg-blue-700 ml-1" 
+                        onClick={() => navigate(createPageUrl(`TrainerDetails?id=${trainerProfile.id}`))}
+                      >
+                        <Award className="w-3 h-3 mr-1" />
+                        {t('trainers', language || 'pt') || 'Treinador'}
                       </Badge>
                     )}
                   </div>
