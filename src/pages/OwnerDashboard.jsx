@@ -46,13 +46,7 @@ export default function OwnerDashboard() {
         owner_email: user.email
       });
       
-      // Check for completed bookings without reviews
       const all = [...walkerBookings, ...trainerBookings, ...serviceBookings];
-      const needsReview = all.find(b => b.status === 'completed' && !b.review_id && b.walker_id); // only for walkers initially
-      if (needsReview) {
-        setPendingReviewBooking(needsReview);
-      }
-      
       return all;
     },
     enabled: !!user,
@@ -93,6 +87,16 @@ export default function OwnerDashboard() {
     enabled: !!user,
     initialData: []
   });
+
+  // Auto-open review modal for pending reviews
+  React.useEffect(() => {
+    if (allBookings.length > 0) {
+      const needsReview = allBookings.find(b => b.status === 'completed' && !b.review_id && b.walker_id);
+      if (needsReview) {
+        setPendingReviewBooking(needsReview);
+      }
+    }
+  }, [allBookings]);
 
   // Calculate statistics
   const totalSpent = allBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
