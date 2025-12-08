@@ -584,29 +584,7 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarHeader>
 
           <SidebarContent className="p-3 md:p-4">
-            {/* My Profile - Now redirects to UserProfile */}
-            <SidebarGroup className="md:hidden">
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-3 ${
-                        location.pathname.includes('UserProfile') ? 'bg-green-600 text-white' : 'border border-gray-200 text-gray-700'
-                      }`}
-                    >
-                      <Link 
-                        to={authUser ? (authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)) : '#'} 
-                        className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3"
-                      >
-                        <User className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                        <span className="font-semibold text-xs md:text-sm truncate">{t('myProfile', language)}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* My Profile - Now in bottom nav */}
 
             {/* MENU PRINCIPAL */}
             <SidebarGroup className="md:hidden">
