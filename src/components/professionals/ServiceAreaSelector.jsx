@@ -41,18 +41,18 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
   const [mapCenter, setMapCenter] = useState([38.7223, -9.1393]); // Default Lisbon
 
   // Function to Geocode Postal Code / Area
-  const geocodeArea = async () => {
+  const geocodeArea = async (returnResult = false) => {
     if (!newArea.postal_codes && !newArea.area_name) {
       toast.error("Por favor insira um nome de área ou código postal");
-      return;
+      return null;
     }
 
     setIsSearching(true);
     try {
       // Prioritize postal code search, then area name
-      const query = newArea.postal_codes ? newArea.postal_codes.split(',')[0].trim() + ", Portugal" : newArea.area_name + ", Portugal";
+      const query = newArea.postal_codes ? newArea.postal_codes.split(',')[0].trim() : newArea.area_name;
       
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pt&limit=1`, {
         headers: {
             'User-Agent': 'PawCaoApp/1.0'
         }
@@ -71,35 +71,42 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
         }));
         
         setMapCenter([lat, lon]);
-        toast.success(`Localização encontrada: ${data[0].display_name}`);
+        toast.success(`Localização encontrada: ${data[0].display_name.split(',')[0]}`);
+        
+        if (returnResult) return { latitude: lat, longitude: lon };
+        return true;
       } else {
         toast.error("Localização não encontrada. Tente ser mais específico.");
+        return null;
       }
     } catch (error) {
       console.error("Geocoding error:", error);
       toast.error("Erro ao buscar localização.");
+      return null;
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handleAddArea = () => {
+  const handleAddArea = async () => {
     if (!newArea.area_name.trim()) {
       toast.error("Nome da área é obrigatório");
       return;
     }
 
+    let lat = newArea.latitude;
+    let lon = newArea.longitude;
+
     // If no coordinates yet, try to geocode first before adding
-    if (!newArea.latitude || !newArea.longitude) {
-       geocodeArea().then(() => {
-         // Check if geocoding was successful in state (it's async, so we might need a better flow, 
-         // but for now user can click Add again if it failed, or we rely on them checking the map)
-         // Actually, let's just add it, but warn if no coords.
-         // Better: force user to click search or auto-search.
-       });
-       // We'll return here to let the user verify the location on map first
-       // Or we can add it without coords and hope for the best (but the map req won't be met)
-       // Let's rely on the user having clicked search or auto-trigger.
+    if (!lat || !lon) {
+       const result = await geocodeArea(true);
+       if (result && result.latitude) {
+         lat = result.latitude;
+         lon = result.longitude;
+       } else {
+         // Failed to geocode
+         return;
+       }
     }
 
     const area = {
@@ -109,8 +116,8 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
         .map(code => code.trim())
         .filter(code => code),
       radius_km: parseFloat(newArea.radius_km) || 5,
-      latitude: newArea.latitude,
-      longitude: newArea.longitude
+      latitude: lat,
+      longitude: lon
     };
 
     onChange([...serviceAreas, area]);
