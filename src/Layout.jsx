@@ -576,33 +576,33 @@ function LayoutContent({ children, currentPageName }) {
             {/* MENU PRINCIPAL */}
             <SidebarGroup className="md:hidden">
               <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
-                {t('mainMenu', language)}
+              {t('mainMenu', language)}
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  {mainMenu.map((item) => ( 
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`mb-1.5 rounded-lg transition-colors ${
-                          isRouteActive(item.url)
-                            ? 'bg-green-600 text-white hover:bg-green-700' 
-                            : (item.className || 'hover:bg-gray-100 text-gray-700')
-                        }`}
-                      >
-                        <Link 
-                          id={item.id}
-                          to={item.url} 
-                          className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 ${item.className ? '' : ''}`}
-                          {...getPrefetchHandlers(item)}
-                        >
-                          <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
-                          <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
+              <SidebarMenu>
+              {mainMenu.map((item) => ( 
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton 
+                  asChild 
+                  className={`mb-1.5 rounded-lg transition-colors ${
+                    isRouteActive(item.url)
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : (item.className || 'hover:bg-gray-100 text-gray-700')
+                  }`}
+                >
+                  <Link 
+                    // Remove ID here to avoid duplicate/hidden target on desktop
+                    to={item.url} 
+                    className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 ${item.className ? '' : ''}`}
+                    {...getPrefetchHandlers(item)}
+                  >
+                    <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
+                    <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              ))}
+              </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
