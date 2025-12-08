@@ -904,7 +904,7 @@ function LayoutContent({ children, currentPageName }) {
                 {children}
               </PullToRefresh>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:block h-full">
               {children}
             </div>
           </div>
