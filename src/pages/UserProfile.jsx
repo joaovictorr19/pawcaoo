@@ -872,6 +872,13 @@ export default function UserProfile() {
                         <AdminBadgeGlass />
                       </div>
                     )}
+                    {earnedBadges.some(b => b.badge_id === 'adoption_advocate' || b.id === 'adoption_advocate') && (
+                      <div className="ml-1">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-sm border-2 border-white text-white" title="Defensor de Adoção">
+                          <Heart className="w-3 h-3 fill-white" />
+                        </div>
+                      </div>
+                    )}
                     {walkerProfile && (
                       <Badge 
                         className="bg-green-600 text-white cursor-pointer hover:bg-green-700 ml-1" 
