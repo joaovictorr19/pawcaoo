@@ -907,19 +907,24 @@ export default function UserProfile() {
                     <div className="flex gap-2">
                       {[0, 1].map((slotIdx) => {
                         // Get pinned badge ID or null
-                        const pinnedId = profileUser.pinned_badge_ids?.[slotIdx];
+                        // Ensure we handle array length safely
+                        const pinnedId = (profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) 
+                          ? profileUser.pinned_badge_ids[slotIdx] 
+                          : null;
+                          
                         // Find badge object if ID exists
                         const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
 
                         return (
                           <div 
                             key={slotIdx} 
+                            onClick={() => handleSlotClick(slotIdx)}
                             className={`w-12 h-12 rounded-lg flex items-center justify-center relative transition-all group ${
                               badge 
                                 ? 'bg-white border border-gray-200 shadow-sm' 
                                 : 'bg-gray-100/50 border-2 border-dashed border-gray-300'
-                            }`}
-                            title={badge ? badge.name : "Slot Vazio"}
+                            } ${isOwnProfile ? 'cursor-pointer hover:border-blue-400 hover:bg-blue-50' : ''}`}
+                            title={isOwnProfile ? (badge ? "Alterar Destaque" : "Adicionar Destaque") : (badge ? badge.name : "Slot Vazio")}
                           >
                             {badge ? (
                               <>
@@ -936,6 +941,15 @@ export default function UserProfile() {
                               </>
                             ) : (
                               <div className="w-2 h-2 rounded-full bg-gray-300 opacity-50" />
+                            )}
+                            
+                            {/* Edit Hint for Owner */}
+                            {isOwnProfile && (
+                              <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center transition-opacity">
+                                <div className="bg-white/90 rounded-full p-1 shadow-sm">
+                                  <Edit className="w-3 h-3 text-blue-600" />
+                                </div>
+                              </div>
                             )}
                           </div>
                         );
