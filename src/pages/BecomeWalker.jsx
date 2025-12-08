@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,7 +136,7 @@ export default function BecomeWalker() {
   };
 
   // Check for user login
-  const { data: user, isLoading: userLoading } = base44.react.useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
     retry: false,
@@ -153,7 +153,7 @@ export default function BecomeWalker() {
               {t('loginToBecomeWalker', language) || "Você precisa estar logado para se candidatar como passeador."}
             </p>
             <Button 
-              onClick={() => base44.auth.redirectToLogin()} 
+              onClick={() => base44.auth.redirectToLogin(window.location.href)} 
               className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
               {t('login', language) || "Entrar"}
@@ -453,7 +453,7 @@ export default function BecomeWalker() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="whatsapp_number">WhatsApp (Obrigatório)</Label>
+                        <Label htmlFor="whatsapp_number">{t('whatsappRequired', language)}</Label>
                         <Input
                           id="whatsapp_number"
                           required
@@ -464,10 +464,10 @@ export default function BecomeWalker() {
                             setFormData({...formData, whatsapp_number: val});
                             setFormErrors(prev => ({ ...prev, whatsapp: undefined }));
                           }}
-                          placeholder="351912345678 (apenas números)"
+                          placeholder="351912345678"
                           className={formErrors.whatsapp ? "border-red-500" : ""}
                         />
-                        <p className="text-xs text-gray-500">Inclua o código do país (ex: 351 para Portugal)</p>
+                        <p className="text-xs text-gray-500">{t('whatsappTip', language)}</p>
                         {formErrors.whatsapp && (
                           <p className="text-sm text-red-600 mt-1">{formErrors.whatsapp}</p>
                         )}
@@ -509,7 +509,7 @@ export default function BecomeWalker() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Exemplo: €25/hora = Recebe €21.25 por passeio (após 15% comissão)</p>
+                            <p>{t('hourlyRateTip', language)}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -753,7 +753,7 @@ export default function BecomeWalker() {
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Necessário para verificar a sua identidade</p>
+                          <p>{t('idVerificationTip', language)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -800,7 +800,7 @@ export default function BecomeWalker() {
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Verificação de antecedentes aumenta significativamente as taxas de reserva</p>
+                          <p>{t('backgroundCheckTipLong', language)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -831,7 +831,7 @@ export default function BecomeWalker() {
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Obrigatório para verificação - deve corresponder à sua localização</p>
+                          <p>{t('addressVerificationTip', language)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
