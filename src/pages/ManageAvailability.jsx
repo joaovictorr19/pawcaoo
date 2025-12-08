@@ -172,46 +172,56 @@ export default function ManageAvailability() {
         </div>
 
         {walkerProfile && (
-          <Card className="mb-6 border-0 shadow-md bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-blue-600" />
-                Disponibilidade Geral (Perfil)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { id: 'morning', label: t('morning', language), icon: Sunrise, color: 'bg-orange-100 text-orange-700 border-orange-200' },
-                  { id: 'afternoon', label: t('afternoon', language), icon: Sun, color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-                  { id: 'evening', label: t('evening', language), icon: Sunset, color: 'bg-purple-100 text-purple-700 border-purple-200' },
-                  { id: 'night', label: t('night', language), icon: Moon, color: 'bg-indigo-100 text-indigo-700 border-indigo-200' }
-                ].map((slot) => {
-                  const isActive = walkerProfile.availability?.includes(slot.id);
-                  return (
-                    <button
-                      key={slot.id}
-                      onClick={() => toggleGeneralAvailability(slot.id)}
-                      className={`
-                        flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all
-                        ${isActive 
-                          ? slot.color + ' border-current font-bold shadow-sm' 
-                          : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
-                        }
-                      `}
-                    >
-                      <slot.icon className="w-4 h-4" />
-                      {slot.label}
-                      {isActive && <CheckCircle2 className="w-4 h-4 ml-1" />}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                * Isso atualiza os filtros de pesquisa do seu perfil público. Para dias específicos, use o calendário abaixo.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="mb-8 p-6 bg-gray-100 border-4 border-gray-900 rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-mono relative overflow-hidden">
+            {/* Pixel Art Decorative Elements */}
+            <div className="absolute top-2 right-2 flex gap-1">
+              <div className="w-3 h-3 bg-red-500 border border-black"></div>
+              <div className="w-3 h-3 bg-yellow-500 border border-black"></div>
+              <div className="w-3 h-3 bg-green-500 border border-black"></div>
+            </div>
+            
+            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter border-b-4 border-black pb-2 mb-6 flex items-center gap-3">
+              <span className="text-2xl">👾</span>
+              Horário Padrão (Global)
+            </h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { id: 'morning', label: 'Manhã', icon: '🌅', desc: '06:00 - 12:00' },
+                { id: 'afternoon', label: 'Tarde', icon: '☀️', desc: '12:00 - 18:00' },
+                { id: 'evening', label: 'Noite', icon: '🌆', desc: '18:00 - 00:00' },
+                { id: 'night', label: 'Madrugada', icon: '🦉', desc: '00:00 - 06:00' }
+              ].map((slot) => {
+                const isActive = walkerProfile.availability?.includes(slot.id);
+                return (
+                  <button
+                    key={slot.id}
+                    onClick={() => toggleGeneralAvailability(slot.id)}
+                    className={`
+                      relative group h-28 flex flex-col items-center justify-center border-4 border-black transition-all duration-100
+                      ${isActive 
+                        ? 'bg-green-400 translate-x-[2px] translate-y-[2px] shadow-none' 
+                        : 'bg-white hover:bg-gray-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]'
+                      }
+                    `}
+                  >
+                    {isActive && (
+                      <div className="absolute top-1 right-1 text-black">
+                        <CheckCircle2 className="w-5 h-5 fill-white" />
+                      </div>
+                    )}
+                    <span className="text-3xl mb-1 grayscale-0">{slot.icon}</span>
+                    <span className="font-bold text-lg uppercase tracking-wide">{slot.label}</span>
+                    <span className="text-[10px] font-bold opacity-60 mt-1">{slot.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs font-bold mt-4 text-gray-500 flex items-center gap-2">
+              <span className="animate-pulse">▋</span>
+              DEFINE A TUA VISIBILIDADE NA PESQUISA. PARA DIAS ESPECÍFICOS, USA O CALENDÁRIO ABAIXO.
+            </p>
+          </div>
         )}
 
         <div className="grid lg:grid-cols-3 gap-3 md:gap-6">
