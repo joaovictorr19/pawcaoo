@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
+import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -572,7 +573,57 @@ export default function UserProfile() {
   });
 
   const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
+
+  // Badge Selection State
+  const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
+  const [activeSlotIndex, setActiveSlotIndex] = useState(null);
+
+  const updatePinnedBadgesMutation = useMutation({
+    mutationFn: async ({ slotIndex, badgeId }) => {
+      if (!profileUser?.id) return;
+      
+      const currentPinned = [...(profileUser.pinned_badge_ids || [null, null])];
+      // Ensure array has at least 2 slots
+      while (currentPinned.length < 2) currentPinned.push(null);
+      
+      // Update specific slot
+      currentPinned[slotIndex] = badgeId;
+      
+      // Remove duplicates if same badge selected in other slot
+      const otherSlot = slotIndex === 0 ? 1 : 0;
+      if (currentPinned[otherSlot] === badgeId) {
+        currentPinned[otherSlot] = null;
+      }
+
+      // Filter out nulls/undefined for clean storage, but UI handles partials
+      // Actually better to keep structure or just store valid IDs
+      const cleanPinned = currentPinned.filter(id => id);
+
+      await base44.entities.UserProfile.update(profileUser.id, {
+        pinned_badge_ids: cleanPinned
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
+      setIsBadgeModalOpen(false);
+      toast.success('Destaques atualizados!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar destaques.');
+    }
+  });
+
+  const handleSlotClick = (index) => {
+    if (!isOwnProfile) return;
+    setActiveSlotIndex(index);
+    setIsBadgeModalOpen(true);
+  };
+
+  const handleBadgeSelect = (badgeId) => {
+    updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId });
+  };
 
   const { data: followersList = [] } = useQuery({
     queryKey: ['followersList', profileEmail],
@@ -1082,6 +1133,15 @@ export default function UserProfile() {
             </ScrollArea>
           </DialogContent>
         </Dialog>
+
+        {/* Badge Selection Modal */}
+        <BadgeSelectionModal
+          isOpen={isBadgeModalOpen}
+          onClose={() => setIsBadgeModalOpen(false)}
+          earnedBadges={earnedBadges}
+          onSelectBadge={handleBadgeSelect}
+          currentlyPinnedIds={profileUser?.pinned_badge_ids || []}
+        />
       </div>
     </div>
   );
