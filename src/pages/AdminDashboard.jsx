@@ -698,6 +698,50 @@ export default function AdminDashboard() {
     onError: (err) => toast.error(err.message)
   });
 
+  const removeBadgeFromUserMutation = useMutation({
+    mutationFn: async ({ userId, badgeId, badgeXP }) => {
+      const targetUser = allUsers.find(u => u.id === userId);
+      if (!targetUser) throw new Error("Usuário não encontrado");
+
+      // 1. Remove form UserBadge entity (Source of Truth)
+      try {
+        const userBadges = await base44.entities.UserBadge.filter({ user_email: targetUser.email });
+        const badgeRecord = userBadges.find(b => b.badge_id === badgeId);
+        if (badgeRecord) {
+          await base44.entities.UserBadge.delete(badgeRecord.id);
+        }
+      } catch (e) {
+        console.error("Error deleting UserBadge record:", e);
+      }
+
+      // 2. Update User Entity (Legacy/Display arrays)
+      const currentPublicBadges = targetUser.public_badges || [];
+      const currentAchievementsBadges = targetUser.achievements_badges || [];
+      
+      const updatedPublic = currentPublicBadges.filter(b => b.badge_id !== badgeId);
+      const updatedAchievements = currentAchievementsBadges.filter(b => b.badge_id !== badgeId);
+
+      const xpToDeduct = badgeXP || 0;
+      const newXP = Math.max(0, (targetUser.gamification_xp || 0) - xpToDeduct);
+
+      await base44.entities.User.update(userId, {
+        public_badges: updatedPublic,
+        achievements_badges: updatedAchievements,
+        gamification_xp: newXP
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success("Emblema removido com sucesso!");
+      // If editing a user, refresh the selected user data
+      if (selectedUserForBadges) {
+        const updatedUser = allUsers.find(u => u.id === selectedUserForBadges.id);
+        if (updatedUser) setSelectedUserForBadges(updatedUser);
+      }
+    },
+    onError: (err) => toast.error("Erro ao remover emblema: " + err.message)
+  });
+
   const openGrantBadgeDialog = (email) => {
     setGrantBadgeTargetEmail(email);
     setShowGrantSingleBadgeModal(true);
@@ -2877,9 +2921,26 @@ export default function AdminDashboard() {
                   {selectedUserForBadges.public_badges?.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {selectedUserForBadges.public_badges.map((badge, idx) => (
-                        <Badge key={idx} className="bg-purple-500">
-                          {badge.icon} {badge.name}
-                        </Badge>
+                        <div key={idx} className="relative group">
+                          <Badge className="bg-purple-500 pr-6">
+                            {badge.icon} {badge.name}
+                          </Badge>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Remover emblema "${badge.name}" de ${selectedUserForBadges.full_name}?`)) {
+                                removeBadgeFromUserMutation.mutate({
+                                  userId: selectedUserForBadges.id,
+                                  badgeId: badge.badge_id,
+                                  badgeXP: badge.xp
+                                });
+                              }
+                            }}
+                            className="absolute top-0 right-0 bottom-0 px-1.5 flex items-center justify-center bg-red-500 text-white text-xs rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remover Emblema"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
                       ))}
                     </div>
                   ) : (
