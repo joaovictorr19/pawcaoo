@@ -102,8 +102,19 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
 
     // Draw checkerboard pattern for transparency
     const patternSize = 20;
-    ctx.fillStyle = "#1a1a1a"; // Fallback
+    // White background for better visibility
+    ctx.fillStyle = "#ffffff"; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw checkerboard
+    ctx.fillStyle = "#e5e5e5";
+    for (let x = 0; x < canvas.width; x += patternSize) {
+      for (let y = 0; y < canvas.height; y += patternSize) {
+        if ((x / patternSize + y / patternSize) % 2 === 0) {
+          ctx.fillRect(x, y, patternSize, patternSize);
+        }
+      }
+    }
     
     // Draw image
     ctx.save();
@@ -123,17 +134,26 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
 
     ctx.scale(currentScale, currentScale);
     
-    // Position delta needs to be scaled inversely if we want 1px drag = 1px move visually
-    // However, since we translate BEFORE drawing image, dividing by scale is correct for 'image space' translation.
-    // But users expect 'screen space' translation.
-    // If I drag 10px right, I want image to move 10px right on screen.
-    // screen_delta = 10.
-    // ctx.translate(dx, dy). ctx is scaled by S.
-    // effective_screen_move = dx * S.
-    // we want effective_screen_move = screen_delta.
-    // so dx * S = screen_delta => dx = screen_delta / S.
+    // Apply position (panning)
+    // We want the panning to be 1:1 with mouse movement regardless of zoom/rotation
+    // The transformation matrix order matters:
+    // 1. Translate to center
+    // 2. Rotate
+    // 3. Scale
+    // 4. Translate by position (adjusted for scale and rotation)
     
-    ctx.translate(position.x / currentScale, position.y / currentScale);
+    // To make panning intuitive (moving mouse right moves image right on screen),
+    // we need to apply the translation relative to the current rotation.
+    
+    const rad = (rotation * Math.PI) / 180;
+    const cos = Math.cos(-rad);
+    const sin = Math.sin(-rad);
+    
+    // Rotate the position vector to match the image's rotation
+    const rotX = position.x * cos - position.y * sin;
+    const rotY = position.x * sin + position.y * cos;
+
+    ctx.translate(rotX / currentScale, rotY / currentScale);
     
     ctx.drawImage(image, -image.width / 2, -image.height / 2);
     ctx.restore();
@@ -190,7 +210,16 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
       const baseScale = Math.min(scaleX, scaleY); 
       const currentScale = baseScale * zoom;
       ctx.scale(currentScale, currentScale);
-      ctx.translate(position.x / currentScale, position.y / currentScale);
+      
+      // Apply same position logic as drawImage
+      const rad = (rotation * Math.PI) / 180;
+      const cos = Math.cos(-rad);
+      const sin = Math.sin(-rad);
+      const rotX = position.x * cos - position.y * sin;
+      const rotY = position.x * sin + position.y * cos;
+      
+      ctx.translate(rotX / currentScale, rotY / currentScale);
+      
       ctx.drawImage(image, -image.width / 2, -image.height / 2);
       ctx.restore();
       // ------------------------------------------------------------------
