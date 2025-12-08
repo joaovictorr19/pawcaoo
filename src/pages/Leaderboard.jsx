@@ -162,16 +162,33 @@ export default function Leaderboard() {
             <div className="flex justify-center items-end gap-2 md:gap-6 mb-12 px-2">
               {[1, 0, 2].map((idx) => {
                 const item = activeList[idx];
-                if (!item) return <div key={idx} className="w-1/3" />;
-                
                 const rank = idx + 1;
+                
+                // Placeholder para posições vazias
+                if (!item) {
+                  return (
+                    <div key={idx} className={`relative flex flex-col items-center flex-1 md:w-40 md:flex-none ${rank === 1 ? '-mt-10 mb-10' : ''} opacity-50 grayscale`}>
+                       <div className={`
+                        relative rounded-2xl p-4 w-full h-40 flex flex-col items-center justify-center text-center
+                        border-2 border-dashed border-gray-300 bg-gray-50/50
+                        ${rank === 2 ? 'mt-8' : rank === 3 ? 'mt-16' : ''}
+                      `}>
+                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+                           <span className="text-gray-400 font-bold">#{rank}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 font-medium">Vago</p>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <motion.div
                     key={item.id}
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: idx * 0.15 }}
-                    className={`relative flex flex-col items-center w-1/3 md:w-40 ${rank === 1 ? 'mt-10' : ''}`}
+                    className={`relative flex flex-col items-center flex-1 md:w-40 md:flex-none cursor-pointer ${rank === 1 ? '-mt-6 mb-6' : ''}`}
                     onClick={() => {
                         if(item.type === 'user') navigate(createPageUrl(`UserProfile?email=${item.email}`));
                         if(item.type === 'walker') navigate(createPageUrl(`WalkerDetails?id=${item.id}`));
