@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Navigation, StopCircle, AlertTriangle, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import ChatOverlay from "./ChatOverlay";
 
 // Haversine formula for distance in meters
 const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
@@ -27,6 +28,12 @@ export default function WalkerTracker() {
   // 1. Pegar o ID da URL
   const { bookingId } = useParams();
   const navigate = useNavigate();
+
+  // Fetch current user for chat
+  const { data: user } = useQuery({ 
+    queryKey: ['currentUser'], 
+    queryFn: () => base44.auth.me() 
+  });
 
   const [isTracking, setIsTracking] = useState(false);
   const [wakeLock, setWakeLock] = useState(null);
@@ -251,6 +258,9 @@ export default function WalkerTracker() {
           </div>
         )}
       </div>
+
+      {/* Chat Overlay for Walker */}
+      {user && <ChatOverlay bookingId={bookingId} user={user} title="Chat com Dono" />}
     </div>
   );
 }

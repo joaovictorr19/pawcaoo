@@ -4,9 +4,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send, Minimize2, Maximize2, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import ChatOverlay from "./ChatOverlay";
 
 // --- CUSTOM ICONS ---
 // Placeholder Icon as requested
@@ -54,82 +53,8 @@ const LiveMapViewer = ({ path }) => {
   );
 };
 
-const ChatWindow = ({ bookingId, user }) => {
-  const [message, setMessage] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false); // Default collapsed to see map
-
-  // Poll messages
-  const { data: messages = [], refetch } = useQuery({
-    queryKey: ['chatMessages', bookingId],
-    queryFn: () => base44.entities.ChatMessage.filter({ booking_id: bookingId }, '-created_date', 50),
-    refetchInterval: 3000
-  });
-
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-
-    await base44.entities.ChatMessage.create({
-      booking_id: bookingId,
-      sender_email: user.email,
-      content: message,
-      timestamp: new Date().toISOString()
-    });
-    setMessage("");
-    refetch();
-  };
-
-  return (
-    <div 
-      className={`absolute bottom-0 left-0 right-0 z-20 flex flex-col bg-white/90 backdrop-blur-sm border-t border-gray-200 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out ${
-        isExpanded ? 'h-[50vh]' : 'h-[15vh] md:h-16'
-      }`}
-    >
-      {/* Header / Toggle */}
-      <div 
-        className="flex items-center justify-between px-4 py-2 border-b border-gray-100 cursor-pointer hover:bg-white/50"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <span className="font-semibold text-gray-800">Chat do Passeio</span>
-        <button className="p-1 text-gray-500">
-          {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* Messages Area */}
-      <div className={`flex-1 overflow-y-auto p-4 space-y-3 flex flex-col-reverse ${!isExpanded ? 'hidden' : ''}`}>
-        {messages.map((msg) => {
-          const isMe = msg.sender_email === user.email;
-          return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
-                isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'
-              }`}>
-                {msg.content}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Input Area */}
-      <div className="p-3 bg-white/60 border-t border-gray-100 pb-safe">
-        <form onSubmit={handleSend} className="flex gap-2">
-          <Input 
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Enviar mensagem..."
-            className="flex-1 bg-white rounded-full border-gray-300 focus:ring-blue-500 h-10"
-            onFocus={() => setIsExpanded(true)} // Auto expand on focus
-          />
-          <Button type="submit" size="icon" className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex-shrink-0">
-            <Send className="w-4 h-4 text-white" />
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
-};
+// ChatWindow removed in favor of ChatOverlay
+// ... existing map components ...
 
 // --- MAIN COMPONENT ---
 
@@ -202,7 +127,7 @@ export default function LiveWalkSession({ bookingId }) {
       </div>
 
       {/* Z-Index 20: Chat Overlay */}
-      <ChatWindow bookingId={bookingId} user={user} />
+      <ChatOverlay bookingId={bookingId} user={user} title="Chat com Passeador" />
       
     </div>
   );
