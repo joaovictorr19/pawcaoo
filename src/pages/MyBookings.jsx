@@ -313,10 +313,70 @@ export default function MyBookings() {
           });
         }
       }
+
+      // --- GAMIFICATION: Award Points & XP to Reviewer ---
+      try {
+        const POINTS_FOR_REVIEW = 50;
+        const XP_FOR_REVIEW = 100;
+        const reviewerEmail = user?.email;
+
+        if (reviewerEmail) {
+          // 1. Get or Create LoyaltyPoints record
+          let lpRecords = await base44.entities.LoyaltyPoints.filter({ user_email: reviewerEmail });
+          let lp = lpRecords[0];
+          
+          if (!lp) {
+            lp = await base44.entities.LoyaltyPoints.create({
+              user_email: reviewerEmail,
+              points_balance: 0,
+              total_earned: 0
+            });
+          }
+
+          // 2. Add Transaction
+          await base44.entities.PointsTransaction.create({
+            user_email: reviewerEmail,
+            transaction_type: 'earned',
+            points_amount: POINTS_FOR_REVIEW,
+            description: 'Review Submitted',
+            balance_after: (lp.points_balance || 0) + POINTS_FOR_REVIEW
+          });
+
+          // 3. Update Loyalty Balance
+          await base44.entities.LoyaltyPoints.update(lp.id, {
+            points_balance: (lp.points_balance || 0) + POINTS_FOR_REVIEW,
+            total_earned: (lp.total_earned || 0) + POINTS_FOR_REVIEW
+          });
+
+          // 4. Update UserProfile (XP & Level)
+          let profiles = await base44.entities.UserProfile.filter({ user_email: reviewerEmail });
+          let profile = profiles[0];
+
+          if (profile) {
+            const newXP = (profile.gamification_xp || 0) + XP_FOR_REVIEW;
+            // Simple Level Formula: Level = 1 + floor(XP / 1000)
+            const newLevel = 1 + Math.floor(newXP / 1000);
+
+            await base44.entities.UserProfile.update(profile.id, {
+              gamification_xp: newXP,
+              gamification_level: newLevel,
+              last_activity_date: new Date().toISOString().split('T')[0]
+            });
+            
+            toast.success(`🎉 +${POINTS_FOR_REVIEW} Points & +${XP_FOR_REVIEW} XP Earned!`);
+          }
+        }
+      } catch (gameErr) {
+        console.error("Gamification Error:", gameErr);
+        // Don't block the review flow if gamification fails
+      }
     },
     onSuccess: () => {
       toast.success("Review submitted successfully!");
       setReviewTarget(null);
+      // Invalidate queries to refresh UI if needed
+      queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
     onError: (err) => {
       console.error(err);
