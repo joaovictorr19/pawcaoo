@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RefreshCw, CheckCircle, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { calculateUserStats } from "@/utils/gamificationRules";
+import { calculateUserStats } from "@/components/gamification/gamificationRules";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function GamificationSyncButton() {
