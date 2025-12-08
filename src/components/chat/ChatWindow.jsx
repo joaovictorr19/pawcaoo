@@ -4,16 +4,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MoreVertical, Phone, Video, Info, User } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle } from "lucide-react";
 import CallModal from "./CallModal";
+import LiveWalkMap from "../tracking/LiveWalkMap";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function ChatWindow({ conversationId, currentUser }) {
   const [message, setMessage] = useState("");
   const scrollRef = useRef(null);
   const queryClient = useQueryClient();
   const [callState, setCallState] = useState({ isOpen: false, type: 'audio' });
+  const [activeTab, setActiveTab] = useState("chat");
 
   // 1. Fetch Conversation Details (to get participant info)
   const { data: conversation } = useQuery({
@@ -25,6 +29,19 @@ export default function ChatWindow({ conversationId, currentUser }) {
     enabled: !!conversationId
   });
 
+  // 1.5 Fetch Linked Booking (to check status)
+  const { data: booking } = useQuery({
+    queryKey: ['linkedBooking', conversation?.booking_id],
+    queryFn: async () => {
+      const res = await base44.entities.Booking.filter({ id: conversation.booking_id });
+      return res[0];
+    },
+    enabled: !!conversation?.booking_id,
+    refetchInterval: 10000 // Check status periodically
+  });
+
+  const isLiveWalk = booking?.status === 'in_progress';
+
   // 2. Poll Messages
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessages', conversationId],
@@ -35,10 +52,10 @@ export default function ChatWindow({ conversationId, currentUser }) {
 
   // Scroll to bottom
   useEffect(() => {
-    if (scrollRef.current) {
+    if (activeTab === 'chat' && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, activeTab]);
 
   // 3. Send Message Mutation
   const sendMessageMutation = useMutation({
@@ -84,7 +101,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative">
       <CallModal 
         isOpen={callState.isOpen}
         onClose={() => setCallState({ ...callState, isOpen: false })}
@@ -92,8 +109,9 @@ export default function ChatWindow({ conversationId, currentUser }) {
         recipientName={displayName}
         recipientAvatar={displayAvatar}
       />
+      
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-white shrink-0">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className={isSupport ? "bg-blue-100 text-blue-700" : "bg-gray-100"}>
@@ -129,55 +147,139 @@ export default function ChatWindow({ conversationId, currentUser }) {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50" ref={scrollRef}>
-        {sortedMessages.length === 0 && (
-            <div className="text-center text-gray-400 my-10 text-sm">
-                Esta é o início da sua conversa.<br/>Diga olá! 👋
-            </div>
-        )}
-        
-        {sortedMessages.map((msg) => {
-          const isMe = msg.sender_email === currentUser.email;
-          return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                <div 
-                  className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
-                    isMe 
-                      ? 'bg-blue-600 text-white rounded-br-none' 
-                      : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                  }`}
-                >
-                  {msg.content}
-                </div>
-                <span className="text-[10px] text-gray-400 mt-1 px-1">
-                  {format(new Date(msg.created_date), 'HH:mm')}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* Tabs / Content Area */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {isLiveWalk ? (
+           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+             <div className="px-4 pt-2 shrink-0">
+                {activeTab === 'chat' && (
+                  <Alert className="mb-2 bg-green-50 border-green-200">
+                    <AlertCircle className="h-4 w-4 text-green-600" />
+                    <AlertTitle className="text-green-800 font-bold">Passeio em Andamento!</AlertTitle>
+                    <AlertDescription className="text-green-700 flex justify-between items-center">
+                      <span>O acompanhamento ao vivo está ativo.</span>
+                      <Button size="sm" variant="outline" className="h-7 bg-white text-green-700 border-green-300 hover:bg-green-100 ml-2" onClick={() => setActiveTab('map')}>
+                        Ver Mapa
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <TabsList className="w-full grid grid-cols-2">
+                   <TabsTrigger value="chat"><MessageSquare className="w-4 h-4 mr-2"/>Chat</TabsTrigger>
+                   <TabsTrigger value="map" className="relative">
+                      <MapIcon className="w-4 h-4 mr-2"/>
+                      Rastreamento
+                      <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                   </TabsTrigger>
+                </TabsList>
+             </div>
 
-      {/* Input */}
-      <div className="p-4 bg-white border-t">
-        <form onSubmit={handleSend} className="flex gap-2">
-          <Input 
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Escreva a sua mensagem..."
-            className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4"
-          />
-          <Button 
-            type="submit" 
-            size="icon" 
-            disabled={!message.trim()}
-            className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shadow-sm transition-all hover:scale-105 active:scale-95"
-          >
-            <Send className="w-4 h-4 text-white" />
-          </Button>
-        </form>
+             <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden data-[state=inactive]:hidden mt-0">
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50" ref={scrollRef}>
+                  {sortedMessages.length === 0 && (
+                      <div className="text-center text-gray-400 my-10 text-sm">
+                          Esta é o início da sua conversa.<br/>Diga olá! 👋
+                      </div>
+                  )}
+                  {sortedMessages.map((msg) => {
+                    const isMe = msg.sender_email === currentUser.email;
+                    return (
+                      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                          <div 
+                            className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                              isMe 
+                                ? 'bg-blue-600 text-white rounded-br-none' 
+                                : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                            }`}
+                          >
+                            {msg.content}
+                          </div>
+                          <span className="text-[10px] text-gray-400 mt-1 px-1">
+                            {format(new Date(msg.created_date), 'HH:mm')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Input */}
+                <div className="p-4 bg-white border-t shrink-0">
+                  <form onSubmit={handleSend} className="flex gap-2">
+                    <Input 
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Escreva a sua mensagem..."
+                      className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4"
+                    />
+                    <Button 
+                      type="submit" 
+                      size="icon" 
+                      disabled={!message.trim()}
+                      className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shadow-sm transition-all hover:scale-105 active:scale-95"
+                    >
+                      <Send className="w-4 h-4 text-white" />
+                    </Button>
+                  </form>
+                </div>
+             </TabsContent>
+
+             <TabsContent value="map" className="flex-1 overflow-hidden data-[state=inactive]:hidden mt-0 p-2 relative h-full">
+                <LiveWalkMap bookingId={conversation.booking_id} className="w-full h-full" />
+             </TabsContent>
+           </Tabs>
+        ) : (
+          /* Standard Chat View (No Tabs) */
+          <>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50" ref={scrollRef}>
+              {sortedMessages.length === 0 && (
+                  <div className="text-center text-gray-400 my-10 text-sm">
+                      Esta é o início da sua conversa.<br/>Diga olá! 👋
+                  </div>
+              )}
+              {sortedMessages.map((msg) => {
+                const isMe = msg.sender_email === currentUser.email;
+                return (
+                  <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                      <div 
+                        className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                          isMe 
+                            ? 'bg-blue-600 text-white rounded-br-none' 
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                      <span className="text-[10px] text-gray-400 mt-1 px-1">
+                        {format(new Date(msg.created_date), 'HH:mm')}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="p-4 bg-white border-t shrink-0">
+              <form onSubmit={handleSend} className="flex gap-2">
+                <Input 
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Escreva a sua mensagem..."
+                  className="flex-1 bg-gray-50 border-gray-200 focus:ring-blue-500 rounded-full px-4"
+                />
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  disabled={!message.trim()}
+                  className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shadow-sm transition-all hover:scale-105 active:scale-95"
+                >
+                  <Send className="w-4 h-4 text-white" />
+                </Button>
+              </form>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

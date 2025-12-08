@@ -1,0 +1,108 @@
+import React, { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, Loader2 } from "lucide-react";
+
+// --- CUSTOM ICONS ---
+const dogIcon = new L.Icon({
+  iconUrl: "https://placehold.co/40x40/purple/white?text=DOG",
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
+  className: "rounded-full border-2 border-white shadow-lg"
+});
+
+const startIcon = new L.Icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/149/149059.png",
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
+
+// --- SUB-COMPONENT FOR MAP UPDATES ---
+const LiveMapViewer = ({ path }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (path && path.length > 0) {
+      const lastPoint = path[path.length - 1];
+      map.setView([lastPoint.lat, lastPoint.lng], map.getZoom(), { animate: true });
+    }
+  }, [path, map]);
+
+  if (!path || path.length === 0) return null;
+
+  const polylinePositions = path.map(p => [p.lat, p.lng]);
+  const currentPos = path[path.length - 1];
+
+  return (
+    <>
+      <Polyline 
+        positions={polylinePositions} 
+        pathOptions={{ color: '#3b82f6', weight: 5, opacity: 0.8, lineCap: 'round', lineJoin: 'round' }} 
+      />
+      <Marker position={[path[0].lat, path[0].lng]} icon={startIcon} />
+      <Marker position={[currentPos.lat, currentPos.lng]} icon={dogIcon} />
+    </>
+  );
+};
+
+// --- MAIN COMPONENT ---
+export default function LiveWalkMap({ bookingId, className = "h-full w-full" }) {
+  const { data: booking, isLoading } = useQuery({
+    queryKey: ['liveBookingMap', bookingId],
+    queryFn: async () => {
+       const res = await base44.entities.Booking.filter({ id: bookingId });
+       return res[0];
+    },
+    refetchInterval: 5000, // 5s refresh
+    enabled: !!bookingId,
+  });
+
+  if (!bookingId) return (
+    <div className={`flex items-center justify-center bg-gray-50 text-gray-500 flex-col gap-2 ${className}`}>
+      <span className="text-sm">ID de reserva não fornecido</span>
+    </div>
+  );
+
+  if (isLoading) return (
+    <div className={`flex items-center justify-center bg-gray-50 text-gray-500 gap-2 ${className}`}>
+      <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+      <span className="text-sm">Carregando mapa...</span>
+    </div>
+  );
+
+  if (!booking) return (
+    <div className={`flex items-center justify-center bg-gray-50 text-gray-500 flex-col gap-2 ${className}`}>
+      <span className="font-bold">Reserva não encontrada</span>
+    </div>
+  );
+
+  const path = booking.route_coordinates || [];
+  // Default to Lisbon or path start
+  const center = path.length > 0 ? [path[path.length - 1].lat, path[path.length - 1].lng] : [38.7223, -9.1393];
+
+  return (
+    <div className={`relative overflow-hidden rounded-xl border border-gray-200 shadow-inner ${className}`}>
+      <MapContainer 
+        center={center} 
+        zoom={16} 
+        className="h-full w-full"
+        zoomControl={false}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+        />
+        <LiveMapViewer path={path} />
+      </MapContainer>
+      
+      {/* Mini Info Overlay */}
+      <div className="absolute top-2 right-2 z-[400] bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm text-xs font-medium">
+         Distância: {booking.distance_km ? booking.distance_km.toFixed(2) : 0} km
+      </div>
+    </div>
+  );
+}
