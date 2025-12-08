@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 
 const VerifiedBadge = ({ className = "" }) => {
   return (
-    <div className={`verified-badge-container relative flex items-center justify-center w-8 h-8 ${className}`} title="Conta Verificada Oficial">
+    <div className={`verified-badge-container relative flex items-center justify-center w-6 h-6 ${className}`} title="Conta Verificada Oficial">
       <style>
         {`
           .verified-badge-3d {
@@ -22,13 +22,13 @@ const VerifiedBadge = ({ className = "" }) => {
       </style>
       
       {/* 3D Container */}
-      <div className="verified-badge-3d w-8 h-8 rounded-full flex items-center justify-center relative overflow-hidden border border-blue-400/30">
+      <div className="verified-badge-3d w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden border border-blue-400/30">
         
         {/* Glossy Reflection */}
         <div className="verified-badge-shine absolute top-0 left-0 right-0 h-1/2 rounded-t-full pointer-events-none" />
         
         {/* Checkmark */}
-        <Check className="w-5 h-5 text-white drop-shadow-md z-10 stroke-[3px]" />
+        <Check className="w-3.5 h-3.5 text-white drop-shadow-md z-10 stroke-[3px]" />
       </div>
     </div>
   );
