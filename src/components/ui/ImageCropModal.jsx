@@ -42,50 +42,59 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     }
   }, [isOpen]);
 
-  // Redesenhar quando o modal abre ou tamanho muda, mesmo sem imagem
+  // Refactor to ensure redraw happens reliably
   useEffect(() => {
-    requestAnimationFrame(drawImage);
-  }, [containerSize, isOpen]);
-
-  // Carregar imagem inicial
-  useEffect(() => {
-    if (imageUrl) {
-      const img = new Image();
-      
-      // Only set crossOrigin for remote URLs (http/https), not for data: or blob:
-      // This prevents issues with local files or base64 strings
-      const isRemote = imageUrl.startsWith('http');
-      if (isRemote) {
-        img.crossOrigin = "anonymous";
-      }
-      
-      img.onload = () => {
-        imageRef.current = img;
-        setZoom(1);
-        setRotation(0);
-        setPosition({ x: 0, y: 0 });
-        requestAnimationFrame(drawImage);
-      };
-      
-      img.onerror = () => {
-        // If it was a remote image and failed with CORS, we retry without it
-        // BUT we must warn that saving might fail due to tainted canvas
-        if (isRemote) {
-            console.warn("Failed to load image with crossOrigin. Retrying without (saving may fail).");
-            const retryImg = new Image();
-            retryImg.onload = () => {
-                imageRef.current = retryImg;
-                setZoom(1);
-                setRotation(0);
-                setPosition({ x: 0, y: 0 });
-                requestAnimationFrame(drawImage);
-            };
-            retryImg.src = imageUrl;
-        }
-      };
-
-      img.src = imageUrl;
+    if (isOpen) {
+      // Force redraw when modal opens
+      requestAnimationFrame(drawImage);
     }
+  }, [isOpen, containerSize, showGrid]);
+
+  // Load image logic - simplified and robust
+  useEffect(() => {
+    if (!imageUrl) return;
+
+    const img = new Image();
+    // Handle crossOrigin for remote images, but not for local blobs
+    const isRemote = imageUrl.startsWith('http');
+    if (isRemote) {
+      img.crossOrigin = "anonymous";
+    }
+
+    const handleLoad = () => {
+      imageRef.current = img;
+      // Only reset zoom/pos if it's a new image load, otherwise keep state
+      // But here we usually want to reset on new image
+      setZoom(1);
+      setRotation(0);
+      setPosition({ x: 0, y: 0 });
+      requestAnimationFrame(drawImage);
+    };
+
+    img.onload = handleLoad;
+
+    img.onerror = () => {
+      console.error("Failed to load image for crop");
+      if (isRemote) {
+        // Retry without CORS
+        const retryImg = new Image();
+        retryImg.onload = () => {
+          imageRef.current = retryImg;
+          setZoom(1);
+          setRotation(0);
+          setPosition({ x: 0, y: 0 });
+          requestAnimationFrame(drawImage);
+        };
+        retryImg.src = imageUrl;
+      }
+    };
+
+    img.src = imageUrl;
+    
+    // Cleanup
+    return () => {
+      imageRef.current = null;
+    };
   }, [imageUrl]);
 
   // Redesenhar quando estados mudam
