@@ -211,7 +211,7 @@ function LayoutContent({ children, currentPageName }) {
 
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
-    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog },
+    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog, id: "nav-home" },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap, className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
     { title: getMenuText('shelterArea'), url: createPageUrl("ShelterDashboard"), icon: Building2 },
@@ -224,7 +224,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
-    { title: getMenuText('badges'), url: createPageUrl("Gamification"), icon: Award, id: "navbar-gamification" },
+    { title: getMenuText('badges'), url: createPageUrl("Gamification"), icon: Award, id: "nav-gamification" },
   ];
 
   const professionalMenu = [
@@ -591,6 +591,7 @@ function LayoutContent({ children, currentPageName }) {
                         }`}
                       >
                         <Link 
+                          id={item.id}
                           to={item.url} 
                           className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 ${item.className ? '' : ''}`}
                           {...getPrefetchHandlers(item)}
@@ -771,6 +772,7 @@ function LayoutContent({ children, currentPageName }) {
                   {mainMenu.map((item) => (
                     <Link
                       key={item.url}
+                      id={item.id}
                       to={item.url}
                       className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                         isRouteActive(item.url)
@@ -783,6 +785,7 @@ function LayoutContent({ children, currentPageName }) {
                     </Link>
                   ))}
                   <Link 
+                    id="header-profile"
                     to={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                       location.pathname.includes('UserProfile')
@@ -853,16 +856,19 @@ function LayoutContent({ children, currentPageName }) {
           <OnboardingWizard 
             steps={[
               {
-                target: '#navbar-gamification',
-                title: 'Os teus Prémios!',
-                content: 'Aqui podes ver os teus emblemas e o teu nível de XP.',
-                position: 'bottom'
+                targetId: '#nav-home',
+                title: 'Encontre Ajuda',
+                content: 'Aqui podes encontrar passeadores e treinadores verificados perto de ti.'
               },
               {
-                target: '#find-walker-btn',
-                title: 'Encontra Ajuda',
-                content: 'Clica aqui para veres o mapa de passeadores em tempo real.',
-                position: 'right'
+                targetId: '#nav-gamification',
+                title: 'Ganhe Prémios',
+                content: 'Acumule XP em cada passeio e desbloqueie emblemas exclusivos para o teu perfil!'
+              },
+              {
+                targetId: '#header-profile',
+                title: 'O Teu Perfil',
+                content: 'Aqui vês o teu nível, estatísticas e podes editar as tuas preferências.'
               }
             ]}
           />
