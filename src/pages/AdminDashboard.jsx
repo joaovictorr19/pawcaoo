@@ -53,6 +53,7 @@ import { t } from "@/components/translations";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
+import ProfileEditRequests from "@/components/admin/ProfileEditRequests";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
