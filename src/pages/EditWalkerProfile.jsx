@@ -77,12 +77,10 @@ export default function EditWalkerProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setTempImageUrl(event.target.result);
-      setCropModalOpen(true);
-    };
-    reader.readAsDataURL(file);
+    // Use URL.createObjectURL instead of FileReader for better performance and to avoid CORS/Tainted Canvas issues
+    const objectUrl = URL.createObjectURL(file);
+    setTempImageUrl(objectUrl);
+    setCropModalOpen(true);
   };
 
   const handleCroppedImage = async (croppedFile) => {
@@ -284,15 +282,10 @@ export default function EditWalkerProfile() {
                       onChange={(e) => {
                          const file = e.target.files[0];
                          if(file) {
-                             const reader = new FileReader();
-                             reader.onload = (ev) => {
-                                 setTempImageUrl(ev.target.result);
-                                 setCropModalOpen(true);
-                                 // We use a state to track which image we are editing: 'photo' or 'cover'
-                                 // But here we need to implement that state logic
-                                 setEditingImageType('photo');
-                             };
-                             reader.readAsDataURL(file);
+                             const objectUrl = URL.createObjectURL(file);
+                             setTempImageUrl(objectUrl);
+                             setCropModalOpen(true);
+                             setEditingImageType('photo');
                          }
                       }}
                       className="hidden"
@@ -331,13 +324,10 @@ export default function EditWalkerProfile() {
                       onChange={(e) => {
                          const file = e.target.files[0];
                          if(file) {
-                             const reader = new FileReader();
-                             reader.onload = (ev) => {
-                                 setTempImageUrl(ev.target.result);
-                                 setCropModalOpen(true);
-                                 setEditingImageType('cover');
-                             };
-                             reader.readAsDataURL(file);
+                             const objectUrl = URL.createObjectURL(file);
+                             setTempImageUrl(objectUrl);
+                             setCropModalOpen(true);
+                             setEditingImageType('cover');
                          }
                       }}
                       className="hidden"

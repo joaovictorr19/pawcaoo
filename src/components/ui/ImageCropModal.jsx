@@ -46,8 +46,13 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
   useEffect(() => {
     if (imageUrl && canvasRef.current) {
       const img = new Image();
-      // Try with crossOrigin anonymous first, but handle fallback
-      img.crossOrigin = "anonymous";
+      
+      // Only set crossOrigin for remote URLs (http/https), not for data: or blob:
+      // This prevents issues with local files or base64 strings
+      const isRemote = imageUrl.startsWith('http');
+      if (isRemote) {
+        img.crossOrigin = "anonymous";
+      }
       
       img.onload = () => {
         imageRef.current = img;
@@ -58,18 +63,20 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
       };
       
       img.onerror = () => {
-        // Fallback: try loading without crossOrigin if it fails (might restrict saving but allows viewing)
-        // Or just log error. Usually blob URLs work fine.
-        console.warn("Failed to load image with crossOrigin. Retrying without.");
-        const retryImg = new Image();
-        retryImg.onload = () => {
-            imageRef.current = retryImg;
-            setZoom(1);
-            setRotation(0);
-            setPosition({ x: 0, y: 0 });
-            requestAnimationFrame(drawImage);
-        };
-        retryImg.src = imageUrl;
+        // If it was a remote image and failed with CORS, we retry without it
+        // BUT we must warn that saving might fail due to tainted canvas
+        if (isRemote) {
+            console.warn("Failed to load image with crossOrigin. Retrying without (saving may fail).");
+            const retryImg = new Image();
+            retryImg.onload = () => {
+                imageRef.current = retryImg;
+                setZoom(1);
+                setRotation(0);
+                setPosition({ x: 0, y: 0 });
+                requestAnimationFrame(drawImage);
+            };
+            retryImg.src = imageUrl;
+        }
       };
 
       img.src = imageUrl;
