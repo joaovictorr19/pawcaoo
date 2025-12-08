@@ -64,23 +64,35 @@ export default function Inbox() {
         return existing.id;
       }
 
-      // Create new
+      // 1. Busca do Destinatário Admin (Usando UserProfile para acesso público)
+      const admins = await base44.entities.UserProfile.filter({ role: 'admin' }, 'created_date', 1);
+      
+      // 2. Verificação de Falha
+      if (!admins || admins.length === 0) {
+        throw new Error("Serviço de Suporte Indisponível. Tente mais tarde.");
+      }
+
+      const adminEmail = admins[0].user_email;
+
+      // 3. Criação Robusta da Conversa
       const newChat = await base44.entities.ChatConversation.create({
-        participants: [user.email, 'admin_support@pawcao.net'],
+        participants: [user.email, adminEmail],
         tags: ['support'],
-        last_message: 'Iniciou um pedido de suporte.',
+        last_message: 'Nova conversa de suporte iniciada.',
         last_message_date: new Date().toISOString(),
-        unread_counts: { [user.email]: 0, 'admin_support@pawcao.net': 1 }
+        unread_counts: { [user.email]: 0, [adminEmail]: 1 }
       });
       return newChat.id;
     },
     onSuccess: (chatId) => {
+      // 4. Feedback e Redirecionamento
       if (chatId) {
         navigate(createPageUrl(`chat/${chatId}`));
       }
     },
-    onError: () => {
-      toast.error("Erro ao iniciar chat de suporte.");
+    onError: (error) => {
+      console.error("Support chat error:", error);
+      toast.error(error.message || "Erro ao iniciar chat de suporte.");
     }
   });
 
