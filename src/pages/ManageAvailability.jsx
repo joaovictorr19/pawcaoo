@@ -35,12 +35,21 @@ export default function ManageAvailability() {
   });
 
   const { data: bookings } = useQuery({
-    queryKey: ['professionalBookings'],
+    queryKey: ['professionalBookings', user?.email],
     queryFn: async () => {
-      const walkerBookings = await base44.entities.Booking.list();
-      const trainerBookings = await base44.entities.TrainingBooking.list();
+      if (!user?.email) return [];
+      // Filter bookings where the current user is the professional
+      const walkerBookings = await base44.entities.Booking.filter({ walker_email: user.email });
+      // Try to fetch trainer bookings if entity exists (handling potential missing schema in some envs)
+      let trainerBookings = [];
+      try {
+         trainerBookings = await base44.entities.TrainingBooking.filter({ trainer_email: user.email });
+      } catch (e) {
+         console.log("Training bookings not available or error fetching");
+      }
       return [...walkerBookings, ...trainerBookings];
     },
+    enabled: !!user?.email,
     initialData: [],
   });
 
