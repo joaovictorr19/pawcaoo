@@ -571,6 +571,34 @@ export default function UserProfile() {
     enabled: !!profileEmail,
   });
 
+  // Sync Verification Status
+  React.useEffect(() => {
+    const syncVerification = async () => {
+      // Only owner or admin can update
+      const canUpdate = isOwnProfile || (currentUser?.role === 'admin');
+      if (!canUpdate || !profileUser?.id) return;
+
+      const authVerified = isOwnProfile && currentUser?.is_verified;
+      const walkerVerified = walkerProfile?.verification_status === 'verified';
+      const trainerVerified = trainerProfile?.verification_status === 'verified';
+      
+      const shouldBeVerified = authVerified || walkerVerified || trainerVerified;
+      
+      // If should be verified but profile says no
+      if (shouldBeVerified && !profileUser.is_verified) {
+        console.log("Syncing verification status to true...");
+        try {
+          await base44.entities.UserProfile.update(profileUser.id, { is_verified: true });
+          queryClient.invalidateQueries(['profileUser']);
+        } catch(e) { console.error("Verification sync failed", e); }
+      }
+    };
+    
+    if (profileUser) {
+        syncVerification();
+    }
+  }, [profileUser, walkerProfile, trainerProfile, isOwnProfile, currentUser, queryClient]);
+
   const { data: userDogs = [] } = useQuery({
     queryKey: ['userDogs', profileEmail],
     queryFn: async () => {
@@ -898,7 +926,7 @@ export default function UserProfile() {
                     </h1>
                     
                     {/* Lógica de verificação e Badges */}
-                    {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified') && (
+                    {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
                       <div className="ml-1">
                         <VerifiedBadge />
                       </div>
