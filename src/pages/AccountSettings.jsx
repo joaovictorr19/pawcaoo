@@ -308,6 +308,36 @@ export default function AccountSettings() {
     updateProfileMutation.mutate({ preferences });
   };
 
+  // Função auxiliar para atualizar a foto em todo o lado quando a URL muda
+  const handleAvatarUpdate = async (newUrl) => {
+    try {
+        // 1. Atualiza Auth/User
+        await base44.auth.updateMe({ profile_photo_url: newUrl });
+        
+        // 2. Atualiza UserProfile Entity
+        if (userProfileEntity) {
+            await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: newUrl });
+        }
+
+        // 3. Sincroniza Walker
+        if (walkerProfile) {
+            await base44.entities.WalkerProfile.update(walkerProfile.id, { photo_url: newUrl });
+        }
+
+        // 4. Sincroniza Trainer
+        if (trainerProfile) {
+            await base44.entities.TrainerProfile.update(trainerProfile.id, { photo_url: newUrl });
+        }
+
+        // 5. Refresh na tela
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        toast.success("Foto atualizada em todos os seus perfis!");
+    } catch (error) {
+        console.error("Erro ao sincronizar foto:", error);
+        toast.error("Erro ao salvar foto.");
+    }
+  };
+
   const handleLogout = () => {
     base44.auth.logout();
   };
@@ -399,43 +429,12 @@ export default function AccountSettings() {
                 <CardContent className="space-y-6">
                   {/* Photos - Replaced with CenteredAvatarUpload */}
                   <div>
-                    <Label className="mb-3 block">Foto de Perfil</Label>
-                    <div className="flex justify-start">
-                      <div className="w-full max-w-xs">
-                        <CenteredAvatarUpload 
-                          currentImageUrl={user?.profile_photo_url}
-                          size="large"
-                          onImageChange={(url) => {
-                             // Create a new mutation call here since the original one expected a file object
-                             // We'll define a new helper or use a direct update function
-                             const updatePhotoUrl = async () => {
-                               // Update User Auth
-                               await base44.auth.updateMe({ profile_photo_url: url });
-                               
-                               // Sync with UserProfile entity
-                               if (userProfileEntity) {
-                                 await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: url });
-                               }
-                        
-                               // Sync with WalkerProfile
-                               if (walkerProfile) {
-                                 await base44.entities.WalkerProfile.update(walkerProfile.id, { photo_url: url });
-                               }
-                        
-                               // Sync with TrainerProfile
-                               if (trainerProfile) {
-                                 await base44.entities.TrainerProfile.update(trainerProfile.id, { photo_url: url });
-                               }
-                               
-                               queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-                               queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
-                             };
-                             
-                             updatePhotoUrl();
-                          }}
-                        />
-                      </div>
-                    </div>
+                    <Label className="mb-3 block text-center font-medium">Foto de Perfil</Label>
+                    <CenteredAvatarUpload 
+                        currentImageUrl={user?.profile_photo_url}
+                        onImageChange={handleAvatarUpdate} 
+                        size="large"
+                    />
                   </div>
 
                   <div>
