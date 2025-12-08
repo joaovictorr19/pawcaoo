@@ -14,6 +14,8 @@ import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+const SUPPORT_EMAIL_TARGET = "suporte@pawcao.net";
+
 export default function Inbox() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -64,17 +66,15 @@ export default function Inbox() {
         return existing.id;
       }
 
-      // 1. Busca do Destinatário Admin (Usando UserProfile para acesso público)
-      const admins = await base44.entities.UserProfile.filter({ role: 'admin' }, 'created_date', 1);
-      
-      // 2. Verificação de Falha
-      if (!admins || admins.length === 0) {
-        throw new Error("Serviço de Suporte Indisponível. Tente mais tarde.");
+      // 1. Definição do Destinatário Fixo
+      const adminEmail = SUPPORT_EMAIL_TARGET;
+
+      // 2. Verificação de Integridade (opcional, já que é constante)
+      if (!adminEmail) {
+        throw new Error("Erro de configuração interna: Email de suporte não definido.");
       }
 
-      const adminEmail = admins[0].user_email;
-
-      // 3. Criação Robusta da Conversa
+      // 3. Criação Segura da Conversa
       const newChat = await base44.entities.ChatConversation.create({
         participants: [user.email, adminEmail],
         tags: ['support'],
