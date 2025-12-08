@@ -36,7 +36,7 @@ import {
   Users, Shield, CheckCircle, X, Clock, Ban, Briefcase, Package,
   Calendar, DollarSign, Star, AlertCircle, BarChart3, Store,
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
-  CheckCircle2, FileText, Download, Trash2, User, Plus, Edit,
+  CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send,
   XCircle, Upload, Eye,
   RefreshCw, Loader2
 } from "lucide-react";
@@ -161,6 +161,11 @@ export default function AdminDashboard() {
   const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
   const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+
+  // Broadcast state
+  const [broadcastSubject, setBroadcastSubject] = useState("");
+  const [broadcastContent, setBroadcastContent] = useState("");
+  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -1022,6 +1027,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">{t('accounts', language)}</TabsTrigger>
             <TabsTrigger value="applications">{t('verifications', language)}</TabsTrigger>
             <TabsTrigger value="profile_edits">✏️ Edições</TabsTrigger>
+            <TabsTrigger value="communication">📢 Comunicação</TabsTrigger>
             <TabsTrigger value="active_walkers">{t('activeWalkers', language)}</TabsTrigger>
             <TabsTrigger value="adoptions">{t('adoptions', language)}</TabsTrigger>
             <TabsTrigger value="badges">{t('badges', language)}</TabsTrigger>
@@ -1298,6 +1304,90 @@ export default function AdminDashboard() {
           <TabsContent value="profile_edits">
             <div className="mt-6">
               <ProfileEditRequests />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="communication">
+            <div className="space-y-6 mt-6">
+              <Card className="border-red-100 shadow-md">
+                <CardHeader className="bg-red-50/50 pb-4">
+                  <CardTitle className="text-red-700 flex items-center gap-2">
+                    <Megaphone className="w-5 h-5" />
+                    Comunicação Global (Broadcast)
+                  </CardTitle>
+                  <p className="text-sm text-red-600/80">
+                    Envie anúncios importantes para TODOS os utilizadores do sistema. Use com cautela.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Assunto / Título</Label>
+                    <Input 
+                      placeholder="Ex: Manutenção Programada ou Aviso de Segurança" 
+                      value={broadcastSubject}
+                      onChange={(e) => setBroadcastSubject(e.target.value)}
+                      className="font-medium"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Mensagem</Label>
+                    <Textarea 
+                      placeholder="Digite a mensagem completa aqui..." 
+                      value={broadcastContent}
+                      onChange={(e) => setBroadcastContent(e.target.value)}
+                      rows={5}
+                    />
+                  </div>
+                  
+                  <div className="pt-2 flex justify-end">
+                    <Button 
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      disabled={!broadcastSubject || !broadcastContent || isSendingBroadcast}
+                      onClick={async () => {
+                        if(!window.confirm("Tem certeza que deseja enviar esta mensagem para TODOS os utilizadores?")) return;
+                        
+                        setIsSendingBroadcast(true);
+                        try {
+                          await base44.entities.SystemNotification.create({
+                            subject: broadcastSubject,
+                            content: broadcastContent,
+                            priority: 'high',
+                            is_active: true
+                          });
+                          toast.success("Anúncio enviado com sucesso!");
+                          setBroadcastSubject("");
+                          setBroadcastContent("");
+                        } catch (error) {
+                          console.error("Broadcast error:", error);
+                          toast.error("Erro ao enviar anúncio: " + error.message);
+                        } finally {
+                          setIsSendingBroadcast(false);
+                        }
+                      }}
+                    >
+                      {isSendingBroadcast ? (
+                        "Enviando..." 
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          ENVIAR ANÚNCIO A TODOS
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                 <CardHeader>
+                   <CardTitle>Histórico de Anúncios</CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                    {/* Simple list of recent broadcasts could go here */}
+                    <p className="text-sm text-gray-500 italic">Funcionalidade de histórico será implementada em breve.</p>
+                 </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
