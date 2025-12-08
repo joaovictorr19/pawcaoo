@@ -48,7 +48,7 @@ export const translations = {
     verifications: "Verificações",
     activeWalkers: "Passeadores Ativos",
     adoptions: "Adoções",
-    // badges: "Emblemas", // Duplicate
+    // badges: "Emblemas",
     companies: "Empresas",
     announcements: "Anúncios",
     services: "Serviços",
@@ -333,8 +333,8 @@ export const translations = {
     upTo: "Até",
     unlimited: "Ilimitado",
     paymentSpeed: "Velocidade de Pagamento",
-    // days: "dias", // Duplicate
-    // hours: "horas", // Duplicate
+    // days: "dias",
+    hours: "horas",
     instant: "Instantâneo",
     support: "Suporte",
     directTeam: "Equipa Directa",
@@ -453,7 +453,7 @@ export const translations = {
     walkDate: "Data do Passeio",
     walkTime: "Hora do Passeio",
     duration: "Duração",
-    hours: "horas",
+    // hours: "horas",
     specialNotes: "Notas Especiais",
     totalAmount: "Valor Total",
     platformFee: "Taxa da Plataforma",
@@ -603,9 +603,9 @@ export const translations = {
     clientRetention: "Retenção de Clientes",
     weeklyPerformance: "Performance Semanal",
     statusDistribution: "Distribuição de Status",
-    completed: "Completadas",
-    pending: "Pendentes",
-    cancelled: "Canceladas",
+    // completed: "Completadas",
+    // pending: "Pendentes",
+    // cancelled: "Canceladas",
     recurringClients: "Clientes Recorrentes",
     recentReviews: "Avaliações Recentes",
     availabilityCalendar: "Calendário de Disponibilidade",
@@ -624,7 +624,7 @@ export const translations = {
 
     // Footer
     footerTagline: "A plataforma líder para serviços profissionais de passeio e cuidados de cães",
-    // services: "Serviços", // Duplicate
+    // services: "Serviços",
     forProfessionals: "Para Profissionais",
     company: "Empresa",
     aboutUs: "Sobre Nós",
@@ -799,7 +799,7 @@ export const translations = {
     primaryMethod: "★ Método Principal",
     
     professionalTrackRecord: "Historial Profissional",
-    // successRate: "Taxa de Sucesso (%)", // Duplicate
+    // successRate: "Taxa de Sucesso (%)",
     successRateDesc: "Percentagem de clientes que atingiram os seus objetivos de treino",
     
     servicesPackages: "Serviços e Pacotes",
@@ -844,7 +844,7 @@ export const translations = {
     myDashboard: "Meu Painel",
     emergency: "Emergência",
     connectOwners: "Conectamos donos de pets a passeadores, treinadores e veterinários de confiança. Seguro, rápido e com muito amor.",
-    // securePayment: "Pagamento Seguro", // Duplicate
+    // securePayment: "Pagamento Seguro",
     support247: "Suporte 24/7",
     list: "Lista",
     map: "Mapa",
@@ -962,7 +962,7 @@ export const translations = {
     verifications: "Verifications",
     activeWalkers: "Active Walkers",
     adoptions: "Adoptions",
-    // badges: "Badges", // Duplicate
+    // badges: "Badges",
     companies: "Companies",
     announcements: "Announcements",
     services: "Services",
@@ -1247,8 +1247,8 @@ export const translations = {
     upTo: "Up to",
     unlimited: "Unlimited",
     paymentSpeed: "Payment Speed",
-    // days: "days", // Duplicate
-    // hours: "hours", // Duplicate
+    // days: "days",
+    hours: "hours",
     instant: "Instant",
     support: "Support",
     directTeam: "Direct Team",
@@ -1367,7 +1367,7 @@ export const translations = {
     walkDate: "Walk Date",
     walkTime: "Walk Time",
     duration: "Duration",
-    hours: "hours",
+    // hours: "hours",
     specialNotes: "Special Notes",
     totalAmount: "Total Amount",
     platformFee: "Platform Fee",
@@ -1511,7 +1511,7 @@ export const translations = {
     
     // Professional Dashboard
     // professionalDashboard: "Professional Dashboard", // Duplicate removed
-    totalEarned: "Total Earned",
+    // totalEarned: "Total Earned",
     // totalBookings: "Total Bookings", // Duplicate key, keeping the one above
     averageRating: "Average Rating",
     clientRetention: "Client Retention",
@@ -1538,7 +1538,7 @@ export const translations = {
 
     // Footer
     footerTagline: "The leading platform for professional dog walking and care services",
-    // services: "Services", // Duplicate
+    // services: "Services",
     forProfessionals: "For Professionals",
     company: "Company",
     aboutUs: "About Us",
@@ -1710,7 +1710,7 @@ export const translations = {
     primaryMethod: "★ Primary Method",
     
     professionalTrackRecord: "Professional Track Record",
-    // successRate: "Success Rate (%)", // Duplicate
+    // successRate: "Success Rate (%)",
     successRateDesc: "Percentage of clients who achieved their training goals",
     
     servicesPackages: "Services & Packages",
@@ -1755,7 +1755,7 @@ export const translations = {
     myDashboard: "My Dashboard",
     emergency: "Emergency",
     connectOwners: "We connect pet owners with trusted walkers, trainers, and vets. Safe, fast, and with lots of love.",
-    // securePayment: "Secure Payment", // Duplicate
+    // securePayment: "Secure Payment",
     support247: "24/7 Support",
     list: "List",
     map: "Map",
@@ -1873,7 +1873,7 @@ export const translations = {
     verifications: "Verificaciones",
     activeWalkers: "Paseadores Activos",
     adoptions: "Adopciones",
-    // badges: "Insignias", // Duplicate
+    // badges: "Insignias",
     companies: "Empresas",
     announcements: "Anuncios",
     services: "Servicios",
@@ -2158,8 +2158,8 @@ export const translations = {
     upTo: "Hasta",
     unlimited: "Ilimitado",
     paymentSpeed: "Velocidad de Pago",
-    // days: "días", // Duplicate
-    // hours: "horas", // Duplicate
+    // days: "días",
+    hours: "horas",
     instant: "Instantáneo",
     support: "Soporte",
     directTeam: "Equipo Directo",
@@ -2278,7 +2278,7 @@ export const translations = {
     walkDate: "Fecha del Paseo",
     walkTime: "Hora del Paseo",
     duration: "Duración",
-    hours: "horas",
+    // hours: "horas",
     specialNotes: "Notas Especiales",
     totalAmount: "Monto Total",
     platformFee: "Tarifa de Plataforma",
@@ -2402,7 +2402,7 @@ export const translations = {
     trackWalkLive: "Rastrear Paseo en Vivo",
     walkStats: "Estadísticas del Paseo",
     distance: "Distancia",
-    duration: "Duración",
+    // duration: "Duración",
     updates: "Actualizaciones",
     currentBehavior: "Comportamiento Actual",
     mood: "Estado de ánimo",
@@ -2422,7 +2422,7 @@ export const translations = {
     
     // Professional Dashboard
     // professionalDashboard: "Panel Profesional", // Duplicate removed
-    totalEarned: "Total Ganado",
+    // totalEarned: "Total Ganado",
     // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
     averageRating: "Calificación Promedio",
     clientRetention: "Retención de Clientes",
@@ -2449,7 +2449,7 @@ export const translations = {
 
     // Footer
     footerTagline: "La plataforma líder para servicios profesionales de paseo y cuidado de perros",
-    // services: "Servicios", // Duplicate
+    // services: "Servicios",
     forProfessionals: "Para Profesionales",
     company: "Empresa",
     aboutUs: "Sobre Nosotros",
@@ -2621,7 +2621,7 @@ export const translations = {
     primaryMethod: "★ Método Principal",
     
     professionalTrackRecord: "Trayectoria Profesional",
-    // successRate: "Tasa de Éxito (%)", // Duplicate
+    // successRate: "Tasa de Éxito (%)",
     successRateDesc: "Porcentaje de clientes que lograron sus objetivos de entrenamiento",
     
     servicesPackages: "Servicios y Paquetes",
@@ -2666,7 +2666,7 @@ export const translations = {
     myDashboard: "Mi Panel",
     emergency: "Emergencia",
     connectOwners: "Conectamos a dueños de mascotas con paseadores, entrenadores y veterinarios de confianza. Seguro, rápido y con mucho amor.",
-    // securePayment: "Pago Seguro", // Duplicate
+    // securePayment: "Pago Seguro",
     support247: "Soporte 24/7",
     list: "Lista",
     map: "Mapa",
