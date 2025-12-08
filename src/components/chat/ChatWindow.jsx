@@ -120,6 +120,28 @@ export default function ChatWindow({ conversationId, currentUser }) {
     onError: (err) => toast.error("Erro ao apagar conversa.")
   });
 
+  const otherEmail = conversation?.participants?.find(p => p !== currentUser?.email);
+
+  const { data: otherUserProfile } = useQuery({
+    queryKey: ['chatUserProfile', otherEmail],
+    queryFn: async () => {
+      if (!otherEmail) return null;
+      const res = await base44.entities.UserProfile.filter({ user_email: otherEmail });
+      return res[0];
+    },
+    enabled: !!otherEmail
+  });
+
+  const isOnline = React.useMemo(() => {
+    if (!otherUserProfile?.last_activity_date) return false;
+    // Check if activity was in the last 15 minutes
+    // Note: If format is just YYYY-MM-DD, this will likely be false unless updated with time, which is safer (hides "Online" if not sure)
+    const lastActive = new Date(otherUserProfile.last_activity_date);
+    const now = new Date();
+    const diffMins = (now - lastActive) / 1000 / 60;
+    return diffMins < 15 && diffMins >= 0;
+  }, [otherUserProfile]);
+
   // 3. Send Message Mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
@@ -213,10 +235,17 @@ export default function ChatWindow({ conversationId, currentUser }) {
           </Avatar>
           <div className="leading-tight">
             <h3 className="font-bold text-sm text-gray-900">{displayName}</h3>
-            <p className="text-[10px] text-green-600 flex items-center gap-1 font-medium">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> 
-              Online
-            </p>
+            {isOnline && (
+              <p className="text-[10px] text-green-600 flex items-center gap-1 font-medium">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> 
+                Online
+              </p>
+            )}
+            {!isOnline && otherUserProfile?.last_activity_date && (
+               <p className="text-[10px] text-gray-400">
+                 Visto: {format(new Date(otherUserProfile.last_activity_date), "dd/MM HH:mm")}
+               </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1 text-gray-400">
