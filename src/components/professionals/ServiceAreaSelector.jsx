@@ -145,6 +145,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 placeholder="Ex: Baixa Lisboa"
                 value={newArea.area_name}
                 onChange={(e) => setNewArea({ ...newArea, area_name: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), geocodeArea())}
               />
             </div>
             
