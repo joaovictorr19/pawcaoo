@@ -10,7 +10,7 @@ import {
   PawPrint, Activity, Clock, Star, BarChart3, Download,
   TrendingDown, AlertCircle, CheckCircle, Zap, Dog, Loader2
 } from "lucide-react";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 import { Line, Bar, Pie } from "recharts";
