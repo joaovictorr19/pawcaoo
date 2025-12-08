@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle } from "lucide-react";
+import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +42,15 @@ export default function BookingForm({ walker, professional, onClose }) {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
+
+  const [pickupAddress, setPickupAddress] = useState(""); 
+
+  // Update address when user is loaded
+  React.useEffect(() => {
+    if (user?.address || user?.location || user?.city) {
+        setPickupAddress(user.address || user.location || user.city || "");
+    }
+  }, [user]);
 
   // Buscar subscrição do owner para descontos
   const { data: ownerSubscription } = useQuery({
@@ -207,6 +216,10 @@ export default function BookingForm({ walker, professional, onClose }) {
       toast.error('Selecione a data do passeio');
       return;
     }
+    if (!pickupAddress) {
+      toast.error('Por favor, indique o local de recolha');
+      return;
+    }
 
     setIsProcessing(true);
 
@@ -246,6 +259,7 @@ export default function BookingForm({ walker, professional, onClose }) {
         platform_fee: amounts.platformFee,
         total_amount: amounts.totalAmount,
         special_notes: formData.special_notes,
+        pickup_address: pickupAddress,
         
         // Extra fields for context if needed
         professional_type: isWalker ? 'walker' : 'trainer',
@@ -388,6 +402,21 @@ export default function BookingForm({ walker, professional, onClose }) {
                 <SelectItem value="4">4 horas</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Local de Recolha */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-purple-600" /> 
+                Local de Recolha do Animal <span className="text-red-500">*</span>
+            </Label>
+            <Input 
+                value={pickupAddress}
+                onChange={(e) => setPickupAddress(e.target.value)}
+                placeholder="Ex: Rua das Flores, 123, Lisboa"
+                className="bg-gray-50 border-purple-100"
+            />
+            <p className="text-xs text-gray-500">Onde o passeador deve buscar o cão?</p>
           </div>
 
           {/* Notas Especiais */}
