@@ -656,6 +656,7 @@ export default function Home() {
                   </div>
                   <div className="w-full md:w-auto flex gap-2">
                     <Button 
+                      id="find-walker-btn"
                       size="lg" 
                       onClick={() => {
                         setActiveTab('walkers');

@@ -32,6 +32,7 @@ import { toast, Toaster } from "sonner";
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MobileNavBar from "@/components/layout/MobileNavBar";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 // Query optimization configs - v1.1
 const queryConfig = {
@@ -223,7 +224,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
-    { title: getMenuText('badges'), url: createPageUrl("Gamification"), icon: Award },
+    { title: getMenuText('badges'), url: createPageUrl("Gamification"), icon: Award, id: "navbar-gamification" },
   ];
 
   const professionalMenu = [
@@ -624,7 +625,7 @@ function LayoutContent({ children, currentPageName }) {
                             isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
                           } ${item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : ''}`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                          <Link to={item.url} id={item.id} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
                             <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
                             {item.hasNotifications && unreadCount > 0 && (
@@ -848,6 +849,23 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Mobile Navigation Bar */}
           <MobileNavBar user={authUser} unreadCount={unreadCount} />
+
+          <OnboardingWizard 
+            steps={[
+              {
+                target: '#navbar-gamification',
+                title: 'Os teus Prémios!',
+                content: 'Aqui podes ver os teus emblemas e o teu nível de XP.',
+                position: 'bottom'
+              },
+              {
+                target: '#find-walker-btn',
+                title: 'Encontra Ajuda',
+                content: 'Clica aqui para veres o mapa de passeadores em tempo real.',
+                position: 'right'
+              }
+            ]}
+          />
 
           <footer className="bg-white border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto px-6 py-8">
