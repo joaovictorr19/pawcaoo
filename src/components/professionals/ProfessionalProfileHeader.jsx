@@ -16,55 +16,43 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
   
   return (
     <Card className="overflow-hidden border-0 shadow-sm mb-6">
-      <div 
-        className={`relative ${isExpanded ? 'h-96' : 'h-48'} bg-gradient-to-br from-green-100 to-blue-100 transition-all duration-300 ease-in-out group cursor-pointer`}
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {professional.photo_url ? (
-          <img
-            src={professional.photo_url}
-            alt={name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center">
-              <span className={`text-6xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
-                {name?.[0]?.toUpperCase()}
-              </span>
-            </div>
-          </div>
-        )}
+      {/* Banner Area */}
+      <div className={`relative h-32 ${isWalker ? 'bg-gradient-to-r from-green-400 to-emerald-600' : 'bg-gradient-to-r from-purple-400 to-indigo-600'}`}>
         <div className="absolute top-4 right-4 flex flex-col gap-2">
           {professional.verification_status === "verified" && (
-            <Badge className={`${isWalker ? 'bg-green-500' : 'bg-purple-500'} text-white border-0 shadow-sm text-xs px-3 py-1.5`}>
+            <Badge className="bg-white/20 backdrop-blur-md text-white border-0 shadow-sm text-xs px-3 py-1.5">
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
               {t('verified', language)}
             </Badge>
           )}
-          <Badge className="bg-white/95 text-gray-900 border-0 shadow-sm text-xs px-3 py-1.5">
+          <Badge className="bg-white/90 text-gray-900 border-0 shadow-sm text-xs px-3 py-1.5">
             <Star className="w-3.5 h-3.5 mr-1.5 fill-yellow-400 text-yellow-400" />
             {averageRating.toFixed(1)} ({reviews.length})
           </Badge>
         </div>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute bottom-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsExpanded(!isExpanded);
-          }}
-        >
-          {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </Button>
       </div>
 
-      <CardContent className="p-5">
+      <CardContent className="p-5 pt-0 relative">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-          <div>
+          <div className="relative">
+            {/* Circular Profile Photo overlapping banner */}
+            <div className="-mt-12 mb-3 md:mb-0">
+              {professional.photo_url ? (
+                <img
+                  src={professional.photo_url}
+                  alt={name}
+                  className="w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover bg-white"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center">
+                  <span className={`text-4xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
+                    {name?.[0]?.toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+            
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
               {name}
             </h1>
