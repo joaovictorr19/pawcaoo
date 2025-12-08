@@ -35,7 +35,6 @@ import MobileNavBar from "@/components/layout/MobileNavBar";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
-import PullToRefresh from "@/components/ui/PullToRefresh";
 
 // Query optimization configs - v1.1
 const queryConfig = {
