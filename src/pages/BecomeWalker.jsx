@@ -359,16 +359,23 @@ export default function BecomeWalker() {
                     {/* Profile Photo */}
                     <div className="space-y-2 mb-6">
                       <Label htmlFor="photo">{t('profilePhoto', language)}</Label>
-                      <CenteredAvatarUpload 
-                        currentImageUrl={formData.photo_url}
-                        onImageChange={(url) => {
-                          setFormData(prev => ({ ...prev, photo_url: url }));
-                          setFormErrors(prev => ({ ...prev, photo: undefined }));
-                        }}
-                      />
-                      {formErrors.photo && (
-                        <p className="text-sm text-red-600">{formErrors.photo}</p>
-                      )}
+                      
+                      {/* Passo 1 - Foto */}
+                      <div className="flex flex-col items-center justify-center w-full my-6"> {/* ADICIONE ESTA DIV ENVOLTÓRIA */}
+                        
+                        <CenteredAvatarUpload 
+                          currentImageUrl={formData.photo_url}
+                          onImageChange={(url) => {
+                            setFormData(prev => ({ ...prev, photo_url: url }));
+                            setFormErrors(prev => ({ ...prev, photo: undefined }));
+                          }}
+                        />
+                        
+                        {formErrors.photo && (
+                          <p className="text-red-500 text-xs text-center">{formErrors.photo}</p>
+                        )}
+
+                      </div>
                     </div>
 
                     {/* Cover Photo */}
