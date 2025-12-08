@@ -510,44 +510,49 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
-            <DialogTitle>{editingService ? 'Edit' : 'Add'} Service</DialogTitle>
+            <DialogTitle className="text-lg md:text-xl">
+              {editingService ? 'Editar' : 'Adicionar'} Serviço
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div>
-              <Label>Service Name *</Label>
+              <Label className="text-sm md:text-base">Nome do Serviço *</Label>
               <Input
                 value={formData.service_name}
                 onChange={(e) => setFormData({...formData, service_name: e.target.value})}
-                placeholder="e.g., 30-minute Walk"
+                placeholder="Ex: Passeio de 30 minutos"
+                className="h-11 md:h-10"
               />
             </div>
             <div>
-              <Label>Description</Label>
+              <Label className="text-sm md:text-base">Descrição</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Describe your service..."
+                placeholder="Descreva o serviço oferecido..."
                 rows={3}
+                className="resize-none"
               />
             </div>
             <div>
-              <Label>Price (€) *</Label>
+              <Label className="text-sm md:text-base">Preço (€) *</Label>
               <Input
                 type="number"
                 step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
                 placeholder="15.00"
+                className="h-11 md:h-10"
               />
             </div>
-            <div className="flex gap-2 pt-4">
-              <Button variant="outline" onClick={() => setShowServiceForm(false)} className="flex-1">
-                Cancel
+            <div className="grid grid-cols-2 gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowServiceForm(false)} className="h-11 md:h-10">
+                Cancelar
               </Button>
-              <Button onClick={handleSubmit} className="flex-1 bg-green-600 hover:bg-green-700">
-                Save Service
+              <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 h-11 md:h-10">
+                Guardar
               </Button>
             </div>
           </div>
@@ -566,22 +571,22 @@ export default function ProfessionalDashboard() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <Card className="max-w-md border-0 shadow-2xl">
-          <CardContent className="p-12 text-center">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Professional Profile Required
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex items-center justify-center">
+        <Card className="max-w-md border-0 shadow-2xl mx-4">
+          <CardContent className="p-8 md:p-12 text-center">
+            <Users className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+              Perfil Profissional Necessário
             </h2>
-            <p className="text-gray-600 mb-6">
-              Create your walker or trainer profile to access the dashboard.
+            <p className="text-sm md:text-base text-gray-600 mb-6">
+              Crie o seu perfil de passeador ou treinador para aceder ao painel.
             </p>
-            <div className="flex gap-3">
-              <Button onClick={() => navigate(createPageUrl('BecomeWalker'))} className="flex-1">
-                Become Walker
+            <div className="flex flex-col md:flex-row gap-3">
+              <Button onClick={() => navigate(createPageUrl('BecomeWalker'))} className="flex-1 h-12 bg-green-600 hover:bg-green-700">
+                Tornar-me Passeador
               </Button>
-              <Button onClick={() => navigate(createPageUrl('BecomeTrainer'))} className="flex-1">
-                Become Trainer
+              <Button onClick={() => navigate(createPageUrl('BecomeTrainer'))} className="flex-1 h-12">
+                Tornar-me Treinador
               </Button>
             </div>
           </CardContent>
@@ -591,37 +596,60 @@ export default function ProfessionalDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         <ErrorBoundary>
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Professional Dashboard</h1>
-              <p className="text-gray-600">{profile.walker_name || profile.trainer_name}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar Perfil
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
-                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
-              >
-                <DollarSign className="w-4 h-4 mr-2" />
-                Configure Payouts
-              </Button>
-              <Button onClick={() => navigate(createPageUrl('ManageAvailability'))}>
-                <Calendar className="w-4 h-4 mr-2" />
-                Manage Availability
-              </Button>
-            </div>
+        <div className="mb-4 md:mb-6">
+          <div className="mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Painel Profissional</h1>
+            <p className="text-sm md:text-base text-gray-600">{profile.walker_name || profile.trainer_name}</p>
+          </div>
+          
+          {/* Mobile Actions */}
+          <div className="grid grid-cols-1 gap-2 md:hidden mb-4">
+            <Button
+              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+              className="bg-green-600 hover:bg-green-700 text-white w-full h-12"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Editar Perfil
+            </Button>
+            <Button onClick={() => navigate(createPageUrl('ManageAvailability'))} className="w-full h-12">
+              <Calendar className="w-4 h-4 mr-2" />
+              Gerir Disponibilidade
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
+              className="border-blue-200 bg-blue-50 text-blue-700 w-full h-12"
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              Configurar Pagamentos
+            </Button>
+          </div>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex gap-2">
+            <Button
+              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Editar Perfil
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
+              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              Configurar Pagamentos
+            </Button>
+            <Button onClick={() => navigate(createPageUrl('ManageAvailability'))}>
+              <Calendar className="w-4 h-4 mr-2" />
+              Gerir Disponibilidade
+            </Button>
           </div>
 
           {/* Stats Grid */}
@@ -661,31 +689,36 @@ export default function ProfessionalDashboard() {
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-xl p-2">
-            <TabsTrigger value="overview" className="rounded-lg">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Overview
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-white shadow-lg rounded-xl p-1 md:p-2 gap-1">
+            <TabsTrigger value="overview" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
+              <BarChart3 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Resumo</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="rounded-lg">
-              <Calendar className="w-4 h-4 mr-2" />
-              Bookings ({pendingBookings.length})
+            <TabsTrigger value="bookings" className="rounded-lg text-xs md:text-sm py-2 md:py-3 relative">
+              <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Reservas</span>
+              {pendingBookings.length > 0 && (
+                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center">
+                  {pendingBookings.length}
+                </Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="rounded-lg">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Analytics
+            <TabsTrigger value="analytics" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
+              <TrendingUp className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="services" className="rounded-lg">
-              <Package className="w-4 h-4 mr-2" />
-              Services
+            <TabsTrigger value="services" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
+              <Package className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Serviços</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="rounded-lg">
-              <Calendar className="w-4 h-4 mr-2" />
-              Calendar
+            <TabsTrigger value="calendar" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
+              <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Agenda</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="rounded-lg">
-              <Star className="w-4 h-4 mr-2" />
-              Reviews
+            <TabsTrigger value="reviews" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
+              <Star className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Reviews</span>
             </TabsTrigger>
           </TabsList>
 
@@ -824,45 +857,46 @@ export default function ProfessionalDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {allBookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
-                            <Badge className={
-                              booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              booking.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                              'bg-blue-100 text-blue-800'
-                            }>
-                              {booking.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
-                          <p className="text-sm text-gray-500">
-                            {format(new Date(booking.walk_date || booking.session_date), 'EEEE, MMMM d, yyyy', { locale: ptBR })} at {booking.walk_time || booking.session_time}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-green-600">€{booking.service_amount}</p>
-                          
-                          <div className="flex flex-col gap-2 mt-2">
+                     <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 gap-3">
+                       <div className="flex-1">
+                         <div className="flex items-center gap-2 mb-1 flex-wrap">
+                           <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
+                           <Badge className={
+                             booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                             booking.status === 'pending' ? 'bg-orange-100 text-orange-800' :
+                             'bg-blue-100 text-blue-800'
+                           }>
+                             {booking.status}
+                           </Badge>
+                         </div>
+                         <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
+                         <p className="text-sm text-gray-500">
+                           {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time}
+                         </p>
+                         <p className="text-xl md:text-2xl font-bold text-green-600 mt-2 md:hidden">€{booking.service_amount}</p>
+                       </div>
+                       <div className="md:text-right">
+                         <p className="text-2xl font-bold text-green-600 hidden md:block">€{booking.service_amount}</p>
+
+                         <div className="flex flex-col gap-2 mt-2">
                             {booking.status === 'pending' && (
-                              <div className="flex gap-2">
+                              <div className="grid grid-cols-2 gap-2">
                                 <Button
                                   size="sm"
                                   onClick={() => handleBookingAction(booking, 'confirmed')}
-                                  className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                                  className="bg-green-600 hover:bg-green-700 text-white h-10"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >
-                                  Accept
+                                  ✓ Aceitar
                                 </Button>
                                 <Button
                                   size="sm"
                                   onClick={() => handleBookingAction(booking, 'cancelled')}
                                   variant="outline"
-                                  className="text-red-600 hover:bg-red-50 border-red-200 flex-1"
+                                  className="text-red-600 hover:bg-red-50 border-red-200 h-10"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >
-                                  Reject
+                                  ✗ Rejeitar
                                 </Button>
                               </div>
                             )}
@@ -871,11 +905,11 @@ export default function ProfessionalDashboard() {
                                <Button
                                   size="sm"
                                   onClick={() => handleServiceCompleted(booking)}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md h-10"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >
                                   <CheckCircle className="w-4 h-4 mr-2" />
-                                  Confirmar Serviço Concluído
+                                  Serviço Concluído
                                 </Button>
                             )}
 
@@ -883,23 +917,25 @@ export default function ProfessionalDashboard() {
                                <Button
                                   size="sm"
                                   onClick={() => handlePaymentReceived(booking)}
-                                  className="bg-purple-600 hover:bg-purple-700 text-white w-full shadow-md animate-pulse"
+                                  className="bg-purple-600 hover:bg-purple-700 text-white w-full shadow-md animate-pulse h-10"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >
                                   <DollarSign className="w-4 h-4 mr-2" />
-                                  Confirmar Pagamento Recebido
+                                  Pagamento Recebido
                                 </Button>
                             )}
                             
-                            <Button
-                              size="sm"
-                              onClick={() => navigate(createPageUrl('Messages'))}
-                              variant="outline"
-                              className="w-full"
-                            >
-                              <MessageCircle className="w-3 h-3 mr-1" />
-                              Contact
-                            </Button>
+                            {booking.owner_phone && (
+                              <Button
+                                size="sm"
+                                onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
+                                variant="outline"
+                                className="w-full h-10 bg-green-50 border-green-200 text-green-700"
+                              >
+                                <MessageCircle className="w-3 h-3 mr-1" />
+                                WhatsApp
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -999,48 +1035,59 @@ export default function ProfessionalDashboard() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(profile.services_offered || []).map((service, idx) => (
-                    <Card key={idx} className="border-2 border-gray-200">
-                      <CardContent className="p-4">
-                        <h3 className="font-bold text-lg mb-2">{service.service_name}</h3>
-                        <p className="text-sm text-gray-600 mb-3">{service.description}</p>
-                        <p className="text-2xl font-bold text-green-600 mb-3">€{service.price}</p>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingService(service);
-                              setShowServiceForm(true);
-                            }}
-                            className="flex-1"
-                          >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {(profile.services_offered || []).length === 0 ? (
+                  <div className="text-center py-8 md:py-12">
+                    <Package className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-sm md:text-base text-gray-600 mb-4">Nenhum serviço cadastrado ainda</p>
+                    <Button onClick={() => setShowServiceForm(true)} className="bg-green-600 hover:bg-green-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Primeiro Serviço
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                    {(profile.services_offered || []).map((service, idx) => (
+                      <Card key={idx} className="border-2 border-gray-200">
+                        <CardContent className="p-4">
+                          <h3 className="font-bold text-base md:text-lg mb-2">{service.service_name}</h3>
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{service.description}</p>
+                          <p className="text-xl md:text-2xl font-bold text-green-600 mb-3">€{service.price}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingService(service);
+                                setShowServiceForm(true);
+                              }}
+                              className="h-10"
+                            >
+                              <Edit className="w-3 h-3 md:mr-1" />
+                              <span className="hidden md:inline">Editar</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:bg-red-50 h-10"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Calendar Tab */}
           <TabsContent value="calendar">
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               <Card className="lg:col-span-2 border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Availability Calendar</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Calendário de Disponibilidade</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <AvailabilityCalendar 
@@ -1052,43 +1099,46 @@ export default function ProfessionalDashboard() {
               </Card>
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Ações Rápidas</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <Button 
-                    className="w-full mb-4 bg-green-600 hover:bg-green-700" 
+                    className="w-full h-11 bg-green-600 hover:bg-green-700" 
                     onClick={() => navigate(createPageUrl('ManageAvailability'))}
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Manage Slots
+                    Gerir Horários
                   </Button>
                   <Button 
                     variant="outline"
-                    className="w-full mb-4" 
+                    className="w-full h-11" 
                     onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     Editar Perfil
                   </Button>
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-sm text-gray-600">Upcoming</h4>
+                  <div className="space-y-3 pt-2">
+                    <h4 className="font-semibold text-xs md:text-sm text-gray-600 uppercase">Próximos Passeios</h4>
                     {allBookings
                       .filter(b => b.status === 'confirmed' && new Date(b.walk_date || b.session_date) >= new Date())
                       .slice(0, 5)
                       .map((booking) => (
-                        <div key={booking.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="bg-green-100 p-2 rounded-full">
+                        <div key={booking.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="bg-green-100 p-2 rounded-full flex-shrink-0">
                             <Calendar className="w-4 h-4 text-green-600" />
                           </div>
-                          <div>
-                            <p className="font-bold text-sm">{booking.dog_name}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm truncate">{booking.dog_name}</p>
                             <p className="text-xs text-gray-500">
-                              {format(new Date(booking.walk_date || booking.session_date), 'MMM d')} • {booking.walk_time || booking.session_time}
+                              {format(new Date(booking.walk_date || booking.session_date), 'dd MMM', { locale: ptBR })} • {booking.walk_time || booking.session_time}
                             </p>
                           </div>
                         </div>
                       ))
                     }
+                    {allBookings.filter(b => b.status === 'confirmed' && new Date(b.walk_date || b.session_date) >= new Date()).length === 0 && (
+                      <p className="text-xs text-gray-500 text-center py-4">Nenhum passeio agendado</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
