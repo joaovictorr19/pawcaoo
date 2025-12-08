@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion"; // Added framer-motion import
 
-export default function TrainerCard({ trainer, distance }) { // Added distance prop
+const TrainerCard = React.memo(({ trainer, distance }) => { // Added distance prop
   const navigate = useNavigate();
 
   // Fetch trainer's subscription to determine if premium
@@ -298,4 +298,6 @@ export default function TrainerCard({ trainer, distance }) { // Added distance p
       </Card>
     </motion.div>
   );
-}
+});
+
+export default TrainerCard;

@@ -39,8 +39,8 @@ import PullToRefresh from "@/components/ui/PullToRefresh";
 // Query optimization configs - v1.1
 const queryConfig = {
   user: {
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
   },
   notifications: {
@@ -50,8 +50,8 @@ const queryConfig = {
     refetchInterval: 60 * 1000, // Reduced to 1 minute
   },
   static: {
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // Increased for static data
+    cacheTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
   },
 };

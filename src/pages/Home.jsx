@@ -12,13 +12,14 @@ import ReviewModal from "../components/reviews/ReviewModal";
 import { LEVEL_THRESHOLDS } from "../components/gamification/gamificationRules";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
-import AdvancedWalkerFilters from "../components/search/AdvancedWalkerFilters";
-import AdvancedTrainerFilters from "../components/search/AdvancedTrainerFilters";
-import AdoptionListings from "./AdoptionListings";
+const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
+const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
+const AdoptionListings = React.lazy(() => import("./AdoptionListings"));
 import AISearchAssistant from "../components/ai/AISearchAssistant";
 import PersonalizedRecommendations from "../components/ai/PersonalizedRecommendations";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { useNavigate } from "react-router-dom";
@@ -916,21 +917,23 @@ export default function Home() {
                 transition={{ duration: 0.2 }}
                 className="lg:col-span-1"
               >
-                {activeTab === 'walkers' ? (
-                  <AdvancedWalkerFilters
-                    filters={advancedFilters}
-                    onFiltersChange={setAdvancedFilters}
-                    onReset={resetAdvancedFilters}
-                    onClose={() => setShowAdvancedFilters(false)}
-                  />
-                ) : activeTab === 'trainers' ? (
-                  <AdvancedTrainerFilters
-                    filters={trainerFilters}
-                    onFiltersChange={setTrainerFilters}
-                    onReset={resetTrainerFilters}
-                    onClose={() => setShowAdvancedFilters(false)}
-                  />
-                ) : null}
+                <Suspense fallback={<div className="p-4"><Skeleton className="h-96 w-full" /></div>}>
+                  {activeTab === 'walkers' ? (
+                    <AdvancedWalkerFilters
+                      filters={advancedFilters}
+                      onFiltersChange={setAdvancedFilters}
+                      onReset={resetAdvancedFilters}
+                      onClose={() => setShowAdvancedFilters(false)}
+                    />
+                  ) : activeTab === 'trainers' ? (
+                    <AdvancedTrainerFilters
+                      filters={trainerFilters}
+                      onFiltersChange={setTrainerFilters}
+                      onReset={resetTrainerFilters}
+                      onClose={() => setShowAdvancedFilters(false)}
+                    />
+                  ) : null}
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1189,7 +1192,9 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="adoption">
-                <AdoptionListings isEmbedded={true} />
+                <Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-3 gap-4"><Skeleton className="h-64" /><Skeleton className="h-64" /><Skeleton className="h-64" /></div>}>
+                  <AdoptionListings isEmbedded={true} />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="emergency">

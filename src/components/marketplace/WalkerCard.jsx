@@ -24,7 +24,7 @@ const quickSpecializations = [
 ];
 
 
-export default function WalkerCard({ walker, distance, matchScore, showMatchScore }) {
+const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -302,4 +302,6 @@ export default function WalkerCard({ walker, distance, matchScore, showMatchScor
       </Card>
     </motion.div>
   );
-}
+});
+
+export default WalkerCard;
