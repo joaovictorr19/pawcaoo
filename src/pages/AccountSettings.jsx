@@ -16,16 +16,14 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import ImageCropModal from "@/components/ui/ImageCropModal";
+// ImageCropModal removed
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("profile");
-  const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [tempImageUrl, setTempImageUrl] = useState(null);
-  const [cropType, setCropType] = useState(null);
+  // Crop state removed
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const photoInputRef = React.useRef(null);
@@ -245,7 +243,6 @@ export default function AccountSettings() {
       queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
       toast.success("Foto atualizada e sincronizada com seus perfis!");
       setUploadingPhoto(false);
-      setCropModalOpen(false);
     },
   });
 
@@ -266,27 +263,17 @@ export default function AccountSettings() {
       queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
       toast.success("Capa atualizada!");
       setUploadingCover(false);
-      setCropModalOpen(false);
     },
   });
 
   const handlePhotoSelect = (e, type) => {
     const file = e.target.files?.[0];
     if (file) {
-      setCropType(type); // 'photo' or 'cover'
-      const url = URL.createObjectURL(file);
-      setTempImageUrl(url);
-      setCropModalOpen(true);
-    }
-  };
-
-  const handleCroppedImage = (file) => {
-    if (cropType === 'photo') {
-      setUploadingPhoto(true);
-      uploadPhotoMutation.mutate(file);
-    } else if (cropType === 'cover') {
-      setUploadingCover(true);
-      uploadCoverMutation.mutate(file);
+      if (type === 'cover') {
+        setUploadingCover(true);
+        uploadCoverMutation.mutate(file);
+      }
+      // Photo is handled by CenteredAvatarUpload
     }
   };
 
@@ -802,20 +789,7 @@ export default function AccountSettings() {
             )}
           </div>
         </div>
-        <ImageCropModal
-          isOpen={cropModalOpen}
-          onClose={() => {
-            setCropModalOpen(false);
-            if (tempImageUrl) URL.revokeObjectURL(tempImageUrl);
-            setTempImageUrl(null);
-            // Reset input values to allow re-selecting same file
-            if (photoInputRef.current) photoInputRef.current.value = '';
-            if (coverInputRef.current) coverInputRef.current.value = '';
-          }}
-          imageUrl={tempImageUrl}
-          onSave={handleCroppedImage}
-          aspectRatio={cropType === 'cover' ? 3 : 1}
-        />
+        {/* ImageCropModal removed */}
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ import { t } from "@/components/translations";
 import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import ImageCropModal from "../components/ui/ImageCropModal";
+// ImageCropModal removed
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 
 export default function BecomeWalker() {
@@ -49,9 +49,7 @@ export default function BecomeWalker() {
     background: false,
     address: false
   });
-  const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [tempImageUrl, setTempImageUrl] = useState(null);
-  const [cropFieldName, setCropFieldName] = useState(null);
+  // Crop state removed
   
   const [formData, setFormData] = useState({
     walker_name: "",
@@ -129,19 +127,7 @@ export default function BecomeWalker() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Se for foto de perfil, abrir modal de crop
-    if (fieldName === 'photo_url' && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setTempImageUrl(event.target.result);
-        setCropFieldName(fieldName);
-        setCropModalOpen(true);
-      };
-      reader.readAsDataURL(file);
-      return;
-    }
-
-    // Upload direto para outros tipos
+    // Upload direto
     setUploading(prev => ({ ...prev, [uploadingKey]: true }));
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -154,24 +140,7 @@ export default function BecomeWalker() {
     setUploading(prev => ({ ...prev, [uploadingKey]: false }));
   };
 
-  const handleCroppedImage = async (croppedFile) => {
-    setUploading(prev => ({ ...prev, photo: true }));
-    setCropModalOpen(false);
-    
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
-      setFormData({ ...formData, [cropFieldName]: file_url });
-      setFormErrors(prev => ({ ...prev, photo: undefined }));
-      toast.success("Foto ajustada com sucesso!");
-    } catch (error) {
-      console.error("Error uploading cropped image:", error);
-      toast.error("Erro ao fazer upload da imagem.");
-    }
-    
-    setUploading(prev => ({ ...prev, photo: false }));
-    setTempImageUrl(null);
-    setCropFieldName(null);
-  };
+  // handleCroppedImage removed
 
   // Check for user login
   const { data: user, isLoading: userLoading } = useQuery({
@@ -358,17 +327,7 @@ export default function BecomeWalker() {
           )}
         </AnimatePresence>
 
-        <ImageCropModal
-          isOpen={cropModalOpen}
-          onClose={() => {
-            setCropModalOpen(false);
-            setTempImageUrl(null);
-          }}
-          imageUrl={tempImageUrl}
-          onSave={handleCroppedImage}
-          aspectRatio={1}
-          circularCrop={cropFieldName === 'photo_url'}
-        />
+        {/* ImageCropModal removed */}
 
         <Alert className="mb-6 border-blue-200 bg-blue-50">
           <Shield className="h-5 w-5 text-blue-600" />
