@@ -929,6 +929,20 @@ export default function ProfessionalDashboard() {
                                     <div className="text-[10px] text-center text-gray-500 mb-1">
                                       * Isto abrirá o mapa e avisará o cliente.
                                     </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        if (window.confirm('Tem certeza que deseja cancelar esta reserva confirmada? Isso notificará o cliente e libertará o horário.')) {
+                                          handleBookingAction(booking, 'cancelled');
+                                        }
+                                      }}
+                                      className="text-red-600 hover:bg-red-50 border-red-200 h-10 w-full"
+                                      disabled={updateBookingStatusMutation.isPending}
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                      Cancelar Reserva
+                                    </Button>
                                 </div>
                             )}
 
