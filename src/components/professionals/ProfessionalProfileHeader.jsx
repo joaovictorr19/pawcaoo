@@ -22,7 +22,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
           <img 
             src={professional.cover_photo_url} 
             alt="Cover" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
@@ -50,7 +50,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 <img
                   src={professional.photo_url}
                   alt={name}
-                  className="w-32 h-32 rounded-full border-4 border-white object-cover bg-gray-100"
+                  className="w-32 h-32 rounded-full border-4 border-white object-cover object-center bg-gray-100"
                   loading="lazy"
                 />
               ) : (

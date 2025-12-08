@@ -50,7 +50,7 @@ export default function WalkerCard({ walker, distance, matchScore, showMatchScor
               src={walker.photo_url}
               alt={`Photo of ${walker.walker_name}, Dog Walker in ${walker.location}`}
               loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-110"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
