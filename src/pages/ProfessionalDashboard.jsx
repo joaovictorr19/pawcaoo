@@ -479,8 +479,28 @@ export default function ProfessionalDashboard() {
       service_name: "",
       description: "",
       price: "",
-      duration_options: ["30min", "1h", "2h"]
+      duration_options: ["30min", "1h", "2h"],
+      custom_pricing: false,
+      package_options: []
     });
+
+    const [newPackage, setNewPackage] = useState({ name: "", sessions: "", price: "" });
+
+    const addPackage = () => {
+      if (!newPackage.name || !newPackage.price) return;
+      setFormData({
+        ...formData,
+        package_options: [...(formData.package_options || []), newPackage]
+      });
+      setNewPackage({ name: "", sessions: "", price: "" });
+    };
+
+    const removePackage = (idx) => {
+      setFormData({
+        ...formData,
+        package_options: formData.package_options.filter((_, i) => i !== idx)
+      });
+    };
 
     const handleSubmit = async () => {
       try {
@@ -542,17 +562,79 @@ export default function ProfessionalDashboard() {
                 className="resize-none"
               />
             </div>
-            <div>
-              <Label className="text-sm md:text-base">Preço (€) *</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                placeholder="15.00"
-                className="h-11 md:h-10"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm md:text-base">Preço (€) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                  placeholder="15.00"
+                  className="h-11 md:h-10"
+                />
+              </div>
+              <div className="flex items-center space-x-2 pt-8">
+                <input
+                  type="checkbox"
+                  id="customPricing"
+                  checked={formData.custom_pricing}
+                  onChange={(e) => setFormData({...formData, custom_pricing: e.target.checked})}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <Label htmlFor="customPricing" className="text-sm cursor-pointer">
+                  Preço "A partir de"
+                </Label>
+              </div>
             </div>
+
+            {/* Packages Section - Great for Trainers */}
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-sm md:text-base mb-2 block font-semibold text-purple-700">
+                Pacotes Promocionais (Opcional)
+              </Label>
+              <div className="bg-gray-50 p-3 rounded-lg space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  <Input 
+                    placeholder="Nome (Ex: 5 Sessões)" 
+                    value={newPackage.name}
+                    onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
+                    className="text-sm"
+                  />
+                  <Input 
+                    placeholder="Sessões" 
+                    type="number"
+                    value={newPackage.sessions}
+                    onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
+                    className="text-sm"
+                  />
+                  <Input 
+                    placeholder="Preço (€)" 
+                    type="number"
+                    value={newPackage.price}
+                    onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
+                    className="text-sm"
+                  />
+                </div>
+                <Button onClick={addPackage} size="sm" variant="outline" className="w-full border-dashed border-purple-300 text-purple-700">
+                  <Plus className="w-4 h-4 mr-2" /> Adicionar Pacote
+                </Button>
+
+                {formData.package_options && formData.package_options.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    {formData.package_options.map((pkg, idx) => (
+                      <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-gray-200 text-sm">
+                        <span>{pkg.name} ({pkg.sessions}x) - <b>€{pkg.price}</b></span>
+                        <Button onClick={() => removePackage(idx)} size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-500">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowServiceForm(false)} className="h-11 md:h-10">
                 Cancelar

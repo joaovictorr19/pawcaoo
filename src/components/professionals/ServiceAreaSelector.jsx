@@ -32,7 +32,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
   const [newArea, setNewArea] = useState({
     area_name: "",
     postal_codes: "",
-    radius_km: 5,
+    radius_km: "5",
     latitude: null,
     longitude: null
   });
@@ -171,7 +171,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 min="1"
                 max="50"
                 value={newArea.radius_km}
-                onChange={(e) => setNewArea({ ...newArea, radius_km: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => setNewArea({ ...newArea, radius_km: e.target.value })}
               />
             </div>
 
