@@ -33,6 +33,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MobileNavBar from "@/components/layout/MobileNavBar";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import NotificationArea from "@/components/notifications/NotificationArea";
 
 // Query optimization configs - v1.1
 const queryConfig = {
@@ -113,6 +114,7 @@ function LayoutContent({ children, currentPageName }) {
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
 
   // Dictionary for menu translations
   const menuTranslations = {
@@ -811,14 +813,13 @@ function LayoutContent({ children, currentPageName }) {
                 </Badge>
               )}
 
-              {unreadCount > 0 && (
-                <Link to={createPageUrl("Notifications")} className="ml-auto md:ml-0 flex-shrink-0">
-                  <Badge className="bg-red-500 text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors cursor-pointer shadow-lg">
-                    <Bell className="w-3 h-3 md:w-4 h-4 md:mr-1" />
-                    <span className="hidden sm:inline ml-1">{unreadCount}</span>
-                  </Badge>
-                </Link>
-              )}
+              {/* Notification Trigger */}
+              <div className="ml-auto md:ml-0 flex-shrink-0 cursor-pointer" onClick={() => setIsNotificationPanelOpen(true)}>
+                <Badge className={`${unreadCount > 0 ? 'bg-red-500' : 'bg-gray-200 text-gray-500'} text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors shadow-lg`}>
+                  <Bell className="w-3 h-3 md:w-4 h-4 md:mr-1" />
+                  {unreadCount > 0 && <span className="hidden sm:inline ml-1">{unreadCount}</span>}
+                </Badge>
+              </div>
 
               {!authUser && (
                 <Button 
@@ -851,7 +852,12 @@ function LayoutContent({ children, currentPageName }) {
           </div>
 
           {/* Mobile Navigation Bar */}
-          <MobileNavBar user={authUser} unreadCount={unreadCount} />
+          <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
+
+          <NotificationArea 
+            isOpen={isNotificationPanelOpen} 
+            onClose={() => setIsNotificationPanelOpen(false)} 
+          />
 
           <OnboardingWizard 
             steps={[
