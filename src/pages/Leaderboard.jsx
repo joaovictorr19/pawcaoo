@@ -8,14 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Trophy, Star, TrendingUp, Crown, Medal, Zap, Sparkles, 
-  Award, Flame, MessageCircle, Heart, Camera 
+  Award, Flame, MessageCircle, Heart, Camera, Info 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Leaderboard() {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("xp");
 
@@ -81,19 +85,25 @@ export default function Leaderboard() {
         }
       });
 
-      // Merge Badges Count (Calculate real count)
-      const badgeCounts = {};
+      // Merge Badges Count & Rarity (Calculate real stats)
+      const badgeStats = {};
       badges.forEach(b => {
-        badgeCounts[b.user_email] = (badgeCounts[b.user_email] || 0) + 1;
+        if (!badgeStats[b.user_email]) {
+          badgeStats[b.user_email] = { count: 0, rarities: { legendary: 0, epic: 0, rare: 0, common: 0 } };
+        }
+        badgeStats[b.user_email].count++;
+        if (b.rarity) {
+          badgeStats[b.user_email].rarities[b.rarity] = (badgeStats[b.user_email].rarities[b.rarity] || 0) + 1;
+        }
       });
       
-      Object.keys(badgeCounts).forEach(email => {
+      Object.keys(badgeStats).forEach(email => {
         if (userMap.has(email)) {
           const user = userMap.get(email);
-          // Use real count if greater than stored count
-          if (badgeCounts[email] > user.badges_count) {
-            user.badges_count = badgeCounts[email];
-          }
+          // Update count
+          user.badges_count = Math.max(user.badges_count || 0, badgeStats[email].count);
+          // Store rarities for display
+          user.badge_rarities = badgeStats[email].rarities;
         }
       });
 
@@ -139,9 +149,9 @@ export default function Leaderboard() {
 
   const getMetricLabel = (user, type) => {
     switch(type) {
-      case 'level': return `Nível ${user.gamification_level || 1}`;
-      case 'badges': return `${user.badges_count || 0} Emblemas`;
-      case 'streak': return `${user.daily_streak || 0} Dias`;
+      case 'level': return `${t('level', language)} ${user.gamification_level || 1}`;
+      case 'badges': return `${user.badges_count || 0} ${t('badges', language)}`;
+      case 'streak': return `${user.daily_streak || 0} ${t('days', language)}`;
       case 'xp': default: return `${user.gamification_xp || 0} XP`;
     }
   };
@@ -165,10 +175,7 @@ export default function Leaderboard() {
   };
 
   const getRarityCount = (user, rarity) => {
-    // Since we don't have public_badges array populated in UserProfile list, 
-    // we would need to fetch it or rely on badges_count for now.
-    // For this view, we'll just return 0 or simplify the badge display.
-    return 0; 
+    return user.badge_rarities?.[rarity] || 0;
   };
 
   const renderLeaderboardCard = (user, rank, type) => {
@@ -245,7 +252,7 @@ export default function Leaderboard() {
                       )}
                     </>
                   )}
-                  <span>Nível {user.gamification_level || 1}</span>
+                  <span>{t('level', language)} {user.gamification_level || 1}</span>
                 </div>
               </div>
 
@@ -264,7 +271,7 @@ export default function Leaderboard() {
                     <div className="text-xl font-bold text-yellow-600">
                       {user.gamification_level || 1}
                     </div>
-                    <div className="text-xs text-gray-500">Nível</div>
+                    <div className="text-xs text-gray-500">{t('level', language)}</div>
                   </>
                 )}
                 {type === 'badges' && (
@@ -272,7 +279,7 @@ export default function Leaderboard() {
                     <div className="text-xl font-bold text-blue-600">
                       {user.badges_count || 0}
                     </div>
-                    <div className="text-xs text-gray-500">Emblemas</div>
+                    <div className="text-xs text-gray-500">{t('badges', language)}</div>
                   </>
                 )}
                 {type === 'streak' && (
@@ -281,7 +288,7 @@ export default function Leaderboard() {
                       <Flame className="w-5 h-5 mr-1" />
                       {user.daily_streak || 0}
                     </div>
-                    <div className="text-xs text-gray-500">Dias</div>
+                    <div className="text-xs text-gray-500">{t('days', language)}</div>
                   </>
                 )}
               </div>
@@ -318,15 +325,15 @@ export default function Leaderboard() {
             <Trophy className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🏆 Leaderboard Dog Connect
+            {t('leaderboardTitle', language)}
           </h1>
           <p className="text-gray-600">
-            Os membros mais ativos e engajados da comunidade
+            {t('leaderboardSubtitle', language)}
           </p>
         </motion.div>
 
         {/* Top 3 Podium */}
-        <div className="relative pt-8 mb-16 mt-8">
+        <div className="relative pt-12 mb-20 mt-12">
           <div className="flex justify-center items-end gap-4 md:gap-8 max-w-3xl mx-auto h-64">
             
             {/* 2nd Place */}
@@ -392,7 +399,7 @@ export default function Leaderboard() {
                   </p>
                   <div className="mt-auto mb-2">
                      <Badge className="bg-white/30 text-yellow-900 hover:bg-white/40 backdrop-blur-sm border-0 shadow-sm">
-                        Campeão
+                        {t('champion', language)}
                      </Badge>
                   </div>
                 </div>
@@ -437,34 +444,44 @@ export default function Leaderboard() {
 
         {/* Category Tabs */}
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6 h-12 bg-white shadow-lg rounded-xl p-1">
+          <TabsList className="grid w-full grid-cols-4 mb-6 h-14 bg-white shadow-lg rounded-xl p-1">
             <TabsTrigger 
               value="xp" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg text-xs md:text-sm"
             >
               <Zap className="w-4 h-4 mr-1" />
-              XP Total
+              {t('totalXP', language)}
             </TabsTrigger>
             <TabsTrigger 
               value="level"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white rounded-lg text-xs md:text-sm"
             >
               <Trophy className="w-4 h-4 mr-1" />
-              Nível
+              {t('level', language)}
             </TabsTrigger>
             <TabsTrigger 
               value="badges"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg text-xs md:text-sm"
             >
               <Award className="w-4 h-4 mr-1" />
-              Emblemas
+              {t('badges', language)}
             </TabsTrigger>
             <TabsTrigger 
               value="streak"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg text-xs md:text-sm"
             >
-              <Flame className="w-4 h-4 mr-1" />
-              Streak
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="flex items-center justify-center w-full h-full">
+                    <Flame className="w-4 h-4 mr-1" />
+                    {t('streak', language)}
+                    <Info className="w-3 h-3 ml-1 opacity-50 hidden md:block" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('streakDescription', language)}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </TabsTrigger>
           </TabsList>
 

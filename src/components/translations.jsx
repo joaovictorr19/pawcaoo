@@ -30,6 +30,15 @@ export const translations = {
     adminDashboard: "Painel Admin",
     professionalDashboard: "Painel Profissional",
     leaderboard: "Tabela de Classificação",
+    leaderboardTitle: "🏆 Leaderboard Dog Connect",
+    leaderboardSubtitle: "Os membros mais ativos e engajados da comunidade",
+    totalXP: "XP Total",
+    level: "Nível",
+    badges: "Emblemas",
+    streak: "Sequência",
+    streakDescription: "Dias consecutivos de atividade",
+    days: "Dias",
+    champion: "Campeão",
 
     // Admin Dashboard
     adminSubtitle: "Gestão completa da plataforma",
@@ -935,6 +944,15 @@ export const translations = {
     adminDashboard: "Admin Dashboard",
     professionalDashboard: "Professional Dashboard",
     leaderboard: "Leaderboard",
+    leaderboardTitle: "🏆 Dog Connect Leaderboard",
+    leaderboardSubtitle: "The most active and engaged community members",
+    totalXP: "Total XP",
+    level: "Level",
+    badges: "Badges",
+    streak: "Streak",
+    streakDescription: "Consecutive days of activity",
+    days: "Days",
+    champion: "Champion",
 
     // Admin Dashboard
     adminSubtitle: "Complete platform management",
@@ -1837,6 +1855,15 @@ export const translations = {
     adminDashboard: "Panel Admin",
     professionalDashboard: "Panel Profesional",
     leaderboard: "Tabla de Clasificación",
+    leaderboardTitle: "🏆 Tabla de Clasificación",
+    leaderboardSubtitle: "Los miembros más activos y comprometidos de la comunidad",
+    totalXP: "XP Total",
+    level: "Nivel",
+    badges: "Insignias",
+    streak: "Racha",
+    streakDescription: "Días consecutivos de actividad",
+    days: "Días",
+    champion: "Campeón",
 
     // Admin Dashboard
     adminSubtitle: "Gestión completa de la plataforma",
