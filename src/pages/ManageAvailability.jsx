@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Plus, X } from "lucide-react";
+import { Calendar, Clock, Plus, X, CalendarOff, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ export default function ManageAvailability() {
   const [timeSlots, setTimeSlots] = useState([
     { start_time: "09:00", end_time: "12:00", is_available: true }
   ]);
+  const [isDayOff, setIsDayOff] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -108,8 +109,8 @@ export default function ManageAvailability() {
     }
 
     saveAvailabilityMutation.mutate({
-      time_slots: timeSlots,
-      is_fully_booked: timeSlots.every(slot => !slot.is_available)
+      time_slots: isDayOff ? [] : timeSlots,
+      is_fully_booked: isDayOff
     });
   };
 
@@ -118,10 +119,12 @@ export default function ManageAvailability() {
     const dateStr = format(date, 'yyyy-MM-dd');
     const existing = availabilityData.find(a => a.date === dateStr);
     
-    if (existing && existing.time_slots) {
-      setTimeSlots(existing.time_slots);
+    if (existing) {
+      setTimeSlots(existing.time_slots || [{ start_time: "09:00", end_time: "18:00", is_available: true }]);
+      setIsDayOff(existing.is_fully_booked || false);
     } else {
-      setTimeSlots([{ start_time: "09:00", end_time: "12:00", is_available: true }]);
+      setTimeSlots([{ start_time: "09:00", end_time: "18:00", is_available: true }]);
+      setIsDayOff(false);
     }
   };
 
@@ -164,17 +167,99 @@ export default function ManageAvailability() {
                   </div>
                 ) : (
                   <div className="space-y-3 md:space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-semibold text-gray-900 text-sm md:text-base">{t('timeSlots', language)}</h3>
-                      <Button size="sm" onClick={addTimeSlot} variant="outline" className="h-7 md:h-9 text-xs md:text-sm">
-                        <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                        {t('addSlot', language)}
-                      </Button>
+                    {/* Status Toggle */}
+                    <div className={`p-3 rounded-lg border-2 transition-colors ${isDayOff ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                      <div className="flex items-center justify-between">
+                        <Label className="font-medium text-sm md:text-base flex items-center gap-2 cursor-pointer">
+                          {isDayOff ? (
+                            <>
+                              <CalendarOff className="w-5 h-5 text-red-500" />
+                              <span className="text-red-700">{language === 'pt' ? 'Indisponível (Folga)' : 'Unavailable (Day Off)'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-5 h-5 text-green-600" />
+                              <span className="text-green-700">{language === 'pt' ? 'Disponível para Agendamentos' : 'Available for Bookings'}</span>
+                            </>
+                          )}
+                        </Label>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="day-status" 
+                            checked={isDayOff} 
+                            onCheckedChange={(checked) => setIsDayOff(checked)}
+                            className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                          />
+                          <Label htmlFor="day-status" className="text-xs text-gray-500 cursor-pointer">
+                            {language === 'pt' ? 'Marcar como Indisponível' : 'Mark as Unavailable'}
+                          </Label>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-2 md:space-y-3">
-                      {timeSlots.map((slot, index) => (
-                        <div key={index} className="border rounded-lg p-2 md:p-3 bg-gray-50">
+                    {!isDayOff && (
+                      <>
+                        <div className="flex justify-between items-center mt-4">
+                          <h3 className="font-semibold text-gray-900 text-sm md:text-base">{t('timeSlots', language)}</h3>
+                          <Button size="sm" onClick={addTimeSlot} variant="outline" className="h-7 md:h-9 text-xs md:text-sm">
+                            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                            {t('addSlot', language)}
+                          </Button>
+                        </div>
+
+                        <div className="space-y-2 md:space-y-3">
+                          {timeSlots.map((slot, index) => (
+                            <div key={index} className="border rounded-lg p-2 md:p-3 bg-gray-50">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    checked={slot.is_available}
+                                    onCheckedChange={(checked) => updateTimeSlot(index, 'is_available', checked)}
+                                  />
+                                  <Label className="text-xs md:text-sm">{t('available', language)}</Label>
+                                </div>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => removeTimeSlot(index)}
+                                  disabled={timeSlots.length === 1}
+                                  className="h-6 w-6 md:h-8 md:w-8"
+                                >
+                                  <X className="w-3 h-3 md:w-4 md:h-4" />
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <Label className="text-[10px] md:text-xs">{t('startTime', language)}</Label>
+                                  <Input
+                                    type="time"
+                                    value={slot.start_time}
+                                    onChange={(e) => updateTimeSlot(index, 'start_time', e.target.value)}
+                                    className="h-8 md:h-10 text-xs md:text-sm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-[10px] md:text-xs">{t('endTime', language)}</Label>
+                                  <Input
+                                    type="time"
+                                    value={slot.end_time}
+                                    onChange={(e) => updateTimeSlot(index, 'end_time', e.target.value)}
+                                    className="h-8 md:h-10 text-xs md:text-sm"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {isDayOff && (
+                      <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                        <CalendarOff className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm">{language === 'pt' ? 'Nenhum horário disponível para este dia.' : 'No slots available for this day.'}</p>
+                      </div>
+                    )}
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <Checkbox
