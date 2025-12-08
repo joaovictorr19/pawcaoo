@@ -2774,6 +2774,22 @@ export default function AdminDashboard() {
               </div>
 
               <div>
+                <Label>URL da Animação (GIF/WebP) - Opcional</Label>
+                <Input
+                  value={customBadgeForm.animation_url || ""}
+                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, animation_url: e.target.value})}
+                  placeholder="https://.../badge.gif"
+                  className="mt-1"
+                />
+                {customBadgeForm.animation_url && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-1">Preview Animação:</p>
+                    <img src={customBadgeForm.animation_url} alt="Animated Badge" className="w-16 h-16 object-contain rounded-lg border border-purple-200" />
+                  </div>
+                )}
+              </div>
+
+              <div>
                 <Label>Selecionar Usuários</Label>
                 <Input 
                   placeholder="Buscar por nome ou email..." 
