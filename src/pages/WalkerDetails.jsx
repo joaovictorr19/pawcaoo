@@ -88,9 +88,6 @@ export default function WalkerDetails() {
   const { toast } = useToast();
   const createNotification = useCreateNotification();
   
-  const [showBookingForm, setShowBookingForm] = useState(false);
-  const [currentBooking, setCurrentBooking] = useState(null);
-  
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedDogForRecurring, setSelectedDogForRecurring] = useState(null);
   
@@ -189,14 +186,18 @@ export default function WalkerDetails() {
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    if (user) {
-      setShowBookingForm(true);
-    } else {
+    if (!user) {
       toast({
         title: t('loginRequired', language),
         description: t('loginToBook', language),
         variant: "destructive",
       });
+    } else {
+      // Scroll to booking form on mobile
+      const formElement = document.getElementById('booking-form-section');
+      if (formElement && window.innerWidth < 1024) {
+        formElement.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -217,7 +218,7 @@ export default function WalkerDetails() {
 
   // Function to handle booking completion from BookingForm
   const handleBookingInitiated = async (booking) => {
-    setShowBookingForm(false);
+    setSelectedDate(null); // Reset selection
 
     // Create notifications asynchronously
     try {
@@ -234,7 +235,7 @@ export default function WalkerDetails() {
 
     toast({
       title: "Solicitação Enviada!",
-      description: "Aguarde a confirmação do profissional. O contacto para pagamento (MBWay) será exibido após a aceitação.",
+      description: "Aguarde a confirmação do profissional.",
       duration: 6000,
     });
 
@@ -333,8 +334,8 @@ export default function WalkerDetails() {
           {t('backToWalkers', language)}
         </Button>
 
-        <div className="grid lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2 space-y-5">
+        {/* Profile Header - Full Width */}
+        <div className="mb-8">
             <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
               <ProfessionalProfileHeader 
                 professional={walker} 
@@ -401,7 +402,7 @@ export default function WalkerDetails() {
                       <PlayCircle className="w-5 h-5 text-purple-600" />
                       Apresentação em Vídeo
                     </h2>
-                    <div className="rounded-xl overflow-hidden shadow-lg bg-black aspect-video relative group">
+                    <div className="rounded-xl overflow-hidden shadow-lg bg-black aspect-video relative group max-w-2xl">
                       <video 
                         src={walker.video_intro_url} 
                         controls 
@@ -517,32 +518,16 @@ export default function WalkerDetails() {
                 )}
 
                 <div className="flex gap-3 flex-wrap mt-4">
-                  <Button
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm h-11"
-                    onClick={() => {
-                      if (!user) {
-                        // Use redirect with explicit URL to handle custom domains correctly
-                        base44.auth.redirectToLogin(window.location.href);
-                      } else {
-                        setShowBookingForm(true);
-                      }
-                    }}
-                    disabled={walker.verification_status !== "verified"}
-                  >
-                    {walker.verification_status === "verified" ? t('bookThisWalker', language) : t('verificationPending', language)}
-                  </Button>
-
-
-
-
-                  
-                  {/* Favorite Button in Details - Fully Implemented */}
                   <FavoriteButton walker={walker} user={user} />
                 </div>
               </div>
             </div>
+        </div>
 
-            <Card className="border-0 shadow-md">
+        {/* BOOKING SECTION - SPLIT LAYOUT */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-8" id="booking-section">
+            {/* LEFT: CALENDAR */}
+            <Card className="border-0 shadow-md h-fit">
               <CardHeader className="py-4 px-5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-green-600" />
@@ -560,104 +545,102 @@ export default function WalkerDetails() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md">
-              <CardHeader className="py-4 px-5">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  {t('reviews', language)} ({reviews.length})
-                  {averageRating > 0 && <span className="text-sm font-normal text-gray-500 ml-2">Média: {averageRating.toFixed(1)}</span>}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-0">
-                {loadingReviews ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                      <Skeleton key={i} className="h-32 rounded-lg" />
-                    ))}
-                  </div>
-                ) : reviews.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
-                    <p className="text-gray-600">{t('beFirstReview', language)}</p>
-                  </div>
+            {/* RIGHT: BOOKING FORM (Compact) */}
+            <div className="space-y-5" id="booking-form-section">
+                {selectedDate ? (
+                    <BookingForm
+                        professional={walker}
+                        onClose={handleBookingInitiated}
+                        initialDate={selectedDate}
+                        key={selectedDate?.toISOString()} // Force re-render on date change
+                    />
                 ) : (
-                  <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <ReviewCard key={review.id} review={review} />
-                    ))}
-                  </div>
+                    <Card className="border-dashed border-2 border-gray-200 shadow-none h-full min-h-[300px] flex flex-col items-center justify-center text-center p-6 bg-gray-50/50">
+                        <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                            <Calendar className="w-8 h-8 text-green-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
+                        <p className="text-gray-500 max-w-xs">
+                            Clique em um dia disponível (verde) no calendário à esquerda para iniciar o agendamento.
+                        </p>
+                    </Card>
                 )}
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Right Column - Booking */}
-          <div className="lg:col-span-1 space-y-5">
-            {userDogs.length > 0 && (
-              <Card className="border border-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-blue-50">
-                <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-5">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Repeat className="w-4 h-4" />
-                    {t('recurringWalks', language)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-5">
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>{t('saveUpTo', language)} <strong className="text-green-600">25%</strong></span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>{t('sameWalkerAlways', language)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>{t('flexibleCancellation', language)}</span>
-                    </div>
-                  </div>
+                {/* Recurring Option */}
+                {userDogs.length > 0 && (
+                  <Card className="border border-purple-200 shadow-sm bg-gradient-to-br from-purple-50 to-blue-50">
+                    <CardHeader className="py-3 px-5">
+                      <CardTitle className="text-base flex items-center gap-2 text-purple-800">
+                        <Repeat className="w-4 h-4" />
+                        {t('recurringWalks', language)}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-0">
+                      <p className="text-xs text-gray-600 mb-3">Garanta o mesmo passeador toda semana com desconto.</p>
+                      <Select
+                        value={selectedDogForRecurring?.id || ""}
+                        onValueChange={(dogId) => {
+                          const dog = userDogs.find(d => d.id === dogId);
+                          setSelectedDogForRecurring(dog);
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder={t('selectPet', language)} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {userDogs.map((dog) => (
+                            <SelectItem key={dog.id} value={dog.id}>
+                              🐕 {dog.dog_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  <Select
-                    value={selectedDogForRecurring?.id || ""}
-                    onValueChange={(dogId) => {
-                      const dog = userDogs.find(d => d.id === dogId);
-                      setSelectedDogForRecurring(dog);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectPet', language)} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {userDogs.map((dog) => (
-                        <SelectItem key={dog.id} value={dog.id}>
-                          🐕 {dog.dog_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Button
-                    onClick={() => setShowRecurringModal(true)}
-                    disabled={!selectedDogForRecurring || walker.verification_status !== "verified"}
-                    className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 h-12 font-bold"
-                  >
-                    <Repeat className="w-5 h-5 mr-2" />
-                    {t('setupSchedule', language)}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                      <Button
+                        onClick={() => setShowRecurringModal(true)}
+                        disabled={!selectedDogForRecurring || walker.verification_status !== "verified"}
+                        className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white h-9 text-xs"
+                        size="sm"
+                      >
+                        {t('setupSchedule', language)}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+            </div>
         </div>
 
-        {showBookingForm && (
-          <BookingForm
-            professional={walker}
-            onClose={handleBookingInitiated}
-            initialDate={selectedDate}
-          />
-        )}
+        {/* BOTTOM: REVIEWS */}
+        <Card className="border-0 shadow-md">
+          <CardHeader className="py-4 px-5 bg-gray-50 border-b border-gray-100">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500" />
+              {t('reviews', language)} ({reviews.length})
+              {averageRating > 0 && <span className="text-sm font-normal text-gray-500 ml-2">Média: {averageRating.toFixed(1)}</span>}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {loadingReviews ? (
+              <div className="grid md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <Skeleton key={i} className="h-32 rounded-lg" />
+                ))}
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="text-center py-12">
+                <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
+                <p className="text-gray-600">{t('beFirstReview', language)}</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6">
+                {reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recurring Booking Modal */}

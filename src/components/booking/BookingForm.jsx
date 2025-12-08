@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCreateNotification } from "../NotificationService";
 
-export default function BookingForm({ walker, professional, onClose }) {
+export default function BookingForm({ walker, professional, onClose, initialDate }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
@@ -29,11 +29,18 @@ export default function BookingForm({ walker, professional, onClose }) {
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_size: "medium",
-    walk_date: null,
+    walk_date: initialDate || null,
     walk_time: "morning",
     duration_hours: 1,
     special_notes: ""
   });
+
+  // Update date if initialDate prop changes
+  React.useEffect(() => {
+    if (initialDate) {
+        setFormData(prev => ({ ...prev, walk_date: initialDate }));
+    }
+  }, [initialDate]);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
