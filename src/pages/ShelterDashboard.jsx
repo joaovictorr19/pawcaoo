@@ -359,6 +359,15 @@ export default function ShelterDashboard() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label>Serviços Oferecidos (separados por vírgula)</Label>
+                      <Textarea 
+                        placeholder="Ex: Vacinação, Microchip, Esterilização, Treino Básico" 
+                        value={Array.isArray(profileForm.services_offered) ? profileForm.services_offered.join(', ') : profileForm.services_offered} 
+                        onChange={e => setProfileForm({...profileForm, services_offered: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
                       <Label>Política de Adoção</Label>
                       <Textarea value={profileForm.adoption_policy} onChange={e => setProfileForm({...profileForm, adoption_policy: e.target.value})} rows={4} />
                     </div>
