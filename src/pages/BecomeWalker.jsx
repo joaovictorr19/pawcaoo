@@ -254,6 +254,34 @@ export default function BecomeWalker() {
     });
   };
 
+  const addCommonService = (type) => {
+    let name = "";
+    let desc = "";
+    
+    if (type === 'walk') {
+      name = t('walkService', language);
+      desc = t('walkDesc', language);
+    } else if (type === 'sitting') {
+      name = t('sittingService', language);
+      desc = t('sittingDesc', language);
+    } else if (type === 'grooming') {
+      name = t('groomingService', language);
+      desc = t('groomingDesc', language);
+    }
+
+    setFormData({
+      ...formData,
+      services_offered: [...formData.services_offered, {
+        service_name: name,
+        description: desc,
+        duration_options: ['1hr'],
+        price: 0,
+        custom_pricing: false
+      }]
+    });
+    toast.success(t('serviceAdded', language));
+  };
+
   const updateService = (index, field, value) => {
     const updated = [...formData.services_offered];
     updated[index][field] = value;
@@ -594,15 +622,57 @@ export default function BecomeWalker() {
 
                     {/* Services Offered */}
                     <div className="border-t-2 border-green-100 pt-6 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label className="text-xl font-bold">{t('servicesOffered', language)}</Label>
-                          <p className="text-sm text-gray-600 mt-1">{t('servicesOfferedDesc', language)}</p>
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <Label className="text-xl font-bold">{t('servicesOffered', language)}</Label>
+                            <p className="text-sm text-gray-600 mt-1">{t('servicesOfferedDesc', language)}</p>
+                          </div>
                         </div>
-                        <Button type="button" variant="outline" onClick={addService}>
-                          <PlusCircle className="w-4 h-4 mr-2" />
-                          {t('addService', language)}
-                        </Button>
+
+                        {/* Common Services Suggestions */}
+                        <div className="bg-green-50/50 rounded-lg p-3 mb-4">
+                          <p className="text-xs font-semibold text-green-800 mb-2 uppercase tracking-wide">{t('commonServices', language)}</p>
+                          <div className="flex flex-wrap gap-2">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => addCommonService('walk')}
+                              className="bg-white border-green-200 text-green-700 hover:bg-green-100"
+                            >
+                              🐕 {t('walkService', language)}
+                            </Button>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => addCommonService('sitting')}
+                              className="bg-white border-green-200 text-green-700 hover:bg-green-100"
+                            >
+                              🏠 {t('sittingService', language)}
+                            </Button>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => addCommonService('grooming')}
+                              className="bg-white border-green-200 text-green-700 hover:bg-green-100"
+                            >
+                              ✂️ {t('groomingService', language)}
+                            </Button>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={addService}
+                              className="text-gray-500 hover:text-green-700"
+                            >
+                              <PlusCircle className="w-4 h-4 mr-1" />
+                              {t('addService', language)}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
 
                       {formData.services_offered.map((service, index) => (
