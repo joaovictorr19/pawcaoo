@@ -274,8 +274,8 @@ export default function BecomeWalker() {
   const progress = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4 md:p-6 overflow-x-hidden w-full">
+      <div className="max-w-4xl mx-auto w-full">
         <div className="text-center mb-6 md:mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
             <Dog className="w-10 h-10 text-white" />
