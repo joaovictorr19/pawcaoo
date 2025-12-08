@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { RotateCw, ZoomIn, ZoomOut, Move, RefreshCw, Grid3X3, Check } from "lucide-react";
 
-export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspectRatio = 1 }) {
+export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspectRatio = 1, circularCrop = false }) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -158,8 +158,28 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     ctx.drawImage(image, -image.width / 2, -image.height / 2);
     ctx.restore();
 
-    // Draw Grid Overlay if enabled
-    if (showGrid) {
+    // Draw Circular Mask if enabled
+    if (circularCrop) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.beginPath();
+      // Create a path that covers the whole canvas but has a circular hole
+      ctx.rect(0, 0, canvas.width, canvas.height);
+      ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI, true);
+      ctx.fill();
+      
+      // Draw white border around the circle
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - 1, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Draw Grid Overlay if enabled (and not circular, or if explicitly wanted)
+    // Usually grid is less useful with circular crop, but let's keep it if user wants, but maybe subtler
+    if (showGrid && !circularCrop) {
       ctx.save();
       ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
       ctx.lineWidth = 1;
@@ -312,8 +332,14 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
           >
             <canvas
               ref={canvasRef}
-              className="shadow-2xl bg-black"
-              style={{ maxWidth: '100%', maxHeight: '60vh' }}
+              className="shadow-2xl bg-neutral-100"
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '60vh',
+                backgroundImage: 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+                backgroundSize: '20px 20px',
+                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+              }}
             />
           </div>
           
