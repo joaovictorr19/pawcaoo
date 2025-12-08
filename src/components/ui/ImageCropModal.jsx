@@ -107,21 +107,9 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     canvas.width = size;
     canvas.height = size / aspectRatio;
 
-    // Draw checkerboard pattern for transparency
-    const patternSize = 20;
-    // White background for better visibility
-    ctx.fillStyle = "#ffffff"; 
+    // Fill background with black to help with photo framing perception
+    ctx.fillStyle = "#1a1a1a"; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw checkerboard
-    ctx.fillStyle = "#e5e5e5";
-    for (let x = 0; x < canvas.width; x += patternSize) {
-      for (let y = 0; y < canvas.height; y += patternSize) {
-        if ((x / patternSize + y / patternSize) % 2 === 0) {
-          ctx.fillRect(x, y, patternSize, patternSize);
-        }
-      }
-    }
     
     // Draw image
     ctx.save();
@@ -130,12 +118,10 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     
     const scaleX = canvas.width / image.width;
     const scaleY = canvas.height / image.height;
-    // 'contain' logic: fit image fully visible initially
-    const baseScale = Math.min(scaleX, scaleY); 
-    
-    // If we want 'cover' initially (fill the crop area), we'd use Math.max
-    // But 'contain' is safer for user to see full image first.
-    // User can zoom in.
+    // 'cover' logic for better initial UX with avatars/banners
+    // If circular or fixed aspect, usually we want to fill the area
+    const baseScale = Math.max(scaleX, scaleY); 
+
     
     const currentScale = baseScale * zoom;
 
@@ -168,7 +154,8 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     // Draw Circular Mask if enabled
     if (circularCrop) {
       ctx.save();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Darker mask for better contrast
       ctx.beginPath();
       // Create a path that covers the whole canvas but has a circular hole
       ctx.rect(0, 0, canvas.width, canvas.height);
@@ -176,11 +163,17 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
       ctx.fill();
       
       // Draw white border around the circle
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - 1, 0, 2 * Math.PI);
+      ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - 1.5, 0, 2 * Math.PI);
       ctx.stroke();
+      
+      // Add a glow/shadow to the border for visibility against light backgrounds
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 5;
+      ctx.stroke();
+      
       ctx.restore();
     }
 
@@ -234,7 +227,8 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
       ctx.rotate((rotation * Math.PI) / 180);
       const scaleX = canvas.width / image.width;
       const scaleY = canvas.height / image.height;
-      const baseScale = Math.min(scaleX, scaleY); 
+      // Match the drawImage logic (Cover)
+      const baseScale = Math.max(scaleX, scaleY); 
       const currentScale = baseScale * zoom;
       ctx.scale(currentScale, currentScale);
       
@@ -253,8 +247,10 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
 
       canvas.toBlob((blob) => {
         if (blob) {
-          const croppedFile = new File([blob], "cropped-profile.jpg", { type: "image/jpeg" });
+          const croppedFile = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
           onSave(croppedFile);
+        } else {
+          console.error("Blob creation failed");
         }
         setShowGrid(wasGridShown); // Restore grid state
       }, "image/jpeg", 0.95); // High quality
