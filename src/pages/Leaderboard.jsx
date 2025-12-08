@@ -126,6 +126,26 @@ export default function Leaderboard() {
     .sort((a, b) => (b.daily_streak || 0) - (a.daily_streak || 0))
     .slice(0, 50);
 
+  const getActiveSortedData = () => {
+    switch(activeCategory) {
+      case 'level': return sortedByLevel;
+      case 'badges': return sortedByBadges;
+      case 'streak': return sortedByStreak;
+      case 'xp': default: return sortedByXP;
+    }
+  };
+
+  const activeData = getActiveSortedData();
+
+  const getMetricLabel = (user, type) => {
+    switch(type) {
+      case 'level': return `Nível ${user.gamification_level || 1}`;
+      case 'badges': return `${user.badges_count || 0} Emblemas`;
+      case 'streak': return `${user.daily_streak || 0} Dias`;
+      case 'xp': default: return `${user.gamification_xp || 0} XP`;
+    }
+  };
+
   const getRankIcon = (rank) => {
     switch(rank) {
       case 1: return <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500" />;
@@ -306,102 +326,114 @@ export default function Leaderboard() {
         </motion.div>
 
         {/* Top 3 Podium */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="mb-6"
-        >
-          <Card className="border-0 shadow-2xl bg-gradient-to-br from-yellow-50 to-orange-50">
-            <CardContent className="p-6">
-              <div className="grid md:grid-cols-3 gap-4">
-                {/* 2nd Place */}
-                {sortedByXP[1] && (
-                  <div className="text-center">
-                    <div className="relative inline-block mb-2">
-                      <Avatar className="w-20 h-20 border-3 border-gray-400 shadow-lg">
-                        <AvatarImage src={sortedByXP[1].profile_photo_url} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-xl">
-                          {sortedByXP[1].full_name?.[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                        <span className="text-white font-bold text-sm">2</span>
-                      </div>
-                    </div>
-                    <h3 className="font-bold text-base text-gray-900 mb-1 truncate">
-                      {sortedByXP[1].full_name}
-                    </h3>
-                    <p className="text-xl font-bold text-gray-600">
-                      {sortedByXP[1].gamification_xp || 0} XP
-                    </p>
-                    <Badge className="bg-gray-400 text-white text-xs mt-1">
-                      Nível {sortedByXP[1].gamification_level || 1}
-                    </Badge>
-                  </div>
-                )}
+        <div className="relative pt-8 mb-16 mt-8">
+          <div className="flex justify-center items-end gap-4 md:gap-8 max-w-3xl mx-auto h-64">
+            
+            {/* 2nd Place */}
+            {activeData[1] ? (
+              <motion.div 
+                key={`2nd-${activeCategory}`}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex flex-col items-center w-1/3 md:w-40 relative group cursor-pointer"
+                onClick={() => navigate(createPageUrl(`UserProfile?email=${activeData[1].email}`))}
+              >
+                <div className="relative mb-3 transform transition-transform group-hover:-translate-y-2">
+                  <Avatar className="w-16 h-16 md:w-20 md:h-20 border-4 border-slate-300 shadow-xl">
+                    <AvatarImage src={activeData[1].profile_photo_url} />
+                    <AvatarFallback className="bg-slate-200 text-slate-600 text-xl font-bold">
+                      {activeData[1].full_name?.[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Badge className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-500 text-white border-2 border-white w-7 h-7 flex items-center justify-center p-0 rounded-full text-sm font-bold shadow-md">2</Badge>
+                </div>
+                
+                <div className="w-full bg-gradient-to-t from-slate-300 via-slate-100 to-white rounded-t-xl p-3 pt-6 text-center shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] h-36 flex flex-col justify-start border-t border-white/60 relative">
+                  <h3 className="font-bold text-sm md:text-base text-slate-800 truncate w-full mb-1 px-1">
+                    {activeData[1].full_name}
+                  </h3>
+                  <p className="text-xs md:text-sm font-bold text-slate-600 mb-2">
+                    {getMetricLabel(activeData[1], activeCategory)}
+                  </p>
+                </div>
+              </motion.div>
+            ) : <div className="w-1/3 md:w-40 h-36" />}
 
-                {/* 1st Place */}
-                {sortedByXP[0] && (
-                  <div className="text-center md:order-first md:col-start-2">
-                    <div className="relative inline-block mb-2">
-                      <motion.div
-                        animate={{ rotate: [0, 5, -5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-xl z-10"
-                      >
-                        <Crown className="w-6 h-6 text-white fill-white" />
-                      </motion.div>
-                      <Avatar className="w-24 h-24 border-3 border-yellow-400 shadow-2xl">
-                        <AvatarImage src={sortedByXP[0].profile_photo_url} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-2xl">
-                          {sortedByXP[0].full_name?.[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center border-2 border-white shadow-xl">
-                        <span className="text-white font-bold">1</span>
-                      </div>
-                    </div>
-                    <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
-                      {sortedByXP[0].full_name}
-                    </h3>
-                    <p className="text-2xl font-bold text-yellow-600">
-                      {sortedByXP[0].gamification_xp || 0} XP
-                    </p>
-                    <Badge className="bg-yellow-500 text-white text-xs mt-1">
-                      👑 Nível {sortedByXP[0].gamification_level || 1}
-                    </Badge>
+            {/* 1st Place */}
+            {activeData[0] ? (
+              <motion.div 
+                key={`1st-${activeCategory}`}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center w-1/3 md:w-48 z-10 -mx-2 md:mx-0 relative group cursor-pointer"
+                onClick={() => navigate(createPageUrl(`UserProfile?email=${activeData[0].email}`))}
+              >
+                <div className="relative mb-3 transform transition-transform group-hover:-translate-y-2">
+                  <Crown className="w-10 h-10 text-yellow-500 absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_2s_infinite]" />
+                  <Avatar className="w-20 h-20 md:w-28 md:h-28 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-100/50">
+                    <AvatarImage src={activeData[0].profile_photo_url} />
+                    <AvatarFallback className="bg-yellow-100 text-yellow-600 text-3xl font-bold">
+                      {activeData[0].full_name?.[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Badge className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-yellow-500 text-white border-2 border-white w-8 h-8 flex items-center justify-center p-0 rounded-full text-base font-bold shadow-md">1</Badge>
+                </div>
+                
+                <div className="w-full bg-gradient-to-t from-yellow-400 via-yellow-200 to-yellow-50 rounded-t-xl p-3 pt-8 text-center shadow-[0_10px_30px_-5px_rgba(234,179,8,0.3)] h-48 flex flex-col justify-start border-t-2 border-white/70 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/40 to-transparent pointer-events-none"></div>
+                  
+                  <h3 className="font-bold text-base md:text-lg text-yellow-900 truncate w-full mb-1 relative z-10 px-1">
+                    {activeData[0].full_name}
+                  </h3>
+                  <p className="text-sm md:text-base font-extrabold text-yellow-800 mb-2 relative z-10">
+                    {getMetricLabel(activeData[0], activeCategory)}
+                  </p>
+                  <div className="mt-auto mb-2">
+                     <Badge className="bg-white/30 text-yellow-900 hover:bg-white/40 backdrop-blur-sm border-0 shadow-sm">
+                        Campeão
+                     </Badge>
                   </div>
-                )}
+                </div>
+              </motion.div>
+            ) : <div className="w-1/3 md:w-48 h-48" />}
 
-                {/* 3rd Place */}
-                {sortedByXP[2] && (
-                  <div className="text-center">
-                    <div className="relative inline-block mb-2">
-                      <Avatar className="w-20 h-20 border-3 border-orange-500 shadow-lg">
-                        <AvatarImage src={sortedByXP[2].profile_photo_url} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white text-xl">
-                          {sortedByXP[2].full_name?.[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                        <span className="text-white font-bold text-sm">3</span>
-                      </div>
-                    </div>
-                    <h3 className="font-bold text-base text-gray-900 mb-1 truncate">
-                      {sortedByXP[2].full_name}
-                    </h3>
-                    <p className="text-xl font-bold text-orange-600">
-                      {sortedByXP[2].gamification_xp || 0} XP
-                    </p>
-                    <Badge className="bg-orange-400 text-white text-xs mt-1">
-                      Nível {sortedByXP[2].gamification_level || 1}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            {/* 3rd Place */}
+            {activeData[2] ? (
+              <motion.div 
+                key={`3rd-${activeCategory}`}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex flex-col items-center w-1/3 md:w-40 relative group cursor-pointer"
+                onClick={() => navigate(createPageUrl(`UserProfile?email=${activeData[2].email}`))}
+              >
+                <div className="relative mb-3 transform transition-transform group-hover:-translate-y-2">
+                  <Avatar className="w-16 h-16 md:w-20 md:h-20 border-4 border-orange-400 shadow-xl">
+                    <AvatarImage src={activeData[2].profile_photo_url} />
+                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xl font-bold">
+                      {activeData[2].full_name?.[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Badge className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-orange-600 text-white border-2 border-white w-7 h-7 flex items-center justify-center p-0 rounded-full text-sm font-bold shadow-md">3</Badge>
+                </div>
+                
+                <div className="w-full bg-gradient-to-t from-orange-400 via-orange-200 to-orange-50 rounded-t-xl p-3 pt-6 text-center shadow-[0_10px_20px_-5px_rgba(234,88,12,0.2)] h-28 flex flex-col justify-start border-t border-white/60 relative">
+                  <h3 className="font-bold text-sm md:text-base text-orange-900 truncate w-full mb-1 px-1">
+                    {activeData[2].full_name}
+                  </h3>
+                  <p className="text-xs md:text-sm font-bold text-orange-800 mb-2">
+                    {getMetricLabel(activeData[2], activeCategory)}
+                  </p>
+                </div>
+              </motion.div>
+            ) : <div className="w-1/3 md:w-40 h-28" />}
+          </div>
+          
+          {/* Podium Base Decoration */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-4 bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-50 blur-sm rounded-full pointer-events-none"></div>
+        </div>
 
         {/* Category Tabs */}
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
