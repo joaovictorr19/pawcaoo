@@ -54,10 +54,22 @@ export default function ProfessionalDashboard() {
     queryKey: ['myWalkerProfile'],
     queryFn: async () => {
       const profiles = await base44.entities.WalkerProfile.filter({ created_by: user?.email });
-      return profiles[0];
+      const profile = profiles[0];
+      
+      // Auto-update account_type if user has walker profile but wrong account type
+      if (profile && user && user.account_type !== 'walker' && user.account_type !== 'both') {
+        try {
+          await base44.auth.updateMe({ account_type: 'walker' });
+          queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        } catch (e) {
+          console.error("Failed to update account_type:", e);
+        }
+      }
+      
+      return profile;
     },
-    enabled: !!user && (user.account_type === 'walker' || user.account_type === 'both'),
-    refetchInterval: 30000, // Refresh every 30s
+    enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const { data: trainerProfile } = useQuery({
