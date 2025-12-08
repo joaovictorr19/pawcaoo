@@ -17,7 +17,16 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
   return (
     <Card className="overflow-hidden border-0 shadow-sm mb-6">
       {/* Banner Area */}
-      <div className={`relative h-32 ${isWalker ? 'bg-gradient-to-r from-green-400 to-emerald-600' : 'bg-gradient-to-r from-purple-400 to-indigo-600'}`}>
+      <div className={`relative h-48 md:h-56 ${professional.cover_photo_url ? '' : (isWalker ? 'bg-gradient-to-r from-green-400 to-emerald-600' : 'bg-gradient-to-r from-purple-400 to-indigo-600')}`}>
+        {professional.cover_photo_url && (
+          <img 
+            src={professional.cover_photo_url} 
+            alt="Cover" 
+            className="w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+        
         <div className="absolute top-4 right-4 flex flex-col gap-2">
           {professional.verification_status === "verified" && (
             <Badge className="bg-white/20 backdrop-blur-md text-white border-0 shadow-sm text-xs px-3 py-1.5">
@@ -33,39 +42,46 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
       </div>
 
       <CardContent className="p-5 pt-0 relative">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-          <div className="relative">
-            {/* Circular Profile Photo overlapping banner */}
-            <div className="-mt-12 mb-3 md:mb-0">
+        <div className="flex flex-col items-center -mt-16 mb-6">
+          {/* Centered Circular Profile Photo */}
+          <div className="mb-3 relative group">
+            <div className="rounded-full p-1 bg-white shadow-xl">
               {professional.photo_url ? (
                 <img
                   src={professional.photo_url}
                   alt={name}
-                  className="w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover bg-white"
+                  className="w-32 h-32 rounded-full border-4 border-white object-cover bg-gray-100"
                   loading="lazy"
                 />
               ) : (
-                <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center">
+                <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center">
                   <span className={`text-4xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
                     {name?.[0]?.toUpperCase()}
                   </span>
                 </div>
               )}
             </div>
-            
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {name}
-            </h1>
-            <div className="flex items-center text-gray-600 text-sm">
-              <MapPin className="w-4 h-4 mr-1.5" />
+            {isWalker && (
+               <div className="absolute bottom-2 right-2 bg-green-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm" title="Passeador Profissional">
+                  <UserIcon className="w-4 h-4" />
+               </div>
+            )}
+          </div>
+          
+          <h1 className="text-3xl font-bold text-gray-900 mb-1 text-center">
+            {name}
+          </h1>
+          
+          <div className="flex items-center gap-4 text-gray-600 text-sm mb-4">
+            <div className="flex items-center">
+              <MapPin className="w-4 h-4 mr-1.5 text-gray-400" />
               {professional.location}
             </div>
-          </div>
-          <div className="mt-3 md:mt-0 text-right">
-            <div className={`text-2xl font-bold ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>
-              €{professional.hourly_rate}
+            <div className="h-4 w-px bg-gray-300"></div>
+            <div className="flex items-center font-medium">
+               <span className={`text-lg font-bold mr-1 ${isWalker ? 'text-green-600' : 'text-purple-600'}`}>€{professional.hourly_rate}</span>
+               <span className="text-xs text-gray-500">{t('perHour', language)}</span>
             </div>
-            <div className="text-gray-500 text-xs">{t('perHour', language)}</div>
           </div>
         </div>
 
