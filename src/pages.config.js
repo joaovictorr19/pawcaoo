@@ -63,6 +63,7 @@ import AdminShelterVerification from './pages/AdminShelterVerification';
 import StaticExport from './pages/StaticExport';
 import ShelterRegister from './pages/ShelterRegister';
 import ShelterProfile from './pages/ShelterProfile';
+import EditWalkerProfile from './pages/EditWalkerProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -132,6 +133,7 @@ export const PAGES = {
     "StaticExport": StaticExport,
     "ShelterRegister": ShelterRegister,
     "ShelterProfile": ShelterProfile,
+    "EditWalkerProfile": EditWalkerProfile,
 }
 
 export const pagesConfig = {
