@@ -34,6 +34,7 @@ import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import ImageCropModal from "../components/ui/ImageCropModal";
+import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 
 export default function BecomeWalker() {
   const navigate = useNavigate();
@@ -397,40 +398,13 @@ export default function BecomeWalker() {
                     {/* Profile Photo */}
                     <div className="space-y-2 mb-6">
                       <Label htmlFor="photo">{t('profilePhoto', language)}</Label>
-                      <div className="flex items-center gap-4">
-                        {formData.photo_url ? (
-                          <div className="relative w-32 h-32 rounded-xl overflow-hidden border-4 border-green-100 group">
-                            <img
-                              src={formData.photo_url}
-                              alt="Preview"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <label htmlFor="photo" className="cursor-pointer">
-                                <Upload className="w-6 h-6 text-white" />
-                              </label>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-4 border-gray-200">
-                            <Upload className="w-8 h-8 text-gray-400" />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <Input
-                            id="photo"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, 'photo_url', 'photo')}
-                            disabled={uploading.photo}
-                            // required removed
-                            className={formErrors.photo ? "border-red-500" : ""}
-                          />
-                          <p className="text-sm text-gray-500 mt-2">
-                            {uploading.photo ? t('uploadingPhoto', language) : t('uploadFriendlyPhoto', language)}
-                          </p>
-                        </div>
-                      </div>
+                      <CenteredAvatarUpload 
+                        currentImageUrl={formData.photo_url}
+                        onImageChange={(url) => {
+                          setFormData(prev => ({ ...prev, photo_url: url }));
+                          setFormErrors(prev => ({ ...prev, photo: undefined }));
+                        }}
+                      />
                       {formErrors.photo && (
                         <p className="text-sm text-red-600">{formErrors.photo}</p>
                       )}
