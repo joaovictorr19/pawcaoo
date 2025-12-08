@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Minimize2, Maximize2 } from "lucide-react";
+import { Send, Minimize2, Maximize2, AlertTriangle } from "lucide-react";
 
 // --- CUSTOM ICONS ---
 // Placeholder Icon as requested
@@ -136,15 +136,31 @@ const ChatWindow = ({ bookingId, user }) => {
 export default function LiveWalkSession({ bookingId }) {
   const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
 
-  const { data: booking } = useQuery({
+  const { data: booking, isLoading } = useQuery({
     queryKey: ['liveBooking', bookingId],
     queryFn: () => base44.entities.Booking.filter({ id: bookingId }).then(res => res[0]),
     refetchInterval: 5000, // 5s refresh
+    enabled: !!bookingId, // Só busca se tiver ID
   });
 
-  if (!booking || !user) return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gray-50 text-gray-500">
+  if (!bookingId) return (
+    <div className="h-screen w-screen flex items-center justify-center bg-red-50 text-red-600 flex-col gap-2">
+      <AlertTriangle className="w-8 h-8" />
+      <span className="font-bold">Reserva não especificada</span>
+    </div>
+  );
+
+  if (isLoading || !user) return (
+    <div className="h-screen w-screen flex items-center justify-center bg-gray-50 text-gray-500 gap-2">
+      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       Carregando mapa...
+    </div>
+  );
+
+  if (!booking) return (
+    <div className="h-screen w-screen flex items-center justify-center bg-gray-50 text-gray-500 flex-col gap-2">
+      <span className="font-bold">Reserva não encontrada</span>
+      <span className="text-sm">Aguardando dados...</span>
     </div>
   );
 

@@ -15,9 +15,20 @@ export default function WalkerTrack() {
     useEffect(() => {
         const init = async () => {
             const params = new URLSearchParams(window.location.search);
-            const id = params.get('bookingId');
+            let id = params.get('bookingId');
             
+            // Fallback: Tenta extrair ID da URL se não estiver nos params (Ex: /walk/track/ID)
             if (!id) {
+                const pathParts = window.location.pathname.split('/');
+                const possibleId = pathParts[pathParts.length - 1];
+                // Validação básica de ID (ex: deve ter pelo menos alguns caracteres e não ser 'track' ou 'undefined')
+                if (possibleId && possibleId !== 'track' && possibleId !== 'undefined' && possibleId.length > 5) {
+                    id = possibleId;
+                }
+            }
+
+            if (!id || id === 'undefined') {
+                console.error("Booking ID missing or invalid:", id);
                 setChecking(false);
                 return;
             }

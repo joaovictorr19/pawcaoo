@@ -34,11 +34,47 @@ export default function WalkerTracker({ bookingId }) {
   const timerRef = useRef(null);
 
   // Fetch initial booking state
-  const { data: booking } = useQuery({
+  const { data: booking, isLoading } = useQuery({
     queryKey: ['booking', bookingId],
     queryFn: () => base44.entities.Booking.filter({ id: bookingId }).then(res => res[0]),
     enabled: !!bookingId
   });
+
+  // Shielding: Validações de segurança antes de renderizar
+  if (!bookingId) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-50 text-center border-t border-red-200 bg-red-50">
+        <div className="flex flex-col items-center text-red-600 gap-2">
+          <AlertTriangle className="w-6 h-6" />
+          <span className="font-bold">Erro: Reserva não especificada</span>
+          <span className="text-xs">URL inválida ou ID ausente.</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-50 text-center border-t border-gray-200">
+        <div className="flex items-center justify-center gap-2 text-gray-500">
+          <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+          <span>Carregando dados do passeio...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-50 text-center border-t border-red-200 bg-red-50">
+        <div className="flex flex-col items-center text-red-600 gap-2">
+          <AlertTriangle className="w-6 h-6" />
+          <span className="font-bold">Erro: Reserva não encontrada</span>
+          <span className="text-xs">Verifique se o agendamento existe.</span>
+        </div>
+      </div>
+    );
+  }
 
   // Wake Lock Logic
   useEffect(() => {
