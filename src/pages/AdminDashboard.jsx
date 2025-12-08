@@ -969,6 +969,8 @@ export default function AdminDashboard() {
             <TabsTrigger value="reviews">{t('reviews', language)}</TabsTrigger>
           </TabsList>
 
+          {/* ... TabsContent for analytics, overview, users, active_walkers, adoptions, profile_edits, applications, companies, announcements, services, bookings, payments, reviews ... */}
+          {/* Keep existing TabsContent implementations */}
           <TabsContent value="analytics">
             <div className="mt-6">
               <AdminAnalytics 
@@ -984,7 +986,6 @@ export default function AdminDashboard() {
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              {/* Revenue Stats */}
               <Card className="border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle>{t('financialOverview', language)}</CardTitle>
@@ -1007,7 +1008,6 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* User Distribution */}
               <Card className="border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle>{t('userDistribution', language)}</CardTitle>
@@ -1073,7 +1073,6 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <>
-                {/* Mobile View */}
                 <div className="md:hidden space-y-4">
                   {filteredUsers.map(user => (
                     <Card key={user.id} className="p-4 border border-gray-200">
@@ -1102,7 +1101,6 @@ export default function AdminDashboard() {
                   ))}
                 </div>
 
-                {/* Desktop View */}
                 <div className="hidden md:block">
                   <Table>
                     <TableHeader>
@@ -1165,7 +1163,6 @@ export default function AdminDashboard() {
                 <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Mobile View */}
                 <div className="md:hidden space-y-4">
                   {activeWalkers.map(walker => (
                     <Card key={walker.id} className="p-4 border border-gray-200">
@@ -1216,7 +1213,6 @@ export default function AdminDashboard() {
                   ))}
                 </div>
 
-                {/* Desktop View */}
                 <div className="hidden md:block">
                   <Table>
                     <TableHeader>
@@ -2608,48 +2604,50 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div>
-                  <Label>Raridade</Label>
-                  <Select 
-                    value={customBadgeForm.rarity} 
-                    onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, rarity: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="common">Comum</SelectItem>
-                      <SelectItem value="rare">Raro</SelectItem>
-                      <SelectItem value="epic">Épico</SelectItem>
-                      <SelectItem value="legendary">Lendário</SelectItem>
-                    </SelectContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Raridade</Label>
+                    <Select 
+                      value={customBadgeForm.rarity} 
+                      onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, rarity: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="common">Comum</SelectItem>
+                        <SelectItem value="rare">Raro</SelectItem>
+                        <SelectItem value="epic">Épico</SelectItem>
+                        <SelectItem value="legendary">Lendário</SelectItem>
+                      </SelectContent>
                     </Select>
-                    </div>
-                    <div>
+                  </div>
+                  <div>
                     <Label>Categoria</Label>
                     <Select 
-                    value={customBadgeForm.category} 
-                    onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, category: value})}
+                      value={customBadgeForm.category} 
+                      onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, category: value})}
                     >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="special">Especial</SelectItem>
-                      <SelectItem value="social">Social</SelectItem>
-                      <SelectItem value="activity">Atividade</SelectItem>
-                      <SelectItem value="milestone">Marco</SelectItem>
-                      <SelectItem value="professional">Profissional</SelectItem>
-                    </SelectContent>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="special">Especial</SelectItem>
+                        <SelectItem value="social">Social</SelectItem>
+                        <SelectItem value="activity">Atividade</SelectItem>
+                        <SelectItem value="milestone">Marco</SelectItem>
+                        <SelectItem value="professional">Profissional</SelectItem>
+                      </SelectContent>
                     </Select>
-                    </div>
-                    </div>
+                  </div>
+                </div>
+              </div>
 
-                    {/* Critérios de Conquista */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-                    <Label className="mb-2 block font-semibold text-gray-700">Condição de Conquista</Label>
-                    <div className="grid md:grid-cols-3 gap-3">
-                    <div className="md:col-span-1">
+              {/* Critérios de Conquista (Complex Conditions) */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                <Label className="mb-2 block font-semibold text-gray-700">Condição de Conquista</Label>
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="md:col-span-1">
                     <Select 
                       value={customBadgeForm.criteria?.type || "manual"} 
                       onValueChange={(value) => setCustomBadgeForm({
@@ -2667,9 +2665,9 @@ export default function AdminDashboard() {
                         <SelectItem value="xp_milestone">XP Acumulado</SelectItem>
                       </SelectContent>
                     </Select>
-                    </div>
-
-                    {customBadgeForm.criteria?.type !== 'manual' && (
+                  </div>
+                  
+                  {customBadgeForm.criteria?.type !== 'manual' && (
                     <>
                       {customBadgeForm.criteria?.type !== 'xp_milestone' && (
                         <div className="md:col-span-1">
@@ -2705,9 +2703,14 @@ export default function AdminDashboard() {
                         />
                       </div>
                     </>
-                    )}
-                    </div>
-                    </div>
+                  )}
+                </div>
+                {customBadgeForm.criteria?.type !== 'manual' && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    * Esta regra será verificada automaticamente pelo sistema.
+                  </p>
+                )}
+              </div>
 
               <div>
                 <Label>Imagem PNG (Opcional, máx 500KB)</Label>
@@ -2722,54 +2725,6 @@ export default function AdminDashboard() {
                 </div>
                 {customBadgeForm.image_url && (
                   <img src={customBadgeForm.image_url} alt="Badge Preview" className="w-16 h-16 mt-2 rounded-lg object-cover" />
-                )}
-              </div>
-
-              <div>
-                <Label>URL da Animação (GIF/WebP) - Opcional</Label>
-                <Input
-                  value={customBadgeForm.animation_url || ""}
-                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, animation_url: e.target.value})}
-                  placeholder="https://.../badge.gif"
-                  className="mt-1"
-                />
-                {customBadgeForm.animation_url && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 mb-1">Preview Animação:</p>
-                    <img src={customBadgeForm.animation_url} alt="Animated Badge" className="w-16 h-16 object-contain rounded-lg border border-purple-200" />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label>URL da Animação (GIF/WebP) - Opcional</Label>
-                <Input
-                  value={customBadgeForm.animation_url || ""}
-                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, animation_url: e.target.value})}
-                  placeholder="https://.../badge.gif"
-                  className="mt-1"
-                />
-                {customBadgeForm.animation_url && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 mb-1">Preview Animação:</p>
-                    <img src={customBadgeForm.animation_url} alt="Animated Badge" className="w-16 h-16 object-contain rounded-lg border border-purple-200" />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label>URL da Animação (GIF/WebP) - Opcional</Label>
-                <Input
-                  value={customBadgeForm.animation_url || ""}
-                  onChange={(e) => setCustomBadgeForm({...customBadgeForm, animation_url: e.target.value})}
-                  placeholder="https://.../badge.gif"
-                  className="mt-1"
-                />
-                {customBadgeForm.animation_url && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 mb-1">Preview Animação:</p>
-                    <img src={customBadgeForm.animation_url} alt="Animated Badge" className="w-16 h-16 object-contain rounded-lg border border-purple-200" />
-                  </div>
                 )}
               </div>
 
