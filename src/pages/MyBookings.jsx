@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import ReviewForm from "../components/reviews/ReviewForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import AchievementModal from "../components/gamification/AchievementModal";
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -55,6 +56,10 @@ export default function MyBookings() {
   // Review State
   const [reviewTarget, setReviewTarget] = useState(null); // { booking, type: 'client' | 'professional' }
   const [isReviewProcessing, setIsReviewProcessing] = useState(false);
+  
+  // Reward Modal State
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [rewardData, setRewardData] = useState(null);
 
   // Buscar usuário atual
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -317,7 +322,7 @@ export default function MyBookings() {
       // --- GAMIFICATION: Award Points & XP to Reviewer ---
       try {
         const POINTS_FOR_REVIEW = 50;
-        const XP_FOR_REVIEW = 100;
+        const XP_FOR_REVIEW = 50; // Ajustado conforme pedido (50 XP)
         const reviewerEmail = user?.email;
 
         if (reviewerEmail) {
@@ -363,7 +368,7 @@ export default function MyBookings() {
               last_activity_date: new Date().toISOString().split('T')[0]
             });
             
-            toast.success(`🎉 +${POINTS_FOR_REVIEW} Points & +${XP_FOR_REVIEW} XP Earned!`);
+            // toast.success(`🎉 +${POINTS_FOR_REVIEW} Points & +${XP_FOR_REVIEW} XP Earned!`);
           }
         }
       } catch (gameErr) {
@@ -372,8 +377,19 @@ export default function MyBookings() {
       }
     },
     onSuccess: () => {
-      toast.success("Review submitted successfully!");
+      // toast.success("Review submitted successfully!");
       setReviewTarget(null);
+      
+      // Trigger Reward Modal
+      setRewardData({
+        name: "Feedback Valioso!",
+        description: "Obrigado por ajudar a comunidade com a sua avaliação.",
+        xp: 50,
+        icon: "⭐",
+        image: null // Use default icon
+      });
+      setShowRewardModal(true);
+
       // Invalidate queries to refresh UI if needed
       queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
@@ -714,6 +730,13 @@ export default function MyBookings() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Reward Modal */}
+      <AchievementModal 
+        isOpen={showRewardModal} 
+        onClose={() => setShowRewardModal(false)} 
+        badgeData={rewardData} 
+      />
 
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
