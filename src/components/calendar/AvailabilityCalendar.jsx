@@ -5,8 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isPast, getDay } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function AvailabilityCalendar({ availabilityData = [], bookings = [], onDateSelect, selectedDate, locale = pt }) {
+  const { language } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
@@ -26,26 +29,28 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
     
     // Logic for Pending vs Accepted visualization
     const hasPending = dayBookings.some(b => b.status === 'pending');
-    const hasConfirmed = dayBookings.some(b => b.status === 'confirmed');
+    const hasConfirmed = dayBookings.some(b => b.status === 'confirmed' || b.status === 'completed'); // Completed is also occupied/accepted
     
-    if (hasPending && !hasConfirmed) return { status: 'pending', count: dayBookings.length };
-    if (hasConfirmed) return { status: 'accepted', count: dayBookings.length }; // Blocked/Confirmed
+    // Prioridade: Confirmado > Pendente > Manualmente Lotado
     
-    if (availability?.is_fully_booked) return { status: 'booked' };
-    if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length };
-    if (availability && !availability.is_fully_booked) return { status: 'available' };
-    return { status: 'unavailable' };
+    if (hasConfirmed) return { status: 'accepted', count: dayBookings.length }; // Verde Escuro
+    if (hasPending) return { status: 'pending', count: dayBookings.length }; // Amarelo
+    
+    if (availability?.is_fully_booked) return { status: 'booked' }; // Vermelho (Manual Block)
+    if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length }; // Azul (alguma atividade)
+    if (availability && !availability.is_fully_booked) return { status: 'available' }; // Verde Claro
+    
+    return { status: 'unavailable' }; // Branco
   };
 
   const getStatusColor = (status) => {
     const colors = {
       available: "bg-green-100 border-green-400 text-green-700",
       partial: "bg-blue-100 border-blue-400 text-blue-700",
-      booked: "bg-red-100 border-red-400 text-red-700",
+      booked: "bg-red-100 border-red-400 text-red-700", // Manualmente Lotado
       
-      // New Visuals
-      pending: "bg-yellow-100 border-yellow-400 text-yellow-800", // Amarelo Claro para Pendente
-      accepted: "bg-green-600 border-green-700 text-white font-bold", // Verde Escuro para Bloqueio Total (Aceite)
+      pending: "bg-yellow-100 border-yellow-400 text-yellow-800", // Pendente
+      accepted: "bg-green-600 border-green-700 text-white font-bold shadow-sm", // Confirmado/Aceito
       
       past: "bg-gray-50 border-gray-200 text-gray-400",
       unavailable: "bg-white border-gray-200 text-gray-600"
@@ -111,7 +116,7 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
                 className={`
                   aspect-square p-0.5 md:p-1 rounded-md md:rounded-lg border transition-all text-[10px] md:text-sm
                   ${getStatusColor(status)}
-                  ${isSelected ? 'ring-1 md:ring-2 ring-green-500 scale-105' : ''}
+                  ${isSelected ? 'ring-1 md:ring-2 ring-green-500 scale-105 shadow-md' : ''}
                   ${status === 'past' ? 'cursor-not-allowed opacity-50' : 'hover:scale-110 cursor-pointer'}
                   ${isToday(date) ? 'font-bold ring-1 ring-yellow-500' : ''}
                   flex flex-col items-center justify-center relative
@@ -132,23 +137,24 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
         <div className="flex flex-wrap gap-1.5 md:gap-2 mt-3 md:mt-4 pt-2 md:pt-3 border-t">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-100 border border-green-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">Disponível</span>
+            <span className="text-[10px] md:text-xs text-gray-600">{t('available', language)}</span>
           </div>
-          <div className="flex items-center gap-1">
+          {/* Hide Partial if redundant or confuse user with Pending/Accepted */}
+          {/* <div className="flex items-center gap-1">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-blue-100 border border-blue-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">Parcial</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">Lotado</span>
-          </div>
+            <span className="text-[10px] md:text-xs text-gray-600">{t('partiallyBooked', language)}</span>
+          </div> */}
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-yellow-100 border border-yellow-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">Pendente</span>
+            <span className="text-[10px] md:text-xs text-gray-600">{t('pending', language)}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-600 border border-green-700" />
-            <span className="text-[10px] md:text-xs text-gray-600">Aceite</span>
+            <span className="text-[10px] md:text-xs text-gray-600">{t('accepted', language)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
+            <span className="text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
           </div>
         </div>
       </CardContent>

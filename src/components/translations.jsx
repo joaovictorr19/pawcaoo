@@ -157,6 +157,9 @@ export const translations = {
     saving: "A guardar...",
     upcomingBookings: "Próximas Reservas",
     noUpcomingBookings: "Sem reservas",
+    fullyBooked: "Lotado",
+    partiallyBooked: "Parcial",
+    accepted: "Aceite",
     
     // Sidebar Groups
     mainMenu: "MENU PRINCIPAL",
@@ -1046,6 +1049,9 @@ export const translations = {
     saving: "Saving...",
     upcomingBookings: "Upcoming Bookings",
     noUpcomingBookings: "No upcoming bookings",
+    fullyBooked: "Booked",
+    partiallyBooked: "Partial",
+    accepted: "Accepted",
 
     // Sidebar Groups
     mainMenu: "MAIN MENU",
@@ -1932,6 +1938,9 @@ export const translations = {
     saving: "Guardando...",
     upcomingBookings: "Próximas Reservas",
     noUpcomingBookings: "Sin reservas",
+    fullyBooked: "Reservado",
+    partiallyBooked: "Parcial",
+    accepted: "Aceptado",
     
     // Sidebar Groups
     mainMenu: "MENÚ PRINCIPAL",
