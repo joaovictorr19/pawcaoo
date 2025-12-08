@@ -118,13 +118,19 @@ export default function WalkerDetails() {
 
       try {
         // 1. Busca Prioritária: ID exato do WalkerProfile
-        // Garante que buscamos UM registro específico
         const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
         if (results && results.length > 0) {
           return results[0];
         }
 
-        // 2. Fallback Inteligente: Busca por Email (created_by) APENAS se parecer um email
+        // 2. Fallback: Busca por user_id (Auth ID)
+        // Muitas vezes o ID passado é o ID do usuário, não do perfil
+        const byUserId = await base44.entities.WalkerProfile.filter({ user_id: walkerId });
+        if (byUserId && byUserId.length > 0) {
+          return byUserId[0];
+        }
+
+        // 3. Fallback Inteligente: Busca por Email (created_by)
         if (walkerId.includes('@')) {
           const byEmail = await base44.entities.WalkerProfile.filter({ created_by: walkerId });
           if (byEmail && byEmail.length > 0) {

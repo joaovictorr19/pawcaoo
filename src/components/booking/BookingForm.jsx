@@ -178,7 +178,39 @@ export default function BookingForm({ walker, professional, onClose }) {
         console.error("Erro ao atualizar disponibilidade:", err);
       }
 
-      // 3. Enviar Email de Confirmação Imediata
+      // 3. Criar/Atualizar Conversa de Chat (Sincronização)
+      try {
+        // Verificar se já existe conversa entre estes dois
+        const conversations = await base44.entities.ChatConversation.filter({}); // Filtragem no cliente pois arrays são complexos
+        let conversation = conversations.find(c => 
+          c.participants?.includes(user.email) && 
+          c.participants?.includes(pro.created_by)
+        );
+
+        if (conversation) {
+          // Atualizar existente com booking_id
+          await base44.entities.ChatConversation.update(conversation.id, {
+            booking_id: booking.id,
+            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${bookingData.walk_date}`,
+            last_message_date: new Date().toISOString()
+          });
+        } else {
+          // Criar nova conversa
+          await base44.entities.ChatConversation.create({
+            participants: [user.email, pro.created_by],
+            booking_id: booking.id,
+            tags: ['booking'],
+            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${bookingData.walk_date}`,
+            last_message_date: new Date().toISOString(),
+            unread_counts: { [user.email]: 0, [pro.created_by]: 1 }
+          });
+        }
+        console.log('💬 Chat sincronizado');
+      } catch (err) {
+        console.error("Erro ao sincronizar chat:", err);
+      }
+
+      // 4. Enviar Email de Confirmação Imediata
       try {
         await base44.integrations.Core.SendEmail({
           to: user.email,

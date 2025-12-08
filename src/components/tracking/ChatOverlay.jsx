@@ -10,11 +10,28 @@ export default function ChatOverlay({ bookingId, user, title = "Chat do Passeio"
   const [isExpanded, setIsExpanded] = useState(false);
   const scrollRef = useRef(null);
 
-  // Polling agressivo para simular realtime (1s)
+  // 1. Encontrar a Conversa (ChatConversation) ligada a este Booking
+  const { data: conversation } = useQuery({
+    queryKey: ['chatConversationByBooking', bookingId],
+    queryFn: async () => {
+      const res = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
+      return res[0] || null;
+    }
+  });
+
+  // 2. Polling de mensagens (usando conversation_id se disponível, ou booking_id como fallback)
   const { data: messages = [], refetch } = useQuery({
-    queryKey: ['chatMessages', bookingId],
-    queryFn: () => base44.entities.ChatMessage.filter({ booking_id: bookingId }, '-created_date', 50),
-    refetchInterval: 1000
+    queryKey: ['chatMessages', bookingId, conversation?.id],
+    queryFn: async () => {
+      if (conversation?.id) {
+        // Modo Sincronizado: Busca por Conversation ID (compatível com Inbox/ChatWindow)
+        return await base44.entities.ChatMessage.filter({ conversation_id: conversation.id }, '-created_date', 50);
+      } else {
+        // Modo Legado/Fallback: Busca por Booking ID
+        return await base44.entities.ChatMessage.filter({ booking_id: bookingId }, '-created_date', 50);
+      }
+    },
+    refetchInterval: 2000
   });
 
   // Auto-scroll para a última mensagem
@@ -32,13 +49,24 @@ export default function ChatOverlay({ bookingId, user, title = "Chat do Passeio"
     setMessage(""); // Optimistic clear
 
     try {
-      await base44.entities.ChatMessage.create({
+      const msgData = {
         booking_id: bookingId,
         sender_email: user.email,
         sender_name: user.full_name || user.email.split('@')[0],
         content: content,
         timestamp: new Date().toISOString()
-      });
+      };
+
+      if (conversation?.id) {
+        msgData.conversation_id = conversation.id;
+        // Atualizar também a conversa para aparecer no topo da Inbox
+        await base44.entities.ChatConversation.update(conversation.id, {
+          last_message: content,
+          last_message_date: new Date().toISOString()
+        });
+      }
+
+      await base44.entities.ChatMessage.create(msgData);
       refetch();
     } catch (error) {
       console.error("Error sending message:", error);
