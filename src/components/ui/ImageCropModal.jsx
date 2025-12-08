@@ -17,37 +17,71 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
   const imageRef = useRef(null);
   const containerRef = useRef(null);
 
+  // Initialize container dimensions on mount to ensure canvas is ready
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const updateSize = () => {
+        if (containerRef.current) {
+          setContainerSize({
+            width: containerRef.current.clientWidth,
+            height: containerRef.current.clientHeight
+          });
+        }
+      };
+      
+      // Delay slightly to allow modal animation to complete
+      const timer = setTimeout(updateSize, 100);
+      window.addEventListener('resize', updateSize);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', updateSize);
+      };
+    }
+  }, [isOpen]);
+
   // Carregar e desenhar imagem inicial
   useEffect(() => {
     if (imageUrl && canvasRef.current) {
       const img = new Image();
+      // Try with crossOrigin anonymous first, but handle fallback
       img.crossOrigin = "anonymous";
+      
       img.onload = () => {
         imageRef.current = img;
-        // Reset state on new image
-        // Calculate initial zoom to fit image perfectly within canvas
-        const canvas = canvasRef.current;
-        if (canvas) {
-           const scaleX = canvas.width / img.width;
-           const scaleY = canvas.height / img.height;
-           // Start with a fit that covers the area slightly (1.0) or fits (0.8)
-           // Let's start with 1.0 (neutral) relative to our base scale logic
-           setZoom(1); 
-        }
+        setZoom(1);
         setRotation(0);
         setPosition({ x: 0, y: 0 });
-        drawImage();
+        requestAnimationFrame(drawImage);
       };
+      
+      img.onerror = () => {
+        // Fallback: try loading without crossOrigin if it fails (might restrict saving but allows viewing)
+        // Or just log error. Usually blob URLs work fine.
+        console.warn("Failed to load image with crossOrigin. Retrying without.");
+        const retryImg = new Image();
+        retryImg.onload = () => {
+            imageRef.current = retryImg;
+            setZoom(1);
+            setRotation(0);
+            setPosition({ x: 0, y: 0 });
+            requestAnimationFrame(drawImage);
+        };
+        retryImg.src = imageUrl;
+      };
+
       img.src = imageUrl;
     }
-  }, [imageUrl]);
+  }, [imageUrl, containerSize]); // Re-init on container resize
 
   // Redesenhar quando estados mudam
   useEffect(() => {
     if (imageRef.current) {
-      drawImage();
+      requestAnimationFrame(drawImage);
     }
-  }, [zoom, rotation, position, aspectRatio, showGrid]);
+  }, [zoom, rotation, position, aspectRatio, showGrid, containerSize]);
 
   const drawImage = () => {
     const canvas = canvasRef.current;
@@ -56,46 +90,52 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
 
     const ctx = canvas.getContext("2d");
     
-    // Define canvas size based on container or fixed max width
-    const containerWidth = containerRef.current?.clientWidth || 400;
-    // Limit max size for better performance but keep quality high enough
-    const size = Math.min(containerWidth, 600); 
+    // Robust width calculation
+    const containerWidth = containerRef.current?.clientWidth || window.innerWidth * 0.9 || 350;
+    const size = Math.min(containerWidth, 800); 
     
+    if (size === 0) return; // Prevent 0 size canvas
+
     // Set canvas dimensions
     canvas.width = size;
     canvas.height = size / aspectRatio;
 
-    // Clear canvas with a dark background for better contrast
-    ctx.fillStyle = "#1a1a1a";
+    // Draw checkerboard pattern for transparency
+    const patternSize = 20;
+    ctx.fillStyle = "#1a1a1a"; // Fallback
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Save context state for image transform
+    // Draw image
     ctx.save();
-    
-    // Move to center of canvas
     ctx.translate(canvas.width / 2, canvas.height / 2);
-    
-    // Apply rotation
     ctx.rotate((rotation * Math.PI) / 180);
     
-    // Calculate base scale to 'contain' image initially
     const scaleX = canvas.width / image.width;
     const scaleY = canvas.height / image.height;
-    // Use the smaller scale to ensure image fits entirely in view initially
+    // 'contain' logic: fit image fully visible initially
     const baseScale = Math.min(scaleX, scaleY); 
-
-    // Apply zoom
+    
+    // If we want 'cover' initially (fill the crop area), we'd use Math.max
+    // But 'contain' is safer for user to see full image first.
+    // User can zoom in.
+    
     const currentScale = baseScale * zoom;
 
     ctx.scale(currentScale, currentScale);
     
-    // Apply translation (pan)
-    // Adjust position logic: visual movement needs to be independent of scale for natural feel
+    // Position delta needs to be scaled inversely if we want 1px drag = 1px move visually
+    // However, since we translate BEFORE drawing image, dividing by scale is correct for 'image space' translation.
+    // But users expect 'screen space' translation.
+    // If I drag 10px right, I want image to move 10px right on screen.
+    // screen_delta = 10.
+    // ctx.translate(dx, dy). ctx is scaled by S.
+    // effective_screen_move = dx * S.
+    // we want effective_screen_move = screen_delta.
+    // so dx * S = screen_delta => dx = screen_delta / S.
+    
     ctx.translate(position.x / currentScale, position.y / currentScale);
     
-    // Draw image centered
     ctx.drawImage(image, -image.width / 2, -image.height / 2);
-    
     ctx.restore();
 
     // Draw Grid Overlay if enabled

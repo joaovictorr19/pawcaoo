@@ -242,33 +242,99 @@ export default function EditWalkerProfile() {
               {/* Photo */}
               <div className="space-y-2">
                 <Label>Foto de Perfil</Label>
-                <div className="flex items-center gap-4">
-                  {formData.photo_url ? (
-                    <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-green-100 group">
-                      <img
-                        src={formData.photo_url}
-                        alt="Preview"
-                        className="w-full h-full object-cover object-center rounded-full"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-                        <label htmlFor="photo" className="cursor-pointer">
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                  {/* Profile Photo */}
+                  <div className="flex flex-col items-center gap-2">
+                    <Label className="text-sm font-medium">Foto de Perfil</Label>
+                    <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-green-100 group shadow-lg">
+                      {formData.photo_url ? (
+                        <img
+                          src={formData.photo_url}
+                          alt="Profile"
+                          className="w-full h-full object-cover object-center"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <Upload className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <label htmlFor="photo" className="cursor-pointer p-2 bg-white/20 rounded-full hover:bg-white/40 transition-colors">
+                          <Upload className="w-5 h-5 text-white" />
+                        </label>
+                      </div>
+                    </div>
+                    <Input
+                      id="photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                         const file = e.target.files[0];
+                         if(file) {
+                             const reader = new FileReader();
+                             reader.onload = (ev) => {
+                                 setTempImageUrl(ev.target.result);
+                                 setCropModalOpen(true);
+                                 // We use a state to track which image we are editing: 'photo' or 'cover'
+                                 // But here we need to implement that state logic
+                                 setEditingImageType('photo');
+                             };
+                             reader.readAsDataURL(file);
+                         }
+                      }}
+                      className="hidden"
+                    />
+                    <Button variant="outline" size="sm" onClick={() => document.getElementById('photo').click()}>
+                      Alterar Foto
+                    </Button>
+                  </div>
+
+                  {/* Cover Photo */}
+                  <div className="flex-1 w-full space-y-2">
+                    <Label className="text-sm font-medium">Foto de Capa</Label>
+                    <div className="relative w-full h-32 md:h-40 rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 group shadow-md">
+                      {formData.cover_photo_url ? (
+                        <img
+                          src={formData.cover_photo_url}
+                          alt="Cover"
+                          className="w-full h-full object-cover object-center"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 gap-2">
+                          <Upload className="w-5 h-5" />
+                          <span>Adicionar Capa</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <label htmlFor="cover" className="cursor-pointer p-3 bg-white/20 rounded-full hover:bg-white/40 transition-colors">
                           <Upload className="w-6 h-6 text-white" />
                         </label>
                       </div>
                     </div>
-                  ) : (
-                    <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center border-4 border-gray-200">
-                      <Upload className="w-8 h-8 text-gray-400" />
+                    <Input
+                      id="cover"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                         const file = e.target.files[0];
+                         if(file) {
+                             const reader = new FileReader();
+                             reader.onload = (ev) => {
+                                 setTempImageUrl(ev.target.result);
+                                 setCropModalOpen(true);
+                                 setEditingImageType('cover');
+                             };
+                             reader.readAsDataURL(file);
+                         }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex justify-end">
+                         <Button variant="outline" size="sm" onClick={() => document.getElementById('cover').click()}>
+                            Alterar Capa
+                         </Button>
                     </div>
-                  )}
-                  <Input
-                    id="photo"
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    disabled={uploading}
-                    className="flex-1"
-                  />
+                  </div>
                 </div>
               </div>
 
