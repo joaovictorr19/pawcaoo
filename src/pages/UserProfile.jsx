@@ -573,7 +573,6 @@ export default function UserProfile() {
   });
 
   const [showFollowers, setShowFollowers] = useState(false);
-  const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
 
   // Badge Selection State
