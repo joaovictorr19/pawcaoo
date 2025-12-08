@@ -345,7 +345,7 @@ export default function UserProfile() {
             gamification_level: currentUser.gamification_level || 1,
             followers_count: 0,
             following_count: 0,
-            is_verified: currentUser.is_verified || false
+            is_verified: false // Force false for new profiles until admin verification
           };
           userProfile = await base44.entities.UserProfile.create(payload);
         } catch (error) {

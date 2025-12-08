@@ -145,7 +145,7 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
+        const res = await base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }, '-rating', 100);
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("Walkers fetch error:", error);
@@ -161,7 +161,7 @@ export default function Home() {
     queryKey: ['trainers'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.TrainerProfile.filter({ is_active: true }, '-rating');
+        const res = await base44.entities.TrainerProfile.filter({ is_active: true, verification_status: 'verified' }, '-rating');
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("Trainers fetch error:", error);

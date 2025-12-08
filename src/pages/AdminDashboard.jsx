@@ -2859,9 +2859,9 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-semibold text-sm text-gray-500 mb-1">{t('personalInfo', language)}</h4>
-                    <p><strong>{t('fullName', language)}:</strong> {selectedApplication.walker_name}</p>
-                    <p><strong>{t('email', language)}:</strong> {selectedApplication.created_by}</p>
-                    <p><strong>{t('phoneNumber', language)}:</strong> {selectedApplication.phone}</p>
+                    <p><strong>{t('fullName', language)}:</strong> {selectedApplication.walker_name || selectedApplication.trainer_name || selectedApplication.shelter_name || 'N/A'}</p>
+                    <p><strong>{t('email', language)}:</strong> {selectedApplication.created_by || selectedApplication.contact_email}</p>
+                    <p><strong>{t('phoneNumber', language)}:</strong> {selectedApplication.phone || selectedApplication.contact_phone}</p>
                     <p><strong>{t('location', language)}:</strong> {selectedApplication.location}</p>
                   </div>
                   <div>
@@ -2874,7 +2874,7 @@ export default function AdminDashboard() {
 
                 <div>
                   <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('bio', language)}</h4>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedApplication.bio}</p>
+                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedApplication.bio || selectedApplication.mission || 'N/A'}</p>
                 </div>
 
                 <div>
