@@ -33,8 +33,11 @@ import { useCreateNotification } from "../components/NotificationService";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function ProfessionalDashboard() {
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const createNotification = useCreateNotification();
@@ -441,29 +444,29 @@ export default function ProfessionalDashboard() {
     {
       icon: DollarSign,
       value: `€${totalEarnings.toFixed(0)}`,
-      label: `Earnings (${dateRange === '7days' ? '7d' : dateRange === '30days' ? '30d' : '90d'})`,
+      label: `${t('earnings', language)} (${dateRange === '7days' ? '7d' : dateRange === '30days' ? '30d' : '90d'})`,
       color: "from-green-500 to-emerald-600",
       change: "+12.5%"
     },
     {
       icon: Calendar,
       value: pendingBookings.length,
-      label: "Pending Bookings",
+      label: t('pendingBookingsCount', language),
       color: "from-orange-500 to-yellow-600",
-      badge: "Requires Action"
+      badge: t('requiresAction', language)
     },
     {
       icon: Star,
       value: averageRating,
-      label: `Rating (${reviews.length} reviews)`,
+      label: `${t('rating', language)} (${reviews.length} ${t('reviews', language).toLowerCase()})`,
       color: "from-yellow-500 to-orange-600",
     },
     {
       icon: CheckCircle,
       value: `${profileCompleteness}%`,
-      label: "Profile Health",
+      label: t('profileHealth', language),
       color: profileCompleteness === 100 ? "from-teal-500 to-teal-600" : "from-blue-500 to-indigo-600",
-      badge: profileCompleteness < 100 ? "Improve" : "Perfect"
+      badge: profileCompleteness < 100 ? t('improve', language) : t('perfect', language)
     }
   ];
 
@@ -660,24 +663,27 @@ export default function ProfessionalDashboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
+                className="h-full"
               >
-                <Card className="border-0 shadow-lg overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className={`bg-gradient-to-br ${stat.color} p-4 text-white`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <stat.icon className="w-8 h-8 opacity-80" />
-                        {stat.badge && (
-                          <Badge className="bg-white/20 text-white border-0">
-                            {stat.badge}
-                          </Badge>
-                        )}
+                <Card className="border-0 shadow-lg overflow-hidden h-full flex flex-col">
+                  <CardContent className="p-0 flex-1">
+                    <div className={`bg-gradient-to-br ${stat.color} p-4 text-white h-full flex flex-col justify-between`}>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <stat.icon className="w-8 h-8 opacity-80" />
+                          {stat.badge && (
+                            <Badge className="bg-white/20 text-white border-0 whitespace-nowrap">
+                              {stat.badge}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                        <div className="text-sm opacity-90">{stat.label}</div>
                       </div>
-                      <div className="text-3xl font-bold">{stat.value}</div>
-                      <div className="text-sm opacity-90">{stat.label}</div>
                       {stat.change && (
                         <div className="flex items-center gap-1 text-xs mt-2 opacity-90">
                           <ArrowUp className="w-3 h-3" />
-                          {stat.change} vs last period
+                          {stat.change} {t('vsLastPeriod', language)}
                         </div>
                       )}
                     </div>
