@@ -72,7 +72,7 @@ export default function ShelterProfile() {
         </Button>
 
         {/* Cover Photo */}
-        <div className="relative w-full aspect-[21/9] overflow-hidden bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl mb-8">
+        <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl mb-8">
           {shelter.cover_photo_url && (
             <img src={shelter.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
           )}
