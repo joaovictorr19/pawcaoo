@@ -13,6 +13,15 @@ import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ChatWindow from "@/components/chat/ChatWindow";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const SUPPORT_EMAIL_TARGET = "support@pawcao.net";
 
@@ -20,6 +29,12 @@ export default function Inbox() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchLocation] = useState("");
+  const [newChatEmail, setNewChatEmail] = useState("");
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+
+  // Get selected conversation from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const selectedChatId = urlParams.get('id');
 
   // 1. Fetch Current User
   const { data: user } = useQuery({
@@ -33,18 +48,7 @@ export default function Inbox() {
     queryFn: async () => {
       if (!user?.email) return [];
       try {
-        // Fetch conversations where user is a participant
-        // Note: Filtering by array contains in Base44 usually works via simple filter or specific array operator
-        // Assuming standard filter behavior for array containment or explicit query
-        const res = await base44.entities.ChatConversation.filter({
-           // This is a simplified assumption for the query capability
-           // If exact match required, backend handles it. 
-           // Ideally: "participants": { "$in": [user.email] }
-           // For now assuming client side filtering if backend is limited, 
-           // but using best guess query
-        });
-        
-        // Client-side filter to be safe if backend returns all
+        const res = await base44.entities.ChatConversation.filter({});
         return res.filter(c => c.participants?.includes(user.email))
                   .sort((a, b) => new Date(b.last_message_date || 0) - new Date(a.last_message_date || 0));
       } catch (error) {
@@ -55,41 +59,37 @@ export default function Inbox() {
     enabled: !!user?.email,
   });
 
-  // 3. Support Chat Logic
-  const startSupportChatMutation = useMutation({
-    mutationFn: async () => {
+  // 3. Start Chat Mutations
+  const createChatMutation = useMutation({
+    mutationFn: async (targetEmail) => {
       if (!user?.email) return;
+      if (!targetEmail) throw new Error("Email inválido");
+      if (targetEmail === user.email) throw new Error("Não pode falar consigo mesmo");
 
-      // Check if exists
-      const existing = conversations.find(c => c.tags?.includes('support'));
-      if (existing) {
-        return existing.id;
-      }
+      // Check existing
+      const existing = conversations.find(c => c.participants?.includes(targetEmail) && !c.booking_id);
+      if (existing) return existing.id;
 
-      // 1. Definição do Destinatário Fixo
-      const adminEmail = SUPPORT_EMAIL_TARGET;
-
-      // 2. Verificação de Integridade (opcional, já que é constante)
-      if (!adminEmail) {
-        throw new Error("Erro de configuração interna: Email de suporte não definido.");
-      }
-
-      // 3. Criação Segura da Conversa
       const newChat = await base44.entities.ChatConversation.create({
-        participants: [user.email, adminEmail],
-        tags: ['support'],
-        last_message: 'Nova conversa de suporte iniciada.',
+        participants: [user.email, targetEmail],
+        tags: targetEmail === SUPPORT_EMAIL_TARGET ? ['support'] : ['general'],
+        last_message: 'Nova conversa iniciada.',
         last_message_date: new Date().toISOString(),
-        unread_counts: { [user.email]: 0, [adminEmail]: 1 }
+        unread_counts: { [user.email]: 0, [targetEmail]: 1 }
       });
       return newChat.id;
     },
     onSuccess: (chatId) => {
-      // 4. Feedback e Redirecionamento
-      if (chatId) {
-        navigate(createPageUrl(`chat/${chatId}`));
-      }
+      setIsNewChatOpen(false);
+      setNewChatEmail("");
+      queryClient.invalidateQueries(['myConversations']);
+      navigate(createPageUrl("Inbox") + `?id=${chatId}`);
     },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const startSupportChatMutation = useMutation({
+    mutationFn: () => createChatMutation.mutateAsync(SUPPORT_EMAIL_TARGET),
     onError: (error) => {
       console.error("Support chat error:", error);
       toast.error(error.message || "Erro ao iniciar chat de suporte.");
@@ -97,30 +97,20 @@ export default function Inbox() {
   });
 
   const handleConversationClick = (conversation) => {
-    // Check if linked to active booking
+    // If it's a booking chat, verify if it should go to Live Walk or standard chat
+    // Based on user request "Se for um passeio ativo... Maps".
+    // Since we don't have easy status check, let's keep it simple: 
+    // If it has booking_id -> Live Walk (assuming active)
+    // If not -> Standard Chat
     if (conversation.booking_id) {
-        // We could check booking status here if we had it, 
-        // but for now we assume if it has booking_id it might be relevant to walk tracking
-        // Or we simply redirect to Chat and Chat handles the "Live Walk" link.
-        // However, the prompt explicitly asked for:
-        // "Se for um passeio ativo/recente (ligado a um BookingId): Maps('/walk/live/' + bookingId)"
-        // We'll assume 'active' means we have a booking_id. 
-        // Ideally we'd check status, but let's follow the "linked to BookingId" rule strictly or fetch booking.
-        // Let's be safer: Redirect to standard chat, and standard chat should have a "View Live Walk" button?
-        // No, prompt says "Ao clicar... Maps(...)".
-        // Let's try to see if we can know if it's active. 
-        // Without fetching the booking, we can't be 100% sure it's "live".
-        // I'll redirect to the walk tracking if booking_id is present, 
-        // assuming the tracking page handles "completed" or "future" states gracefully (it usually does).
         navigate(`/walk/live/${conversation.booking_id}`);
     } else {
-        navigate(createPageUrl(`chat/${conversation.id}`));
+        navigate(createPageUrl("Inbox") + `?id=${conversation.id}`);
     }
   };
 
   const getOtherParticipant = (conversation) => {
     const otherEmail = conversation.participants?.find(p => p !== user?.email) || "Suporte";
-    // Mock name/avatar based on email or if it's support
     if (otherEmail === SUPPORT_EMAIL_TARGET || otherEmail === 'admin_support@pawcao.net' || otherEmail === 'suporte@pawcao.net') {
       return { name: "Suporte PawCão", avatar: null, isSupport: true };
     }
@@ -139,19 +129,51 @@ export default function Inbox() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
           
           {/* Left Column: Conversation List */}
-          <Card className="md:col-span-1 h-full flex flex-col border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+          <Card className={`md:col-span-1 h-full flex flex-col border-0 shadow-xl bg-white/80 backdrop-blur-sm ${selectedChatId ? 'hidden md:flex' : 'flex'}`}>
             <CardHeader className="border-b px-4 py-4">
               <div className="flex items-center justify-between mb-4">
                 <CardTitle className="text-xl font-bold">Inbox</CardTitle>
-                <Button 
-                  onClick={() => startSupportChatMutation.mutate()}
-                  disabled={startSupportChatMutation.isPending}
-                  size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <LifeBuoy className="w-4 h-4 mr-2" />
-                  Suporte
-                </Button>
+                <div className="flex gap-2">
+                  <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="icon" variant="ghost" className="rounded-full">
+                        <Plus className="w-5 h-5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Nova Conversa</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Email do Utilizador</Label>
+                          <Input 
+                            value={newChatEmail}
+                            onChange={(e) => setNewChatEmail(e.target.value)}
+                            placeholder="exemplo@email.com"
+                          />
+                        </div>
+                        <Button 
+                          onClick={() => createChatMutation.mutate(newChatEmail)}
+                          disabled={createChatMutation.isPending || !newChatEmail}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                          Iniciar Conversa
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Button 
+                    onClick={() => startSupportChatMutation.mutate()}
+                    disabled={startSupportChatMutation.isPending}
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <LifeBuoy className="w-4 h-4 mr-2" />
+                    Suporte
+                  </Button>
+                </div>
               </div>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
@@ -186,6 +208,7 @@ export default function Inbox() {
                   {filteredConversations.map((conv) => {
                     const other = getOtherParticipant(conv);
                     const unread = conv.unread_counts?.[user?.email] || 0;
+                    const isSelected = selectedChatId === conv.id;
                     
                     return (
                       <motion.div
@@ -194,7 +217,7 @@ export default function Inbox() {
                         animate={{ opacity: 1 }}
                         whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                         onClick={() => handleConversationClick(conv)}
-                        className={`p-4 cursor-pointer transition-colors flex gap-3 items-start ${unread > 0 ? 'bg-blue-50/50' : ''}`}
+                        className={`p-4 cursor-pointer transition-colors flex gap-3 items-start ${isSelected ? 'bg-blue-50 border-l-4 border-blue-600' : ''} ${unread > 0 ? 'bg-blue-50/30' : ''}`}
                       >
                         <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
                           <AvatarImage src={other.avatar} />
@@ -205,7 +228,7 @@ export default function Inbox() {
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-baseline mb-1">
-                            <h4 className="font-semibold text-sm text-gray-900 truncate pr-2">
+                            <h4 className={`text-sm truncate pr-2 ${unread > 0 ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
                               {other.name}
                             </h4>
                             {conv.last_message_date && (
@@ -233,8 +256,6 @@ export default function Inbox() {
                             </div>
                           )}
                         </div>
-                        
-                        <ChevronRight className="w-4 h-4 text-gray-300 self-center" />
                       </motion.div>
                     );
                   })}
@@ -243,24 +264,30 @@ export default function Inbox() {
             </CardContent>
           </Card>
 
-          {/* Right Column: Placeholder / View */}
-          <div className="hidden md:flex md:col-span-2 h-full items-center justify-center bg-white/50 backdrop-blur-sm rounded-xl border-2 border-dashed border-gray-200">
-            <div className="text-center space-y-4 max-w-md p-6">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-10 h-10 text-blue-600" />
+          {/* Right Column: Chat View */}
+          <div className={`md:col-span-2 h-full ${selectedChatId ? 'flex' : 'hidden md:flex'} flex-col bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100`}>
+            {selectedChatId && user ? (
+              <ChatWindow conversationId={selectedChatId} currentUser={user} />
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center bg-gray-50/50 p-6">
+                <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                  <MessageCircle className="w-12 h-12 text-blue-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Sua Caixa de Entrada</h2>
+                <p className="text-gray-500 text-center max-w-sm mb-8">
+                  Selecione uma conversa à esquerda ou inicie um novo atendimento.
+                </p>
+                <div className="flex gap-4">
+                  <Button 
+                    onClick={() => startSupportChatMutation.mutate()} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
+                  >
+                    <LifeBuoy className="w-4 h-4 mr-2" />
+                    Falar com Suporte
+                  </Button>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">Sua Caixa de Entrada</h2>
-              <p className="text-gray-500">
-                Selecione uma conversa à esquerda para ver os detalhes ou inicie um novo chat de suporte.
-              </p>
-              <Button 
-                onClick={() => startSupportChatMutation.mutate()} 
-                variant="outline"
-                className="mt-4"
-              >
-                Falar com Suporte
-              </Button>
-            </div>
+            )}
           </div>
 
         </div>
