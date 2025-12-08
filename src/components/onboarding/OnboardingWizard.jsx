@@ -5,13 +5,15 @@ import { X, SkipForward } from "lucide-react";
 // Nome da chave para gravar no navegador (Reset para versão Final)
 const TUTORIAL_KEY = 'pawcao_tutorial_completed_final';
 
-export default function OnboardingWizard({ steps }) {
+export default function OnboardingWizard({ steps, user }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
   const [show, setShow] = useState(false);
 
   // 1. Verifica se já viu ao carregar a página (Check Estrito)
   useEffect(() => {
+    if (!user) return; // Only for logged in users
+
     const hasSeen = localStorage.getItem(TUTORIAL_KEY);
     
     // Só mostra se NÃO tiver a chave gravada (null ou undefined)
@@ -20,7 +22,7 @@ export default function OnboardingWizard({ steps }) {
       const timer = setTimeout(() => setShow(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [user]);
 
   // 2. Função que encerra o tutorial permanentemente
   const finishTutorial = () => {
@@ -110,14 +112,16 @@ export default function OnboardingWizard({ steps }) {
             left: targetRect.left + (targetRect.width / 2) - 150,
             width: '300px'
           } : {
-            // Mobile: Fixo em baixo (Anti-Clipping)
+            // Mobile: Posicionamento Inteligente (Evita cobrir o alvo)
             position: 'fixed',
-            bottom: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
             width: '90vw',
             maxWidth: '400px',
-            top: 'auto' // Força reset do top
+            // Se o alvo estiver na metade inferior da tela, mostra o balão no topo
+            top: targetRect.top > (window.innerHeight / 2) ? '80px' : 'auto',
+            // Se o alvo estiver na metade superior, mostra o balão embaixo
+            bottom: targetRect.top > (window.innerHeight / 2) ? 'auto' : '100px',
           })
         }}
       >
