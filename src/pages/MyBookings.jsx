@@ -56,17 +56,17 @@ export default function MyBookings() {
   const [reviewTarget, setReviewTarget] = useState(null); // { booking, type: 'client' | 'professional' }
   const [isReviewProcessing, setIsReviewProcessing] = useState(false);
 
+  // Buscar usuário atual
+  const { data: user, isLoading: loadingUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   // Buscar Reviews dadas pelo usuário (para saber o que já foi avaliado)
   const { data: myGivenReviews = [] } = useQuery({
     queryKey: ['myGivenReviews', user?.email],
     queryFn: () => base44.entities.Review.filter({ reviewer_email: user?.email }),
     enabled: !!user?.email,
-  });
-
-  // Buscar usuário atual
-  const { data: user, isLoading: loadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
   });
 
   // 1. Buscar Bookings de Passeio (Owner)
