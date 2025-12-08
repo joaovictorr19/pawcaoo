@@ -574,10 +574,15 @@ export default function EditWalkerProfile() {
           onClose={() => {
             setCropModalOpen(false);
             setTempImageUrl(null);
+            // Reset inputs
+            const photoInput = document.getElementById('photo');
+            if(photoInput) photoInput.value = '';
+            const coverInput = document.getElementById('cover');
+            if(coverInput) coverInput.value = '';
           }}
           imageUrl={tempImageUrl}
           onSave={handleCroppedImage}
-          aspectRatio={1}
+          aspectRatio={editingImageType === 'cover' ? 3 : 1}
         />
       </div>
     </div>
