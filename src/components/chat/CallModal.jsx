@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { PhoneOff, Mic, MicOff, Video, VideoOff, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { base44 } from "@/api/base44Client";
 
-export default function CallModal({ isOpen, onClose, type, recipientName, recipientAvatar }) {
+export default function CallModal({ isOpen, onClose, type, recipientName, recipientAvatar, recipientEmail, onSendMessage, currentUser }) {
   const localVideoRef = useRef(null);
   const [stream, setStream] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -36,11 +37,27 @@ export default function CallModal({ isOpen, onClose, type, recipientName, recipi
         localVideoRef.current.srcObject = mediaStream;
       }
       
+      // Notify recipient
+      if (recipientEmail && currentUser) {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: recipientEmail,
+            title: "📞 Chamada Recebida",
+            message: `${currentUser.full_name || 'Alguém'} está a ligar-te via ${type === 'video' ? 'vídeo' : 'voz'}...`,
+            type: "system", 
+            priority: "urgent",
+            action_url: "/Inbox" 
+          });
+        } catch (e) {
+          console.error("Error sending call notification", e);
+        }
+      }
+
       // Simulate connection delay
       setTimeout(() => {
         setCallStatus('connected');
         toast.info("Ligação WebRTC (Beta) iniciada. Aguardando resposta...");
-      }, 1500);
+      }, 4000); // Increased time to simulate ringing
 
     } catch (err) {
       console.error("Erro ao acessar media:", err);
@@ -72,6 +89,15 @@ export default function CallModal({ isOpen, onClose, type, recipientName, recipi
   };
 
   const handleHangup = () => {
+    // Send missed/ended call message
+    if (onSendMessage) {
+      if (callStatus === 'connecting') {
+        onSendMessage(`📞 Chamada de ${type === 'video' ? 'vídeo' : 'voz'} perdida/não atendida`);
+      } else if (callStatus === 'connected') {
+        onSendMessage(`📞 Chamada de ${type === 'video' ? 'vídeo' : 'voz'} terminada`);
+      }
+    }
+
     stopCall();
     onClose();
     toast.info("Chamada terminada.");
