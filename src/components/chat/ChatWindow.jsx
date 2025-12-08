@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 export default function ChatWindow({ conversationId, currentUser }) {
   const [message, setMessage] = useState("");
@@ -81,7 +82,13 @@ export default function ChatWindow({ conversationId, currentUser }) {
     onSuccess: () => {
       setMessage("");
       queryClient.invalidateQueries(['chatMessages', conversationId]);
-      queryClient.invalidateQueries(['myConversations']); // Update inbox list
+      queryClient.invalidateQueries(['myConversations']); 
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar mensagem:", error);
+      // Tenta extrair mensagem de erro mais detalhada se disponível
+      const errorMsg = error?.message || error?.details || "Erro desconhecido ao enviar.";
+      toast.error(`Não foi possível enviar: ${errorMsg}`);
     }
   });
 
