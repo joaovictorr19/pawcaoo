@@ -87,25 +87,33 @@ export default function EditWalkerProfile() {
     
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
-      setFormData({ ...formData, photo_url: file_url });
       
-      // Sync immediately with User Profile and Auth as requested
-      try {
-        await base44.auth.updateMe({ profile_photo_url: file_url });
+      if (editingImageType === 'photo') {
+        setFormData({ ...formData, photo_url: file_url });
         
-        // Update UserProfile entity if exists
-        const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-        if (userProfiles && userProfiles.length > 0) {
-           await base44.entities.UserProfile.update(userProfiles[0].id, { profile_photo_url: file_url });
+        // Sync immediately with User Profile and Auth as requested
+        try {
+          await base44.auth.updateMe({ profile_photo_url: file_url });
+          
+          // Update UserProfile entity if exists
+          const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+          if (userProfiles && userProfiles.length > 0) {
+             await base44.entities.UserProfile.update(userProfiles[0].id, { profile_photo_url: file_url });
+          }
+          
+          // Invalidate queries to update header avatar immediately
+          queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+          toast.success("Foto atualizada e sincronizada com seu perfil pessoal!");
+        } catch (syncError) {
+          console.error("Error syncing photo:", syncError);
+          toast.success("Foto ajustada! (Sincronização pendente)");
         }
-        
-        // Invalidate queries to update header avatar immediately
-        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        toast.success("Foto atualizada e sincronizada com seu perfil pessoal!");
-      } catch (syncError) {
-        console.error("Error syncing photo:", syncError);
-        toast.success("Foto ajustada! (Sincronização pendente)");
+      } else {
+        // Cover Photo
+        setFormData({ ...formData, cover_photo_url: file_url });
+        toast.success("Foto de capa carregada!");
       }
+
     } catch (error) {
       toast.error("Erro ao fazer upload.");
     }
