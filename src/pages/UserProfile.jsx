@@ -12,6 +12,7 @@ import {
   CheckCircle, Shield, ShieldCheck, Users, User
 } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -790,16 +791,15 @@ export default function UserProfile() {
                     </h1>
                     
                     {/* Lógica de verificação corrigida e Novo Badge 3D */}
-                    {(profileUser.is_verified || profileUser.isVerified || walkerProfile?.verification_status === 'verified') && (
+                    {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified') && (
                       <div className="ml-1">
                         <VerifiedBadge />
                       </div>
                     )}
                     {(profileUser.role === 'admin' || (isSelfView && currentUser?.role === 'admin')) && (
-                      <Badge className="bg-red-600 text-white" title="Administrador">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Admin
-                      </Badge>
+                      <div className="ml-1">
+                        <AdminBadgeGlass />
+                      </div>
                     )}
                     {walkerProfile && (
                       <Badge 
