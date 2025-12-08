@@ -2,20 +2,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { X, SkipForward } from "lucide-react";
 
-// Nome da chave para gravar no navegador (mude a versão se quiser resetar para todos no futuro)
-const TUTORIAL_KEY = 'pawcao_tutorial_completed_v1';
+// Nome da chave para gravar no navegador (Reset para versão Final)
+const TUTORIAL_KEY = 'pawcao_tutorial_completed_final';
 
 export default function OnboardingWizard({ steps }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
   const [show, setShow] = useState(false);
 
-  // 1. Verifica se já viu ao carregar a página
+  // 1. Verifica se já viu ao carregar a página (Check Estrito)
   useEffect(() => {
     const hasSeen = localStorage.getItem(TUTORIAL_KEY);
     
-    // Só mostra se NÃO tiver a chave gravada
-    if (!hasSeen) {
+    // Só mostra se NÃO tiver a chave gravada (null ou undefined)
+    if (hasSeen === null) {
       // Pequeno delay para garantir que o site carregou visualmente
       const timer = setTimeout(() => setShow(true), 1500);
       return () => clearTimeout(timer);
@@ -24,7 +24,11 @@ export default function OnboardingWizard({ steps }) {
 
   // 2. Função que encerra o tutorial permanentemente
   const finishTutorial = () => {
-    localStorage.setItem(TUTORIAL_KEY, 'true'); // Grava a chave
+    try {
+        localStorage.setItem(TUTORIAL_KEY, 'true'); // Grava a chave
+    } catch (e) {
+        console.error("Erro ao salvar no localStorage", e);
+    }
     setShow(false);
   };
 
@@ -98,19 +102,22 @@ export default function OnboardingWizard({ steps }) {
       <div 
         className="fixed z-[9999] transition-all duration-300 flex flex-col items-center"
         style={{
-          // Lógica Desktop
+          // Ancoragem Dinâmica (Mobile Force Bottom)
           ...(window.innerWidth >= 768 ? {
+            // Desktop: Relativo ao elemento
             top: targetRect.position === 'bottom' ? targetRect.top + targetRect.height + 20 : 'auto',
             bottom: targetRect.position === 'top' ? (window.innerHeight - targetRect.top) + 20 : 'auto',
             left: targetRect.left + (targetRect.width / 2) - 150,
             width: '300px'
           } : {
-            // Lógica Mobile (Fixa em baixo, ocupando largura quase total)
+            // Mobile: Fixo em baixo (Anti-Clipping)
+            position: 'fixed',
             bottom: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '90%',
-            maxWidth: '400px'
+            width: '90vw',
+            maxWidth: '400px',
+            top: 'auto' // Força reset do top
           })
         }}
       >
