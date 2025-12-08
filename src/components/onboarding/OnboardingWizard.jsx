@@ -92,54 +92,48 @@ export default function OnboardingWizard({ steps, onComplete }) {
         }}
       />
 
-      {/* 2. O Balão de Fala e o Mascote */}
+      {/* 2. O Balão de Fala e o Mascote (Versão Responsiva Corrigida) */}
       <div 
         className="fixed z-[101] transition-all duration-300 flex flex-col items-center"
         style={{
-          top: targetRect.position === 'bottom' 
-            ? targetRect.top + targetRect.height + 20 
-            : 'auto',
-          bottom: targetRect.position === 'top' 
-            ? (window.innerHeight - targetRect.top) + 20 
-            : 'auto',
-          left: targetRect.left + (targetRect.width / 2) - 150, // Centraliza (aprox)
-          width: '300px',
-          maxWidth: '90vw' // Mobile safe
+          // Lógica Desktop (Mantém a original)
+          ...(window.innerWidth >= 768 ? {
+            top: targetRect.position === 'bottom' ? targetRect.top + targetRect.height + 20 : 'auto',
+            bottom: targetRect.position === 'top' ? (window.innerHeight - targetRect.top) + 20 : 'auto',
+            left: targetRect.left + (targetRect.width / 2) - 150,
+          } : {
+            // Lógica Mobile (FORÇA CENTRO DA TELA EM BAIXO)
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)', // Garante centralização perfeita
+            width: '90%', // Ocupa 90% da largura da tela
+            maxWidth: '400px'
+          })
         }}
       >
-        {/* Seta do Balão */}
-        <div className={`w-4 h-4 bg-white transform rotate-45 absolute ${
-          targetRect.position === 'bottom' ? '-top-2' : '-bottom-2'
-        } left-1/2 -translate-x-1/2`} />
+        {/* Seta do Balão (Só mostra no Desktop) */}
+        <div className="hidden md:block w-4 h-4 bg-white transform rotate-45 absolute -top-2 left-1/2 -translate-x-1/2" />
 
-        {/* Card do Tutorial */}
-        <div className="bg-white rounded-xl p-4 shadow-2xl border-2 border-purple-500 relative animate-in fade-in zoom-in duration-300">
+        {/* Conteúdo do Card */}
+        <div className="bg-white rounded-xl p-4 shadow-2xl border-2 border-purple-500 w-full relative animate-in fade-in zoom-in duration-300">
           <button onClick={finishTutorial} className="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
             <X size={16} />
           </button>
           
           <div className="flex gap-4">
-            {/* Espaço para o Rex (Pixel Art) */}
-            <div className="w-16 h-16 bg-purple-100 rounded-lg flex-shrink-0 flex items-center justify-center border-2 border-purple-200 text-3xl">
-             {/* TODO: Coloque aqui <img src="/rex-pixel.png" /> */}
-             🐶
-            </div>
-            
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-purple-700 mb-1">{currentStep.title}</h3>
-              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                {currentStep.content}
-              </p>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-400">
-                  {currentStepIndex + 1} de {steps.length}
-                </span>
-                <Button size="sm" onClick={handleNext} className="bg-purple-600 hover:bg-purple-700 text-white">
-                  {currentStepIndex === steps.length - 1 ? 'Vamos lá!' : 'Próximo'}
-                </Button>
+              <div className="w-16 h-16 bg-purple-100 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl border-2 border-purple-200">
+                  🐶
               </div>
-            </div>
+              <div className="flex-1">
+                  <h3 className="font-bold text-lg text-purple-700 mb-1">{currentStep.title}</h3>
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">{currentStep.content}</p>
+                  <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">{currentStepIndex + 1}/{steps.length}</span>
+                      <Button size="sm" onClick={handleNext} className="bg-purple-600 hover:bg-purple-700 text-white">
+                          {currentStepIndex === steps.length - 1 ? 'Fim' : 'Próximo'}
+                      </Button>
+                  </div>
+              </div>
           </div>
         </div>
       </div>
