@@ -30,6 +30,7 @@ const InteractiveMap = React.lazy(() => import("../components/search/Interactive
 import { Map as MapIcon, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
 import LaunchBanner from "../components/marketing/LaunchBanner";
