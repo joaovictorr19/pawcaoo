@@ -391,6 +391,15 @@ export default function EditWalkerProfile() {
                     placeholder="351912345678"
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label>MBWay (Pagamentos)</Label>
+                  <Input
+                    value={formData.mbway_number || ""}
+                    onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
+                    placeholder="912345678"
+                  />
+                </div>
               </div>
 
               {/* Bio */}

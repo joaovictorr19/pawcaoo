@@ -75,6 +75,7 @@ export default function BecomeWalker() {
     bank_account_holder: "",
     bank_account_number: "",
     bank_routing_number: "",
+    mbway_number: "",
     portfolio: [],
     cover_photo_url: "",
     languages_spoken: [],
@@ -1067,6 +1068,17 @@ export default function BecomeWalker() {
                         {formErrors.routing && (
                           <p className="text-sm text-red-600 mt-1">{formErrors.routing}</p>
                         )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="mbway_number">MBWay (para receber pagamentos)</Label>
+                        <Input
+                          id="mbway_number"
+                          value={formData.mbway_number}
+                          onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
+                          placeholder="912345678"
+                        />
+                        <p className="text-xs text-gray-500">Número de telemóvel associado ao MBWay.</p>
                       </div>
                     </div>
 

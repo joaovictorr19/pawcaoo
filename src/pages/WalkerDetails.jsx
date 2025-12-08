@@ -368,7 +368,7 @@ export default function WalkerDetails() {
                     </h3>
                   </div>
                   <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
-                    {walkerBadges.map((badge) => (
+                    {walkerBadges.slice(0, 4).map((badge) => (
                       <div 
                         key={badge.id} 
                         className="flex flex-col items-center text-center p-2 bg-purple-50 rounded-lg border border-purple-100 hover:shadow-sm transition-all" 
@@ -484,6 +484,13 @@ export default function WalkerDetails() {
                         </div>
                       </div>
                     )}
+                  </div>
+                  
+                  <div className="mt-2 px-1">
+                    <p className="text-[10px] text-gray-500 italic flex items-center gap-1">
+                      <Info className="w-3 h-3" />
+                      Caso a localização no mapa não esteja precisa, recomendamos compartilhar a localização em tempo real pelo WhatsApp.
+                    </p>
                   </div>
                 </div>
 
