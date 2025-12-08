@@ -506,8 +506,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
       <SEO 
-        title={language === 'pt' ? 'Passeadores, Treinadores e Adoção de Pets' : 'Dog Walkers, Trainers & Pet Adoption'}
-        description="Encontre passeadores de cães confiáveis, treinadores e pets para adoção em Portugal. A comunidade PawCão conecta donos de pets a profissionais verificados."
+        title={t('seoTitle', language)}
+        description={t('seoDescription', language)}
         schema={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
       <LaunchBanner />
@@ -619,8 +619,7 @@ export default function Home() {
               </div>
 
               <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight">
-                Encontre o <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">Passeador Perfeito</span><br/>
-                para o seu Cão
+                {t('homeTitle', language)}
               </h1>
 
               <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto font-medium">

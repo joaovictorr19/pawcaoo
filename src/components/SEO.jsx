@@ -37,6 +37,12 @@ export default function SEO({ title, description, keywords, image, url, type = '
       {/* Canonical URL */}
       <link rel="canonical" href={currentUrl} />
 
+      {/* Hreflang Tags */}
+      <link rel="alternate" hreflang="pt" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
+      <link rel="alternate" hreflang="es" href={`${window.location.origin}${window.location.pathname}?lang=es`} />
+      <link rel="alternate" hreflang="en" href={`${window.location.origin}${window.location.pathname}?lang=en`} />
+      <link rel="alternate" hreflang="x-default" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
+
       {/* JSON-LD Schema */}
       {schema && (
         <script type="application/ld+json">

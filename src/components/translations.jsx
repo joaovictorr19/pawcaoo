@@ -1,5 +1,9 @@
 export const translations = {
   pt: {
+    // SEO
+    seoTitle: "PawCão - Passeadores de Cães em Portugal e Espanha",
+    seoDescription: "Encontre Dog Walkers verificados e Pet Sitters em todo o Portugal e Espanha. Seguro incluído.",
+
     // Navigation - Simplified
     dashboard: "Painel",
     findWalkers: "Passeadores",
@@ -414,7 +418,7 @@ export const translations = {
     elitePlanDetails: "Plano Elite Partner - Detalhes",
     
     // Home Page
-    homeTitle: "Encontre o Passeador Perfeito para o seu Cão",
+    homeTitle: "Encontre o Passeador Perfeito em Portugal e Espanha",
     homeSubtitle: "Passeadores confiáveis e experientes no seu bairro",
     searchPlaceholder: "Digite a sua localização...",
     browseWalkers: "Procurar Passeadores",
@@ -892,6 +896,10 @@ export const translations = {
   },
   
   en: {
+    // SEO
+    seoTitle: "PawCão - Dog Walkers in Portugal and Spain",
+    seoDescription: "Find verified Dog Walkers and Pet Sitters across Portugal and Spain. Insurance included.",
+
     // Navigation - Simplified
     dashboard: "Dashboard",
     findWalkers: "Walkers",
@@ -1306,7 +1314,7 @@ export const translations = {
     elitePlanDetails: "Elite Partner Plan - Details",
     
     // Home Page
-    homeTitle: "Find the Perfect Dog Walker",
+    homeTitle: "Find the Perfect Dog Walker in Portugal and Spain",
     homeSubtitle: "Trusted, experienced walkers in your neighborhood",
     searchPlaceholder: "Enter your location...",
     browseWalkers: "Browse Walkers",
@@ -1781,6 +1789,10 @@ export const translations = {
   },
   
   es: {
+    // SEO
+    seoTitle: "PawCão - Paseadores de Perros en Portugal y España",
+    seoDescription: "Encuentra paseadores verificados y cuidadores de mascotas en Portugal y España. Seguro incluido.",
+
     // Navigation - Simplified
     dashboard: "Panel",
     findWalkers: "Paseadores",
@@ -2195,7 +2207,7 @@ export const translations = {
     elitePlanDetails: "Plan Elite Partner - Detalles",
     
     // Home Page
-    homeTitle: "Encuentra el Paseador Perfecto para tu Perro",
+    homeTitle: "Encuentra al Paseador Perfecto en Portugal y España",
     homeSubtitle: "Paseadores confiables y experimentados en tu vecindario",
     searchPlaceholder: "Ingresa tu ubicación...",
     browseWalkers: "Explorar Paseadores",

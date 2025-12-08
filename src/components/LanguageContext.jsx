@@ -12,6 +12,14 @@ export const useLanguage = () => {
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => {
+    // Check URL params first
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const langParam = params.get('lang');
+      if (langParam && ['pt', 'en', 'es'].includes(langParam)) {
+        return langParam;
+      }
+    }
     // Get from localStorage or default to Portuguese
     return localStorage.getItem('pawcao_language') || 'pt';
   });
