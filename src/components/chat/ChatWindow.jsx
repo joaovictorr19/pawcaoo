@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, MoreVertical, Phone, Video, Info, User } from "lucide-react";
+import CallModal from "./CallModal";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -12,6 +13,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
   const [message, setMessage] = useState("");
   const scrollRef = useRef(null);
   const queryClient = useQueryClient();
+  const [callState, setCallState] = useState({ isOpen: false, type: 'audio' });
 
   // 1. Fetch Conversation Details (to get participant info)
   const { data: conversation } = useQuery({
@@ -77,11 +79,19 @@ export default function ChatWindow({ conversationId, currentUser }) {
   const otherEmail = conversation.participants?.find(p => p !== currentUser.email) || "Participante";
   const isSupport = conversation.tags?.includes('support');
   const displayName = isSupport && otherEmail.includes('pawcao.net') ? "Suporte PawCão" : otherEmail.split('@')[0];
+  const displayAvatar = isSupport ? null : null; // Add avatar logic if available from participants
 
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden">
+      <CallModal 
+        isOpen={callState.isOpen}
+        onClose={() => setCallState({ ...callState, isOpen: false })}
+        type={callState.type}
+        recipientName={displayName}
+        recipientAvatar={displayAvatar}
+      />
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
         <div className="flex items-center gap-3">
@@ -99,8 +109,22 @@ export default function ChatWindow({ conversationId, currentUser }) {
           </div>
         </div>
         <div className="flex items-center gap-2 text-gray-400">
-          <Button variant="ghost" size="icon"><Phone className="w-5 h-5" /></Button>
-          <Button variant="ghost" size="icon"><Video className="w-5 h-5" /></Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setCallState({ isOpen: true, type: 'audio' })}
+            title="Chamada de Voz (Beta)"
+          >
+            <Phone className="w-5 h-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setCallState({ isOpen: true, type: 'video' })}
+            title="Chamada de Vídeo (Beta)"
+          >
+            <Video className="w-5 h-5" />
+          </Button>
           <Button variant="ghost" size="icon"><MoreVertical className="w-5 h-5" /></Button>
         </div>
       </div>
