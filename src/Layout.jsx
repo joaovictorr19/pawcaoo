@@ -542,7 +542,7 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="flex w-full min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
+      <div className="flex w-full min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 overflow-x-hidden">
         {authUser && (
         <Sidebar className="glass-panel border-r border-white/30">
           <SidebarHeader className="border-b border-white/20 p-4 md:p-6">
