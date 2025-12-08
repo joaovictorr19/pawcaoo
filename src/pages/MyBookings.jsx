@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2 } from "lucide-react";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus } from "lucide-react";
+import { getGoogleCalendarUrl, generateICS, downloadICS, bookingToEvent } from "@/utils/calendarHelpers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -543,6 +544,46 @@ export default function MyBookings() {
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
+            )}
+
+            {/* Add to Calendar (Confirmed Only) */}
+            {booking.status === 'confirmed' && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-purple-600 hover:bg-purple-50">
+                    <CalendarPlus className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-2" align="end">
+                  <div className="grid gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="justify-start text-xs font-normal h-8"
+                      onClick={() => {
+                        const event = bookingToEvent(booking);
+                        if (event) window.open(getGoogleCalendarUrl(event), '_blank');
+                      }}
+                    >
+                      Google Calendar
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="justify-start text-xs font-normal h-8"
+                      onClick={() => {
+                        const event = bookingToEvent(booking);
+                        if (event) {
+                          const ics = generateICS(event);
+                          downloadICS(`booking_${booking.id}.ics`, ics);
+                        }
+                      }}
+                    >
+                      Apple/Outlook (.ics)
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
           </div>
         </div>

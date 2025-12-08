@@ -19,6 +19,8 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
+import { Download, ExternalLink, Share2, Calendar as CalendarIcon } from "lucide-react";
+import { bookingToEvent, generateMultiICS, downloadICS } from "@/utils/calendarHelpers";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -1146,8 +1148,30 @@ export default function ProfessionalDashboard() {
           <TabsContent value="calendar">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               <Card className="lg:col-span-2 border-0 shadow-xl">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg md:text-xl">Calendário de Disponibilidade</CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      const events = allBookings
+                        .filter(b => b.status === 'confirmed' || b.status === 'in_progress')
+                        .map(bookingToEvent)
+                        .filter(e => e);
+
+                      if (events.length === 0) {
+                        toast.info("Nenhum agendamento confirmado para exportar.");
+                        return;
+                      }
+
+                      const icsContent = generateMultiICS(events);
+                      downloadICS("pawcao_bookings.ics", icsContent);
+                      toast.success("Calendário exportado!");
+                    }}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportar iCal
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <AvailabilityCalendar 
@@ -1159,24 +1183,78 @@ export default function ProfessionalDashboard() {
               </Card>
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-lg md:text-xl">Ações Rápidas</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Integrações & API</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button 
-                    className="w-full h-11 bg-green-600 hover:bg-green-700" 
-                    onClick={() => navigate(createPageUrl('ManageAvailability'))}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Gerir Horários
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="w-full h-11" 
-                    onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Editar Perfil
-                  </Button>
+                <CardContent className="space-y-4">
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                    <h4 className="font-semibold text-sm text-blue-900 mb-1 flex items-center gap-2">
+                      <Share2 className="w-4 h-4" /> Link de Agendamento
+                    </h4>
+                    <p className="text-xs text-blue-700 mb-2">Partilhe este link com clientes para agendamentos diretos.</p>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        value={`${window.location.origin}${createPageUrl(walkerProfile ? 'WalkerDetails' : 'TrainerDetails')}?id=${(walkerProfile || trainerProfile)?.id}`} 
+                        readOnly 
+                        className="bg-white text-xs h-8"
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="h-8 px-2"
+                        onClick={() => {
+                          const url = `${window.location.origin}${createPageUrl(walkerProfile ? 'WalkerDetails' : 'TrainerDetails')}?id=${(walkerProfile || trainerProfile)?.id}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success("Link copiado!");
+                        }}
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg">
+                    <h4 className="font-semibold text-sm text-purple-900 mb-1 flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4" /> Sincronização Externa
+                    </h4>
+                    <p className="text-xs text-purple-700 mb-2">
+                      Exporte os seus agendamentos para Google Calendar, Outlook ou Apple Calendar.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full bg-white text-xs h-8"
+                      onClick={() => {
+                         const events = allBookings
+                          .filter(b => b.status === 'confirmed')
+                          .map(bookingToEvent)
+                          .filter(e => e);
+                         const icsContent = generateMultiICS(events);
+                         downloadICS("pawcao_schedule.ics", icsContent);
+                      }}
+                    >
+                      <Download className="w-3 h-3 mr-2" />
+                      Baixar Agenda (.ics)
+                    </Button>
+                  </div>
+
+                  <div className="pt-2 border-t">
+                    <h4 className="font-semibold text-xs text-gray-500 uppercase mb-2">Ações Rápidas</h4>
+                    <Button 
+                      className="w-full h-10 bg-green-600 hover:bg-green-700 mb-2" 
+                      onClick={() => navigate(createPageUrl('ManageAvailability'))}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Gerir Horários
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full h-10" 
+                      onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar Perfil
+                    </Button>
+                  </div>
                   <div className="space-y-3 pt-2">
                     <h4 className="font-semibold text-xs md:text-sm text-gray-600 uppercase">Próximos Passeios</h4>
                     {allBookings
