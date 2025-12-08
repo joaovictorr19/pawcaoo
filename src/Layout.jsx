@@ -105,8 +105,6 @@ const usePrefetchOnHover = (prefetchFn) => {
 };
 
 function LayoutContent({ children, currentPageName }) {
-  // Initialize user variable to avoid TDZ errors
-  let user = null;
   const location = useLocation();
   const { language, setLanguage } = useLanguage();
   const queryClient = useQueryClient();
@@ -121,7 +119,7 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [location.pathname]);
 
-  const { data: currentUser, isLoading: isLoadingUser, error: userError } = useQuery({
+  const { data: authUser, isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
@@ -136,15 +134,14 @@ function LayoutContent({ children, currentPageName }) {
     ...queryConfig.user,
     retry: 1,
   });
-  user = currentUser;
 
   const { data: notifications } = useQuery({
     queryKey: ['unreadNotifications'],
     queryFn: async () => {
-      if (!user?.email) return [];
+      if (!authUser?.email) return [];
       try {
         const allNotifications = await base44.entities.Notification.filter({ 
-          recipient_email: user.email,
+          recipient_email: authUser.email,
           is_read: false 
         });
         return Array.isArray(allNotifications) ? allNotifications : [];
@@ -153,7 +150,7 @@ function LayoutContent({ children, currentPageName }) {
         return [];
       }
     },
-    enabled: !!user,
+    enabled: !!authUser,
     initialData: [],
     ...queryConfig.notifications,
   });
@@ -161,10 +158,10 @@ function LayoutContent({ children, currentPageName }) {
   const { data: ownerSubscription } = useQuery({
     queryKey: ['ownerSubscription'],
     queryFn: async () => {
-      if (!user?.email) return null;
+      if (!authUser?.email) return null;
       try {
         const subs = await base44.entities.OwnerSubscription.filter({
-          owner_email: user.email,
+          owner_email: authUser.email,
           is_active: true
         });
         return Array.isArray(subs) ? subs[0] : null;
@@ -173,7 +170,7 @@ function LayoutContent({ children, currentPageName }) {
         return null;
       }
     },
-    enabled: !!user,
+    enabled: !!authUser,
     ...queryConfig.static,
   });
 
