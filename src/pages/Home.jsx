@@ -292,7 +292,15 @@ export default function Home() {
           return dist <= area.radius_km;
         }));
 
-        const matchesRadius = !userLocation || isInServiceArea || (walker.distance !== null && walker.distance <= (advancedFilters.radius || 50));
+        // Fallback para match textual se o walker não tiver coordenadas ou a geolocalização falhar
+        // Tenta extrair a cidade (primeira parte antes da vírgula) para aumentar a chance de match
+        const userCity = userLocation ? (userLocation.label || userLocation.value || "").split(',')[0].trim() : "";
+        const matchesLocationText = userLocation && userCity && 
+                                    walker.location?.toLowerCase().includes(userCity.toLowerCase());
+
+        const matchesRadius = !userLocation || isInServiceArea || 
+                              (walker.distance !== null && walker.distance <= (advancedFilters.radius || 50)) ||
+                              matchesLocationText;
         
         const matchesLanguages = !advancedFilters.languages || advancedFilters.languages.length === 0 ||
           advancedFilters.languages.some(lang => walker.languages_spoken?.includes(lang));
