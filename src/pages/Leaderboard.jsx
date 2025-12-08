@@ -179,25 +179,34 @@ export default function Leaderboard() {
                   >
                     <div className={`
                       relative rounded-2xl p-4 w-full flex flex-col items-center text-center
-                      border-2 bg-gradient-to-b glass-panel
+                      border-2 backdrop-blur-xl transition-all duration-300
                       ${getPodiumStyle(rank)}
                     `}>
                       <div className="relative overflow-visible">
                         {rank === 1 && (
-                          <div className="absolute -top-[35px] left-1/2 -translate-x-1/2 z-50">
-                            <Crown className="w-10 h-10 text-yellow-500 fill-yellow-400 drop-shadow-lg" />
-                          </div>
+                          <>
+                            <motion.div 
+                              animate={{ y: [-5, 5, -5] }}
+                              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                              className="absolute -top-[45px] left-1/2 -translate-x-1/2 z-50 filter drop-shadow-xl"
+                            >
+                              <Crown className="w-12 h-12 text-yellow-500 fill-yellow-300" />
+                            </motion.div>
+                            <div className="absolute inset-0 bg-yellow-400/20 blur-2xl rounded-full -z-10 animate-pulse" />
+                          </>
                         )}
-                        <Avatar className={`relative z-10 w-16 h-16 md:w-24 md:h-24 border-4 mb-2 shadow-lg ${
-                          rank === 1 ? 'border-yellow-400' : 
-                          rank === 2 ? 'border-slate-300' : 'border-orange-400'
+                        <Avatar className={`relative z-10 w-16 h-16 md:w-24 md:h-24 border-[4px] mb-3 shadow-xl ${
+                          rank === 1 ? 'border-yellow-400 ring-2 ring-yellow-200 ring-offset-2' : 
+                          rank === 2 ? 'border-slate-300 ring-2 ring-slate-200 ring-offset-2' : 
+                          'border-orange-400 ring-2 ring-orange-200 ring-offset-2'
                         }`}>
                           <AvatarImage src={item.photo} className="object-cover" />
-                          <AvatarFallback>{item.name?.[0]}</AvatarFallback>
+                          <AvatarFallback className="font-bold text-xl">{item.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <Badge className={`
-                          absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-xs font-bold z-20
-                          ${rank === 1 ? 'bg-yellow-500' : rank === 2 ? 'bg-slate-500' : 'bg-orange-500'}
+                          absolute -bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs md:text-sm font-black z-20 tracking-wider
+                          ${rank === 1 ? 'bg-yellow-400 text-yellow-900' : rank === 2 ? 'bg-slate-400 text-white' : 'bg-orange-400 text-white'}
+                          shadow-lg border-2 border-white ring-1 ring-black/5
                         `}>
                           #{rank}
                         </Badge>
