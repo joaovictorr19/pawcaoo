@@ -111,7 +111,7 @@ function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   const queryClient = useQueryClient();
-  const [myActivityExpanded, setMyActivityExpanded] = React.useState(false);
+  const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
 
   // Dictionary for menu translations
