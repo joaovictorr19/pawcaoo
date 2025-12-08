@@ -23,10 +23,7 @@ export default function AccountSettings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("profile");
-  // Crop state removed
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const photoInputRef = React.useRef(null);
   const coverInputRef = React.useRef(null);
 
   const { data: user, isLoading } = useQuery({

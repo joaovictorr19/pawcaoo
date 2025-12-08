@@ -261,49 +261,28 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     }
   };
 
-  // --- Mouse Events ---
-  const handleMouseDown = (e) => {
-    e.preventDefault(); 
+  // --- Unified Pointer Events (Mouse/Touch/Pen) ---
+  const handlePointerDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.setPointerCapture(e.pointerId); // Capture pointer for smooth dragging outside bounds
     setIsDragging(true);
     setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
   };
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     if (!isDragging) return;
     e.preventDefault();
+    e.stopPropagation();
     setPosition({
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y,
     });
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e) => {
     setIsDragging(false);
-  };
-
-  // --- Touch Events ---
-  const handleTouchStart = (e) => {
-    if (e.touches.length === 1) {
-      setIsDragging(true);
-      const touch = e.touches[0];
-      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
-    }
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    if (e.cancelable) e.preventDefault(); 
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      setPosition({
-        x: touch.clientX - dragStart.x,
-        y: touch.clientY - dragStart.y,
-      });
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
+    e.target.releasePointerCapture(e.pointerId);
   };
 
   return (
@@ -328,14 +307,11 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
           <div 
             ref={containerRef}
             className="w-full flex items-center justify-center cursor-move overflow-hidden touch-none"
-            style={{ minHeight: '350px' }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            style={{ minHeight: '350px', touchAction: 'none' }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
           >
             <canvas
               ref={canvasRef}
