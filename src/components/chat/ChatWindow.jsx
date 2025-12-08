@@ -120,28 +120,6 @@ export default function ChatWindow({ conversationId, currentUser }) {
     onError: (err) => toast.error("Erro ao apagar conversa.")
   });
 
-  const otherEmail = conversation?.participants?.find(p => p !== currentUser?.email);
-
-  const { data: otherUserProfile } = useQuery({
-    queryKey: ['chatUserProfile', otherEmail],
-    queryFn: async () => {
-      if (!otherEmail) return null;
-      const res = await base44.entities.UserProfile.filter({ user_email: otherEmail });
-      return res[0];
-    },
-    enabled: !!otherEmail
-  });
-
-  const isOnline = React.useMemo(() => {
-    if (!otherUserProfile?.last_activity_date) return false;
-    // Check if activity was in the last 15 minutes
-    // Note: If format is just YYYY-MM-DD, this will likely be false unless updated with time, which is safer (hides "Online" if not sure)
-    const lastActive = new Date(otherUserProfile.last_activity_date);
-    const now = new Date();
-    const diffMins = (now - lastActive) / 1000 / 60;
-    return diffMins < 15 && diffMins >= 0;
-  }, [otherUserProfile]);
-
   // 3. Send Message Mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
