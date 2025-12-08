@@ -285,17 +285,8 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl w-[95vw] p-0 overflow-hidden bg-white rounded-xl">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex items-center gap-2">
             <span>Ajustar Enquadramento</span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowGrid(!showGrid)}
-              className={showGrid ? "bg-gray-100" : ""}
-              title="Alternar Grade"
-            >
-              <Grid3X3 className="w-4 h-4" />
-            </Button>
           </DialogTitle>
         </DialogHeader>
 
@@ -328,6 +319,20 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
         </div>
 
         <div className="p-5 space-y-6">
+          {/* Controls Header */}
+          <div className="flex justify-end mb-2">
+             <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowGrid(!showGrid)}
+              className={showGrid ? "bg-gray-100 text-green-600 border-green-200" : "text-gray-500"}
+              title="Alternar Grade"
+            >
+              <Grid3X3 className="w-4 h-4 mr-2" />
+              {showGrid ? "Grade Ativa" : "Mostrar Grade"}
+            </Button>
+          </div>
+
           {/* Zoom Control */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
