@@ -19,60 +19,82 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 
-function BadgeItem({ badge, idx, getBadgeImage }) {
-  const [transparentBg, setTransparentBg] = useState(false);
+function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
     <motion.div
-      key={badge.badge_id || idx}
-      initial={{ opacity: 0, scale: 0 }}
+      key={badge.id || badge.badge_id || idx}
+      initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05, y: -5 }}
-      transition={{ delay: idx * 0.05 }}
-      className="flex flex-col items-center cursor-pointer"
-      onClick={() => setTransparentBg(!transparentBg)}
+      whileHover={{ scale: 1.05 }}
+      transition={{ delay: idx * 0.03 }}
+      className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all ${showDetails ? 'bg-white/10 z-10' : ''} ${locked ? 'opacity-60 grayscale' : ''}`}
+      onClick={() => setShowDetails(!showDetails)}
     >
-      <div className={`w-20 h-20 rounded-xl flex items-center justify-center mb-2 border-2 border-white/20 hover:border-yellow-400 transition-all shadow-lg relative group ${
-        transparentBg ? 'bg-transparent' : 'bg-white/10'
+      <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-3 border-2 shadow-lg relative overflow-hidden ${
+        locked 
+          ? 'border-gray-700 bg-gray-800/50 border-dashed' 
+          : badge.rarity === 'legendary' ? 'border-yellow-400/50 bg-gradient-to-br from-yellow-900/40 to-orange-900/40' 
+          : badge.rarity === 'epic' ? 'border-purple-400/50 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
+          : badge.rarity === 'rare' ? 'border-blue-400/50 bg-gradient-to-br from-blue-900/40 to-cyan-900/40'
+          : 'border-white/20 bg-white/5'
       }`}>
+        {/* Glow Effect */}
+        {!locked && <div className="absolute inset-0 bg-white/5 blur-xl rounded-full transform scale-75" />}
+        
         {badge.image_png_file ? (
-          <img 
-            src={badge.image_png_file} 
-            alt={badge.name}
-            className="w-16 h-16 object-contain rounded-lg"
-          />
-        ) : badge.image_url ? (
-          <img 
-            src={badge.image_url} 
-            alt={badge.name}
-            className="w-16 h-16 object-contain rounded-lg"
-            style={{imageRendering: 'pixelated'}}
-          />
+          <img src={badge.image_png_file} alt={badge.name} className="w-14 h-14 object-contain z-10 drop-shadow-lg" />
         ) : (
-          <span className="text-4xl">{badge.icon || getBadgeImage(badge.badge_id)}</span>
+          <span className="text-4xl z-10 drop-shadow-md filter">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
         )}
-        <div className={`absolute inset-0 rounded-xl ${
-          badge.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-400/20 to-orange-400/20' :
-          badge.rarity === 'epic' ? 'bg-gradient-to-br from-purple-400/20 to-pink-400/20' :
-          badge.rarity === 'rare' ? 'bg-gradient-to-br from-blue-400/20 to-cyan-400/20' :
-          'bg-white/5'
-        } group-hover:opacity-100 opacity-0 transition-opacity`} />
+
+        {/* Locked Overlay */}
+        {locked && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20">
+            <div className="w-6 h-6 rounded-full border-2 border-white/30 flex items-center justify-center">
+              <div className="w-1 h-3 bg-white/30 rotate-45 transform translate-x-0.5 -translate-y-0.5" />
+            </div>
+          </div>
+        )}
       </div>
-      <p className="text-xs text-center font-bold text-white line-clamp-2 px-1">
-        {badge.name}
-      </p>
-      <p className="text-xs text-center text-gray-400 line-clamp-1 px-1">
-        {badge.description}
-      </p>
-      {badge.rarity && (
-        <Badge className={`mt-1 text-xs capitalize ${
-          badge.rarity === 'legendary' ? 'bg-yellow-500' :
-          badge.rarity === 'epic' ? 'bg-purple-500' :
-          badge.rarity === 'rare' ? 'bg-blue-500' :
-          'bg-gray-500'
-        }`}>
-          {badge.rarity}
-        </Badge>
+
+      <div className="text-center w-full">
+        <p className={`text-xs font-bold leading-tight line-clamp-2 ${locked ? 'text-gray-500' : 'text-gray-100'}`}>
+          {badge.name}
+        </p>
+        
+        {/* XP Pill */}
+        {badge.xp > 0 && (
+          <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-black/30 border border-white/10">
+            <Zap className="w-2 h-2 text-yellow-400 mr-1" />
+            <span className="text-[10px] font-mono text-yellow-400">{badge.xp} XP</span>
+          </div>
+        )}
+      </div>
+
+      {/* Popover Details */}
+      {showDetails && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-2xl z-50 text-center"
+        >
+          <div className="text-xs text-gray-300 mb-2">{badge.description}</div>
+          <Badge className={`text-[10px] px-2 h-5 capitalize ${
+            badge.rarity === 'legendary' ? 'bg-yellow-500 text-black' :
+            badge.rarity === 'epic' ? 'bg-purple-500 text-white' :
+            badge.rarity === 'rare' ? 'bg-blue-500 text-white' :
+            'bg-gray-600 text-white'
+          }`}>
+            {badge.rarity || 'comum'}
+          </Badge>
+          {badge.earnedDate && (
+            <div className="text-[10px] text-gray-500 mt-2">
+              Conquistado em {new Date(badge.earnedDate).toLocaleDateString()}
+            </div>
+          )}
+        </motion.div>
       )}
     </motion.div>
   );
@@ -354,7 +376,6 @@ export default function UserProfile() {
       const badgesMap = new Map();
 
       // 1. Adicionar badges do objeto UserProfile/User (Legacy/Sessão)
-      // Verifica profileUser.public_badges e currentUser.public_badges (se self view)
       const userBadges = profileUser?.public_badges || (isSelfView ? currentUser?.public_badges : []) || [];
 
       userBadges.forEach(b => {
@@ -366,7 +387,6 @@ export default function UserProfile() {
         try {
           const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
           fromTable.forEach(b => {
-            // Table data overrides legacy data usually, or merges if needed
             if (b && b.badge_id) badgesMap.set(b.badge_id, { ...badgesMap.get(b.badge_id), ...b });
           });
         } catch (e) {
@@ -381,7 +401,30 @@ export default function UserProfile() {
     refetchOnWindowFocus: true
   });
 
+  // Fetch ALL Badge Definitions to show what's possible
+  const { data: allBadgeDefinitions = [] } = useQuery({
+    queryKey: ['allBadgeDefinitions'],
+    queryFn: () => base44.entities.BadgeDefinition.list(null, 100), // Fetch all
+    staleTime: 300000 // 5 minutes cache
+  });
+
   const displayBadges = earnedBadges;
+
+  // Merge earned with definitions for Gallery View
+  const galleryBadges = React.useMemo(() => {
+    if (!allBadgeDefinitions.length) return [];
+    
+    const earnedSet = new Set(earnedBadges.map(b => b.badge_id || b.name)); // Match by ID or Name fallback
+    
+    return allBadgeDefinitions.map(def => {
+      const isEarned = earnedSet.has(def.id) || earnedSet.has(def.name) || earnedBadges.some(b => b.name === def.name);
+      return {
+        ...def,
+        isEarned,
+        earnedDate: isEarned ? earnedBadges.find(b => b.name === def.name)?.earned_date : null
+      };
+    }).sort((a, b) => (b.isEarned === a.isEarned ? 0 : b.isEarned ? 1 : -1)); // Earned first
+  }, [allBadgeDefinitions, earnedBadges]);
 
   // Sync embedded badges (from Auth User) to UserBadge table if needed
   React.useEffect(() => {
@@ -763,24 +806,47 @@ export default function UserProfile() {
           </TabsList>
 
           <TabsContent value="badges">
-            <Card className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Award className="w-6 h-6 text-yellow-400" />
-                  Emblemas Conquistados
-                </CardTitle>
+            <Card className="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white border-0 shadow-2xl">
+              <CardHeader className="pb-2 border-b border-white/5">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Award className="w-6 h-6 text-yellow-400" />
+                    Galeria de Conquistas
+                  </CardTitle>
+                  <div className="text-xs font-mono text-gray-400 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                    {earnedBadges.length} / {galleryBadges.length > 0 ? galleryBadges.length : displayBadges.length} Desbloqueados
+                  </div>
+                </div>
+                <p className="text-sm text-gray-400 mt-1">Colecione todos para se tornar uma lenda!</p>
               </CardHeader>
-              <CardContent>
-                {displayBadges.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Award className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-400">Nenhum emblema conquistado ainda.</p>
+              <CardContent className="pt-6">
+                {galleryBadges.length > 0 ? (
+                  <div>
+                    {/* Group by Rarity if needed, or just grid */}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
+                      {galleryBadges.map((badge, idx) => (
+                        <BadgeItem 
+                          key={badge.id || idx} 
+                          badge={badge} 
+                          idx={idx} 
+                          getBadgeImage={getBadgeImage}
+                          locked={!badge.isEarned} 
+                        />
+                      ))}
+                    </div>
                   </div>
                 ) : (
+                  /* Fallback for legacy view if definitions not loaded */
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {displayBadges.map((badge, idx) => (
                       <BadgeItem key={badge.id || badge.badge_id || idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
                     ))}
+                    {displayBadges.length === 0 && (
+                      <div className="col-span-full text-center py-12">
+                        <Award className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
+                        <p className="text-gray-500">Nenhum emblema conquistado ainda.</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
