@@ -766,9 +766,19 @@ function LayoutContent({ children, currentPageName }) {
               <div className="grid md:grid-cols-4 gap-8 mb-8">
                 <div>
                   <PawCaoLogo size="default" className="mb-4" />
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 mb-4">
                     {t('footerTagline', language)}
                   </p>
+                  <div className="space-y-2">
+                    <a href="mailto:support@pawcao.net" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
+                      <MessageCircle className="w-4 h-4" />
+                      support@pawcao.net
+                    </a>
+                    <a href="https://instagram.com/paw.cao" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
+                      <Camera className="w-4 h-4" />
+                      @Paw.cao
+                    </a>
+                  </div>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
