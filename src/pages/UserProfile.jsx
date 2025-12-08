@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, Calendar, Heart, MessageCircle, Camera, Edit, Share2,
   Award, TrendingUp, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
-  CheckCircle, Shield, ShieldCheck, Users, User
+  CheckCircle, Shield, ShieldCheck, Users, User, Plus
 } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
@@ -898,56 +898,51 @@ export default function UserProfile() {
                 {/* Right Column: Badge Showcase (RPG Inventory Style) & Actions */}
                 <div className="hidden md:flex flex-col items-end gap-3 mt-1">
                   
-                  {/* Badge Showcase */}
+                  {/* Badge Showcase - Fixed Visuals */}
                   <div className="bg-gray-50/80 backdrop-blur-sm border border-gray-100 rounded-xl p-2 shadow-sm">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 text-right px-1">
                       Destaques
                     </div>
                     <div className="flex gap-2">
                       {[0, 1].map((slotIdx) => {
-                        // Get pinned badge ID or null
-                        // Ensure we handle array length safely
                         const pinnedId = (profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) 
                           ? profileUser.pinned_badge_ids[slotIdx] 
                           : null;
-                          
-                        // Find badge object if ID exists
                         const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
 
                         return (
                           <div 
                             key={slotIdx} 
-                            onClick={() => handleSlotClick(slotIdx)}
-                            className={`w-12 h-12 rounded-lg flex items-center justify-center relative transition-all group ${
-                              badge 
-                                ? 'bg-white border border-gray-200 shadow-sm' 
-                                : 'bg-gray-100/50 border-2 border-dashed border-gray-300'
-                            } ${isOwnProfile ? 'cursor-pointer hover:border-blue-400 hover:bg-blue-50' : ''}`}
-                            title={isOwnProfile ? (badge ? "Alterar Destaque" : "Adicionar Destaque") : (badge ? badge.name : "Slot Vazio")}
+                            onClick={() => isOwnProfile && handleSlotClick(slotIdx)}
+                            className={`w-14 h-14 rounded-lg flex items-center justify-center relative transition-all overflow-hidden ${
+                              isOwnProfile ? 'cursor-pointer hover:scale-105' : ''
+                            } ${!badge ? 'bg-gray-50/50' : 'bg-white shadow-sm border border-gray-200'}`}
+                            title={isOwnProfile ? (badge ? `Alterar: ${badge.name}` : "Adicionar Destaque") : (badge ? badge.name : "Slot Vazio")}
                           >
                             {badge ? (
                               <>
-                                <div className={`absolute inset-0 bg-gradient-to-br opacity-10 rounded-lg ${
-                                  badge.rarity === 'legendary' ? 'from-yellow-400 to-orange-500' :
-                                  badge.rarity === 'epic' ? 'from-purple-400 to-pink-500' :
-                                  'from-blue-400 to-cyan-500'
+                                <div className={`absolute inset-0 opacity-20 ${
+                                  badge.rarity === 'legendary' ? 'bg-yellow-400' :
+                                  badge.rarity === 'epic' ? 'bg-purple-400' :
+                                  badge.rarity === 'rare' ? 'bg-blue-400' :
+                                  'bg-gray-200'
                                 }`} />
-                                {badge.image_png_file ? (
-                                  <img src={badge.image_png_file} alt={badge.name} className="w-8 h-8 object-contain drop-shadow-sm transform group-hover:scale-110 transition-transform" />
+                                
+                                {badge.image_png_file || badge.image_url ? (
+                                  <img 
+                                    src={badge.image_png_file || badge.image_url} 
+                                    alt={badge.name} 
+                                    className="w-full h-full object-contain p-1 z-10" 
+                                  />
                                 ) : (
-                                  <span className="text-2xl transform group-hover:scale-110 transition-transform">{badge.icon || "🛡️"}</span>
+                                  <span className="text-3xl z-10 select-none transform hover:scale-110 transition-transform">
+                                    {badge.icon || "🛡️"}
+                                  </span>
                                 )}
                               </>
                             ) : (
-                              <div className="w-2 h-2 rounded-full bg-gray-300 opacity-50" />
-                            )}
-                            
-                            {/* Edit Hint for Owner */}
-                            {isOwnProfile && (
-                              <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center transition-opacity">
-                                <div className="bg-white/90 rounded-full p-1 shadow-sm">
-                                  <Edit className="w-3 h-3 text-blue-600" />
-                                </div>
+                              <div className="border-2 border-dashed border-gray-300 w-full h-full rounded-lg flex items-center justify-center opacity-50 m-1">
+                                 {isOwnProfile && <Plus className="w-5 h-5 text-gray-400" />}
                               </div>
                             )}
                           </div>
