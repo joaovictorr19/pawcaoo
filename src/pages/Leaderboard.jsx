@@ -182,16 +182,18 @@ export default function Leaderboard() {
                       border-2 backdrop-blur-xl transition-all duration-300
                       ${getPodiumStyle(rank)}
                     `}>
-                      <div className="relative overflow-visible">
+                      <div className="relative overflow-visible w-fit mx-auto">
                         {rank === 1 && (
                           <>
-                            <motion.div 
-                              animate={{ y: [-5, 5, -5] }}
-                              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                              className="absolute -top-[45px] left-1/2 -translate-x-1/2 z-50 filter drop-shadow-xl"
-                            >
-                              <Crown className="w-12 h-12 text-yellow-500 fill-yellow-300" />
-                            </motion.div>
+                            <div className="absolute -top-[45px] left-1/2 -translate-x-1/2 z-50">
+                              <motion.div 
+                                animate={{ y: [-5, 5, -5] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                className="filter drop-shadow-xl"
+                              >
+                                <Crown className="w-12 h-12 text-yellow-500 fill-yellow-300" />
+                              </motion.div>
+                            </div>
                             <div className="absolute inset-0 bg-yellow-400/20 blur-2xl rounded-full -z-10 animate-pulse" />
                           </>
                         )}
