@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { MapPin, Plus, X, Search, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapContainer, TileLayer, Marker, Circle, useMap, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, useMap, Popup, useMapEvents } from "react-leaflet";
+import { useRef, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { toast } from "sonner";
@@ -25,6 +26,15 @@ function MapUpdater({ center, zoom }) {
       map.setView(center, zoom || 12);
     }
   }, [center, zoom, map]);
+  return null;
+}
+
+function MapClickHandler({ onClick }) {
+  useMapEvents({
+    click: (e) => {
+      onClick(e.latlng);
+    },
+  });
   return null;
 }
 
@@ -209,10 +219,38 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 
+                {/* Map Click Handler */}
+                <MapClickHandler onClick={(latlng) => {
+                  setNewArea(prev => ({
+                    ...prev,
+                    latitude: latlng.lat,
+                    longitude: latlng.lng
+                  }));
+                }} />
+
                 {/* Preview Current New Area */}
                 {newArea.latitude && newArea.longitude && (
                     <>
-                        <Marker position={[newArea.latitude, newArea.longitude]} />
+                        <Marker 
+                          position={[newArea.latitude, newArea.longitude]} 
+                          draggable={true}
+                          eventHandlers={{
+                            dragend: (e) => {
+                              const marker = e.target;
+                              const position = marker.getLatLng();
+                              setNewArea(prev => ({
+                                ...prev,
+                                latitude: position.lat,
+                                longitude: position.lng
+                              }));
+                            }
+                          }}
+                          ref={(ref) => {
+                            if (ref) {
+                              // Force update if needed or just keep ref
+                            }
+                          }}
+                        />
                         <Circle 
                             center={[newArea.latitude, newArea.longitude]}
                             radius={newArea.radius_km * 1000}
@@ -238,8 +276,9 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                     return null;
                 })}
             </MapContainer>
-            <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-1 rounded text-xs z-[1000] shadow">
-                Azul: Nova Área | Verde: Áreas Salvas
+            <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-1 rounded text-xs z-[1000] shadow text-right">
+                <p>Azul: Nova Área | Verde: Áreas Salvas</p>
+                <p className="font-semibold text-blue-600">Clique no mapa ou arraste o marcador para ajustar</p>
             </div>
         </div>
       </div>
