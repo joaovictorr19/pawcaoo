@@ -119,7 +119,7 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [location.pathname]);
 
-  const { data: user, isLoading: isLoadingUser, error: userError } = useQuery({
+  const { data: currentUser, isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
@@ -134,6 +134,7 @@ function LayoutContent({ children, currentPageName }) {
     ...queryConfig.user,
     retry: 1,
   });
+  const user = currentUser;
 
   const { data: notifications } = useQuery({
     queryKey: ['unreadNotifications'],
