@@ -230,13 +230,50 @@ export default function AdminDashboard() {
     queryKey: ['allBookings'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const walkerBookings = await base44.entities.Booking.list('-created_date', 100);
-      const trainerBookings = await base44.entities.TrainingBooking.list('-created_date', 100);
+      const walkerBookings = (await base44.entities.Booking.list('-created_date', 100)).map(b => ({...b, entityType: 'walk'}));
+      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 100)).map(b => ({...b, entityType: 'training'}));
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: user?.role === 'admin' && activeTab === 'bookings',
     initialData: [],
   });
+
+  const adminDeleteBookingMutation = useMutation({
+    mutationFn: async ({ id, entityType }) => {
+      const entity = entityType === 'training' ? base44.entities.TrainingBooking : base44.entities.Booking;
+      
+      // 1. Excluir Reviews associadas
+      const reviews = await base44.entities.Review.filter(
+        entityType === 'walk' ? { booking_id: id } : { training_booking_id: id }
+      );
+      if (reviews.length > 0) {
+        await Promise.all(reviews.map(r => base44.entities.Review.delete(r.id)));
+      }
+
+      // 2. Excluir Rastro GPS (WalkCheckpoints) - Apenas para passeios
+      if (entityType === 'walk') {
+        const checkpoints = await base44.entities.WalkCheckpoint.filter({ booking_id: id });
+        if (checkpoints.length > 0) {
+          await Promise.all(checkpoints.map(c => base44.entities.WalkCheckpoint.delete(c.id)));
+        }
+      }
+
+      // 3. Excluir a Reserva Principal
+      await entity.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allBookings']);
+      toast.success("Reserva eliminada permanentemente.");
+    },
+    onError: () => toast.error("Erro ao eliminar reserva.")
+  });
+
+  const handleAdminDeleteBooking = (booking) => {
+    if (window.confirm("ATENÇÃO ADMIN: Esta ação é irreversível e apagará todo o histórico (Reviews, GPS, etc). Continuar?")) {
+      const type = booking.entityType || (booking.trainer_id ? 'training' : 'walk');
+      adminDeleteBookingMutation.mutate({ id: booking.id, entityType: type });
+    }
+  };
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
@@ -1810,6 +1847,17 @@ export default function AdminDashboard() {
                         <div>👤 {booking.owner_name}</div>
                         <div>🐕 {booking.walker_name || booking.trainer_name}</div>
                         <div className="font-semibold">💰 €{booking.total_amount?.toFixed(2)}</div>
+                        <div className="mt-2">
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => handleAdminDeleteBooking(booking)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Eliminar
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -1825,6 +1873,7 @@ export default function AdminDashboard() {
                         <TableHead>Data</TableHead>
                         <TableHead>Valor</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1843,6 +1892,16 @@ export default function AdminDashboard() {
                             }>
                               {booking.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="destructive" 
+                              size="icon"
+                              onClick={() => handleAdminDeleteBooking(booking)}
+                              title="Eliminar Reserva Permanentemente"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
