@@ -42,9 +42,14 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
     }
   }, [isOpen]);
 
-  // Carregar e desenhar imagem inicial
+  // Redesenhar quando o modal abre ou tamanho muda, mesmo sem imagem
   useEffect(() => {
-    if (imageUrl && canvasRef.current) {
+    requestAnimationFrame(drawImage);
+  }, [containerSize, isOpen]);
+
+  // Carregar imagem inicial
+  useEffect(() => {
+    if (imageUrl) {
       const img = new Image();
       
       // Only set crossOrigin for remote URLs (http/https), not for data: or blob:
@@ -81,7 +86,7 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
 
       img.src = imageUrl;
     }
-  }, [imageUrl, containerSize]); // Re-init on container resize
+  }, [imageUrl]);
 
   // Redesenhar quando estados mudam
   useEffect(() => {
@@ -92,10 +97,10 @@ export default function ImageCropModal({ isOpen, onClose, imageUrl, onSave, aspe
 
   const drawImage = () => {
     const canvas = canvasRef.current;
-    const image = imageRef.current;
-    if (!canvas || !image) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
+    const image = imageRef.current;
     
     // Robust width calculation
     const containerWidth = containerRef.current?.clientWidth || window.innerWidth * 0.9 || 350;
