@@ -413,7 +413,7 @@ export default function UserProfile() {
   // Fetch ALL Badge Definitions to show what's possible
   const { data: allBadgeDefinitions = [] } = useQuery({
     queryKey: ['allBadgeDefinitions'],
-    queryFn: () => base44.entities.BadgeDefinition.list(null, 100), // Fetch all
+    queryFn: () => base44.entities.BadgeDefinition.list(null, 1000), // Fetch all (up to 1000)
     staleTime: 300000 // 5 minutes cache
   });
 
@@ -475,34 +475,44 @@ export default function UserProfile() {
   // Sync embedded badges (from Auth User) to UserBadge table if needed
   React.useEffect(() => {
     const syncBadges = async () => {
-      if (!isOwnProfile || !currentUser?.achievements_badges || !profileEmail) return;
+      if (!isOwnProfile || !profileEmail) return;
       
-      const embeddedBadges = currentUser.achievements_badges || [];
-      if (embeddedBadges.length === 0) return;
-
-      // We need to wait for earnedBadges to be loaded
-      // But we can just check existence to avoid duplicates
       try {
-        const existingBadges = await base44.entities.UserBadge.filter({ user_email: profileEmail });
-        const existingIds = new Set(existingBadges.map(b => b.badge_id));
-        
-        const badgesToCreate = embeddedBadges.filter(b => !existingIds.has(b.badge_id));
-        
-        if (badgesToCreate.length > 0) {
-          console.log(`Syncing ${badgesToCreate.length} badges to table...`);
-          await Promise.all(badgesToCreate.map(badge => 
-            base44.entities.UserBadge.create({
-              user_email: profileEmail,
-              badge_id: badge.badge_id,
-              name: badge.name,
-              description: badge.description,
-              icon: badge.icon,
-              image_url: badge.image_url,
-              rarity: badge.rarity || 'common',
-              earned_date: badge.earned_date || new Date().toISOString()
-            })
-          ));
-          queryClient.invalidateQueries({ queryKey: ['userBadges'] });
+        // 1. Sync Legacy Badges to Table
+        if (currentUser?.achievements_badges?.length > 0) {
+          const existingBadges = await base44.entities.UserBadge.filter({ user_email: profileEmail });
+          const existingIds = new Set(existingBadges.map(b => b.badge_id));
+          
+          const badgesToCreate = currentUser.achievements_badges.filter(b => !existingIds.has(b.badge_id));
+          
+          if (badgesToCreate.length > 0) {
+            console.log(`Syncing ${badgesToCreate.length} badges to table...`);
+            await Promise.all(badgesToCreate.map(badge => 
+              base44.entities.UserBadge.create({
+                user_email: profileEmail,
+                badge_id: badge.badge_id,
+                name: badge.name,
+                description: badge.description,
+                icon: badge.icon,
+                image_url: badge.image_url,
+                rarity: badge.rarity || 'common',
+                earned_date: badge.earned_date || new Date().toISOString()
+              })
+            ));
+            queryClient.invalidateQueries({ queryKey: ['userBadges'] });
+          }
+        }
+
+        // 2. Sync Badge Count to UserProfile (for Leaderboard consistency)
+        if (profileUser?.id && earnedBadges.length > 0) {
+          if ((profileUser.badges_count || 0) !== earnedBadges.length) {
+            console.log('Syncing badge count to profile...');
+            await base44.entities.UserProfile.update(profileUser.id, {
+              badges_count: earnedBadges.length
+            });
+            // Optional: invalidate profile query to show new count immediately
+            // queryClient.invalidateQueries({ queryKey: ['profileUser'] });
+          }
         }
       } catch (err) {
         console.error("Error syncing badges:", err);
@@ -510,7 +520,7 @@ export default function UserProfile() {
     };
 
     syncBadges();
-  }, [isOwnProfile, currentUser, profileEmail, queryClient]);
+  }, [isOwnProfile, currentUser, profileEmail, queryClient, earnedBadges.length, profileUser?.id, profileUser?.badges_count]);
 
   const { data: walkerProfile } = useQuery({
     queryKey: ['walkerProfile', profileEmail],
