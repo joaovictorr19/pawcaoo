@@ -61,9 +61,12 @@ export default function ManageAvailability() {
   };
 
   const { data: availabilityData } = useQuery({
-    queryKey: ['availability'],
-    queryFn: () => base44.entities.CalendarAvailability.filter({ professional_email: user?.email }),
-    enabled: !!user,
+    queryKey: ['availability', user?.email],
+    queryFn: () => {
+      if (!user?.email) return [];
+      return base44.entities.CalendarAvailability.filter({ professional_email: user.email });
+    },
+    enabled: !!user?.email,
     initialData: [],
   });
 
