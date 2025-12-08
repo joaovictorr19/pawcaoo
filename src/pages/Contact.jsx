@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HelpCircle, Building } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HelpCircle, Building, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
@@ -146,7 +146,7 @@ export default function Contact() {
     mutationFn: async (data) => {
       // In production, this would send an email via SendEmail integration
       await base44.integrations.Core.SendEmail({
-        to: "support@pawcao.pt",
+        to: "support@pawcao.net",
         subject: `[${data.category}] ${data.subject}`,
         body: `
 Nova mensagem de contacto:
@@ -336,8 +336,18 @@ ${data.message}
                     <Mail className="w-5 h-5 text-green-600 mt-0.5" />
                     <div>
                       <div className="font-semibold text-gray-900">Email</div>
-                      <a href="mailto:support@pawcao.pt" className="text-blue-600 hover:underline">
-                        support@pawcao.pt
+                      <a href="mailto:support@pawcao.net" className="text-blue-600 hover:underline">
+                        support@pawcao.net
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Camera className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">Instagram</div>
+                      <a href="https://instagram.com/paw.cao" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        @Paw.cao
                       </a>
                     </div>
                   </div>
