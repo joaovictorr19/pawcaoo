@@ -14,7 +14,7 @@ import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const SUPPORT_EMAIL_TARGET = "suporte@pawcao.net";
+const SUPPORT_EMAIL_TARGET = "support@pawcao.net";
 
 export default function Inbox() {
   const navigate = useNavigate();
@@ -121,7 +121,7 @@ export default function Inbox() {
   const getOtherParticipant = (conversation) => {
     const otherEmail = conversation.participants?.find(p => p !== user?.email) || "Suporte";
     // Mock name/avatar based on email or if it's support
-    if (otherEmail === 'admin_support@pawcao.net') {
+    if (otherEmail === SUPPORT_EMAIL_TARGET || otherEmail === 'admin_support@pawcao.net' || otherEmail === 'suporte@pawcao.net') {
       return { name: "Suporte PawCão", avatar: null, isSupport: true };
     }
     return { name: otherEmail.split('@')[0], avatar: null, isSupport: false, email: otherEmail };
