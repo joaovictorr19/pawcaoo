@@ -66,7 +66,6 @@ export default function AccountSettings() {
     },
     skills: "",
     username: "",
-    is_private: false,
   });
 
   const [preferences, setPreferences] = useState({
@@ -101,7 +100,6 @@ export default function AccountSettings() {
         emergency_contact: user.emergency_contact || { name: "", phone: "", relation: "" },
         skills: user.skills ? user.skills.join(", ") : "",
         username: source.username || user.username || "",
-        is_private: source.is_private || false,
       });
       
       // Initialize preferences safely with defaults
@@ -145,7 +143,9 @@ export default function AccountSettings() {
         data.last_username_change_date = new Date().toISOString();
       }
 
-      // 1. Sync with UserProfile entity FIRST (Source of Truth for Profile Page)
+      await base44.auth.updateMe(data);
+
+      // Sync with UserProfile entity
       try {
         const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (userProfiles && userProfiles.length > 0) {
@@ -157,35 +157,25 @@ export default function AccountSettings() {
           if (data.profile_photo_url) updateData.profile_photo_url = data.profile_photo_url;
           if (data.cover_photo_url) updateData.cover_photo_url = data.cover_photo_url;
           if (data.city) updateData.city = data.city;
-          if (data.is_private !== undefined) updateData.is_private = data.is_private;
           
           if (Object.keys(updateData).length > 0) {
             await base44.entities.UserProfile.update(profileId, updateData);
           }
         } else {
             // Create UserProfile if it doesn't exist
-            await base44.entities.UserProfile.create({
-               user_email: user.email,
-               user_id: user.id,
-               username: data.username || user.username,
-               full_name: data.full_name || user.full_name,
-               profile_photo_url: data.profile_photo_url || user.profile_photo_url,
-               bio: data.bio || user.bio,
-               city: data.city || user.city,
-               role: user.role || 'user',
-               is_private: data.is_private || false
-            });
+             await base44.entities.UserProfile.create({
+                user_email: user.email,
+                user_id: user.id,
+                username: data.username || user.username,
+                full_name: data.full_name || user.full_name,
+                profile_photo_url: data.profile_photo_url || user.profile_photo_url,
+                bio: data.bio || user.bio,
+                city: data.city || user.city,
+                role: user.role || 'user'
+             });
         }
       } catch (err) {
         console.error("Failed to sync UserProfile:", err);
-      }
-
-      // 2. Update Auth User (Secondary for Display Name)
-      try {
-        await base44.auth.updateMe(data);
-      } catch (authErr) {
-        console.error("Auth update warning:", authErr);
-        // Don't fail the whole operation if only auth update fails but profile updated
       }
     },
     onSuccess: () => {
@@ -241,20 +231,15 @@ export default function AccountSettings() {
   };
 
   const handleSaveProfile = () => {
-    // Ensure username follows handle rules on save (double check)
+    // Ensure username follows handle rules (no spaces) on save
+    // If username is empty or just spaces, use the existing one to avoid errors or clearing it unintentionally
     const currentUsername = profileData.username || "";
-    const formattedUsername = currentUsername
-      .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9._\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, '-');
+    const formattedUsername = currentUsername.trim().replace(/\s+/g, '-');
     
     const updatedData = {
       ...profileData,
       username: formattedUsername,
-      full_name: profileData.full_name, // Ensure full name is passed explicitly
-      skills: profileData.skills && typeof profileData.skills === 'string' ? profileData.skills.split(",").map(s => s.trim()).filter(s => s) : [],
+      skills: profileData.skills.split(",").map(s => s.trim()).filter(s => s),
     };
     updateProfileMutation.mutate(updatedData);
   };
@@ -352,23 +337,6 @@ export default function AccountSettings() {
                   <p className="text-sm text-gray-600">Informações visíveis para todos</p>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  
-                  <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
-                    <div>
-                      <h4 className="font-semibold text-blue-900 flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Perfil Privado
-                      </h4>
-                      <p className="text-sm text-blue-700">
-                        Quando ativado, apenas você e administradores poderão ver seu perfil completo.
-                      </p>
-                    </div>
-                    <Switch
-                      checked={profileData.is_private}
-                      onCheckedChange={(checked) => setProfileData({...profileData, is_private: checked})}
-                    />
-                  </div>
-
                   {/* Photos */}
                   <div>
                     <Label className="mb-3 block">Foto de Perfil</Label>
@@ -434,45 +402,34 @@ export default function AccountSettings() {
                   <Separator />
 
                   <div>
-                    <Label>Nome da Conta (Nome de Exibição)</Label>
+                    <Label>Nome Completo</Label>
                     <Input
                       value={profileData.full_name}
                       onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
-                      placeholder="Ex: Nuno Araujo (Pode conter espaços)"
+                      placeholder="Ex: João da Silva (Pode conter espaços)"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Este é o nome que aparece no topo do seu perfil.
+                      Seu nome de exibição no perfil.
                     </p>
                   </div>
 
                   <div>
-                    <Label>Nome de Usuário (@ - Identificador Único)</Label>
+                    <Label>Nome de Usuário (@)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
                       <Input
                         value={profileData.username}
                         onChange={(e) => {
-                          // Allow user to type freely to avoid "broken keyboard" feeling
-                          setProfileData({...profileData, username: e.target.value});
-                        }}
-                        onBlur={() => {
-                          // Format on blur: lowercase, remove accents, spaces to hyphens
-                          if (profileData.username) {
-                            const formatted = profileData.username
-                              .toLowerCase()
-                              .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
-                              .replace(/[^a-z0-9._\s-]/g, "") // Remove invalid chars
-                              .trim()
-                              .replace(/\s+/g, '-'); // Spaces to hyphens
-                            setProfileData({...profileData, username: formatted});
-                          }
+                          // Allow spaces while typing, will be formatted on save
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._\s-]/g, "");
+                          setProfileData({...profileData, username: val});
                         }}
                         placeholder="username"
                         className="pl-7"
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      Este identificador é <strong>único</strong> e define o endereço do seu perfil. Não pode ser duplicado por outra conta.
+                      Identificador único (sem espaços). É assim que outros usuários encontrarão você. 
                       <span className="text-orange-600 block mt-1 font-medium">
                         Nota: O nome de usuário (@) só pode ser alterado uma vez a cada 30 dias.
                       </span>

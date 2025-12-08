@@ -318,7 +318,7 @@ export default function UserProfile() {
             gamification_level: currentUser.gamification_level || 1,
             followers_count: 0,
             following_count: 0,
-            is_verified: false // Always start as unverified
+            is_verified: currentUser.is_verified || false
           };
           userProfile = await base44.entities.UserProfile.create(payload);
         } catch (error) {
@@ -590,31 +590,6 @@ export default function UserProfile() {
     );
   }
 
-  // Private Profile Check
-  if (profileUser && profileUser.is_private && !isOwnProfile && currentUser?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full shadow-xl border-0">
-          <CardContent className="p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Lock className="w-10 h-10 text-gray-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Este Perfil é Privado
-            </h2>
-            <p className="text-gray-600 mb-6">
-              As informações deste utilizador não estão visíveis publicamente.
-            </p>
-            <Button onClick={() => navigate(createPageUrl('Home'))} className="w-full bg-green-600 hover:bg-green-700 text-white">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar ao Início
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (!profileUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">
@@ -696,7 +671,7 @@ export default function UserProfile() {
 
           <CardContent className="pt-6 pb-6">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 -mt-20 md:-mt-24 relative z-10">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-20 md:-mt-24">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
                   <AvatarImage src={profileUser.profile_photo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
@@ -704,21 +679,12 @@ export default function UserProfile() {
                   </AvatarFallback>
                 </Avatar>
                 
-                <div className="text-center md:text-left mb-4 md:mb-6 md:mt-28">
-                  {/* Name and Username Block */}
-                  <div className="mb-2">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                <div className="text-center md:text-left mb-4 md:mb-6">
+                  <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                       {profileUser.full_name}
                     </h1>
-                    {profileUser.username && (
-                      <p className="text-gray-500 font-medium text-sm md:text-base">
-                        @{profileUser.username}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Badges Block - Separated for better layout */}
-                  <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap mb-3">
+                    
                     {(profileUser.is_verified || walkerProfile?.verification_status === 'verified') && (
                       <Badge className="bg-blue-500 text-white" title="Verificado">
                         <CheckCircle className="w-3 h-3 mr-1" />
