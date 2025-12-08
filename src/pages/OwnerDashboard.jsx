@@ -21,10 +21,12 @@ import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
+import ReviewModal from "@/components/reviews/ReviewModal";
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
   const [isExporting, setIsExporting] = React.useState(false);
+  const [pendingReviewBooking, setPendingReviewBooking] = React.useState(null);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -43,7 +45,15 @@ export default function OwnerDashboard() {
       const serviceBookings = await base44.entities.ServiceBooking.filter({
         owner_email: user.email
       });
-      return [...walkerBookings, ...trainerBookings, ...serviceBookings];
+      
+      // Check for completed bookings without reviews
+      const all = [...walkerBookings, ...trainerBookings, ...serviceBookings];
+      const needsReview = all.find(b => b.status === 'completed' && !b.review_id && b.walker_id); // only for walkers initially
+      if (needsReview) {
+        setPendingReviewBooking(needsReview);
+      }
+      
+      return all;
     },
     enabled: !!user,
     initialData: []
@@ -528,6 +538,13 @@ export default function OwnerDashboard() {
           </div>
         </div>
         </ErrorBoundary>
+        {pendingReviewBooking && (
+          <ReviewModal 
+            booking={pendingReviewBooking} 
+            isOpen={!!pendingReviewBooking} 
+            onClose={() => setPendingReviewBooking(null)} 
+          />
+        )}
       </div>
     </div>
   );
