@@ -417,7 +417,7 @@ export default function UserProfile() {
 
   // Merge earned with definitions for Gallery View, handling Legacy Badges
   const galleryBadges = React.useMemo(() => {
-    // 1. Process definitions (New System)
+    // 1. Process definitions (New System) - Filter to show ONLY earned ones
     const processedDefinitions = allBadgeDefinitions.map(def => {
       const earnedMatch = earnedBadges.find(b => 
         (b.badge_id && b.badge_id === def.id) || 
@@ -429,39 +429,47 @@ export default function UserProfile() {
         isEarned: !!earnedMatch,
         earnedDate: earnedMatch?.earned_date || null
       };
-    });
+    }).filter(b => b.isEarned);
 
     // 2. Find Earned Badges that didn't match any definition (Legacy System)
-    const definitionIds = new Set(processedDefinitions.map(d => d.id));
-    const definitionNames = new Set(processedDefinitions.map(d => d.name));
+    const definitionIds = new Set(allBadgeDefinitions.map(d => d.id));
+    const definitionNames = new Set(allBadgeDefinitions.map(d => d.name));
 
-    const legacyBadges = earnedBadges.filter(b => {
+    // Deduplicate legacy badges by name/id to avoid repetition
+    const uniqueLegacyMap = new Map();
+
+    earnedBadges.forEach(b => {
       const matchId = b.badge_id && definitionIds.has(b.badge_id);
       const matchName = b.name && definitionNames.has(b.name);
-      return !matchId && !matchName;
-    }).map(b => ({
-      ...b,
-      id: b.badge_id || `legacy-${b.name ? b.name.replace(/\s+/g, '-').toLowerCase() : Math.random()}`,
-      isEarned: true,
-      rarity: b.rarity || 'common',
-      description: b.description || 'Emblema Especial',
-      xp: b.xp || 0
-    }));
+      
+      if (!matchId && !matchName) {
+        const key = b.badge_id || b.name;
+        if (!uniqueLegacyMap.has(key)) {
+          uniqueLegacyMap.set(key, {
+            ...b,
+            id: b.badge_id || `legacy-${b.name ? b.name.replace(/\s+/g, '-').toLowerCase() : Math.random()}`,
+            isEarned: true,
+            rarity: b.rarity || 'common',
+            description: b.description || 'Emblema Especial',
+            xp: b.xp || 0
+          });
+        }
+      }
+    });
 
-    // 3. Combine and Sort: Earned First, then by Rarity, then Name
+    const legacyBadges = Array.from(uniqueLegacyMap.values());
+
+    // 3. Combine and Sort: Rarity then XP
     const combined = [...legacyBadges, ...processedDefinitions];
     
     return combined.sort((a, b) => {
-      // 1. Earned status (Earned first)
-      if (a.isEarned !== b.isEarned) return b.isEarned ? 1 : -1;
-      
-      // 2. Rarity (Legendary > Epic > Rare > Common)
+      // 1. Rarity (Legendary > Epic > Rare > Common)
       const rarityOrder = { legendary: 3, epic: 2, rare: 1, common: 0 };
       const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
       const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
       if (rA !== rB) return rB - rA;
 
-      // 3. XP (Higher first)
+      // 2. XP (Higher first)
       if ((a.xp || 0) !== (b.xp || 0)) return (b.xp || 0) - (a.xp || 0);
 
       return 0;
