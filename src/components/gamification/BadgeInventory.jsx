@@ -144,7 +144,7 @@ export default function BadgeInventory({
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="social">Social</SelectItem>
-            <SelectItem value="activity">Atividade</option>
+            <SelectItem value="activity">Atividade</SelectItem>
             <SelectItem value="milestone">Marco</SelectItem>
             <SelectItem value="special">Especial</SelectItem>
           </SelectContent>

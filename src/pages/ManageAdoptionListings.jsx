@@ -186,7 +186,6 @@ export default function ManageAdoptionListings() {
         contact_phone: editingListing.contact_phone,
         contact_email: editingListing.contact_email,
         photos: editingListing.photos,
-        medical_history: editingListing.medical_history,
         special_needs: editingListing.special_needs,
       };
 
