@@ -583,6 +583,7 @@ export default function EditWalkerProfile() {
           imageUrl={tempImageUrl}
           onSave={handleCroppedImage}
           aspectRatio={editingImageType === 'cover' ? 3 : 1}
+          circularCrop={editingImageType === 'photo'}
         />
       </div>
     </div>
