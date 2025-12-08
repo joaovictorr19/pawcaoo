@@ -591,6 +591,13 @@ export default function ProfessionalDashboard() {
             </div>
             <div className="flex gap-2">
               <Button
+                onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Editar Perfil
+              </Button>
+              <Button
                 variant="outline"
                 onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
                 className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
@@ -598,7 +605,6 @@ export default function ProfessionalDashboard() {
                 <DollarSign className="w-4 h-4 mr-2" />
                 Configure Payouts
               </Button>
-              {/* Messages button removed as per request to use WhatsApp */}
               <Button onClick={() => navigate(createPageUrl('ManageAvailability'))}>
                 <Calendar className="w-4 h-4 mr-2" />
                 Manage Availability
