@@ -64,8 +64,9 @@ export default function ChatWindow({ conversationId, currentUser }) {
       // 1. Create Message
       await base44.entities.ChatMessage.create({
         conversation_id: conversationId,
-        booking_id: conversation.booking_id || null, // Optional now
-        participants: conversation.participants || [], // Denormalized for RLS
+        booking_id: conversation.booking_id || null,
+        // Ensure current user is in participants for RLS read consistency
+        participants: conversation.participants ? Array.from(new Set([...conversation.participants, currentUser.email])) : [currentUser.email],
         sender_email: currentUser.email,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         content: content,
