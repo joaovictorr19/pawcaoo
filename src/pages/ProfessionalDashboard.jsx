@@ -907,6 +907,21 @@ export default function ProfessionalDashboard() {
                               </div>
                             )}
 
+                            {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
+                                <div className="flex flex-col gap-1 mb-2">
+                                    <Button 
+                                      className="w-full bg-purple-600 hover:bg-purple-700 animate-pulse font-bold h-10 shadow-md"
+                                      onClick={() => navigate(createPageUrl('WalkerTrack') + '?booking_id=' + booking.id)}
+                                    >
+                                      <MapPin className="w-4 h-4 mr-2" />
+                                      {booking.status === 'in_progress' ? 'VOLTAR AO PASSEIO' : 'INICIAR PASSEIO & CHAT'}
+                                    </Button>
+                                    <div className="text-[10px] text-center text-gray-500 mb-1">
+                                      * Isto abrirá o mapa e avisará o cliente.
+                                    </div>
+                                </div>
+                            )}
+
                             {booking.status === 'confirmed' && new Date(booking.walk_date || booking.session_date) <= new Date() && (
                                <Button
                                   size="sm"
