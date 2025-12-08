@@ -146,21 +146,38 @@ export default function WalkerTracker({ bookingId }) {
 
   const navigate = useNavigate();
 
-  const stopTracking = async () => {
-    if (!window.confirm("Tem certeza que deseja encerrar o passeio?")) return;
+  const handleFinishWalk = async () => {
+    if (!window.confirm("Terminar o passeio e notificar o dono?")) return;
 
+    // 1. Stop GPS
     if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
     setIsTracking(false);
     clearInterval(timerRef.current);
 
-    await base44.entities.Booking.update(bookingId, {
-      status: 'completed',
-      completed_date: new Date().toISOString(),
-      distance_km: (distance / 1000).toFixed(2)
-    });
-    
-    toast.success("Passeio concluído! O pagamento será libertado em breve.");
-    setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 1500);
+    // 2. Release Wake Lock
+    if (wakeLock) {
+      try {
+        await wakeLock.release();
+        setWakeLock(null);
+      } catch (e) {
+        console.error("Wake Lock release error", e);
+      }
+    }
+
+    // 3. Update Booking
+    try {
+      await base44.entities.Booking.update(bookingId, {
+        status: 'completed',
+        completed_date: new Date().toISOString(), // Using completed_date as end_time
+        distance_km: (distance / 1000).toFixed(2)
+      });
+      
+      toast.success("Passeio concluído! Bom trabalho.");
+      navigate(createPageUrl('ProfessionalDashboard'));
+    } catch (error) {
+      console.error("Error finishing walk:", error);
+      toast.error("Erro ao finalizar passeio. Tente novamente.");
+    }
   };
 
   return (
@@ -191,10 +208,10 @@ export default function WalkerTracker({ bookingId }) {
         ) : (
           <Button 
             className="w-full h-14 text-lg bg-red-600 hover:bg-red-700 rounded-xl shadow-lg flex items-center justify-center gap-2 animate-pulse"
-            onClick={stopTracking}
+            onClick={handleFinishWalk}
           >
             <StopCircle className="w-6 h-6" />
-            PARAR PASSEIO
+            Terminar Passeio
           </Button>
         )}
         
