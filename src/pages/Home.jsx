@@ -92,7 +92,7 @@ export default function Home() {
       try {
         return await base44.auth.me();
       } catch (err) {
-        console.error("Home auth error:", err);
+        // console.error("Home auth error:", err);
         return null;
       }
     },
@@ -112,7 +112,7 @@ export default function Home() {
         }, '-walk_date', 20);
         return Array.isArray(res) ? res : [];
       } catch (error) {
-        console.error("Active bookings fetch error:", error);
+        // console.error("Active bookings fetch error:", error);
         return [];
       }
     },

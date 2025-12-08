@@ -144,7 +144,7 @@ export const translations = {
     totalBookingsStats: "Total Reservas",
 
     // Notifications
-    // notifications: "Notificações", // Duplicate key, keeping the first one in Navigation
+    // notifications: "Notificações",
     stayUpdated: "Fique atualizado com a sua atividade",
     markAllAsRead: "Marcar todas como lidas",
     allNotifications: "Todas",
@@ -158,7 +158,7 @@ export const translations = {
     newNotification: "nova",
     
     // Manage Availability
-    // manageAvailability: "Gerir Disponibilidade", // Duplicate removed
+    // manageAvailability: "Gerir Disponibilidade",
     setAvailableTimeSlots: "Defina os seus horários disponíveis",
     selectDate: "Selecione uma Data",
     timeSlots: "Horários",
@@ -257,7 +257,7 @@ export const translations = {
     premiumPayoff: "O plano Premium paga-se após apenas 3 reservas!",
     professionalProfiles: "Perfis Profissionais",
     totalWalks: "Total de Paseios",
-    // noUpcomingBookings: "Sem reservas próximas", // Duplicate key, keeping the one above
+    // noUpcomingBookings: "Sem reservas próximas",
     bookWalk: "Reservar Passeio",
     viewAll: "Ver Todas",
     redeemPoints: "Resgatar Pontos",
@@ -382,7 +382,7 @@ export const translations = {
     planComparisonTitle: "Comparação de Planos",
     featureLabel: "Funcionalidade",
     monthlyFeeLabel: "Taxa Mensal",
-    // commissionLabel: "Comissão", // Duplicate removed
+    // commissionLabel: "Comissão",
     bookingsPerMonthLabel: "Reservas/Mês",
     upToLabel: "Até",
     unlimitedLabel: "Ilimitado",
@@ -393,7 +393,7 @@ export const translations = {
     supportLabel: "Suporte",
     emailSupport: "Email",
     fastSupport: "24h",
-    // prioritySupport: "Prioritário", // Duplicate removed
+    // prioritySupport: "Prioritário",
     directTeamSupport: "Equipa Directa",
     profilePhotosLabel: "Fotos/Vídeos do Perfil",
     photoLabel: "foto",
@@ -407,7 +407,7 @@ export const translations = {
     moreVisibilityTitle: "Mais Visibilidade",
     prioritySearches: "Colocação prioritária nas pesquisas",
     fasterPaymentsTitle: "Pagamentos Mais Rápidos",
-    // instantPayments: "Seja pago instantaneamente", // Duplicate removed
+    // instantPayments: "Seja pago instantaneamente",
     betterSupportTitle: "Melhor Suporte",
     priorityWhenNeeded: "Assistência prioritária quando precisar",
     calculateEarnings: "Calcule os Seus Ganhos Potenciais",
@@ -479,7 +479,7 @@ export const translations = {
     partnersTitle: "Parceiros PawCão",
     partnersSubtitle: "O Mercado Oficial do Mundo Pet",
     partnersDescription: "Ofertas exclusivas de fornecedores e lojas de confiança",
-    // pointsBalance: "Seu Saldo de PawPoints", // Duplicate key, keeping the one above
+    // pointsBalance: "Seu Saldo de PawPoints",
     viewRewards: "Ver Recompensas",
     allPartners: "Todos os Parceiros",
     petStores: "Lojas de Animais",
@@ -516,19 +516,19 @@ export const translations = {
     contactUs: "Contacte-nos",
 
     // Become Trainer translations
-    // becomeTrainerTitle: "Torne-se um Treinador Certificado", // Duplicate key, keeping the one below
+    // becomeTrainerTitle: "Torne-se um Treinador Certificado",
     joinNetwork: "Junte-se à nossa rede de treinadores profissionais",
-    // professionalStandards: "Padrões Profissionais", // Duplicate key, keeping the one below
+    // professionalStandards: "Padrões Profissionais",
     verificationRequired: "Todos os treinadores devem submeter certificações para verificação",
     createProfile: "Criar o Seu Perfil de Treinador",
-    // uploadPhoto: "Carregar uma foto profissional", // Duplicate key, keeping the one below
+    // uploadPhoto: "Carregar uma foto profissional",
     yourNameLabel: "O Seu Nome",
     phoneNumberLabel: "Número de Telefone",
-    // locationLabel: "Localização", // Reusing 'location'
+    // locationLabel: "Localização",
     hourlyRateLabel: "Taxa Horária (€)",
     experienceYearsLabel: "Anos de Experiência",
-    // professionalBio: "Biografia Profissional", // Duplicate key, keeping the one below
-    // trainingSpecialties: "Especialidades de Treino", // Duplicate key, keeping the one below
+    // professionalBio: "Biografia Profissional",
+    // trainingSpecialties: "Especialidades de Treino",
     consultationMethods: "Métodos de Consulta",
     inPerson: "Presencial",
     online: "Online",
@@ -577,7 +577,7 @@ export const translations = {
     trackWalkLive: "Rastrear Passeio Ao Vivo",
     walkStats: "Estatísticas do Passeio",
     distance: "Distância",
-    // duration: "Duração", // Duplicate removed
+    // duration: "Duração",
     updates: "Atualizações",
     currentBehavior: "Comportamento Atual",
     mood: "Humor",
@@ -596,8 +596,8 @@ export const translations = {
     bathroomBreaks: "Pausas para necessidades",
     
     // Professional Dashboard
-    // professionalDashboard: "Painel Profissional", // Duplicate removed
-    // totalEarned: "Total Ganho", // Duplicate removed
+    // professionalDashboard: "Painel Profissional",
+    // totalEarned: "Total Ganho",
     // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
     averageRating: "Rating Médio",
     clientRetention: "Retenção de Clientes",
@@ -814,7 +814,7 @@ export const translations = {
     professionalCertifications: "Certificações Profissionais",
     certificationName: "Nome da Certificação",
     issuingOrganization: "Organização Emissora",
-    // year: "Ano", // Duplicate removed
+    // year: "Ano",
     
     buildTrustWithClients: "✓ Construa confiança com os clientes! Carregue uma verificação de antecedentes de um fornecedor confiável.",
     
@@ -1061,7 +1061,7 @@ export const translations = {
     totalBookingsStats: "Total Bookings",
 
     // Notifications
-    // notifications: "Notifications", // Duplicate key, keeping the first one in Navigation
+    // notifications: "Notifications",
     stayUpdated: "Stay updated with your activity",
     markAllAsRead: "Mark all as read",
     allNotifications: "All",
@@ -1075,7 +1075,7 @@ export const translations = {
     newNotification: "new",
 
     // Manage Availability
-    // manageAvailability: "Manage Availability", // Duplicate removed
+    // manageAvailability: "Manage Availability",
     setAvailableTimeSlots: "Set your available time slots",
     selectDate: "Select a Date",
     timeSlots: "Time Slots",
@@ -1174,7 +1174,7 @@ export const translations = {
     premiumPayoff: "Premium plan pays for itself after just 3 bookings!",
     professionalProfiles: "Professional Profiles",
     totalWalks: "Total Walks",
-    // noUpcomingBookings: "No upcoming bookings", // Duplicate key, keeping the one above
+    // noUpcomingBookings: "No upcoming bookings",
     bookWalk: "Book Walk",
     viewAll: "View All",
     redeemPoints: "Redeem Points",
@@ -1299,7 +1299,7 @@ export const translations = {
     planComparisonTitle: "Plan Comparison",
     featureLabel: "Feature",
     monthlyFeeLabel: "Monthly Fee",
-    // commissionLabel: "Commission", // Duplicate removed
+    // commissionLabel: "Commission",
     bookingsPerMonthLabel: "Bookings/Month",
     upToLabel: "Up to",
     unlimitedLabel: "Unlimited",
@@ -1310,7 +1310,7 @@ export const translations = {
     supportLabel: "Support",
     emailSupport: "Email",
     fastSupport: "24h",
-    // prioritySupport: "Priority", // Duplicate removed
+    // prioritySupport: "Priority",
     directTeamSupport: "Direct Team",
     profilePhotosLabel: "Profile Photos/Videos",
     photoLabel: "photo",
@@ -1324,7 +1324,7 @@ export const translations = {
     moreVisibilityTitle: "More Visibility",
     prioritySearches: "Priority placement in searches",
     fasterPaymentsTitle: "Faster Payments",
-    // instantPayments: "Get paid instantly", // Duplicate removed
+    // instantPayments: "Get paid instantly",
     betterSupportTitle: "Better Support",
     priorityWhenNeeded: "Priority assistance when you need it",
     calculateEarnings: "Calculate Your Potential Earnings",
@@ -1352,7 +1352,7 @@ export const translations = {
     availableWalkers: "Available Walkers",
     walkersFound: "walkers found",
     dogsNeedingHelp: "dogs need help now",
-    // available: "Available", // Duplicate removed
+    // available: "Available",
     unavailable: "Unavailable",
     allWalkers: "All Walkers",
     
@@ -1396,7 +1396,7 @@ export const translations = {
     partnersTitle: "PawCão Partners",
     partnersSubtitle: "The Official Market of the Pet World",
     partnersDescription: "Exclusive offers from trusted pet care providers and stores",
-    // pointsBalance: "Your PawPoints Balance", // Duplicate key, keeping the one above
+    // pointsBalance: "Your PawPoints Balance",
     viewRewards: "View Rewards",
     allPartners: "All Partners",
     petStores: "Pet Stores",
@@ -1433,19 +1433,19 @@ export const translations = {
     contactUs: "Contact Us",
 
     // Become Trainer translations
-    // becomeTrainerTitle: "Become a Certified Trainer", // Duplicate key, keeping the one below
+    // becomeTrainerTitle: "Become a Certified Trainer",
     joinNetwork: "Join our network of professional dog trainers",
-    // professionalStandards: "Professional Standards", // Duplicate key, keeping the one below
+    // professionalStandards: "Professional Standards",
     verificationRequired: "All trainers must submit certifications for verification",
     createProfile: "Create Your Trainer Profile",
-    // uploadPhoto: "Upload a professional photo", // Duplicate key, keeping the one below
+    // uploadPhoto: "Upload a professional photo",
     yourNameLabel: "Your Name",
     phoneNumberLabel: "Phone Number",
-    // locationLabel: "Location", // Reusing 'location'
+    // locationLabel: "Location",
     hourlyRateLabel: "Hourly Rate (€)",
     experienceYearsLabel: "Years of Experience",
-    // professionalBio: "Professional Bio", // Duplicate key, keeping the one below
-    // trainingSpecialties: "Training Specialties", // Duplicate key, keeping the one below
+    // professionalBio: "Professional Bio",
+    // trainingSpecialties: "Training Specialties",
     consultationMethods: "Consultation Methods",
     inPerson: "In-Person",
     online: "Online",
@@ -1494,7 +1494,7 @@ export const translations = {
     trackWalkLive: "Track Walk Live",
     walkStats: "Walk Stats",
     distance: "Distance",
-    // duration: "Duration", // Duplicate removed
+    // duration: "Duration",
     updates: "Updates",
     currentBehavior: "Current Behavior",
     mood: "Mood",
@@ -1513,16 +1513,16 @@ export const translations = {
     bathroomBreaks: "Bathroom breaks",
     
     // Professional Dashboard
-    // professionalDashboard: "Professional Dashboard", // Duplicate removed
+    // professionalDashboard: "Professional Dashboard",
     // totalEarned: "Total Earned",
-    // totalBookings: "Total Bookings", // Duplicate key, keeping the one above
+    // totalBookings: "Total Bookings",
     averageRating: "Average Rating",
     clientRetention: "Client Retention",
     weeklyPerformance: "Weekly Performance",
     statusDistribution: "Status Distribution",
-    // completed: "Completed", // Duplicate removed
-    // pending: "Pending", // Duplicate removed
-    // cancelled: "Cancelled", // Duplicate removed
+    // completed: "Completed",
+    // pending: "Pending",
+    // cancelled: "Cancelled",
     recurringClients: "Recurring Clients",
     recentReviews: "Recent Reviews",
     availabilityCalendar: "Availability Calendar",
@@ -1728,7 +1728,7 @@ export const translations = {
     professionalCertifications: "Professional Certifications",
     certificationName: "Certification Name",
     issuingOrganization: "Issuing Organization",
-    // year: "Year", // Duplicate removed
+    // year: "Year",
     
     buildTrustWithClients: "✓ Build trust with clients! Upload a background check from a trusted provider.",
     
@@ -1975,7 +1975,7 @@ export const translations = {
     totalBookingsStats: "Total Reservas",
 
     // Notifications
-    // notifications: "Notificaciones", // Duplicate key, keeping the first one in Navigation
+    // notifications: "Notificaciones",
     stayUpdated: "Mantente actualizado con tu actividad",
     markAllAsRead: "Marcar todas como leídas",
     allNotifications: "Todas",
@@ -1989,7 +1989,7 @@ export const translations = {
     newNotification: "nueva",
     
     // Manage Availability
-    // manageAvailability: "Gestionar Disponibilidad", // Duplicate removed
+    // manageAvailability: "Gestionar Disponibilidad",
     setAvailableTimeSlots: "Establece tus horarios disponibles",
     selectDate: "Seleccionar Fecha",
     timeSlots: "Horarios",
@@ -2088,7 +2088,7 @@ export const translations = {
     premiumPayoff: "¡El plan Premium se paga solo después de solo 3 reservas!",
     professionalProfiles: "Perfiles Profesionales",
     totalWalks: "Total de Paseos",
-    // noUpcomingBookings: "No hay reservas próximas", // Duplicate key, keeping the one above
+    // noUpcomingBookings: "No hay reservas próximas",
     bookWalk: "Reservar Paseo",
     viewAll: "Ver Todas",
     redeemPoints: "Canjear Puntos",
@@ -2213,7 +2213,7 @@ export const translations = {
     planComparisonTitle: "Comparación de Planes",
     featureLabel: "Función",
     monthlyFeeLabel: "Tarifa Mensual",
-    // commissionLabel: "Comisión", // Duplicate removed
+    // commissionLabel: "Comisión",
     bookingsPerMonthLabel: "Reservas/Mes",
     upToLabel: "Hasta",
     unlimitedLabel: "Ilimitado",
@@ -2224,7 +2224,7 @@ export const translations = {
     supportLabel: "Soporte",
     emailSupport: "Email",
     fastSupport: "24h",
-    // prioritySupport: "Prioritario", // Duplicate removed
+    // prioritySupport: "Prioritario",
     directTeamSupport: "Equipo Directo",
     profilePhotosLabel: "Fotos/Videos de Perfil",
     photoLabel: "foto",
@@ -2238,7 +2238,7 @@ export const translations = {
     moreVisibilityTitle: "Más Visibilidad",
     prioritySearches: "Colocación prioritaria en búsquedas",
     fasterPaymentsTitle: "Pagos Más Rápidos",
-    // instantPayments: "Recibe el pago al instante", // Duplicate removed
+    // instantPayments: "Recibe el pago al instante",
     betterSupportTitle: "Mejor Soporte",
     priorityWhenNeeded: "Asistencia prioritaria cuando la necesites",
     calculateEarnings: "Calcula tus Ganancias Potenciales",
@@ -2266,7 +2266,7 @@ export const translations = {
     availableWalkers: "Paseadores Disponibles",
     walkersFound: "paseadores encontrados",
     dogsNeedingHelp: "perros necesitan ayuda ahora",
-    // available: "Disponible", // Duplicate removed
+    // available: "Disponible",
     unavailable: "No disponible",
     allWalkers: "Todos los Paseadores",
     
@@ -2310,7 +2310,7 @@ export const translations = {
     partnersTitle: "Socios PawCão",
     partnersSubtitle: "El Mercado Oficial del Mundo de las Mascotas",
     partnersDescription: "Ofertas exclusivas de proveedores y tiendas de confianza",
-    // pointsBalance: "Tu Saldo de PawPoints", // Duplicate key, keeping the one above
+    // pointsBalance: "Tu Saldo de PawPoints",
     viewRewards: "Ver Recompensas",
     allPartners: "Todos los Socios",
     petStores: "Tiendas de Mascotas",
@@ -2347,19 +2347,19 @@ export const translations = {
     contactUs: "Contáctanos",
 
     // Become Trainer translations
-    // becomeTrainerTitle: "Conviértete en Entrenador Certificado", // Duplicate key, keeping the one below
+    // becomeTrainerTitle: "Conviértete en Entrenador Certificado",
     joinNetwork: "Únete a nuestra red de entrenadores profesionales",
-    // professionalStandards: "Estándares Profesionales", // Duplicate key, keeping the one below
+    // professionalStandards: "Estándares Profesionales",
     verificationRequired: "Todos los entrenadores deben enviar certificaciones para verificación",
     createProfile: "Crear tu Perfil de Entrenador",
-    // uploadPhoto: "Subir una foto profesional", // Duplicate key, keeping the one below
+    // uploadPhoto: "Subir una foto profesional",
     yourNameLabel: "Tu Nombre",
     phoneNumberLabel: "Número de Teléfono",
-    // locationLabel: "Ubicación", // Reusing 'location'
+    // locationLabel: "Ubicación",
     hourlyRateLabel: "Tarifa por Hora (€)",
     experienceYearsLabel: "Años de Experiencia",
-    // professionalBio: "Biografía Profesional", // Duplicate key, keeping the one below
-    // trainingSpecialties: "Especialidades de Entrenamiento", // Duplicate key, keeping the one below
+    // professionalBio: "Biografía Profesional",
+    // trainingSpecialties: "Especialidades de Entrenamiento",
     consultationMethods: "Métodos de Consulta",
     inPerson: "En Persona",
     online: "En Línea",
@@ -2383,7 +2383,7 @@ export const translations = {
     startConversation: "Iniciar conversación",
     searchConversations: "Buscar conversaciones...",
     messageRead: "Leído",
-    // online: "En línea", // Already exists
+    // online: "En línea",
     offline: "Desconectado",
     newConversation: "Nueva Conversación",
     noConversationsYet: "Aún no hay conversaciones",
@@ -2427,16 +2427,16 @@ export const translations = {
     bathroomBreaks: "Pausas para necesidades",
     
     // Professional Dashboard
-    // professionalDashboard: "Panel Profesional", // Duplicate removed
+    // professionalDashboard: "Panel Profesional",
     // totalEarned: "Total Ganado",
     // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
     averageRating: "Calificación Promedio",
     clientRetention: "Retención de Clientes",
     weeklyPerformance: "Rendimiento Semanal",
     statusDistribution: "Distribución de Estado",
-    // completed: "Completadas", // Duplicate removed
+    // completed: "Completadas",
     // pending: "Pendientes", // Duplicate removed
-    // cancelled: "Canceladas", // Duplicate removed
+    // cancelled: "Canceladas",
     recurringClients: "Clientes Recurrentes",
     recentReviews: "Reseñas Recientes",
     availabilityCalendar: "Calendario de Disponibilidad",
@@ -2642,7 +2642,7 @@ export const translations = {
     professionalCertifications: "Certificaciones Profesionales",
     certificationName: "Nombre de la Certificación",
     issuingOrganization: "Organización Emisora",
-    // year: "Año", // Duplicate removed
+    // year: "Año",
     
     buildTrustWithClients: "✓ ¡Genera confianza con los clientes! Sube una verificación de antecedentes de un proveedor de confianza.",
     

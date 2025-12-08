@@ -161,10 +161,10 @@ function LayoutContent({ children, currentPageName }) {
     queryFn: async () => {
       try {
         const userData = await base44.auth.me();
-        console.log("User loaded:", userData?.email);
+        // console.log("User loaded:", userData?.email);
         return userData;
       } catch (err) {
-        console.error("Auth error:", err);
+        // console.error("Auth error:", err);
         return null;
       }
     },

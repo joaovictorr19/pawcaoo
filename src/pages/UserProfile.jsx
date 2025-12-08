@@ -126,7 +126,7 @@ export default function UserProfile() {
         profileEmailParam = decodeURIComponent(profileEmailParam);
       }
     } catch (e) {
-      console.error("Error decoding email:", e);
+      // console.error("Error decoding email:", e);
     }
   }
   
@@ -162,7 +162,7 @@ export default function UserProfile() {
             userProfile = byUsername[0];
           }
         } catch (e) {
-          console.error('Error fetching by Username:', e);
+          // console.error('Error fetching by Username:', e);
         }
       }
 
@@ -175,7 +175,7 @@ export default function UserProfile() {
               userProfile = byEmail[0];
             }
           } catch (e) {
-            console.error('Error fetching self profile:', e);
+            // console.error('Error fetching self profile:', e);
           }
         } else {
            // If trying to view own profile but not logged in, we can't show it.
@@ -240,11 +240,11 @@ export default function UserProfile() {
                      is_virtual_profile: true
                   };
                 }
-             } catch (err) { console.log('Admin User ID lookup failed', err); }
+             } catch (err) { /* Admin User ID lookup failed */ }
           }
 
         } catch (e) {
-          console.error('Error fetching by ID:', e);
+          // console.error('Error fetching by ID:', e);
         }
       }
 
@@ -274,7 +274,7 @@ export default function UserProfile() {
               }
            }
         } catch (e) {
-          console.error('Error fetching by Name:', e);
+          // console.error('Error fetching by Name:', e);
         }
       }
 
@@ -323,11 +323,11 @@ export default function UserProfile() {
                      is_virtual_profile: true
                    };
                  }
-               } catch(err) { console.log('Admin fetch fallback failed'); }
+               } catch(err) { /* Admin fetch fallback failed */ }
             }
 
           } catch (e) {
-            console.error('Error fetching by Email:', e);
+            // console.error('Error fetching by Email:', e);
           }
         }
       }
@@ -352,7 +352,7 @@ export default function UserProfile() {
           };
           userProfile = await base44.entities.UserProfile.create(payload);
         } catch (error) {
-          console.error("Profile creation failed:", error);
+          // console.error("Profile creation failed:", error);
           // Fallback to basic user data if creation fails
           userProfile = {
             ...currentUser,
@@ -412,7 +412,7 @@ export default function UserProfile() {
             if (key) badgesMap.set(key, { ...badgesMap.get(key), ...b });
           });
         } catch (e) {
-          console.error("Error fetching badges table:", e);
+          // console.error("Error fetching badges table:", e);
         }
       }
 
@@ -519,7 +519,7 @@ export default function UserProfile() {
           });
 
           if (uniqueToCreate.length > 0) {
-            console.log(`Syncing ${uniqueToCreate.length} missing badges to table...`);
+            // console.log(`Syncing ${uniqueToCreate.length} missing badges to table...`);
             await Promise.all(uniqueToCreate.map(badge => 
               base44.entities.UserBadge.create({
                 user_email: profileEmail,
@@ -547,7 +547,7 @@ export default function UserProfile() {
           }
         }
       } catch (err) {
-        console.error("Error syncing badges:", err);
+        // console.error("Error syncing badges:", err);
       }
     };
 
@@ -589,11 +589,11 @@ export default function UserProfile() {
       
       // If should be verified but profile says no
       if (shouldBeVerified && !profileUser.is_verified) {
-        console.log("Syncing verification status to true...");
+        // console.log("Syncing verification status to true...");
         try {
           await base44.entities.UserProfile.update(profileUser.id, { is_verified: true });
           queryClient.invalidateQueries(['profileUser']);
-        } catch(e) { console.error("Verification sync failed", e); }
+        } catch(e) { /* Verification sync failed */ }
       }
     };
     
@@ -752,7 +752,7 @@ export default function UserProfile() {
       toast.success('Agora você está seguindo!');
     },
     onError: (error) => {
-      console.error("Follow mutation error:", error);
+      // console.error("Follow mutation error:", error);
       toast.error("Erro ao seguir usuário. Tente novamente.");
     }
   });
