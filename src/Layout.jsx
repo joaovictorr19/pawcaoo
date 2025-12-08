@@ -190,6 +190,22 @@ function LayoutContent({ children, currentPageName }) {
     ...queryConfig.notifications,
   });
 
+  const { data: unreadChatCount } = useQuery({
+    queryKey: ['unreadChatCount', authUser?.email],
+    queryFn: async () => {
+      if (!authUser?.email) return 0;
+      try {
+        const convos = await base44.entities.ChatConversation.filter({});
+        return convos.reduce((acc, cv) => acc + (cv.unread_counts?.[authUser.email] || 0), 0);
+      } catch (error) {
+        console.error("Chat count fetch error:", error);
+        return 0;
+      }
+    },
+    enabled: !!authUser?.email,
+    refetchInterval: 15000,
+  });
+
   const { data: ownerSubscription } = useQuery({
     queryKey: ['ownerSubscription'],
     queryFn: async () => {
@@ -813,8 +829,18 @@ function LayoutContent({ children, currentPageName }) {
                 </Badge>
               )}
 
+              {/* Inbox Trigger */}
+              {authUser && (
+                <Link to={createPageUrl("Inbox")} className="ml-auto md:ml-0 flex-shrink-0 mr-2">
+                  <Badge className={`${(unreadChatCount || 0) > 0 ? 'bg-blue-600' : 'bg-gray-200 text-gray-500'} text-white px-2 md:px-3 py-1 hover:bg-blue-700 transition-colors shadow-lg cursor-pointer`}>
+                    <MessageCircle className="w-3 h-3 md:w-4 h-4 md:mr-1" />
+                    {(unreadChatCount || 0) > 0 && <span className="hidden sm:inline ml-1">{unreadChatCount}</span>}
+                  </Badge>
+                </Link>
+              )}
+
               {/* Notification Trigger */}
-              <div className="ml-auto md:ml-0 flex-shrink-0 cursor-pointer" onClick={() => setIsNotificationPanelOpen(true)}>
+              <div className="flex-shrink-0 cursor-pointer" onClick={() => setIsNotificationPanelOpen(true)}>
                 <Badge className={`${unreadCount > 0 ? 'bg-red-500' : 'bg-gray-200 text-gray-500'} text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors shadow-lg`}>
                   <Bell className="w-3 h-3 md:w-4 h-4 md:mr-1" />
                   {unreadCount > 0 && <span className="hidden sm:inline ml-1">{unreadCount}</span>}
