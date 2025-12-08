@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, Loader2, Camera, User } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
+import ImageCropModal from "./ImageCropModal";
 
 export default function CenteredAvatarUpload({ currentImageUrl, onImageChange, size = "large" }) {
   const [isUploading, setIsUploading] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -15,20 +19,42 @@ export default function CenteredAvatarUpload({ currentImageUrl, onImageChange, s
       return;
     }
 
+    // Create object URL for cropping
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
+    setCropModalOpen(true);
+    
+    // Reset input value to allow selecting the same file again if needed
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCropSave = async (croppedFile) => {
+    setCropModalOpen(false);
     setIsUploading(true);
 
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Upload the cropped file directly
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
+      
       if (!file_url) throw new Error("URL não retornada");
 
       onImageChange(file_url);
-      toast.success("Foto carregada com sucesso!");
+      toast.success("Foto atualizada com sucesso!");
     } catch (error) {
       console.error("Erro no upload:", error);
       toast.error("Falha ao enviar imagem. Tente novamente.");
     } finally {
       setIsUploading(false);
+      // Clean up object URL
+      if (selectedImage) URL.revokeObjectURL(selectedImage);
+      setSelectedImage(null);
     }
+  };
+
+  const handleCropClose = () => {
+    setCropModalOpen(false);
+    if (selectedImage) URL.revokeObjectURL(selectedImage);
+    setSelectedImage(null);
   };
 
   const dimensions = size === "large" ? "w-32 h-32" : "w-24 h-24";
@@ -62,6 +88,7 @@ export default function CenteredAvatarUpload({ currentImageUrl, onImageChange, s
         <label className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-full cursor-pointer shadow-lg transition-all transform hover:scale-110 active:scale-95 z-10">
           <Camera className="w-4 h-4" />
           <input 
+            ref={fileInputRef}
             type="file" 
             className="hidden" 
             accept="image/png, image/jpeg, image/webp"
@@ -73,6 +100,15 @@ export default function CenteredAvatarUpload({ currentImageUrl, onImageChange, s
       <p className="mt-3 text-sm text-gray-500 font-medium">
         {isUploading ? "A carregar..." : "Foto de Perfil"}
       </p>
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        onClose={handleCropClose}
+        imageUrl={selectedImage}
+        onSave={handleCropSave}
+        circularCrop={true}
+        aspectRatio={1}
+      />
     </div>
   );
 }
