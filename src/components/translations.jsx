@@ -693,6 +693,7 @@ export const translations = {
     
     servicesOffered: "Serviços Oferecidos",
     servicesOfferedDesc: "Defina os seus pacotes de serviços e preços",
+    serviceNumber: "Serviço #",
     commonServices: "Sugestões Rápidas:",
     groomingService: "Banho e Tosa",
     groomingDesc: "Banho completo, tosa higiênica, corte de unhas e limpeza.",
@@ -1594,6 +1595,7 @@ export const translations = {
     
     servicesOffered: "Services Offered",
     servicesOfferedDesc: "Define your service packages and pricing",
+    serviceNumber: "Service #",
     commonServices: "Quick Suggestions:",
     groomingService: "Grooming",
     groomingDesc: "Full bath, hair cut, nail trimming and cleaning.",
@@ -2495,6 +2497,7 @@ export const translations = {
     
     servicesOffered: "Servicios Ofrecidos",
     servicesOfferedDesc: "Define tus paquetes de servicios y precios",
+    serviceNumber: "Servicio #",
     commonServices: "Sugerencias Rápidas:",
     groomingService: "Baño y Peluquería",
     groomingDesc: "Baño completo, corte de pelo, corte de uñas y limpieza.",
