@@ -23,19 +23,19 @@ export default function ManageAvailability() {
   ]);
   const [isDayOff, setIsDayOff] = useState(false);
 
-  const { data: user } = useQuery({
+  const { data: authUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
   const { data: walkerProfile } = useQuery({
-    queryKey: ['walkerProfile', user?.email],
+    queryKey: ['walkerProfile', authUser?.email],
     queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      if (!authUser?.email) return null;
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
       return profiles && profiles.length > 0 ? profiles[0] : null;
     },
-    enabled: !!user?.email,
+    enabled: !!authUser?.email,
   });
 
   const updateGeneralAvailabilityMutation = useMutation({
@@ -61,31 +61,31 @@ export default function ManageAvailability() {
   };
 
   const { data: availabilityData } = useQuery({
-    queryKey: ['availability', user?.email],
+    queryKey: ['availability', authUser?.email],
     queryFn: () => {
-      if (!user?.email) return [];
-      return base44.entities.CalendarAvailability.filter({ professional_email: user.email });
+      if (!authUser?.email) return [];
+      return base44.entities.CalendarAvailability.filter({ professional_email: authUser.email });
     },
-    enabled: !!user?.email,
+    enabled: !!authUser?.email,
     initialData: [],
   });
 
   const { data: bookings } = useQuery({
-    queryKey: ['professionalBookings', user?.email],
+    queryKey: ['professionalBookings', authUser?.email],
     queryFn: async () => {
-      if (!user?.email) return [];
+      if (!authUser?.email) return [];
       // Filter bookings where the current user is the professional
-      const walkerBookings = await base44.entities.Booking.filter({ walker_email: user.email });
+      const walkerBookings = await base44.entities.Booking.filter({ walker_email: authUser.email });
       // Try to fetch trainer bookings if entity exists (handling potential missing schema in some envs)
       let trainerBookings = [];
       try {
-         trainerBookings = await base44.entities.TrainingBooking.filter({ trainer_email: user.email });
+         trainerBookings = await base44.entities.TrainingBooking.filter({ trainer_email: authUser.email });
       } catch (e) {
          console.log("Training bookings not available or error fetching");
       }
       return [...walkerBookings, ...trainerBookings];
     },
-    enabled: !!user?.email,
+    enabled: !!authUser?.email,
     initialData: [],
   });
 
@@ -99,8 +99,8 @@ export default function ManageAvailability() {
       } else {
         return await base44.entities.CalendarAvailability.create({
           ...data,
-          professional_email: user?.email,
-          professional_name: user?.full_name,
+          professional_email: authUser?.email,
+          professional_name: authUser?.full_name,
           professional_type: "walker",
           date: dateStr
         });
@@ -114,7 +114,7 @@ export default function ManageAvailability() {
       nextWeek.setDate(nextWeek.getDate() + 7);
       
       base44.entities.Notification.create({
-        recipient_email: user?.email,
+        recipient_email: authUser?.email,
         title: t('manageAvailability', language),
         message: `${t('setAvailableTimeSlots', language)} ${format(nextWeek, 'MMM d, yyyy')}`,
         type: "system",
