@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Plus, User, Search, LifeBuoy, MapPin, Clock, ChevronRight } from "lucide-react";
+import { MessageCircle, Plus, User, Search, LifeBuoy, MapPin, Clock, ChevronRight, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { toast } from "sonner";
@@ -96,6 +96,21 @@ export default function Inbox() {
     }
   });
 
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (chatId) => {
+      await base44.entities.ChatConversation.delete(chatId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myConversations']);
+      queryClient.invalidateQueries(['unreadChatCount']);
+      toast.success("Conversa apagada.");
+      if (selectedChatId) {
+        navigate(createPageUrl('Inbox'));
+      }
+    },
+    onError: () => toast.error("Erro ao apagar.")
+  });
+
   const handleConversationClick = (conversation) => {
     // If it's a booking chat, verify if it should go to Live Walk or standard chat
     // Based on user request "Se for um passeio ativo... Maps".
@@ -125,7 +140,8 @@ export default function Inbox() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto h-[calc(100vh-64px)] md:py-6 px-4">
+      {/* Ajuste de altura para não ocupar 100% da tela e dar respiro */}
+      <div className="max-w-7xl mx-auto h-[calc(90vh-64px)] min-h-[500px] md:py-6 px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
           
           {/* Left Column: Conversation List */}
@@ -238,12 +254,30 @@ export default function Inbox() {
                             )}
                           </div>
                           
-                          <div className="flex justify-between items-center">
-                            <p className={`text-xs truncate ${unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                          <div className="flex justify-between items-center relative group/item">
+                            <p className={`text-xs truncate pr-6 ${unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
                               {conv.last_message || "Sem mensagens"}
                             </p>
+                            
+                            {/* Delete Button (visible on hover or touch) */}
+                            <div className="absolute right-0 bottom-0 top-0 flex items-center bg-white/80 backdrop-blur-sm pl-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if(confirm("Apagar conversa?")) {
+                                    deleteConversationMutation.mutate(conv.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+
                             {unread > 0 && (
-                              <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-600 text-[10px]">
+                              <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-600 text-[10px] shrink-0 group-hover/item:opacity-0 transition-opacity">
                                 {unread}
                               </Badge>
                             )}

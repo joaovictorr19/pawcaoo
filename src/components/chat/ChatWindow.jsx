@@ -246,21 +246,19 @@ export default function ChatWindow({ conversationId, currentUser }) {
             </Button>
           )}
 
-          {!isSupport && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
-              onClick={() => {
-                if(confirm("Tem certeza que deseja apagar esta conversa? O histórico será perdido para ambos.")) {
-                  deleteChatMutation.mutate();
-                }
-              }}
-              title="Apagar Conversa"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+            onClick={() => {
+              if(confirm("Tem certeza que deseja apagar esta conversa? O histórico será perdido para ambos.")) {
+                deleteChatMutation.mutate();
+              }
+            }}
+            title="Apagar Conversa"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
 
           <Button 
             variant="ghost" 
