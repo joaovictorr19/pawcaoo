@@ -94,10 +94,40 @@ export default function ChatWindow({ conversationId, currentUser }) {
   });
 
   const handleSend = (e) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+    if (e) e.preventDefault();
+    if (!message.trim() || sendMessageMutation.isPending) return;
     sendMessageMutation.mutate(message);
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const closeChatMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.ChatConversation.update(conversationId, {
+        status: 'closed',
+        last_message: 'Atendimento encerrado.',
+        last_message_date: new Date().toISOString()
+      });
+      // Also send a system message
+      await base44.entities.ChatMessage.create({
+        conversation_id: conversationId,
+        sender_email: 'system',
+        sender_name: 'Sistema',
+        content: 'Este atendimento foi encerrado.',
+        timestamp: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['conversation', conversationId]);
+      queryClient.invalidateQueries(['chatMessages', conversationId]);
+      toast.success("Atendimento encerrado com sucesso.");
+    }
+  });
 
   if (!conversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
 
@@ -231,27 +261,35 @@ export default function ChatWindow({ conversationId, currentUser }) {
                 </div>
                 {/* Input Area Otimizada */}
                 <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
-                  <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                    <Input 
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Escreva sua mensagem..."
-                      className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
-                      autoComplete="off"
-                    />
-                    <Button 
-                      type="submit" 
-                      size="icon" 
-                      disabled={!message.trim()}
-                      className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
-                        message.trim() 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
-                          : 'bg-gray-200 text-gray-400 scale-95'
-                      }`}
-                    >
-                      <Send className="w-5 h-5 ml-0.5" />
-                    </Button>
-                  </form>
+                  {conversation.status === 'closed' ? (
+                    <div className="text-center p-2 text-gray-500 bg-gray-50 rounded-lg text-sm">
+                      Este atendimento foi encerrado.
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                      <Input 
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Escreva sua mensagem..."
+                        className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
+                        autoComplete="off"
+                        disabled={sendMessageMutation.isPending}
+                      />
+                      <Button 
+                        type="submit" 
+                        size="icon" 
+                        disabled={!message.trim() || sendMessageMutation.isPending}
+                        className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
+                          message.trim() && !sendMessageMutation.isPending
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
+                            : 'bg-gray-200 text-gray-400 scale-95'
+                        }`}
+                      >
+                        <Send className="w-5 h-5 ml-0.5" />
+                      </Button>
+                    </form>
+                  )}
                 </div>
              </TabsContent>
 
@@ -291,27 +329,35 @@ export default function ChatWindow({ conversationId, currentUser }) {
               })}
             </div>
             <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
-              <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                <Input 
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Escreva sua mensagem..."
-                  className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
-                  autoComplete="off"
-                />
-                <Button 
-                  type="submit" 
-                  size="icon" 
-                  disabled={!message.trim()}
-                  className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
-                    message.trim() 
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
-                      : 'bg-gray-200 text-gray-400 scale-95'
-                  }`}
-                >
-                  <Send className="w-5 h-5 ml-0.5" />
-                </Button>
-              </form>
+              {conversation.status === 'closed' ? (
+                <div className="text-center p-2 text-gray-500 bg-gray-50 rounded-lg text-sm">
+                  Este atendimento foi encerrado.
+                </div>
+              ) : (
+                <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                  <Input 
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Escreva sua mensagem..."
+                    className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
+                    autoComplete="off"
+                    disabled={sendMessageMutation.isPending}
+                  />
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    disabled={!message.trim() || sendMessageMutation.isPending}
+                    className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
+                      message.trim() && !sendMessageMutation.isPending
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
+                        : 'bg-gray-200 text-gray-400 scale-95'
+                    }`}
+                  >
+                    <Send className="w-5 h-5 ml-0.5" />
+                  </Button>
+                </form>
+              )}
             </div>
           </>
         )}

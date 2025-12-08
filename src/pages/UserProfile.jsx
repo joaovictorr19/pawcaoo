@@ -1007,14 +1007,50 @@ export default function UserProfile() {
                       </Button>
                     )}
                     {!isOwnProfile && currentUser && (
-                      <Button
-                        onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
-                        disabled={followMutation.isPending || unfollowMutation.isPending}
-                        className={isFollowing ? 'bg-gray-200 text-gray-700 w-full' : 'bg-blue-600 text-white w-full'}
-                        size="sm"
-                      >
-                        {isFollowing ? 'Seguindo' : 'Seguir'}
-                      </Button>
+                      <div className="flex gap-2 w-full">
+                        <Button
+                          onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
+                          disabled={followMutation.isPending || unfollowMutation.isPending}
+                          className={`flex-1 ${isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}`}
+                          size="sm"
+                        >
+                          {isFollowing ? 'Seguindo' : 'Seguir'}
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            try {
+                              // Check existing chat
+                              const existingChats = await base44.entities.ChatConversation.filter({});
+                              const myChat = existingChats.find(c => 
+                                c.participants?.includes(currentUser.email) && 
+                                c.participants?.includes(profileEmail) &&
+                                !c.booking_id // Prefer general chat
+                              );
+                              
+                              if (myChat) {
+                                navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
+                              } else {
+                                // Create new chat
+                                const newChat = await base44.entities.ChatConversation.create({
+                                  participants: [currentUser.email, profileEmail],
+                                  tags: ['general'],
+                                  last_message: 'Nova conversa iniciada.',
+                                  last_message_date: new Date().toISOString(),
+                                  unread_counts: { [currentUser.email]: 0, [profileEmail]: 1 }
+                                });
+                                navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
+                              }
+                            } catch (error) {
+                              toast.error("Erro ao abrir conversa.");
+                              console.error(error);
+                            }
+                          }}
+                          className="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"
+                          size="sm"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1091,13 +1127,48 @@ export default function UserProfile() {
 
                   {/* Desktop Actions */}
                   {!isOwnProfile && currentUser && (
-                    <Button
-                      onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
-                      disabled={followMutation.isPending || unfollowMutation.isPending}
-                      className={isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}
-                    >
-                      {isFollowing ? 'Seguindo' : 'Seguir'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
+                        disabled={followMutation.isPending || unfollowMutation.isPending}
+                        className={isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}
+                      >
+                        {isFollowing ? 'Seguindo' : 'Seguir'}
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          try {
+                            // Check existing chat
+                            const existingChats = await base44.entities.ChatConversation.filter({});
+                            const myChat = existingChats.find(c => 
+                              c.participants?.includes(currentUser.email) && 
+                              c.participants?.includes(profileEmail) &&
+                              !c.booking_id 
+                            );
+                            
+                            if (myChat) {
+                              navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
+                            } else {
+                              // Create new chat
+                              const newChat = await base44.entities.ChatConversation.create({
+                                participants: [currentUser.email, profileEmail],
+                                tags: ['general'],
+                                last_message: 'Nova conversa iniciada.',
+                                last_message_date: new Date().toISOString(),
+                                unread_counts: { [currentUser.email]: 0, [profileEmail]: 1 }
+                              });
+                              navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
+                            }
+                          } catch (error) {
+                            toast.error("Erro ao abrir conversa.");
+                            console.error(error);
+                          }
+                        }}
+                        className="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 px-3"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
 
