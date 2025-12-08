@@ -2623,9 +2623,91 @@ export default function AdminDashboard() {
                       <SelectItem value="epic">Épico</SelectItem>
                       <SelectItem value="legendary">Lendário</SelectItem>
                     </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                    </Select>
+                    </div>
+                    <div>
+                    <Label>Categoria</Label>
+                    <Select 
+                    value={customBadgeForm.category} 
+                    onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, category: value})}
+                    >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="special">Especial</SelectItem>
+                      <SelectItem value="social">Social</SelectItem>
+                      <SelectItem value="activity">Atividade</SelectItem>
+                      <SelectItem value="milestone">Marco</SelectItem>
+                      <SelectItem value="professional">Profissional</SelectItem>
+                    </SelectContent>
+                    </Select>
+                    </div>
+                    </div>
+
+                    {/* Critérios de Conquista */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                    <Label className="mb-2 block font-semibold text-gray-700">Condição de Conquista</Label>
+                    <div className="grid md:grid-cols-3 gap-3">
+                    <div className="md:col-span-1">
+                    <Select 
+                      value={customBadgeForm.criteria?.type || "manual"} 
+                      onValueChange={(value) => setCustomBadgeForm({
+                        ...customBadgeForm, 
+                        criteria: { ...customBadgeForm.criteria, type: value }
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">Manual (Admin)</SelectItem>
+                        <SelectItem value="action_count">Contagem de Ação</SelectItem>
+                        <SelectItem value="streak">Sequência (Streak)</SelectItem>
+                        <SelectItem value="xp_milestone">XP Acumulado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    </div>
+
+                    {customBadgeForm.criteria?.type !== 'manual' && (
+                    <>
+                      {customBadgeForm.criteria?.type !== 'xp_milestone' && (
+                        <div className="md:col-span-1">
+                          <Select 
+                            value={customBadgeForm.criteria?.action || "post"} 
+                            onValueChange={(value) => setCustomBadgeForm({
+                              ...customBadgeForm, 
+                              criteria: { ...customBadgeForm.criteria, action: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Ação" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="post">Post Criado</SelectItem>
+                              <SelectItem value="like_received">Like Recebido</SelectItem>
+                              <SelectItem value="comment">Comentário</SelectItem>
+                              <SelectItem value="booking">Reserva</SelectItem>
+                              <SelectItem value="review">Avaliação</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      <div className="md:col-span-1">
+                        <Input 
+                          type="number" 
+                          placeholder={customBadgeForm.criteria?.type === 'streak' ? "Dias" : "Quantidade"}
+                          value={customBadgeForm.criteria?.count || 0}
+                          onChange={(e) => setCustomBadgeForm({
+                            ...customBadgeForm, 
+                            criteria: { ...customBadgeForm.criteria, count: parseInt(e.target.value) }
+                          })}
+                        />
+                      </div>
+                    </>
+                    )}
+                    </div>
+                    </div>
 
               <div>
                 <Label>Imagem PNG (Opcional, máx 500KB)</Label>
