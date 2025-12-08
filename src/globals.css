@@ -1,3 +1,4 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -70,7 +71,19 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
+  
+  html, body {
+    @apply bg-background text-foreground overflow-x-hidden max-w-[100vw] w-full;
+    position: relative;
+  }
+
+  /* Fix global para evitar botões com texto vazando */
+  button {
+    @apply whitespace-normal h-auto min-h-[2.5rem] break-words !important;
+  }
+  
+  /* Garante que imagens não estourem containers */
+  img, video {
+    @apply max-w-full h-auto;
   }
 }
