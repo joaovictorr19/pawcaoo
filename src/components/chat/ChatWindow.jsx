@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck, MapPin } from "lucide-react";
 import CallModal from "./CallModal";
 import LiveWalkMap from "../tracking/LiveWalkMap";
 import { format } from "date-fns";
@@ -116,6 +116,9 @@ export default function ChatWindow({ conversationId, currentUser }) {
         type={callState.type}
         recipientName={displayName}
         recipientAvatar={displayAvatar}
+        recipientEmail={otherEmail}
+        onSendMessage={sendMessageMutation.mutate}
+        currentUser={currentUser}
       />
       
       {/* Header Compacto */}
@@ -151,6 +154,18 @@ export default function ChatWindow({ conversationId, currentUser }) {
           >
             <Video className="w-4 h-4" />
           </Button>
+          
+          {isLiveWalk && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 ml-1 bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
+              onClick={() => setActiveTab('map')}
+              title="Rastreamento em Tempo Real"
+            >
+              <MapPin className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
 
