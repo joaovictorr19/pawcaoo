@@ -53,15 +53,15 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
 
   const getStatusColor = (status) => {
     const colors = {
-      available: "bg-green-100 border-green-400 text-green-700",
-      partial: "bg-blue-100 border-blue-400 text-blue-700",
-      booked: "bg-red-100 border-red-400 text-red-700", // Manualmente Lotado
+      available: "bg-green-500 border-green-600 text-white hover:bg-green-600", // Verde para disponível (sólido)
+      partial: "bg-yellow-400 border-yellow-500 text-yellow-900", // Amarelo para pendente/parcial
+      booked: "bg-red-500 border-red-600 text-white", // Vermelho para lotado
       
-      pending: "bg-yellow-100 border-yellow-400 text-yellow-800", // Pendente
-      accepted: "bg-green-600 border-green-700 text-white font-bold shadow-sm", // Confirmado/Aceito
+      pending: "bg-yellow-400 border-yellow-500 text-yellow-900", // Amarelo para pendente
+      accepted: "bg-red-500 border-red-600 text-white", // Aceito = Ocupado para outros usuários (Vermelho)
       
-      past: "bg-gray-50 border-gray-200 text-gray-400",
-      unavailable: "bg-white border-gray-200 text-gray-600"
+      past: "bg-gray-100 border-gray-200 text-gray-300",
+      unavailable: "bg-white border-gray-200 text-gray-400"
     };
     return colors[status] || colors.unavailable;
   };
