@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ImageCropModal from "@/components/ui/ImageCropModal";
+import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
@@ -396,34 +397,43 @@ export default function AccountSettings() {
                   <p className="text-sm text-gray-600">Informações visíveis para todos</p>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Photos */}
+                  {/* Photos - Replaced with CenteredAvatarUpload */}
                   <div>
                     <Label className="mb-3 block">Foto de Perfil</Label>
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-20 h-20">
-                        <AvatarImage src={user?.profile_photo_url} />
-                        <AvatarFallback className="bg-green-600 text-white text-2xl">
-                          {user?.full_name?.[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <input
-                          ref={photoInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handlePhotoSelect(e, 'photo')}
-                          disabled={uploadingPhoto}
+                    <div className="flex justify-start">
+                      <div className="w-full max-w-xs">
+                        <CenteredAvatarUpload 
+                          currentImageUrl={user?.profile_photo_url}
+                          size="large"
+                          onImageChange={(url) => {
+                             // Create a new mutation call here since the original one expected a file object
+                             // We'll define a new helper or use a direct update function
+                             const updatePhotoUrl = async () => {
+                               // Update User Auth
+                               await base44.auth.updateMe({ profile_photo_url: url });
+                               
+                               // Sync with UserProfile entity
+                               if (userProfileEntity) {
+                                 await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: url });
+                               }
+                        
+                               // Sync with WalkerProfile
+                               if (walkerProfile) {
+                                 await base44.entities.WalkerProfile.update(walkerProfile.id, { photo_url: url });
+                               }
+                        
+                               // Sync with TrainerProfile
+                               if (trainerProfile) {
+                                 await base44.entities.TrainerProfile.update(trainerProfile.id, { photo_url: url });
+                               }
+                               
+                               queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+                               queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
+                             };
+                             
+                             updatePhotoUrl();
+                          }}
                         />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => photoInputRef.current?.click()}
-                          disabled={uploadingPhoto}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploadingPhoto ? 'Enviando...' : 'Alterar Foto'}
-                        </Button>
                       </div>
                     </div>
                   </div>
