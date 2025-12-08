@@ -64,6 +64,8 @@ import StaticExport from './pages/StaticExport';
 import ShelterRegister from './pages/ShelterRegister';
 import ShelterProfile from './pages/ShelterProfile';
 import EditWalkerProfile from './pages/EditWalkerProfile';
+import WalkerTrack from './pages/WalkerTrack';
+import LiveWalk from './pages/LiveWalk';
 import __Layout from './Layout.jsx';
 
 
@@ -134,6 +136,8 @@ export const PAGES = {
     "ShelterRegister": ShelterRegister,
     "ShelterProfile": ShelterProfile,
     "EditWalkerProfile": EditWalkerProfile,
+    "WalkerTrack": WalkerTrack,
+    "LiveWalk": LiveWalk,
 }
 
 export const pagesConfig = {
