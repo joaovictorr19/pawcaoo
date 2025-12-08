@@ -599,7 +599,7 @@ export const translations = {
     // professionalDashboard: "Painel Profissional", // Duplicate removed
     // totalEarned: "Total Ganho", // Duplicate removed
     // totalBookings: "Total Reservas", // Duplicate key, keeping the one above
-    // averageRating: "Rating Médio", // Duplicate removed
+    averageRating: "Rating Médio",
     clientRetention: "Retenção de Clientes",
     weeklyPerformance: "Performance Semanal",
     statusDistribution: "Distribuição de Status",
