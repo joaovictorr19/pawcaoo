@@ -129,7 +129,12 @@ export default function WalkerTracker() {
     }
 
     setIsTracking(true);
-    
+
+    // Update status to in_progress
+    base44.entities.Booking.update(bookingId, { status: 'in_progress' })
+      .then(() => toast.success("Passeio iniciado! Status atualizado."))
+      .catch(err => console.error("Erro ao atualizar status:", err));
+
     // Resume previous distance/route if continuing (simplified here to start fresh/append)
     if (booking?.route_coordinates?.length > 0) {
       const lastPoint = booking.route_coordinates[booking.route_coordinates.length - 1];

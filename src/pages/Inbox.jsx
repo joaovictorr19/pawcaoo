@@ -83,7 +83,7 @@ export default function Inbox() {
       setIsNewChatOpen(false);
       setNewChatEmail("");
       queryClient.invalidateQueries(['myConversations']);
-      navigate(createPageUrl("Inbox") + `?id=${chatId}`);
+      navigate(createPageUrl("Chat") + `?id=${chatId}`);
     },
     onError: (err) => toast.error(err.message)
   });
@@ -105,7 +105,7 @@ export default function Inbox() {
     if (conversation.booking_id) {
         navigate(`/walk/live/${conversation.booking_id}`);
     } else {
-        navigate(createPageUrl("Inbox") + `?id=${conversation.id}`);
+        navigate(createPageUrl("Chat") + `?id=${conversation.id}`);
     }
   };
 
