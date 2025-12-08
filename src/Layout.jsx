@@ -831,20 +831,28 @@ function LayoutContent({ children, currentPageName }) {
 
               {/* Inbox Trigger */}
               {authUser && (
-                <Link to={createPageUrl("Inbox")} className="ml-auto md:ml-0 flex-shrink-0 mr-2">
-                  <Badge className={`${(unreadChatCount || 0) > 0 ? 'bg-blue-600' : 'bg-gray-200 text-gray-500'} text-white px-2 md:px-3 py-1 hover:bg-blue-700 transition-colors shadow-lg cursor-pointer`}>
-                    <MessageCircle className="w-3 h-3 md:w-4 h-4 md:mr-1" />
-                    {(unreadChatCount || 0) > 0 && <span className="hidden sm:inline ml-1">{unreadChatCount}</span>}
-                  </Badge>
+                <Link to={createPageUrl("Inbox")} className="relative ml-auto md:ml-0 flex-shrink-0 mr-2 group">
+                  <div className="p-2.5 rounded-full hover:bg-blue-50 transition-all duration-200 active:scale-95">
+                    <MessageCircle className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${(unreadChatCount || 0) > 0 ? 'text-blue-600 fill-blue-100/50' : 'text-gray-500 group-hover:text-blue-600'}`} />
+                  </div>
+                  {(unreadChatCount || 0) > 0 && (
+                    <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-blue-600 border-[2px] border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-in zoom-in duration-300">
+                      {unreadChatCount}
+                    </span>
+                  )}
                 </Link>
               )}
 
               {/* Notification Trigger */}
-              <div className="flex-shrink-0 cursor-pointer" onClick={() => setIsNotificationPanelOpen(true)}>
-                <Badge className={`${unreadCount > 0 ? 'bg-red-500' : 'bg-gray-200 text-gray-500'} text-white px-2 md:px-3 py-1 hover:bg-red-600 transition-colors shadow-lg`}>
-                  <Bell className="w-3 h-3 md:w-4 h-4 md:mr-1" />
-                  {unreadCount > 0 && <span className="hidden sm:inline ml-1">{unreadCount}</span>}
-                </Badge>
+              <div className="relative flex-shrink-0 cursor-pointer mr-2 group" onClick={() => setIsNotificationPanelOpen(true)}>
+                <div className="p-2.5 rounded-full hover:bg-red-50 transition-all duration-200 active:scale-95">
+                  <Bell className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${unreadCount > 0 ? 'text-red-500 fill-red-100/50' : 'text-gray-500 group-hover:text-red-500'}`} />
+                </div>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 border-[2px] border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-in zoom-in duration-300">
+                    {unreadCount}
+                  </span>
+                )}
               </div>
 
               {!authUser && (
