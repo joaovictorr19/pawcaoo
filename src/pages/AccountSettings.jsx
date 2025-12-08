@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ImageCropModal from "@/components/ui/ImageCropModal";
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
+import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
