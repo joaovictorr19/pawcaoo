@@ -23,40 +23,12 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const [activeTab, setActiveTab] = useState("chat");
   const navigate = useNavigate();
 
-  // 1. Resolve Conversation (by ID or Booking ID)
-  const { data: conversation, isLoading: isLoadingConv, refetch: refetchConv } = useQuery({
-    queryKey: ['conversation', propConversationId, bookingId],
-    queryFn: async () => {
-      if (propConversationId) {
-        const res = await base44.entities.ChatConversation.filter({ id: propConversationId });
-        return res[0];
-      }
-      if (bookingId) {
-        // Busca por booking_id (Contexto de Sessão)
-        const res = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
-        return res[0] || null; 
-      }
-      return null;
-    },
-    enabled: !!propConversationId || !!bookingId,
-    refetchInterval: 3000
-  });
-
-  // 1.2 Optimistic UI & Client-Side ID Generation
-  const [optimisticConversation, setOptimisticConversation] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const creationAttempted = useRef(false);
-
-  // Merge Server Data with Optimistic Data
-  const activeConversation = conversation || optimisticConversation;
-  const conversationId = activeConversation?.id;
-
-  // 1.5 Fetch Linked Booking (Moved up to fix ReferenceError)
-  const activeBookingId = bookingId || conversation?.booking_id;
-  
-  const { data: booking } = useQuery({
+  // 1.5 Fetch Linked Booking (Necessary for creating chat context)
+  const activeBookingId = bookingId || null;
+  const { data: booking, isLoading: isLoadingBooking } = useQuery({
     queryKey: ['linkedBooking', activeBookingId],
     queryFn: async () => {
+      if (!activeBookingId) return null;
       const res = await base44.entities.Booking.filter({ id: activeBookingId });
       return res[0];
     },
@@ -66,82 +38,89 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   const isLiveWalk = booking?.status === 'in_progress';
 
+  // 1. Resolve Conversation (by ID or Booking ID) with ATOMIC CREATION logic
+  const { data: conversation, isLoading: isLoadingConv, refetch: refetchConv } = useQuery({
+    queryKey: ['conversation', propConversationId, bookingId],
+    queryFn: async () => {
+      // Cenário A: ID Explícito
+      if (propConversationId) {
+        const res = await base44.entities.ChatConversation.filter({ id: propConversationId });
+        return res[0];
+      }
+      
+      // Cenário B: Busca por Booking (Fonte da Verdade)
+      if (bookingId) {
+        const existing = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
+        if (existing && existing.length > 0) {
+          return existing[0];
+        }
+        // Se não existir, retornar null para que o useEffect de criação atue
+        return null;
+      }
+      return null;
+    },
+    enabled: !!propConversationId || !!bookingId,
+    refetchInterval: 3000
+  });
+
+  // Estado de Criação Atômica
+  const [isInitializing, setIsInitializing] = useState(false);
+  const creationAttempted = useRef(false);
+
   useEffect(() => {
-    const initChat = async () => {
-      // Se já existe do servidor, não faz nada
-      if (conversation) return;
-
-      // Se temos bookingId, booking carregado, e nenhum chat do servidor...
-      if (bookingId && booking && !isLoadingConv && !creationAttempted.current) {
-        creationAttempted.current = true;
-        setIsCreating(true);
-
-        // 1. Generate Client-Side ID
-        const newChatId = self.crypto?.randomUUID ? self.crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const atomicCreate = async () => {
+      // Só tenta criar se:
+      // 1. Temos bookingId (contexto de sessão)
+      // 2. A busca inicial confirmou que NÃO existe (conversation === null e !isLoadingConv)
+      // 3. O booking foi carregado (para saber os participantes)
+      // 4. Ainda não tentamos criar nesta montagem
+      if (bookingId && conversation === null && !isLoadingConv && booking && !creationAttempted.current && !isInitializing) {
         
-        const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
-        const participants = [currentUser.email, targetEmail];
+        creationAttempted.current = true;
+        setIsInitializing(true);
 
-        // 2. Set Optimistic State Immediately (No Null Render)
-        const optConv = {
-          id: newChatId,
-          booking_id: bookingId,
-          participants: participants,
-          tags: ['booking'],
-          last_message: 'Iniciando...',
-          last_message_date: new Date().toISOString(),
-          unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 },
-          status: 'active',
-          isOptimistic: true
-        };
-        setOptimisticConversation(optConv);
-
-        // 3. Background Creation
         try {
-          console.log("Creating conversation with Client-ID:", newChatId);
+          const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
+          const participants = [currentUser.email, targetEmail];
+
+          console.log("Atomic Creation: Initializing conversation for booking", bookingId);
+
+          // Chamada bloqueante ao backend
           await base44.entities.ChatConversation.create({
-            id: newChatId, // Envia ID gerado no front
-            participants: participants,
             booking_id: bookingId,
+            participants: participants,
             tags: ['booking'],
             last_message: 'Sessão iniciada',
             last_message_date: new Date().toISOString(),
-            unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 }
+            unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 },
+            status: 'active'
           });
-          // Refetch para confirmar sincronia
+
+          // Força refetch para obter o objeto OFICIAL do banco
           await refetchConv();
+          
         } catch (error) {
-          console.error("Error creating chat:", error);
-          // Se falhar criação com ID manual (ex: backend rejeita), tenta sem ID
-          if (!conversation) {
-             try {
-                await base44.entities.ChatConversation.create({
-                    participants: participants,
-                    booking_id: bookingId,
-                    tags: ['booking'],
-                    last_message: 'Sessão iniciada',
-                    unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 }
-                });
-                await refetchConv();
-             } catch(retryErr) {
-                 toast.error("Erro ao conectar ao chat.");
-             }
-          }
+          console.error("Critical: Failed to auto-create conversation", error);
+          toast.error("Erro ao conectar à sala de chat. Tente recarregar.");
         } finally {
-          setIsCreating(false);
+          setIsInitializing(false);
         }
       }
     };
 
-    initChat();
-  }, [bookingId, conversation, booking, isLoadingConv, currentUser.email, refetchConv]);
+    atomicCreate();
+  }, [bookingId, conversation, isLoadingConv, booking, isInitializing, currentUser.email, refetchConv]);
+
+  // Merge Server Data (No Optimistic needed for strict consistency)
+  const activeConversation = conversation;
+  const conversationId = activeConversation?.id;
+  const isChatReady = !!conversationId && !isInitializing;
 
   // (Returns moved to end of file to comply with Rules of Hooks)
 
   // Use activeConversation instead of conversation variable
   const conversationData = activeConversation; // Alias for easier refactoring below
-  const isNewChat = false;
-
+  
   // 2. Poll Messages & Mark as Read
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessages', conversationId],
@@ -207,33 +186,19 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     onError: (err) => toast.error("Erro ao apagar conversa.")
   });
 
-  // 3. Send Message Mutation
+  // 3. Send Message Mutation (Simplificada para usar apenas ID existente)
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
-      let activeConversationId = conversationId;
-      let participants = conversation?.participants;
-
-      // Fallback: Se por acaso ainda for novo chat (falha no auto-create), criar aqui
-      if (!activeConversationId && bookingId) {
-        if (!booking) throw new Error("Dados da reserva não carregados.");
-        
-        const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
-        participants = [currentUser.email, targetEmail];
-
-        const newConv = await base44.entities.ChatConversation.create({
-          participants: participants,
-          booking_id: bookingId,
-          tags: ['booking'],
-          last_message: content,
-          last_message_date: new Date().toISOString(),
-          unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 }
-        });
-        activeConversationId = newConv.id;
+      // Bloqueio de segurança: nunca tenta enviar se não houver ID confirmado
+      if (!conversationId) {
+        throw new Error("Conexão com chat não estabelecida. Aguarde...");
       }
+
+      let participants = conversationData?.participants;
 
       // 1. Create Message
       await base44.entities.ChatMessage.create({
-        conversation_id: activeConversationId,
+        conversation_id: conversationId,
         booking_id: activeBookingId || null,
         participants: participants ? Array.from(new Set([...participants, currentUser.email])) : [currentUser.email],
         sender_email: currentUser.email,
@@ -242,24 +207,21 @@ export default function ChatWindow({ conversationId: propConversationId, booking
         timestamp: new Date().toISOString()
       });
 
-      // 2. Update Conversation (if existing)
-      if (!isNewChat) {
-        await base44.entities.ChatConversation.update(activeConversationId, {
+      // 2. Update Conversation
+      try {
+        await base44.entities.ChatConversation.update(conversationId, {
           last_message: content,
           last_message_date: new Date().toISOString(),
         });
+      } catch (err) {
+        console.warn("Could not update conversation last_message", err);
       }
       
-      return activeConversationId;
+      return conversationId;
     },
-    onSuccess: (newId) => {
+    onSuccess: (id) => {
       setMessage("");
-      if (isNewChat) {
-        // Force refresh to switch from "New Chat" state to "Existing Chat"
-        queryClient.invalidateQueries(['conversation']); 
-        // Update URL to include ID if needed, or just rely on react-query state update
-      }
-      queryClient.invalidateQueries(['chatMessages', newId || conversationId]);
+      queryClient.invalidateQueries(['chatMessages', id]);
       queryClient.invalidateQueries(['myConversations']); 
     },
     onError: (error) => {
@@ -353,19 +315,22 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
   // Final Checks before Render
-  if (bookingId && !activeConversation && !booking) {
-      return <div className="h-full flex items-center justify-center">Carregando dados da reserva...</div>;
-  }
-  
-  if (bookingId && !activeConversation) {
+  if (isInitializing) {
      return <div className="h-full flex items-center justify-center flex-col gap-2">
       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-sm text-gray-500">Gerando chave de segurança...</p>
+      <p className="text-sm text-gray-500">Conectando à sala segura...</p>
     </div>;
   }
 
-  if (isLoadingConv && !activeConversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
-  if (!activeConversation) return <div className="h-full flex items-center justify-center">Conversa não encontrada.</div>;
+  if (isLoadingConv && !activeConversation) return <div className="h-full flex items-center justify-center">Carregando conversa...</div>;
+  
+  // Se após carregar e tentar inicializar ainda não tiver conversa, mostra erro
+  if (!activeConversation && bookingId) {
+     // Pequeno delay visual ou estado de erro pode ser útil aqui
+     return <div className="h-full flex items-center justify-center text-red-500">Erro ao conectar ao chat. Tente recarregar.</div>;
+  }
+  
+  if (!activeConversation) return <div className="h-full flex items-center justify-center">Selecione uma conversa.</div>;
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative w-full">
@@ -563,15 +528,15 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Escreva sua mensagem..."
+                        placeholder={isChatReady ? "Escreva sua mensagem..." : "Conectando..."}
                         className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 h-10 text-sm placeholder:text-gray-400"
                         autoComplete="off"
-                        disabled={sendMessageMutation.isPending}
+                        disabled={sendMessageMutation.isPending || !isChatReady}
                       />
                       <Button 
                         type="submit" 
                         size="icon" 
-                        disabled={!message.trim() || sendMessageMutation.isPending}
+                        disabled={!message.trim() || sendMessageMutation.isPending || !isChatReady}
                         className={`rounded-full w-10 h-10 shadow-sm transition-all shrink-0 mb-0 ${
                           message.trim() && !sendMessageMutation.isPending
                             ? 'bg-blue-600 hover:bg-blue-700 text-white scale-100' 
