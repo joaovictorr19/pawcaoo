@@ -84,10 +84,20 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     setConnectionError(null);
 
     try {
-      const participants = [currentUser.email, targetEmail];
-      console.log("Atomic Creation: Initializing conversation for booking", bookingId, participants);
+      // Passo 1: Double-check se já existe (Find First)
+      // Garante estado mais recente antes de tentar criar
+      const existing = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
+      
+      if (existing && existing.length > 0) {
+        console.log("Chat existente encontrado. ID:", existing[0].id);
+        await refetchConv(); // Atualiza o estado do React Query com o chat encontrado
+        return; // PARE AQUI
+      }
 
-      // Chamada bloqueante ao backend
+      // Passo 2: Create (Se não encontrou)
+      const participants = [currentUser.email, targetEmail];
+      console.log("Criando novo chat para Booking:", bookingId);
+
       await base44.entities.ChatConversation.create({
         booking_id: bookingId,
         participants: participants,
@@ -98,12 +108,28 @@ export default function ChatWindow({ conversationId: propConversationId, booking
         status: 'active'
       });
 
-      // Força refetch para obter o objeto OFICIAL do banco
+      // Sucesso na criação
       await refetchConv();
       
     } catch (error) {
+      console.warn("Conflito ou erro na criação detectado. Tentando recuperar chat existente...", error);
+      
+      // Fallback: Tentativa de Recuperação (Retry Find)
+      // Útil se houve race condition (outro usuário criou milissegundos antes)
+      try {
+        const retryFind = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
+        if (retryFind && retryFind.length > 0) {
+           console.log("Recuperação com sucesso. Chat ID:", retryFind[0].id);
+           await refetchConv();
+           return;
+        }
+      } catch (retryError) {
+        console.error("Falha na recuperação:", retryError);
+      }
+
+      // Se chegou aqui, falhou na criação e na recuperação
       console.error("ERRO CRÍTICO NO CHAT:", error, error.message, error.response?.data);
-      setConnectionError("Erro ao conectar. Verifique permissões ou tente novamente.");
+      setConnectionError("Erro ao conectar. Tente novamente.");
       toast.error("Erro ao conectar à sala de chat.");
       creationAttempted.current = false; // Permitir retry manual
     } finally {
