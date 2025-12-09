@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map } from "lucide-react";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon } from "lucide-react";
 import { getGoogleCalendarUrl, generateICS, downloadICS, bookingToEvent } from "../components/calendar/calendarHelpers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
@@ -541,7 +541,7 @@ export default function MyBookings() {
                 className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => navigate(createPageUrl('LiveWalk') + `?bookingId=${booking.id}`)}
               >
-                <Map className="w-3.5 h-3.5 mr-1.5" />
+                <MapIcon className="w-3.5 h-3.5 mr-1.5" />
                 Acompanhar
               </Button>
             )}
