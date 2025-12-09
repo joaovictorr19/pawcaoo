@@ -525,7 +525,7 @@ export default function WalkerDetails() {
         </div>
 
         {/* BOOKING SECTION - SPLIT LAYOUT */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-8" id="booking-section">
+        <div className="grid lg:grid-cols-[350px_1fr] gap-8 mb-8 items-start" id="booking-section">
             {/* LEFT: CALENDAR */}
             <Card className="border-0 shadow-md h-fit">
               <CardHeader className="py-4 px-5">

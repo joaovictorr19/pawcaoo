@@ -144,24 +144,15 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
         {/* Compact Legend */}
         <div className="flex flex-wrap gap-1.5 md:gap-2 mt-3 md:mt-4 pt-2 md:pt-3 border-t">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-100 border border-green-400" />
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-500 border border-green-600" />
             <span className="text-[10px] md:text-xs text-gray-600">{t('available', language)}</span>
           </div>
-          {/* Hide Partial if redundant or confuse user with Pending/Accepted */}
-          {/* <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-blue-100 border border-blue-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('partiallyBooked', language)}</span>
-          </div> */}
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-yellow-100 border border-yellow-400" />
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-yellow-400 border border-yellow-500" />
             <span className="text-[10px] md:text-xs text-gray-600">{t('pending', language)}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-600 border border-green-700" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('accepted', language)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-500 border border-red-600" />
             <span className="text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
           </div>
         </div>
