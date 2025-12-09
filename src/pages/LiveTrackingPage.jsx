@@ -3,16 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import LiveWalkMap from '@/components/tracking/LiveWalkMap';
 import ChatWindow from '@/components/chat/ChatWindow';
 import WalkerGPSButton from '@/components/tracking/WalkerGPSButton';
+import ClientGPSButton from '@/components/tracking/ClientGPSButton';
 import { base44 } from '@/api/base44Client';
-import { Loader2, ChevronLeft, MapPin } from 'lucide-react';
+import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { createPageUrl } from "@/utils";
-import { Button } from "@/components/ui/button";
 
 export default function LiveTrackingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  // Extração robusta do ID
+  // 1. Extração de ID à prova de falhas
   const searchParams = new URLSearchParams(window.location.search);
   const bookingId = id || searchParams.get('id') || searchParams.get('bookingId');
 
@@ -20,28 +20,27 @@ export default function LiveTrackingPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('split'); // 'split', 'map-only', 'chat-only'
 
   useEffect(() => {
     const init = async () => {
       try {
         const user = await base44.auth.me();
         if (!user) {
-           // Tenta redirecionar para login se não logado
            base44.auth.redirectToLogin(window.location.href);
            return;
         }
         setCurrentUser(user);
 
-        if (!bookingId) throw new Error("ID da reserva ausente.");
+        if (!bookingId) throw new Error("ID da reserva ausente na URL.");
         
+        // Busca exata pelo ID
         const data = await base44.entities.Booking.filter({ id: bookingId });
-        if (!data || data.length === 0) throw new Error("Reserva não encontrada.");
+        if (!data || data.length === 0) throw new Error("Reserva não encontrada no sistema.");
 
         setBooking(data[0]);
       } catch (err) {
-        console.error("Erro ao carregar página de rastreamento:", err);
-        setError(err.message || "Erro desconhecido");
+        console.error("Critical Error LiveTracking:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -50,147 +49,121 @@ export default function LiveTrackingPage() {
   }, [bookingId]);
 
   if (loading) return (
-    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center">
-      <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-      <p className="text-gray-600 font-medium">Conectando ao passeio...</p>
+    <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
+      <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
+      <span className="text-gray-500 font-medium">Sincronizando passeio...</span>
     </div>
   );
 
   if (error || !booking) return (
-    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="bg-red-50 p-4 rounded-full mb-4">
-          <MapPin className="w-8 h-8 text-red-500" />
+    <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center p-6 text-center">
+        <div className="bg-red-100 p-4 rounded-full mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-600" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Ops! Algo deu errado</h2>
-        <p className="text-red-600 mb-6">{error || "Não foi possível carregar os dados do passeio."}</p>
-        <Button 
-          onClick={() => window.location.href = createPageUrl('MyBookings')} 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-full"
+        <h3 className="text-lg font-bold text-gray-900">Falha ao Carregar</h3>
+        <p className="text-gray-600 mt-2 mb-6">{error || "Não foi possível acessar os dados."}</p>
+        <button 
+          onClick={() => window.location.href = createPageUrl('MyBookings')}
+          className="bg-gray-900 text-white px-6 py-3 rounded-lg font-medium"
         >
           Voltar para Minhas Reservas
-        </Button>
+        </button>
     </div>
   );
 
-  const isWalker = currentUser?.email === booking.walker_email;
-  const targetWalkerId = booking.walker_id || booking.walker?.id;
+  // 2. Lógica de Identificação (Case Insensitive para segurança)
+  const userEmail = currentUser?.email?.toLowerCase() || "";
+  const walkerEmail = booking.walker_email?.toLowerCase() || "";
+  const ownerEmail = booking.owner_email?.toLowerCase() || "";
 
-  // ESTILOS INLINE PARA GARANTIR O LAYOUT (Salva-vidas contra CSS global quebrado)
-  const containerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100dvh', // Dynamic viewport height para mobile
+  const isWalker = userEmail === walkerEmail;
+  const isClient = userEmail === ownerEmail;
+
+  // Se não for nenhum dos dois (ex: admin ou erro), trata como cliente (apenas vê)
+  const userRole = isWalker ? 'walker' : 'client';
+
+  // 3. LAYOUT GRID INQUEBRÁVEL
+  // Define linhas fixas: Header (60px), Mapa (35%), Action Bar (Auto), Chat (Resto)
+  const gridStyle = {
+    display: 'grid',
+    gridTemplateRows: '60px 35fr auto 65fr', // Proporção 35% Mapa / 65% Chat
+    height: '100dvh', // Altura real do dispositivo
     width: '100vw',
-    overflow: 'hidden',
     position: 'fixed',
     top: 0,
     left: 0,
     backgroundColor: '#fff',
-    zIndex: 9999 // Garante que fica por cima de tudo
-  };
-
-  const headerStyle = {
-    height: '50px',
-    flexShrink: 0,
-    borderBottom: '1px solid #e2e8f0',
-    display: 'flex',
-    alignItems: 'center',
-    padding: '0 12px',
-    backgroundColor: '#fff',
-    zIndex: 50
-  };
-
-  const mapContainerStyle = {
-    height: viewMode === 'map-only' ? 'calc(100dvh - 50px)' : '35vh',
-    width: '100%',
-    position: 'relative',
-    transition: 'height 0.3s ease',
-    flexShrink: 0,
-    display: viewMode === 'chat-only' ? 'none' : 'block',
-    borderBottom: '4px solid #3b82f6',
-    zIndex: 40
-  };
-
-  const controlsStyle = {
-    flexShrink: 0,
-    padding: '8px',
-    backgroundColor: '#eff6ff', // blue-50
-    borderBottom: '1px solid #dbeafe',
-    zIndex: 45
-  };
-
-  const chatContainerStyle = {
-    flex: 1,
-    width: '100%',
-    position: 'relative',
     overflow: 'hidden',
-    display: viewMode === 'map-only' ? 'none' : 'flex',
-    flexDirection: 'column',
-    backgroundColor: '#f8fafc',
-    zIndex: 30
+    zIndex: 9999
   };
 
   return (
-    <div style={containerStyle}>
+    <div style={gridStyle}>
       
-      {/* 1. HEADER */}
-      <div style={headerStyle}>
+      {/* AREA 1: HEADER (Fixo 60px) */}
+      <header className="border-b border-gray-200 bg-white flex items-center justify-between px-4 z-50">
         <button 
           onClick={() => navigate(-1)} 
-          className="flex items-center text-gray-600 font-bold text-sm p-2 -ml-2 hover:bg-gray-100 rounded-lg transition"
+          className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full"
         >
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          Voltar
+          <ChevronLeft className="w-6 h-6" />
         </button>
-        
-        <div className="flex-1 text-center truncate px-2">
-          <span className="font-semibold text-gray-800 text-sm">
-            {isWalker ? `Cliente: ${booking.owner_name}` : `Passeador: ${booking.walker_name}`}
-          </span>
-          <div className="text-[10px] text-green-600 font-medium flex items-center justify-center gap-1">
-             <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-             Em tempo real
-          </div>
+        <div className="text-center">
+          <h1 className="text-sm font-bold text-gray-900 truncate max-w-[200px]">
+            {isWalker ? booking.owner_name : booking.walker_name}
+          </h1>
+          <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">
+            ● Ao Vivo
+          </p>
         </div>
+        <div className="w-8"></div> {/* Spacer p/ centralizar */}
+      </header>
 
-        {/* View Toggle (Mobile UX) */}
-        <button 
-          onClick={() => setViewMode(prev => prev === 'split' ? 'map-only' : 'split')}
-          className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100"
-        >
-          {viewMode === 'split' ? 'Expandir Mapa' : 'Dividir Tela'}
-        </button>
-      </div>
-
-      {/* 2. MAPA */}
-      <div style={mapContainerStyle}>
-         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-           <LiveWalkMap 
-              bookingId={bookingId} 
-              walkerId={targetWalkerId} 
-              className="w-full h-full block"
-           />
+      {/* AREA 2: MAPA (35% da altura) */}
+      <div className="relative w-full bg-gray-100 border-b-4 border-blue-500 z-40 overflow-hidden">
+         {/* Forçamos o mapa a preencher absolutamente este container de grade */}
+         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <LiveWalkMap 
+              bookingId={booking.id} 
+              walkerId={booking.walker_id} 
+              className="w-full h-full"
+            />
          </div>
       </div>
 
-      {/* 3. CONTROLES (WALKER APENAS) */}
-      {isWalker && viewMode !== 'map-only' && (
-        <div style={controlsStyle}>
+      {/* AREA 3: BARRA DE AÇÃO (Auto height - se expande conforme conteúdo) */}
+      <div className="bg-white border-b border-gray-200 p-3 z-30 shadow-sm">
+        {isWalker && (
            <WalkerGPSButton 
-              bookingId={bookingId} 
-              currentBooking={booking}
-              className="w-full flex justify-center" // Remove absolute positioning
+             bookingId={booking.id} 
+             currentBooking={booking}
+             className="w-full" // Passa full width
            />
-        </div>
-      )}
+        )}
+        
+        {isClient && (
+           <ClientGPSButton 
+             bookingId={booking.id}
+           />
+        )}
 
-      {/* 4. CHAT */}
-      <div style={chatContainerStyle}>
-        <ChatWindow 
-            bookingId={bookingId} 
-            currentUser={currentUser}
-            embedded={true} 
-        />
+        {!isWalker && !isClient && (
+           <div className="text-center text-xs text-gray-400 py-2">
+             Modo Espectador
+           </div>
+        )}
+      </div>
+
+      {/* AREA 4: CHAT (Ocupa o resto) */}
+      <div className="relative w-full bg-slate-50 overflow-hidden z-20">
+         {/* Container absoluto interno para garantir scroll correto */}
+         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
+            <ChatWindow 
+               bookingId={booking.id} 
+               currentUser={currentUser}
+               embedded={true} 
+            />
+         </div>
       </div>
 
     </div>

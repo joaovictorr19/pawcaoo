@@ -74,13 +74,16 @@ const LiveMapViewer = ({ path }) => {
 
 // --- MAIN COMPONENT ---
 export default function LiveWalkMap({ bookingId, walkerId, className }) {
-  // Estilos inline forçados para evitar override global
-  const forcedStyles = {
+  // BLINDAGEM DO MAPA
+  // Ignora qualquer className externo que tente mudar height
+  const containerStyle = {
     width: '100%',
-    height: '100%',
-    minHeight: '100%',
-    position: 'relative',
-    zIndex: 1
+    height: '100%', 
+    position: 'absolute', // Mudado para absolute para preencher o pai (Grid Area)
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    overflow: 'hidden'
   };
   React.useEffect(() => {
       if (bookingId) {
@@ -122,12 +125,14 @@ export default function LiveWalkMap({ bookingId, walkerId, className }) {
   const center = path.length > 0 ? [path[path.length - 1].lat, path[path.length - 1].lng] : [38.7223, -9.1393];
 
   return (
-    <div className={className} style={forcedStyles}>
+    <div style={containerStyle}>
       <MapContainer 
         center={center} 
         zoom={16} 
         zoomControl={false}
-        style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}
+        scrollWheelZoom={true}
+        dragging={true}
+        style={{ width: "100%", height: "100%" }}
       >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
