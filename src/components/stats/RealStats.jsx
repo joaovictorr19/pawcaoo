@@ -67,8 +67,8 @@ export default function RealStats({ variant = "default" }) {
       description: "Verificados e ativos"
     },
     { 
-      value: (stats?.users || 0) + (stats?.professionals || 0), 
-      label: "Contas Criadas", 
+      value: stats?.users || 0, 
+      label: "Membros", 
       icon: Users,
       description: "Na nossa comunidade"
     },

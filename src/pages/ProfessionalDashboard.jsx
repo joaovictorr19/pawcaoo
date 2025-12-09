@@ -1046,18 +1046,15 @@ export default function ProfessionalDashboard() {
                             )}
 
                             {booking.status === 'confirmed' && new Date(booking.walk_date || booking.session_date) <= new Date() && (
-                               <div className="bg-red-50 p-2 rounded-lg border border-red-100 mb-2">
-                                 <p className="text-[10px] text-red-600 font-bold mb-1 text-center">HORÁRIO PASSADO - FINALIZAR?</p>
-                                 <Button
-                                    size="sm"
-                                    onClick={() => handleServiceCompleted(booking)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md h-10"
-                                    disabled={updateBookingStatusMutation.isPending}
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Concluir Passeio Agora
-                                  </Button>
-                               </div>
+                               <Button
+                                  size="sm"
+                                  onClick={() => handleServiceCompleted(booking)}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md h-10"
+                                  disabled={updateBookingStatusMutation.isPending}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Serviço Concluído
+                                </Button>
                             )}
 
                             {booking.status === 'service_completed' && (
@@ -1069,22 +1066,6 @@ export default function ProfessionalDashboard() {
                                 >
                                   <DollarSign className="w-4 h-4 mr-2" />
                                   Pagamento Recebido
-                                </Button>
-                            )}
-
-                            {booking.status === 'completed' && !reviews.some(r => r.booking_id === booking.id && r.reviewer_email === user?.email) && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    // Navigate to a review page or open modal. For now, using a placeholder alert or integrating review modal if available.
-                                    // Assuming ReviewForm can handle professional reviewing client (it can, based on previous analysis).
-                                    // Ideally we'd open a modal here.
-                                    navigate(createPageUrl('MyBookings') + `?review=${booking.id}&type=client`); 
-                                  }}
-                                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white h-10 shadow-sm"
-                                >
-                                  <Star className="w-4 h-4 mr-2" />
-                                  Avaliar Cliente
                                 </Button>
                             )}
                             
