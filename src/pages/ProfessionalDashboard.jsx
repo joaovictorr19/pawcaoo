@@ -1069,17 +1069,24 @@ export default function ProfessionalDashboard() {
                                 </Button>
                             )}
                             
-                            {booking.owner_phone && (
-                              <Button
-                                size="sm"
-                                onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
-                                variant="outline"
-                                className="w-full h-10 bg-green-50 border-green-200 text-green-700"
-                              >
-                                <MessageCircle className="w-3 h-3 mr-1" />
-                                WhatsApp
-                              </Button>
-                            )}
+                            {/* Botão WhatsApp Garantido */}
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                const phone = booking.owner_phone || booking.owner_whatsapp; 
+                                if (phone) {
+                                  window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank');
+                                } else {
+                                  toast.error("Número de WhatsApp do cliente não disponível.");
+                                }
+                              }}
+                              variant="outline"
+                              className="w-full h-10 bg-green-50 border-green-200 text-green-700"
+                              disabled={!booking.owner_phone && !booking.owner_whatsapp}
+                            >
+                              <MessageCircle className="w-3 h-3 mr-1" />
+                              WhatsApp
+                            </Button>
                           </div>
                         </div>
                       </div>
