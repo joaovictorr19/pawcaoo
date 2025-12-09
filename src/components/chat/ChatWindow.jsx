@@ -221,11 +221,14 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     }
   });
 
-  // Determine Other Email (Handle potential undefined participants)
+  // Determine Other Email
   const otherEmail = React.useMemo(() => {
+    if (isNewChat && booking) {
+       return booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
+    }
     if (!conversation?.participants) return "Participante";
     return conversation.participants.find(p => p !== currentUser?.email) || "Participante";
-  }, [conversation?.participants, currentUser?.email]);
+  }, [conversation?.participants, currentUser?.email, isNewChat, booking]);
 
   // Determine Display Info
   const isSupport = conversation?.tags?.includes('support');
