@@ -5,13 +5,13 @@ import { Dog, Star, Shield, Heart, Clock, TrendingUp, Users, Award, CheckCircle2
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import { Link, useNavigate } from "react-router-dom"; 
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import RealStats from "@/components/stats/RealStats";
 
 export default function Landing() {
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate();
 
   // Check if user is logged in
   const { data: user, isLoading, isError } = useQuery({
@@ -22,23 +22,21 @@ export default function Landing() {
 
   useEffect(() => {
     if (isError) {
-      // Silently handle auth check errors (usually just means not logged in or network issue)
       console.log("Auth check failed - user likely not logged in");
     }
   }, [isError]);
 
-  // Redirect to Home if user is logged in using navigate
+  // Redirect to Home if user is logged in
   useEffect(() => {
     if (!isLoading && user) {
-      navigate(createPageUrl("Home")); // Use navigate instead of window.location.href
+      navigate(createPageUrl("Home"));
     }
-  }, [user, isLoading, navigate]); // Added navigate to dependency array
+  }, [user, isLoading, navigate]);
 
   const handleLogin = () => {
     base44.auth.redirectToLogin();
   };
 
-  // Show loading while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
@@ -50,7 +48,6 @@ export default function Landing() {
     );
   }
 
-  // If user is logged in, don't show landing page (will redirect)
   if (user) {
     return null;
   }
@@ -84,12 +81,9 @@ export default function Landing() {
     {
       icon: Users,
       title: "Comunidade Vibrante",
-      description: "Junte-se a milhares de donos e profissionais apaixonados por cães"
+      description: "Junte-se à nossa comunidade de donos e profissionais apaixonados por cães"
     }
   ];
-
-  // Stats removidos para usar dados reais
-
 
   const services = [
     {
@@ -116,7 +110,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
-      {/* Navbar - Enhanced */}
+      {/* Navbar */}
       <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-green-100 dark:border-gray-700 sticky top-0 z-50 shadow-sm transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -162,7 +156,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section - Enhanced with animated logos */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-green-400 dark:bg-green-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 dark:opacity-10 animate-blob"></div>
@@ -177,7 +171,6 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            {/* Logo gigante animado */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -218,7 +211,7 @@ export default function Landing() {
               </Button>
             </div>
 
-            {/* Stats Reais */}
+            {/* Real Stats Component */}
             <div id="stats" className="mt-12">
               <RealStats />
             </div>
@@ -284,7 +277,7 @@ export default function Landing() {
               Por Que Escolher PawCão?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400">
-              A plataforma mais confiável de Portugal para cuidados caninos
+              A plataforma de confiança de Portugal para cuidados caninos
             </p>
           </motion.div>
 
@@ -329,7 +322,7 @@ export default function Landing() {
               Pronto Para Começar?
             </h2>
             <p className="text-xl mb-8 text-white/90 dark:text-gray-200">
-              Junte-se à nossa comunidade de donos e profissionais satisfeitos na plataforma de cuidados caninos de Portugal
+              Junte-se à nossa comunidade de donos e profissionais satisfeitos na maior plataforma de cuidados caninos de Portugal
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -345,7 +338,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer - Enhanced */}
+      {/* Footer */}
       <footer className="bg-gray-900 dark:bg-black text-white py-12 px-4 border-t border-gray-800">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">

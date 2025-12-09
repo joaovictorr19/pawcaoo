@@ -11,7 +11,7 @@ export default function AboutUs() {
   const content = {
     pt: {
       title: "Sobre o PawCão",
-      subtitle: "A plataforma #1 de cuidados caninos em Portugal",
+      subtitle: "A plataforma de confiança de cuidados caninos em Portugal",
       missionTitle: "A Nossa Missão",
       missionText: "Conectar donos de cães com profissionais verificados e apaixonados, criando uma comunidade onde cada cão recebe o melhor cuidado possível.",
       
@@ -43,9 +43,6 @@ export default function AboutUs() {
       ],
 
       statsTitle: "PawCão em Números (Tempo Real)",
-      // stats removido para usar RealStats
-
-
       whyTitle: "Por Que Escolher o PawCão?",
       whyItems: [
         {
@@ -78,7 +75,7 @@ export default function AboutUs() {
     },
     en: {
       title: "About PawCão",
-      subtitle: "Portugal's #1 dog care platform",
+      subtitle: "Portugal's trusted dog care platform",
       missionTitle: "Our Mission",
       missionText: "Connect dog owners with verified and passionate professionals, creating a community where every dog receives the best possible care.",
       
@@ -109,14 +106,7 @@ export default function AboutUs() {
         }
       ],
 
-      statsTitle: "PawCão in Numbers",
-      stats: [
-        { value: "10,000+", label: "Happy Dogs" },
-        { value: "500+", label: "Verified Professionals" },
-        { value: "50,000+", label: "Walks Completed" },
-        { value: "4.9/5", label: "Average Rating" }
-      ],
-
+      statsTitle: "PawCão by the Numbers (Real-Time)",
       whyTitle: "Why Choose PawCão?",
       whyItems: [
         {
@@ -149,7 +139,7 @@ export default function AboutUs() {
     },
     es: {
       title: "Sobre PawCão",
-      subtitle: "La plataforma #1 de cuidado canino en Portugal",
+      subtitle: "La plataforma de confianza de cuidado canino en Portugal",
       missionTitle: "Nuestra Misión",
       missionText: "Conectar dueños de perros con profesionales verificados y apasionados, creando una comunidad donde cada perro recibe el mejor cuidado posible.",
       
@@ -180,14 +170,7 @@ export default function AboutUs() {
         }
       ],
 
-      statsTitle: "PawCão en Números",
-      stats: [
-        { value: "10,000+", label: "Perros Felices" },
-        { value: "500+", label: "Profesionales Verificados" },
-        { value: "50,000+", label: "Paseos Realizados" },
-        { value: "4.9/5", label: "Calificación Promedio" }
-      ],
-
+      statsTitle: "PawCão en Números (Tiempo Real)",
       whyTitle: "¿Por Qué Elegir PawCão?",
       whyItems: [
         {
@@ -320,7 +303,7 @@ export default function AboutUs() {
           </div>
         </motion.div>
 
-        {/* Stats Reais */}
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -330,6 +313,7 @@ export default function AboutUs() {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
             {t.statsTitle}
           </h2>
+          {/* Using RealStats component */}
           <RealStats />
         </motion.div>
 
