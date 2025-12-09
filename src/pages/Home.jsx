@@ -760,7 +760,7 @@ export default function Home() {
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20 animate-fade-in">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                Plataforma de Pet Services de Confiança
+                #1 Plataforma de Pet Services em Portugal
               </div>
 
               <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight">
