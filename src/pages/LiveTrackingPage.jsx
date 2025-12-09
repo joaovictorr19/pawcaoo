@@ -1,14 +1,17 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import LiveWalkMap from "@/components/tracking/LiveWalkMap";
 import ChatWindow from "@/components/chat/ChatWindow";
 import WalkerGPSButton from "@/components/tracking/WalkerGPSButton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function LiveTrackingPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   // Support both route param and query param for maximum compatibility
   const searchParams = new URLSearchParams(window.location.search);
   const bookingId = id || searchParams.get('id') || searchParams.get('bookingId');
@@ -33,7 +36,7 @@ export default function LiveTrackingPage() {
 
   if (isLoading || !booking || !currentUser) {
     return (
-      <div className="h-screen flex flex-col overflow-hidden">
+      <div className="h-[100dvh] flex flex-col overflow-hidden">
         {/* Skeleton Top (Map) */}
         <Skeleton className="h-[35vh] w-full bg-slate-200" />
         {/* Skeleton Bottom (Chat) */}
@@ -50,15 +53,25 @@ export default function LiveTrackingPage() {
   const targetWalkerId = booking.walker_id || booking.walker?.id;
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden bg-white">
+    <div className="flex flex-col h-[100dvh] w-full bg-gray-50 overflow-hidden">
       {/* TOP: Map Area (Fixed 35%) */}
-      <div className="h-[35vh] w-full relative shrink-0 border-b border-gray-200 shadow-sm z-10">
+      <div className="h-[35%] w-full relative z-10 border-b shadow-sm">
         <LiveWalkMap 
           bookingId={bookingId} 
           walkerId={targetWalkerId} 
           className="w-full h-full"
         />
         
+        {/* Back Button */}
+        <Button 
+          onClick={() => navigate(-1)} 
+          size="sm"
+          className="absolute top-4 left-4 bg-white hover:bg-gray-100 text-gray-800 shadow-md z-[500] rounded-full px-3 h-9"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Voltar
+        </Button>
+
         {/* Walker Controls Overlay */}
         {isWalker && (
           <WalkerGPSButton 
@@ -68,13 +81,12 @@ export default function LiveTrackingPage() {
         )}
       </div>
 
-      {/* BOTTOM: Chat Area (Remaining Space) */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* BOTTOM: Chat Area (Fixed 65%) */}
+      <div className="h-[65%] w-full relative z-0 flex flex-col">
         <ChatWindow 
           bookingId={bookingId} 
           currentUser={currentUser} 
-          // We pass props to ChatWindow to potentially adjust its internal layout if needed, 
-          // but based on its code it adapts to container height.
+          embedded={true}
         />
       </div>
     </div>

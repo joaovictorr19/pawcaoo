@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
-export default function ChatWindow({ conversationId: propConversationId, bookingId, currentUser }) {
+export default function ChatWindow({ conversationId: propConversationId, bookingId, currentUser, embedded = false }) {
   // 1. Diagnóstico "Dedo-Duro" (Console) - Executado em cada render para debug imediato
   // O prompt pede isso na função openChat, mas como aqui é o componente que carrega, é o melhor lugar para ver o que chegou.
   // Será refinado após o carregamento dos dados do booking.
@@ -417,6 +417,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       />
       
       {/* Header Compacto */}
+      {!embedded && (
       <div className="flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shrink-0 z-10">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 border border-gray-100">
@@ -526,6 +527,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
           )}
         </div>
       </div>
+      )}
 
       {/* Tabs / Content Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
@@ -540,7 +542,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
           </div>
        )}
 
-       {isLiveWalk ? (
+       {(isLiveWalk && !embedded) ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <div className="px-4 pt-2 shrink-0">
                {activeTab === 'chat' && (
