@@ -51,6 +51,21 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const activeConversation = conversation || optimisticConversation;
   const conversationId = activeConversation?.id;
 
+  // 1.5 Fetch Linked Booking (Moved up to fix ReferenceError)
+  const activeBookingId = bookingId || conversation?.booking_id;
+  
+  const { data: booking } = useQuery({
+    queryKey: ['linkedBooking', activeBookingId],
+    queryFn: async () => {
+      const res = await base44.entities.Booking.filter({ id: activeBookingId });
+      return res[0];
+    },
+    enabled: !!activeBookingId,
+    refetchInterval: 10000 
+  });
+
+  const isLiveWalk = booking?.status === 'in_progress';
+
   useEffect(() => {
     const initChat = async () => {
       // Se já existe do servidor, não faz nada
@@ -136,22 +151,6 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   // Use activeConversation instead of conversation variable
   const conversationData = activeConversation; // Alias for easier refactoring below
   const isNewChat = false;
-
-
-  // 1.5 Fetch Linked Booking (to check status & participants for new chat)
-  const activeBookingId = bookingId || conversation?.booking_id;
-  
-  const { data: booking } = useQuery({
-    queryKey: ['linkedBooking', activeBookingId],
-    queryFn: async () => {
-      const res = await base44.entities.Booking.filter({ id: activeBookingId });
-      return res[0];
-    },
-    enabled: !!activeBookingId,
-    refetchInterval: 10000 
-  });
-
-  const isLiveWalk = booking?.status === 'in_progress';
 
   // 2. Poll Messages & Mark as Read
   const { data: messages = [] } = useQuery({
