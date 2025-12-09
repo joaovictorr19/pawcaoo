@@ -92,6 +92,12 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const creationAttempted = useRef(false);
 
   // Lógica "Force Create" / "Get OR Create"
+  // Alias para retrocompatibilidade se houver chamadas residuais de versões anteriores
+  const atomicCreate = async () => {
+     console.warn("Using atomicCreate alias");
+     return getOrCreateConversation();
+  };
+
   const getOrCreateConversation = async () => {
     if (!booking) return;
 
@@ -388,7 +394,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
          <div className="h-full flex items-center justify-center flex-col gap-3">
            <p className="text-red-500 font-medium">{connectionError}</p>
            <Button 
-             onClick={() => atomicCreate()} 
+             onClick={() => getOrCreateConversation()} 
              variant="outline"
              className="border-red-200 hover:bg-red-50 text-red-600"
            >
