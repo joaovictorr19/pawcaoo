@@ -336,6 +336,19 @@ export default function ChatWindow({ conversationId, currentUser }) {
             <Video className="w-4 h-4" />
           </Button>
           
+          {/* WhatsApp Button */}
+          {professionalContact && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-green-600 hover:bg-green-50"
+              onClick={() => window.open(`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`, '_blank')}
+              title="WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+          )}
+
           {isLiveWalk && (
             <Button
               variant="outline"
