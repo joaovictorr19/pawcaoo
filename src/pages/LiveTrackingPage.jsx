@@ -121,6 +121,14 @@ export default function LiveTrackingPage() {
 
       {/* AREA 2: MAPA (35% da altura) */}
       <div className="relative w-full bg-gray-100 border-b-4 border-blue-500 z-40 overflow-hidden">
+         {/* Aviso de WhatsApp sobreposto */}
+         <div className="absolute top-0 left-0 right-0 z-[60] bg-yellow-100/90 backdrop-blur-sm p-2 text-center border-b border-yellow-300">
+            <p className="text-xs text-yellow-800 font-bold flex items-center justify-center gap-2">
+               <AlertTriangle className="w-3 h-3" />
+               Mapa em manutenção. Use o WhatsApp para localização!
+            </p>
+         </div>
+
          {/* Forçamos o mapa a preencher absolutamente este container de grade */}
          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
             <LiveWalkMap 
@@ -142,9 +150,14 @@ export default function LiveTrackingPage() {
         )}
         
         {isClient && (
-           <ClientGPSButton 
-             bookingId={booking.id}
-           />
+           <div className="flex flex-col gap-2 w-full">
+             <div className="bg-blue-50 p-2 rounded text-center text-xs text-blue-800">
+               ⚠️ O mapa no chat pode apresentar instabilidade. Por favor, contacte o walker primeiro pelo WhatsApp.
+             </div>
+             <ClientGPSButton 
+               bookingId={booking.id}
+             />
+           </div>
         )}
 
         {!isWalker && !isClient && (
