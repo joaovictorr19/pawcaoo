@@ -586,7 +586,7 @@ export default function MyBookings() {
               <Button 
                 size="sm" 
                 className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => navigate(createPageUrl('LiveWalk') + `?bookingId=${booking.id}`)}
+                onClick={() => window.location.href = createPageUrl('LiveTrackingPage') + `?id=${booking.id}`}
               >
                 <MapIcon className="w-3.5 h-3.5 mr-1.5" />
                 Acompanhar
