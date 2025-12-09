@@ -163,7 +163,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
         booking_id: activeBookingId || null,
         participants: participants ? Array.from(new Set([...participants, currentUser.email])) : [currentUser.email],
         sender_email: currentUser.email,
-        sender_name: currentUser.full_name || currentUser.email.split('@')[0],
+        sender_name: currentUser.full_name || currentUser.email?.split('@')?.[0] || "Usuário",
         content: content,
         timestamp: new Date().toISOString()
       });
@@ -232,9 +232,13 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   // Determine Display Info
   const isSupport = conversation?.tags?.includes('support');
-  // Defensive programming: handle null/undefined otherEmail
-  const safeEmail = otherEmail || "";
-  const displayName = isSupport && safeEmail.includes('pawcao.net') ? "Suporte PawCão" : safeEmail.split('@')[0] || "Participante";
+  
+  // Defensive Programming (Lógica Obrigatória com Optional Chaining)
+  // Garante que otherEmail não seja nulo antes de tentar split
+  const displayName = isSupport && otherEmail?.includes('pawcao.net') 
+    ? "Suporte PawCão" 
+    : (otherEmail?.split('@')?.[0] || "Participante");
+    
   const displayAvatar = isSupport ? null : null;
 
   // Fetch Other User Profile for Status
