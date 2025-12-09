@@ -65,51 +65,63 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   // Estado de Criação Atômica
   const [isInitializing, setIsInitializing] = useState(false);
+  const [connectionError, setConnectionError] = useState(null);
   const creationAttempted = useRef(false);
 
+  const atomicCreate = async () => {
+    // Validação de Payload
+    if (!booking) return;
+    
+    const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
+    
+    if (!bookingId || !currentUser.email || !targetEmail) {
+      console.error("Dados faltando para criar chat:", { bookingId, currentUser: currentUser.email, targetEmail });
+      setConnectionError("Dados inválidos para iniciar chat.");
+      return;
+    }
+
+    setIsInitializing(true);
+    setConnectionError(null);
+
+    try {
+      const participants = [currentUser.email, targetEmail];
+      console.log("Atomic Creation: Initializing conversation for booking", bookingId, participants);
+
+      // Chamada bloqueante ao backend
+      await base44.entities.ChatConversation.create({
+        booking_id: bookingId,
+        participants: participants,
+        tags: ['booking'],
+        last_message: 'Sessão iniciada',
+        last_message_date: new Date().toISOString(),
+        unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 },
+        status: 'active'
+      });
+
+      // Força refetch para obter o objeto OFICIAL do banco
+      await refetchConv();
+      
+    } catch (error) {
+      console.error("ERRO CRÍTICO NO CHAT:", error, error.message, error.response?.data);
+      setConnectionError("Erro ao conectar. Verifique permissões ou tente novamente.");
+      toast.error("Erro ao conectar à sala de chat.");
+      creationAttempted.current = false; // Permitir retry manual
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
   useEffect(() => {
-    const atomicCreate = async () => {
-      // Só tenta criar se:
-      // 1. Temos bookingId (contexto de sessão)
-      // 2. A busca inicial confirmou que NÃO existe (conversation === null e !isLoadingConv)
-      // 3. O booking foi carregado (para saber os participantes)
-      // 4. Ainda não tentamos criar nesta montagem
-      if (bookingId && conversation === null && !isLoadingConv && booking && !creationAttempted.current && !isInitializing) {
-        
-        creationAttempted.current = true;
-        setIsInitializing(true);
-
-        try {
-          const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
-          const participants = [currentUser.email, targetEmail];
-
-          console.log("Atomic Creation: Initializing conversation for booking", bookingId);
-
-          // Chamada bloqueante ao backend
-          await base44.entities.ChatConversation.create({
-            booking_id: bookingId,
-            participants: participants,
-            tags: ['booking'],
-            last_message: 'Sessão iniciada',
-            last_message_date: new Date().toISOString(),
-            unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 },
-            status: 'active'
-          });
-
-          // Força refetch para obter o objeto OFICIAL do banco
-          await refetchConv();
-          
-        } catch (error) {
-          console.error("Critical: Failed to auto-create conversation", error);
-          toast.error("Erro ao conectar à sala de chat. Tente recarregar.");
-        } finally {
-          setIsInitializing(false);
-        }
-      }
-    };
-
-    atomicCreate();
-  }, [bookingId, conversation, isLoadingConv, booking, isInitializing, currentUser.email, refetchConv]);
+    // Só tenta criar se:
+    // 1. Temos bookingId (contexto de sessão)
+    // 2. A busca inicial confirmou que NÃO existe (conversation === null e !isLoadingConv)
+    // 3. O booking foi carregado (para saber os participantes)
+    // 4. Ainda não tentamos criar nesta montagem
+    if (bookingId && conversation === null && !isLoadingConv && booking && !creationAttempted.current && !isInitializing && !connectionError) {
+      creationAttempted.current = true;
+      atomicCreate();
+    }
+  }, [bookingId, conversation, isLoadingConv, booking, isInitializing, connectionError]);
 
   // Merge Server Data (No Optimistic needed for strict consistency)
   const activeConversation = conversation;
@@ -324,10 +336,23 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   if (isLoadingConv && !activeConversation) return <div className="h-full flex items-center justify-center">Carregando conversa...</div>;
   
-  // Se após carregar e tentar inicializar ainda não tiver conversa, mostra erro
+  // Se após carregar e tentar inicializar ainda não tiver conversa, mostra erro ou retry
   if (!activeConversation && bookingId) {
-     // Pequeno delay visual ou estado de erro pode ser útil aqui
-     return <div className="h-full flex items-center justify-center text-red-500">Erro ao conectar ao chat. Tente recarregar.</div>;
+     if (connectionError) {
+       return (
+         <div className="h-full flex items-center justify-center flex-col gap-3">
+           <p className="text-red-500 font-medium">{connectionError}</p>
+           <Button 
+             onClick={() => atomicCreate()} 
+             variant="outline"
+             className="border-red-200 hover:bg-red-50 text-red-600"
+           >
+             Tentar Novamente
+           </Button>
+         </div>
+       );
+     }
+     return <div className="h-full flex items-center justify-center text-gray-400">A aguardar conexão...</div>;
   }
   
   if (!activeConversation) return <div className="h-full flex items-center justify-center">Selecione uma conversa.</div>;
