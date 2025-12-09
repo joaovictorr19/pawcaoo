@@ -20,6 +20,11 @@ const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
 const deg2rad = (deg) => deg * (Math.PI / 180);
 
 export default function WalkerGPSButton({ bookingId, currentBooking, className }) {
+  // If className provided, use it (relative). If not, fallback to fixed bottom (absolute) for legacy use.
+  const containerClass = className 
+    ? className 
+    : "absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[500] w-full px-4 flex justify-center";
+
   const [isTracking, setIsTracking] = useState(false);
   const [wakeLock, setWakeLock] = useState(null);
   const [distance, setDistance] = useState(0);
@@ -128,7 +133,7 @@ export default function WalkerGPSButton({ bookingId, currentBooking, className }
   };
 
   return (
-    <div className={className || "absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[500] w-full px-4 flex justify-center"}>
+    <div className={containerClass}>
       {!isTracking ? (
         <Button 
           onClick={startTracking}

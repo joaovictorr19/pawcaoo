@@ -72,7 +72,8 @@ export default function LiveTrackingPage() {
 
   return (
     // LAYOUT FLEX COLUNA - TRAVADO NA TELA (H-SCREEN FIXO)
-    <div className="flex flex-col h-[100vh] w-full bg-white overflow-hidden">
+    // Usando 100dvh para mobile (dynamic viewport height)
+    <div className="flex flex-col h-[100dvh] w-full bg-white overflow-hidden fixed inset-0">
       
       {/* A. CABEÇALHO (50px) */}
       <div className="h-[50px] bg-white border-b flex items-center justify-between px-3 shrink-0 z-30 shadow-sm relative">
@@ -89,7 +90,7 @@ export default function LiveTrackingPage() {
       </div>
 
       {/* B. MAPA (35% da tela) - Altura Rígida */}
-      <div className="h-[35vh] w-full relative z-10 bg-gray-100 border-b-4 border-blue-500 box-border">
+      <div className="h-[35%] w-full relative z-10 bg-gray-100 border-b-4 border-blue-500 box-border shrink-0">
          {/* Container relativo com tamanho definido para o Leaflet */}
          <div className="w-full h-full relative">
            <LiveWalkMap 
