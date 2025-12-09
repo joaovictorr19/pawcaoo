@@ -79,32 +79,61 @@ export default function AdminDashboard() {
     
     setIsSyncingProfiles(true);
     try {
-      const allUsers = await base44.entities.User.list();
-      let createdCount = 0;
+      toast.info("Iniciando sincronização... isso pode levar alguns segundos.");
       
-      for (const user of allUsers) {
-        // Check if UserProfile exists
-        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-        if (!profiles || profiles.length === 0) {
-          // Create UserProfile
-          await base44.entities.UserProfile.create({
-            user_email: user.email,
-            user_id: user.id,
-            username: user.username,
-            full_name: user.full_name || 'Utilizador',
-            profile_photo_url: user.profile_photo_url,
-            role: user.role || 'user',
-            gamification_xp: user.gamification_xp || 0,
-            is_verified: user.is_verified || false
-          });
-          createdCount++;
-        }
+      // 1. Fetch ALL users (increase limit significantly)
+      const allUsers = await base44.entities.User.list('-created_date', 5000);
+      
+      // 2. Fetch ALL existing profiles to compare in memory (much faster)
+      const allProfiles = await base44.entities.UserProfile.list('-created_date', 5000);
+      const userEmailsWithProfile = new Set(allProfiles.map(p => p.user_email));
+      
+      // 3. Identify missing profiles
+      const usersMissingProfile = allUsers.filter(u => !userEmailsWithProfile.has(u.email));
+      
+      console.log(`Found ${usersMissingProfile.length} users missing profiles out of ${allUsers.length} total users.`);
+      
+      if (usersMissingProfile.length === 0) {
+        toast.success("Todos os usuários já possuem perfil público!");
+        setIsSyncingProfiles(false);
+        return;
+      }
+
+      let createdCount = 0;
+      const BATCH_SIZE = 10; // Batch requests to avoid rate limits
+
+      // 4. Create missing profiles in batches
+      for (let i = 0; i < usersMissingProfile.length; i += BATCH_SIZE) {
+        const batch = usersMissingProfile.slice(i, i + BATCH_SIZE);
+        
+        await Promise.all(batch.map(async (user) => {
+          try {
+            await base44.entities.UserProfile.create({
+              user_email: user.email,
+              user_id: user.id,
+              username: user.username,
+              full_name: user.full_name || 'Utilizador',
+              profile_photo_url: user.profile_photo_url,
+              cover_photo_url: user.cover_photo_url,
+              role: user.role || 'user',
+              gamification_xp: user.gamification_xp || 0,
+              is_verified: user.is_verified || false
+            });
+            createdCount++;
+          } catch (e) {
+            console.error(`Failed to create profile for ${user.email}`, e);
+          }
+        }));
+        
+        // Small delay between batches to be nice to the API
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
       
       toast.success(`Sincronização concluída! ${createdCount} perfis criados.`);
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
     } catch (error) {
       console.error("Error syncing profiles:", error);
-      toast.error("Erro ao sincronizar perfis.");
+      toast.error("Erro ao sincronizar perfis: " + (error.message || "Erro desconhecido"));
     } finally {
       setIsSyncingProfiles(false);
     }
@@ -860,10 +889,25 @@ export default function AdminDashboard() {
   const handleSaveBadges = async () => {
     if (!selectedUserForBadges) return;
 
+    // Update User (Auth/System)
     await updateUserMutation.mutateAsync({
       id: selectedUserForBadges.id,
       data: badgesFormData
     });
+
+    // Sync to UserProfile (Public)
+    try {
+      const profiles = await base44.entities.UserProfile.filter({ user_email: selectedUserForBadges.email });
+      if (profiles.length > 0) {
+        await base44.entities.UserProfile.update(profiles[0].id, {
+          is_verified: badgesFormData.is_verified,
+          is_adoption_advocate: badgesFormData.is_adoption_advocate,
+          social_role: badgesFormData.social_role
+        });
+      }
+    } catch (e) {
+      console.error("Error syncing to UserProfile:", e);
+    }
 
     setShowBadgesDialog(false);
     setSelectedUserForBadges(null);
