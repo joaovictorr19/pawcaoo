@@ -388,7 +388,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
          <div className="h-full flex items-center justify-center flex-col gap-3">
            <p className="text-red-500 font-medium">{connectionError}</p>
            <Button 
-             onClick={() => atomicCreate()} 
+             onClick={() => getOrCreateConversation()} 
              variant="outline"
              className="border-red-200 hover:bg-red-50 text-red-600"
            >
