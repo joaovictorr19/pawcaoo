@@ -73,9 +73,15 @@ const LiveMapViewer = ({ path }) => {
 };
 
 // --- MAIN COMPONENT ---
-export default function LiveWalkMap({ bookingId, walkerId, className = "h-full w-full" }) {
-  // CORREÇÃO DO MAPA INTERNO: Container relativo ocupando 100% do pai
-  // Diagnóstico de Entrada do Mapa
+export default function LiveWalkMap({ bookingId, walkerId, className }) {
+  // Estilos inline forçados para evitar override global
+  const forcedStyles = {
+    width: '100%',
+    height: '100%',
+    minHeight: '100%',
+    position: 'relative',
+    zIndex: 1
+  };
   React.useEffect(() => {
       if (bookingId) {
           console.log("LiveWalkMap Mounted. IDs:", { bookingId, walkerId });
@@ -116,13 +122,12 @@ export default function LiveWalkMap({ bookingId, walkerId, className = "h-full w
   const center = path.length > 0 ? [path[path.length - 1].lat, path[path.length - 1].lng] : [38.7223, -9.1393];
 
   return (
-    <div className={`relative w-full h-full ${className}`}>
+    <div className={className} style={forcedStyles}>
       <MapContainer 
         center={center} 
         zoom={16} 
-        className="h-full w-full"
         zoomControl={false}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}
       >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
