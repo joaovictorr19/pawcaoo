@@ -16,6 +16,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 export default function ChatWindow({ conversationId: propConversationId, bookingId, currentUser }) {
+  // 1. Diagnóstico "Dedo-Duro" (Console) - Executado em cada render para debug imediato
+  // O prompt pede isso na função openChat, mas como aqui é o componente que carrega, é o melhor lugar para ver o que chegou.
+  // Será refinado após o carregamento dos dados do booking.
+  
   const [message, setMessage] = useState("");
   const scrollRef = useRef(null);
   const queryClient = useQueryClient();
@@ -35,6 +39,20 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     enabled: !!activeBookingId,
     refetchInterval: 10000 
   });
+
+  // LOG DE AUDITORIA DE DADOS (Assim que o booking carrega)
+  useEffect(() => {
+      if (booking || activeBookingId) {
+          console.group("DEBUG ABERTURA DE CHAT (Audit)");
+          console.table({
+              ReservaID: activeBookingId || "NULO (ERRO)",
+              WalkerID: booking?.walker_id || "NULO (ERRO)",
+              ClienteID: booking?.created_by || booking?.owner_email || "NULO (ERRO)",
+              Status: booking?.status || "N/A"
+          });
+          console.groupEnd();
+      }
+  }, [booking, activeBookingId]);
 
   const isLiveWalk = booking?.status === 'in_progress';
 
@@ -602,7 +620,12 @@ export default function ChatWindow({ conversationId: propConversationId, booking
              </TabsContent>
 
              <TabsContent value="map" className="flex-1 overflow-hidden data-[state=inactive]:hidden mt-0 p-2 relative h-full">
-                <LiveWalkMap bookingId={activeBookingId} className="w-full h-full" />
+                {/* Integração com o Mapa: Passando walkerId recuperado */}
+                <LiveWalkMap 
+                    bookingId={activeBookingId} 
+                    walkerId={booking?.walker_id}
+                    className="w-full h-full" 
+                />
              </TabsContent>
            </Tabs>
         ) : (

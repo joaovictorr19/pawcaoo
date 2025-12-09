@@ -529,8 +529,21 @@ export default function MyBookings() {
               variant="outline" 
               className="flex-1 h-8 text-xs"
               onClick={() => {
+                // Diagnóstico Antes da Navegação
+                console.group("DEBUG ABERTURA DE CHAT (Click)");
+                console.table({
+                    ReservaID: booking.id || "NULO (ERRO)",
+                    WalkerID: booking.walker_id || "NULO (ERRO)",
+                    ClienteID: booking.created_by || "NULO (ERRO)"
+                });
+                console.groupEnd();
+
+                if (!booking.id) {
+                    toast.error("Erro: ID da reserva inválido.");
+                    return;
+                }
+
                 // Navegar diretamente para o Chat com bookingId
-                // A lógica de busca/criação será tratada na página do Chat
                 navigate(createPageUrl('Chat') + `?bookingId=${booking.id}`);
               }}
             >

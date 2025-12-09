@@ -73,7 +73,14 @@ const LiveMapViewer = ({ path }) => {
 };
 
 // --- MAIN COMPONENT ---
-export default function LiveWalkMap({ bookingId, className = "h-full w-full" }) {
+export default function LiveWalkMap({ bookingId, walkerId, className = "h-full w-full" }) {
+  // Diagnóstico de Entrada do Mapa
+  React.useEffect(() => {
+      if (bookingId) {
+          console.log("LiveWalkMap Mounted. IDs:", { bookingId, walkerId });
+      }
+  }, [bookingId, walkerId]);
+
   const { data: booking, isLoading } = useQuery({
     queryKey: ['liveBookingMap', bookingId],
     queryFn: async () => {
