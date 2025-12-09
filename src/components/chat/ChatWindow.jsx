@@ -531,8 +531,8 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
       {/* Tabs / Content Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
-       {/* Mapa sempre visível para cliente se houver walkerId e estiver ativo (apenas se NÃO estiver embedded) */}
-       {userType === 'client' && targetWalkerId && isLiveWalk && activeTab === 'chat' && !embedded && (
+       {/* Mapa sempre visível para cliente se houver walkerId e estiver ativo */}
+       {userType === 'client' && targetWalkerId && isLiveWalk && activeTab === 'chat' && (
           <div className="h-48 w-full shrink-0 border-b border-gray-200 bg-gray-50">
              <LiveWalkMap 
                  bookingId={activeBookingId} 

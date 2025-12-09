@@ -113,7 +113,7 @@ export default function LiveTrackingPage() {
             {isWalker ? booking.owner_name : booking.walker_name}
           </h1>
           <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">
-            ● Ao Vivo (V2)
+            ● Ao Vivo
           </p>
         </div>
         <div className="w-8"></div> {/* Spacer p/ centralizar */}
