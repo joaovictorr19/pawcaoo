@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
-export default function ChatWindow({ conversationId, currentUser }) {
+export default function ChatWindow({ conversationId: propConversationId, bookingId, currentUser }) {
   const [message, setMessage] = useState("");
   const scrollRef = useRef(null);
   const queryClient = useQueryClient();
@@ -23,26 +23,39 @@ export default function ChatWindow({ conversationId, currentUser }) {
   const [activeTab, setActiveTab] = useState("chat");
   const navigate = useNavigate();
 
-  // 1. Fetch Conversation Details (to get participant info)
-  const { data: conversation } = useQuery({
-    queryKey: ['conversation', conversationId],
+  // 1. Resolve Conversation (by ID or Booking ID)
+  const { data: conversation, isLoading: isLoadingConv } = useQuery({
+    queryKey: ['conversation', propConversationId, bookingId],
     queryFn: async () => {
-      const res = await base44.entities.ChatConversation.filter({ id: conversationId });
-      return res[0];
+      if (propConversationId) {
+        const res = await base44.entities.ChatConversation.filter({ id: propConversationId });
+        return res[0];
+      }
+      if (bookingId) {
+        // Busca por booking_id (Contexto de Sessão)
+        const res = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
+        return res[0] || null; // Retorna null se não existir (Novo Chat)
+      }
+      return null;
     },
-    enabled: !!conversationId,
-    refetchInterval: 3000 // Polling para manter status e unread_counts sincronizados
+    enabled: !!propConversationId || !!bookingId,
+    refetchInterval: 3000
   });
 
-  // 1.5 Fetch Linked Booking (to check status)
+  const conversationId = conversation?.id;
+  const isNewChat = !conversationId && !!bookingId;
+
+  // 1.5 Fetch Linked Booking (to check status & participants for new chat)
+  const activeBookingId = bookingId || conversation?.booking_id;
+  
   const { data: booking } = useQuery({
-    queryKey: ['linkedBooking', conversation?.booking_id],
+    queryKey: ['linkedBooking', activeBookingId],
     queryFn: async () => {
-      const res = await base44.entities.Booking.filter({ id: conversation.booking_id });
+      const res = await base44.entities.Booking.filter({ id: activeBookingId });
       return res[0];
     },
-    enabled: !!conversation?.booking_id,
-    refetchInterval: 10000 // Check status periodically
+    enabled: !!activeBookingId,
+    refetchInterval: 10000 
   });
 
   const isLiveWalk = booking?.status === 'in_progress';
@@ -123,33 +136,60 @@ export default function ChatWindow({ conversationId, currentUser }) {
   // 3. Send Message Mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
+      let activeConversationId = conversationId;
+      let participants = conversation?.participants;
+
+      // Se for novo chat (sem ID), criar primeiro
+      if (isNewChat) {
+        if (!booking) throw new Error("Dados da reserva não carregados.");
+        
+        const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
+        participants = [currentUser.email, targetEmail];
+
+        const newConv = await base44.entities.ChatConversation.create({
+          participants: participants,
+          booking_id: booking.id,
+          tags: ['booking'],
+          last_message: content,
+          last_message_date: new Date().toISOString(),
+          unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 }
+        });
+        activeConversationId = newConv.id;
+      }
+
       // 1. Create Message
       await base44.entities.ChatMessage.create({
-        conversation_id: conversationId,
-        booking_id: conversation.booking_id || null,
-        // Ensure current user is in participants for RLS read consistency
-        participants: conversation.participants ? Array.from(new Set([...conversation.participants, currentUser.email])) : [currentUser.email],
+        conversation_id: activeConversationId,
+        booking_id: activeBookingId || null,
+        participants: participants ? Array.from(new Set([...participants, currentUser.email])) : [currentUser.email],
         sender_email: currentUser.email,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         content: content,
         timestamp: new Date().toISOString()
       });
 
-      // 2. Update Conversation (last message)
-      await base44.entities.ChatConversation.update(conversationId, {
-        last_message: content,
-        last_message_date: new Date().toISOString(),
-        // Increment unread for others? Complex without backend logic, skipping for now
-      });
+      // 2. Update Conversation (if existing)
+      if (!isNewChat) {
+        await base44.entities.ChatConversation.update(activeConversationId, {
+          last_message: content,
+          last_message_date: new Date().toISOString(),
+        });
+      }
+      
+      return activeConversationId;
     },
-    onSuccess: () => {
+    onSuccess: (newId) => {
       setMessage("");
-      queryClient.invalidateQueries(['chatMessages', conversationId]);
+      if (isNewChat) {
+        // Force refresh to switch from "New Chat" state to "Existing Chat"
+        queryClient.invalidateQueries(['conversation']); 
+        // Update URL to include ID if needed, or just rely on react-query state update
+      }
+      queryClient.invalidateQueries(['chatMessages', newId || conversationId]);
       queryClient.invalidateQueries(['myConversations']); 
     },
     onError: (error) => {
       console.error("Erro ao enviar mensagem:", error);
-      // Tenta extrair mensagem de erro mais detalhada se disponível
       const errorMsg = error?.message || error?.details || "Erro desconhecido ao enviar.";
       toast.error(`Não foi possível enviar: ${errorMsg}`);
     }
@@ -453,7 +493,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
              </TabsContent>
 
              <TabsContent value="map" className="flex-1 overflow-hidden data-[state=inactive]:hidden mt-0 p-2 relative h-full">
-                <LiveWalkMap bookingId={conversation.booking_id} className="w-full h-full" />
+                <LiveWalkMap bookingId={activeBookingId} className="w-full h-full" />
              </TabsContent>
            </Tabs>
         ) : (
