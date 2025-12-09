@@ -232,7 +232,9 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   // Determine Display Info
   const isSupport = conversation?.tags?.includes('support');
-  const displayName = isSupport && otherEmail.includes('pawcao.net') ? "Suporte PawCão" : otherEmail.split('@')[0];
+  // Defensive programming: handle null/undefined otherEmail
+  const safeEmail = otherEmail || "";
+  const displayName = isSupport && safeEmail.includes('pawcao.net') ? "Suporte PawCão" : safeEmail.split('@')[0] || "Participante";
   const displayAvatar = isSupport ? null : null;
 
   // Fetch Other User Profile for Status
