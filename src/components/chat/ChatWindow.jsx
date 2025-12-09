@@ -92,13 +92,8 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const creationAttempted = useRef(false);
 
   // Lógica "Force Create" / "Get OR Create"
-  // Alias para retrocompatibilidade se houver chamadas residuais de versões anteriores
+  // Lógica Atômica "Get OR Create" para inicialização do chat
   const atomicCreate = async () => {
-     console.warn("Using atomicCreate alias");
-     return getOrCreateConversation();
-  };
-
-  const getOrCreateConversation = async () => {
     if (!booking) return;
 
     // Extração à Prova de Falhas
@@ -115,20 +110,20 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     setConnectionError(null);
 
     try {
-      // 1. GET: Tentar buscar existente
+      // 1. GET: Tentar buscar existente (Find First)
       const existing = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
       
       if (existing && existing.length > 0) {
-        console.log("Chat encontrado (GET):", existing[0].id);
+        console.log("Chat existente encontrado via atomicCreate:", existing[0].id);
         await refetchConv();
         return;
       }
 
-      // 2. POST: Criar novo se não existir
-      console.log("Chat não encontrado. Criando nova sala (POST)...");
+      // 2. POST: Criar novo se não existir (Create)
+      console.log("Criando nova sala de chat via atomicCreate...");
       const participants = [currentUser.email, targetEmail];
       
-      // Geração de ID local para garantir consistência se suportado, senão deixa backend gerar
+      // Geração de ID local para garantir consistência
       const newChatId = self.crypto?.randomUUID ? self.crypto.randomUUID() : undefined;
       
       await base44.entities.ChatConversation.create({
@@ -146,9 +141,9 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       await refetchConv();
 
     } catch (error) {
-      console.error("Erro no fluxo Get-or-Create:", error);
+      console.error("Erro no atomicCreate:", error);
       
-      // 3. Retry/Recovery: Tentar buscar novamente (Race Condition Check)
+      // 3. Recovery: Tentar buscar novamente (Race Condition Check)
       try {
         const retry = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
         if (retry && retry.length > 0) {
@@ -160,17 +155,17 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
       setConnectionError("Não foi possível conectar ao chat.");
       toast.error("Erro de conexão com o chat.");
-      creationAttempted.current = false; // Permite tentar novamente manualmente
+      creationAttempted.current = false; // Permitir retry manual
     } finally {
       setIsInitializing(false);
     }
   };
 
   useEffect(() => {
-    // Dispara a criação/busca assim que tiver os dados mínimos, se ainda não tiver conversa
+    // Dispara a criação/busca assim que tiver os dados mínimos
     if (bookingId && booking && conversation === null && !isLoadingConv && !creationAttempted.current && !isInitializing) {
       creationAttempted.current = true;
-      getOrCreateConversation();
+      atomicCreate();
     }
   }, [bookingId, booking, conversation, isLoadingConv]);
 
@@ -394,7 +389,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
          <div className="h-full flex items-center justify-center flex-col gap-3">
            <p className="text-red-500 font-medium">{connectionError}</p>
            <Button 
-             onClick={() => getOrCreateConversation()} 
+             onClick={() => atomicCreate()} 
              variant="outline"
              className="border-red-200 hover:bg-red-50 text-red-600"
            >
