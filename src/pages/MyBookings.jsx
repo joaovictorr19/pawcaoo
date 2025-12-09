@@ -470,6 +470,21 @@ export default function MyBookings() {
     return <Badge className={`text-xs font-medium ${config.color}`}>{config.label}</Badge>;
   };
 
+  // Helper de Extração de ID Robusto (Data Mapping Fallback)
+  const getProfessionalId = (booking) => {
+    if (booking.type === 'walk') {
+        return booking.walker_id 
+            || booking.walker?.id 
+            || booking.profiles?.id 
+            || booking.p_id 
+            || null;
+    } else {
+        return booking.trainer_id 
+            || booking.trainer?.id 
+            || null;
+    }
+  };
+
   const BookingCard = ({ booking }) => {
     const isProfessional = booking.type === 'walk' 
       ? booking.walker_email === user?.email 
@@ -529,18 +544,35 @@ export default function MyBookings() {
               variant="outline" 
               className="flex-1 h-8 text-xs"
               onClick={() => {
-                // Diagnóstico Antes da Navegação
+                // Robust ID Extraction
+                const professionalId = getProfessionalId(booking);
+                const clientId = booking.created_by || booking.owner_email;
+
+                // Diagnóstico "Dedo-Duro"
                 console.group("DEBUG ABERTURA DE CHAT (Click)");
                 console.table({
                     ReservaID: booking.id || "NULO (ERRO)",
-                    WalkerID: booking.walker_id || "NULO (ERRO)",
-                    ClienteID: booking.created_by || "NULO (ERRO)"
+                    ProfID: professionalId || "NULO (ERRO)",
+                    ClienteID: clientId || "NULO (ERRO)",
+                    Tipo: booking.type
                 });
                 console.groupEnd();
 
                 if (!booking.id) {
                     toast.error("Erro: ID da reserva inválido.");
                     return;
+                }
+                
+                // Validação Bloqueante com Feedback
+                if (!professionalId) {
+                    toast.error(`Erro: ID do profissional não encontrado na reserva ${booking.id}`);
+                    console.error("Critical: Missing professional ID in booking", booking);
+                    return;
+                }
+                
+                if (!clientId) {
+                     toast.error("Erro: ID do cliente não encontrado.");
+                     return;
                 }
 
                 // Navegar diretamente para o Chat com bookingId
