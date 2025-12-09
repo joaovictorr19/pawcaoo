@@ -42,22 +42,50 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     refetchInterval: 3000
   });
 
-  const conversationId = conversation?.id;
-  
-  // 1.2 "Get or Create" Logic (Auto-create if bookingId exists but conversation doesn't)
+  // 1.2 Optimistic UI & Client-Side ID Generation
+  const [optimisticConversation, setOptimisticConversation] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const creationAttempted = useRef(false);
+
+  // Merge Server Data with Optimistic Data
+  const activeConversation = conversation || optimisticConversation;
+  const conversationId = activeConversation?.id;
 
   useEffect(() => {
-    const autoCreate = async () => {
-      // Only run if we have a bookingId, conversation is confirmed missing (not loading), and we haven't tried creating yet
-      if (bookingId && !isLoadingConv && conversation === null && !isCreating && booking) {
+    const initChat = async () => {
+      // Se já existe do servidor, não faz nada
+      if (conversation) return;
+
+      // Se temos bookingId, booking carregado, e nenhum chat do servidor...
+      if (bookingId && booking && !isLoadingConv && !creationAttempted.current) {
+        creationAttempted.current = true;
         setIsCreating(true);
+
+        // 1. Generate Client-Side ID
+        const newChatId = self.crypto?.randomUUID ? self.crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        
+        const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
+        const participants = [currentUser.email, targetEmail];
+
+        // 2. Set Optimistic State Immediately (No Null Render)
+        const optConv = {
+          id: newChatId,
+          booking_id: bookingId,
+          participants: participants,
+          tags: ['booking'],
+          last_message: 'Iniciando...',
+          last_message_date: new Date().toISOString(),
+          unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 },
+          status: 'active',
+          isOptimistic: true
+        };
+        setOptimisticConversation(optConv);
+
+        // 3. Background Creation
         try {
-          const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
-          const participants = [currentUser.email, targetEmail];
-          
-          console.log("Auto-creating conversation for booking:", bookingId);
+          console.log("Creating conversation with Client-ID:", newChatId);
           await base44.entities.ChatConversation.create({
+            id: newChatId, // Envia ID gerado no front
             participants: participants,
             booking_id: bookingId,
             tags: ['booking'],
@@ -65,29 +93,49 @@ export default function ChatWindow({ conversationId: propConversationId, booking
             last_message_date: new Date().toISOString(),
             unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 }
           });
-          
+          // Refetch para confirmar sincronia
           await refetchConv();
         } catch (error) {
-          console.error("Error auto-creating conversation:", error);
-          toast.error("Erro ao iniciar sessão de chat.");
+          console.error("Error creating chat:", error);
+          // Se falhar criação com ID manual (ex: backend rejeita), tenta sem ID
+          if (!conversation) {
+             try {
+                await base44.entities.ChatConversation.create({
+                    participants: participants,
+                    booking_id: bookingId,
+                    tags: ['booking'],
+                    last_message: 'Sessão iniciada',
+                    unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 }
+                });
+                await refetchConv();
+             } catch(retryErr) {
+                 toast.error("Erro ao conectar ao chat.");
+             }
+          }
         } finally {
           setIsCreating(false);
         }
       }
     };
 
-    autoCreate();
-  }, [bookingId, conversation, isLoadingConv, isCreating, booking, currentUser.email, refetchConv]);
+    initChat();
+  }, [bookingId, conversation, booking, isLoadingConv, currentUser.email, refetchConv]);
 
-  // Loading State during Auto-Creation
-  if (isCreating || (bookingId && !conversation && !conversationId)) {
-    return <div className="h-full flex items-center justify-center flex-col gap-2">
+  // Evita renderizar null enquanto prepara o otimista
+  if (bookingId && !activeConversation && !booking) {
+      return <div className="h-full flex items-center justify-center">Carregando dados da reserva...</div>;
+  }
+  
+  if (bookingId && !activeConversation) {
+     return <div className="h-full flex items-center justify-center flex-col gap-2">
       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-sm text-gray-500">Iniciando sessão segura...</p>
+      <p className="text-sm text-gray-500">Gerando chave de segurança...</p>
     </div>;
   }
 
-  const isNewChat = false; // With auto-create, we effectively remove "new chat" UI state
+  // Use activeConversation instead of conversation variable
+  const conversationData = activeConversation; // Alias for easier refactoring below
+  const isNewChat = false;
 
 
   // 1.5 Fetch Linked Booking (to check status & participants for new chat)
@@ -109,41 +157,34 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessages', conversationId],
     queryFn: async () => {
-      // Fetch messages
+      if (!conversationId) return [];
       const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversationId }, '-created_date', 50);
-      
-      // Efficient Mark as Read: Check if unread count > 0 in conversation object (refetched by parent or here)
-      // We can do a quick check if the last message wasn't from me, or just rely on unread_counts logic.
-      // Ideally, we update the conversation 'unread_counts' field.
-      // To avoid infinite loops, we only update if we know it's unread.
-      // We can check the conversation object from the other query.
       return msgs;
     },
-    refetchInterval: 2000, // Slightly reduced polling for efficiency
+    refetchInterval: 2000,
     enabled: !!conversationId
   });
 
-  // Mark as Read Effect - Robustez melhorada
+  // Mark as Read Effect
   useEffect(() => {
     let isMarking = false;
     const markAsRead = async () => {
-      if (!conversation || !currentUser || isMarking) return;
+      // Check for conversationData instead of conversation to support optimistic state
+      if (!conversationData || !currentUser || isMarking || conversationData.isOptimistic) return;
       
-      const myUnread = conversation.unread_counts?.[currentUser.email] || 0;
+      const myUnread = conversationData.unread_counts?.[currentUser.email] || 0;
       if (myUnread > 0) {
         isMarking = true;
-        // Atualiza localmente antes para evitar loops visuais se o refetch demorar
-        const newCounts = { ...conversation.unread_counts, [currentUser.email]: 0 };
+        const newCounts = { ...conversationData.unread_counts, [currentUser.email]: 0 };
         
         try {
           await base44.entities.ChatConversation.update(conversationId, { unread_counts: newCounts });
           
-          // Invalidações críticas para limpar notificações
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] }),
-            queryClient.invalidateQueries({ queryKey: ['unreadChatCount'] }), // Global badge no Layout
-            queryClient.invalidateQueries({ queryKey: ['myConversations'] }), // Lista lateral
-            queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] }) // Notificações gerais se houver
+            queryClient.invalidateQueries({ queryKey: ['unreadChatCount'] }),
+            queryClient.invalidateQueries({ queryKey: ['myConversations'] }),
+            queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] })
           ]);
         } catch (e) { 
           console.error("Error marking as read", e); 
@@ -153,9 +194,8 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       }
     };
     
-    // Executa quando entra na conversa ou quando novas mensagens chegam (mudança em 'messages' ou 'conversation')
     markAsRead();
-  }, [messages.length, conversation?.unread_counts?.[currentUser?.email], conversationId, currentUser?.email, queryClient]);
+  }, [messages.length, conversationData?.unread_counts?.[currentUser?.email], conversationId, currentUser?.email, queryClient, conversationData]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -255,7 +295,6 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   const closeChatMutation = useMutation({
     mutationFn: async () => {
-      // User requested to delete the chat when ending support
       await base44.entities.ChatConversation.delete(conversationId);
     },
     onSuccess: () => {
@@ -266,20 +305,18 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     }
   });
 
-  // Determine Other Email
+  // Determine Other Email - Use conversationData
   const otherEmail = React.useMemo(() => {
-    if (isNewChat && booking) {
+    if (conversationData?.isOptimistic && booking) {
        return booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
     }
-    if (!conversation?.participants) return "Participante";
-    return conversation.participants.find(p => p !== currentUser?.email) || "Participante";
-  }, [conversation?.participants, currentUser?.email, isNewChat, booking]);
+    if (!conversationData?.participants) return "Participante";
+    return conversationData.participants.find(p => p !== currentUser?.email) || "Participante";
+  }, [conversationData, currentUser?.email, booking]);
 
   // Determine Display Info
-  const isSupport = conversation?.tags?.includes('support');
+  const isSupport = conversationData?.tags?.includes('support');
   
-  // Defensive Programming (Lógica Obrigatória com Optional Chaining)
-  // Garante que otherEmail não seja nulo antes de tentar split
   const displayName = isSupport && otherEmail?.includes('pawcao.net') 
     ? "Suporte PawCão" 
     : (otherEmail?.split('@')?.[0] || "Participante");
@@ -326,8 +363,8 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
-  if (isLoadingConv) return <div className="h-full flex items-center justify-center">Carregando...</div>;
-  if (!conversation && !isNewChat) return <div className="h-full flex items-center justify-center">Conversa não encontrada.</div>;
+  if (isLoadingConv && !activeConversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
+  if (!activeConversation) return <div className="h-full flex items-center justify-center">Conversa não encontrada.</div>;
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative w-full">
