@@ -9,7 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LiveTrackingPage() {
   const { id } = useParams();
-  const bookingId = id;
+  // Support both route param and query param for maximum compatibility
+  const searchParams = new URLSearchParams(window.location.search);
+  const bookingId = id || searchParams.get('id') || searchParams.get('bookingId');
 
   // 1. Fetch Current User
   const { data: currentUser } = useQuery({
