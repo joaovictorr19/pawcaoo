@@ -181,8 +181,6 @@ export default function ChatWindow({ conversationId, currentUser }) {
     }
   });
 
-  if (!conversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
-
   // Determine Other Email (Handle potential undefined participants)
   const otherEmail = React.useMemo(() => {
     if (!conversation?.participants) return "Participante";
@@ -190,7 +188,7 @@ export default function ChatWindow({ conversationId, currentUser }) {
   }, [conversation?.participants, currentUser?.email]);
 
   // Determine Display Info
-  const isSupport = conversation.tags?.includes('support');
+  const isSupport = conversation?.tags?.includes('support');
   const displayName = isSupport && otherEmail.includes('pawcao.net') ? "Suporte PawCão" : otherEmail.split('@')[0];
   const displayAvatar = isSupport ? null : null;
 
@@ -233,6 +231,8 @@ export default function ChatWindow({ conversationId, currentUser }) {
   }, [otherUserProfile]);
 
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+
+  if (!conversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative w-full">
