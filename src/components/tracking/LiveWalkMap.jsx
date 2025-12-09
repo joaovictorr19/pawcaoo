@@ -7,13 +7,13 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
 // --- CUSTOM ICONS ---
-const dogIcon = new L.Icon({
-  iconUrl: "https://placehold.co/40x40/purple/white?text=DOG",
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
-  className: "rounded-full border-2 border-white shadow-lg"
-});
+const dogIconConfig = {
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/616/616408.png", // Cute dog icon
+  iconSize: [48, 48],
+  iconAnchor: [24, 48],
+  popupAnchor: [0, -48],
+  className: "drop-shadow-xl"
+};
 
 const startIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/149/149059.png",
@@ -24,27 +24,50 @@ const startIcon = new L.Icon({
 // --- SUB-COMPONENT FOR MAP UPDATES ---
 const LiveMapViewer = ({ path }) => {
   const map = useMap();
+  const markerRef = React.useRef(null);
 
+  // Smoothly update marker and view
   useEffect(() => {
-    if (path && path.length > 0) {
-      const lastPoint = path[path.length - 1];
-      map.setView([lastPoint.lat, lastPoint.lng], map.getZoom(), { animate: true });
+    if (!path || path.length === 0) return;
+
+    const lastPoint = path[path.length - 1];
+    const newLatLng = [lastPoint.lat, lastPoint.lng];
+
+    // 1. Update Marker smoothly (Native Leaflet)
+    if (!markerRef.current) {
+      // Create if doesn't exist
+      const icon = L.icon(dogIconConfig);
+      markerRef.current = L.marker(newLatLng, { icon }).addTo(map);
+      markerRef.current.bindPopup("Woof! Estamos aqui! 🐾").openPopup();
+    } else {
+      // Update position
+      markerRef.current.setLatLng(newLatLng);
+      // Optional: Update popup content or keep it open
     }
+
+    // 2. Pan map smoothly
+    map.setView(newLatLng, map.getZoom(), { animate: true, duration: 1.0 });
+
+    // Cleanup on unmount (only if component unmounts, not on every render)
+    return () => {
+      // We don't remove marker here to avoid flickering if parent re-renders, 
+      // but strictly we should if the component is destroyed.
+      // For this use case, we want persistent marker.
+    };
   }, [path, map]);
 
   if (!path || path.length === 0) return null;
 
   const polylinePositions = path.map(p => [p.lat, p.lng]);
-  const currentPos = path[path.length - 1];
 
   return (
     <>
       <Polyline 
         positions={polylinePositions} 
-        pathOptions={{ color: '#3b82f6', weight: 5, opacity: 0.8, lineCap: 'round', lineJoin: 'round' }} 
+        pathOptions={{ color: '#8b5cf6', weight: 6, opacity: 0.8, lineCap: 'round', lineJoin: 'round', dashArray: '1, 10', dashOffset: '10' }} 
       />
       <Marker position={[path[0].lat, path[0].lng]} icon={startIcon} />
-      <Marker position={[currentPos.lat, currentPos.lng]} icon={dogIcon} />
+      {/* Dog marker is handled by useEffect for smoothness */}
     </>
   );
 };

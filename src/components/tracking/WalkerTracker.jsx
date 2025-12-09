@@ -296,11 +296,12 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
           </Button>
         ) : (
           <Button 
-            className="w-full h-14 text-lg bg-red-600 hover:bg-red-700 rounded-xl shadow-lg flex items-center justify-center gap-2 animate-pulse"
+            className="w-full h-14 text-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg flex items-center justify-center gap-2 animate-pulse transition-all duration-500 border-2 border-white/20"
             onClick={handleFinishWalk}
           >
-            <StopCircle className="w-6 h-6" />
-            Terminar Passeio
+            <span className="text-2xl">🐶</span>
+            <span className="font-bold tracking-wide">Rastreando Cãozinho...</span>
+            <span className="text-xs opacity-80 ml-1">(Toque para Encerrar)</span>
           </Button>
         )}
         
