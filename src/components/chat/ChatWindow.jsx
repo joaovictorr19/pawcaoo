@@ -24,7 +24,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const navigate = useNavigate();
 
   // 1. Resolve Conversation (by ID or Booking ID)
-  const { data: conversation, isLoading: isLoadingConv } = useQuery({
+  const { data: conversation, isLoading: isLoadingConv, refetch: refetchConv } = useQuery({
     queryKey: ['conversation', propConversationId, bookingId],
     queryFn: async () => {
       if (propConversationId) {
@@ -34,7 +34,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       if (bookingId) {
         // Busca por booking_id (Contexto de Sessão)
         const res = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
-        return res[0] || null; // Retorna null se não existir (Novo Chat)
+        return res[0] || null; 
       }
       return null;
     },
@@ -43,7 +43,52 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   });
 
   const conversationId = conversation?.id;
-  const isNewChat = !conversationId && !!bookingId;
+  
+  // 1.2 "Get or Create" Logic (Auto-create if bookingId exists but conversation doesn't)
+  const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    const autoCreate = async () => {
+      // Only run if we have a bookingId, conversation is confirmed missing (not loading), and we haven't tried creating yet
+      if (bookingId && !isLoadingConv && conversation === null && !isCreating && booking) {
+        setIsCreating(true);
+        try {
+          const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
+          const participants = [currentUser.email, targetEmail];
+          
+          console.log("Auto-creating conversation for booking:", bookingId);
+          await base44.entities.ChatConversation.create({
+            participants: participants,
+            booking_id: bookingId,
+            tags: ['booking'],
+            last_message: 'Sessão iniciada',
+            last_message_date: new Date().toISOString(),
+            unread_counts: { [currentUser.email]: 0, [targetEmail]: 0 }
+          });
+          
+          await refetchConv();
+        } catch (error) {
+          console.error("Error auto-creating conversation:", error);
+          toast.error("Erro ao iniciar sessão de chat.");
+        } finally {
+          setIsCreating(false);
+        }
+      }
+    };
+
+    autoCreate();
+  }, [bookingId, conversation, isLoadingConv, isCreating, booking, currentUser.email, refetchConv]);
+
+  // Loading State during Auto-Creation
+  if (isCreating || (bookingId && !conversation && !conversationId)) {
+    return <div className="h-full flex items-center justify-center flex-col gap-2">
+      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-sm text-gray-500">Iniciando sessão segura...</p>
+    </div>;
+  }
+
+  const isNewChat = false; // With auto-create, we effectively remove "new chat" UI state
+
 
   // 1.5 Fetch Linked Booking (to check status & participants for new chat)
   const activeBookingId = bookingId || conversation?.booking_id;
@@ -139,8 +184,8 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       let activeConversationId = conversationId;
       let participants = conversation?.participants;
 
-      // Se for novo chat (sem ID), criar primeiro
-      if (isNewChat) {
+      // Fallback: Se por acaso ainda for novo chat (falha no auto-create), criar aqui
+      if (!activeConversationId && bookingId) {
         if (!booking) throw new Error("Dados da reserva não carregados.");
         
         const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
@@ -148,7 +193,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
         const newConv = await base44.entities.ChatConversation.create({
           participants: participants,
-          booking_id: booking.id,
+          booking_id: bookingId,
           tags: ['booking'],
           last_message: content,
           last_message_date: new Date().toISOString(),
@@ -321,7 +366,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
           </div>
         </div>
         <div className="flex items-center gap-1 text-gray-400">
-          {isSupport && conversation.status !== 'closed' && (
+          {isSupport && conversation?.status !== 'closed' && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -470,7 +515,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                 </div>
                 {/* Input Area Otimizada */}
                 <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
-                  {conversation.status === 'closed' ? (
+                  {conversation?.status === 'closed' ? (
                     <div className="text-center p-2 text-gray-500 bg-gray-50 rounded-lg text-sm">
                       Este atendimento foi encerrado.
                     </div>
@@ -538,7 +583,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
               })}
             </div>
             <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
-              {conversation.status === 'closed' ? (
+              {conversation?.status === 'closed' ? (
                 <div className="text-center p-2 text-gray-500 bg-gray-50 rounded-lg text-sm">
                   Este atendimento foi encerrado.
                 </div>
