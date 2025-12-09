@@ -10,6 +10,7 @@ export default function Chat() {
     const navigate = useNavigate();
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
+    const bookingId = urlParams.get('bookingId');
 
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
@@ -25,11 +26,13 @@ export default function Chat() {
                     <ArrowLeft className="w-4 h-4 mr-1" />
                     Voltar
                 </Button>
-                <h1 className="font-bold text-lg text-gray-800">Chat</h1>
+                <h1 className="font-bold text-lg text-gray-800">
+                    {bookingId ? `Chat da Reserva` : 'Chat'}
+                </h1>
             </div>
             <div className="flex-1 overflow-hidden relative">
-                {id ? (
-                    <ChatWindow conversationId={id} currentUser={user} />
+                {id || bookingId ? (
+                    <ChatWindow conversationId={id} bookingId={bookingId} currentUser={user} />
                 ) : (
                     <div className="flex items-center justify-center h-full text-gray-500">
                         Selecione uma conversa

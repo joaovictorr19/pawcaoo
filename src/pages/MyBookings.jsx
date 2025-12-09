@@ -528,40 +528,10 @@ export default function MyBookings() {
               size="sm" 
               variant="outline" 
               className="flex-1 h-8 text-xs"
-              onClick={async () => {
-                try {
-                  // Check existing chat
-                  const targetEmail = isProfessional ? booking.walker_email : booking.owner_email;
-                  if (!targetEmail || !user?.email) {
-                    navigate(createPageUrl('Inbox'));
-                    return;
-                  }
-
-                  const conversations = await base44.entities.ChatConversation.filter({});
-                  const existingChat = conversations.find(c => 
-                    c.participants?.includes(user.email) && 
-                    c.participants?.includes(targetEmail) &&
-                    (!c.booking_id || c.booking_id === booking.id) // Prefer booking specific or general
-                  );
-
-                  if (existingChat) {
-                    navigate(createPageUrl('Chat') + `?id=${existingChat.id}`);
-                  } else {
-                    // Create new chat
-                    const newChat = await base44.entities.ChatConversation.create({
-                      participants: [user.email, targetEmail],
-                      booking_id: booking.id,
-                      tags: ['booking'],
-                      last_message: 'Conversa iniciada via Minhas Reservas',
-                      last_message_date: new Date().toISOString(),
-                      unread_counts: { [user.email]: 0, [targetEmail]: 1 }
-                    });
-                    navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
-                  }
-                } catch (err) {
-                  console.error("Chat navigation error:", err);
-                  navigate(createPageUrl('Inbox'));
-                }
+              onClick={() => {
+                // Navegar diretamente para o Chat com bookingId
+                // A lógica de busca/criação será tratada na página do Chat
+                navigate(createPageUrl('Chat') + `?bookingId=${booking.id}`);
               }}
             >
               <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
