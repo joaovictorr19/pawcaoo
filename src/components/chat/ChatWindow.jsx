@@ -136,17 +136,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     initChat();
   }, [bookingId, conversation, booking, isLoadingConv, currentUser.email, refetchConv]);
 
-  // Evita renderizar null enquanto prepara o otimista
-  if (bookingId && !activeConversation && !booking) {
-      return <div className="h-full flex items-center justify-center">Carregando dados da reserva...</div>;
-  }
-  
-  if (bookingId && !activeConversation) {
-     return <div className="h-full flex items-center justify-center flex-col gap-2">
-      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-sm text-gray-500">Gerando chave de segurança...</p>
-    </div>;
-  }
+  // (Returns moved to end of file to comply with Rules of Hooks)
 
   // Use activeConversation instead of conversation variable
   const conversationData = activeConversation; // Alias for easier refactoring below
@@ -361,6 +351,18 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   }, [otherUserProfile]);
 
   const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+
+  // Final Checks before Render
+  if (bookingId && !activeConversation && !booking) {
+      return <div className="h-full flex items-center justify-center">Carregando dados da reserva...</div>;
+  }
+  
+  if (bookingId && !activeConversation) {
+     return <div className="h-full flex items-center justify-center flex-col gap-2">
+      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-sm text-gray-500">Gerando chave de segurança...</p>
+    </div>;
+  }
 
   if (isLoadingConv && !activeConversation) return <div className="h-full flex items-center justify-center">Carregando...</div>;
   if (!activeConversation) return <div className="h-full flex items-center justify-center">Conversa não encontrada.</div>;
