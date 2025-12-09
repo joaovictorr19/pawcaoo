@@ -241,24 +241,6 @@ export default function ChatWindow({ conversationId, currentUser }) {
     enabled: !!otherEmail && !isSupport
   });
 
-  // Fetch professional contact info (WhatsApp)
-  const { data: professionalContact } = useQuery({
-    queryKey: ['chatProfContact', otherEmail],
-    queryFn: async () => {
-      if (!otherEmail || isSupport) return null;
-      // Try WalkerProfile
-      const walkers = await base44.entities.WalkerProfile.filter({ created_by: otherEmail });
-      if (walkers.length > 0) return walkers[0].whatsapp_number;
-      
-      // Try TrainerProfile
-      const trainers = await base44.entities.TrainerProfile.filter({ created_by: otherEmail });
-      if (trainers.length > 0) return trainers[0].phone; // Or whatsapp if added to schema
-      
-      return null;
-    },
-    enabled: !!otherEmail && !isSupport
-  });
-
   // Calculate Online Status
   const isOnline = React.useMemo(() => {
     if (!otherUserProfile?.last_activity_date) return false;
