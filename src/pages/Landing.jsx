@@ -5,9 +5,10 @@ import { Dog, Star, Shield, Heart, Clock, TrendingUp, Users, Award, CheckCircle2
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useNavigate } from "react-router-dom"; 
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
+import RealStats from "@/components/stats/RealStats";
 
 export default function Landing() {
   const navigate = useNavigate(); // Initialize useNavigate hook
@@ -87,12 +88,8 @@ export default function Landing() {
     }
   ];
 
-  const stats = [
-    { value: "10,000+", label: "Cães Felizes" },
-    { value: "500+", label: "Profissionais" },
-    { value: "50,000+", label: "Passeios" },
-    { value: "4.9/5", label: "Avaliação" }
-  ];
+  // Stats removidos para usar dados reais
+
 
   const services = [
     {
@@ -221,25 +218,9 @@ export default function Landing() {
               </Button>
             </div>
 
-            {/* Stats */}
-            <div id="stats" className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              {stats.map((stat, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: idx * 0.1 }}
-                >
-                  <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2 dark:from-green-400 dark:to-blue-400">
-                        {stat.value}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+            {/* Stats Reais */}
+            <div id="stats" className="mt-12">
+              <RealStats />
             </div>
           </motion.div>
         </div>

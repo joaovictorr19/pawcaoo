@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Shield, Users, Award, Target, Zap, TrendingUp, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
+import RealStats from "@/components/stats/RealStats";
 
 export default function AboutUs() {
   const { language } = useLanguage();
@@ -15,7 +16,7 @@ export default function AboutUs() {
       missionText: "Conectar donos de cães com profissionais verificados e apaixonados, criando uma comunidade onde cada cão recebe o melhor cuidado possível.",
       
       storyTitle: "A Nossa História",
-      storyText: "Fundado em 2024, o PawCão nasceu da paixão pelos cães e da necessidade de criar uma plataforma confiável onde donos possam encontrar profissionais qualificados. O que começou como uma ideia simples evoluiu para a maior rede de cuidados caninos em Portugal.",
+      storyText: "O PawCão nasceu da paixão pelos cães e da necessidade de criar uma plataforma confiável onde donos possam encontrar profissionais qualificados. O que começou como uma ideia simples está a evoluir para uma rede de confiança em Portugal.",
       
       valuesTitle: "Os Nossos Valores",
       values: [
@@ -41,13 +42,9 @@ export default function AboutUs() {
         }
       ],
 
-      statsTitle: "PawCão em Números",
-      stats: [
-        { value: "10,000+", label: "Cães Felizes" },
-        { value: "500+", label: "Profissionais Verificados" },
-        { value: "50,000+", label: "Passeios Realizados" },
-        { value: "4.9/5", label: "Avaliação Média" }
-      ],
+      statsTitle: "PawCão em Números (Tempo Real)",
+      // stats removido para usar RealStats
+
 
       whyTitle: "Por Que Escolher o PawCão?",
       whyItems: [
@@ -86,7 +83,7 @@ export default function AboutUs() {
       missionText: "Connect dog owners with verified and passionate professionals, creating a community where every dog receives the best possible care.",
       
       storyTitle: "Our Story",
-      storyText: "Founded in 2024, PawCão was born from a passion for dogs and the need to create a reliable platform where owners can find qualified professionals. What started as a simple idea evolved into Portugal's largest dog care network.",
+      storyText: "PawCão was born from a passion for dogs and the need to create a reliable platform where owners can find qualified professionals. What started as a simple idea is evolving into a trusted network in Portugal.",
       
       valuesTitle: "Our Values",
       values: [
@@ -157,7 +154,7 @@ export default function AboutUs() {
       missionText: "Conectar dueños de perros con profesionales verificados y apasionados, creando una comunidad donde cada perro recibe el mejor cuidado posible.",
       
       storyTitle: "Nuestra Historia",
-      storyText: "Fundada en 2024, PawCão nació de la pasión por los perros y la necesidad de crear una plataforma confiable donde los dueños puedan encontrar profesionales calificados. Lo que comenzó como una idea simple evolucionó en la red de cuidado canino más grande de Portugal.",
+      storyText: "PawCão nació de la pasión por los perros y la necesidad de crear una plataforma confiable donde los dueños puedan encontrar profesionales calificados. Lo que comenzó como una idea simple está evolucionando en una red de confianza en Portugal.",
       
       valuesTitle: "Nuestros Valores",
       values: [
@@ -323,7 +320,7 @@ export default function AboutUs() {
           </div>
         </motion.div>
 
-        {/* Stats */}
+        {/* Stats Reais */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -333,27 +330,7 @@ export default function AboutUs() {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
             {t.statsTitle}
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {t.stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
-              >
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-blue-600 text-white">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
-                      {stat.value}
-                    </div>
-                    <div className="text-sm md:text-base text-white/90">
-                      {stat.label}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <RealStats />
         </motion.div>
 
         {/* Why Choose */}
