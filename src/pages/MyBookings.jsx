@@ -472,17 +472,15 @@ export default function MyBookings() {
 
   // Helper de Extração de ID Robusto (Data Mapping Fallback)
   const getProfessionalId = (booking) => {
-    if (booking.type === 'walk') {
-        return booking.walker_id 
-            || booking.walker?.id 
-            || booking.profiles?.id 
-            || booking.p_id 
-            || null;
-    } else {
-        return booking.trainer_id 
-            || booking.trainer?.id 
-            || null;
+    // Tentativa de extração profunda para garantir que nunca retorne nulo se o dado existir
+    const id = booking.type === 'walk' 
+        ? (booking.walker_id || booking.walker?.id || booking.profiles?.id || booking.p_id) 
+        : (booking.trainer_id || booking.trainer?.id);
+    
+    if (!id) {
+       console.error("CRÍTICO: ID do Profissional não encontrado na reserva", booking);
     }
+    return id || null;
   };
 
   const BookingCard = ({ booking }) => {

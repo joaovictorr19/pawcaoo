@@ -33,12 +33,17 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     queryKey: ['linkedBooking', activeBookingId],
     queryFn: async () => {
       if (!activeBookingId) return null;
+      // Tentativa de "Join" manual se necessário ou confiar no retorno
       const res = await base44.entities.Booking.filter({ id: activeBookingId });
       return res[0];
     },
     enabled: !!activeBookingId,
     refetchInterval: 10000 
   });
+
+  // Identificação do Usuário
+  const userType = booking ? (booking.walker_email === currentUser.email ? 'walker' : 'client') : null;
+  const targetWalkerId = booking?.walker_id || booking?.walker?.id; // Tentativa de extração robusta
 
   // LOG DE AUDITORIA DE DADOS (Assim que o booking carrega)
   useEffect(() => {
@@ -81,20 +86,22 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     refetchInterval: 3000
   });
 
-  // Estado de Criação Atômica
+  // Estado de Criação Atômica e Self-Healing
   const [isInitializing, setIsInitializing] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
   const creationAttempted = useRef(false);
 
-  const atomicCreate = async () => {
-    // Validação de Payload
+  // Lógica "Force Create" / "Get OR Create"
+  const getOrCreateConversation = async () => {
     if (!booking) return;
-    
+
+    // Extração à Prova de Falhas
     const targetEmail = booking.walker_email === currentUser.email ? booking.owner_email : booking.walker_email;
     
+    // Validação Crítica
     if (!bookingId || !currentUser.email || !targetEmail) {
-      console.error("Dados faltando para criar chat:", { bookingId, currentUser: currentUser.email, targetEmail });
-      setConnectionError("Dados inválidos para iniciar chat.");
+      console.error("CRÍTICO: Dados insuficientes para chat", { bookingId, user: currentUser.email, target: targetEmail });
+      setConnectionError("Dados da reserva incompletos. Tente recarregar.");
       return;
     }
 
@@ -102,21 +109,24 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     setConnectionError(null);
 
     try {
-      // Passo 1: Double-check se já existe (Find First)
-      // Garante estado mais recente antes de tentar criar
+      // 1. GET: Tentar buscar existente
       const existing = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
       
       if (existing && existing.length > 0) {
-        console.log("Chat existente encontrado. ID:", existing[0].id);
-        await refetchConv(); // Atualiza o estado do React Query com o chat encontrado
-        return; // PARE AQUI
+        console.log("Chat encontrado (GET):", existing[0].id);
+        await refetchConv();
+        return;
       }
 
-      // Passo 2: Create (Se não encontrou)
+      // 2. POST: Criar novo se não existir
+      console.log("Chat não encontrado. Criando nova sala (POST)...");
       const participants = [currentUser.email, targetEmail];
-      console.log("Criando novo chat para Booking:", bookingId);
-
+      
+      // Geração de ID local para garantir consistência se suportado, senão deixa backend gerar
+      const newChatId = self.crypto?.randomUUID ? self.crypto.randomUUID() : undefined;
+      
       await base44.entities.ChatConversation.create({
+        ...(newChatId && { id: newChatId }),
         booking_id: bookingId,
         participants: participants,
         tags: ['booking'],
@@ -126,46 +136,37 @@ export default function ChatWindow({ conversationId: propConversationId, booking
         status: 'active'
       });
 
-      // Sucesso na criação
+      console.log("Chat criado com sucesso.");
       await refetchConv();
-      
-    } catch (error) {
-      console.warn("Conflito ou erro na criação detectado. Tentando recuperar chat existente...", error);
-      
-      // Fallback: Tentativa de Recuperação (Retry Find)
-      // Útil se houve race condition (outro usuário criou milissegundos antes)
-      try {
-        const retryFind = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
-        if (retryFind && retryFind.length > 0) {
-           console.log("Recuperação com sucesso. Chat ID:", retryFind[0].id);
-           await refetchConv();
-           return;
-        }
-      } catch (retryError) {
-        console.error("Falha na recuperação:", retryError);
-      }
 
-      // Se chegou aqui, falhou na criação e na recuperação
-      console.error("ERRO CRÍTICO NO CHAT:", error, error.message, error.response?.data);
-      setConnectionError("Erro ao conectar. Tente novamente.");
-      toast.error("Erro ao conectar à sala de chat.");
-      creationAttempted.current = false; // Permitir retry manual
+    } catch (error) {
+      console.error("Erro no fluxo Get-or-Create:", error);
+      
+      // 3. Retry/Recovery: Tentar buscar novamente (Race Condition Check)
+      try {
+        const retry = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
+        if (retry && retry.length > 0) {
+          console.log("Chat recuperado após erro de criação.");
+          await refetchConv();
+          return;
+        }
+      } catch(e) {}
+
+      setConnectionError("Não foi possível conectar ao chat.");
+      toast.error("Erro de conexão com o chat.");
+      creationAttempted.current = false; // Permite tentar novamente manualmente
     } finally {
       setIsInitializing(false);
     }
   };
 
   useEffect(() => {
-    // Só tenta criar se:
-    // 1. Temos bookingId (contexto de sessão)
-    // 2. A busca inicial confirmou que NÃO existe (conversation === null e !isLoadingConv)
-    // 3. O booking foi carregado (para saber os participantes)
-    // 4. Ainda não tentamos criar nesta montagem
-    if (bookingId && conversation === null && !isLoadingConv && booking && !creationAttempted.current && !isInitializing && !connectionError) {
+    // Dispara a criação/busca assim que tiver os dados mínimos, se ainda não tiver conversa
+    if (bookingId && booking && conversation === null && !isLoadingConv && !creationAttempted.current && !isInitializing) {
       creationAttempted.current = true;
-      atomicCreate();
+      getOrCreateConversation();
     }
-  }, [bookingId, conversation, isLoadingConv, booking, isInitializing, connectionError]);
+  }, [bookingId, booking, conversation, isLoadingConv]);
 
   // Merge Server Data (No Optimistic needed for strict consistency)
   const activeConversation = conversation;
@@ -527,21 +528,34 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
       {/* Tabs / Content Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
-        {isLiveWalk ? (
-           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-             <div className="px-4 pt-2 shrink-0">
-                {activeTab === 'chat' && (
-                  <Alert className="mb-2 bg-green-50 border-green-200">
-                    <AlertCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-800 font-bold">Passeio em Andamento!</AlertTitle>
-                    <AlertDescription className="text-green-700 flex justify-between items-center">
-                      <span>O acompanhamento ao vivo está ativo.</span>
-                      <Button size="sm" variant="outline" className="h-7 bg-white text-green-700 border-green-300 hover:bg-green-100 ml-2" onClick={() => setActiveTab('map')}>
-                        Ver Mapa
-                      </Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
+       {/* Mapa sempre visível para cliente se houver walkerId e estiver ativo */}
+       {userType === 'client' && targetWalkerId && isLiveWalk && activeTab === 'chat' && (
+          <div className="h-48 w-full shrink-0 border-b border-gray-200 bg-gray-50">
+             <LiveWalkMap 
+                 bookingId={activeBookingId} 
+                 walkerId={targetWalkerId}
+                 className="w-full h-full" 
+             />
+          </div>
+       )}
+
+       {isLiveWalk ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <div className="px-4 pt-2 shrink-0">
+               {activeTab === 'chat' && (
+                 <Alert className="mb-2 bg-green-50 border-green-200">
+                   <AlertCircle className="h-4 w-4 text-green-600" />
+                   <AlertTitle className="text-green-800 font-bold">Passeio em Andamento!</AlertTitle>
+                   <AlertDescription className="text-green-700 flex justify-between items-center">
+                      {userType === 'client' ? 'Acompanhe o mapa acima.' : 'Compartilhe sua localização.'}
+                      {userType === 'client' && (
+                        <Button size="sm" variant="outline" className="h-7 bg-white text-green-700 border-green-300 hover:bg-green-100 ml-2" onClick={() => setActiveTab('map')}>
+                          Expandir Mapa
+                        </Button>
+                      )}
+                   </AlertDescription>
+                 </Alert>
+               )}
                 <TabsList className="w-full grid grid-cols-2">
                    <TabsTrigger value="chat"><MessageSquare className="w-4 h-4 mr-2"/>Chat</TabsTrigger>
                    <TabsTrigger value="map" className="relative">
@@ -620,12 +634,19 @@ export default function ChatWindow({ conversationId: propConversationId, booking
              </TabsContent>
 
              <TabsContent value="map" className="flex-1 overflow-hidden data-[state=inactive]:hidden mt-0 p-2 relative h-full">
-                {/* Integração com o Mapa: Passando walkerId recuperado */}
-                <LiveWalkMap 
-                    bookingId={activeBookingId} 
-                    walkerId={booking?.walker_id}
-                    className="w-full h-full" 
-                />
+                {/* Integração Robusta com o Mapa */}
+                {booking?.walker_id ? (
+                  <LiveWalkMap 
+                      bookingId={activeBookingId} 
+                      walkerId={booking.walker_id}
+                      className="w-full h-full" 
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center flex-col gap-2 text-gray-500 bg-gray-50 rounded-xl border border-dashed">
+                    <AlertTriangle className="w-8 h-8 text-yellow-500" />
+                    <p>Dados do passeador não disponíveis.</p>
+                  </div>
+                )}
              </TabsContent>
            </Tabs>
         ) : (
