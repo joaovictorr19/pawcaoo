@@ -329,7 +329,7 @@ export default function Landing() {
               Pronto Para Começar?
             </h2>
             <p className="text-xl mb-8 text-white/90 dark:text-gray-200">
-              Junte-se a milhares de donos e profissionais satisfeitos na maior plataforma de cuidados caninos de Portugal
+              Junte-se à nossa comunidade de donos e profissionais satisfeitos na plataforma de cuidados caninos de Portugal
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
