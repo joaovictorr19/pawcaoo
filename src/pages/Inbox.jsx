@@ -118,7 +118,7 @@ export default function Inbox() {
     // If it has booking_id -> Live Walk (assuming active)
     // If not -> Standard Chat
     if (conversation.booking_id) {
-        navigate(`/walk/live/${conversation.booking_id}`);
+        navigate(createPageUrl('LiveWalk') + `?bookingId=${conversation.booking_id}`);
     } else {
         navigate(createPageUrl("Chat") + `?id=${conversation.id}`);
     }
