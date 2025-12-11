@@ -5,8 +5,6 @@ import "leaflet/dist/leaflet.css";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
-import ChatOverlay from "./ChatOverlay";
-import WalkerGPSButton from "./WalkerGPSButton";
 
 // --- CUSTOM ICONS ---
 // Placeholder Icon as requested
@@ -136,19 +134,7 @@ export default function LiveWalkSession({ bookingId }) {
         </div>
       </div>
 
-      {/* GPS Activation for Walker */}
-      {isWalker && (
-        <div className="absolute bottom-24 left-4 right-4 z-[900] pointer-events-auto">
-          <WalkerGPSButton 
-            bookingId={bookingId} 
-            currentBooking={booking}
-            className="w-full"
-          />
-        </div>
-      )}
 
-      {/* Chat Overlay - Bottom Right */}
-      <ChatOverlay bookingId={bookingId} user={user} title="Chat do Passeio" />
       
     </div>
   );
