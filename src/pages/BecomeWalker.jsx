@@ -181,19 +181,13 @@ export default function BecomeWalker() {
       return;
     }
 
-    // Validate numeric fields with comma support for PT/BR
-    const parseNumber = (val) => {
-      if (!val) return 0;
-      if (typeof val === 'number') return val;
-      return parseFloat(val.replace(',', '.'));
-    };
+    // Validate numeric fields
+    const rate = parseFloat(formData.hourly_rate);
+    const exp = parseFloat(formData.experience_years);
+    const ageNum = parseFloat(formData.age);
 
-    const rate = parseNumber(formData.hourly_rate);
-    const exp = parseNumber(formData.experience_years);
-    const ageNum = parseNumber(formData.age);
-
-    if (isNaN(rate) || rate <= 0) {
-      toast.error(t("invalidHourlyRate", language) || "Taxa horária inválida (use formato 00.00)");
+    if (isNaN(rate)) {
+      toast.error(t("invalidHourlyRate", language) || "Taxa horária inválida.");
       return;
     }
 
