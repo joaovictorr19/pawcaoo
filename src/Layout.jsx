@@ -688,6 +688,7 @@ function LayoutContent({ children, currentPageName }) {
                 </SidebarGroupContent>
               )}
             </SidebarGroup>
+            )}
 
             {/* COMPANY */}
             {companyMenu.length > 0 && (
