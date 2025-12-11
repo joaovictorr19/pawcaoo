@@ -220,18 +220,18 @@ export default function OwnerDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   {/* Button 1: Explorar */}
                   <motion.button
                     whileHover={{ y: -4 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(createPageUrl('Home'))}
-                    className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-green-50 border-2 border-gray-200 hover:border-green-300 rounded-xl shadow-sm transition-all group"
+                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-green-50 border-2 border-gray-200 hover:border-green-300 rounded-xl shadow-sm transition-all group active:scale-95"
                   >
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors">
-                      <Search className="w-6 h-6 text-green-600 group-hover:text-white" />
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors">
+                      <Search className="w-5 h-5 text-green-600 group-hover:text-white" />
                     </div>
-                    <span className="text-xs font-bold text-gray-700 group-hover:text-green-600">Explorar</span>
+                    <span className="text-[10px] font-bold text-gray-700 group-hover:text-green-600 leading-tight">Explorar</span>
                   </motion.button>
 
                   {/* Button 2: Favoritos */}
@@ -239,12 +239,12 @@ export default function OwnerDashboard() {
                     whileHover={{ y: -4 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(createPageUrl('Favorites'))}
-                    className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-pink-50 border-2 border-gray-200 hover:border-pink-300 rounded-xl shadow-sm transition-all group"
+                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-pink-50 border-2 border-gray-200 hover:border-pink-300 rounded-xl shadow-sm transition-all group active:scale-95"
                   >
-                    <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center group-hover:bg-pink-600 transition-colors">
-                      <Heart className="w-6 h-6 text-pink-600 group-hover:text-white" />
+                    <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center group-hover:bg-pink-600 transition-colors">
+                      <Heart className="w-5 h-5 text-pink-600 group-hover:text-white" />
                     </div>
-                    <span className="text-xs font-bold text-gray-700 group-hover:text-pink-600">Favoritos</span>
+                    <span className="text-[10px] font-bold text-gray-700 group-hover:text-pink-600 leading-tight">Favoritos</span>
                   </motion.button>
 
                   {/* Button 3: Reservas */}
@@ -252,12 +252,12 @@ export default function OwnerDashboard() {
                     whileHover={{ y: -4 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(createPageUrl('MyBookings'))}
-                    className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-purple-50 border-2 border-gray-200 hover:border-purple-300 rounded-xl shadow-sm transition-all group"
+                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-purple-50 border-2 border-gray-200 hover:border-purple-300 rounded-xl shadow-sm transition-all group active:scale-95"
                   >
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors">
-                      <List className="w-6 h-6 text-purple-600 group-hover:text-white" />
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                      <List className="w-5 h-5 text-purple-600 group-hover:text-white" />
                     </div>
-                    <span className="text-xs font-bold text-gray-700 group-hover:text-purple-600">Reservas</span>
+                    <span className="text-[10px] font-bold text-gray-700 group-hover:text-purple-600 leading-tight">Reservas</span>
                   </motion.button>
                 </div>
               </CardContent>
