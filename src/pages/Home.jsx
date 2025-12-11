@@ -624,7 +624,15 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
-            <div className="max-w-4xl mx-auto">
+            <div className="relative max-w-4xl mx-auto">
+              {/* Cinema spotlight effect */}
+              <div className="absolute inset-0 -m-8 bg-black/90 rounded-3xl blur-3xl"></div>
+              <div className="absolute inset-0 -m-4 bg-gradient-radial from-white/5 via-transparent to-transparent rounded-3xl"></div>
+              
+              {/* Spotlight beams */}
+              <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-b from-yellow-200/20 via-white/5 to-transparent blur-2xl pointer-events-none" style={{ clipPath: 'polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)' }}></div>
+              
+              <div className="relative z-10">
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
