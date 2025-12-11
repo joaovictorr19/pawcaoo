@@ -259,10 +259,10 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
 
   // ========== LAYOUT RENDER ==========
   return (
-    <div className="h-full w-full flex flex-col-reverse md:flex-row overflow-hidden bg-white">
+    <div className="h-full w-full flex flex-col md:flex-row overflow-hidden bg-white">
       
-      {/* ========== COLUNA ESQUERDA: CHAT (Desktop 40% | Mobile 75%) ========== */}
-      <div className={`flex flex-col bg-white md:w-[40%] ${mapExpanded ? 'hidden' : 'flex-1'} md:flex md:border-r md:border-gray-200`}>
+      {/* ========== COLUNA ESQUERDA: CHAT (Desktop 40% | Mobile baixo) ========== */}
+      <div className={`flex flex-col bg-white md:w-[40%] ${mapExpanded ? 'hidden' : 'flex-1 md:flex-none'} md:border-r md:border-gray-200 order-2 md:order-1`}>
         
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-white shrink-0">
@@ -369,7 +369,7 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
 
       {/* ========== COLUNA DIREITA: MAPA (Desktop 60% | Mobile 25% Widget) ========== */}
       {showMap && (
-        <div className={`relative bg-gray-100 md:w-[60%] ${mapExpanded ? 'fixed inset-0 z-50' : 'h-[25vh] md:h-full'}`}>
+        <div className={`relative bg-gray-100 shrink-0 md:w-[60%] ${mapExpanded ? 'fixed inset-0 z-50' : 'h-[25vh] md:h-full'} order-1 md:order-2`}>
           <MapContainer 
             center={center} 
             zoom={16} 
