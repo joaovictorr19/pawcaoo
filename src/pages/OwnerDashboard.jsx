@@ -58,14 +58,30 @@ export default function OwnerDashboard() {
     enabled: !!user,
   });
 
-  // AUTO-FIX: Correct tier based on points
+  // AUTO-FIX: Correct tier based on level AND points
   React.useEffect(() => {
     const fixTier = async () => {
       if (!loyaltyPoints || !user?.email) return;
       
       const currentPoints = loyaltyPoints.points_balance || 0;
-      const correctTier = calculateTier(currentPoints);
+      const currentLevel = user?.gamification_level || 1;
       const currentTier = loyaltyPoints.tier?.toLowerCase() || 'bronze';
+      
+      // Determine correct tier based on level OR points (whichever is higher)
+      let correctTier = 'bronze';
+      if (currentLevel >= 15 || currentPoints >= 6000) {
+        correctTier = 'gold';
+      } else if (currentLevel >= 5 || currentPoints >= 2000) {
+        correctTier = 'silver';
+      }
+      
+      // Also check points-based tiers from calculateTier
+      const pointsBasedTier = calculateTier(currentPoints);
+      if (pointsBasedTier === 'gold' || pointsBasedTier === 'sapphire' || pointsBasedTier === 'diamond') {
+        correctTier = pointsBasedTier;
+      } else if (correctTier === 'bronze' && pointsBasedTier === 'silver') {
+        correctTier = 'silver';
+      }
       
       if (correctTier !== currentTier) {
         try {
@@ -81,7 +97,7 @@ export default function OwnerDashboard() {
     };
     
     fixTier();
-  }, [loyaltyPoints?.points_balance, user?.email]);
+  }, [loyaltyPoints?.points_balance, user?.gamification_level, user?.email]);
 
   // Auto-open review modal
   React.useEffect(() => {
@@ -256,6 +272,29 @@ export default function OwnerDashboard() {
                     </p>
                   </div>
                 </div>
+
+                {/* Badges Preview - 4 Most Recent */}
+                {user?.achievements_badges && user.achievements_badges.length > 0 && (
+                  <div className="mb-4">
+                    <p className={`text-xs ${tierStyles.textColor} opacity-60 uppercase font-bold tracking-wide mb-2`}>
+                      Conquistas Recentes
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                      {user.achievements_badges
+                        .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
+                        .slice(0, 4)
+                        .map((badge, i) => (
+                          <div 
+                            key={i} 
+                            className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl border-2 border-white/20 shadow-md flex-shrink-0"
+                            title={badge.name}
+                          >
+                            {badge.icon || '🏅'}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Bottom Section: Points Display */}
                 <div className="flex items-center justify-between bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-lg">
