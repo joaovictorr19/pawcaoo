@@ -66,8 +66,6 @@ import ShelterProfile from './pages/ShelterProfile';
 import EditWalkerProfile from './pages/EditWalkerProfile';
 import WalkerTrack from './pages/WalkerTrack';
 import LiveWalk from './pages/LiveWalk';
-import Inbox from './pages/Inbox';
-import Chat from './pages/Chat';
 import LiveTrackingPage from './pages/LiveTrackingPage';
 import __Layout from './Layout.jsx';
 
@@ -141,8 +139,6 @@ export const PAGES = {
     "EditWalkerProfile": EditWalkerProfile,
     "WalkerTrack": WalkerTrack,
     "LiveWalk": LiveWalk,
-    "Inbox": Inbox,
-    "Chat": Chat,
     "LiveTrackingPage": LiveTrackingPage,
 }
 
