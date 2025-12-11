@@ -633,7 +633,7 @@ export default function Home() {
               <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-b from-yellow-200/20 via-white/5 to-transparent blur-2xl pointer-events-none" style={{ clipPath: 'polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)' }}></div>
               
               <div className="relative z-10">
-              {/* Embedded Owner Dashboard */}
+                {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
                 
