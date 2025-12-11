@@ -247,6 +247,21 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
     };
   }, []);
 
+  // Obter localização ao montar
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.log("Geolocation error:", error)
+      );
+    }
+  }, []);
+
   // ========== MAP DATA ==========
   const path = booking.route_coordinates || [];
   const center = userLocation 
@@ -259,10 +274,10 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
 
   // ========== LAYOUT RENDER ==========
   return (
-    <div className="h-full w-full flex flex-col md:flex-row overflow-hidden bg-white">
+    <div className="h-full w-full md:flex md:flex-row overflow-hidden bg-white">
       
-      {/* ========== COLUNA ESQUERDA: CHAT (Desktop 40%) ========== */}
-      <div className={`flex flex-col bg-white ${mapExpanded ? 'hidden md:flex' : 'flex-1'} md:w-[40%] md:h-full md:flex-none md:border-r md:border-gray-200`}>
+      {/* DESKTOP: CHAT À ESQUERDA (40%) | MOBILE: CHAT EMBAIXO */}
+      <div className={`flex flex-col bg-white md:w-[40%] md:h-full md:border-r border-gray-200 ${mapExpanded ? 'hidden md:flex' : ''}`}>
         
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-white shrink-0">
@@ -367,9 +382,9 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
         </div>
       </div>
 
-      {/* ========== COLUNA DIREITA: MAPA (Desktop 60% | Mobile Widget Topo) ========== */}
+      {/* DESKTOP: MAPA À DIREITA (60%) | MOBILE: MAPA TOPO (35vh) */}
       {showMap && (
-        <div className={`relative bg-gray-100 shrink-0 ${mapExpanded ? 'fixed inset-0 z-50' : 'h-[35vh] md:h-full md:w-[60%]'}`}>
+        <div className={`relative bg-gray-100 md:w-[60%] md:h-full ${mapExpanded ? 'fixed inset-0 z-50 h-screen w-screen' : 'h-[35vh] md:flex-none'}`}>
           <MapContainer 
             center={center} 
             zoom={16} 
