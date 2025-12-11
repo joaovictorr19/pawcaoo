@@ -151,7 +151,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
   };
 
   return (
-    <div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-6"}>
+    <div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 p-4 md:p-6"}>
       {!isEmbedded && (
         <SEO 
           title={language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}
@@ -166,20 +166,22 @@ export default function AdoptionListings({ isEmbedded = false }) {
       <div className={isEmbedded ? "" : "max-w-7xl mx-auto"}>
         {/* Header - Only show if not embedded or simplified version if embedded */}
         {!isEmbedded && (
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                  <Home className="w-8 h-8 md:w-10 md:h-10 text-pink-600" />
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-700 via-blue-600 to-emerald-600 bg-clip-text text-transparent mb-2 flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Home className="w-7 h-7 text-white" />
+                  </div>
                   {t('adoptAPet', language)}
                 </h1>
-                <p className="text-base md:text-lg text-gray-600">
-                  {t('adoptDontShop', language)} • {filteredListings.length} {t('petsWaiting', language)}
+                <p className="text-base md:text-lg text-gray-700 font-medium ml-15">
+                  {t('adoptDontShop', language)} • <span className="text-green-600 font-bold">{filteredListings.length}</span> {t('petsWaiting', language)}
                 </p>
               </div>
               <Button
                 onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white shadow-lg"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all"
               >
                 <PlusCircle className="w-5 h-5 mr-2" />
                 {t('postForAdoption', language)}
@@ -187,17 +189,22 @@ export default function AdoptionListings({ isEmbedded = false }) {
             </div>
 
             {/* Featured Banner */}
-            <Card className="border-2 border-yellow-300 shadow-xl bg-gradient-to-r from-yellow-50 to-orange-50 mb-6">
-              <CardContent className="p-6">
+            <Card className="border-0 shadow-xl bg-gradient-to-r from-green-600 via-blue-600 to-emerald-600 mb-5 overflow-hidden relative">
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+              <CardContent className="p-5 relative z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center">
-                    <Home className="w-8 h-8 text-white" />
-                  </div>
+                  <motion.div 
+                    className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/30"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Home className="w-7 h-7 text-white" />
+                  </motion.div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-900 mb-1">
+                    <h2 className="text-xl font-bold text-white mb-1">
                       {t('everyPetDeservesHome', language)}
                     </h2>
-                    <p className="text-gray-700">
+                    <p className="text-white/90 text-sm font-medium">
                       {t('adoptDontShop', language)}
                     </p>
                   </div>
@@ -210,16 +217,17 @@ export default function AdoptionListings({ isEmbedded = false }) {
         {isEmbedded && (
           <div className="flex justify-between items-center mb-4">
              <div>
-                <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <h2 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent mb-1 flex items-center gap-2">
+                  <Home className="w-6 h-6 text-green-600" />
                   {t('adoptAPet', language)}
                 </h2>
-                <p className="text-sm text-gray-600">
-                  {filteredListings.length} {t('petsWaiting', language)}
+                <p className="text-sm text-gray-600 font-medium">
+                  <span className="text-green-600 font-bold">{filteredListings.length}</span> {t('petsWaiting', language)}
                 </p>
              </div>
              <Button
                 onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white shadow-lg"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
                 size="sm"
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
@@ -257,9 +265,9 @@ export default function AdoptionListings({ isEmbedded = false }) {
 
         {/* Listings Grid */}
         {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Skeleton key={i} className="h-96 rounded-2xl" />
+              <Skeleton key={i} className="h-96 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-100" />
             ))}
           </div>
         ) : isError ? (
@@ -269,33 +277,38 @@ export default function AdoptionListings({ isEmbedded = false }) {
             <p className="text-gray-600">Por favor, tente novamente mais tarde.</p>
           </div>
         ) : filteredListings.length === 0 ? (
-          <Card className="border-0 shadow-xl">
-            <CardContent className="p-12 text-center">
-              <Home className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+          <Card className="border-0 shadow-2xl bg-white">
+            <CardContent className="p-10 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <Home className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 {t('noPetsFound', language)}
               </h3>
               <p className="text-gray-600 mb-6">
                 {t('tryAdjustingFilters', language)}
               </p>
-              <Button onClick={() => {
-                setFilterPetType("all");
-                setFilterSize("all");
-                setFilterAge("all");
-                setFilterGender("all");
-                setFilterLocation("");
-                setSearchQuery("");
-                setShowUrgentOnly(false);
-                setShowVerifiedOnly(false);
-                setFilterGoodWith([]);
-                setFilterSpecialNeeds(false);
-              }}>
+              <Button 
+                onClick={() => {
+                  setFilterPetType("all");
+                  setFilterSize("all");
+                  setFilterAge("all");
+                  setFilterGender("all");
+                  setFilterLocation("");
+                  setSearchQuery("");
+                  setShowUrgentOnly(false);
+                  setShowVerifiedOnly(false);
+                  setFilterGoodWith([]);
+                  setFilterSpecialNeeds(false);
+                }}
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
+              >
                 {t('clearAllFilters', language)}
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredListings.map((listing, index) => (
               <motion.article
                 key={listing.id}
@@ -304,17 +317,17 @@ export default function AdoptionListings({ isEmbedded = false }) {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card 
-                  className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden h-full"
+                  className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden h-full bg-white rounded-2xl"
                   onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
                 >
                   {/* Image */}
-                  <div className="relative h-64 bg-gray-200">
+                  <div className="relative h-60 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                     {listing.photos && listing.photos[0] ? (
                       <img
                         src={listing.photos[0]}
                         alt={`Adopt ${listing.pet_name} - ${listing.breed} in ${listing.location_city}`}
                         loading="lazy"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-6xl">
@@ -328,7 +341,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     {/* Verified Badge */}
                     {listing.is_verified && (
                       <div className="absolute top-3 left-3 z-10">
-                        <Badge className="bg-green-600 text-white shadow-lg text-xs px-2 py-1">
+                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg text-xs px-2.5 py-1 border border-white/30 backdrop-blur-sm">
                           <Shield className="w-3 h-3 mr-1" />
                           {language === 'pt' ? 'Verificado' : language === 'es' ? 'Verificado' : 'Verified'}
                         </Badge>
@@ -354,7 +367,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-3 right-3 z-20 bg-white/50 hover:bg-white/80 backdrop-blur-sm rounded-full"
+                      className="absolute top-3 right-3 z-20 bg-white/90 hover:bg-white backdrop-blur-md rounded-full shadow-lg hover:scale-110 transition-transform"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (!user) {
@@ -365,22 +378,22 @@ export default function AdoptionListings({ isEmbedded = false }) {
                       }}
                     >
                       <Heart 
-                        className={`w-5 h-5 ${isFavorite(listing.id) ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} 
+                        className={`w-5 h-5 transition-all ${isFavorite(listing.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-600'}`} 
                       />
                     </Button>
                     </div>
 
                   {/* Content */}
                   <CardContent className="p-5">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2 group-hover:from-green-700 group-hover:to-blue-600 transition-all">
                       {listing.pet_name}
                     </h2>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <Badge variant="outline">{listing.breed}</Badge>
-                      <Badge variant="outline">{listing.gender === 'male' ? (language === 'pt' ? 'Macho' : language === 'es' ? 'Macho' : 'Male') : listing.gender === 'female' ? (language === 'pt' ? 'Fêmea' : language === 'es' ? 'Hembra' : 'Female') : listing.gender}</Badge>
-                      <Badge variant="outline">{getAgeLabel(listing)}</Badge>
-                      {listing.size && <Badge variant="outline">{listing.size}</Badge>}
+                      <Badge className="bg-blue-50 text-blue-700 border-blue-200">{listing.breed}</Badge>
+                      <Badge className="bg-purple-50 text-purple-700 border-purple-200">{listing.gender === 'male' ? (language === 'pt' ? 'Macho' : language === 'es' ? 'Macho' : 'Male') : listing.gender === 'female' ? (language === 'pt' ? 'Fêmea' : language === 'es' ? 'Hembra' : 'Female') : listing.gender}</Badge>
+                      <Badge className="bg-green-50 text-green-700 border-green-200">{getAgeLabel(listing)}</Badge>
+                      {listing.size && <Badge className="bg-orange-50 text-orange-700 border-orange-200">{listing.size}</Badge>}
                     </div>
 
                     {listing.description && (
@@ -413,14 +426,13 @@ export default function AdoptionListings({ isEmbedded = false }) {
                       ) : null}
                     </div>
 
-                    {/* Footer - Removed price section */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                      <div className="flex items-center text-gray-600 text-sm">
-                        <MapPin className="w-4 h-4 mr-1" />
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="flex items-center text-gray-700 text-sm font-medium">
+                        <MapPin className="w-4 h-4 mr-1 text-green-600" />
                         {listing.location_city}
                       </div>
-                      {/* Always show free adoption badge */}
-                      <Badge className="bg-green-500 text-white">
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm">
                         {t('freeAdoption', language)}
                       </Badge>
                     </div>
@@ -432,7 +444,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                     )}
 
                     <Button 
-                      className="w-full mt-4 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
+                      className="w-full mt-4 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedListingForContact(listing);
