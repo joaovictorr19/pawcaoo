@@ -439,8 +439,16 @@ export default function ProfessionalDashboard() {
   const profileCompleteness = calculateCompleteness();
 
   // Separar Solicitações Diretas (para mim) vs Pedidos Disponíveis (broadcast)
-  const directRequests = allBookings.filter(b => b.status === 'pending' && b.walker_id === walkerProfile?.id);
+  const directRequests = allBookings.filter(b => {
+    const isPending = b.status === 'pending';
+    const isForMe = b.walker_id === walkerProfile?.id || b.walker_email === user?.email;
+    console.log('📋 Booking:', b.id, 'Status:', b.status, 'Walker ID:', b.walker_id, 'My ID:', walkerProfile?.id, 'IsForMe:', isForMe);
+    return isPending && isForMe;
+  });
   const pendingBookings = allBookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
+  
+  console.log('🎯 Total Solicitações Diretas:', directRequests.length);
+  console.log('📊 Total Pending/Confirmed:', pendingBookings.length);
   const completedBookings = rangeBookings.filter(b => b.status === 'completed');
   const averageRating = reviews.length > 0 
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
@@ -1068,7 +1076,7 @@ export default function ProfessionalDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {allBookings.filter(b => b.status !== 'pending' || b.walker_id !== walkerProfile?.id).map((booking) => (
+                    {allBookings.filter(b => !(b.status === 'pending' && b.walker_id === walkerProfile?.id)).map((booking) => (
                      <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white/90 backdrop-blur-md rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-all gap-3">
                        <div className="flex-1">
                          <div className="flex items-center gap-2 mb-1 flex-wrap">
