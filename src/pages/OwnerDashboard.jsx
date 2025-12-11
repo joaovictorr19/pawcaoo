@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Search, Heart, Calendar } from "lucide-react";
+import { Heart, Calendar, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { calculateTier } from "@/components/gamification/gamificationRules";
@@ -180,30 +180,30 @@ export default function OwnerDashboard({ user: propUser }) {
         )}
       </div>
 
-      {/* Linha 4: Grid de Ações (Botões Horizontais - SEMPRE 3 COLUNAS) */}
+      {/* Linha 4: Grid de Ações (Botões Dark Premium - SEMPRE 3 COLUNAS) */}
       <div className="grid grid-cols-3 gap-4 w-full">
         <button
-          onClick={() => navigate(createPageUrl('Home'))}
-          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-100"
+          onClick={() => navigate(createPageUrl('Favorites'))}
+          className="flex flex-col items-center gap-2 p-4 bg-gray-900 hover:bg-black rounded-lg shadow-md hover:shadow-lg transition-all"
         >
-          <Search className="w-5 h-5 text-gray-600" strokeWidth={1.5} />
-          <span className="text-xs font-medium text-gray-700">Explorar</span>
+          <Heart className="w-5 h-5 text-white" strokeWidth={1.5} />
+          <span className="text-xs font-medium text-white">Favoritos</span>
         </button>
 
         <button
-          onClick={() => navigate(createPageUrl('Favorites'))}
-          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-100"
+          onClick={() => navigate(createPageUrl('Gamification'))}
+          className="flex flex-col items-center gap-2 p-4 bg-gray-900 hover:bg-black rounded-lg shadow-md hover:shadow-lg transition-all"
         >
-          <Heart className="w-5 h-5 text-gray-600" strokeWidth={1.5} />
-          <span className="text-xs font-medium text-gray-700">Favoritos</span>
+          <Trophy className="w-5 h-5 text-white" strokeWidth={1.5} />
+          <span className="text-xs font-medium text-white">Conquistas</span>
         </button>
 
         <button
           onClick={() => navigate(createPageUrl('MyBookings'))}
-          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-100"
+          className="flex flex-col items-center gap-2 p-4 bg-gray-900 hover:bg-black rounded-lg shadow-md hover:shadow-lg transition-all"
         >
-          <Calendar className="w-5 h-5 text-gray-600" strokeWidth={1.5} />
-          <span className="text-xs font-medium text-gray-700">Reservas</span>
+          <Calendar className="w-5 h-5 text-white" strokeWidth={1.5} />
+          <span className="text-xs font-medium text-white">Histórico</span>
         </button>
       </div>
     </div>
