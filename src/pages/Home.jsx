@@ -690,24 +690,38 @@ export default function Home() {
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
                                 Conquistas Recentes
                               </p>
-                              <div className="flex flex-row gap-3 overflow-x-auto pb-1">
-                                {allBadges
-                                  .sort((a, b) => {
-                                    const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
-                                    const dateB = b.earned_date ? new Date(b.earned_date).getTime() : 0;
-                                    return dateB - dateA;
-                                  })
-                                  .slice(0, 5)
-                                  .map((badge, i) => (
-                                    <div 
-                                      key={`badge-${i}-${badge.badge_id || badge.id || i}`}
-                                      className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-default"
-                                      title={badge.name}
-                                    >
-                                      {badge.icon || '🏅'}
-                                    </div>
-                                  ))}
-                              </div>
+                              <TooltipProvider>
+                                <div className="flex flex-row gap-3 overflow-x-auto pb-1">
+                                  {allBadges
+                                    .sort((a, b) => {
+                                      const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
+                                      const dateB = b.earned_date ? new Date(b.earned_date).getTime() : 0;
+                                      return dateB - dateA;
+                                    })
+                                    .slice(0, 5)
+                                    .map((badge, i) => (
+                                      <Tooltip key={`badge-${i}-${badge.badge_id || badge.id || i}`}>
+                                        <TooltipTrigger asChild>
+                                          <div 
+                                            className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden"
+                                          >
+                                            {badge.image_url ? (
+                                              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                              <span>{badge.icon || '🏅'}</span>
+                                            )}
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gray-900 text-white p-3 max-w-xs">
+                                          <p className="font-bold text-sm mb-1">{badge.name}</p>
+                                          {badge.description && (
+                                            <p className="text-xs text-gray-300">{badge.description}</p>
+                                          )}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ))}
+                                </div>
+                              </TooltipProvider>
                             </div>
                           );
                         })()}
