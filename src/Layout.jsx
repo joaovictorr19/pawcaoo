@@ -228,7 +228,6 @@ function LayoutContent({ children, currentPageName }) {
   ];
 
   const myActivityMenu = [
-    { title: getMenuText('myDashboard'), url: createPageUrl("OwnerDashboard"), icon: BarChart3 },
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
