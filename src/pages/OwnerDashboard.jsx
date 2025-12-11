@@ -252,7 +252,12 @@ export default function OwnerDashboard() {
                 </div>
               </div>
               <Button 
-                onClick={() => navigate(`/walk/live/${allBookings.find(b => b.status === 'in_progress').id}`)}
+                onClick={() => {
+                  const liveBooking = allBookings.find(b => b.status === 'in_progress');
+                  if (liveBooking) {
+                    window.location.href = createPageUrl('LiveTrackingPage') + `?id=${liveBooking.id}`;
+                  }
+                }}
                 className="bg-white text-purple-600 hover:bg-gray-100 font-bold px-8 py-6 text-lg shadow-lg transition-transform hover:scale-105"
               >
                 JUNTAR-SE À SESSÃO LIVE
@@ -262,7 +267,7 @@ export default function OwnerDashboard() {
         )}
 
         {/* Quick Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">

@@ -116,11 +116,10 @@ export default function LiveWalkMap({ bookingId, walkerId, className = "h-full w
   const center = path.length > 0 ? [path[path.length - 1].lat, path[path.length - 1].lng] : [38.7223, -9.1393];
 
   return (
-    <div className={`relative w-full h-full ${className}`}>
+    <div className="relative w-full h-full">
       <MapContainer 
         center={center} 
         zoom={16} 
-        className="h-full w-full"
         zoomControl={false}
         style={{ width: "100%", height: "100%" }}
       >

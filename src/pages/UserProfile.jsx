@@ -24,6 +24,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
+import DogCollar from "@/components/ui/DogCollar";
 
 function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
   return (
@@ -925,16 +926,16 @@ export default function UserProfile() {
             )}
             {isOwnProfile && (
               <Button
-                size="sm"
+                size="icon"
                 variant="outline"
-                className="hidden md:inline-flex absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm z-20 pointer-events-auto h-8 px-2 md:h-9 md:px-4"
+                className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg z-20 pointer-events-auto w-10 h-10 rounded-full border-2 border-white/50"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(createPageUrl('AccountSettings'));
                 }}
+                title="Editar Perfil"
               >
-                <Camera className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Alterar Capa</span>
+                <Edit className="w-4 h-4" />
               </Button>
             )}
           </div>
@@ -1036,6 +1037,16 @@ export default function UserProfile() {
                     <div className="flex items-center gap-1 text-sm text-gray-500 mt-2 justify-center md:justify-start">
                       <MapPin className="w-4 h-4" />
                       {profileUser.city}
+                    </div>
+                  )}
+
+                  {/* Dog Collar - Rendered below name/badges */}
+                  {isOwnProfile && (
+                    <div className="mt-3 flex justify-center md:justify-start">
+                      <DogCollar 
+                        userEmail={profileEmail} 
+                        onClick={() => navigate(createPageUrl('AccountSettings') + '?tab=dogs')} 
+                      />
                     </div>
                   )}
 

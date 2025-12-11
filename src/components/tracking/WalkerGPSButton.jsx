@@ -128,23 +128,22 @@ export default function WalkerGPSButton({ bookingId, currentBooking, className }
   };
 
   return (
-    <div className={className || "absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[500] w-full px-4 flex justify-center"}>
+    <div className={className || "w-full flex justify-center"}>
       {!isTracking ? (
         <Button 
           onClick={startTracking}
-          className="bg-green-600 hover:bg-green-700 text-white shadow-xl rounded-full px-6 py-6 h-auto text-lg font-bold animate-bounce"
+          className="w-full max-w-md bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center gap-2"
         >
-          <Navigation className="w-6 h-6 mr-2" />
-          📡 Ativar Minha Localização
+          <Navigation className="w-5 h-5" />
+          📡 ATIVAR MINHA LOCALIZAÇÃO
         </Button>
       ) : (
         <Button 
           onClick={stopTracking}
-          variant="secondary"
-          className="bg-white/90 text-red-600 hover:bg-white shadow-xl rounded-full px-6 py-4 h-auto border-2 border-red-100"
+          className="w-full max-w-md bg-red-50 text-red-600 hover:bg-red-100 font-semibold py-3 px-6 rounded-lg shadow-md flex items-center justify-center gap-2 border-2 border-red-200"
         >
-          <StopCircle className="w-5 h-5 mr-2" />
-          Parar GPS ({(distance / 1000).toFixed(2)} km)
+          <StopCircle className="w-5 h-5" />
+          GPS ATIVO • {(distance / 1000).toFixed(2)} km
         </Button>
       )}
     </div>
