@@ -997,10 +997,16 @@ export default function ProfessionalDashboard() {
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <Badge className="bg-purple-600 text-white">🎯 DIRETO</Badge>
                             <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
+                            <Badge variant="outline" className="text-xs">
+                              {booking.dog_size === 'small' && '🐕 Pequeno'}
+                              {booking.dog_size === 'medium' && '🐕 Médio'}
+                              {booking.dog_size === 'large' && '🐕 Grande'}
+                              {booking.dog_size === 'extra_large' && '🐕 XL'}
+                            </Badge>
                           </div>
-                          <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
+                          <p className="text-sm text-gray-600 font-semibold">{booking.owner_name} • {booking.owner_phone}</p>
                           <p className="text-sm text-gray-500">
-                            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time}
+                            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time} • {booking.duration_hours}h
                           </p>
                           {booking.pickup_address && (
                             <p className="text-sm text-gray-600 flex items-center gap-1 mt-1 font-medium">
@@ -1008,11 +1014,26 @@ export default function ProfessionalDashboard() {
                               {booking.pickup_address}
                             </p>
                           )}
+                          {booking.special_notes && (
+                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <p className="text-xs text-gray-700"><strong>Notas:</strong> {booking.special_notes}</p>
+                            </div>
+                          )}
                           <p className="text-xl md:text-2xl font-bold text-green-600 mt-2 md:hidden">€{booking.service_amount}</p>
                         </div>
                         <div className="md:text-right">
                           <p className="text-2xl font-bold text-green-600 hidden md:block">€{booking.service_amount}</p>
                           <div className="flex flex-col gap-2 mt-2">
+                            {booking.owner_phone && (
+                              <Button
+                                size="sm"
+                                onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
+                                className="w-full h-10 bg-green-600 text-white hover:bg-green-700"
+                              >
+                                <MessageCircle className="w-4 h-4 mr-2" />
+                                WhatsApp Dono
+                              </Button>
+                            )}
                             <div className="grid grid-cols-2 gap-2">
                               <Button
                                 size="sm"
