@@ -368,22 +368,45 @@ export default function Gamification() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center relative -mt-8"
                 >
-                  <div className="relative mb-2">
-                    <svg className="w-14 h-14" viewBox="0 0 64 64" fill="none">
-                      <path d="M32 4L36 16L48 12L44 24L56 28L44 32L48 44L36 40L32 52L28 40L16 44L20 32L8 28L20 24L16 12L28 16L32 4Z" 
-                            fill="url(#gold-gradient)" 
-                            className="drop-shadow-lg" />
-                      <circle cx="32" cy="28" r="8" fill="#FFD700" />
-                      <circle cx="32" cy="28" r="5" fill="#FFA500" />
-                      <defs>
-                        <linearGradient id="gold-gradient" x1="32" y1="4" x2="32" y2="52">
-                          <stop offset="0%" stopColor="#FFD700" />
-                          <stop offset="50%" stopColor="#FFA500" />
-                          <stop offset="100%" stopColor="#FF8C00" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="absolute inset-0 blur-md bg-yellow-400 opacity-50 rounded-full"></div>
+                  <div className="relative mb-3 z-20">
+                    {/* Realistic King Crown */}
+                    <div className="relative w-16 h-16 flex items-center justify-center">
+                      <svg className="w-full h-full drop-shadow-2xl" viewBox="0 0 64 64" fill="none">
+                        {/* Crown base */}
+                        <path d="M10 38 L12 50 L52 50 L54 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="1"/>
+
+                        {/* Crown points */}
+                        <path d="M10 38 L14 20 L18 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
+                        <path d="M18 38 L24 14 L30 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
+                        <path d="M30 38 L32 8 L34 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
+                        <path d="M34 38 L40 14 L46 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
+                        <path d="M46 38 L50 20 L54 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
+
+                        {/* Jewels */}
+                        <circle cx="32" cy="8" r="2.5" fill="#FF0000" className="animate-pulse"/>
+                        <circle cx="24" cy="14" r="2" fill="#0066FF" opacity="0.9"/>
+                        <circle cx="40" cy="14" r="2" fill="#00FF00" opacity="0.9"/>
+                        <circle cx="14" cy="20" r="1.5" fill="#FF00FF" opacity="0.8"/>
+                        <circle cx="50" cy="20" r="1.5" fill="#FFFF00" opacity="0.8"/>
+
+                        {/* Shine effects */}
+                        <path d="M32 8 L33 6 L32 4 L31 6 Z" fill="white" opacity="0.8"/>
+                        <path d="M24 14 L25 12 L24 10 L23 12 Z" fill="white" opacity="0.6"/>
+                        <path d="M40 14 L41 12 L40 10 L39 12 Z" fill="white" opacity="0.6"/>
+
+                        <defs>
+                          <linearGradient id="crown-gradient" x1="32" y1="8" x2="32" y2="50">
+                            <stop offset="0%" stopColor="#FFD700"/>
+                            <stop offset="40%" stopColor="#FFA500"/>
+                            <stop offset="70%" stopColor="#FF8C00"/>
+                            <stop offset="100%" stopColor="#B8860B"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+
+                      {/* Glow effect behind crown */}
+                      <div className="absolute inset-0 bg-gradient-radial from-yellow-300 via-yellow-400 to-transparent opacity-40 blur-xl animate-pulse"></div>
+                    </div>
                   </div>
                   <div className="relative">
                     <div className={`w-28 h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
