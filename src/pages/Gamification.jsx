@@ -369,45 +369,131 @@ export default function Gamification() {
                   className="flex flex-col items-center relative -mt-8"
                 >
                   <div className="relative mb-3 z-20">
-                    {/* Realistic King Crown */}
-                    <div className="relative w-16 h-16 flex items-center justify-center">
-                      <svg className="w-full h-full drop-shadow-2xl" viewBox="0 0 64 64" fill="none">
-                        {/* Crown base */}
-                        <path d="M10 38 L12 50 L52 50 L54 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="1"/>
+                    {/* Premium 3D Crown with Rotation */}
+                    <div className="relative w-20 h-20 flex items-center justify-center">
+                      {/* Animated glow rings */}
+                      <div className="absolute inset-0 animate-spin-slow">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 opacity-30 blur-xl"></div>
+                      </div>
 
-                        {/* Crown points */}
-                        <path d="M10 38 L14 20 L18 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
-                        <path d="M18 38 L24 14 L30 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
-                        <path d="M30 38 L32 8 L34 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
-                        <path d="M34 38 L40 14 L46 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
-                        <path d="M46 38 L50 20 L54 38 Z" fill="url(#crown-gradient)" stroke="#B8860B" strokeWidth="0.5"/>
+                      {/* Crown SVG with subtle float animation */}
+                      <div className="relative animate-float">
+                        <svg className="w-full h-full drop-shadow-2xl filter" viewBox="0 0 100 100" fill="none">
+                          {/* Crown band with 3D effect */}
+                          <ellipse cx="50" cy="65" rx="28" ry="8" fill="url(#crown-base-gradient)" opacity="0.5"/>
+                          <path d="M22 58 L24 68 L76 68 L78 58 Z" fill="url(#crown-band)" stroke="#8B6914" strokeWidth="1.5" strokeLinejoin="round"/>
 
-                        {/* Jewels */}
-                        <circle cx="32" cy="8" r="2.5" fill="#FF0000" className="animate-pulse"/>
-                        <circle cx="24" cy="14" r="2" fill="#0066FF" opacity="0.9"/>
-                        <circle cx="40" cy="14" r="2" fill="#00FF00" opacity="0.9"/>
-                        <circle cx="14" cy="20" r="1.5" fill="#FF00FF" opacity="0.8"/>
-                        <circle cx="50" cy="20" r="1.5" fill="#FFFF00" opacity="0.8"/>
+                          {/* Decorative band pattern */}
+                          <rect x="24" y="60" width="52" height="6" fill="url(#velvet-red)" opacity="0.8"/>
+                          <line x1="28" y1="60" x2="28" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
+                          <line x1="36" y1="60" x2="36" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
+                          <line x1="44" y1="60" x2="44" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
+                          <line x1="52" y1="60" x2="52" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
+                          <line x1="60" y1="60" x2="60" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
+                          <line x1="68" y1="60" x2="68" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
+                          <line x1="72" y1="60" x2="72" y2="66" stroke="#FFD700" strokeWidth="0.5" opacity="0.6"/>
 
-                        {/* Shine effects */}
-                        <path d="M32 8 L33 6 L32 4 L31 6 Z" fill="white" opacity="0.8"/>
-                        <path d="M24 14 L25 12 L24 10 L23 12 Z" fill="white" opacity="0.6"/>
-                        <path d="M40 14 L41 12 L40 10 L39 12 Z" fill="white" opacity="0.6"/>
+                          {/* Five majestic peaks */}
+                          <path d="M22 58 L28 35 L34 58" fill="url(#crown-peak)" stroke="#8B6914" strokeWidth="1.2" strokeLinejoin="round"/>
+                          <path d="M34 58 L42 25 L50 58" fill="url(#crown-peak)" stroke="#8B6914" strokeWidth="1.2" strokeLinejoin="round"/>
+                          <path d="M50 58 L50 15 L50 58" fill="url(#crown-center)" stroke="#8B6914" strokeWidth="1.2" strokeLinejoin="round"/>
+                          <path d="M50 58 L58 25 L66 58" fill="url(#crown-peak)" stroke="#8B6914" strokeWidth="1.2" strokeLinejoin="round"/>
+                          <path d="M66 58 L72 35 L78 58" fill="url(#crown-peak)" stroke="#8B6914" strokeWidth="1.2" strokeLinejoin="round"/>
 
-                        <defs>
-                          <linearGradient id="crown-gradient" x1="32" y1="8" x2="32" y2="50">
-                            <stop offset="0%" stopColor="#FFD700"/>
-                            <stop offset="40%" stopColor="#FFA500"/>
-                            <stop offset="70%" stopColor="#FF8C00"/>
-                            <stop offset="100%" stopColor="#B8860B"/>
-                          </linearGradient>
-                        </defs>
-                      </svg>
+                          {/* Premium jewels with shimmer */}
+                          <g className="animate-pulse">
+                            <circle cx="50" cy="15" r="4" fill="#DC143C" filter="url(#jewel-glow)"/>
+                            <circle cx="50" cy="15" r="2" fill="#FF6B9D" opacity="0.8"/>
+                          </g>
+                          <circle cx="42" cy="25" r="3" fill="#4169E1" filter="url(#jewel-glow)" opacity="0.95"/>
+                          <circle cx="58" cy="25" r="3" fill="#32CD32" filter="url(#jewel-glow)" opacity="0.95"/>
+                          <circle cx="28" cy="35" r="2.5" fill="#9370DB" filter="url(#jewel-glow)" opacity="0.9"/>
+                          <circle cx="72" cy="35" r="2.5" fill="#FFD700" filter="url(#jewel-glow)" opacity="0.9"/>
 
-                      {/* Glow effect behind crown */}
-                      <div className="absolute inset-0 bg-gradient-radial from-yellow-300 via-yellow-400 to-transparent opacity-40 blur-xl animate-pulse"></div>
+                          {/* Sparkle effects */}
+                          <g className="animate-ping-slow">
+                            <path d="M50 12 L51 14 L50 16 L49 14 Z" fill="white" opacity="0.9"/>
+                            <path d="M48 15 L50 15.5 L48 16 L50 15.5 Z" fill="white" opacity="0.7"/>
+                          </g>
+                          <path d="M42 22 L43 24 L42 26 L41 24 Z" fill="white" opacity="0.7"/>
+                          <path d="M58 22 L59 24 L58 26 L57 24 Z" fill="white" opacity="0.7"/>
+
+                          {/* Highlight reflections */}
+                          <path d="M30 45 Q35 40, 40 45" stroke="white" strokeWidth="1.5" opacity="0.4" fill="none"/>
+                          <path d="M60 45 Q65 40, 70 45" stroke="white" strokeWidth="1.5" opacity="0.4" fill="none"/>
+
+                          <defs>
+                            <linearGradient id="crown-band" x1="50" y1="58" x2="50" y2="68">
+                              <stop offset="0%" stopColor="#FFD700"/>
+                              <stop offset="30%" stopColor="#FFA500"/>
+                              <stop offset="70%" stopColor="#FF8C00"/>
+                              <stop offset="100%" stopColor="#DAA520"/>
+                            </linearGradient>
+
+                            <linearGradient id="crown-peak" x1="50" y1="25" x2="50" y2="58">
+                              <stop offset="0%" stopColor="#FFED4E"/>
+                              <stop offset="40%" stopColor="#FFD700"/>
+                              <stop offset="100%" stopColor="#FFA500"/>
+                            </linearGradient>
+
+                            <linearGradient id="crown-center" x1="50" y1="15" x2="50" y2="58">
+                              <stop offset="0%" stopColor="#FFF8DC"/>
+                              <stop offset="30%" stopColor="#FFD700"/>
+                              <stop offset="100%" stopColor="#FF8C00"/>
+                            </linearGradient>
+
+                            <linearGradient id="crown-base-gradient" x1="50" y1="58" x2="50" y2="73">
+                              <stop offset="0%" stopColor="#8B6914"/>
+                              <stop offset="100%" stopColor="#4A4A4A" stopOpacity="0.5"/>
+                            </linearGradient>
+
+                            <linearGradient id="velvet-red" x1="50" y1="60" x2="50" y2="66">
+                              <stop offset="0%" stopColor="#8B0000"/>
+                              <stop offset="100%" stopColor="#DC143C"/>
+                            </linearGradient>
+
+                            <filter id="jewel-glow">
+                              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                              <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                              </feMerge>
+                            </filter>
+                          </defs>
+                        </svg>
+                      </div>
+
+                      {/* Rotating light beams */}
+                      <div className="absolute inset-0 animate-spin-slow opacity-20">
+                        <div className="absolute top-0 left-1/2 w-0.5 h-full bg-gradient-to-b from-yellow-200 via-transparent to-transparent"></div>
+                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-yellow-200 to-transparent"></div>
+                      </div>
                     </div>
                   </div>
+
+                  <style>{`
+                    @keyframes float {
+                      0%, 100% { transform: translateY(0px); }
+                      50% { transform: translateY(-6px); }
+                    }
+                    @keyframes spin-slow {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+                    @keyframes ping-slow {
+                      0%, 100% { opacity: 1; }
+                      50% { opacity: 0.5; }
+                    }
+                    .animate-float {
+                      animation: float 3s ease-in-out infinite;
+                    }
+                    .animate-spin-slow {
+                      animation: spin-slow 8s linear infinite;
+                    }
+                    .animate-ping-slow {
+                      animation: ping-slow 2s ease-in-out infinite;
+                    }
+                  `}</style>
                   <div className="relative">
                     <div className={`w-28 h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
                       activeRanking === 'global' ? 'border-yellow-500 ring-yellow-200' :
