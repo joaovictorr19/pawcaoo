@@ -33,22 +33,27 @@ export default function Gamification() {
     },
   });
 
-  // Tier calculation based on XP
+  // Tier calculation based on XP with tier ranges
   const getTierData = (xp) => {
-    if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', bgColor: 'from-blue-600 to-purple-600', icon: '💎', chartColor: '#3b82f6' };
-    if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', bgColor: 'from-yellow-500 to-orange-500', icon: '👑', chartColor: '#f59e0b' };
-    if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', bgColor: 'from-gray-400 to-slate-500', icon: '⚔️', chartColor: '#94a3b8' };
-    return { name: 'Bronze', color: 'from-orange-600 to-orange-400', bgColor: 'from-orange-500 to-orange-400', icon: '🛡️', chartColor: '#f97316' };
+    if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', bgColor: 'from-blue-600 to-purple-600', icon: '💎', chartColor: '#3b82f6', min: 6000, max: 10000 };
+    if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', bgColor: 'from-yellow-500 to-orange-500', icon: '👑', chartColor: '#f59e0b', min: 3000, max: 6000 };
+    if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', bgColor: 'from-gray-400 to-slate-500', icon: '⚔️', chartColor: '#94a3b8', min: 1000, max: 3000 };
+    return { name: 'Bronze', color: 'from-orange-600 to-orange-400', bgColor: 'from-orange-500 to-orange-400', icon: '🛡️', chartColor: '#f97316', min: 0, max: 1000 };
   };
 
   const currentXP = user?.gamification_xp || 0;
   const currentLevel = user?.gamification_level || 1;
   const currentTier = getTierData(currentXP);
 
-  // XP Progress calculation
+  // XP Progress calculation (relative to current tier)
   const xpPerLevel = 500;
   const xpInCurrentLevel = currentXP - ((currentLevel - 1) * xpPerLevel);
-  const xpProgressPercentage = Math.min((xpInCurrentLevel / xpPerLevel) * 100, 100);
+  
+  // Tier-based progress (relative to tier range, not absolute)
+  const xpInCurrentTier = currentXP - currentTier.min;
+  const tierRange = currentTier.max - currentTier.min;
+  const tierProgressPercentage = Math.min((xpInCurrentTier / tierRange) * 100, 100);
+  const xpRemainingForNextTier = currentTier.max - currentXP;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
@@ -90,10 +95,10 @@ export default function Gamification() {
   // User rank
   const userRank = allUsers.findIndex(u => u.email === user?.email) + 1;
 
-  // Donut chart data
+  // Donut chart data (based on tier progress, not level)
   const chartData = [
-    { name: 'Progress', value: xpInCurrentLevel },
-    { name: 'Remaining', value: Math.max(0, xpPerLevel - xpInCurrentLevel) }
+    { name: 'Progress', value: xpInCurrentTier },
+    { name: 'Remaining', value: Math.max(0, xpRemainingForNextTier) }
   ];
 
   return (
@@ -129,7 +134,7 @@ export default function Gamification() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-5xl mb-1">{currentTier.icon}</div>
-                    <div className="text-xs font-semibold opacity-90">{Math.round(xpProgressPercentage)}%</div>
+                    <div className="text-xs font-semibold opacity-90">{Math.round(tierProgressPercentage)}%</div>
                   </div>
                 </div>
               </div>
@@ -139,10 +144,17 @@ export default function Gamification() {
             <div className="text-center">
               <h1 className="text-5xl font-black mb-2">Nível {currentLevel}</h1>
               <p className="text-2xl font-bold mb-1">{currentTier.icon} {currentTier.name}</p>
-              <p className="text-lg opacity-90">{currentXP.toLocaleString()} XP</p>
-              <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 inline-block">
-                <p className="text-sm font-semibold">
-                  {xpInCurrentLevel}/{xpPerLevel} XP para Nível {currentLevel + 1}
+              <p className="text-lg opacity-90">{currentXP.toLocaleString('pt-PT')} XP</p>
+              <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3 inline-block">
+                <p className="text-sm font-semibold mb-1">
+                  {currentXP.toLocaleString('pt-PT')} / {currentTier.max.toLocaleString('pt-PT')} XP
+                </p>
+                <p className="text-xs opacity-90">
+                  Faltam {xpRemainingForNextTier.toLocaleString('pt-PT')} para {
+                    currentTier.name === 'Safira' ? 'Máximo' :
+                    currentTier.name === 'Ouro' ? 'Safira' :
+                    currentTier.name === 'Prata' ? 'Ouro' : 'Prata'
+                  }
                 </p>
               </div>
             </div>
@@ -199,7 +211,7 @@ export default function Gamification() {
                   <div className="mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-6 py-4 text-center shadow-lg h-32 flex flex-col justify-center">
                     <Medal className="w-6 h-6 mx-auto mb-1" />
                     <p className="font-bold text-sm truncate max-w-[100px]">{allUsers[1].full_name}</p>
-                    <p className="text-xs opacity-90">{allUsers[1].gamification_xp?.toLocaleString()} XP</p>
+                    <p className="text-xs opacity-90">{allUsers[1].gamification_xp?.toLocaleString('pt-PT')} XP</p>
                   </div>
                 </motion.div>
               )}
@@ -229,7 +241,7 @@ export default function Gamification() {
                   <div className="mt-4 bg-gradient-to-b from-yellow-400 to-yellow-600 text-white rounded-2xl px-8 py-6 text-center shadow-2xl h-40 flex flex-col justify-center">
                     <Trophy className="w-8 h-8 mx-auto mb-2" />
                     <p className="font-black text-lg truncate max-w-[120px]">{allUsers[0].full_name}</p>
-                    <p className="text-sm opacity-95 font-bold">{allUsers[0].gamification_xp?.toLocaleString()} XP</p>
+                    <p className="text-sm opacity-95 font-bold">{allUsers[0].gamification_xp?.toLocaleString('pt-PT')} XP</p>
                     <Badge className="mt-2 bg-white/30 text-white border-0">
                       {getTierData(allUsers[0].gamification_xp || 0).icon} {getTierData(allUsers[0].gamification_xp || 0).name}
                     </Badge>
@@ -262,7 +274,7 @@ export default function Gamification() {
                   <div className="mt-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white rounded-xl px-6 py-4 text-center shadow-lg h-32 flex flex-col justify-center">
                     <Medal className="w-6 h-6 mx-auto mb-1" />
                     <p className="font-bold text-sm truncate max-w-[100px]">{allUsers[2].full_name}</p>
-                    <p className="text-xs opacity-90">{allUsers[2].gamification_xp?.toLocaleString()} XP</p>
+                    <p className="text-xs opacity-90">{allUsers[2].gamification_xp?.toLocaleString('pt-PT')} XP</p>
                   </div>
                 </motion.div>
               )}
@@ -292,7 +304,7 @@ export default function Gamification() {
                     <p className="text-xs text-gray-600">Nível {rankUser.gamification_level || 1}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-blue-600">{rankUser.gamification_xp?.toLocaleString()}</p>
+                    <p className="font-bold text-blue-600">{rankUser.gamification_xp?.toLocaleString('pt-PT')}</p>
                     <p className="text-xs text-gray-500">XP</p>
                   </div>
                 </div>
@@ -308,7 +320,7 @@ export default function Gamification() {
                   </div>
                   <div className="flex-1">
                     <p className="font-bold">Você está em {userRank}º lugar</p>
-                    <p className="text-sm opacity-90">{currentXP.toLocaleString()} XP</p>
+                    <p className="text-sm opacity-90">{currentXP.toLocaleString('pt-PT')} XP</p>
                   </div>
                   <TrendingUp className="w-6 h-6" />
                 </div>
