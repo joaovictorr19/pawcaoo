@@ -1,1244 +1,444 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea"; // Added Textarea
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"; // Added Avatar components
-import {
-  Trophy, Star, Target, TrendingUp, Award, Zap, Crown,
-  Heart, Users, MessageCircle, Calendar, Gift, Shield,
-  Flame, CheckCircle, Lock, Sparkles, ChevronRight, Camera,
-  Upload, X, Plus, Trash, Search, BarChart3
+  Trophy, Crown, Medal, Award, Lock, Sparkles, 
+  Star, TrendingUp, Users, ChevronRight
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import BadgeInventory from "@/components/gamification/BadgeInventory";
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 export default function Gamification() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState("all");
-  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
-  const [selectedChallenge, setSelectedChallenge] = useState(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(null);
-
-  // New admin-related state
-  const [showGrantBadgeModal, setShowGrantBadgeModal] = useState(false);
-  const [showRemoveBadgeModal, setShowRemoveBadgeModal] = useState(false);
-  const [showCreateCustomBadgeModal, setShowCreateCustomBadgeModal] = useState(false); // New state
-  const [selectedUserForBadge, setSelectedUserForBadge] = useState(null);
-  // const [selectedBadgeToRemove, setSelectedBadgeToRemove] = useState(null); // Removed as badge_id is passed directly
-  const [userEmailSearch, setUserEmailSearch] = useState('');
-  const [customBadgeForm, setCustomBadgeForm] = useState({ // New state for custom badge form
-    name: "",
-    description: "",
-    icon: "⭐",
-    image_url: "",
-    rarity: "common",
-    category: "special"
-  });
-  const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false); // New state for custom badge image upload
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: userComments = [] } = useQuery({
-    queryKey: ['userComments', user?.email],
-    queryFn: () => base44.entities.SocialComment.filter({ author_email: user?.email }),
-    enabled: !!user?.email,
-    initialData: [],
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      return users
+        .filter(u => u.gamification_xp > 0)
+        .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
+    },
   });
 
-  const { data: userLikes = [] } = useQuery({
-    queryKey: ['userLikes', user?.email],
-    queryFn: () => base44.entities.SocialLike.filter({ user_email: user?.email }),
-    enabled: !!user?.email,
-    initialData: [],
-  });
-
-  // XP POR RARIDADE
-  const getXPForRarity = (rarity) => {
-    const xpByRarity = {
-      common: 100,
-      rare: 300,
-      epic: 600,
-      legendary: 1000
-    };
-    return xpByRarity[rarity] || 100;
+  // Tier calculation based on XP
+  const getTierData = (xp) => {
+    if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', bgColor: 'from-blue-600 to-purple-600', icon: '💎', chartColor: '#3b82f6' };
+    if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', bgColor: 'from-yellow-500 to-orange-500', icon: '👑', chartColor: '#f59e0b' };
+    if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', bgColor: 'from-gray-400 to-slate-500', icon: '⚔️', chartColor: '#94a3b8' };
+    return { name: 'Bronze', color: 'from-orange-600 to-orange-400', bgColor: 'from-orange-500 to-orange-400', icon: '🛡️', chartColor: '#f97316' };
   };
 
-  const completeQuestMutation = useMutation({
-    mutationFn: async ({ xpReward }) => {
-      const newXP = (user?.gamification_xp || 0) + xpReward;
-      // Recalculate level based on new XP, assuming 500 XP per level starting from level 1
-      const newLevel = Math.floor(newXP / 500) + 1;
-
-      return await base44.auth.updateMe({
-        gamification_xp: newXP,
-        gamification_level: newLevel,
-        last_activity_date: new Date().toISOString().split('T')[0] // Update last activity
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['currentUser']);
-      toast.success("Missão completa!", {
-        description: `Você ganhou XP! 🎉`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Erro ao completar missão", {
-        description: error.message || "Tente novamente mais tarde.",
-      });
-    },
-  });
-
-  // MUTATION CORRIGIDA - Conceder emblema com XP baseado em raridade
-  const grantBadgeMutation = useMutation({
-    mutationFn: async ({ userEmail, badge }) => {
-      const users = await base44.entities.User.filter({ email: userEmail });
-      if (users.length === 0) throw new Error('Usuário não encontrado');
-
-      const targetUser = users[0];
-      const currentBadges = targetUser.public_badges || [];
-
-      // Gerar ID único
-      const badgeId = badge.id || `badge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      // Check if user already has this badge
-      if (currentBadges.some(b => b.badge_id === badgeId) || (targetUser.achievements_badges || []).some(b => b.badge_id === badgeId)) {
-        throw new Error('Usuário já possui este emblema');
-      }
-
-      const badgeXP = getXPForRarity(badge.rarity);
-
-      const newBadge = {
-        badge_id: badgeId,
-        name: badge.name,
-        description: badge.description || badge.desc,
-        icon: badge.icon,
-        image_url: badge.image_url || null,
-        rarity: badge.rarity,
-        category: badge.category || "special",
-        xp: badgeXP,
-        earned_date: new Date().toISOString(),
-      };
-
-      await base44.entities.User.update(targetUser.id, {
-        public_badges: [...currentBadges, newBadge]
-      });
-
-      // Grant XP for the badge
-      const newXP = (targetUser.gamification_xp || 0) + badgeXP;
-      const newLevel = Math.floor(newXP / 500) + 1;
-      await base44.entities.User.update(targetUser.id, {
-        gamification_xp: newXP,
-        gamification_level: newLevel,
-      });
-
-      return { badge: newBadge, xp: badgeXP };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries(['currentUser']);
-      queryClient.invalidateQueries(['allUsers']); // Assuming 'allUsers' query exists for admin panels
-      queryClient.invalidateQueries(['profileUser', selectedUserForBadge?.id]); // Invalidate user profile if applicable
-      
-      if (selectedUserForBadge && data.badge) {
-        setSelectedUserForBadge(prev => ({
-          ...prev,
-          public_badges: [...(prev.public_badges || []), data.badge],
-          gamification_xp: (prev.gamification_xp || 0) + data.xp,
-          gamification_level: Math.floor(((prev.gamification_xp || 0) + data.xp) / 500) + 1,
-        }));
-      }
-      toast.success(`✅ Emblema "${data.badge.name}" concedido! +${data.xp} XP`);
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Erro ao conceder emblema');
-    }
-  });
-
-  const removeBadgeMutation = useMutation({
-    mutationFn: async ({ userEmail, badgeId }) => {
-      const users = await base44.entities.User.filter({ email: userEmail });
-      if (users.length === 0) throw new Error('Usuário não encontrado');
-
-      const targetUser = users[0];
-      
-      // Check both public and achievements badges
-      const currentPublicBadges = targetUser.public_badges || [];
-      const currentAchievementsBadges = targetUser.achievements_badges || [];
-
-      let badgeToRemove = currentPublicBadges.find(b => b.badge_id === badgeId);
-      let isPublicBadge = true;
-
-      if (!badgeToRemove) {
-        badgeToRemove = currentAchievementsBadges.find(b => b.badge_id === badgeId);
-        isPublicBadge = false;
-      }
-
-      if (!badgeToRemove) {
-        throw new Error('Emblema não encontrado para este usuário');
-      }
-
-      const updatedBadges = isPublicBadge
-        ? currentPublicBadges.filter(b => b.badge_id !== badgeId)
-        : currentAchievementsBadges.filter(b => b.badge_id !== badgeId);
-
-      const updateField = isPublicBadge ? 'public_badges' : 'achievements_badges';
-
-      await base44.entities.User.update(targetUser.id, {
-        [updateField]: updatedBadges
-      });
-
-      // Revoke XP for the badge
-      const badgeXP = badgeToRemove.xp || getXPForRarity(badgeToRemove.rarity);
-      const newXP = Math.max(0, (targetUser.gamification_xp || 0) - badgeXP);
-      const newLevel = Math.floor(newXP / 500) + 1;
-      await base44.entities.User.update(targetUser.id, {
-        gamification_xp: newXP,
-        gamification_level: newLevel,
-      });
-      
-      return { badge: badgeToRemove, xp: badgeXP, isPublicBadge };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries(['currentUser']);
-      queryClient.invalidateQueries(['allUsers']);
-      queryClient.invalidateQueries(['profileUser', selectedUserForBadge?.id]);
-      
-      if (selectedUserForBadge && data.badge) {
-        setSelectedUserForBadge(prev => {
-          const updatedPublicBadges = data.isPublicBadge 
-            ? (prev.public_badges || []).filter(b => b.badge_id !== data.badge.badge_id)
-            : (prev.public_badges || []);
-          const updatedAchievementsBadges = !data.isPublicBadge
-            ? (prev.achievements_badges || []).filter(b => b.badge_id !== data.badge.badge_id)
-            : (prev.achievements_badges || []);
-          
-          return {
-            ...prev,
-            public_badges: updatedPublicBadges,
-            achievements_badges: updatedAchievementsBadges,
-            gamification_xp: Math.max(0, (prev.gamification_xp || 0) - data.xp),
-            gamification_level: Math.floor(Math.max(0, (prev.gamification_xp || 0) - data.xp) / 500) + 1,
-          };
-        });
-      }
-      setShowRemoveBadgeModal(false);
-      toast.success(`❌ Emblema "${data.badge.name}" removido! -${data.xp} XP`);
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Erro ao remover emblema');
-    }
-  });
-
-  const searchUserMutation = useMutation({
-    mutationFn: async (email) => {
-      console.log('🔍 Buscando usuário:', email);
-      
-      const allUsers = await base44.entities.User.list();
-      console.log('👥 Total de usuários:', allUsers.length);
-      
-      const user = allUsers.find(u => u.email?.toLowerCase() === email.toLowerCase());
-      
-      if (!user) {
-        console.log('❌ Usuário não encontrado');
-        throw new Error('Usuário não encontrado');
-      }
-      
-      console.log('✅ Usuário encontrado:', {
-        email: user.email,
-        name: user.full_name,
-        public_badges: user.public_badges?.length || 0,
-        achievements_badges: user.achievements_badges?.length || 0
-      });
-      
-      return user;
-    },
-    onSuccess: (user) => {
-      setSelectedUserForBadge(user);
-      toast.success(`✅ Usuário ${user.full_name} encontrado!`);
-    },
-    onError: (error) => {
-      setSelectedUserForBadge(null);
-      toast.error(error.message || 'Usuário não encontrado');
-    }
-  });
-
-  const uploadCustomBadgeImageMutation = useMutation({
-    mutationFn: async (file) => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      return file_url;
-    },
-    onSuccess: (url) => {
-      setCustomBadgeForm({ ...customBadgeForm, image_url: url, icon: "" }); // Clear icon if image is uploaded
-      setUploadingCustomBadgeImage(false);
-      toast.success("✅ Imagem carregada!");
-    },
-    onError: () => {
-      setUploadingCustomBadgeImage(false);
-      toast.error("❌ Erro ao carregar imagem");
-    }
-  });
-
-  // Calculate XP needed for next level
-  const xpPerLevel = 500;
-  const currentLevelXP = user?.gamification_xp || 0;
+  const currentXP = user?.gamification_xp || 0;
   const currentLevel = user?.gamification_level || 1;
-  // const xpNeededForNextLevel = currentLevel * xpPerLevel; // This was wrong logic
-  const xpNeededForNextLevel = (currentLevel * xpPerLevel) - currentLevelXP; // XP left in current level
-  const xpInCurrentLevel = currentLevelXP - ((currentLevel - 1) * xpPerLevel); // XP earned in the current level
-  const xpProgressPercentage = (xpInCurrentLevel / xpPerLevel) * 100;
+  const currentTier = getTierData(currentXP);
 
-  // All possible badges (truncated from outline)
-  const allBadges = [
-    { id: "first_post", name: "First Post", desc: "Publique seu primeiro post", icon: "📝", category: "social", rarity: "common", requirement: 1, current: user?.profile_stats?.total_posts || 0, stat: "total_posts", xp: getXPForRarity("common") },
-    { id: "social_butterfly", name: "Social Butterfly", desc: "50+ posts publicados", icon: "🦋", category: "social", rarity: "rare", requirement: 50, current: user?.profile_stats?.total_posts || 0, stat: "total_posts", xp: getXPForRarity("rare") },
-    { id: "content_king", name: "Content King", desc: "100+ posts publicados", icon: "👑", category: "social", rarity: "epic", requirement: 100, current: user?.profile_stats?.total_posts || 0, stat: "total_posts", xp: getXPForRarity("epic") },
-    { id: "popular", name: "Popular", desc: "Receba 100+ curtidas", icon: "❤️", category: "social", rarity: "rare", requirement: 100, current: user?.profile_stats?.total_likes_received || 0, stat: "total_likes_received", xp: getXPForRarity("rare") },
-    { id: "influencer", name: "Influencer", desc: "500+ curtidas recebidas", icon: "⭐", category: "social", rarity: "epic", requirement: 500, current: user?.profile_stats?.total_likes_received || 0, stat: "total_likes_received", xp: getXPForRarity("epic") },
-    { id: "community_helper", name: "Community Helper", desc: "50+ comentários escritos", icon: "💬", category: "social", rarity: "rare", requirement: 50, current: user?.profile_stats?.total_comments_made || 0, stat: "total_comments_made", xp: getXPForRarity("rare") },
-    { id: "first_booking", name: "First Booking", desc: "Faça sua primeira reserva", icon: "🎫", category: "activity", rarity: "common", requirement: 1, current: user?.profile_stats?.total_bookings || 0, stat: "total_bookings", xp: getXPForRarity("common") },
-    { id: "regular_user", name: "Regular User", desc: "10+ reservas realizadas", icon: "📅", category: "activity", rarity: "rare", requirement: 10, current: user?.profile_stats?.total_bookings || 0, stat: "total_bookings", xp: getXPForRarity("rare") },
-    { id: "streak_starter", name: "Streak Starter", desc: "7 dias consecutivos", icon: "🔥", category: "activity", rarity: "common", requirement: 7, current: user?.daily_streak || 0, stat: "daily_streak", xp: getXPForRarity("common") },
-    { id: "streak_master", name: "Streak Master", desc: "30 dias consecutivos", icon: "🔥", category: "activity", rarity: "epic", requirement: 30, current: user?.daily_streak || 0, stat: "daily_streak", xp: getXPForRarity("epic") },
-    { id: "profile_complete", name: "Profile Complete", desc: "Complete 100% do perfil", icon: "✅", category: "milestone", rarity: "common", requirement: 100, current: user?.profile_completion_percentage || 0, stat: "profile_completion_percentage", xp: getXPForRarity("common") },
-    { id: "adoption_hero_auto", name: "Adoption Hero", desc: "Adote um pet resgatado", icon: "🏠", category: "milestone", rarity: "epic", requirement: 1, current: user?.profile_stats?.total_adoptions || 0, stat: "total_adoptions", xp: getXPForRarity("epic") },
-  ];
+  // XP Progress calculation
+  const xpPerLevel = 500;
+  const xpInCurrentLevel = currentXP - ((currentLevel - 1) * xpPerLevel);
+  const xpProgressPercentage = Math.min((xpInCurrentLevel / xpPerLevel) * 100, 100);
 
-  // Filter earned badges - USAR AMBOS achievements_badges E public_badges
-  const earnedAchievementsBadges = user?.achievements_badges || [];
-  const earnedPublicBadges = user?.public_badges || [];
-  const allEarnedBadges = [...earnedAchievementsBadges, ...earnedPublicBadges];
+  // Badges
+  const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
   const earnedBadgeIds = allEarnedBadges.map(b => b.badge_id);
 
-  // Available badges (not earned yet, can be earned) for user display
-  const availableBadges = allBadges.filter(b =>
-    !earnedBadgeIds.includes(b.id) &&
-    (activeCategory === "all" || b.category === activeCategory)
-  );
-
-  // Photo Challenges (truncated from outline)
-  const photoChallenges = [
-    { id: "beach_day", title: "Dia de Praia", desc: "Tire uma foto do seu cão na praia", icon: "🏖️", reward: 150 },
-    { id: "park_adventure", title: "Aventura no Parque", desc: "Capture um momento no parque", icon: "🌳", reward: 100 },
-    { id: "mountain_hike", title: "Trilha na Montanha", desc: "Leve seu cão numa trilha", icon: "⛰️", reward: 200 },
-    { id: "first_swim", title: "Primeiro Mergulho", desc: "Foto do cão nadando", icon: "🏊", reward: 150 },
-    { id: "new_friend", title: "Novo Amigo", desc: "Foto com outro cão", icon: "🐕‍🦺", reward: 100 },
-    { id: "trick_master", title: "Truque Novo", desc: "Mostre um truque que ensinou", icon: "🎪", reward: 150 },
+  const allPossibleBadges = [
+    { id: "welcome", name: "Bem-vindo", desc: "Junte-se à comunidade", icon: "🎉", category: "milestone", rarity: "common" },
+    { id: "first_post", name: "Primeiro Post", desc: "Publique seu primeiro post", icon: "📝", category: "social", rarity: "common" },
+    { id: "social_butterfly", name: "Social Butterfly", desc: "50+ posts publicados", icon: "🦋", category: "social", rarity: "rare" },
+    { id: "popular", name: "Popular", desc: "Receba 100+ curtidas", icon: "❤️", category: "social", rarity: "rare" },
+    { id: "influencer", name: "Influencer", desc: "500+ curtidas recebidas", icon: "⭐", category: "social", rarity: "epic" },
+    { id: "first_booking", name: "Primeira Reserva", desc: "Faça sua primeira reserva", icon: "🎫", category: "activity", rarity: "common" },
+    { id: "regular_user", name: "Utilizador Regular", desc: "10+ reservas realizadas", icon: "📅", category: "activity", rarity: "rare" },
+    { id: "profile_complete", name: "Perfil Completo", desc: "Complete 100% do perfil", icon: "✅", category: "milestone", rarity: "common" },
+    { id: "streak_starter", name: "Streak Starter", desc: "7 dias consecutivos", icon: "🔥", category: "activity", rarity: "common" },
+    { id: "streak_master", name: "Streak Master", desc: "30 dias consecutivos", icon: "🔥", category: "activity", rarity: "epic" },
+    { id: "adoption_hero", name: "Herói de Adoção", desc: "Adote um pet resgatado", icon: "🏠", category: "milestone", rarity: "epic" },
+    { id: "community_legend", name: "Lenda Comunitária", desc: "Membro lendário", icon: "👑", category: "special", rarity: "legendary" },
   ];
 
-  // Daily quests removed per admin optimization
-  const dailyQuests = [];
+  // Filter by category
+  const filteredBadges = activeCategory === "all" 
+    ? allPossibleBadges 
+    : allPossibleBadges.filter(b => b.category === activeCategory);
 
-  const getRarityColor = (rarity) => {
-    const colors = {
-      common: "from-gray-400 to-gray-600",
-      rare: "from-blue-400 to-blue-600",
-      epic: "from-purple-400 to-purple-600",
-      legendary: "from-yellow-400 to-orange-600"
-    };
-    return colors[rarity] || colors.common;
-  };
+  // User rank
+  const userRank = allUsers.findIndex(u => u.email === user?.email) + 1;
 
-  const getRarityBorder = (rarity) => {
-    const colors = {
-      common: "border-gray-400",
-      rare: "border-blue-400",
-      epic: "border-purple-400",
-      legendary: "border-yellow-400"
-    };
-    return colors[rarity] || colors.common;
-  };
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setUploadingPhoto(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setPhotoPreview(file_url);
-    } catch (error) {
-      toast.error("Erro ao carregar foto", {
-        description: error.message || "Não foi possível enviar a imagem.",
-      });
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
-  const completePhotoChallenge = async () => {
-    if (!photoPreview || !selectedChallenge) return;
-
-    await completeQuestMutation.mutateAsync({ xpReward: selectedChallenge.reward });
-
-    setShowPhotoUpload(false);
-    setSelectedChallenge(null);
-    setPhotoPreview(null);
-  };
+  // Donut chart data
+  const chartData = [
+    { name: 'Progress', value: xpInCurrentLevel },
+    { name: 'Remaining', value: Math.max(0, xpPerLevel - xpInCurrentLevel) }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Header Compacto */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-            <Zap className="w-8 h-8 text-yellow-600" />
-            Gamificação & Emblemas
-          </h1>
-          <p className="text-gray-600">Complete desafios e ganhe emblemas exclusivos!</p>
-        </div>
-
-        {/* XP Card Compacto */}
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-600 to-purple-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs opacity-90 mb-1">Nível</p>
-                  <p className="text-3xl font-bold">{currentLevel}</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 pb-8">
+      {/* 1. HERO SECTION - Motor de Pontos */}
+      <div className={`bg-gradient-to-r ${currentTier.bgColor} text-white relative overflow-hidden`}>
+        {/* Decorative bubbles */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 py-12 relative z-10">
+          <div className="grid md:grid-cols-3 gap-8 items-center">
+            {/* Esquerda: Donut Chart */}
+            <div className="flex flex-col items-center">
+              <div className="relative w-48 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      startAngle={90}
+                      endAngle={-270}
+                      dataKey="value"
+                    >
+                      <Cell fill="rgba(255,255,255,0.9)" />
+                      <Cell fill="rgba(255,255,255,0.2)" />
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-5xl mb-1">{currentTier.icon}</div>
+                    <div className="text-xs font-semibold opacity-90">{Math.round(xpProgressPercentage)}%</div>
+                  </div>
                 </div>
-                <Trophy className="w-10 h-10 opacity-80" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-600 mb-1">XP Total</p>
-                  <p className="text-3xl font-bold text-blue-600">{user?.gamification_xp || 0}</p>
-                </div>
-                <TrendingUp className="w-10 h-10 text-blue-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-600 mb-1">Emblemas</p>
-                  <p className="text-3xl font-bold text-purple-600">{allEarnedBadges.length}</p>
-                </div>
-                <Award className="w-10 h-10 text-purple-600 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Progresso Compacto */}
-        <Card className="border-0 shadow-lg mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold">Progresso para Nível {currentLevel + 1}</p>
-              <p className="text-sm text-gray-600">{xpInCurrentLevel} / {xpPerLevel} XP</p>
             </div>
-            <Progress value={xpProgressPercentage} className="h-3 bg-gray-200" />
+
+            {/* Meio: Stats Principais */}
+            <div className="text-center">
+              <h1 className="text-5xl font-black mb-2">Nível {currentLevel}</h1>
+              <p className="text-2xl font-bold mb-1">{currentTier.icon} {currentTier.name}</p>
+              <p className="text-lg opacity-90">{currentXP.toLocaleString()} XP</p>
+              <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 inline-block">
+                <p className="text-sm font-semibold">
+                  {xpInCurrentLevel}/{xpPerLevel} XP para Nível {currentLevel + 1}
+                </p>
+              </div>
+            </div>
+
+            {/* Direita: Resumo Rápido */}
+            <div className="text-center md:text-right">
+              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+                <Award className="w-12 h-12 mx-auto md:ml-auto md:mr-0 mb-2" />
+                <p className="text-4xl font-black mb-1">{allEarnedBadges.length}</p>
+                <p className="text-sm opacity-90">Emblemas Desbloqueados</p>
+                <div className="mt-2 text-xs">
+                  <span className="opacity-75">de {allPossibleBadges.length} totais</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* 2. PÓDIO (Ranking Global) */}
+        <Card className="border-0 shadow-2xl bg-gradient-to-br from-yellow-50 to-orange-50 overflow-hidden">
+          <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Trophy className="w-7 h-7 text-yellow-600" />
+              Ranking Global
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {/* Pódio Visual */}
+            <div className="flex items-end justify-center gap-4 mb-8">
+              {/* 2º Lugar */}
+              {allUsers[1] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex flex-col items-center"
+                >
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
+                      {allUsers[1].profile_photo_url ? (
+                        <img src={allUsers[1].profile_photo_url} className="w-full h-full object-cover" alt={allUsers[1].full_name} />
+                      ) : (
+                        <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-2xl font-bold">
+                          {allUsers[1].full_name?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                      2
+                    </div>
+                  </div>
+                  <div className="mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-6 py-4 text-center shadow-lg h-32 flex flex-col justify-center">
+                    <Medal className="w-6 h-6 mx-auto mb-1" />
+                    <p className="font-bold text-sm truncate max-w-[100px]">{allUsers[1].full_name}</p>
+                    <p className="text-xs opacity-90">{allUsers[1].gamification_xp?.toLocaleString()} XP</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* 1º Lugar (Centro, Mais Alto) */}
+              {allUsers[0] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-col items-center relative -mt-8"
+                >
+                  <Crown className="w-10 h-10 text-yellow-500 fill-yellow-400 mb-2 animate-pulse" />
+                  <div className="relative">
+                    <div className="w-28 h-28 rounded-full border-4 border-yellow-500 overflow-hidden shadow-2xl bg-white ring-4 ring-yellow-200">
+                      {allUsers[0].profile_photo_url ? (
+                        <img src={allUsers[0].profile_photo_url} className="w-full h-full object-cover" alt={allUsers[0].full_name} />
+                      ) : (
+                        <div className="w-full h-full bg-yellow-500 flex items-center justify-center text-white text-3xl font-bold">
+                          {allUsers[0].full_name?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-black shadow-lg text-lg">
+                      1
+                    </div>
+                  </div>
+                  <div className="mt-4 bg-gradient-to-b from-yellow-400 to-yellow-600 text-white rounded-2xl px-8 py-6 text-center shadow-2xl h-40 flex flex-col justify-center">
+                    <Trophy className="w-8 h-8 mx-auto mb-2" />
+                    <p className="font-black text-lg truncate max-w-[120px]">{allUsers[0].full_name}</p>
+                    <p className="text-sm opacity-95 font-bold">{allUsers[0].gamification_xp?.toLocaleString()} XP</p>
+                    <Badge className="mt-2 bg-white/30 text-white border-0">
+                      {getTierData(allUsers[0].gamification_xp || 0).icon} {getTierData(allUsers[0].gamification_xp || 0).name}
+                    </Badge>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* 3º Lugar */}
+              {allUsers[2] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex flex-col items-center"
+                >
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full border-4 border-orange-600 overflow-hidden shadow-lg bg-white">
+                      {allUsers[2].profile_photo_url ? (
+                        <img src={allUsers[2].profile_photo_url} className="w-full h-full object-cover" alt={allUsers[2].full_name} />
+                      ) : (
+                        <div className="w-full h-full bg-orange-600 flex items-center justify-center text-white text-2xl font-bold">
+                          {allUsers[2].full_name?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                      3
+                    </div>
+                  </div>
+                  <div className="mt-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white rounded-xl px-6 py-4 text-center shadow-lg h-32 flex flex-col justify-center">
+                    <Medal className="w-6 h-6 mx-auto mb-1" />
+                    <p className="font-bold text-sm truncate max-w-[100px]">{allUsers[2].full_name}</p>
+                    <p className="text-xs opacity-90">{allUsers[2].gamification_xp?.toLocaleString()} XP</p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Resto do Ranking (4º-10º) */}
+            <div className="space-y-2">
+              {allUsers.slice(3, 10).map((rankUser, idx) => (
+                <div
+                  key={rankUser.id}
+                  className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600">
+                    {idx + 4}
+                  </div>
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                    {rankUser.profile_photo_url ? (
+                      <img src={rankUser.profile_photo_url} className="w-full h-full object-cover" alt={rankUser.full_name} />
+                    ) : (
+                      <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                        {rankUser.full_name?.[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm">{rankUser.full_name}</p>
+                    <p className="text-xs text-gray-600">Nível {rankUser.gamification_level || 1}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-blue-600">{rankUser.gamification_xp?.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">XP</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Posição do Usuário (se fora do Top 10) */}
+            {userRank > 10 && (
+              <div className="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
+                    {userRank}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold">Você está em {userRank}º lugar</p>
+                    <p className="text-sm opacity-90">{currentXP.toLocaleString()} XP</p>
+                  </div>
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+              </div>
+            )}
+
+            <Button
+              onClick={() => navigate(createPageUrl('Leaderboard'))}
+              className="w-full mt-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold shadow-lg"
+              size="lg"
+            >
+              <Trophy className="w-5 h-5 mr-2" />
+              Ver Ranking Completo
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Admin Controls removed - please use Admin Dashboard */}
-
-        <Tabs defaultValue="badges" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
-            <TabsTrigger value="badges">Inventário</TabsTrigger>
-            <TabsTrigger value="leaderboard">Ranking</TabsTrigger>
-            <TabsTrigger value="showcase">Destaques</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="badges">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="w-6 h-6 text-purple-600" />
-                  Inventário de Emblemas
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Gerencie seus emblemas e escolha quais fixar no perfil.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <BadgeInventory 
-                  badges={allEarnedBadges}
-                  pinnedBadgeIds={user?.pinned_badge_ids || []}
-                  userProfileId={user?.id} // Using auth ID for now, assuming user entity match
-                  isOwner={true}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="showcase">
-             {/* Legacy Badges View (Simplified) */}
-             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {allEarnedBadges.map((badge, idx) => (
-                  <div key={idx} className="text-center p-4 bg-white rounded-xl shadow-sm">
-                    <div className="text-4xl mb-2">{badge.icon || "🏆"}</div>
-                    <p className="font-bold text-sm">{badge.name}</p>
-                  </div>
-                ))}
-             </div>
-          </TabsContent>
-
-          {/* Leaderboard Preview */}
-          <TabsContent value="leaderboard">
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-50 to-orange-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Trophy className="w-5 h-5 text-yellow-600" />
-                  Ranking
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-700 mb-4">
-                  Compete com outros membros da comunidade por emblemas exclusivos!
-                </p>
-                <Button
-                  onClick={() => navigate(createPageUrl('Leaderboard'))}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Ver Ranking Completo
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Referral Program */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-blue-50 mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Gift className="w-5 h-5 text-green-600" />
-                  Programa de Referência
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-700 mb-4">
-                  Convide amigos e ganhe <strong>500 XP</strong> para cada amigo que se registar!
-                </p>
-                <div className="p-3 bg-white rounded-lg border-2 border-dashed border-green-300 mb-3">
-                  <div className="text-xs text-gray-600 mb-1">Seu código:</div>
-                  <div className="font-mono font-bold text-lg text-green-600">
-                    {user?.referral_code || 'PAWCAO2025'}
-                  </div>
-                </div>
-                <Button className="w-full bg-green-600 hover:bg-green-700">
-                  <Users className="w-4 h-4 mr-2" />
-                  Compartilhar Código
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Photo Upload Modal */}
-      <AnimatePresence>
-        {showPhotoUpload && selectedChallenge && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={() => {
-              setShowPhotoUpload(false);
-              setPhotoPreview(null);
-              setSelectedChallenge(null);
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-6 max-w-md w-full"
-            >
-              <div className="text-center mb-4">
-                <div className="text-6xl mb-3">{selectedChallenge.icon}</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {selectedChallenge.title}
-                </h3>
-                <p className="text-gray-600 mb-4">{selectedChallenge.desc}</p>
-                <Badge className="bg-orange-600 text-white">
-                  Recompensa: +{selectedChallenge.reward} XP
-                </Badge>
-              </div>
-
-              <div className="space-y-4">
-                {photoPreview ? (
-                  <div className="relative">
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
-                      className="w-full h-48 object-cover rounded-xl"
-                    />
-                    <button
-                      onClick={() => setPhotoPreview(null)}
-                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition-colors cursor-pointer block">
-                    {uploadingPhoto ? (
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2 animate-bounce" />
-                    ) : (
-                      <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                    )}
-                    <p className="text-sm text-gray-600">
-                      {uploadingPhoto ? "Carregando..." : "Clique para fazer upload da foto"}
-                    </p>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      disabled={uploadingPhoto}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowPhotoUpload(false);
-                      setPhotoPreview(null);
-                      setSelectedChallenge(null);
-                    }}
-                    className="flex-1"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={completePhotoChallenge}
-                    disabled={!photoPreview || completeQuestMutation.isPending}
-                    className="flex-1 bg-orange-600 hover:bg-orange-700"
-                  >
-                    {completeQuestMutation.isPending ? "A enviar..." : "Completar Desafio"}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Grant Badge Modal - CORRIGIDO */}
-      <Dialog open={showGrantBadgeModal} onOpenChange={setShowGrantBadgeModal}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">🎁 Conceder Emblema</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="user-email-search">Email do Usuário *</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  id="user-email-search"
-                  type="email"
-                  value={userEmailSearch}
-                  onChange={(e) => setUserEmailSearch(e.target.value)}
-                  placeholder="usuario@exemplo.com"
-                  className="flex-1"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && userEmailSearch) {
-                      searchUserMutation.mutate(userEmailSearch);
-                    }
-                  }}
-                />
-                <Button
-                  onClick={() => searchUserMutation.mutate(userEmailSearch)}
-                  disabled={searchUserMutation.isPending || !userEmailSearch}
-                >
-                  {searchUserMutation.isPending ? "Buscando..." : <><Search className="w-4 h-4 mr-2" /> Buscar</>}
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Digite o email completo e clique em Buscar
-              </p>
+        {/* 3. GALERIA DE EMBLEMAS */}
+        <Card className="border-0 shadow-2xl">
+          <CardHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Sparkles className="w-7 h-7 text-purple-600" />
+                Galeria de Emblemas
+              </CardTitle>
+              <Badge className="bg-purple-600 text-white">
+                {allEarnedBadges.length}/{allPossibleBadges.length}
+              </Badge>
             </div>
-
-            {searchUserMutation.isError && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
-                <p className="text-red-700 text-sm font-semibold">
-                  ❌ {searchUserMutation.error.message || 'Erro ao buscar usuário.'}
-                </p>
-              </div>
-            )}
-
-            {selectedUserForBadge && (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12 border-2 border-blue-500">
-                    <AvatarImage src={selectedUserForBadge.profile_photo_url} />
-                    <AvatarFallback className="bg-blue-600 text-white">
-                      {selectedUserForBadge.full_name?.[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-blue-900">{selectedUserForBadge.full_name}</p>
-                    <p className="text-sm text-blue-700">{selectedUserForBadge.email}</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      Emblemas: {(selectedUserForBadge.public_badges?.length || 0) + (selectedUserForBadge.achievements_badges?.length || 0)} •
-                      Nível {selectedUserForBadge.gamification_level || 1} •
-                      {selectedUserForBadge.gamification_xp || 0} XP
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {selectedUserForBadge && (
-              <>
-                <div>
-                  <Label className="mb-3 block text-lg">Selecione o Emblema (clique para conceder)</Label>
-                  <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-lg">
-                    {[
-                      { id: "verified_pro", name: "Profissional Verificado", description: "Profissional verificado e confiável", icon: "✓", rarity: "rare", category: "professional" },
-                      { id: "top_walker", name: "Top Walker", description: "Um dos melhores passeadores", icon: "🏆", rarity: "epic", category: "professional" },
-                      { id: "adoption_hero_admin", name: "Herói de Adoção", description: "Ajudou em múltiplas adoções", icon: "💖", rarity: "legendary", category: "milestone" },
-                      { id: "community_legend", name: "Lenda da Comunidade", description: "Membro lendário", icon: "👑", rarity: "legendary", category: "special" },
-                      { id: "early_supporter", name: "Apoiador Inicial", description: "Um dos primeiros membros", icon: "⭐", rarity: "epic", category: "milestone" },
-                      { id: "beta_tester", name: "Beta Tester", description: "Ajudou a testar a plataforma", icon: "🧪", rarity: "epic", category: "special" },
-                      { id: "super_helper", name: "Super Helper", description: "Ajudou muitos membros", icon: "🦸", rarity: "rare", category: "social" },
-                      { id: "event_master", name: "Event Master", description: "Organizou eventos incríveis", icon: "🎪", rarity: "rare", category: "social" },
-                    ].map((badge) => {
-                      const alreadyHas = (selectedUserForBadge.public_badges?.some(b => b.badge_id === badge.id)) || (selectedUserForBadge.achievements_badges?.some(b => b.badge_id === badge.id));
-
-                      const badgeXP = getXPForRarity(badge.rarity);
-
-                      return (
-                        <Card
-                          key={badge.id}
-                          className={`cursor-pointer transition-all border-2 ${
-                            alreadyHas
-                              ? 'opacity-50 cursor-not-allowed bg-gray-100 border-gray-300'
-                              : 'hover:shadow-lg hover:scale-105 bg-white border-purple-200 hover:border-purple-400'
-                          }`}
-                          onClick={() => {
-                            if (!alreadyHas) {
-                              grantBadgeMutation.mutate({
-                                userEmail: selectedUserForBadge.email,
-                                badge: badge
-                              });
-                            }
-                          }}
-                        >
-                          <CardContent className="p-4 text-center">
-                            <div className="text-4xl mb-2">{badge.icon}</div>
-                            <p className="text-sm font-bold mb-1">{badge.name}</p>
-                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{badge.description}</p>
-                            <div className="flex gap-1 justify-center flex-wrap">
-                              <Badge className={`text-xs ${
-                                badge.rarity === 'legendary' ? 'bg-yellow-500' :
-                                badge.rarity === 'epic' ? 'bg-purple-500' :
-                                badge.rarity === 'rare' ? 'bg-blue-500' :
-                                'bg-gray-500'
-                              } text-white`}>
-                                {badge.rarity}
-                              </Badge>
-                              <Badge className="bg-green-600 text-white text-xs">
-                                +{badgeXP} XP
-                              </Badge>
-                            </div>
-                            {alreadyHas && (
-                              <Badge className="mt-2 bg-gray-500 text-white text-xs">
-                                ✓ Já possui
-                              </Badge>
-                            )}
-                            {grantBadgeMutation.isPending && grantBadgeMutation.variables?.badge?.id === badge.id && (
-                              <Badge className="mt-2 bg-blue-500 text-white text-xs animate-pulse">
-                                Concedendo...
-                              </Badge>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Remove Badge Modal - CORRIGIDO */}
-      <Dialog open={showRemoveBadgeModal} onOpenChange={setShowRemoveBadgeModal}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">🗑️ Remover Emblema</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="remove-user-email-search">Email do Usuário *</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  id="remove-user-email-search"
-                  type="email"
-                  value={userEmailSearch}
-                  onChange={(e) => setUserEmailSearch(e.target.value)}
-                  placeholder="usuario@exemplo.com"
-                  className="flex-1"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && userEmailSearch) {
-                      searchUserMutation.mutate(userEmailSearch);
-                    }
-                  }}
-                />
+            <div className="flex gap-2 mt-4 flex-wrap">
+              {['all', 'social', 'activity', 'milestone', 'special'].map(cat => (
                 <Button
-                  onClick={() => searchUserMutation.mutate(userEmailSearch)}
-                  disabled={searchUserMutation.isPending || !userEmailSearch}
+                  key={cat}
+                  variant={activeCategory === cat ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveCategory(cat)}
+                  className={activeCategory === cat ? "bg-purple-600" : ""}
                 >
-                  {searchUserMutation.isPending ? "Buscando..." : <><Search className="w-4 h-4 mr-2" /> Buscar</>}
+                  {cat === 'all' && '🌟 Todos'}
+                  {cat === 'social' && '💬 Social'}
+                  {cat === 'activity' && '🎯 Atividade'}
+                  {cat === 'milestone' && '🏆 Marcos'}
+                  {cat === 'special' && '✨ Especial'}
                 </Button>
-              </div>
+              ))}
             </div>
-
-            {searchUserMutation.isError && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
-                <p className="text-red-700 text-sm font-semibold">
-                  ❌ {searchUserMutation.error.message || 'Erro ao buscar usuário.'}
-                </p>
-              </div>
-            )}
-
-            {selectedUserForBadge && (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12 border-2 border-blue-500">
-                    <AvatarImage src={selectedUserForBadge.profile_photo_url} />
-                    <AvatarFallback className="bg-blue-600 text-white">
-                      {selectedUserForBadge.full_name?.[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-blue-900">{selectedUserForBadge.full_name}</p>
-                    <p className="text-sm text-blue-700">{selectedUserForBadge.email}</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      Emblemas: {(selectedUserForBadge.public_badges?.length || 0) + (selectedUserForBadge.achievements_badges?.length || 0)} •
-                      Nível {selectedUserForBadge.gamification_level || 1} •
-                      {selectedUserForBadge.gamification_xp || 0} XP
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {selectedUserForBadge && (selectedUserForBadge.public_badges?.length > 0 || selectedUserForBadge.achievements_badges?.length > 0) ? (
-              <>
-                <Label className="text-lg">Clique no emblema para remover</Label>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              {filteredBadges.map((badge) => {
+                const isEarned = earnedBadgeIds.includes(badge.id);
+                const earnedBadge = allEarnedBadges.find(b => b.badge_id === badge.id);
                 
-                {selectedUserForBadge.public_badges?.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2 mt-4">🎁 Emblemas Especiais (Concedidos manualmente: {selectedUserForBadge.public_badges.length})</p>
-                    <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto p-2 bg-purple-50 rounded-lg">
-                      {selectedUserForBadge.public_badges.map((badge, idx) => (
-                        <Card
-                          key={idx}
-                          className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all hover:border-red-400 border-2 border-purple-200"
-                          onClick={() => {
-                            if (confirm(`Tem certeza que deseja remover "${badge.name}" (Emblema Especial)?\n\nIsso também removerá ${badge.xp || getXPForRarity(badge.rarity)} XP`)) {
-                              removeBadgeMutation.mutate({
-                                userEmail: selectedUserForBadge.email,
-                                badgeId: badge.badge_id
-                              });
-                            }
-                          }}
-                        >
-                          <CardContent className="p-3 text-center">
-                            {badge.image_url ? (
-                              <img src={badge.image_url} className="w-16 h-16 mx-auto mb-2 rounded-lg" alt={badge.name} />
-                            ) : (
-                              <div className="text-3xl mb-2">{badge.icon}</div>
-                            )}
-                            <p className="text-xs font-bold truncate">{badge.name}</p>
-                            <Badge className="mt-1 bg-red-600 text-white text-[10px]">
-                              -{badge.xp || getXPForRarity(badge.rarity)} XP
-                            </Badge>
-                            {removeBadgeMutation.isPending && removeBadgeMutation.variables?.badgeId === badge.badge_id && (
-                              <Badge className="mt-2 bg-orange-500 text-white text-[10px] animate-pulse">
-                                Removendo...
-                              </Badge>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedUserForBadge.achievements_badges?.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2 mt-4">🏆 Emblemas de Conquista (Ganhos automaticamente: {selectedUserForBadge.achievements_badges.length})</p>
-                    <p className="text-xs text-gray-500 mb-2">⚠️ Estes são ganhos automaticamente. Remova apenas se houver necessidade de correção manual.</p>
-                    <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto p-2 bg-yellow-50 rounded-lg">
-                      {selectedUserForBadge.achievements_badges.map((badge, idx) => (
-                        <Card
-                          key={idx}
-                          className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all hover:border-red-400 border-2 border-yellow-200"
-                          onClick={() => {
-                            if (confirm(`Tem certeza que deseja remover "${badge.name}" (Emblema de Conquista)?\n\nIsso também removerá ${badge.xp || getXPForRarity(badge.rarity)} XP`)) {
-                              removeBadgeMutation.mutate({
-                                userEmail: selectedUserForBadge.email,
-                                badgeId: badge.badge_id
-                              });
-                            }
-                          }}
-                        >
-                          <CardContent className="p-3 text-center">
-                            <div className="text-3xl mb-2">{badge.icon}</div>
-                            <p className="text-xs font-bold truncate">{badge.name}</p>
-                            <Badge className="mt-1 bg-red-600 text-white text-[10px]">
-                              -{badge.xp || getXPForRarity(badge.rarity)} XP
-                            </Badge>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : selectedUserForBadge ? (
-              <p className="text-center text-gray-600 py-8 bg-gray-50 rounded-lg">
-                Este usuário não possui emblemas
-              </p>
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* NOVO: Create Custom Badge Modal */}
-      <Dialog open={showCreateCustomBadgeModal} onOpenChange={setShowCreateCustomBadgeModal}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
-              <Sparkles className="w-7 h-7 text-purple-500" />
-              Criar Emblema Customizado
-            </DialogTitle>
-            <p className="text-sm text-gray-600 mt-2">
-              Crie um emblema único e conceda a um usuário específico
-            </p>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4">
-            {/* Buscar Usuário */}
-            <Card className="bg-blue-50 border-2 border-blue-200">
-              <CardContent className="p-4">
-                <Label className="text-lg font-bold mb-3 block">1️⃣ Buscar Usuário</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    value={userEmailSearch}
-                    onChange={(e) => setUserEmailSearch(e.target.value)}
-                    placeholder="usuario@exemplo.com"
-                    className="flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && userEmailSearch) {
-                        searchUserMutation.mutate(userEmailSearch);
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={() => searchUserMutation.mutate(userEmailSearch)}
-                    disabled={searchUserMutation.isPending || !userEmailSearch}
+                return (
+                  <motion.div
+                    key={badge.id}
+                    whileHover={{ scale: isEarned ? 1.05 : 1 }}
+                    className={`relative group ${!isEarned ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   >
-                    {searchUserMutation.isPending ? "..." : <><Search className="w-4 h-4 mr-2" /> Buscar</>}
-                  </Button>
-                </div>
-                
-                {searchUserMutation.isError && (
-                  <p className="text-red-500 text-sm mt-2">
-                    {searchUserMutation.error.message || 'Erro ao buscar usuário.'}
-                  </p>
-                )}
-
-                {selectedUserForBadge && (
-                  <div className="mt-3 p-3 bg-white border border-blue-300 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={selectedUserForBadge.profile_photo_url} />
-                        <AvatarFallback className="bg-blue-600 text-white">
-                          {selectedUserForBadge.full_name?.[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-bold text-sm">{selectedUserForBadge.full_name}</p>
-                        <p className="text-xs text-gray-600">{selectedUserForBadge.email}</p>
-                      </div>
-                      <Badge className="ml-auto bg-blue-600 text-white">
-                        ✓ Selecionado
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Criar Emblema */}
-            <Card className="bg-purple-50 border-2 border-purple-200">
-              <CardContent className="p-4">
-                <Label className="text-lg font-bold mb-3 block">2️⃣ Criar Emblema</Label>
-                
-                {/* Image Upload */}
-                <div className="mb-4 p-4 bg-white rounded-lg border-2 border-dashed border-purple-300">
-                  <Label className="text-xs font-bold mb-2 block">Imagem do Emblema (PNG 64x64px)</Label>
-                  <div className="flex items-center gap-4">
-                    {customBadgeForm.image_url ? (
-                      <div className="relative">
-                        <img
-                          src={customBadgeForm.image_url}
-                          alt="Badge preview"
-                          className="w-20 h-20 rounded-xl object-cover border-2 border-purple-500 shadow-lg"
-                          style={{ imageRendering: 'pixelated' }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setCustomBadgeForm({...customBadgeForm, image_url: "", icon: "⭐"})}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-300 text-4xl">
-                        {customBadgeForm.icon}
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setUploadingCustomBadgeImage(true);
-                            uploadCustomBadgeImageMutation.mutate(file);
-                          }
-                        }}
-                        disabled={uploadingCustomBadgeImage}
-                        className="h-9 text-sm"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        {uploadingCustomBadgeImage ? "A carregar..." : "PNG ou JPG (64x64px recomendado)"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <Label>Nome do Emblema *</Label>
-                    <Input
-                      value={customBadgeForm.name}
-                      onChange={(e) => setCustomBadgeForm({...customBadgeForm, name: e.target.value})}
-                      placeholder="Ex: Contribuidor Top 2025"
-                    />
-                  </div>
-                  <div>
-                    <Label>Emoji (se não usar imagem)</Label>
-                    <Input
-                      value={customBadgeForm.icon}
-                      onChange={(e) => setCustomBadgeForm({...customBadgeForm, icon: e.target.value})}
-                      placeholder="⭐"
-                      maxLength={2}
-                      disabled={!!customBadgeForm.image_url}
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <Label>Descrição *</Label>
-                  <Textarea
-                    value={customBadgeForm.description}
-                    onChange={(e) => setCustomBadgeForm({...customBadgeForm, description: e.target.value})}
-                    placeholder="Descreva o emblema e como foi conquistado..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Raridade</Label>
-                    <select
-                      value={customBadgeForm.rarity}
-                      onChange={(e) => setCustomBadgeForm({...customBadgeForm, rarity: e.target.value})}
-                      className="w-full h-10 px-3 rounded-lg border-2 border-gray-300 focus:border-purple-500 focus:outline-none"
-                    >
-                      <option value="common">Comum (+{getXPForRarity("common")} XP)</option>
-                      <option value="rare">Raro (+{getXPForRarity("rare")} XP)</option>
-                      <option value="epic">Épico (+{getXPForRarity("epic")} XP)</option>
-                      <option value="legendary">Lendário (+{getXPForRarity("legendary")} XP)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label>Categoria</Label>
-                    <select
-                      value={customBadgeForm.category}
-                      onChange={(e) => setCustomBadgeForm({...customBadgeForm, category: e.target.value})}
-                      className="w-full h-10 px-3 rounded-lg border-2 border-gray-300 focus:border-purple-500 focus:outline-none"
-                    >
-                      <option value="social">Social</option>
-                      <option value="activity">Atividade</option>
-                      <option value="milestone">Marco</option>
-                      <option value="special">Especial</option>
-                      <option value="professional">Profissional</option>
-                    </select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Preview */}
-            {customBadgeForm.name && customBadgeForm.description && selectedUserForBadge && (
-              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300">
-                <CardContent className="p-6">
-                  <Label className="text-lg font-bold mb-4 block">✨ Preview</Label>
-                  <div className="flex items-center gap-4">
-                    <div className={`w-20 h-20 rounded-xl border-2 flex items-center justify-center ${
-                      customBadgeForm.rarity === 'legendary' ? 'border-yellow-500 bg-yellow-100' :
-                      customBadgeForm.rarity === 'epic' ? 'border-purple-500 bg-purple-100' :
-                      customBadgeForm.rarity === 'rare' ? 'border-blue-500 bg-blue-100' :
-                      'border-gray-500 bg-gray-100'
+                    <div className={`p-4 rounded-2xl text-center transition-all ${
+                      isEarned 
+                        ? 'bg-gradient-to-br from-white to-purple-50 border-2 border-purple-300 shadow-md hover:shadow-xl' 
+                        : 'bg-gray-100 border-2 border-gray-300 grayscale opacity-50'
                     }`}>
-                      {customBadgeForm.image_url ? (
-                        <img src={customBadgeForm.image_url} className="w-16 h-16 rounded-lg" alt="Preview" />
-                      ) : (
-                        <span className="text-5xl">{customBadgeForm.icon}</span>
+                      {/* Lock icon for locked badges */}
+                      {!isEarned && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center">
+                          <Lock className="w-4 h-4 text-white" />
+                        </div>
                       )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-xl">{customBadgeForm.name}</p>
-                      <p className="text-sm text-gray-600">{customBadgeForm.description}</p>
-                      <div className="flex gap-2 mt-2">
-                        <Badge className={`${
-                          customBadgeForm.rarity === 'legendary' ? 'bg-yellow-500' :
-                          customBadgeForm.rarity === 'epic' ? 'bg-purple-500' :
-                          customBadgeForm.rarity === 'rare' ? 'bg-blue-500' :
-                          'bg-gray-500'
-                        } text-white`}>
-                          {customBadgeForm.rarity}
-                        </Badge>
-                        <Badge className="bg-green-600 text-white">
-                          +{getXPForRarity(customBadgeForm.rarity)} XP
-                        </Badge>
+                      
+                      <div className="text-4xl mb-2">{badge.icon}</div>
+                      <p className="font-bold text-xs mb-1 line-clamp-1">{badge.name}</p>
+                      
+                      {/* Rarity Badge */}
+                      <Badge className={`text-[10px] ${
+                        badge.rarity === 'legendary' ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
+                        badge.rarity === 'epic' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
+                        badge.rarity === 'rare' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                        'bg-gray-400'
+                      } text-white border-0`}>
+                        {badge.rarity}
+                      </Badge>
+                      
+                      {/* Tooltip on hover */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl max-w-[200px]">
+                          <p className="font-bold mb-1">{badge.name}</p>
+                          <p className="text-[10px] opacity-90 mb-2">{badge.desc}</p>
+                          {isEarned && earnedBadge?.earned_date && (
+                            <p className="text-[10px] text-green-300">
+                              ✓ Conquistado: {new Date(earnedBadge.earned_date).toLocaleDateString('pt-PT')}
+                            </p>
+                          )}
+                          {!isEarned && (
+                            <p className="text-[10px] text-yellow-300">
+                              🔒 Como ganhar: {badge.desc}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="mt-4 p-3 bg-white rounded-lg border border-yellow-400">
-                    <p className="text-sm">
-                      <strong>Será concedido para:</strong> {selectedUserForBadge.full_name} ({selectedUserForBadge.email})
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
-          <div className="flex gap-2 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowCreateCustomBadgeModal(false);
-                setCustomBadgeForm({
-                  name: "",
-                  description: "",
-                  icon: "⭐",
-                  image_url: "",
-                  rarity: "common",
-                  category: "special"
-                });
-                setSelectedUserForBadge(null);
-                setUserEmailSearch("");
-              }}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                if (!customBadgeForm.name || !customBadgeForm.description) {
-                  toast.error("Por favor, preencha o nome e a descrição do emblema.");
-                  return;
-                }
-                if (!customBadgeForm.image_url && !customBadgeForm.icon) {
-                  toast.error("Por favor, adicione uma imagem ou um emoji para o emblema.");
-                  return;
-                }
-                if (!selectedUserForBadge) {
-                  toast.error("Por favor, selecione um usuário primeiro.");
-                  return;
-                }
-                
-                grantBadgeMutation.mutate({
-                  userEmail: selectedUserForBadge.email,
-                  badge: {
-                    id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Generate unique ID for custom badges
-                    name: customBadgeForm.name,
-                    description: customBadgeForm.description,
-                    icon: customBadgeForm.icon,
-                    image_url: customBadgeForm.image_url,
-                    rarity: customBadgeForm.rarity,
-                    category: customBadgeForm.category
-                  }
-                });
-                
-                // Reset form
-                setShowCreateCustomBadgeModal(false);
-                setCustomBadgeForm({
-                  name: "",
-                  description: "",
-                  icon: "⭐",
-                  image_url: "",
-                  rarity: "common",
-                  category: "special"
-                });
-                setSelectedUserForBadge(null);
-                setUserEmailSearch("");
-              }}
-              disabled={grantBadgeMutation.isPending || !selectedUserForBadge || !customBadgeForm.name || !customBadgeForm.description || (!customBadgeForm.image_url && !customBadgeForm.icon)}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              {grantBadgeMutation.isPending ? (
-                <>
-                  <Award className="w-4 h-4 mr-2 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Criar e Conceder
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        {/* Call to Actions */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-blue-50 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('SocialFeed'))}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-1">Explorar Comunidade</h3>
+                  <p className="text-sm text-gray-600">Ganhe XP publicando e interagindo</p>
+                </div>
+                <ChevronRight className="w-6 h-6 text-gray-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('Home'))}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Star className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-1">Agendar Passeio</h3>
+                  <p className="text-sm text-gray-600">Ganhe +100 XP por passeio completo</p>
+                </div>
+                <ChevronRight className="w-6 h-6 text-gray-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
