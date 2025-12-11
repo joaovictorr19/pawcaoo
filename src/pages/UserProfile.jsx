@@ -24,6 +24,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
+import { getLevelFromXP, getTierName, getTierColor, getXPForLevel } from "@/components/gamification/gamificationRules";
 import DogCollar from "@/components/ui/DogCollar";
 
 function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
@@ -1265,25 +1266,38 @@ export default function UserProfile() {
           </TabsContent>
 
           <TabsContent value="gamification">
-            <Card className="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white">
+            <Card className={`bg-gradient-to-br ${getTierColor(profileUser.gamification_level || 1)} text-white border-0 shadow-2xl`}>
               <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Zap className="w-6 h-6 text-yellow-400" />
+                <CardTitle className="text-3xl flex items-center gap-2">
+                  <Zap className="w-8 h-8 text-yellow-300" />
                   Nível {profileUser.gamification_level || 1}
                 </CardTitle>
+                <p className="text-white/80 text-lg font-semibold">
+                  Tier: {getTierName(profileUser.gamification_level || 1)}
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <div className="flex justify-between mb-2">
-                      <span>XP: {profileUser.gamification_xp || 0}</span>
+                    <div className="flex justify-between mb-2 text-sm">
+                      <span>XP Atual: {profileUser.gamification_xp || 0}</span>
+                      <span>Próximo: {getXPForLevel((profileUser.gamification_level || 1) + 1)}</span>
                     </div>
-                    <div className="w-full bg-white/20 rounded-full h-4">
+                    <div className="w-full bg-white/20 rounded-full h-3">
                       <div 
-                        className="bg-gradient-to-r from-yellow-400 to-orange-500 h-4 rounded-full"
-                        style={{ width: `${Math.min(((profileUser.gamification_xp || 0) / ((profileUser.gamification_level || 1) * 1000)) * 100, 100)}%` }}
+                        className="bg-gradient-to-r from-yellow-400 to-orange-500 h-3 rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${Math.min(
+                            ((profileUser.gamification_xp || 0) - getXPForLevel(profileUser.gamification_level || 1)) / 
+                            (getXPForLevel((profileUser.gamification_level || 1) + 1) - getXPForLevel(profileUser.gamification_level || 1)) * 100, 
+                            100
+                          )}%` 
+                        }}
                       />
                     </div>
+                    <p className="text-xs text-white/70 mt-2">
+                      {getXPForLevel((profileUser.gamification_level || 1) + 1) - (profileUser.gamification_xp || 0)} XP para o próximo nível
+                    </p>
                   </div>
                 </div>
               </CardContent>

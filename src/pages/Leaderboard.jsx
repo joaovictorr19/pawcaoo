@@ -219,7 +219,13 @@ export default function Leaderboard() {
                           rank === 2 ? 'border-slate-300 ring-2 ring-slate-200 ring-offset-2' : 
                           'border-orange-400 ring-2 ring-orange-200 ring-offset-2'
                         }`}>
-                          <AvatarImage src={item.photo} className="object-cover" />
+                          <AvatarImage 
+                            src={item.photo} 
+                            className="object-cover"
+                            onError={(e) => {
+                              e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.name || 'User') + '&background=10b981&color=fff';
+                            }}
+                          />
                           <AvatarFallback className="font-bold text-xl">{item.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <Badge className={`
@@ -279,7 +285,12 @@ export default function Leaderboard() {
                   </div>
                   
                   <Avatar className="w-10 h-10 md:w-12 md:h-12 ml-4 border-2 border-white shadow-sm">
-                    <AvatarImage src={item.photo} />
+                    <AvatarImage 
+                      src={item.photo}
+                      onError={(e) => {
+                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.name || 'User') + '&background=6366f1&color=fff';
+                      }}
+                    />
                     <AvatarFallback>{item.name?.[0]}</AvatarFallback>
                   </Avatar>
 

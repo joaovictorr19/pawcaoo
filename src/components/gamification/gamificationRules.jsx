@@ -1,83 +1,63 @@
-export const LEVEL_THRESHOLDS = [
-    { level: 1, title: "Novato", min: 0, max: 499 },
-    { level: 2, title: "Explorador", min: 500, max: 1499 },
-    { level: 3, title: "Guardião", min: 1500, max: 3499 },
-    { level: 4, title: "Mestre", min: 3500, max: 7499 },
-    { level: 5, title: "Lenda", min: 7500, max: Infinity }
-];
+/**
+ * Gamification Rules & XP System
+ * Exponential leveling to make progression harder
+ */
 
-export const XP_VALUES = {
-    BOOKING_COMPLETED: 100,
-    REVIEW_RECEIVED: 50,
-    VERIFIED_ACCOUNT: 200,
-    REFERRAL: 150
+// XP Required Per Level (Exponential Growth)
+export const getXPForLevel = (level) => {
+  // Bronze (1-5): 0-5000
+  // Silver (6-10): 5000-15000  
+  // Gold (11-20): 15000-50000
+  // Sapphire (21-30): 50000-150000
+  // Diamond (31-50): 150000-500000
+  // Top (51+): 500000+
+  
+  if (level <= 1) return 0;
+  if (level <= 5) return 500 * Math.pow(level, 1.5); // Bronze: ~500, 1500, 2600, 4000, 5500
+  if (level <= 10) return 5000 + 1000 * Math.pow(level - 5, 2); // Silver
+  if (level <= 20) return 15000 + 1500 * Math.pow(level - 10, 2.2); // Gold
+  if (level <= 30) return 50000 + 3000 * Math.pow(level - 20, 2.5); // Sapphire
+  if (level <= 50) return 150000 + 7000 * Math.pow(level - 30, 2.8); // Diamond
+  return 500000 + 15000 * Math.pow(level - 50, 3); // Top (Legendary)
 };
 
-export function calculateUserStats(userProfile, relatedData = {}) {
-    const { 
-        bookingsAsOwner = [], 
-        bookingsAsProfessional = [], 
-        reviewsReceived = [], 
-        referrals = [] 
-    } = relatedData;
+// Calculate level from XP
+export const getLevelFromXP = (xp) => {
+  let level = 1;
+  while (getXPForLevel(level + 1) <= xp) {
+    level++;
+  }
+  return level;
+};
 
-    let totalXP = 0;
-    const breakdown = {
-        bookings: 0,
-        reviews: 0,
-        verified: 0,
-        referrals: 0,
-        manual: userProfile.gamification_xp_manual || 0 // Preserve manually awarded XP if exists
-    };
+// Get tier name
+export const getTierName = (level) => {
+  if (level <= 5) return 'Bronze';
+  if (level <= 10) return 'Silver';
+  if (level <= 20) return 'Gold';
+  if (level <= 30) return 'Sapphire';
+  if (level <= 50) return 'Diamond';
+  return 'Top';
+};
 
-    // 1. Bookings (Completed)
-    // Count as owner
-    const completedOwner = bookingsAsOwner.filter(b => b.status === 'completed' || b.status === 'service_completed').length;
-    // Count as professional
-    const completedPro = bookingsAsProfessional.filter(b => b.status === 'completed' || b.status === 'service_completed').length;
-    
-    const bookingXP = (completedOwner + completedPro) * XP_VALUES.BOOKING_COMPLETED;
-    totalXP += bookingXP;
-    breakdown.bookings = bookingXP;
+// Get tier color
+export const getTierColor = (level) => {
+  if (level <= 5) return 'from-orange-700 to-orange-500';
+  if (level <= 10) return 'from-gray-400 to-gray-300';
+  if (level <= 20) return 'from-yellow-500 to-yellow-300';
+  if (level <= 30) return 'from-blue-600 to-cyan-400';
+  if (level <= 50) return 'from-purple-600 to-pink-400';
+  return 'from-red-600 via-yellow-500 to-purple-600';
+};
 
-    // 2. Reviews Received
-    const reviewsXP = reviewsReceived.length * XP_VALUES.REVIEW_RECEIVED;
-    totalXP += reviewsXP;
-    breakdown.reviews = reviewsXP;
-
-    // 3. Verified Account
-    if (userProfile.is_verified) {
-        totalXP += XP_VALUES.VERIFIED_ACCOUNT;
-        breakdown.verified = XP_VALUES.VERIFIED_ACCOUNT;
-    }
-
-    // 4. Referrals
-    const referralXP = referrals.length * XP_VALUES.REFERRAL;
-    totalXP += referralXP;
-    breakdown.referrals = referralXP;
-
-    // 5. Add Manual XP (if system supports manual adjustments)
-    totalXP += breakdown.manual;
-
-    // Determine Level
-    let currentLevelObj = LEVEL_THRESHOLDS[0];
-    let nextLevelObj = LEVEL_THRESHOLDS[1];
-
-    for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
-        const tier = LEVEL_THRESHOLDS[i];
-        if (totalXP >= tier.min) {
-            currentLevelObj = tier;
-            nextLevelObj = LEVEL_THRESHOLDS[i + 1] || null;
-        } else {
-            break; 
-        }
-    }
-
-    return {
-        totalXP,
-        currentLevel: currentLevelObj.level,
-        levelTitle: currentLevelObj.title,
-        nextLevelXP: nextLevelObj ? nextLevelObj.min : null,
-        breakdown
-    };
-}
+// XP Rewards
+export const XP_REWARDS = {
+  COMPLETE_BOOKING: 100,
+  REVIEW_SUBMITTED: 50,
+  REVIEW_RECEIVED: 25,
+  REFERRAL_SUCCESS: 200,
+  PROFILE_COMPLETE: 50,
+  FIRST_POST: 30,
+  DAILY_LOGIN: 10,
+  ACHIEVEMENT_UNLOCK: 100,
+};

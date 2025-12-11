@@ -96,6 +96,9 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
               alt={`Photo of ${walker.walker_name}, Dog Walker in ${walker.location}`}
               loading="lazy"
               className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-110"
+              onError={(e) => {
+                e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(walker.walker_name) + '&background=10b981&color=fff&size=400';
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
