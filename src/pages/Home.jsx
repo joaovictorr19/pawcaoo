@@ -701,7 +701,7 @@ export default function Home() {
               </Card>
 
               {/* Dogs Carousel */}
-              {myDogs.length > 0 && (
+              {myDogs && myDogs.length > 0 && (
                 <Card className="bg-white/95 backdrop-blur-md border-0 shadow-lg">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
@@ -709,7 +709,7 @@ export default function Home() {
                       <h3 className="font-bold text-gray-900">My Pack ({myDogs.length})</h3>
                     </div>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                      {myDogs.map((dog) => (
+                      {myDogs?.map((dog) => (
                         <motion.div
                           key={dog.id}
                           whileHover={{ scale: 1.05, y: -4 }}

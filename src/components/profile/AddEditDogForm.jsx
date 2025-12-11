@@ -37,14 +37,15 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
     gender: "male",
     color: "",
     photo_url: "",
-    gallery_photos: [], // New field
+    gallery_photos: [],
+    default_pickup_address: "",
     bio: "",
     is_adopted: false,
     adoption_date: "",
     adoption_story: "",
     microchip_number: "",
     is_neutered: false,
-    is_vaccinated: true, // Changed default from false to true based on outline
+    is_vaccinated: true,
     vaccination_date: "",
     vet_name: "",
     vet_phone: "",
@@ -63,7 +64,6 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
     emergency_contact_relationship: "",
     insurance_provider: "",
     insurance_policy_number: "",
-    // vaccination_records and medical_records are removed as UI for them is gone.
   };
 
   // Initialize formData: if editing, merge existing dog data with defaults,
@@ -75,6 +75,14 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
   } : defaultFormData);
 
   const [uploading, setUploading] = useState(false);
+  const [useOwnerAddress, setUseOwnerAddress] = useState(false);
+
+  // Auto-fill owner address
+  React.useEffect(() => {
+    if (useOwnerAddress && user?.address) {
+      setFormData(prev => ({ ...prev, default_pickup_address: user.address }));
+    }
+  }, [useOwnerAddress, user?.address]);
   // uploadingVet is removed as its related UI is removed.
 
   const saveDogMutation = useMutation({
@@ -357,6 +365,37 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
                       placeholder="Ex: 123456789012345"
                     />
+                  </div>
+                </div>
+
+                {/* Pickup Address */}
+                <div className="border-2 border-purple-200 rounded-xl p-4 bg-purple-50">
+                  <Label htmlFor="default_pickup_address" className="font-semibold text-purple-900 mb-2 block">
+                    📍 Local de Recolha Padrão
+                  </Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="use_owner_address"
+                        checked={useOwnerAddress}
+                        onChange={(e) => setUseOwnerAddress(e.target.checked)}
+                        className="w-4 h-4 text-purple-600"
+                      />
+                      <Label htmlFor="use_owner_address" className="cursor-pointer text-sm">
+                        Usar meu endereço de perfil
+                      </Label>
+                    </div>
+                    <Input
+                      id="default_pickup_address"
+                      value={formData.default_pickup_address}
+                      onChange={(e) => setFormData({ ...formData, default_pickup_address: e.target.value })}
+                      placeholder="Ex: Rua das Flores, 123, Lisboa"
+                      className="bg-white"
+                    />
+                    <p className="text-xs text-purple-700">
+                      💡 Este endereço será usado automaticamente ao agendar passeios
+                    </p>
                   </div>
                 </div>
 

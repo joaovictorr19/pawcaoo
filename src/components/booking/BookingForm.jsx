@@ -50,7 +50,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: myDogs = [] } = useQuery({
+    queryKey: ['myDogs'],
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    enabled: !!user?.email,
+    initialData: []
+  });
+
   const [pickupAddress, setPickupAddress] = useState(""); 
+  const [selectedDogId, setSelectedDogId] = useState("");
 
   // Update address when user is loaded
   React.useEffect(() => {
@@ -58,6 +66,24 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         setPickupAddress(user.address || user.location || user.city || "");
     }
   }, [user]);
+
+  // AUTO-FILL from selected dog
+  React.useEffect(() => {
+    if (selectedDogId && myDogs.length > 0) {
+      const selectedDog = myDogs.find(d => d.id === selectedDogId);
+      if (selectedDog) {
+        setFormData(prev => ({
+          ...prev,
+          dog_name: selectedDog.dog_name,
+          dog_size: selectedDog.size,
+          special_notes: `${selectedDog.dog_name} - ${selectedDog.breed || 'SRD'} - ${selectedDog.size}`
+        }));
+        if (selectedDog.default_pickup_address) {
+          setPickupAddress(selectedDog.default_pickup_address);
+        }
+      }
+    }
+  }, [selectedDogId, myDogs]);
 
   // Buscar subscrição do owner para descontos
   const { data: ownerSubscription } = useQuery({
@@ -348,6 +374,26 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           <p className={isWalker ? "text-green-50" : "text-purple-50"}>com {proName}</p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
+          {/* Select Dog from My Pack */}
+          {myDogs?.length > 0 && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+              <Label className="font-semibold text-green-900 mb-2 block">🐕 Selecionar do My Pack</Label>
+              <Select value={selectedDogId} onValueChange={setSelectedDogId}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Escolher um dos meus cães" />
+                </SelectTrigger>
+                <SelectContent>
+                  {myDogs.map((dog) => (
+                    <SelectItem key={dog.id} value={dog.id}>
+                      {dog.dog_name} ({dog.breed || 'SRD'}) - {dog.size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-green-700 mt-2">✨ Dados serão preenchidos automaticamente</p>
+            </div>
+          )}
+
           {/* Nome do Cão */}
           <div>
             <Label>Nome do Cão *</Label>
