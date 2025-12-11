@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import OptimizedImageUpload from "../adoption/OptimizedImageUpload"; // Added Op
 
 export default function AddEditDogForm({ dog, onClose, onSave }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   // `isEditing` is not explicitly used anymore, but its logic is implied by `!!dog` for conditional rendering/text.
 
   const { data: user } = useQuery({
@@ -612,7 +612,27 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   placeholder="Ex: Frango, queijo..."
                 />
               </div>
-            </TabsContent>
+
+              {/* Emergency Walk Button */}
+              <div className="border-2 border-red-200 rounded-xl p-4 bg-red-50 mt-4">
+                <Button
+                  type="button"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3"
+                  onClick={() => {
+                    if (!formData.dog_name) {
+                      toast.error("Salve o perfil do cão primeiro!");
+                      return;
+                    }
+                    navigate(createPageUrl('PostEmergency') + `?dogName=${formData.dog_name}&dogPhoto=${formData.photo_url || ''}`);
+                  }}
+                >
+                  🆘 Publicar Passeio de Emergência
+                </Button>
+                <p className="text-xs text-red-700 mt-2 text-center">
+                  Precisa de um passeador urgente? Crie um pedido de emergência!
+                </p>
+              </div>
+              </TabsContent>
 
             {/* EMERGENCY TAB */}
             <TabsContent value="emergency" className="space-y-4">

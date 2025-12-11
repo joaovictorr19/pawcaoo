@@ -490,28 +490,15 @@ export default function ChatWindow({ conversationId: propConversationId, booking
 
           {/* WhatsApp Button */}
           {professionalContact && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-green-600 hover:bg-green-50"
-              onClick={() => window.open(`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`, '_blank')}
+            <a
+              href={`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center h-8 w-8 text-green-600 hover:bg-green-50 rounded-md transition-colors"
               title="WhatsApp"
             >
               <MessageCircle className="w-4 h-4" />
-            </Button>
-          )}
-          
-          {/* WhatsApp Button */}
-          {professionalContact && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-green-600 hover:bg-green-50"
-              onClick={() => window.open(`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`, '_blank')}
-              title="WhatsApp"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
+            </a>
           )}
 
           {isLiveWalk && (
@@ -604,9 +591,9 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                 </div>
                 {/* Input Area Otimizada */}
                 <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
-                  {conversation?.status === 'closed' ? (
+                  {(conversation?.status === 'closed' || booking?.status === 'completed') ? (
                     <div className="text-center p-2 text-gray-500 bg-gray-50 rounded-lg text-sm">
-                      Este atendimento foi encerrado.
+                      {booking?.status === 'completed' ? '✅ Passeio concluído - Chat arquivado' : 'Este atendimento foi encerrado.'}
                     </div>
                   ) : (
                     <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
@@ -684,9 +671,9 @@ export default function ChatWindow({ conversationId: propConversationId, booking
               })}
             </div>
             <div className="p-2 md:p-3 bg-white border-t border-gray-100 shrink-0">
-              {conversation?.status === 'closed' ? (
+              {(conversation?.status === 'closed' || booking?.status === 'completed') ? (
                 <div className="text-center p-2 text-gray-500 bg-gray-50 rounded-lg text-sm">
-                  Este atendimento foi encerrado.
+                  {booking?.status === 'completed' ? '✅ Passeio concluído - Chat arquivado' : 'Este atendimento foi encerrado.'}
                 </div>
               ) : (
                 <form onSubmit={handleSend} className="flex gap-2 items-end bg-gray-50 p-1.5 rounded-[24px] border border-gray-200 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">

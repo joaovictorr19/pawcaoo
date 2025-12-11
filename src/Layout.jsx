@@ -251,7 +251,6 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
     { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
     { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
-    { title: t('walkerSubscriptions', language), url: createPageUrl("Subscriptions"), icon: Crown },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
     ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
       { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
@@ -657,7 +656,8 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
-            {/* PROFISSIONAL */}
+            {/* PROFISSIONAL - Only show if user is walker/trainer/both */}
+            {authUser && (authUser.account_type === 'walker' || authUser.account_type === 'trainer' || authUser.account_type === 'both' || authUser.role === 'admin') && (
             <SidebarGroup>
               <SidebarGroupLabel 
                 className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
@@ -952,7 +952,6 @@ function LayoutContent({ children, currentPageName }) {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
                     <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
-                    <li><Link to={createPageUrl("Subscriptions")} className="hover:text-green-600 transition-colors">{t('walkerSubscriptions', language)}</Link></li>
                     <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
                   </ul>
                 </div>

@@ -74,13 +74,13 @@ export default function Leaderboard() {
         email: w.created_by
       })).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
 
-      // Process Dogs (Mock Popularity for now as per schema limitation)
+      // Process Dogs - Real popularity from total_walks
       const popularDogs = dogs.map(d => ({
         id: d.id,
         name: d.dog_name,
         photo: d.photo_url,
         secondary: d.breed,
-        value: Math.floor(Math.random() * 500) + 50, // Mock "Likes"
+        value: d.total_walks || 0, // Real data from schema
         type: 'dog',
         owner_email: d.owner_email
       })).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
