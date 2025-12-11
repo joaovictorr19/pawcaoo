@@ -203,6 +203,22 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [currentXP]);
 
+  // Progress width animation - moved to top level
+  useEffect(() => {
+    if (!user) return;
+    const currentLevel = user?.gamification_level || 1;
+    const nextLevelXP = currentLevel * 500;
+    const currentLevelStartXP = (currentLevel - 1) * 500;
+    const xpInCurrentLevel = currentXP - currentLevelStartXP;
+    const xpNeededForNext = nextLevelXP - currentLevelStartXP;
+    const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
+    
+    const timer = setTimeout(() => {
+      setProgressWidth(xpProgress);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [user, currentXP]);
+
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
     queryFn: async () => {
