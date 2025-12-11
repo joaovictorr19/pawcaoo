@@ -79,12 +79,16 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
   const saveDogMutation = useMutation({
     mutationFn: async (data) => {
+      if (!user?.email) {
+        throw new Error("Usuário não autenticado");
+      }
+
       const payload = {
         ...data,
-        owner_email: user?.email // Use user's email, ownerEmail prop is removed
+        owner_email: user.email
       };
 
-      if (dog) { // Renamed `isEditing` check to `dog`
+      if (dog) {
         return base44.entities.DogProfile.update(dog.id, payload);
       } else {
         return base44.entities.DogProfile.create(payload);
@@ -92,11 +96,13 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myDogs']);
-      toast.success(dog ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!"); // Renamed `isEditing` check to `dog`
-      if (onSave) onSave(); // Changed from onSuccess to onSave
+      queryClient.invalidateQueries(['dogsCount']);
+      toast.success(dog ? "Pet atualizado com sucesso!" : "Pet adicionado com sucesso!");
+      if (onSave) onSave();
     },
-    onError: () => {
-      toast.error("Erro ao salvar pet");
+    onError: (error) => {
+      console.error("Erro ao salvar pet:", error);
+      toast.error("Erro ao salvar pet: " + (error.message || "Tente novamente"));
     }
   });
 
