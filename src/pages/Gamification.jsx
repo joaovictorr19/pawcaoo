@@ -167,7 +167,6 @@ export default function Gamification() {
   const rankingConfig = {
     global: {
       title: 'Rank Global',
-      icon: '🌍',
       podiumColor: 'from-yellow-400 to-yellow-600',
       accentColor: 'text-blue-600',
       bgGradient: 'from-yellow-50 to-orange-50',
@@ -177,7 +176,6 @@ export default function Gamification() {
     },
     walkers: {
       title: 'Top Passeadores',
-      icon: '⚡',
       podiumColor: 'from-green-400 to-green-600',
       accentColor: 'text-green-600',
       bgGradient: 'from-green-50 to-emerald-50',
@@ -187,12 +185,11 @@ export default function Gamification() {
     },
     quality: {
       title: 'Cães Felizes',
-      icon: '🐶',
       podiumColor: 'from-pink-400 to-pink-600',
       accentColor: 'text-pink-600',
       bgGradient: 'from-pink-50 to-rose-50',
       metricKey: 'rating',
-      metricLabel: '⭐',
+      metricLabel: 'Avaliação',
       formatMetric: (value) => `${(value || 0).toFixed(2)} ⭐`
     }
   };
@@ -281,36 +278,36 @@ export default function Gamification() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* 2. TAB SWITCHER - Sistema de Abas */}
         <div className="flex justify-center">
-          <div className="inline-flex bg-white rounded-full p-2 shadow-lg border-2 border-gray-100">
+          <div className="inline-flex bg-white rounded-2xl p-2 shadow-xl border border-gray-200">
             <button
               onClick={() => setActiveRanking('global')}
-              className={`px-6 py-3 rounded-full font-bold text-sm transition-all ${
+              className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
                 activeRanking === 'global'
-                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              🌍 Rank Global
+              Rank Global
             </button>
             <button
               onClick={() => setActiveRanking('walkers')}
-              className={`px-6 py-3 rounded-full font-bold text-sm transition-all ${
+              className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
                 activeRanking === 'walkers'
-                  ? 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              ⚡ Top Passeadores
+              Top Passeadores
             </button>
             <button
               onClick={() => setActiveRanking('quality')}
-              className={`px-6 py-3 rounded-full font-bold text-sm transition-all ${
+              className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
                 activeRanking === 'quality'
-                  ? 'bg-gradient-to-r from-pink-400 to-pink-600 text-white shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-pink-400 to-pink-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              🐶 Cães Felizes
+              Cães Felizes
             </button>
           </div>
         </div>
@@ -318,13 +315,19 @@ export default function Gamification() {
         {/* 3. PÓDIO ADAPTATIVO */}
         <Card className={`border-0 shadow-2xl bg-gradient-to-br ${currentConfig.bgGradient} overflow-hidden`}>
           <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
-            <CardTitle className="flex items-center gap-2 text-2xl">
+            <CardTitle className="flex items-center gap-3 text-2xl">
               <Trophy className={`w-7 h-7 ${currentConfig.accentColor}`} />
-              {currentConfig.icon} {currentConfig.title}
+              {currentConfig.title}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {/* Pódio Visual Adaptativo */}
+            {rankedData.length === 0 ? (
+              <div className="text-center py-16">
+                <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-semibold">Nenhum dado disponível para este ranking</p>
+              </div>
+            ) : (
             <div className="flex items-end justify-center gap-4 mb-8">
               {/* 2º Lugar */}
               {rankedData[1] && (
@@ -365,7 +368,23 @@ export default function Gamification() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center relative -mt-8"
                 >
-                  <Crown className={`w-10 h-10 fill-current mb-2 animate-pulse ${currentConfig.accentColor}`} />
+                  <div className="relative mb-2">
+                    <svg className="w-14 h-14" viewBox="0 0 64 64" fill="none">
+                      <path d="M32 4L36 16L48 12L44 24L56 28L44 32L48 44L36 40L32 52L28 40L16 44L20 32L8 28L20 24L16 12L28 16L32 4Z" 
+                            fill="url(#gold-gradient)" 
+                            className="drop-shadow-lg" />
+                      <circle cx="32" cy="28" r="8" fill="#FFD700" />
+                      <circle cx="32" cy="28" r="5" fill="#FFA500" />
+                      <defs>
+                        <linearGradient id="gold-gradient" x1="32" y1="4" x2="32" y2="52">
+                          <stop offset="0%" stopColor="#FFD700" />
+                          <stop offset="50%" stopColor="#FFA500" />
+                          <stop offset="100%" stopColor="#FF8C00" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 blur-md bg-yellow-400 opacity-50 rounded-full"></div>
+                  </div>
                   <div className="relative">
                     <div className={`w-28 h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
                       activeRanking === 'global' ? 'border-yellow-500 ring-yellow-200' :
@@ -432,8 +451,10 @@ export default function Gamification() {
                 </motion.div>
               )}
             </div>
+            )}
 
             {/* Resto do Ranking (4º-10º) */}
+            {rankedData.length > 3 && (
             <div className="space-y-2">
               {rankedData.slice(3, 10).map((rankUser, idx) => (
                 <div
@@ -473,8 +494,10 @@ export default function Gamification() {
                 </div>
               ))}
             </div>
+            )}
 
             {/* Posição do Usuário (se fora do Top 10) */}
+            {rankedData.length > 0 && (
             {userRank > 10 && (
               <div className="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4 shadow-lg">
                 <div className="flex items-center gap-3">
@@ -489,16 +512,7 @@ export default function Gamification() {
                 </div>
               </div>
             )}
-
-            <Button
-              onClick={() => navigate(createPageUrl('Leaderboard'))}
-              className="w-full mt-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold shadow-lg"
-              size="lg"
-            >
-              <Trophy className="w-5 h-5 mr-2" />
-              Ver Ranking Completo
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
+            )}
           </CardContent>
         </Card>
 
