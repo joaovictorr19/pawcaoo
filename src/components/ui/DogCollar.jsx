@@ -26,35 +26,60 @@ export default function DogCollar({ userEmail, onClick }) {
       onClick={onClick}
       title="Gerenciar Meus Cães"
     >
-      {/* SVG Leather Collar */}
-      <svg width="120" height="32" viewBox="0 0 120 32" className="drop-shadow-md">
-        {/* Leather strap */}
-        <rect x="0" y="12" width="120" height="8" rx="4" fill="#8B4513" />
-        <rect x="0" y="12" width="120" height="3" rx="1.5" fill="#A0522D" opacity="0.6" />
+      {/* SVG Closed Leather Collar with Hanging Tag */}
+      <svg width="80" height="80" viewBox="0 0 80 80" className="drop-shadow-md">
+        {/* Closed Collar Circle */}
+        <ellipse 
+          cx="40" 
+          cy="35" 
+          rx="28" 
+          ry="25" 
+          fill="none" 
+          stroke="#8B4513" 
+          strokeWidth="6" 
+        />
         
-        {/* Buckle */}
-        <rect x="5" y="10" width="12" height="12" rx="2" fill="#C0C0C0" stroke="#888" strokeWidth="1" />
-        <rect x="8" y="13" width="6" height="6" rx="1" fill="#666" />
+        {/* Inner highlight for depth */}
+        <ellipse 
+          cx="40" 
+          cy="33" 
+          rx="26" 
+          ry="23" 
+          fill="none" 
+          stroke="#A0522D" 
+          strokeWidth="2" 
+          opacity="0.6"
+        />
         
-        {/* Studs */}
-        <circle cx="25" cy="16" r="2" fill="#FFD700" />
-        <circle cx="35" cy="16" r="2" fill="#FFD700" />
-        <circle cx="45" cy="16" r="2" fill="#FFD700" />
+        {/* Buckle on top */}
+        <rect 
+          x="36" 
+          y="8" 
+          width="8" 
+          height="6" 
+          rx="1" 
+          fill="#C0C0C0" 
+          stroke="#888" 
+          strokeWidth="0.5"
+        />
         
-        {/* Tag (Badge with count or +) */}
-        <g transform="translate(85, 8)">
-          <circle cx="12" cy="8" r="12" fill="#FFD700" stroke="#FFA500" strokeWidth="1.5" />
-          <circle cx="12" cy="8" r="10" fill="#FFB700" />
-          {dogsCount > 0 ? (
-            <text x="12" y="12" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#8B4513">
-              {dogsCount}
-            </text>
-          ) : (
-            <text x="12" y="13" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#8B4513">
-              +
-            </text>
-          )}
-        </g>
+        {/* Hanging Tag/Pendant (Center Bottom) */}
+        <line x1="40" y1="60" x2="40" y2="65" stroke="#C0C0C0" strokeWidth="1.5" />
+        
+        {/* Medal/Tag Circle */}
+        <circle cx="40" cy="70" r="9" fill="#FFD700" stroke="#FFA500" strokeWidth="1.5" />
+        <circle cx="40" cy="70" r="7.5" fill="#FFB700" />
+        
+        {/* Counter or + Icon inside Tag */}
+        {dogsCount > 0 ? (
+          <text x="40" y="74" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#8B4513">
+            {dogsCount}
+          </text>
+        ) : (
+          <text x="40" y="75" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#8B4513">
+            +
+          </text>
+        )}
       </svg>
       
       {/* Hover Text */}
