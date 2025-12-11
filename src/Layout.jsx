@@ -192,21 +192,7 @@ function LayoutContent({ children, currentPageName }) {
     ...queryConfig.notifications,
   });
 
-  const { data: unreadChatCount } = useQuery({
-    queryKey: ['unreadChatCount', authUser?.email],
-    queryFn: async () => {
-      if (!authUser?.email) return 0;
-      try {
-        const convos = await base44.entities.ChatConversation.filter({});
-        return convos.reduce((acc, cv) => acc + (cv.unread_counts?.[authUser.email] || 0), 0);
-      } catch (error) {
-        console.error("Chat count fetch error:", error);
-        return 0;
-      }
-    },
-    enabled: !!authUser?.email,
-    refetchInterval: 15000,
-  });
+
 
   const { data: ownerSubscription } = useQuery({
     queryKey: ['ownerSubscription'],
@@ -828,19 +814,7 @@ function LayoutContent({ children, currentPageName }) {
                 </Badge>
               )}
 
-              {/* Inbox Trigger */}
-              {authUser && (
-                <Link to={createPageUrl("Inbox")} className="relative ml-auto md:ml-0 flex-shrink-0 mr-2 group">
-                  <div className="p-2.5 rounded-full hover:bg-blue-50 transition-all duration-200 active:scale-95">
-                    <MessageCircle className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${(unreadChatCount || 0) > 0 ? 'text-blue-600 fill-blue-100/50' : 'text-gray-500 group-hover:text-blue-600'}`} />
-                  </div>
-                  {(unreadChatCount || 0) > 0 && (
-                    <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-blue-600 border-[2px] border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-in zoom-in duration-300">
-                      {unreadChatCount}
-                    </span>
-                  )}
-                </Link>
-              )}
+
 
               {/* Notification Trigger */}
               <div className="relative flex-shrink-0 cursor-pointer mr-2 group" onClick={() => setIsNotificationPanelOpen(true)}>
