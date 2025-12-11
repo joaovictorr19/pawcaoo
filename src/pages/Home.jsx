@@ -686,7 +686,7 @@ export default function Home() {
                         {(() => {
                           const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
                           return allBadges.length > 0 && (
-                            <div className="mb-4">
+                            <div className="mb-4 pt-2">
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
                                 Conquistas Recentes
                               </p>
