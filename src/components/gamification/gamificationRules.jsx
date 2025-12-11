@@ -30,6 +30,15 @@ export const getLevelFromXP = (xp) => {
   return level;
 };
 
+// Calculate tier from points (NEW THRESHOLDS)
+export const calculateTier = (points) => {
+  if (points >= 10000) return 'diamond';
+  if (points >= 6000) return 'sapphire';
+  if (points >= 3000) return 'gold';
+  if (points >= 1000) return 'silver';
+  return 'bronze';
+};
+
 // Get tier name
 export const getTierName = (level) => {
   if (level <= 5) return 'Bronze';

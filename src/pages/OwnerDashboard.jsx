@@ -18,6 +18,8 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReviewModal from "@/components/reviews/ReviewModal";
 import { motion } from "framer-motion";
+import { calculateTier } from "@/components/gamification/gamificationRules";
+import { toast } from "sonner";
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
@@ -47,7 +49,7 @@ export default function OwnerDashboard() {
     initialData: []
   });
 
-  const { data: loyaltyPoints } = useQuery({
+  const { data: loyaltyPoints, refetch: refetchLoyalty } = useQuery({
     queryKey: ['loyaltyPoints', user?.email],
     queryFn: async () => {
       const points = await base44.entities.LoyaltyPoints.filter({ user_email: user.email });
@@ -55,6 +57,31 @@ export default function OwnerDashboard() {
     },
     enabled: !!user,
   });
+
+  // AUTO-FIX: Correct tier based on points
+  React.useEffect(() => {
+    const fixTier = async () => {
+      if (!loyaltyPoints || !user?.email) return;
+      
+      const currentPoints = loyaltyPoints.points_balance || 0;
+      const correctTier = calculateTier(currentPoints);
+      const currentTier = loyaltyPoints.tier?.toLowerCase() || 'bronze';
+      
+      if (correctTier !== currentTier) {
+        try {
+          await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
+            tier: correctTier
+          });
+          refetchLoyalty();
+          toast.success(`🎉 Tier atualizado para ${correctTier.toUpperCase()}!`);
+        } catch (error) {
+          console.error('Error fixing tier:', error);
+        }
+      }
+    };
+    
+    fixTier();
+  }, [loyaltyPoints?.points_balance, user?.email]);
 
   // Auto-open review modal
   React.useEffect(() => {
@@ -109,12 +136,20 @@ export default function OwnerDashboard() {
           textColor: 'text-yellow-900',
           shimmer: true
         };
+      case 'sapphire':
+        return {
+          gradient: 'bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-700',
+          name: 'Guardião Safira',
+          textColor: 'text-white',
+          shimmer: true
+        };
       case 'diamond':
       case 'platinum':
         return {
-          gradient: 'bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500',
+          gradient: 'bg-gradient-to-br from-purple-600 via-pink-500 to-purple-700',
           name: 'Lenda Diamante',
-          textColor: 'text-white'
+          textColor: 'text-white',
+          shimmer: true
         };
       default:
         return {
@@ -261,45 +296,45 @@ export default function OwnerDashboard() {
                   
                   {/* Action 1: Explorar */}
                   <motion.button
-                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(createPageUrl('Home'))}
-                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-green-50 border-2 border-gray-200 hover:border-green-300 rounded-xl shadow-md hover:shadow-lg transition-all group active:scale-95"
+                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all group active:scale-95"
                   >
-                    <div className="w-11 h-11 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-all duration-300">
-                      <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+                    <div className="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
+                      <Search className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" strokeWidth={1.5} />
                     </div>
-                    <span className="text-[11px] font-bold text-gray-700 group-hover:text-green-600 leading-tight transition-colors">
+                    <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight transition-colors">
                       Explorar
                     </span>
                   </motion.button>
 
                   {/* Action 2: Favoritos */}
                   <motion.button
-                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(createPageUrl('Favorites'))}
-                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-pink-50 border-2 border-gray-200 hover:border-pink-300 rounded-xl shadow-md hover:shadow-lg transition-all group active:scale-95"
+                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all group active:scale-95"
                   >
-                    <div className="w-11 h-11 bg-pink-100 rounded-full flex items-center justify-center group-hover:bg-pink-600 transition-all duration-300">
-                      <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
+                    <div className="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
+                      <Heart className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" strokeWidth={1.5} />
                     </div>
-                    <span className="text-[11px] font-bold text-gray-700 group-hover:text-pink-600 leading-tight transition-colors">
+                    <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight transition-colors">
                       Favoritos
                     </span>
                   </motion.button>
 
                   {/* Action 3: Reservas */}
                   <motion.button
-                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(createPageUrl('MyBookings'))}
-                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-purple-50 border-2 border-gray-200 hover:border-purple-300 rounded-xl shadow-md hover:shadow-lg transition-all group active:scale-95"
+                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all group active:scale-95"
                   >
-                    <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-all duration-300">
-                      <List className="w-6 h-6 text-purple-600 group-hover:text-white transition-colors" />
+                    <div className="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
+                      <List className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" strokeWidth={1.5} />
                     </div>
-                    <span className="text-[11px] font-bold text-gray-700 group-hover:text-purple-600 leading-tight transition-colors">
+                    <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight transition-colors">
                       Reservas
                     </span>
                   </motion.button>
