@@ -624,18 +624,8 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
-            <div className="relative max-w-4xl mx-auto">
-              {/* Premium cinematic backdrop - darker */}
-              <div className="absolute inset-0 -m-16 bg-black/95 rounded-[3rem] blur-[100px]"></div>
-              <div className="absolute inset-0 -m-12 bg-black/80 rounded-[2.5rem] blur-[60px]"></div>
-              <div className="absolute inset-0 -m-8 bg-gradient-radial from-black/40 via-black/70 to-black/90 rounded-3xl blur-3xl"></div>
-              
-              {/* Premium soft spotlight glow - no visible triangle */}
-              <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-gradient-radial from-white/8 via-white/2 to-transparent blur-[80px] pointer-events-none rounded-full"></div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-white/3 to-transparent blur-2xl pointer-events-none"></div>
-              
-              <div className="relative z-10">
-                {/* Embedded Owner Dashboard */}
+            <div className="max-w-4xl mx-auto">
+              {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
                 
@@ -796,7 +786,6 @@ export default function Home() {
                 </Card>
               )}
             </div>
-          </div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-md rounded-full px-5 py-2 text-white text-sm font-bold mb-6 shadow-lg shadow-blue-600/20 border border-blue-400/30">
