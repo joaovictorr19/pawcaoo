@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   TrendingUp, DollarSign, Calendar, Heart, Award, Target,
   PawPrint, Activity, Clock, Star, BarChart3, Download,
-  TrendingDown, AlertCircle, CheckCircle, Zap, Dog, Loader2
+  TrendingDown, AlertCircle, CheckCircle, Zap, Dog, Loader2, MessageCircle
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -509,15 +509,22 @@ export default function OwnerDashboard() {
               <CardHeader>
                 <CardTitle className="text-lg">⚡ Ações Rápidas</CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-2">
-                <Button
-                  variant="default"
-                  className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => navigate(createPageUrl('Home'))}
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Procurar um Passeador
-                </Button>
+              <CardContent className="p-4 space-y-3">
+                {/* Grid Compacto de 3 Botões */}
+                <div className="grid grid-cols-3 gap-2 w-full">
+                  <Button onClick={() => navigate(createPageUrl('Inbox'))} className="h-10 text-sm bg-blue-600 hover:bg-blue-700">
+                    <MessageCircle className="w-4 h-4 mr-1" />
+                    Mensagens
+                  </Button>
+                  <Button onClick={() => navigate(createPageUrl('Home'))} className="h-10 text-sm bg-green-600 hover:bg-green-700">
+                    <Dog className="w-4 h-4 mr-1" />
+                    Passeadores
+                  </Button>
+                  <Button onClick={() => navigate(createPageUrl('MyBookings'))} className="h-10 text-sm bg-purple-600 hover:bg-purple-700">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    Reservas
+                  </Button>
+                </div>
                 {completedBookings.length > 0 && (
                   <Button
                     variant="outline"
