@@ -510,7 +510,7 @@ export default function Home() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div>
           <PawCaoLogo size="large" animated={true} />
           <p className="text-gray-600 text-center mt-4">A carregar...</p>
@@ -565,7 +565,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-slate-50">
       <SEO 
         title={t('seoTitle', language)}
         description={t('seoDescription', language)}
@@ -650,7 +650,7 @@ export default function Home() {
                             Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
                           </h2>
                           <p className="text-sm text-white/80">
-                            Nível {currentLevel} • {displayedXP.toLocaleString()} XP • {currentTier.icon} {currentTier.name}
+                            Nível {currentLevel} • {displayedXP.toLocaleString('pt-PT')} XP • {currentTier.icon} {currentTier.name}
                           </p>
                         </div>
                         
