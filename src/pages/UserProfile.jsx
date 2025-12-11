@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  MapPin, Calendar, Heart, MessageCircle, Camera, Edit, Share2,
+  MapPin, Calendar, Heart, Camera, Edit, Share2,
   Award, TrendingUp, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
-  CheckCircle, Shield, ShieldCheck, Users, User, Plus
+  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle
 } from "lucide-react";
 import { t } from "@/components/translations";
 import { useLanguage } from "@/components/LanguageContext";

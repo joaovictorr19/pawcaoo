@@ -101,10 +101,15 @@ export default function ProfessionalDashboard() {
     refetchInterval: 30000,
   });
 
-  // Real-time bookings
+  // Real-time bookings - PEGA TODOS OS PEDIDOS para este Walker (independente de ter sido aceite)
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings'],
-    queryFn: () => base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date'),
+    queryFn: async () => {
+      console.log('🔍 Buscando pedidos para walker:', user?.email);
+      const bookings = await base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date');
+      console.log('📊 Pedidos encontrados:', bookings.length, bookings);
+      return bookings;
+    },
     enabled: !!user && !!walkerProfile,
     initialData: [],
     refetchInterval: 10000, // Real-time: refresh every 10s
@@ -983,7 +988,40 @@ export default function ProfessionalDashboard() {
                               <div className="grid grid-cols-2 gap-2">
                                 <Button
                                   size="sm"
-                                  onClick={() => handleBookingAction(booking, 'confirmed')}
+                                  onClick={async () => {
+                                    console.log('✅ Aceitando pedido:', booking.id);
+                                    // Atualizar walker_id ao aceitar
+                                    const isTrainingBooking = !!booking.session_date;
+                                    const entity = isTrainingBooking ? base44.entities.TrainingBooking : base44.entities.Booking;
+
+                                    try {
+                                      await entity.update(booking.id, {
+                                        status: 'confirmed',
+                                        walker_id: walkerProfile?.id || null,
+                                        trainer_id: trainerProfile?.id || null
+                                      });
+
+                                      queryClient.invalidateQueries(['myWalkBookings']);
+                                      queryClient.invalidateQueries(['myTrainingBookings']);
+                                      toast.success('Pedido aceite com sucesso!');
+
+                                      // Notificar cliente
+                                      try {
+                                        const clientEmail = booking.owner_email || booking.created_by;
+                                        await createNotification.mutateAsync({
+                                          recipient_email: clientEmail,
+                                          title: '✅ Pedido Aceite!',
+                                          message: `${user.full_name} aceitou o seu pedido de passeio para ${booking.dog_name}.`,
+                                          type: 'booking',
+                                          related_id: booking.id,
+                                          priority: 'high'
+                                        });
+                                      } catch (e) { console.error(e); }
+                                    } catch (error) {
+                                      console.error('Erro ao aceitar:', error);
+                                      toast.error('Erro ao aceitar pedido');
+                                    }
+                                  }}
                                   className="bg-green-600 hover:bg-green-700 text-white h-10"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >

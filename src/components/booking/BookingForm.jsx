@@ -147,12 +147,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     mutationFn: async (bookingData) => {
       console.log('📝 Criando booking:', bookingData);
       
-      // 1. Criar booking com status pending
+      // 1. Criar booking com status PENDING e walker_email NULL
       const booking = await base44.entities.Booking.create({
         ...bookingData,
-        status: 'pending'
+        status: 'pending',
+        walker_email: pro.created_by, // Email do walker
+        walker_id: null, // NULL até aceitar
+        walker_name: proName
       });
-      console.log('✅ Booking iniciado:', booking.id);
+      console.log('✅ Booking criado - Status: pending, Walker Email:', pro.created_by, 'ID:', booking.id);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
