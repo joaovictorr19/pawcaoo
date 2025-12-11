@@ -744,14 +744,14 @@ export default function Home() {
                       </Card>
                     </motion.div>
 
-                    <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('Inbox'))} className="cursor-pointer h-full">
+                    <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('Favorites'))} className="cursor-pointer h-full">
                       <Card className="bg-white/90 hover:bg-white backdrop-blur-md border-0 p-4 shadow-lg group transition-all h-full flex items-center xl:justify-start justify-center gap-4">
-                        <div className="bg-blue-100 p-3 rounded-xl group-hover:bg-blue-600 transition-colors shrink-0">
-                          <MessageCircle className="w-6 h-6 text-blue-600 group-hover:text-white" />
+                        <div className="bg-pink-100 p-3 rounded-xl group-hover:bg-pink-600 transition-colors shrink-0">
+                          <Heart className="w-6 h-6 text-pink-600 group-hover:text-white" />
                         </div>
                         <div className="text-left">
-                          <h3 className="font-bold text-gray-900 leading-tight">Mensagens</h3>
-                          <p className="text-xs text-gray-500 hidden xl:block">Fale com o suporte</p>
+                          <h3 className="font-bold text-gray-900 leading-tight">Favoritos</h3>
+                          <p className="text-xs text-gray-500 hidden xl:block">Passeadores salvos</p>
                         </div>
                       </Card>
                     </motion.div>
