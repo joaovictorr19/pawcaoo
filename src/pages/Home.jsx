@@ -691,7 +691,7 @@ export default function Home() {
                                 Conquistas Recentes
                               </p>
                               <TooltipProvider>
-                                <div className="flex flex-row gap-3 overflow-x-auto pb-1">
+                                <div className="flex flex-row gap-3 overflow-x-auto pb-2 px-1">
                                   {allBadges
                                     .sort((a, b) => {
                                       const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
