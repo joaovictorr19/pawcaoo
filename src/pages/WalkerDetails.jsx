@@ -17,7 +17,7 @@ import { pt, enUS, es } from "date-fns/locale";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useCreateNotification } from "../components/NotificationService";
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
@@ -27,7 +27,6 @@ import SEO from "../components/SEO";
 // Mini component for favorite button logic
 function FavoriteButton({ walker, user }) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   
   const { data: favorites = [] } = useQuery({
     queryKey: ['myFavorites'],
@@ -41,7 +40,7 @@ function FavoriteButton({ walker, user }) {
   const toggleFavoriteMutation = useMutation({
     mutationFn: async () => {
         if (!user) {
-            toast({ title: "Faça login para adicionar aos favoritos", variant: "destructive" });
+            toast.error("Faça login para adicionar aos favoritos");
             return;
         }
         if (isFavorite) {
@@ -58,10 +57,10 @@ function FavoriteButton({ walker, user }) {
     },
     onSuccess: () => {
         queryClient.invalidateQueries(['myFavorites']);
-        toast({ title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos" });
+        toast.success(isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos");
     },
     onError: () => {
-        toast({ title: "Erro ao atualizar favoritos", variant: "destructive" });
+        toast.error("Erro ao atualizar favoritos");
     }
   });
 
@@ -85,7 +84,6 @@ export default function WalkerDetails() {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const createNotification = useCreateNotification();
   
   const [showRecurringModal, setShowRecurringModal] = useState(false);
@@ -187,11 +185,7 @@ export default function WalkerDetails() {
   const handleDateSelect = (date) => {
     setSelectedDate(date);
     if (!user) {
-      toast({
-        title: t('loginRequired', language),
-        description: t('loginToBook', language),
-        variant: "destructive",
-      });
+      toast.error(t('loginRequired', language) + ' - ' + t('loginToBook', language));
     } else {
       // Scroll to booking form on mobile
       const formElement = document.getElementById('booking-form-section');
@@ -233,11 +227,7 @@ export default function WalkerDetails() {
       });
     } catch (e) { console.error(e); }
 
-    toast({
-      title: "Solicitação Enviada!",
-      description: "Aguarde a confirmação do profissional.",
-      duration: 6000,
-    });
+    toast.success("Solicitação Enviada! Aguarde a confirmação do profissional.", { duration: 6000 });
 
     queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
   };
@@ -652,10 +642,7 @@ export default function WalkerDetails() {
             onClose={() => setShowRecurringModal(false)}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['scheduledAppointments'] });
-              toast({
-                title: "Agendamento recorrente criado!",
-                description: "Seu agendamento recorrente foi configurado com sucesso.",
-              });
+              toast.success("Agendamento recorrente criado! Seu agendamento recorrente foi configurado com sucesso.");
             }}
           />
         )}
