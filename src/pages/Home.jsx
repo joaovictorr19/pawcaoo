@@ -625,24 +625,16 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
             <div className="relative max-w-4xl mx-auto">
-              {/* Multi-layer premium dark backdrop with depth */}
-              <div className="absolute inset-0 -m-20 bg-gradient-to-br from-black via-slate-950 to-black rounded-[4rem] blur-[120px] opacity-90"></div>
-              <div className="absolute inset-0 -m-16 bg-black/98 rounded-[3.5rem] blur-[100px]"></div>
-              <div className="absolute inset-0 -m-12 bg-gradient-radial from-slate-900/90 via-black/95 to-black rounded-[3rem] blur-[80px]"></div>
-              <div className="absolute inset-0 -m-8 bg-black/85 rounded-3xl blur-[60px]"></div>
+              {/* Dark cinematic backdrop layers */}
+              <div className="absolute inset-0 -m-20 bg-black/98 rounded-[4rem] blur-[120px]"></div>
+              <div className="absolute inset-0 -m-16 bg-black/95 rounded-[3.5rem] blur-[100px]"></div>
+              <div className="absolute inset-0 -m-12 bg-black/90 rounded-[3rem] blur-[80px]"></div>
               
-              {/* Premium volumetric light beam effect */}
-              <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[600px] pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-radial from-amber-100/12 via-white/4 to-transparent blur-[100px] rounded-full"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/8 via-white/2 to-transparent blur-[60px]"></div>
-              </div>
+              {/* Soft premium spotlight from above */}
+              <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-gradient-radial from-white/6 via-white/2 to-transparent blur-[100px] pointer-events-none rounded-full"></div>
               
-              {/* Subtle top glow accent */}
-              <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[400px] h-40 bg-gradient-to-b from-white/6 via-white/2 to-transparent blur-3xl pointer-events-none"></div>
-              
-              {/* Edge vignette for depth */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 rounded-3xl pointer-events-none"></div>
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30 rounded-3xl pointer-events-none"></div>
+              {/* Subtle edge vignette */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50 rounded-3xl pointer-events-none"></div>
               
               <div className="relative z-10">
                 {/* Embedded Owner Dashboard */}
