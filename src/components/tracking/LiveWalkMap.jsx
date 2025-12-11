@@ -73,18 +73,9 @@ const LiveMapViewer = ({ path }) => {
 };
 
 // --- MAIN COMPONENT ---
-export default function LiveWalkMap({ bookingId, walkerId, className }) {
-  // BLINDAGEM DO MAPA
-  // Ignora qualquer className externo que tente mudar height
-  const containerStyle = {
-    width: '100%',
-    height: '100%', 
-    position: 'absolute', // Mudado para absolute para preencher o pai (Grid Area)
-    top: 0,
-    left: 0,
-    zIndex: 1,
-    overflow: 'hidden'
-  };
+export default function LiveWalkMap({ bookingId, walkerId, className = "h-full w-full" }) {
+  // CORREÇÃO DO MAPA INTERNO: Container relativo ocupando 100% do pai
+  // Diagnóstico de Entrada do Mapa
   React.useEffect(() => {
       if (bookingId) {
           console.log("LiveWalkMap Mounted. IDs:", { bookingId, walkerId });
@@ -125,13 +116,12 @@ export default function LiveWalkMap({ bookingId, walkerId, className }) {
   const center = path.length > 0 ? [path[path.length - 1].lat, path[path.length - 1].lng] : [38.7223, -9.1393];
 
   return (
-    <div style={containerStyle}>
+    <div className={`relative w-full h-full ${className}`}>
       <MapContainer 
         center={center} 
         zoom={16} 
+        className="h-full w-full"
         zoomControl={false}
-        scrollWheelZoom={true}
-        dragging={true}
         style={{ width: "100%", height: "100%" }}
       >
         <TileLayer
