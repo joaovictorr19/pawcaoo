@@ -497,8 +497,7 @@ export default function Gamification() {
             )}
 
             {/* Posição do Usuário (se fora do Top 10) */}
-            {rankedData.length > 0 && (
-            {userRank > 10 && (
+            {rankedData.length > 0 && userRank > 10 && (
               <div className="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4 shadow-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
@@ -511,7 +510,6 @@ export default function Gamification() {
                   <TrendingUp className="w-6 h-6" />
                 </div>
               </div>
-            )}
             )}
           </CardContent>
         </Card>
