@@ -3,6 +3,7 @@ import { Dog } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 
 export default function DogCollar({ userEmail, onClick }) {
   const { data: dogsCount = 0, isLoading } = useQuery({

@@ -929,7 +929,7 @@ export default function UserProfile() {
               <Button
                 size="icon"
                 variant="outline"
-                className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg z-20 pointer-events-auto w-10 h-10 rounded-full border-2 border-white/50"
+                className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg z-50 pointer-events-auto w-10 h-10 rounded-full border-2 border-white/50"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(createPageUrl('AccountSettings'));

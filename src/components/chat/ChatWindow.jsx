@@ -564,7 +564,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                           Esta é o início da sua conversa.<br/>Diga olá! 👋
                       </div>
                   )}
-                  {sortedMessages.map((msg) => {
+                  {sortedMessages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx).map((msg) => {
                     const isMe = msg.sender_email === currentUser.email;
                     return (
                       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -648,7 +648,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                       Esta é o início da sua conversa.<br/>Diga olá! 👋
                   </div>
               )}
-              {sortedMessages.map((msg) => {
+              {sortedMessages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx).map((msg) => {
                 const isMe = msg.sender_email === currentUser.email;
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
