@@ -69,10 +69,23 @@ export default function Gamification() {
     { id: "community_legend", name: "Lenda Comunitária", desc: "Membro lendário", icon: "👑", category: "special", rarity: "legendary" },
   ];
 
+  // Combine system badges with earned custom badges for display
+  const customEarnedBadges = (user?.public_badges || []).map(badge => ({
+    id: badge.badge_id,
+    name: badge.name,
+    desc: badge.description,
+    icon: badge.icon,
+    image_url: badge.image_url,
+    category: badge.category || 'special',
+    rarity: badge.rarity || 'rare'
+  }));
+
+  const allBadgesForDisplay = [...allPossibleBadges, ...customEarnedBadges];
+
   // Filter by category
   const filteredBadges = activeCategory === "all" 
-    ? allPossibleBadges 
-    : allPossibleBadges.filter(b => b.category === activeCategory);
+    ? allBadgesForDisplay 
+    : allBadgesForDisplay.filter(b => b.category === activeCategory);
 
   // User rank
   const userRank = allUsers.findIndex(u => u.email === user?.email) + 1;
