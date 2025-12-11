@@ -50,13 +50,19 @@ export default function EditWalkerProfile() {
 
   const submitEditRequestMutation = useMutation({
     mutationFn: async (changes) => {
-      // Direct update approach - Change status to pending on edit
-      await base44.entities.WalkerProfile.update(walkerProfile.id, {
-        ...changes,
-        verification_status: 'pending' // Requires admin re-approval
-      });
+      // Check if sensitive fields were changed (photo, bio, price)
+      const sensitiveFields = ['photo_url', 'bio', 'hourly_rate', 'cover_photo_url', 'video_intro_url'];
+      const hasSensitiveChanges = Object.keys(changes).some(key => sensitiveFields.includes(key));
       
-      // Also create edit request for admin tracking
+      // Update profile with pending status if sensitive data changed
+      const updateData = {
+        ...changes,
+        ...(hasSensitiveChanges ? { verification_status: 'pending' } : {})
+      };
+      
+      await base44.entities.WalkerProfile.update(walkerProfile.id, updateData);
+      
+      // Create edit request for admin tracking
       try {
         const currentUser = await base44.auth.me();
         await base44.entities.ProfileEditRequest.create({
@@ -69,13 +75,20 @@ export default function EditWalkerProfile() {
         });
       } catch (err) {
         console.error("Edit request tracking failed:", err);
-        // Don't block the update if tracking fails
       }
+      
+      return { hasSensitiveChanges };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['myWalkerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['editRequests'] });
-      toast.success('✅ Alterações salvas! Status alterado para "Pendente de Aprovação".');
+      
+      if (data.hasSensitiveChanges) {
+        toast.success('✅ Perfil atualizado! Aguardando aprovação do administrador.');
+      } else {
+        toast.success('✅ Perfil atualizado com sucesso!');
+      }
+      
       setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 2000);
     },
     onError: (error) => {
@@ -272,7 +285,11 @@ export default function EditWalkerProfile() {
                         <img
                           src={formData.photo_url}
                           alt="Profile"
-                          className="w-full h-full object-cover object-center"
+                          className="w-full h-full object-cover object-center bg-gray-200"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(formData.walker_name || 'W') + '&background=10b981&color=fff&size=400';
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -313,7 +330,11 @@ export default function EditWalkerProfile() {
                         <img
                           src={formData.cover_photo_url}
                           alt="Cover"
-                          className="w-full h-full object-cover object-center"
+                          className="w-full h-full object-cover object-center bg-gray-200"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = 'none';
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 gap-2">
@@ -572,10 +593,10 @@ export default function EditWalkerProfile() {
                 <Button
                   type="submit"
                   disabled={submitEditRequestMutation.isPending || uploading}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
                 >
                   <Save className="w-5 h-5 mr-2" />
-                  {submitEditRequestMutation.isPending ? 'Enviando...' : 'Enviar para Aprovação'}
+                  {submitEditRequestMutation.isPending ? 'Enviando...' : 'Salvar e Solicitar Aprovação'}
                 </Button>
               </div>
             </form>
