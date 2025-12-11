@@ -381,7 +381,11 @@ export default function Gamification() {
                         </div>
                       )}
                       
-                      <div className="text-4xl mb-2">{badge.icon}</div>
+                      {badge.image_url ? (
+                        <img src={badge.image_url} className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover" alt={badge.name} />
+                      ) : (
+                        <div className="text-4xl mb-2">{badge.icon}</div>
+                      )}
                       <p className="font-bold text-xs mb-1 line-clamp-1">{badge.name}</p>
                       
                       {/* Rarity Badge */}
