@@ -686,12 +686,12 @@ export default function Home() {
                         {(() => {
                           const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
                           return allBadges.length > 0 && (
-                            <div className="mb-4 pt-2">
-                              <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
+                            <div className="mb-4 pt-4">
+                              <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                                 Conquistas Recentes
                               </p>
                               <TooltipProvider>
-                                <div className="flex flex-row gap-3 overflow-x-auto pb-2 px-1">
+                                <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
                                   {allBadges
                                     .sort((a, b) => {
                                       const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
