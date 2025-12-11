@@ -706,7 +706,13 @@ export default function UserProfile() {
   };
 
   const handleMessageUser = async (targetEmail) => {
-    if (!currentUser || !targetEmail) return;
+    if (!currentUser || !targetEmail) {
+      console.error('❌ Dados insuficientes para chat:', { currentUser: currentUser?.email, targetEmail });
+      toast.error("Erro: Usuário não autenticado ou perfil inválido.");
+      return;
+    }
+
+    console.log('📤 Abrindo/criando chat com:', targetEmail);
     
     try {
       // Check existing chat
@@ -718,8 +724,10 @@ export default function UserProfile() {
       );
       
       if (myChat) {
+        console.log('✅ Chat existente encontrado:', myChat.id);
         navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
       } else {
+        console.log('💬 Criando nova conversa...');
         // Create new chat
         const newChat = await base44.entities.ChatConversation.create({
           participants: [currentUser.email, targetEmail],
@@ -728,11 +736,13 @@ export default function UserProfile() {
           last_message_date: new Date().toISOString(),
           unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 }
         });
+        console.log('✅ Chat criado:', newChat.id);
         navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
       }
     } catch (error) {
-      toast.error("Erro ao abrir conversa.");
-      console.error(error);
+      console.error("❌ Erro ao abrir conversa:", error);
+      const errorMsg = error?.message || 'Erro desconhecido';
+      toast.error(`Erro ao abrir chat: ${errorMsg}`);
     }
   };
 
@@ -763,7 +773,12 @@ export default function UserProfile() {
 
   const followMutation = useMutation({
     mutationFn: async () => {
-      if (!currentUser?.email || !profileEmail) return;
+      if (!currentUser?.email || !profileEmail) {
+        console.error('❌ Dados insuficientes para seguir:', { currentUser: currentUser?.email, profileEmail });
+        throw new Error('Usuário não autenticado ou perfil inválido');
+      }
+
+      console.log('📤 Criando follow:', { follower: currentUser.email, following: profileEmail });
       
       await base44.entities.SocialFollow.create({
         follower_email: currentUser.email,
@@ -773,6 +788,8 @@ export default function UserProfile() {
         following_name: profileUser.full_name,
         status: 'accepted'
       });
+
+      console.log('✅ Follow criado com sucesso');
 
       // Invalidate queries to force refresh counts
       queryClient.invalidateQueries({ queryKey: ['followersCount'] });
@@ -801,14 +818,21 @@ export default function UserProfile() {
       toast.success('Agora você está seguindo!');
     },
     onError: (error) => {
-      // console.error("Follow mutation error:", error);
-      toast.error("Erro ao seguir usuário. Tente novamente.");
+      console.error("❌ Follow mutation error:", error);
+      const errorMsg = error?.message || 'Erro desconhecido';
+      toast.error(`Erro ao seguir: ${errorMsg}`);
     }
   });
 
   const unfollowMutation = useMutation({
     mutationFn: async () => {
-      if (!currentUser?.email || !profileEmail) return;
+      if (!currentUser?.email || !profileEmail) {
+        console.error('❌ Dados insuficientes para unfollow:', { currentUser: currentUser?.email, profileEmail });
+        throw new Error('Usuário não autenticado ou perfil inválido');
+      }
+
+      console.log('📤 Removendo follow:', { follower: currentUser.email, following: profileEmail });
+      
       const follows = await base44.entities.SocialFollow.filter({
         follower_email: currentUser.email,
         following_email: profileEmail
@@ -816,6 +840,7 @@ export default function UserProfile() {
       
       if (follows[0]) {
         await base44.entities.SocialFollow.delete(follows[0].id);
+        console.log('✅ Follow removido');
         
         if (profileUser.id) {
           try {
@@ -824,6 +849,8 @@ export default function UserProfile() {
             });
           } catch(e) { console.error(e); }
         }
+      } else {
+        console.warn('⚠️ Nenhum follow encontrado para remover');
       }
     },
     onSuccess: () => {
@@ -832,6 +859,11 @@ export default function UserProfile() {
       queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
       toast.success('Deixou de seguir');
     },
+    onError: (error) => {
+      console.error("❌ Unfollow mutation error:", error);
+      const errorMsg = error?.message || 'Erro desconhecido';
+      toast.error(`Erro ao deixar de seguir: ${errorMsg}`);
+    }
   });
 
   const totalBadges = displayBadges.length;
