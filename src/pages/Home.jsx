@@ -34,6 +34,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
 import { getLevelFromXP } from "@/components/gamification/gamificationRules";
+import OwnerDashboard from "./OwnerDashboard";
+import { CardContent } from "@/components/ui/card";
+import { Plus } from "lucide-react";
 
 export default function Home() {
   const { language } = useLanguage();
@@ -565,151 +568,14 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
-            >
-              {/* Hero Gamification Card */}
-              <Card className={`border-0 shadow-2xl overflow-hidden relative ${
-                getLevelInfo(user.gamification_xp).level >= 30 ? 'bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500' :
-                getLevelInfo(user.gamification_xp).level >= 20 ? 'bg-gradient-to-br from-yellow-500 via-yellow-200 to-yellow-600' :
-                getLevelInfo(user.gamification_xp).level >= 10 ? 'bg-gradient-to-br from-gray-300 via-gray-100 to-gray-400' :
-                'bg-gradient-to-br from-orange-700 via-orange-600 to-yellow-700'
-              } text-white`}>
-                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-                
-                {getLevelInfo(user.gamification_xp).level >= 20 && (
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -inset-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" 
-                         style={{ transform: 'skewX(-20deg)', animationDuration: '3s' }}></div>
-                  </div>
-                )}
-                
-                <div className="relative z-10 p-6 md:p-8 grid lg:grid-cols-3 gap-6">
-                  {/* Status Column */}
-                  <div className="lg:col-span-2">
-                    <div className="flex items-start justify-between mb-6">
-                      <div>
-                        <div className="flex items-center gap-3 mb-3">
-                          <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">
-                            Área Premium
-                          </Badge>
-                          <Badge className={`${
-                            getLevelInfo(user.gamification_xp).level >= 30 ? 'bg-pink-500/80' :
-                            getLevelInfo(user.gamification_xp).level >= 20 ? 'bg-yellow-600/80' :
-                            getLevelInfo(user.gamification_xp).level >= 10 ? 'bg-gray-600/80' :
-                            'bg-orange-600/80'
-                          } text-white border-0`}>
-                            Nível {getLevelInfo(user.gamification_xp).level}
-                          </Badge>
-                        </div>
-                        <h1 className="text-3xl md:text-5xl font-black mb-2">
-                          Olá, {user.full_name?.split(' ')[0]}! 👋
-                        </h1>
-                        <p className="text-lg opacity-90 mb-4">
-                          {getLevelInfo(user.gamification_xp).title} • {user.gamification_xp || 0} XP
-                        </p>
-                      </div>
-                      <div className="hidden md:block">
-                        <Crown className="w-16 h-16 text-yellow-300 drop-shadow-lg" />
-                      </div>
-                    </div>
-
-                    {/* XP Progress */}
-                    <div className="mb-6">
-                      <div className="flex justify-between text-sm mb-2 font-semibold opacity-90">
-                        <span>Progresso XP</span>
-                        <span>{Math.min(Math.round(((user.gamification_xp || 0) % 500) / 5), 100)}%</span>
-                      </div>
-                      <div className="h-4 bg-black/20 rounded-full overflow-hidden shadow-inner border border-white/10">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(((user.gamification_xp || 0) % 500) / 5, 100)}%` }}
-                          transition={{ duration: 1, ease: "easeOut" }}
-                          className="h-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 rounded-full shadow-lg"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Badges Preview */}
-                    {(user.achievements_badges || user.public_badges) && (user.achievements_badges || user.public_badges).length > 0 && (
-                      <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-                        <p className="text-xs font-bold uppercase tracking-wide mb-3 opacity-80">Conquistas Recentes</p>
-                        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-                          {(user.achievements_badges || user.public_badges).slice(0, 6).map((badge, i) => (
-                            <TooltipProvider key={i}>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl border-2 border-white/20 shadow-md cursor-default hover:bg-white/30 hover:scale-110 transition-all flex-shrink-0">
-                                    {badge.icon || '🏅'}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{badge.name}</p></TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="space-y-3">
-                    <motion.button
-                      whileHover={{ scale: 1.03, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setActiveTab('walkers');
-                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="w-full bg-white text-gray-900 hover:bg-gray-50 rounded-xl p-4 shadow-lg flex items-center gap-3 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-600 transition-colors flex-shrink-0">
-                        <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
-                      </div>
-                      <div className="text-left flex-1">
-                        <h3 className="font-bold text-sm">Explorar</h3>
-                        <p className="text-xs text-gray-600">Passeadores verificados</p>
-                      </div>
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.03, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate(createPageUrl('Favorites'))}
-                      className="w-full bg-white text-gray-900 hover:bg-gray-50 rounded-xl p-4 shadow-lg flex items-center gap-3 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center group-hover:bg-pink-600 transition-colors flex-shrink-0">
-                        <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
-                      </div>
-                      <div className="text-left flex-1">
-                        <h3 className="font-bold text-sm">Favoritos</h3>
-                        <p className="text-xs text-gray-600">Salvos</p>
-                      </div>
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.03, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate(createPageUrl('OwnerDashboard'))}
-                      className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 rounded-xl p-4 shadow-lg flex items-center gap-3 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <BarChart3 className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="text-left flex-1">
-                        <h3 className="font-bold text-sm">Dashboard</h3>
-                        <p className="text-xs opacity-90">Estatísticas</p>
-                      </div>
-                    </motion.button>
-                  </div>
-                </div>
-              </Card>
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-gray-50 rounded-2xl p-6 md:p-8 mb-8">
+                <OwnerDashboard user={user} />
+              </div>
 
               {/* Dogs Carousel */}
               {myDogs && myDogs.length > 0 && (
-                <Card className="bg-white/95 backdrop-blur-md border-0 shadow-lg">
+                <Card className="bg-white border-0 shadow-lg">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Dog className="w-5 h-5 text-orange-600" />
@@ -752,7 +618,7 @@ export default function Home() {
                   </CardContent>
                 </Card>
               )}
-            </motion.div>
+            </div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20 animate-fade-in">
