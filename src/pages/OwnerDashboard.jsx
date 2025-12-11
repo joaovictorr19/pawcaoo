@@ -354,7 +354,7 @@ export default function OwnerDashboard() {
           </CardHeader>
           <CardContent className="p-4">
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {myDogs.map((dog) => (
+              {myDogs && myDogs.length > 0 && myDogs.map((dog) => (
                 <motion.div
                   key={dog.id}
                   whileHover={{ scale: 1.05 }}
