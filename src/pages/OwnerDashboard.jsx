@@ -121,50 +121,66 @@ export default function OwnerDashboard({ user: propUser }) {
 
   if (loadingUser || !user) return null;
 
+  // Determine card gradient based on XP/tier
+  const cardGradient = points >= 6000 || ['sapphire', 'diamond', 'platinum'].includes(userTier)
+    ? 'bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600'
+    : 'bg-gradient-to-r from-yellow-500 to-orange-400';
+
   return (
     <div className="space-y-4">
-      {/* Linha 1: Boas-vindas */}
-      <div>
-        <h2 className="text-2xl font-sans text-gray-800">
-          Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
-        </h2>
+      {/* Hero Gamification Card - Vibrant Gradient */}
+      <div className={`${cardGradient} text-white rounded-2xl shadow-lg p-6`}>
+        {/* Linha 1: Boas-vindas + XP */}
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-white mb-1">
+            Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
+          </h2>
+          <p className="text-sm text-white/80">
+            Nível {currentLevel} • {currentXP.toLocaleString()} XP • {tierNames[userTier]}
+          </p>
+        </div>
+
+        {/* Linha 2: Barra de Progresso Slim */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-medium text-white/70">
+              Progresso para Nível {currentLevel + 1}
+            </span>
+            <span className="text-xs text-white/90 font-semibold">{Math.round(xpProgress)}%</span>
+          </div>
+          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-white/90 transition-all duration-500 rounded-full"
+              style={{ width: `${xpProgress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Linha 3: Hall da Fama (5 Emblemas) */}
+        {user?.achievements_badges && user.achievements_badges.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
+              Conquistas Recentes
+            </p>
+            <div className="flex flex-row gap-3 overflow-x-auto pb-1">
+              {user.achievements_badges
+                .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
+                .slice(0, 5)
+                .map((badge, i) => (
+                  <div 
+                    key={i} 
+                    className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-default"
+                    title={badge.name}
+                  >
+                    {badge.icon || '🏅'}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Linha 2: Barra de Progresso Slim + Tier */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-gray-600">
-            Nível {currentLevel} • {tierNames[userTier]}
-          </span>
-          <span className="text-xs text-gray-500">{Math.round(xpProgress)}%</span>
-        </div>
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div 
-            className={`h-full bg-gradient-to-r ${tierColors[userTier]} transition-all duration-500`}
-            style={{ width: `${xpProgress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Linha 3: Hall da Fama (5 Emblemas Mais Recentes) */}
-      {user?.achievements_badges && user.achievements_badges.length > 0 && (
-        <div className="flex items-center gap-2">
-          {user.achievements_badges
-            .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
-            .slice(0, 5)
-            .map((badge, i) => (
-              <div 
-                key={i} 
-                className="text-2xl"
-                title={badge.name}
-              >
-                {badge.icon || '🏅'}
-              </div>
-            ))}
-        </div>
-      )}
-
-      {/* Linha 4: Grid de Ações (Botões Horizontais) */}
+      {/* Linha 4: Grid de Ações (Botões Horizontais - SEMPRE 3 COLUNAS) */}
       <div className="grid grid-cols-3 gap-4 w-full">
         <button
           onClick={() => navigate(createPageUrl('Home'))}
