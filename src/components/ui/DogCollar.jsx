@@ -16,7 +16,7 @@ export default function DogCollar({ userEmail, onClick }) {
     enabled: !!userEmail,
   });
 
-  if (isLoading || dogsCount === 0) return null;
+  if (isLoading) return null;
 
   return (
     <motion.div
@@ -41,19 +41,25 @@ export default function DogCollar({ userEmail, onClick }) {
         <circle cx="35" cy="16" r="2" fill="#FFD700" />
         <circle cx="45" cy="16" r="2" fill="#FFD700" />
         
-        {/* Tag (Badge with count) */}
+        {/* Tag (Badge with count or +) */}
         <g transform="translate(85, 8)">
           <circle cx="12" cy="8" r="12" fill="#FFD700" stroke="#FFA500" strokeWidth="1.5" />
           <circle cx="12" cy="8" r="10" fill="#FFB700" />
-          <text x="12" y="12" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#8B4513">
-            {dogsCount}
-          </text>
+          {dogsCount > 0 ? (
+            <text x="12" y="12" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#8B4513">
+              {dogsCount}
+            </text>
+          ) : (
+            <text x="12" y="13" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#8B4513">
+              +
+            </text>
+          )}
         </g>
       </svg>
       
       {/* Hover Text */}
       <span className="text-xs font-semibold text-gray-600 group-hover:text-green-600 transition-colors hidden sm:inline">
-        {dogsCount} {dogsCount === 1 ? 'Cão' : 'Cães'}
+        {dogsCount > 0 ? `${dogsCount} ${dogsCount === 1 ? 'Cão' : 'Cães'}` : 'Adicionar Cão'}
       </span>
     </motion.div>
   );
