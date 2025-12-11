@@ -121,10 +121,18 @@ export default function OwnerDashboard({ user: propUser }) {
 
   if (loadingUser || !user) return null;
 
-  // Determine card gradient based on XP/tier
-  const cardGradient = points >= 6000 || ['sapphire', 'diamond', 'platinum'].includes(userTier)
-    ? 'bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600'
-    : 'bg-gradient-to-r from-yellow-500 to-orange-400';
+  // FORCE tier calculation based on points explicitly (override DB tier)
+  const currentPoints = points || 0;
+  let displayTier = 'Bronze';
+  let cardGradient = 'bg-gradient-to-r from-orange-700 to-orange-500'; // Bronze default
+
+  if (currentPoints >= 1000 && currentPoints < 6000) {
+    displayTier = 'Ouro';
+    cardGradient = 'bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-600';
+  } else if (currentPoints >= 6000) {
+    displayTier = 'Safira';
+    cardGradient = 'bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-800';
+  }
 
   return (
     <div className="space-y-4">
@@ -136,7 +144,7 @@ export default function OwnerDashboard({ user: propUser }) {
             Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
           </h2>
           <p className="text-sm text-white/80">
-            Nível {currentLevel} • {currentXP.toLocaleString()} XP • {tierNames[userTier]}
+            Nível {currentLevel} • {currentXP.toLocaleString()} XP • {displayTier}
           </p>
         </div>
 
@@ -180,11 +188,11 @@ export default function OwnerDashboard({ user: propUser }) {
         )}
       </div>
 
-      {/* Linha 4: Grid de Ações (Botões Dark Premium - SEMPRE 3 COLUNAS) */}
+      {/* Linha 4: Grid de Ações (Botões Dark Slate Premium - SEMPRE 3 COLUNAS) */}
       <div className="grid grid-cols-3 gap-4 w-full">
         <button
           onClick={() => navigate(createPageUrl('Favorites'))}
-          className="flex flex-col items-center gap-2 p-4 bg-gray-900 hover:bg-black rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
         >
           <Heart className="w-5 h-5 text-white" strokeWidth={1.5} />
           <span className="text-xs font-medium text-white">Favoritos</span>
@@ -192,7 +200,7 @@ export default function OwnerDashboard({ user: propUser }) {
 
         <button
           onClick={() => navigate(createPageUrl('Gamification'))}
-          className="flex flex-col items-center gap-2 p-4 bg-gray-900 hover:bg-black rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
         >
           <Trophy className="w-5 h-5 text-white" strokeWidth={1.5} />
           <span className="text-xs font-medium text-white">Conquistas</span>
@@ -200,7 +208,7 @@ export default function OwnerDashboard({ user: propUser }) {
 
         <button
           onClick={() => navigate(createPageUrl('MyBookings'))}
-          className="flex flex-col items-center gap-2 p-4 bg-gray-900 hover:bg-black rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
         >
           <Calendar className="w-5 h-5 text-white" strokeWidth={1.5} />
           <span className="text-xs font-medium text-white">Histórico</span>
