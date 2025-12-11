@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/utils";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck, MapPin, Trash2 } from "lucide-react";
+import { Send, MoreVertical, Phone, Video, Info, User, Map as MapIcon, MessageSquare, AlertCircle, Check, CheckCheck, MapPin, Trash2, ArrowLeft, Navigation } from "lucide-react";
 import CallModal from "./CallModal";
 import LiveWalkMap from "../tracking/LiveWalkMap";
 import { format } from "date-fns";
@@ -26,6 +26,8 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   const [callState, setCallState] = useState({ isOpen: false, type: 'audio' });
   const [activeTab, setActiveTab] = useState("chat");
   const navigate = useNavigate();
+  const [isTracking, setIsTracking] = useState(false);
+  const watchIdRef = useRef(null);
 
   // 1.5 Fetch Linked Booking (Necessary for creating chat context)
   const activeBookingId = bookingId || null;
@@ -370,7 +372,65 @@ export default function ChatWindow({ conversationId: propConversationId, booking
     return diffMins < 15 && diffMins >= 0;
   }, [otherUserProfile]);
 
-  const sortedMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+  // Deduplicação de mensagens
+  const uniqueMessages = messages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx);
+  const sortedMessages = [...uniqueMessages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+
+  // GPS Tracking para Walker
+  const startGPSTracking = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocalização não disponível neste dispositivo.");
+      return;
+    }
+
+    setIsTracking(true);
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Update booking route
+        try {
+          const currentRoute = booking?.route_coordinates || [];
+          const newRoute = [...currentRoute, [latitude, longitude]];
+          
+          await base44.entities.Booking.update(activeBookingId, {
+            route_coordinates: newRoute,
+            last_gps_update: new Date().toISOString()
+          });
+          
+          queryClient.invalidateQueries(['linkedBooking', activeBookingId]);
+        } catch (err) {
+          console.error("GPS update error:", err);
+        }
+      },
+      (error) => {
+        console.error("GPS error:", error);
+        toast.error("Erro ao acessar localização.");
+        setIsTracking(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000
+      }
+    );
+  };
+
+  const stopGPSTracking = () => {
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setIsTracking(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
 
   // Final Checks before Render
   if (isInitializing) {
@@ -404,7 +464,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
   if (!activeConversation) return <div className="h-full flex items-center justify-center">Selecione uma conversa.</div>;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm overflow-hidden relative w-full">
+    <div className="flex flex-col h-[calc(100vh-60px)] md:flex-row bg-white rounded-xl shadow-sm overflow-hidden relative w-full">
       <CallModal 
         isOpen={callState.isOpen}
         onClose={() => setCallState({ ...callState, isOpen: false })}
@@ -418,8 +478,16 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       
       {/* Header Compacto */}
       {!embedded && (
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shrink-0 z-10">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shrink-0 z-10 md:hidden">
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 md:hidden"
+            onClick={() => navigate(createPageUrl('Inbox'))}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <Avatar className="h-9 w-9 border border-gray-100">
             <AvatarFallback className={isSupport ? "bg-blue-100 text-blue-700" : "bg-gray-100"}>
               {isSupport ? <Info className="w-4 h-4" /> : displayName[0].toUpperCase()}
@@ -501,13 +569,26 @@ export default function ChatWindow({ conversationId: propConversationId, booking
             </a>
           )}
 
-          {isLiveWalk && (
+          {isLiveWalk && userType === 'walker' && (
+            <Button
+              variant={isTracking ? "default" : "outline"}
+              size="sm"
+              className={`h-8 ml-1 ${isTracking ? 'bg-green-600 text-white' : 'bg-green-50 text-green-600 border-green-200'}`}
+              onClick={() => isTracking ? stopGPSTracking() : startGPSTracking()}
+              title={isTracking ? "Parar Rastreamento" : "Iniciar Passeio (GPS)"}
+            >
+              <Navigation className={`w-4 h-4 mr-1 ${isTracking ? 'animate-pulse' : ''}`} />
+              {isTracking ? 'Rastreando' : 'Iniciar'}
+            </Button>
+          )}
+          
+          {isLiveWalk && userType === 'client' && (
             <Button
               variant="outline"
               size="icon"
               className="h-8 w-8 ml-1 bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
               onClick={() => setActiveTab('map')}
-              title="Rastreamento em Tempo Real"
+              title="Ver Rastreamento"
             >
               <MapPin className="w-4 h-4" />
             </Button>
@@ -516,47 +597,35 @@ export default function ChatWindow({ conversationId: propConversationId, booking
       </div>
       )}
 
-      {/* Tabs / Content Area */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-       {/* Mapa sempre visível para cliente se houver walkerId e estiver ativo */}
-       {userType === 'client' && targetWalkerId && isLiveWalk && activeTab === 'chat' && (
-          <div className="h-48 w-full shrink-0 border-b border-gray-200 bg-gray-50">
-             <LiveWalkMap 
-                 bookingId={activeBookingId} 
-                 walkerId={targetWalkerId}
-                 className="w-full h-full" 
-             />
-          </div>
-       )}
+      {/* Mobile: Mapa Topo 35vh | Desktop: Mapa Esquerda 60% */}
+      {isLiveWalk && targetWalkerId && (
+        <div className="h-[35vh] md:h-full md:w-[60%] w-full shrink-0 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 relative">
+          <LiveWalkMap 
+            bookingId={activeBookingId} 
+            walkerId={targetWalkerId}
+            className="w-full h-full" 
+          />
+          {userType === 'walker' && (
+            <div className="absolute top-2 right-2 z-10">
+              <Button
+                variant={isTracking ? "default" : "outline"}
+                size="sm"
+                className={`${isTracking ? 'bg-green-600 text-white' : 'bg-white'} shadow-lg`}
+                onClick={() => isTracking ? stopGPSTracking() : startGPSTracking()}
+              >
+                <Navigation className={`w-4 h-4 mr-1 ${isTracking ? 'animate-pulse' : ''}`} />
+                {isTracking ? 'Rastreando' : 'Iniciar GPS'}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
-       {(isLiveWalk && !embedded) ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <div className="px-4 pt-2 shrink-0">
-               {activeTab === 'chat' && (
-                 <Alert className="mb-2 bg-green-50 border-green-200">
-                   <AlertCircle className="h-4 w-4 text-green-600" />
-                   <AlertTitle className="text-green-800 font-bold">Passeio em Andamento!</AlertTitle>
-                   <AlertDescription className="text-green-700 flex justify-between items-center">
-                      {userType === 'client' ? 'Acompanhe o mapa acima.' : 'Compartilhe sua localização.'}
-                      {userType === 'client' && (
-                        <Button size="sm" variant="outline" className="h-7 bg-white text-green-700 border-green-300 hover:bg-green-100 ml-2" onClick={() => setActiveTab('map')}>
-                          Expandir Mapa
-                        </Button>
-                      )}
-                   </AlertDescription>
-                 </Alert>
-               )}
-                <TabsList className="w-full grid grid-cols-2">
-                   <TabsTrigger value="chat"><MessageSquare className="w-4 h-4 mr-2"/>Chat</TabsTrigger>
-                   <TabsTrigger value="map" className="relative">
-                      <MapIcon className="w-4 h-4 mr-2"/>
-                      Rastreamento
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                   </TabsTrigger>
-                </TabsList>
-             </div>
+      {/* Área de Mensagens (Mobile: 65% | Desktop: 40%) */}
+      <div className="flex-1 overflow-hidden flex flex-col md:w-[40%]">
 
-             <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden data-[state=inactive]:hidden mt-0">
+       {/* Chat Messages - SEMPRE VISÍVEL */}
+       <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Chat Messages */}
                 <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-slate-50" ref={scrollRef}>
                   {sortedMessages.length === 0 && (
@@ -564,7 +633,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                           Esta é o início da sua conversa.<br/>Diga olá! 👋
                       </div>
                   )}
-                  {sortedMessages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx).map((msg) => {
+                  {sortedMessages.map((msg) => {
                     const isMe = msg.sender_email === currentUser.email;
                     return (
                       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -621,34 +690,18 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                     </form>
                   )}
                 </div>
-             </TabsContent>
-
-             <TabsContent value="map" className="flex-1 overflow-hidden data-[state=inactive]:hidden mt-0 p-2 relative h-full">
-                {/* Integração Robusta com o Mapa */}
-                {booking?.walker_id ? (
-                  <LiveWalkMap 
-                      bookingId={activeBookingId} 
-                      walkerId={booking.walker_id}
-                      className="w-full h-full" 
-                  />
+                </div>
+                </div>
                 ) : (
-                  <div className="h-full flex items-center justify-center flex-col gap-2 text-gray-500 bg-gray-50 rounded-xl border border-dashed">
-                    <AlertTriangle className="w-8 h-8 text-yellow-500" />
-                    <p>Dados do passeador não disponíveis.</p>
-                  </div>
-                )}
-             </TabsContent>
-           </Tabs>
-        ) : (
-          /* Standard Chat View (No Tabs) */
-          <>
+                /* Standard Chat (sem Live Walk) */
+                <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-slate-50" ref={scrollRef}>
               {sortedMessages.length === 0 && (
                   <div className="text-center text-gray-400 my-10 text-xs">
                       Esta é o início da sua conversa.<br/>Diga olá! 👋
                   </div>
               )}
-              {sortedMessages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx).map((msg) => {
+              {sortedMessages.map((msg) => {
                 const isMe = msg.sender_email === currentUser.email;
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -701,7 +754,7 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                 </form>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
