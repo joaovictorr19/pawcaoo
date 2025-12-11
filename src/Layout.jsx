@@ -997,7 +997,18 @@ export default function Layout({ children, currentPageName }) {
         <ErrorBoundary>
           <LayoutContent children={children} currentPageName={currentPageName} />
         </ErrorBoundary>
-        <Toaster />
+        <Toaster 
+          position="top-right"
+          duration={3000}
+          visibleToasts={3}
+          closeButton
+          richColors
+          toastOptions={{
+            style: {
+              zIndex: 9999,
+            },
+          }}
+        />
       </LanguageProvider>
     </HelmetProvider>
   );
