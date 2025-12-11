@@ -119,73 +119,112 @@ export default function OwnerDashboard({ user: propUser }) {
     platinum: 'from-purple-500 to-pink-600'
   };
 
+  // Count-up animation state
+  const [displayedXP, setDisplayedXP] = React.useState(0);
+  const [progressWidth, setProgressWidth] = React.useState(0);
+
+  // Animated count-up effect for XP
+  React.useEffect(() => {
+    if (!currentXP) return;
+    const duration = 1000;
+    const steps = 60;
+    const increment = currentXP / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= currentXP) {
+        setDisplayedXP(currentXP);
+        clearInterval(timer);
+      } else {
+        setDisplayedXP(Math.floor(current));
+      }
+    }, duration / steps);
+    
+    return () => clearInterval(timer);
+  }, [currentXP]);
+
+  // Animated progress bar
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setProgressWidth(xpProgress);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [xpProgress]);
+
   if (loadingUser || !user) return null;
 
-  // FORCE tier calculation based on points explicitly (override DB tier)
-  const currentPoints = points || 0;
-  let displayTier = 'Bronze';
-  let cardGradient = 'bg-gradient-to-r from-orange-700 to-orange-500'; // Bronze default
-
-  if (currentPoints >= 1000 && currentPoints < 6000) {
-    displayTier = 'Ouro';
-    cardGradient = 'bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-600';
-  } else if (currentPoints >= 6000) {
-    displayTier = 'Safira';
-    cardGradient = 'bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-800';
-  }
+  // FORCE tier calculation based on points (Frontend Override)
+  const getTierData = (points) => {
+    if (points >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', icon: '💎' };
+    if (points >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', icon: '👑' };
+    if (points >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', icon: '⚔️' };
+    return { name: 'Bronze', color: 'from-orange-600 to-orange-400', icon: '🛡️' };
+  };
+  
+  const currentTier = getTierData(points || 0);
+  const cardGradient = `bg-gradient-to-r ${currentTier.color}`;
 
   return (
     <div className="space-y-4">
-      {/* Hero Gamification Card - Vibrant Gradient */}
-      <div className={`${cardGradient} text-white rounded-2xl shadow-lg p-6`}>
-        {/* Linha 1: Boas-vindas + XP */}
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-white mb-1">
-            Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
-          </h2>
-          <p className="text-sm text-white/80">
-            Nível {currentLevel} • {currentXP.toLocaleString()} XP • {displayTier}
-          </p>
-        </div>
-
-        {/* Linha 2: Barra de Progresso Slim */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-white/70">
-              Progresso para Nível {currentLevel + 1}
-            </span>
-            <span className="text-xs text-white/90 font-semibold">{Math.round(xpProgress)}%</span>
-          </div>
-          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-white/90 transition-all duration-500 rounded-full"
-              style={{ width: `${xpProgress}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Linha 3: Hall da Fama (5 Emblemas) */}
-        {user?.achievements_badges && user.achievements_badges.length > 0 && (
+      {/* Hero Gamification Card - Vibrant Gradient with Decorative Bubbles */}
+      <div className={`${cardGradient} text-white rounded-2xl shadow-lg p-6 relative overflow-hidden`}>
+        {/* Decorative Bubbles (Glassmorphism Effect) */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
+        
+        {/* Content Layer (above bubbles) */}
+        <div className="relative z-10">
+          {/* Linha 1: Boas-vindas + XP */}
           <div className="mb-4">
-            <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
-              Conquistas Recentes
+            <h2 className="text-2xl font-bold text-white mb-1">
+              Olá, {user.full_name?.split(' ')[0] || 'Utilizador'} {currentTier.icon}
+            </h2>
+            <p className="text-sm text-white/80">
+              Nível {currentLevel} • {displayedXP.toLocaleString()} XP • {currentTier.name}
             </p>
-            <div className="flex flex-row gap-3 overflow-x-auto pb-1">
-              {user.achievements_badges
-                .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
-                .slice(0, 5)
-                .map((badge, i) => (
-                  <div 
-                    key={i} 
-                    className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-default"
-                    title={badge.name}
-                  >
-                    {badge.icon || '🏅'}
-                  </div>
-                ))}
+          </div>
+
+          {/* Linha 2: Barra de Progresso Slim com Animação */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-white/70">
+                Progresso para Nível {currentLevel + 1}
+              </span>
+              <span className="text-xs text-white/90 font-semibold">{Math.round(xpProgress)}%</span>
+            </div>
+            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
+                style={{ width: `${progressWidth}%` }}
+              />
             </div>
           </div>
-        )}
+
+          {/* Linha 3: Hall da Fama (5 Emblemas) */}
+          {user?.achievements_badges && user.achievements_badges.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
+                Conquistas Recentes
+              </p>
+              <div className="flex flex-row gap-3 overflow-x-auto pb-1">
+                {user.achievements_badges
+                  .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
+                  .slice(0, 5)
+                  .map((badge, i) => (
+                    <div 
+                      key={i} 
+                      className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-default"
+                      title={badge.name}
+                    >
+                      {badge.icon || '🏅'}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Linha 4: Grid de Ações (Botões Dark Slate Premium - SEMPRE 3 COLUNAS) */}
