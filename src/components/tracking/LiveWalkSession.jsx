@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import ChatOverlay from "./ChatOverlay";
+import WalkerGPSButton from "./WalkerGPSButton";
 
 // --- CUSTOM ICONS ---
 // Placeholder Icon as requested
@@ -90,17 +91,19 @@ export default function LiveWalkSession({ bookingId }) {
   );
 
   const path = booking.route_coordinates || [];
-  // Default to Lisbon or path start
   const center = path.length > 0 ? [path[path.length - 1].lat, path[path.length - 1].lng] : [38.7223, -9.1393];
+
+  // Determinar se o user é o walker
+  const isWalker = user?.email === booking.walker_email || user?.id === booking.walker_id;
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       
-      {/* Z-Index 0: Map */}
+      {/* Z-Index 0: Full Screen Map */}
       <div className="absolute inset-0 z-0">
         <MapContainer 
           center={center} 
-          zoom={16} 
+          zoom={17} 
           className="h-full w-full"
           zoomControl={false}
         >
@@ -112,22 +115,40 @@ export default function LiveWalkSession({ bookingId }) {
         </MapContainer>
       </div>
 
-      {/* Top Overlay Info (Optional but good for UX) */}
+      {/* Top Overlay: Status & Info */}
       <div className="absolute top-4 left-4 right-4 z-10 pointer-events-none">
-        <div className="bg-white/90 backdrop-blur-md rounded-xl p-3 shadow-lg flex justify-between items-center max-w-sm mx-auto pointer-events-auto">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex justify-between items-center max-w-md mx-auto pointer-events-auto border border-white/50">
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase">Status</p>
-            <p className="text-sm font-semibold text-green-600 animate-pulse">● Em andamento</p>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</p>
+            <p className="text-sm font-bold text-green-600 flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Em andamento
+            </p>
           </div>
           <div className="text-right">
-             <p className="text-xs font-bold text-gray-500 uppercase">Passeador</p>
-             <p className="text-sm font-semibold">{booking.walker_name}</p>
+             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Passeador</p>
+             <p className="text-sm font-bold text-gray-900">{booking.walker_name || 'Walker'}</p>
+          </div>
+          <div className="text-right">
+             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Distância</p>
+             <p className="text-sm font-bold text-blue-600">{booking.distance_km || 0} km</p>
           </div>
         </div>
       </div>
 
-      {/* Z-Index 20: Chat Overlay */}
-      <ChatOverlay bookingId={bookingId} user={user} title="Chat com Passeador" />
+      {/* GPS Activation for Walker */}
+      {isWalker && (
+        <div className="absolute bottom-24 left-4 right-4 z-[900] pointer-events-auto">
+          <WalkerGPSButton 
+            bookingId={bookingId} 
+            currentBooking={booking}
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {/* Chat Overlay - Bottom Right */}
+      <ChatOverlay bookingId={bookingId} user={user} title="Chat do Passeio" />
       
     </div>
   );
