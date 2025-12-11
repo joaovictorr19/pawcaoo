@@ -107,7 +107,7 @@ export default function CreateAdoptionListing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-6"> {/* Updated padding */}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 p-6">
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
@@ -119,37 +119,44 @@ export default function CreateAdoptionListing() {
         </Button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-pink-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="text-center mb-6">
+          <motion.div 
+            className="w-20 h-20 bg-gradient-to-br from-green-600 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
             <Home className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          </motion.div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-700 via-blue-600 to-emerald-600 bg-clip-text text-transparent mb-2">
             {t('createAdoptionListing', language)}
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-700 font-medium">
             {t('helpFindHome', language)}
           </p>
 
-          <div className="max-w-2xl mx-auto mt-6">
-            <Progress value={progress} className="h-3 mb-3" />
-            <div className="flex justify-between text-sm">
-              <span className={`font-semibold ${step >= 1 ? 'text-purple-600' : 'text-gray-400'}`}> {/* Updated currentStep to step */}
-                {progressLabels.basicInfo[language]}
-              </span>
-              <span className={`font-semibold ${step >= 2 ? 'text-purple-600' : 'text-gray-400'}`}> {/* Updated currentStep to step */}
-                {progressLabels.health[language]}
-              </span>
-              <span className={`font-semibold ${step >= 3 ? 'text-purple-600' : 'text-gray-400'}`}> {/* Updated currentStep to step */}
-                {progressLabels.adoption[language]}
-              </span>
+          <div className="max-w-2xl mx-auto mt-5">
+            <div className="bg-white rounded-2xl p-4 shadow-lg">
+              <Progress value={progress} className="h-3 mb-3 bg-gray-100" />
+              <div className="flex justify-between text-sm">
+                <span className={`font-bold transition-colors ${step >= 1 ? 'text-green-600' : 'text-gray-400'}`}>
+                  {progressLabels.basicInfo[language]}
+                </span>
+                <span className={`font-bold transition-colors ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                  {progressLabels.health[language]}
+                </span>
+                <span className={`font-bold transition-colors ${step >= 3 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  {progressLabels.adoption[language]}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <Card className="border-0 shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-pink-600 to-purple-600 text-white">
-            <CardTitle className="text-2xl">
-              {stepTitles[step][language]} {/* Updated currentStep to step */}
+        <Card className="border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-green-600 via-blue-600 to-emerald-600 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+            <CardTitle className="text-2xl font-bold relative z-10">
+              {stepTitles[step][language]}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -301,9 +308,9 @@ export default function CreateAdoptionListing() {
                   <div className="flex justify-end">
                     <Button
                       type="button"
-                      onClick={() => setStep(2)} // Updated setCurrentStep to setStep
+                      onClick={() => setStep(2)}
                       disabled={!formData.pet_name || !formData.description || formData.photos.length === 0}
-                      className="bg-gradient-to-r from-pink-600 to-purple-600"
+                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
                     >
                       Next: Health & Personality →
                     </Button>
@@ -506,15 +513,15 @@ export default function CreateAdoptionListing() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setStep(1)} // Updated setCurrentStep to setStep
-                      className="flex-1"
+                      onClick={() => setStep(1)}
+                      className="flex-1 border-2 border-green-200 hover:bg-green-50"
                     >
                       ← Previous
                     </Button>
                     <Button
                       type="button"
-                      onClick={() => setStep(3)} // Updated setCurrentStep to setStep
-                      className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600"
+                      onClick={() => setStep(3)}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
                     >
                       Next: Adoption Details →
                     </Button>
@@ -614,9 +621,11 @@ export default function CreateAdoptionListing() {
                   </div>
 
                   {/* Info Box */}
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-6 h-6 text-white" />
+                      </div>
                       <div>
                         <h4 className="font-bold text-green-900 mb-2">
                           {language === 'pt' ? 'Adoção Responsável' :
@@ -636,18 +645,18 @@ export default function CreateAdoptionListing() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setStep(2)} // Updated setCurrentStep to setStep
-                      className="flex-1"
+                      onClick={() => setStep(2)}
+                      className="flex-1 border-2 border-green-200 hover:bg-green-50"
                     >
                       ← Previous
                     </Button>
                     <Button
                       type="submit"
                       disabled={createListingMutation.isPending}
-                      className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white h-14 text-lg font-semibold"
+                      className="flex-1 bg-gradient-to-r from-green-600 via-blue-600 to-emerald-600 hover:from-green-700 hover:via-blue-700 hover:to-emerald-700 text-white h-14 text-lg font-bold shadow-xl hover:shadow-2xl transition-all"
                       onClick={handleSubmit}
                     >
-                      {createListingMutation.isPending ? "Posting..." : "Post for Adoption"}
+                      {createListingMutation.isPending ? "Publicando..." : "Publicar para Adoção"}
                     </Button>
                   </div>
                 </motion.div>
@@ -665,12 +674,21 @@ export default function CreateAdoptionListing() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
             >
-              <Card className="max-w-md">
-                <CardContent className="p-12 text-center">
-                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 className="w-12 h-12 text-green-600" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                className="max-w-md"
+              >
+                <Card className="border-0 shadow-2xl">
+                  <CardContent className="p-12 text-center">
+                    <motion.div 
+                      className="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <CheckCircle2 className="w-12 h-12 text-white" />
+                    </motion.div>
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent mb-4">
                     {language === 'pt' ? 'Listagem Publicada!' :
                      language === 'es' ? '¡Anuncio Publicado!' :
                      'Listing Posted!'}
@@ -680,8 +698,9 @@ export default function CreateAdoptionListing() {
                      language === 'es' ? 'Tu anuncio ya está activo y visible para posibles adoptantes.' :
                      'Your listing is now live and visible to potential adopters.'}
                   </p>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
