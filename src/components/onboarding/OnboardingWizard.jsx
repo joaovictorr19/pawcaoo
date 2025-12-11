@@ -51,8 +51,13 @@ export default function OnboardingWizard({ steps, user }) {
     const element = document.querySelector(step.targetId);
 
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Only scroll if element is not in viewport
       const rect = element.getBoundingClientRect();
+      const isInViewport = rect.top >= 0 && rect.bottom <= window.innerHeight;
+      
+      if (!isInViewport) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       
       setTargetRect({
         top: rect.top - 5,
