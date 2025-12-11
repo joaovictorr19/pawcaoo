@@ -33,9 +33,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
-import { getLevelFromXP } from "@/components/gamification/gamificationRules";
-import OwnerDashboard from "./OwnerDashboard";
+import { getLevelFromXP, calculateTier } from "@/components/gamification/gamificationRules";
 import { CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Trophy } from "lucide-react";
 import { Plus } from "lucide-react";
 
 export default function Home() {
@@ -108,6 +109,15 @@ export default function Home() {
     queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
     enabled: !!user?.email,
     initialData: []
+  });
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: ['loyaltyPoints', user?.email],
+    queryFn: async () => {
+      const points = await base44.entities.LoyaltyPoints.filter({ user_email: user.email });
+      return points[0] || { points_balance: 0, total_earned: 0, tier: 'bronze' };
+    },
+    enabled: !!user,
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
@@ -569,9 +579,145 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
             <div className="max-w-4xl mx-auto">
-              <div className="bg-gray-50 rounded-2xl p-6 md:p-8 mb-8">
-                <OwnerDashboard user={user} />
-              </div>
+              {/* Embedded Owner Dashboard */}
+              {(() => {
+                const currentXP = user?.gamification_xp || 0;
+                const currentLevel = user?.gamification_level || 1;
+                
+                const getTierData = (xp) => {
+                  if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', icon: '💎' };
+                  if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', icon: '👑' };
+                  if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', icon: '⚔️' };
+                  return { name: 'Bronze', color: 'from-orange-600 to-orange-400', icon: '🛡️' };
+                };
+                
+                const currentTier = getTierData(currentXP);
+                const cardGradient = `bg-gradient-to-r ${currentTier.color}`;
+                
+                const nextLevelXP = currentLevel * 500;
+                const currentLevelStartXP = (currentLevel - 1) * 500;
+                const xpInCurrentLevel = currentXP - currentLevelStartXP;
+                const xpNeededForNext = nextLevelXP - currentLevelStartXP;
+                const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
+                
+                const [displayedXP, setDisplayedXP] = React.useState(0);
+                const [progressWidth, setProgressWidth] = React.useState(0);
+                
+                React.useEffect(() => {
+                  if (!currentXP) return;
+                  const duration = 1000;
+                  const steps = 60;
+                  const increment = currentXP / steps;
+                  let current = 0;
+                  
+                  const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= currentXP) {
+                      setDisplayedXP(currentXP);
+                      clearInterval(timer);
+                    } else {
+                      setDisplayedXP(Math.floor(current));
+                    }
+                  }, duration / steps);
+                  
+                  return () => clearInterval(timer);
+                }, [currentXP]);
+                
+                React.useEffect(() => {
+                  const timer = setTimeout(() => {
+                    setProgressWidth(xpProgress);
+                  }, 100);
+                  return () => clearTimeout(timer);
+                }, [xpProgress]);
+                
+                return (
+                  <div className="space-y-4 mb-8">
+                    <div className={`${cardGradient} text-white rounded-2xl shadow-lg p-6 relative overflow-hidden`}>
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+                      <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
+                      
+                      <div className="relative z-10">
+                        <div className="mb-4">
+                          <h2 className="text-2xl font-bold text-white mb-1">
+                            Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
+                          </h2>
+                          <p className="text-sm text-white/80">
+                            Nível {currentLevel} • {displayedXP.toLocaleString()} XP • {currentTier.icon} {currentTier.name}
+                          </p>
+                        </div>
+                        
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-white/70">
+                              Progresso para Nível {currentLevel + 1}
+                            </span>
+                            <span className="text-xs text-white/90 font-semibold">{Math.round(xpProgress)}%</span>
+                          </div>
+                          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
+                              style={{ width: `${progressWidth}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {user?.achievements_badges && user.achievements_badges.length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
+                              Conquistas Recentes
+                            </p>
+                            <div className="flex flex-row gap-3 overflow-x-auto pb-1">
+                              {[...user.achievements_badges]
+                                .sort((a, b) => {
+                                  const dateA = new Date(a.earned_date || 0).getTime();
+                                  const dateB = new Date(b.earned_date || 0).getTime();
+                                  return dateB - dateA;
+                                })
+                                .slice(0, 5)
+                                .map((badge, i) => (
+                                  <div 
+                                    key={`badge-${i}-${badge.badge_id || i}`}
+                                    className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-default"
+                                    title={badge.name}
+                                  >
+                                    {badge.icon || '🏅'}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 w-full">
+                      <button
+                        onClick={() => navigate(createPageUrl('Favorites'))}
+                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
+                      >
+                        <Heart className="w-5 h-5 text-white" strokeWidth={1.5} />
+                        <span className="text-xs font-medium text-white">Favoritos</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => navigate(createPageUrl('Gamification'))}
+                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
+                      >
+                        <Trophy className="w-5 h-5 text-white" strokeWidth={1.5} />
+                        <span className="text-xs font-medium text-white">Conquistas</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => navigate(createPageUrl('MyBookings'))}
+                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
+                      >
+                        <Calendar className="w-5 h-5 text-white" strokeWidth={1.5} />
+                        <span className="text-xs font-medium text-white">Histórico</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Dogs Carousel */}
               {myDogs && myDogs.length > 0 && (
