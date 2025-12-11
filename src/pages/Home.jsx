@@ -602,14 +602,14 @@ export default function Home() {
                 
                 const [displayedXP, setDisplayedXP] = React.useState(0);
                 const [progressWidth, setProgressWidth] = React.useState(0);
-                
+
                 React.useEffect(() => {
                   if (!currentXP) return;
-                  const duration = 1000;
+                  const duration = 1500; // 1.5s CountUp effect
                   const steps = 60;
                   const increment = currentXP / steps;
                   let current = 0;
-                  
+
                   const timer = setInterval(() => {
                     current += increment;
                     if (current >= currentXP) {
@@ -619,7 +619,7 @@ export default function Home() {
                       setDisplayedXP(Math.floor(current));
                     }
                   }, duration / steps);
-                  
+
                   return () => clearInterval(timer);
                 }, [currentXP]);
                 
@@ -631,8 +631,15 @@ export default function Home() {
                 }, [xpProgress]);
                 
                 return (
-                  <div className="space-y-4 mb-8">
-                    <div className={`${cardGradient} text-white rounded-2xl shadow-lg p-6 relative overflow-hidden`}>
+                  <div className="space-y-4 mb-8 relative">
+                    {/* Ambient glow circle */}
+                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
+                    
+                    <div className="bg-gradient-to-br from-blue-900 via-indigo-700 to-purple-800 text-white rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+                      {/* Shimmer effect overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
+                      
+                      {/* Decorative bubbles */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
                       <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
@@ -693,26 +700,26 @@ export default function Home() {
                     <div className="grid grid-cols-3 gap-4 w-full">
                       <button
                         onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
+                        className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
                       >
-                        <Heart className="w-5 h-5 text-white" strokeWidth={1.5} />
-                        <span className="text-xs font-medium text-white">Favoritos</span>
+                        <Heart className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
+                        <span className="text-xs font-semibold text-slate-700">Favoritos</span>
                       </button>
-                      
+
                       <button
                         onClick={() => navigate(createPageUrl('Gamification'))}
-                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
+                        className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
                       >
-                        <Trophy className="w-5 h-5 text-white" strokeWidth={1.5} />
-                        <span className="text-xs font-medium text-white">Hall da Fama</span>
+                        <Trophy className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
+                        <span className="text-xs font-semibold text-slate-700">Hall da Fama</span>
                       </button>
-                      
+
                       <button
                         onClick={() => navigate(createPageUrl('MyBookings'))}
-                        className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
+                        className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
                       >
-                        <Calendar className="w-5 h-5 text-white" strokeWidth={1.5} />
-                        <span className="text-xs font-medium text-white">Histórico</span>
+                        <Calendar className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
+                        <span className="text-xs font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
                   </div>
