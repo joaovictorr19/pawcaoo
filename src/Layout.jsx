@@ -35,6 +35,7 @@ import MobileNavBar from "@/components/layout/MobileNavBar";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
+import BadgeNotification from "@/components/gamification/BadgeNotification";
 import "./globals.css";
 
 // Query optimization configs - v1.1
@@ -117,6 +118,7 @@ function LayoutContent({ children, currentPageName }) {
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
+  const [newBadge, setNewBadge] = React.useState(null);
 
   // Dictionary for menu translations
   const menuTranslations = {
@@ -269,23 +271,24 @@ function LayoutContent({ children, currentPageName }) {
       
       if (!hasWelcomeBadge) {
         try {
-          const newBadge = {
+          const badge = {
             badge_id: 'welcome',
             name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
             description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
             icon: '🎉',
             rarity: 'common',
             earned_date: new Date().toISOString(),
-            category: 'milestone'
+            category: 'milestone',
+            xp_reward: 50
           };
           
           await base44.auth.updateMe({
-            achievements_badges: [...badges, newBadge],
+            achievements_badges: [...badges, badge],
             gamification_xp: (authUser.gamification_xp || 0) + 50
           });
           
           queryClient.invalidateQueries(['currentUser']);
-          toast.success(language === 'pt' ? '🎉 Emblema de Boas-Vindas conquistado! +50 XP' : (language === 'es' ? '🎉 ¡Emblema de Bienvenida obtenido! +50 XP' : '🎉 Welcome Badge earned! +50 XP'));
+          setNewBadge(badge);
         } catch (error) {
           console.error('Error awarding welcome badge:', error);
         }
@@ -870,6 +873,14 @@ function LayoutContent({ children, currentPageName }) {
             isOpen={isNotificationPanelOpen} 
             onClose={() => setIsNotificationPanelOpen(false)} 
           />
+
+          {/* Badge Notification */}
+          {newBadge && (
+            <BadgeNotification 
+              badge={newBadge}
+              onClose={() => setNewBadge(null)}
+            />
+          )}
 
           {authUser && (
             <OnboardingWizard 
