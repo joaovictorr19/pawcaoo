@@ -203,55 +203,96 @@ export default function Gamification() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 pb-8">
-      {/* 1. HERO SECTION - Motor de Pontos */}
-      <div className={`bg-gradient-to-r ${currentTier.bgColor} text-white relative overflow-hidden`}>
-        {/* Decorative bubbles */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 pb-8">
+      {/* 1. HERO SECTION - Motor de Pontos Premium */}
+      <div className="relative overflow-hidden">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 opacity-90"></div>
+        
+        {/* Decorative orbs */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400 opacity-20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-purple-400 opacity-10 rounded-full blur-3xl"></div>
         
         <div className="max-w-7xl mx-auto px-4 py-12 relative z-10">
           <div className="grid md:grid-cols-3 gap-8 items-center">
-            {/* Esquerda: Donut Chart */}
+            {/* Esquerda: Circular Progress Premium */}
             <div className="flex flex-col items-center">
-              <div className="relative w-48 h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      startAngle={90}
-                      endAngle={-270}
-                      dataKey="value"
-                    >
-                      <Cell fill="rgba(255,255,255,0.9)" />
-                      <Cell fill="rgba(255,255,255,0.2)" />
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="relative w-52 h-52">
+                {/* Outer glow ring */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 to-pink-400 opacity-30 blur-2xl animate-pulse"></div>
+                
+                {/* Progress circle */}
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+                  {/* Background circle */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="85"
+                    fill="none"
+                    stroke="rgba(255,255,255,0.15)"
+                    strokeWidth="12"
+                  />
+                  {/* Progress circle */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="85"
+                    fill="none"
+                    stroke="url(#progressGradient)"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 85}`}
+                    strokeDashoffset={`${2 * Math.PI * 85 * (1 - tierProgressPercentage / 100)}`}
+                    className="transition-all duration-1000"
+                  />
+                  <defs>
+                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FFD700"/>
+                      <stop offset="50%" stopColor="#FFA500"/>
+                      <stop offset="100%" stopColor="#FF6B9D"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                
+                {/* Center content */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-5xl mb-1">{currentTier.icon}</div>
-                    <div className="text-xs font-semibold opacity-90">{Math.round(tierProgressPercentage)}%</div>
+                  <div className="text-center bg-white/10 backdrop-blur-md rounded-full w-40 h-40 flex flex-col items-center justify-center border-4 border-white/30">
+                    <div className="text-6xl mb-1">{currentTier.icon}</div>
+                    <div className="text-sm font-bold text-white">{Math.round(tierProgressPercentage)}%</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Meio: Stats Principais */}
-            <div className="text-center">
-              <h1 className="text-5xl font-black mb-2">Nível {currentLevel}</h1>
-              <p className="text-2xl font-bold mb-1">{currentTier.icon} {currentTier.name}</p>
-              <p className="text-lg opacity-90">{currentXP.toLocaleString('pt-PT')} XP</p>
-              <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3 inline-block">
-                <p className="text-sm font-semibold mb-1">
-                  {currentXP.toLocaleString('pt-PT')} / {currentTier.max.toLocaleString('pt-PT')} XP
-                </p>
-                <p className="text-xs opacity-90">
-                  Faltam {xpRemainingForNextTier.toLocaleString('pt-PT')} para {
+            <div className="text-center text-white">
+              <motion.h1 
+                className="text-6xl font-black mb-3 bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent"
+                animate={{ scale: [1, 1.02, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Nível {currentLevel}
+              </motion.h1>
+              <p className="text-3xl font-bold mb-2">{currentTier.icon} {currentTier.name}</p>
+              <p className="text-xl opacity-90 mb-4">{currentXP.toLocaleString('pt-PT')} XP</p>
+              
+              {/* Progress bar */}
+              <div className="mt-6 bg-white/20 backdrop-blur-md rounded-2xl p-5 max-w-md mx-auto border border-white/30">
+                <div className="flex justify-between text-sm font-semibold mb-2">
+                  <span>{currentXP.toLocaleString('pt-PT')} XP</span>
+                  <span>{currentTier.max.toLocaleString('pt-PT')} XP</span>
+                </div>
+                <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${tierProgressPercentage}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-xs opacity-90 mt-2">
+                  Faltam <span className="font-bold">{xpRemainingForNextTier.toLocaleString('pt-PT')}</span> para {
                     currentTier.name === 'Safira' ? 'Máximo' :
                     currentTier.name === 'Ouro' ? 'Safira' :
                     currentTier.name === 'Prata' ? 'Ouro' : 'Prata'
@@ -262,12 +303,14 @@ export default function Gamification() {
 
             {/* Direita: Resumo Rápido */}
             <div className="text-center md:text-right">
-              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-                <Award className="w-12 h-12 mx-auto md:ml-auto md:mr-0 mb-2" />
-                <p className="text-4xl font-black mb-1">{allEarnedBadges.length}</p>
-                <p className="text-sm opacity-90">Emblemas Desbloqueados</p>
-                <div className="mt-2 text-xs">
-                  <span className="opacity-75">de {allPossibleBadges.length} totais</span>
+              <div className="inline-block bg-white/20 backdrop-blur-md rounded-3xl p-8 border border-white/30">
+                <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto md:ml-auto md:mr-0 mb-3 shadow-xl">
+                  <Award className="w-9 h-9 text-white" />
+                </div>
+                <p className="text-5xl font-black mb-2 text-white">{allEarnedBadges.length}</p>
+                <p className="text-base opacity-90 text-white font-semibold">Emblemas Conquistados</p>
+                <div className="mt-2 text-sm">
+                  <span className="opacity-75 text-white">de {allPossibleBadges.length} totais</span>
                 </div>
               </div>
             </div>
