@@ -793,8 +793,8 @@ export default function Home() {
                   </CardContent>
                 </Card>
               )}
-              </div>
             </div>
+          </div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-md rounded-full px-5 py-2 text-white text-sm font-bold mb-6 shadow-lg shadow-blue-600/20 border border-blue-400/30">
