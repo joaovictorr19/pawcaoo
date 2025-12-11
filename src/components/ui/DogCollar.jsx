@@ -87,6 +87,26 @@ export default function DogCollar({ userEmail, onClick }) {
           opacity="0.8"
         />
         
+        {/* Fecho Prateado (Buckle no topo) */}
+        <rect 
+          x="24" 
+          y="7" 
+          width="8" 
+          height="4" 
+          rx="1" 
+          fill="#C0C0C0" 
+          stroke="#A9A9A9" 
+          strokeWidth="0.5"
+        />
+        <rect 
+          x="25" 
+          y="8" 
+          width="6" 
+          height="2" 
+          rx="0.5" 
+          fill="#E5E5E5"
+        />
+        
         {/* Furos de Ajuste (3 pontos no lado esquerdo) */}
         <circle cx="12" cy="24" r="1" fill="#1A1A1A" opacity="0.9" />
         <circle cx="12" cy="20" r="1" fill="#1A1A1A" opacity="0.9" />
@@ -143,7 +163,7 @@ export default function DogCollar({ userEmail, onClick }) {
           opacity="0.7"
         />
         
-        {/* Número ou Símbolo Gravado em Baixo-relevo */}
+        {/* Número ou Símbolo em Dourado */}
         {dogsCount > 0 ? (
           <text 
             x="28" 
@@ -151,9 +171,8 @@ export default function DogCollar({ userEmail, onClick }) {
             textAnchor="middle" 
             fontSize="6" 
             fontWeight="700" 
-            fill="#5D3A1A"
+            fill="#DAA520"
             fontFamily="'Georgia', serif"
-            opacity="0.9"
           >
             {dogsCount}
           </text>
@@ -164,9 +183,8 @@ export default function DogCollar({ userEmail, onClick }) {
             textAnchor="middle" 
             fontSize="8" 
             fontWeight="700" 
-            fill="#5D3A1A"
+            fill="#DAA520"
             fontFamily="'Georgia', serif"
-            opacity="0.9"
           >
             +
           </text>
