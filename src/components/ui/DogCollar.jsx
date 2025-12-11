@@ -154,4 +154,3 @@ export default function DogCollar({ userEmail, onClick }) {
     </motion.div>
   );
 }
-}
