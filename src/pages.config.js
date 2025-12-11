@@ -55,7 +55,6 @@ import ApplyForAdoption from './pages/ApplyForAdoption';
 import MyAdoptionApplications from './pages/MyAdoptionApplications';
 import CreateAdoptionListing from './pages/CreateAdoptionListing';
 import ManageAdoptionListings from './pages/ManageAdoptionListings';
-import OwnerDashboard from './pages/OwnerDashboard';
 import Sitemap from './pages/Sitemap';
 import Home from './pages/Home';
 import ShelterDashboard from './pages/ShelterDashboard';
@@ -126,7 +125,6 @@ export const PAGES = {
     "MyAdoptionApplications": MyAdoptionApplications,
     "CreateAdoptionListing": CreateAdoptionListing,
     "ManageAdoptionListings": ManageAdoptionListings,
-    "OwnerDashboard": OwnerDashboard,
     "Sitemap": Sitemap,
     "Home": Home,
     "ShelterDashboard": ShelterDashboard,
