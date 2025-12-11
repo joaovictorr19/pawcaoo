@@ -704,7 +704,7 @@ export default function Home() {
                         className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:bg-slate-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 border-t border-slate-600"
                       >
                         <Trophy className="w-5 h-5 text-white" strokeWidth={1.5} />
-                        <span className="text-xs font-medium text-white">Conquistas</span>
+                        <span className="text-xs font-medium text-white">Hall da Fama</span>
                       </button>
                       
                       <button

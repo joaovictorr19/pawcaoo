@@ -232,8 +232,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
-    { title: t('leaderboard', language), url: createPageUrl("Leaderboard"), icon: Trophy },
-    { title: getMenuText('badges'), url: createPageUrl("Gamification"), icon: Award, id: "nav-gamification" },
+    { title: language === 'pt' ? 'Hall da Fama' : language === 'es' ? 'Salón de la Fama' : 'Hall of Fame', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
   ];
 
   const professionalMenu = [
