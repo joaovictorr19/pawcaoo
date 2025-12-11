@@ -627,14 +627,6 @@ export default function Home() {
                 const xpInCurrentLevel = currentXP - currentLevelStartXP;
                 const xpNeededForNext = nextLevelXP - currentLevelStartXP;
                 const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
-
-                // Progress width animation
-                React.useEffect(() => {
-                  const timer = setTimeout(() => {
-                    setProgressWidth(xpProgress);
-                  }, 100);
-                  return () => clearTimeout(timer);
-                }, [xpProgress]);
                 
                 return (
                   <div className="space-y-4 mb-8 relative">
