@@ -40,11 +40,11 @@ function MapUpdater({ path, userLocation }) {
   const map = useMap();
   
   useEffect(() => {
-    if (path && path.length > 0) {
+    if (userLocation) {
+      map.setView([userLocation.lat, userLocation.lng], 17, { animate: true });
+    } else if (path && path.length > 0) {
       const last = path[path.length - 1];
       map.setView([last.lat, last.lng], map.getZoom(), { animate: true });
-    } else if (userLocation) {
-      map.setView([userLocation.lat, userLocation.lng], 16);
     }
   }, [path, userLocation, map]);
 
@@ -261,8 +261,8 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
   return (
     <div className="h-full w-full flex flex-col md:flex-row overflow-hidden bg-white">
       
-      {/* ========== COLUNA ESQUERDA: CHAT (Desktop 40% | Mobile baixo) ========== */}
-      <div className={`flex flex-col bg-white md:w-[40%] ${mapExpanded ? 'hidden' : 'flex-1 md:flex-none'} md:border-r md:border-gray-200 order-2 md:order-1`}>
+      {/* ========== COLUNA ESQUERDA: CHAT (Desktop 40%) ========== */}
+      <div className={`flex flex-col bg-white ${mapExpanded ? 'hidden md:flex' : 'flex-1'} md:w-[40%] md:h-full md:flex-none md:border-r md:border-gray-200`}>
         
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-white shrink-0">
@@ -367,9 +367,9 @@ export default function ChatWindow({ bookingId, booking, currentUser }) {
         </div>
       </div>
 
-      {/* ========== COLUNA DIREITA: MAPA (Desktop 60% | Mobile 25% Widget) ========== */}
+      {/* ========== COLUNA DIREITA: MAPA (Desktop 60% | Mobile Widget Topo) ========== */}
       {showMap && (
-        <div className={`relative bg-gray-100 shrink-0 md:w-[60%] ${mapExpanded ? 'fixed inset-0 z-50' : 'h-[25vh] md:h-full'} order-1 md:order-2`}>
+        <div className={`relative bg-gray-100 shrink-0 ${mapExpanded ? 'fixed inset-0 z-50' : 'h-[35vh] md:h-full md:w-[60%]'}`}>
           <MapContainer 
             center={center} 
             zoom={16} 
