@@ -9,15 +9,37 @@ import { ArrowLeft } from "lucide-react";
 export default function Chat() {
     const navigate = useNavigate();
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
+    const conversationId = urlParams.get('id');
     const bookingId = urlParams.get('bookingId');
 
-    const { data: user } = useQuery({
+    const { data: user, isLoading } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
     });
 
-    if (!user) return <div className="flex items-center justify-center h-screen">A carregar...</div>;
+    // Debug
+    React.useEffect(() => {
+        console.log('📱 Chat Page:', { conversationId, bookingId, userId: user?.id });
+    }, [conversationId, bookingId, user]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-blue-600 mx-auto mb-2"></div>
+                    <p className="text-gray-600 text-sm">A carregar chat...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-gray-600">Faça login para acessar o chat</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-50">
@@ -27,15 +49,21 @@ export default function Chat() {
                     Voltar
                 </Button>
                 <h1 className="font-bold text-lg text-gray-800">
-                    {bookingId ? `Chat da Reserva` : 'Chat'}
+                    {bookingId ? `Chat da Reserva #${bookingId.slice(0, 8)}` : 'Chat'}
                 </h1>
             </div>
             <div className="flex-1 overflow-hidden relative">
-                {id || bookingId ? (
-                    <ChatWindow conversationId={id} bookingId={bookingId} currentUser={user} />
+                {conversationId || bookingId ? (
+                    <ChatWindow 
+                        conversationId={conversationId} 
+                        bookingId={bookingId} 
+                        currentUser={user} 
+                        key={conversationId || bookingId} 
+                    />
                 ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                        Selecione uma conversa
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 p-6">
+                        <div className="text-4xl mb-4">💬</div>
+                        <p className="text-center">Selecione uma conversa ou reserva</p>
                     </div>
                 )}
             </div>
