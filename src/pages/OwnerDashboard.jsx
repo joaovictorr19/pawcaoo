@@ -1,52 +1,22 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {
-  TrendingUp, Calendar, Heart, Award, Target, Dog, Activity, Star, BarChart3, 
-  Search, List, Zap, Crown, CheckCircle, Plus, DollarSign
-} from "lucide-react";
+import { Search, Heart, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { format, startOfMonth } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import { Skeleton } from "@/components/ui/skeleton";
-import ReviewModal from "@/components/reviews/ReviewModal";
-import { motion } from "framer-motion";
 import { calculateTier } from "@/components/gamification/gamificationRules";
 import { toast } from "sonner";
 
-export default function OwnerDashboard() {
+export default function OwnerDashboard({ user: propUser }) {
   const navigate = useNavigate();
-  const [pendingReviewBooking, setPendingReviewBooking] = React.useState(null);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-  });
-
-  const { data: allBookings = [] } = useQuery({
-    queryKey: ['allOwnerBookings', user?.email],
-    queryFn: async () => {
-      const walkerBookings = await base44.entities.Booking.filter({ created_by: user.email });
-      const trainerBookings = await base44.entities.TrainingBooking.filter({ owner_email: user.email });
-      const serviceBookings = await base44.entities.ServiceBooking.filter({ owner_email: user.email });
-      return [...walkerBookings, ...trainerBookings, ...serviceBookings];
-    },
-    enabled: !!user,
-    initialData: []
-  });
-
-  const { data: myDogs = [] } = useQuery({
-    queryKey: ['myDogs'],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
-    enabled: !!user,
-    initialData: []
+    enabled: !propUser,
+    initialData: propUser
   });
 
   const { data: loyaltyPoints, refetch: refetchLoyalty } = useQuery({
@@ -107,76 +77,55 @@ export default function OwnerDashboard() {
     }
   }, [allBookings]);
 
-  // Statistics
-  const totalSpent = allBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
-  const walksThisMonth = allBookings.filter(b => {
-    const bookingDate = new Date(b.created_date);
-    return bookingDate >= startOfMonth(new Date());
-  }).length;
-  
-  const walkGoal = 12;
-  const goalProgress = Math.min((walksThisMonth / walkGoal) * 100, 100);
-
-  // Gamification Data (with fallback)
+  // Gamification Data
   const currentXP = user?.gamification_xp || 0;
   const currentLevel = user?.gamification_level || 1;
-  const userTier = loyaltyPoints?.tier || 'bronze';
   const points = loyaltyPoints?.points_balance || 0;
+  
+  // Determine tier based on level OR points
+  let userTier = 'bronze';
+  if (currentLevel >= 15 || points >= 6000) {
+    userTier = 'gold';
+  } else if (currentLevel >= 5 || points >= 2000) {
+    userTier = 'silver';
+  }
+  
+  // Also check points-based calculation
+  const pointsBasedTier = calculateTier(points);
+  if (['sapphire', 'diamond', 'platinum'].includes(pointsBasedTier)) {
+    userTier = pointsBasedTier;
+  } else if (userTier === 'bronze' && pointsBasedTier === 'silver') {
+    userTier = 'silver';
+  } else if ((userTier === 'bronze' || userTier === 'silver') && pointsBasedTier === 'gold') {
+    userTier = 'gold';
+  }
 
-  // XP Progress Calculation
-  const nextLevelXP = currentLevel * 500; // Simplified: 500 XP per level
+  // XP Progress
+  const nextLevelXP = currentLevel * 500;
   const currentLevelStartXP = (currentLevel - 1) * 500;
   const xpInCurrentLevel = currentXP - currentLevelStartXP;
   const xpNeededForNext = nextLevelXP - currentLevelStartXP;
   const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
-
-  // Tier Config (CRITICAL: Exact Gradients)
-  const getTierStyles = (tier) => {
-    switch(tier.toLowerCase()) {
-      case 'bronze':
-        return {
-          gradient: 'bg-gradient-to-br from-orange-700 via-orange-600 to-yellow-700',
-          name: 'Aprendiz Bronze',
-          textColor: 'text-white'
-        };
-      case 'silver':
-        return {
-          gradient: 'bg-gradient-to-br from-gray-300 via-gray-100 to-gray-400',
-          name: 'Guardião Prata',
-          textColor: 'text-gray-800'
-        };
-      case 'gold':
-        return {
-          gradient: 'bg-gradient-to-br from-yellow-500 via-yellow-200 to-yellow-600',
-          name: 'Mestre Ouro',
-          textColor: 'text-yellow-900',
-          shimmer: true
-        };
-      case 'sapphire':
-        return {
-          gradient: 'bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-700',
-          name: 'Guardião Safira',
-          textColor: 'text-white',
-          shimmer: true
-        };
-      case 'diamond':
-      case 'platinum':
-        return {
-          gradient: 'bg-gradient-to-br from-purple-600 via-pink-500 to-purple-700',
-          name: 'Lenda Diamante',
-          textColor: 'text-white',
-          shimmer: true
-        };
-      default:
-        return {
-          gradient: 'bg-gradient-to-br from-orange-700 via-orange-600 to-yellow-700',
-          name: 'Aprendiz Bronze',
-          textColor: 'text-white'
-        };
-    }
+  
+  // Tier Names
+  const tierNames = {
+    bronze: 'Bronze',
+    silver: 'Prata',
+    gold: 'Ouro',
+    sapphire: 'Safira',
+    diamond: 'Diamante',
+    platinum: 'Platina'
   };
-
-  const tierStyles = getTierStyles(userTier);
+  
+  // Tier Colors for Progress Bar
+  const tierColors = {
+    bronze: 'from-orange-400 to-yellow-500',
+    silver: 'from-gray-300 to-gray-500',
+    gold: 'from-yellow-400 to-yellow-600',
+    sapphire: 'from-blue-400 to-cyan-500',
+    diamond: 'from-purple-400 to-pink-500',
+    platinum: 'from-purple-500 to-pink-600'
+  };
 
   if (loadingUser) {
     return (
