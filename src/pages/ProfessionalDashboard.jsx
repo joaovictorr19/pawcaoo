@@ -115,30 +115,32 @@ export default function ProfessionalDashboard() {
     refetchInterval: 5000, // Real-time: refresh every 5s (mais agressivo)
   });
 
-  // Detect new pending bookings and show toast
-  const prevPendingCountRef = React.useRef(0);
+  // Detect NEW direct requests (apenas para este walker) e mostrar alerta
+  const prevDirectCountRef = React.useRef(0);
   React.useEffect(() => {
-    const newPendingBookings = walkBookings.filter(b => b.status === 'pending');
-    const currentCount = newPendingBookings.length;
+    const currentDirects = walkBookings.filter(b => b.status === 'pending' && b.walker_id === walkerProfile?.id);
+    const currentCount = currentDirects.length;
     
-    if (currentCount > prevPendingCountRef.current && prevPendingCountRef.current > 0) {
-      const newBooking = newPendingBookings[0];
-      toast.success(`🐕 Novo Pedido! ${newBooking.dog_name} - ${format(new Date(newBooking.walk_date), 'dd/MM/yyyy')}`, {
-        description: 'Clique em "Reservas" para aceitar',
-        action: {
-          label: 'Ver Agora',
-          onClick: () => setActiveTab('bookings')
-        }
-      });
-      
-      // Play notification sound if available
-      try {
-        new Audio('/notification.mp3').play().catch(() => {});
-      } catch(e) {}
+    if (currentCount > prevDirectCountRef.current && prevDirectCountRef.current >= 0) {
+      const newBooking = currentDirects[0];
+      if (newBooking) {
+        toast.success(`🎯 Solicitação Direta! ${newBooking.owner_name} escolheu VOCÊ`, {
+          description: `${newBooking.dog_name} - ${format(new Date(newBooking.walk_date), 'dd/MM/yyyy')}`,
+          action: {
+            label: 'Aceitar Agora',
+            onClick: () => setActiveTab('bookings')
+          },
+          duration: 10000 // Mais tempo para solicitações diretas
+        });
+        
+        try {
+          new Audio('/notification.mp3').play().catch(() => {});
+        } catch(e) {}
+      }
     }
     
-    prevPendingCountRef.current = currentCount;
-  }, [walkBookings]);
+    prevDirectCountRef.current = currentCount;
+  }, [walkBookings, walkerProfile?.id]);
 
   const { data: trainingBookings = [] } = useQuery({
     queryKey: ['myTrainingBookings'],
@@ -436,6 +438,8 @@ export default function ProfessionalDashboard() {
   
   const profileCompleteness = calculateCompleteness();
 
+  // Separar Solicitações Diretas (para mim) vs Pedidos Disponíveis (broadcast)
+  const directRequests = allBookings.filter(b => b.status === 'pending' && b.walker_id === walkerProfile?.id);
   const pendingBookings = allBookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
   const completedBookings = rangeBookings.filter(b => b.status === 'completed');
   const averageRating = reviews.length > 0 
@@ -483,10 +487,10 @@ export default function ProfessionalDashboard() {
     },
     {
       icon: Calendar,
-      value: pendingBookings.length,
-      label: t('pendingBookingsCount', language),
-      color: "from-orange-500 to-yellow-600",
-      badge: t('requiresAction', language)
+      value: directRequests.length,
+      label: 'Solicitações Diretas',
+      color: "from-purple-500 to-pink-600",
+      badge: directRequests.length > 0 ? '🎯 RESPONDER' : ''
     },
     {
       icon: Star,
@@ -822,9 +826,9 @@ export default function ProfessionalDashboard() {
             <TabsTrigger value="bookings" className="rounded-lg text-xs md:text-sm py-2 md:py-3 relative">
               <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
               <span className="hidden md:inline">Reservas</span>
-              {pendingBookings.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center">
-                  {pendingBookings.length}
+              {directRequests.length > 0 && (
+                <Badge className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse">
+                  {directRequests.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -968,19 +972,103 @@ export default function ProfessionalDashboard() {
 
           {/* Bookings Tab */}
           <TabsContent value="bookings">
+            {/* SOLICITAÇÕES DIRETAS - Prioridade Máxima */}
+            {directRequests.length > 0 && (
+              <Card className="border-2 border-purple-400 shadow-2xl mb-6 bg-gradient-to-r from-purple-50 to-pink-50">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                  <CardTitle className="flex items-center gap-2">
+                    🎯 Solicitações Diretas para Você ({directRequests.length})
+                  </CardTitle>
+                  <p className="text-sm text-purple-100">Clientes que escolheram VOCÊ especificamente</p>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    {directRequests.map((booking) => (
+                      <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white rounded-xl border-2 border-purple-200 shadow-md gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <Badge className="bg-purple-600 text-white">🎯 DIRETO</Badge>
+                            <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
+                          </div>
+                          <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
+                          <p className="text-sm text-gray-500">
+                            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time}
+                          </p>
+                          {booking.pickup_address && (
+                            <p className="text-sm text-gray-600 flex items-center gap-1 mt-1 font-medium">
+                              <MapPin className="w-3.5 h-3.5 text-purple-500" /> 
+                              {booking.pickup_address}
+                            </p>
+                          )}
+                          <p className="text-xl md:text-2xl font-bold text-green-600 mt-2 md:hidden">€{booking.service_amount}</p>
+                        </div>
+                        <div className="md:text-right">
+                          <p className="text-2xl font-bold text-green-600 hidden md:block">€{booking.service_amount}</p>
+                          <div className="flex flex-col gap-2 mt-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                size="sm"
+                                onClick={async () => {
+                                  console.log('✅ Aceitando solicitação direta:', booking.id);
+                                  const entity = base44.entities.Booking;
+                                  
+                                  try {
+                                    await entity.update(booking.id, {
+                                      status: 'confirmed'
+                                    });
+                                    
+                                    queryClient.invalidateQueries(['myWalkBookings']);
+                                    toast.success('Pedido aceite!');
+                                    
+                                    await createNotification.mutateAsync({
+                                      recipient_email: booking.owner_email || booking.created_by,
+                                      title: '✅ Pedido Aceite!',
+                                      message: `${user.full_name} aceitou o seu pedido de passeio para ${booking.dog_name}.`,
+                                      type: 'booking',
+                                      related_id: booking.id,
+                                      priority: 'high'
+                                    });
+                                  } catch (error) {
+                                    console.error('Erro ao aceitar:', error);
+                                    toast.error('Erro ao aceitar pedido');
+                                  }
+                                }}
+                                className="bg-purple-600 hover:bg-purple-700 text-white h-10"
+                              >
+                                ✓ Aceitar
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleBookingAction(booking, 'cancelled')}
+                                variant="outline"
+                                className="text-red-600 hover:bg-red-50 border-red-200 h-10"
+                              >
+                                ✗ Recusar
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* TODAS AS RESERVAS */}
             <Card className="border-0 shadow-xl">
               <CardHeader>
-                <CardTitle>All Bookings</CardTitle>
+                <CardTitle>Todas as Reservas</CardTitle>
               </CardHeader>
               <CardContent>
                 {allBookings.length === 0 ? (
                   <div className="text-center py-12">
                     <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">No bookings yet</p>
+                    <p className="text-gray-600">Nenhuma reserva ainda</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {allBookings.map((booking) => (
+                    {allBookings.filter(b => b.status !== 'pending' || b.walker_id !== walkerProfile?.id).map((booking) => (
                      <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white/90 backdrop-blur-md rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-all gap-3">
                        <div className="flex-1">
                          <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -1009,60 +1097,7 @@ export default function ProfessionalDashboard() {
                          <p className="text-2xl font-bold text-green-600 hidden md:block">€{booking.service_amount}</p>
 
                          <div className="flex flex-col gap-2 mt-2">
-                            {booking.status === 'pending' && (
-                              <div className="grid grid-cols-2 gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={async () => {
-                                    console.log('✅ Aceitando pedido:', booking.id);
-                                    // Atualizar walker_id ao aceitar
-                                    const isTrainingBooking = !!booking.session_date;
-                                    const entity = isTrainingBooking ? base44.entities.TrainingBooking : base44.entities.Booking;
-
-                                    try {
-                                      await entity.update(booking.id, {
-                                        status: 'confirmed',
-                                        walker_id: walkerProfile?.id || null,
-                                        trainer_id: trainerProfile?.id || null
-                                      });
-
-                                      queryClient.invalidateQueries(['myWalkBookings']);
-                                      queryClient.invalidateQueries(['myTrainingBookings']);
-                                      toast.success('Pedido aceite com sucesso!');
-
-                                      // Notificar cliente
-                                      try {
-                                        const clientEmail = booking.owner_email || booking.created_by;
-                                        await createNotification.mutateAsync({
-                                          recipient_email: clientEmail,
-                                          title: '✅ Pedido Aceite!',
-                                          message: `${user.full_name} aceitou o seu pedido de passeio para ${booking.dog_name}.`,
-                                          type: 'booking',
-                                          related_id: booking.id,
-                                          priority: 'high'
-                                        });
-                                      } catch (e) { console.error(e); }
-                                    } catch (error) {
-                                      console.error('Erro ao aceitar:', error);
-                                      toast.error('Erro ao aceitar pedido');
-                                    }
-                                  }}
-                                  className="bg-green-600 hover:bg-green-700 text-white h-10"
-                                  disabled={updateBookingStatusMutation.isPending}
-                                >
-                                  ✓ Aceitar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleBookingAction(booking, 'cancelled')}
-                                  variant="outline"
-                                  className="text-red-600 hover:bg-red-50 border-red-200 h-10"
-                                  disabled={updateBookingStatusMutation.isPending}
-                                >
-                                  ✗ Rejeitar
-                                </Button>
-                              </div>
-                            )}
+                            {/* Não mostrar botões aqui - já estão na seção de Solicitações Diretas */}
 
                             {booking.status === 'confirmed' && (
                                 <div className="flex flex-col gap-1 mb-2">

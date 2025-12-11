@@ -147,15 +147,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     mutationFn: async (bookingData) => {
       console.log('📝 Criando booking:', bookingData);
       
-      // 1. Criar booking com status PENDING e walker_email NULL
+      // 1. Criar RESERVA DIRETA com Walker Específico
       const booking = await base44.entities.Booking.create({
         ...bookingData,
-        status: 'pending',
-        walker_email: pro.created_by, // Email do walker
-        walker_id: null, // NULL até aceitar
+        status: 'pending', // Aguardando aprovação do walker escolhido
+        walker_email: pro.created_by, // Walker ESPECÍFICO (NÃO é broadcast)
+        walker_id: pro.id, // Define ID do walker escolhido
         walker_name: proName
       });
-      console.log('✅ Booking criado - Status: pending, Walker Email:', pro.created_by, 'ID:', booking.id);
+      console.log('✅ RESERVA DIRETA criada - Walker:', proName, 'ID:', booking.id);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
@@ -220,18 +220,18 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         console.error("Erro ao sincronizar chat:", err);
       }
 
-      // 4. NOTIFICAR O WALKER (Push/Real-Time)
+      // 4. NOTIFICAR APENAS O WALKER ESCOLHIDO (Reserva Direta - NÃO é Broadcast)
       try {
         await createNotification.mutateAsync({
-          recipient_email: pro.created_by,
-          title: '🔔 Novo Pedido de Passeio!',
-          message: `${user.full_name} solicitou um passeio para ${bookingData.dog_name} em ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time}.`,
+          recipient_email: pro.created_by, // APENAS este walker específico
+          title: '🎯 Solicitação Direta de Passeio!',
+          message: `${user.full_name} escolheu VOCÊ para passear ${bookingData.dog_name} em ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time}.`,
           type: 'booking',
           related_id: booking.id,
           priority: 'urgent',
           action_url: '/ProfessionalDashboard?tab=bookings'
         });
-        console.log('🔔 Walker notificado via sistema de notificações');
+        console.log('🎯 Notificação DIRETA enviada apenas para:', pro.created_by);
       } catch (err) {
         console.error("Erro ao notificar walker:", err);
       }
