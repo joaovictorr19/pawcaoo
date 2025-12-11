@@ -130,9 +130,16 @@ export default function OwnerDashboard() {
   const xpNeededForNext = nextLevelXP - currentLevelStartXP;
   const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
 
-  // Tier Config (CRITICAL: Exact Gradients)
-  const getTierStyles = (tier) => {
-    switch(tier.toLowerCase()) {
+  // Tier Config with XP override (CRITICAL: Exact Gradients)
+  const getTierStyles = (tier, xp) => {
+    // Override tier based on XP if it's higher than stored tier
+    let effectiveTier = tier.toLowerCase();
+    if (xp >= 10000) effectiveTier = 'diamond';
+    else if (xp >= 6000) effectiveTier = 'sapphire';
+    else if (xp >= 3000) effectiveTier = 'gold';
+    else if (xp >= 1000) effectiveTier = 'silver';
+    
+    switch(effectiveTier) {
       case 'bronze':
         return {
           gradient: 'bg-gradient-to-br from-orange-700 via-orange-600 to-yellow-700',
@@ -176,7 +183,7 @@ export default function OwnerDashboard() {
     }
   };
 
-  const tierStyles = getTierStyles(userTier);
+  const tierStyles = getTierStyles(userTier, currentXP);
 
   if (loadingUser) {
     return (
@@ -214,12 +221,12 @@ export default function OwnerDashboard() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-2"
           >
-            <Card className={`border-0 shadow-2xl overflow-hidden ${tierStyles.gradient} ${tierStyles.textColor} relative h-full min-h-[300px]`}>
+            <Card className={`border-0 shadow-2xl overflow-hidden ${tierStyles.gradient} ${tierStyles.textColor} relative rounded-xl`}>
               
               {/* Glassmorphism Overlay */}
               <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
               
-              {/* Shimmer Effect (Gold Only) */}
+              {/* Shimmer Effect */}
               {tierStyles.shimmer && (
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="absolute -inset-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" 
@@ -227,7 +234,7 @@ export default function OwnerDashboard() {
                 </div>
               )}
               
-              <CardContent className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
+              <CardContent className="relative z-10 p-4 md:p-6 flex flex-col justify-between">
                 
                 {/* Top Section: Tier Info */}
                 <div>
@@ -275,18 +282,18 @@ export default function OwnerDashboard() {
 
                 {/* Badges Preview - 4 Most Recent */}
                 {user?.achievements_badges && user.achievements_badges.length > 0 && (
-                  <div className="mb-4">
-                    <p className={`text-xs ${tierStyles.textColor} opacity-60 uppercase font-bold tracking-wide mb-2`}>
-                      Conquistas Recentes
+                  <div className="mb-3">
+                    <p className={`text-xs ${tierStyles.textColor} opacity-70 uppercase font-bold tracking-wide mb-2`}>
+                      🏆 Conquistas ({user.achievements_badges.length})
                     </p>
-                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-2">
                       {user.achievements_badges
-                        .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
+                        .sort((a, b) => new Date(b.earned_date || 0) - new Date(a.earned_date || 0))
                         .slice(0, 4)
                         .map((badge, i) => (
                           <div 
                             key={i} 
-                            className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl border-2 border-white/20 shadow-md flex-shrink-0"
+                            className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl border border-white/30 shadow-md flex-shrink-0 hover:scale-110 transition-transform cursor-default"
                             title={badge.name}
                           >
                             {badge.icon || '🏅'}
@@ -330,53 +337,35 @@ export default function OwnerDashboard() {
                   Ações Rápidas
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-3 gap-3 w-full">
+              <CardContent className="p-3">
+                <div className="grid grid-cols-3 gap-2 w-full">
                   
                   {/* Action 1: Explorar */}
-                  <motion.button
-                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate(createPageUrl('Home'))}
-                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all group active:scale-95"
+                  <button
+                    onClick={() => navigate(createPageUrl('Home') + '?explore=true')}
+                    className="flex flex-col items-center gap-1 p-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all h-12 justify-center"
                   >
-                    <div className="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
-                      <Search className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" strokeWidth={1.5} />
-                    </div>
-                    <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight transition-colors">
-                      Explorar
-                    </span>
-                  </motion.button>
+                    <Search className="w-4 h-4 text-gray-700" strokeWidth={2} />
+                    <span className="text-[10px] font-semibold text-gray-700">Explorar</span>
+                  </button>
 
                   {/* Action 2: Favoritos */}
-                  <motion.button
-                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}
-                    whileTap={{ scale: 0.95 }}
+                  <button
                     onClick={() => navigate(createPageUrl('Favorites'))}
-                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all group active:scale-95"
+                    className="flex flex-col items-center gap-1 p-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all h-12 justify-center"
                   >
-                    <div className="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
-                      <Heart className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" strokeWidth={1.5} />
-                    </div>
-                    <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight transition-colors">
-                      Favoritos
-                    </span>
-                  </motion.button>
+                    <Heart className="w-4 h-4 text-gray-700" strokeWidth={2} />
+                    <span className="text-[10px] font-semibold text-gray-700">Favoritos</span>
+                  </button>
 
                   {/* Action 3: Reservas */}
-                  <motion.button
-                    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}
-                    whileTap={{ scale: 0.95 }}
+                  <button
                     onClick={() => navigate(createPageUrl('MyBookings'))}
-                    className="flex flex-col items-center gap-2 p-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all group active:scale-95"
+                    className="flex flex-col items-center gap-1 p-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all h-12 justify-center"
                   >
-                    <div className="w-11 h-11 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
-                      <List className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" strokeWidth={1.5} />
-                    </div>
-                    <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight transition-colors">
-                      Reservas
-                    </span>
-                  </motion.button>
+                    <List className="w-4 h-4 text-gray-700" strokeWidth={2} />
+                    <span className="text-[10px] font-semibold text-gray-700">Reservas</span>
+                  </button>
                 </div>
               </CardContent>
             </Card>

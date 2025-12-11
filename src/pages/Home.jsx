@@ -11,6 +11,7 @@ import WalkerCard from "../components/marketplace/WalkerCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
+import OwnerDashboard from "./OwnerDashboard";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 const AdoptionListings = React.lazy(() => import("./AdoptionListings"));
@@ -41,6 +42,7 @@ export default function Home() {
   
   const urlParams = new URLSearchParams(window.location.search);
   const dogSittingServiceFilter = urlParams.get('dogSittingService');
+  const exploreMode = urlParams.get('explore');
   
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSize, setFilterSize] = useState("all");
@@ -504,6 +506,11 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  // If user is logged in and NOT in explore mode, show Dashboard directly
+  if (user && !exploreMode) {
+    return <OwnerDashboard />;
   }
 
   const resetAdvancedFilters = () => {
