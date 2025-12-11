@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 import { getLevelFromXP, getTierName, getTierColor, getXPForLevel } from "@/components/gamification/gamificationRules";
 import DogCollar from "@/components/ui/DogCollar";
+import DogManagerModal from "@/components/profile/DogManagerModal";
 
 function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
   return (
@@ -657,6 +658,7 @@ export default function UserProfile() {
   // Badge Selection State
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
+  const [isDogModalOpen, setIsDogModalOpen] = useState(false);
 
   const updatePinnedBadgesMutation = useMutation({
     mutationFn: async ({ slotIndex, badgeId }) => {
@@ -1045,7 +1047,7 @@ export default function UserProfile() {
                   <div className="mt-3 flex justify-center md:justify-start">
                     <DogCollar 
                       userEmail={profileEmail} 
-                      onClick={() => isOwnProfile ? navigate(createPageUrl('AccountSettings') + '?tab=dogs') : null} 
+                      onClick={() => isOwnProfile && setIsDogModalOpen(true)} 
                     />
                   </div>
 
@@ -1408,6 +1410,13 @@ export default function UserProfile() {
           earnedBadges={earnedBadges}
           onSelectBadge={handleBadgeSelect}
           currentlyPinnedIds={profileUser?.pinned_badge_ids || []}
+        />
+
+        {/* Dog Manager Modal */}
+        <DogManagerModal
+          isOpen={isDogModalOpen}
+          onClose={() => setIsDogModalOpen(false)}
+          userEmail={profileEmail}
         />
       </div>
     </div>
