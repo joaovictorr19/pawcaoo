@@ -691,7 +691,6 @@ export default function ChatWindow({ conversationId: propConversationId, booking
                   )}
                 </div>
                 </div>
-                </div>
                 ) : (
                 /* Standard Chat (sem Live Walk) */
                 <div className="flex-1 flex flex-col overflow-hidden">
