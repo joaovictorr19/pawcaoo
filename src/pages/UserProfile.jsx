@@ -1041,15 +1041,13 @@ export default function UserProfile() {
                     </div>
                   )}
 
-                  {/* Dog Collar - Rendered below name/badges */}
-                  {isOwnProfile && (
-                    <div className="mt-3 flex justify-center md:justify-start">
-                      <DogCollar 
-                        userEmail={profileEmail} 
-                        onClick={() => navigate(createPageUrl('AccountSettings') + '?tab=dogs')} 
-                      />
-                    </div>
-                  )}
+                  {/* Dog Collar - ALWAYS visible below name/badges */}
+                  <div className="mt-3 flex justify-center md:justify-start">
+                    <DogCollar 
+                      userEmail={profileEmail} 
+                      onClick={() => isOwnProfile ? navigate(createPageUrl('AccountSettings') + '?tab=dogs') : null} 
+                    />
+                  </div>
 
                   {/* Actions Buttons Mobile */}
                   <div className="flex md:hidden flex-wrap gap-2 justify-center mt-4 w-full px-4">

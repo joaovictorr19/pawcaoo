@@ -235,6 +235,10 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap, className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
     { title: getMenuText('shelterArea'), url: createPageUrl("ShelterDashboard"), icon: Building2 },
+    ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
+      { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
+      { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock }
+    ] : [])
   ];
 
   const myActivityMenu = [
@@ -249,8 +253,6 @@ function LayoutContent({ children, currentPageName }) {
 
   const professionalMenu = [
     { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
-    { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
-    { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
     ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
       { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
