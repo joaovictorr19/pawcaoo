@@ -26,121 +26,141 @@ export default function DogCollar({ userEmail, onClick }) {
       onClick={onClick}
       title={dogsCount > 0 ? `${dogsCount} ${dogsCount === 1 ? 'Cão' : 'Cães'} cadastrado(s)` : 'Adicionar Cão'}
     >
-      {/* SVG Premium Leather Collar - Luxury Design */}
-      <svg width="64" height="64" viewBox="0 0 64 64" className="drop-shadow-lg hover:drop-shadow-xl transition-all">
+      {/* SVG Realistic Leather Collar - Compact Design */}
+      <svg width="100%" height="48" viewBox="0 0 140 48" className="drop-shadow-md hover:drop-shadow-lg transition-all">
         <defs>
-          {/* Gradiente 3D para Tira de Couro */}
-          <linearGradient id="leatherGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          {/* Gradiente para Couro Marrom */}
+          <linearGradient id="leatherGradient" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style={{stopColor: '#A0522D', stopOpacity: 1}} />
-            <stop offset="40%" style={{stopColor: '#8B4513', stopOpacity: 1}} />
-            <stop offset="100%" style={{stopColor: '#654321', stopOpacity: 1}} />
+            <stop offset="50%" style={{stopColor: '#8B4513', stopOpacity: 1}} />
+            <stop offset="100%" style={{stopColor: '#6F3B1F', stopOpacity: 1}} />
           </linearGradient>
           
-          {/* Gradiente Metálico Dourado */}
-          <radialGradient id="goldGrad" cx="40%" cy="30%">
-            <stop offset="0%" style={{stopColor: '#FFF8DC', stopOpacity: 1}} />
-            <stop offset="40%" style={{stopColor: '#FFD700', stopOpacity: 1}} />
-            <stop offset="70%" style={{stopColor: '#DAA520', stopOpacity: 1}} />
-            <stop offset="100%" style={{stopColor: '#B8860B', stopOpacity: 1}} />
+          {/* Gradiente Metálico Dourado/Bronze */}
+          <radialGradient id="metalGradient" cx="50%" cy="30%">
+            <stop offset="0%" style={{stopColor: '#FFEAA7', stopOpacity: 1}} />
+            <stop offset="40%" style={{stopColor: '#DDA15E', stopOpacity: 1}} />
+            <stop offset="80%" style={{stopColor: '#BC6C25', stopOpacity: 1}} />
+            <stop offset="100%" style={{stopColor: '#8B5A00', stopOpacity: 1}} />
           </radialGradient>
         </defs>
         
-        {/* Tira de Couro (Curva Fechada com Volume) */}
-        <ellipse 
-          cx="32" 
-          cy="26" 
-          rx="22" 
-          ry="20" 
+        {/* Arco Curvado da Faixa de Couro */}
+        <path 
+          d="M 20 15 Q 70 22 120 15" 
           fill="none" 
-          stroke="url(#leatherGrad)" 
-          strokeWidth="6" 
+          stroke="url(#leatherGradient)" 
+          strokeWidth="8" 
           strokeLinecap="round"
         />
         
-        {/* Highlight de Brilho do Couro Polido */}
-        <ellipse 
-          cx="32" 
-          cy="24" 
-          rx="20" 
-          ry="18" 
+        {/* Borda Escura para Profundidade */}
+        <path 
+          d="M 20 15 Q 70 22 120 15" 
           fill="none" 
-          stroke="#CD853F" 
-          strokeWidth="1.2" 
-          opacity="0.4"
+          stroke="#5D3A1A" 
+          strokeWidth="10" 
+          strokeLinecap="round"
+          opacity="0.5"
+          transform="translate(0, 0.5)"
         />
         
-        {/* Costura Artesanal Pontilhada (Detalhe Premium) */}
-        <ellipse 
-          cx="32" 
-          cy="26" 
-          rx="18" 
-          ry="16" 
+        {/* Costura Superior (Pontilhada Bege) */}
+        <path 
+          d="M 22 12 Q 70 19 118 12" 
           fill="none" 
           stroke="#DEB887" 
-          strokeWidth="0.7" 
-          strokeDasharray="1.5,2.5"
-          opacity="0.9"
+          strokeWidth="0.8" 
+          strokeDasharray="2,3"
+          opacity="0.7"
         />
         
-        {/* Furos do Ajuste (4 pontos distribuídos) */}
-        <circle cx="12" cy="26" r="1" fill="#3E2723" opacity="0.8" />
-        <circle cx="22" cy="18" r="1" fill="#3E2723" opacity="0.8" />
-        <circle cx="42" cy="18" r="1" fill="#3E2723" opacity="0.8" />
-        <circle cx="52" cy="26" r="1" fill="#3E2723" opacity="0.8" />
+        {/* Costura Inferior (Pontilhada Bege) */}
+        <path 
+          d="M 22 18 Q 70 25 118 18" 
+          fill="none" 
+          stroke="#DEB887" 
+          strokeWidth="0.8" 
+          strokeDasharray="2,3"
+          opacity="0.7"
+        />
         
-        {/* Fivela Metálica Premium */}
-        <rect 
-          x="28" 
-          y="4" 
-          width="8" 
-          height="6" 
-          rx="1.2" 
-          fill="#D3D3D3" 
+        {/* Furos de Ajuste (3 círculos pretos à esquerda) */}
+        <circle cx="28" cy="15" r="1.5" fill="#1A1A1A" />
+        <circle cx="35" cy="15.5" r="1.5" fill="#1A1A1A" />
+        <circle cx="42" cy="16" r="1.5" fill="#1A1A1A" />
+        
+        {/* Argola Metálica (no centro) */}
+        <circle 
+          cx="70" 
+          cy="19" 
+          r="2.5" 
+          fill="none" 
           stroke="#A9A9A9" 
+          strokeWidth="1.2"
+        />
+        
+        {/* Elo de Conexão (corrente fina) */}
+        <line 
+          x1="70" 
+          y1="21.5" 
+          x2="70" 
+          y2="28" 
+          stroke="#A9A9A9" 
+          strokeWidth="1"
+        />
+        
+        {/* Pingente Circular Metálico (Medalha) */}
+        <circle 
+          cx="70" 
+          cy="36" 
+          r="9" 
+          fill="url(#metalGradient)" 
+          stroke="#8B5A00" 
+          strokeWidth="1.2"
+        />
+        
+        {/* Brilho no Pingente */}
+        <circle 
+          cx="67" 
+          cy="33" 
+          r="3" 
+          fill="#FFF" 
+          opacity="0.3"
+        />
+        
+        {/* Borda Interior Gravada */}
+        <circle 
+          cx="70" 
+          cy="36" 
+          r="7.5" 
+          fill="none" 
+          stroke="#BC6C25" 
           strokeWidth="0.6"
-        />
-        <rect 
-          x="29.5" 
-          y="5.5" 
-          width="5" 
-          height="3" 
-          rx="0.5" 
-          fill="#808080"
+          opacity="0.6"
         />
         
-        {/* Argola de Suspensão (Ring) */}
-        <circle cx="32" cy="46" r="2.2" fill="none" stroke="#A9A9A9" strokeWidth="1" />
-        
-        {/* Corrente Fina Conectando à Medalha */}
-        <line x1="32" y1="48.2" x2="32" y2="52" stroke="#A9A9A9" strokeWidth="0.8" />
-        
-        {/* Medalha Metálica Dourada (Luxury Tag) */}
-        <circle cx="32" cy="57" r="7.5" fill="url(#goldGrad)" stroke="#B8860B" strokeWidth="1" />
-        
-        {/* Anel Interior da Medalha (Detalhe Gravado) */}
-        <circle cx="32" cy="57" r="6.2" fill="none" stroke="#FFE680" strokeWidth="0.5" opacity="0.7" />
-        
-        {/* Número ou Ícone "+" Gravado */}
+        {/* Número/Ícone Gravado no Metal */}
         {dogsCount > 0 ? (
           <text 
-            x="32" 
-            y="60.5" 
+            x="70" 
+            y="40" 
             textAnchor="middle" 
-            fontSize="9" 
+            fontSize="10" 
             fontWeight="700" 
-            fill="#654321"
+            fill="#5D3A1A"
             fontFamily="'Georgia', serif"
           >
             {dogsCount}
           </text>
         ) : (
           <text 
-            x="32" 
-            y="61.5" 
+            x="70" 
+            y="40.5" 
             textAnchor="middle" 
-            fontSize="13" 
+            fontSize="14" 
             fontWeight="700" 
-            fill="#654321"
+            fill="#5D3A1A"
             fontFamily="'Georgia', serif"
           >
             +
