@@ -328,7 +328,7 @@ export default function Gamification() {
                 <p className="text-gray-500 text-lg font-semibold">Nenhum dado disponível para este ranking</p>
               </div>
             ) : (
-            <div className="flex items-end justify-center gap-4 mb-8">
+            <div className="flex items-end justify-center gap-3 md:gap-6 mb-8 max-w-5xl mx-auto px-2">
               {/* 2º Lugar */}
               {rankedData[1] && (
                 <motion.div
@@ -336,26 +336,26 @@ export default function Gamification() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="flex flex-col items-center"
+                  className="flex flex-col items-center w-32"
                 >
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
                       {rankedData[1].profile_photo_url ? (
                         <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[1].full_name} />
                       ) : (
-                        <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-2xl font-bold">
+                        <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
                           {rankedData[1].full_name?.[0]}
                         </div>
                       )}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
                       2
                     </div>
                   </div>
-                  <div className="mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-6 py-4 text-center shadow-lg h-32 flex flex-col justify-center">
-                    <Medal className="w-6 h-6 mx-auto mb-1" />
-                    <p className="font-bold text-sm truncate max-w-[100px]">{rankedData[1].full_name}</p>
-                    <p className="text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey])}</p>
+                  <div className="mt-2 md:mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
+                    <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
+                    <p className="font-bold text-xs md:text-sm truncate">{rankedData[1].full_name}</p>
+                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey])}</p>
                   </div>
                 </motion.div>
               )}
@@ -366,135 +366,63 @@ export default function Gamification() {
                   key={`first-${activeRanking}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center relative -mt-8"
+                  className="flex flex-col items-center relative -mt-4 md:-mt-8 w-40"
                 >
-                  {/* 3D Premium Crown */}
-                  <div className="absolute -top-20 left-1/2 -translate-x-1/2 z-30">
-                    <div className="relative w-28 h-28" style={{ perspective: '1000px' }}>
-                      {/* Multiple glow layers */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 opacity-50 blur-3xl animate-pulse"></div>
-                      <div className="absolute inset-0 rounded-full bg-yellow-300 opacity-30 blur-2xl animate-ping" style={{ animationDuration: '3s' }}></div>
-
-                      {/* Crown container with 3D rotation */}
-                      <motion.div
-                        className="relative w-full h-full"
-                        style={{ transformStyle: 'preserve-3d' }}
-                        animate={{
-                          rotateY: [0, 360],
-                          y: [-8, 0, -8]
-                        }}
-                        transition={{
-                          rotateY: { duration: 4, repeat: Infinity, ease: "linear" },
-                          y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                        }}
-                      >
-                        {/* Front face */}
-                        <div className="absolute inset-0" style={{ transform: 'translateZ(15px)' }}>
-                          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl">
-                            {/* Base ring */}
-                            <ellipse cx="50" cy="70" rx="32" ry="10" fill="url(#gold-base)" opacity="0.6"/>
-
-                            {/* Crown band */}
-                            <path d="M 18 62 L 20 72 L 80 72 L 82 62 Z" fill="url(#gold-gradient)" stroke="#B8860B" strokeWidth="1.5"/>
-
-                            {/* Velvet interior */}
-                            <rect x="20" y="64" width="60" height="7" fill="url(#velvet)" rx="1"/>
-
-                            {/* Gold pattern */}
-                            {[28, 38, 48, 58, 68].map(x => (
-                              <line key={x} x1={x} y1="64" x2={x} y2="71" stroke="#FFD700" strokeWidth="0.5" opacity="0.7"/>
-                            ))}
-
-                            {/* Five peaks */}
-                            <path d="M 18 62 L 24 30 L 30 62" fill="url(#peak-gradient)" stroke="#B8860B" strokeWidth="1.5"/>
-                            <path d="M 30 62 L 38 22 L 46 62" fill="url(#peak-gradient)" stroke="#B8860B" strokeWidth="1.5"/>
-                            <path d="M 46 62 L 50 12 L 54 62" fill="url(#peak-highlight)" stroke="#B8860B" strokeWidth="1.5"/>
-                            <path d="M 54 62 L 62 22 L 70 62" fill="url(#peak-gradient)" stroke="#B8860B" strokeWidth="1.5"/>
-                            <path d="M 70 62 L 76 30 L 82 62" fill="url(#peak-gradient)" stroke="#B8860B" strokeWidth="1.5"/>
-
-                            {/* Premium jewels */}
-                            <circle cx="50" cy="12" r="5" fill="#DC143C" filter="url(#glow)"/>
-                            <circle cx="50" cy="12" r="2.5" fill="#FF6B9D" opacity="0.9"/>
-                            <circle cx="38" cy="22" r="3.5" fill="#4169E1" filter="url(#glow)"/>
-                            <circle cx="62" cy="22" r="3.5" fill="#32CD32" filter="url(#glow)"/>
-                            <circle cx="24" cy="30" r="3" fill="#9370DB" filter="url(#glow)"/>
-                            <circle cx="76" cy="30" r="3" fill="#FFD700" filter="url(#glow)"/>
-
-                            {/* Sparkles */}
-                            <g opacity="0.9">
-                              <path d="M 50 8 L 51 11 L 50 14 L 49 11 Z" fill="white"/>
-                              <path d="M 47 12 L 50 13 L 47 14 Z" fill="white" opacity="0.7"/>
-                            </g>
-
-                            {/* Highlights */}
-                            <path d="M 25 48 Q 32 42 40 48" stroke="white" strokeWidth="2" opacity="0.5" fill="none"/>
-                            <path d="M 60 48 Q 68 42 75 48" stroke="white" strokeWidth="2" opacity="0.5" fill="none"/>
-
-                            <defs>
-                              <linearGradient id="gold-base" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#B8860B"/>
-                                <stop offset="100%" stopColor="#8B6914" stopOpacity="0.4"/>
-                              </linearGradient>
-
-                              <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#FFD700"/>
-                                <stop offset="40%" stopColor="#FFA500"/>
-                                <stop offset="100%" stopColor="#FF8C00"/>
-                              </linearGradient>
-
-                              <linearGradient id="peak-gradient" x1="50%" y1="0%" x2="50%" y2="100%">
-                                <stop offset="0%" stopColor="#FFED4E"/>
-                                <stop offset="50%" stopColor="#FFD700"/>
-                                <stop offset="100%" stopColor="#FFA500"/>
-                              </linearGradient>
-
-                              <linearGradient id="peak-highlight" x1="50%" y1="0%" x2="50%" y2="100%">
-                                <stop offset="0%" stopColor="#FFF8DC"/>
-                                <stop offset="40%" stopColor="#FFD700"/>
-                                <stop offset="100%" stopColor="#FF8C00"/>
-                              </linearGradient>
-
-                              <linearGradient id="velvet" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#8B0000"/>
-                                <stop offset="100%" stopColor="#DC143C"/>
-                              </linearGradient>
-
-                              <filter id="glow">
-                                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-                                <feMerge>
-                                  <feMergeNode in="coloredBlur"/>
-                                  <feMergeNode in="SourceGraphic"/>
-                                </feMerge>
-                              </filter>
-                            </defs>
-                          </svg>
-                        </div>
-
-                        {/* Side depth layers for 3D effect */}
-                        <div className="absolute inset-0 opacity-40" style={{ transform: 'translateZ(10px)' }}>
-                          <svg viewBox="0 0 100 100" className="w-full h-full">
-                            <path d="M 18 62 L 24 30 L 30 62" fill="#DAA520"/>
-                            <path d="M 30 62 L 38 22 L 46 62" fill="#DAA520"/>
-                            <path d="M 46 62 L 50 12 L 54 62" fill="#FFD700"/>
-                            <path d="M 54 62 L 62 22 L 70 62" fill="#DAA520"/>
-                            <path d="M 70 62 L 76 30 L 82 62" fill="#DAA520"/>
-                          </svg>
-                        </div>
-
-                        <div className="absolute inset-0 opacity-20" style={{ transform: 'translateZ(5px)' }}>
-                          <svg viewBox="0 0 100 100" className="w-full h-full">
-                            <path d="M 18 62 L 24 30 L 30 62" fill="#B8860B"/>
-                            <path d="M 30 62 L 38 22 L 46 62" fill="#B8860B"/>
-                            <path d="M 46 62 L 50 12 L 54 62" fill="#DAA520"/>
-                            <path d="M 54 62 L 62 22 L 70 62" fill="#B8860B"/>
-                            <path d="M 70 62 L 76 30 L 82 62" fill="#B8860B"/>
-                          </svg>
-                        </div>
-                      </motion.div>
-                    </div>
+                  {/* Simple 3D Crown */}
+                  <div className="absolute -top-12 md:-top-16 left-1/2 -translate-x-1/2 z-30">
+                    <motion.div
+                      className="relative w-16 h-16 md:w-20 md:h-20"
+                      style={{ transformStyle: 'preserve-3d' }}
+                      animate={{
+                        rotateY: [0, 360],
+                        y: [-4, 0, -4]
+                      }}
+                      transition={{
+                        rotateY: { duration: 5, repeat: Infinity, ease: "linear" },
+                        y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                      }}
+                    >
+                      {/* Glow */}
+                      <div className="absolute inset-0 bg-yellow-400 opacity-40 blur-xl rounded-full"></div>
+                      
+                      {/* 3D Crown */}
+                      <div className="absolute inset-0" style={{ transform: 'translateZ(8px)' }}>
+                        <svg viewBox="0 0 64 64" className="w-full h-full drop-shadow-xl">
+                          <defs>
+                            <linearGradient id="crown-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stopColor="#FFD700"/>
+                              <stop offset="100%" stopColor="#FFA500"/>
+                            </linearGradient>
+                          </defs>
+                          {/* Base */}
+                          <ellipse cx="32" cy="50" rx="20" ry="6" fill="#B8860B" opacity="0.5"/>
+                          {/* Band */}
+                          <rect x="12" y="42" width="40" height="8" fill="url(#crown-gold)" rx="2"/>
+                          {/* Points */}
+                          <path d="M 12 42 L 18 20 L 24 42" fill="url(#crown-gold)"/>
+                          <path d="M 24 42 L 32 15 L 40 42" fill="url(#crown-gold)"/>
+                          <path d="M 40 42 L 46 20 L 52 42" fill="url(#crown-gold)"/>
+                          {/* Gems */}
+                          <circle cx="32" cy="15" r="3" fill="#DC143C"/>
+                          <circle cx="18" cy="20" r="2" fill="#4169E1"/>
+                          <circle cx="46" cy="20" r="2" fill="#32CD32"/>
+                        </svg>
+                      </div>
+                      
+                      {/* Shadow layer */}
+                      <div className="absolute inset-0 opacity-30" style={{ transform: 'translateZ(4px)' }}>
+                        <svg viewBox="0 0 64 64" className="w-full h-full">
+                          <rect x="12" y="42" width="40" height="8" fill="#DAA520" rx="2"/>
+                          <path d="M 12 42 L 18 20 L 24 42" fill="#DAA520"/>
+                          <path d="M 24 42 L 32 15 L 40 42" fill="#DAA520"/>
+                          <path d="M 40 42 L 46 20 L 52 42" fill="#DAA520"/>
+                        </svg>
+                      </div>
+                    </motion.div>
                   </div>
+                  
                   <div className="relative">
-                    <div className={`w-28 h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
+                    <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
                       activeRanking === 'global' ? 'border-yellow-500 ring-yellow-200' :
                       activeRanking === 'walkers' ? 'border-green-500 ring-green-200' :
                       'border-pink-500 ring-pink-200'
@@ -502,7 +430,7 @@ export default function Gamification() {
                       {rankedData[0].profile_photo_url ? (
                         <img src={rankedData[0].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[0].full_name} />
                       ) : (
-                        <div className={`w-full h-full flex items-center justify-center text-white text-3xl font-bold ${
+                        <div className={`w-full h-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold ${
                           activeRanking === 'global' ? 'bg-yellow-500' :
                           activeRanking === 'walkers' ? 'bg-green-500' :
                           'bg-pink-500'
@@ -511,16 +439,16 @@ export default function Gamification() {
                         </div>
                       )}
                     </div>
-                    <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br ${currentConfig.podiumColor} rounded-full flex items-center justify-center text-white font-black shadow-lg text-lg`}>
+                    <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br ${currentConfig.podiumColor} rounded-full flex items-center justify-center text-white font-black shadow-lg text-base md:text-lg`}>
                       1
                     </div>
                   </div>
-                  <div className={`mt-4 bg-gradient-to-b ${currentConfig.podiumColor} text-white rounded-2xl px-8 py-6 text-center shadow-2xl h-40 flex flex-col justify-center`}>
-                    <Trophy className="w-8 h-8 mx-auto mb-2" />
-                    <p className="font-black text-lg truncate max-w-[120px]">{rankedData[0].full_name}</p>
-                    <p className="text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey])}</p>
+                  <div className={`mt-2 md:mt-4 bg-gradient-to-b ${currentConfig.podiumColor} text-white rounded-2xl px-4 md:px-8 py-4 md:py-6 text-center shadow-2xl h-36 md:h-40 flex flex-col justify-center w-full`}>
+                    <Trophy className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2" />
+                    <p className="font-black text-sm md:text-lg truncate">{rankedData[0].full_name}</p>
+                    <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey])}</p>
                     {activeRanking === 'global' && (
-                      <Badge className="mt-2 bg-white/30 text-white border-0">
+                      <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
                         {getTierData(rankedData[0].gamification_xp || 0).icon} {getTierData(rankedData[0].gamification_xp || 0).name}
                       </Badge>
                     )}
@@ -535,26 +463,26 @@ export default function Gamification() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="flex flex-col items-center"
+                  className="flex flex-col items-center w-32"
                 >
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full border-4 border-orange-600 overflow-hidden shadow-lg bg-white">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-orange-600 overflow-hidden shadow-lg bg-white">
                       {rankedData[2].profile_photo_url ? (
                         <img src={rankedData[2].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[2].full_name} />
                       ) : (
-                        <div className="w-full h-full bg-orange-600 flex items-center justify-center text-white text-2xl font-bold">
+                        <div className="w-full h-full bg-orange-600 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
                           {rankedData[2].full_name?.[0]}
                         </div>
                       )}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
                       3
                     </div>
                   </div>
-                  <div className="mt-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white rounded-xl px-6 py-4 text-center shadow-lg h-32 flex flex-col justify-center">
-                    <Medal className="w-6 h-6 mx-auto mb-1" />
-                    <p className="font-bold text-sm truncate max-w-[100px]">{rankedData[2].full_name}</p>
-                    <p className="text-xs opacity-90">{currentConfig.formatMetric(rankedData[2][currentConfig.metricKey])}</p>
+                  <div className="mt-2 md:mt-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
+                    <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
+                    <p className="font-bold text-xs md:text-sm truncate">{rankedData[2].full_name}</p>
+                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[2][currentConfig.metricKey])}</p>
                   </div>
                 </motion.div>
               )}
