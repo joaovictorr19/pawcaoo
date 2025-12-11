@@ -91,15 +91,44 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
         throw new Error("Usuário não autenticado");
       }
 
+      // Clean payload: remove undefined values and empty strings for optional fields
+      const cleanPayload = Object.entries(data).reduce((acc, [key, value]) => {
+        // Keep required fields even if empty
+        if (['dog_name', 'size', 'owner_email'].includes(key)) {
+          acc[key] = value;
+        } 
+        // For optional fields, only include if they have a value
+        else if (value !== undefined && value !== '' && value !== null) {
+          acc[key] = value;
+        }
+        // For default_pickup_address, ensure it's a string or null
+        else if (key === 'default_pickup_address') {
+          acc[key] = value || '';
+        }
+        return acc;
+      }, {});
+
       const payload = {
-        ...data,
+        ...cleanPayload,
         owner_email: user.email
       };
 
-      if (dog) {
-        return base44.entities.DogProfile.update(dog.id, payload);
-      } else {
-        return base44.entities.DogProfile.create(payload);
+      console.log('💾 Saving dog payload:', payload);
+
+      try {
+        if (dog) {
+          const result = await base44.entities.DogProfile.update(dog.id, payload);
+          console.log('✅ Dog updated successfully:', result);
+          return result;
+        } else {
+          const result = await base44.entities.DogProfile.create(payload);
+          console.log('✅ Dog created successfully:', result);
+          return result;
+        }
+      } catch (error) {
+        console.error('❌ Error saving dog:', error);
+        console.error('Failed payload:', payload);
+        throw error;
       }
     },
     onSuccess: () => {
@@ -109,8 +138,11 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
       if (onSave) onSave();
     },
     onError: (error) => {
-      console.error("Erro ao salvar pet:", error);
-      toast.error("Erro ao salvar pet: " + (error.message || "Tente novamente"));
+      console.error("❌ Mutation error:", error);
+      const errorMsg = error.message || error.toString() || "Erro desconhecido";
+      toast.error(`Erro ao salvar pet: ${errorMsg}`, {
+        description: 'Verifique os dados e tente novamente.'
+      });
     }
   });
 
