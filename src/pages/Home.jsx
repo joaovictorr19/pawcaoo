@@ -91,6 +91,10 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
+  // Dashboard XP animation states (moved to top level)
+  const [displayedXP, setDisplayedXP] = useState(0);
+  const [progressWidth, setProgressWidth] = useState(0);
+
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -176,6 +180,28 @@ export default function Home() {
 
       return null;
   }, [activeBookings]);
+
+  // XP animation effect
+  const currentXP = user?.gamification_xp || 0;
+  useEffect(() => {
+    if (!currentXP) return;
+    const duration = 1500;
+    const steps = 60;
+    const increment = currentXP / steps;
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= currentXP) {
+        setDisplayedXP(currentXP);
+        clearInterval(timer);
+      } else {
+        setDisplayedXP(Math.floor(current));
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [currentXP]);
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
@@ -585,7 +611,6 @@ export default function Home() {
             <div className="max-w-4xl mx-auto">
               {/* Embedded Owner Dashboard */}
               {(() => {
-                const currentXP = user?.gamification_xp || 0;
                 const currentLevel = user?.gamification_level || 1;
                 
                 const getTierData = (xp) => {
@@ -596,37 +621,14 @@ export default function Home() {
                 };
                 
                 const currentTier = getTierData(currentXP);
-                const cardGradient = `bg-gradient-to-r ${currentTier.color}`;
                 
                 const nextLevelXP = currentLevel * 500;
                 const currentLevelStartXP = (currentLevel - 1) * 500;
                 const xpInCurrentLevel = currentXP - currentLevelStartXP;
                 const xpNeededForNext = nextLevelXP - currentLevelStartXP;
                 const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
-                
-                const [displayedXP, setDisplayedXP] = React.useState(0);
-                const [progressWidth, setProgressWidth] = React.useState(0);
 
-                React.useEffect(() => {
-                  if (!currentXP) return;
-                  const duration = 1500; // 1.5s CountUp effect
-                  const steps = 60;
-                  const increment = currentXP / steps;
-                  let current = 0;
-
-                  const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= currentXP) {
-                      setDisplayedXP(currentXP);
-                      clearInterval(timer);
-                    } else {
-                      setDisplayedXP(Math.floor(current));
-                    }
-                  }, duration / steps);
-
-                  return () => clearInterval(timer);
-                }, [currentXP]);
-                
+                // Progress width animation
                 React.useEffect(() => {
                   const timer = setTimeout(() => {
                     setProgressWidth(xpProgress);
