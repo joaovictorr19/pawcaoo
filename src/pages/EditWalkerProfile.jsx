@@ -50,14 +50,14 @@ export default function EditWalkerProfile() {
 
   const submitEditRequestMutation = useMutation({
     mutationFn: async (changes) => {
-      // Check if sensitive fields were changed (photo, bio, price)
-      const sensitiveFields = ['photo_url', 'bio', 'hourly_rate', 'cover_photo_url', 'video_intro_url'];
+      // Sensitive fields that trigger re-approval
+      const sensitiveFields = ['photo_url', 'bio', 'hourly_rate', 'cover_photo_url', 'video_intro_url', 'experience_years'];
       const hasSensitiveChanges = Object.keys(changes).some(key => sensitiveFields.includes(key));
       
-      // Update profile with pending status if sensitive data changed
+      // Force pending_approval if sensitive data changed
       const updateData = {
         ...changes,
-        ...(hasSensitiveChanges ? { verification_status: 'pending' } : {})
+        ...(hasSensitiveChanges ? { verification_status: 'pending_approval' } : {})
       };
       
       await base44.entities.WalkerProfile.update(walkerProfile.id, updateData);
@@ -71,7 +71,8 @@ export default function EditWalkerProfile() {
           requester_email: currentUser.email,
           requester_name: currentUser.full_name,
           changes_requested: changes,
-          status: 'pending'
+          status: 'pending',
+          has_sensitive_changes: hasSensitiveChanges
         });
       } catch (err) {
         console.error("Edit request tracking failed:", err);
@@ -84,7 +85,9 @@ export default function EditWalkerProfile() {
       queryClient.invalidateQueries({ queryKey: ['editRequests'] });
       
       if (data.hasSensitiveChanges) {
-        toast.success('✅ Perfil atualizado! Aguardando aprovação do administrador.');
+        toast.warning('⚠️ Alterações enviadas para análise! Seu perfil ficará oculto até a aprovação da equipe.', {
+          duration: 6000
+        });
       } else {
         toast.success('✅ Perfil atualizado com sucesso!');
       }
