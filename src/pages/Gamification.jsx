@@ -320,7 +320,7 @@ export default function Gamification() {
               {currentConfig.title}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 md:p-8">
             {/* Pódio Visual Adaptativo */}
             {rankedData.length === 0 ? (
               <div className="text-center py-16">
@@ -328,7 +328,7 @@ export default function Gamification() {
                 <p className="text-gray-500 text-lg font-semibold">Nenhum dado disponível para este ranking</p>
               </div>
             ) : (
-            <div className="flex items-end justify-center gap-3 md:gap-6 mb-8 max-w-5xl mx-auto px-2">
+            <div className="flex items-end justify-center gap-3 md:gap-6 mb-8 mt-6 md:mt-8 max-w-5xl mx-auto px-2">
               {/* 2º Lugar */}
               {rankedData[1] && (
                 <motion.div
@@ -366,58 +366,60 @@ export default function Gamification() {
                   key={`first-${activeRanking}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center relative -mt-4 md:-mt-8 w-40"
+                  className="flex flex-col items-center relative w-40"
                 >
-                  {/* Simple 3D Crown */}
-                  <div className="absolute -top-12 md:-top-16 left-1/2 -translate-x-1/2 z-30">
+                  {/* Royal Crown - Emoji Style */}
+                  <div className="absolute -top-10 md:-top-12 left-1/2 -translate-x-1/2 z-30">
                     <motion.div
-                      className="relative w-16 h-16 md:w-20 md:h-20"
-                      style={{ transformStyle: 'preserve-3d' }}
+                      className="relative w-12 h-12 md:w-14 md:h-14"
                       animate={{
-                        rotateY: [0, 360],
-                        y: [-4, 0, -4]
+                        y: [-3, 0, -3]
                       }}
                       transition={{
-                        rotateY: { duration: 5, repeat: Infinity, ease: "linear" },
                         y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                       }}
                     >
-                      {/* Glow */}
+                      {/* Glow effect */}
                       <div className="absolute inset-0 bg-yellow-400 opacity-40 blur-xl rounded-full"></div>
                       
-                      {/* 3D Crown */}
-                      <div className="absolute inset-0" style={{ transform: 'translateZ(8px)' }}>
-                        <svg viewBox="0 0 64 64" className="w-full h-full drop-shadow-xl">
-                          <defs>
-                            <linearGradient id="crown-gold" x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" stopColor="#FFD700"/>
-                              <stop offset="100%" stopColor="#FFA500"/>
-                            </linearGradient>
-                          </defs>
-                          {/* Base */}
-                          <ellipse cx="32" cy="50" rx="20" ry="6" fill="#B8860B" opacity="0.5"/>
-                          {/* Band */}
-                          <rect x="12" y="42" width="40" height="8" fill="url(#crown-gold)" rx="2"/>
-                          {/* Points */}
-                          <path d="M 12 42 L 18 20 L 24 42" fill="url(#crown-gold)"/>
-                          <path d="M 24 42 L 32 15 L 40 42" fill="url(#crown-gold)"/>
-                          <path d="M 40 42 L 46 20 L 52 42" fill="url(#crown-gold)"/>
-                          {/* Gems */}
-                          <circle cx="32" cy="15" r="3" fill="#DC143C"/>
-                          <circle cx="18" cy="20" r="2" fill="#4169E1"/>
-                          <circle cx="46" cy="20" r="2" fill="#32CD32"/>
-                        </svg>
-                      </div>
-                      
-                      {/* Shadow layer */}
-                      <div className="absolute inset-0 opacity-30" style={{ transform: 'translateZ(4px)' }}>
-                        <svg viewBox="0 0 64 64" className="w-full h-full">
-                          <rect x="12" y="42" width="40" height="8" fill="#DAA520" rx="2"/>
-                          <path d="M 12 42 L 18 20 L 24 42" fill="#DAA520"/>
-                          <path d="M 24 42 L 32 15 L 40 42" fill="#DAA520"/>
-                          <path d="M 40 42 L 46 20 L 52 42" fill="#DAA520"/>
-                        </svg>
-                      </div>
+                      {/* Crown SVG */}
+                      <svg viewBox="0 0 64 64" className="w-full h-full drop-shadow-2xl relative z-10">
+                        <defs>
+                          <linearGradient id="gold-main" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#FFD700"/>
+                            <stop offset="50%" stopColor="#FFC700"/>
+                            <stop offset="100%" stopColor="#FFA500"/>
+                          </linearGradient>
+                          <radialGradient id="jewel-red">
+                            <stop offset="0%" stopColor="#FF6B9D"/>
+                            <stop offset="100%" stopColor="#DC143C"/>
+                          </radialGradient>
+                        </defs>
+                        
+                        {/* Crown base/band */}
+                        <ellipse cx="32" cy="48" rx="22" ry="5" fill="#B8860B" opacity="0.4"/>
+                        <rect x="10" y="40" width="44" height="8" fill="url(#gold-main)" rx="2" stroke="#DAA520" strokeWidth="1"/>
+                        
+                        {/* Crown points/peaks */}
+                        <path d="M 10 40 L 15 18 L 20 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
+                        <path d="M 20 40 L 27 22 L 34 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
+                        <path d="M 34 40 L 37 22 L 44 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
+                        <path d="M 44 40 L 49 18 L 54 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
+                        
+                        {/* Center peak (tallest) */}
+                        <path d="M 27 22 L 32 12 L 37 22" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
+                        
+                        {/* Precious gems */}
+                        <circle cx="32" cy="12" r="3.5" fill="url(#jewel-red)" opacity="0.95"/>
+                        <circle cx="32" cy="12" r="1.5" fill="#FFD1DC" opacity="0.8"/>
+                        <circle cx="15" cy="18" r="2.5" fill="#4169E1" opacity="0.9"/>
+                        <circle cx="49" cy="18" r="2.5" fill="#32CD32" opacity="0.9"/>
+                        
+                        {/* Decorative shine */}
+                        <path d="M 32 10 L 32.5 12 L 32 14" stroke="white" strokeWidth="0.5" opacity="0.8"/>
+                        <circle cx="28" cy="15" r="0.5" fill="white" opacity="0.7"/>
+                        <circle cx="36" cy="15" r="0.5" fill="white" opacity="0.7"/>
+                      </svg>
                     </motion.div>
                   </div>
                   
