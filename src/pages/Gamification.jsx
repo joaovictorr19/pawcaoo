@@ -459,39 +459,51 @@ export default function Gamification() {
                             </filter>
                           </defs>
                         </svg>
-                      </div>
+                        </div>
+                        </div>
+                        </div>
 
-                      {/* Rotating light beams */}
-                      <div className="absolute inset-0 animate-spin-slow opacity-20">
-                        <div className="absolute top-0 left-1/2 w-0.5 h-full bg-gradient-to-b from-yellow-200 via-transparent to-transparent"></div>
-                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-yellow-200 to-transparent"></div>
-                      </div>
-                    </div>
-                  </div>
+                        <style>{`
+                        @keyframes float-rotate {
+                        0%, 100% { 
+                        transform: translateY(0px) translateZ(20px);
+                        }
+                        50% { 
+                        transform: translateY(-10px) translateZ(30px);
+                        }
+                        }
 
-                  <style>{`
-                    @keyframes float {
-                      0%, 100% { transform: translateY(0px); }
-                      50% { transform: translateY(-6px); }
-                    }
-                    @keyframes spin-slow {
-                      from { transform: rotate(0deg); }
-                      to { transform: rotate(360deg); }
-                    }
-                    @keyframes ping-slow {
-                      0%, 100% { opacity: 1; }
-                      50% { opacity: 0.5; }
-                    }
-                    .animate-float {
-                      animation: float 3s ease-in-out infinite;
-                    }
-                    .animate-spin-slow {
-                      animation: spin-slow 8s linear infinite;
-                    }
-                    .animate-ping-slow {
-                      animation: ping-slow 2s ease-in-out infinite;
-                    }
-                  `}</style>
+                        @keyframes spin-3d {
+                        0% { 
+                        transform: rotateY(0deg) rotateZ(0deg);
+                        }
+                        50% {
+                        transform: rotateY(180deg) rotateZ(5deg);
+                        }
+                        100% { 
+                        transform: rotateY(360deg) rotateZ(0deg);
+                        }
+                        }
+
+                        @keyframes ping-slow {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                        }
+
+                        .animate-float-rotate {
+                        animation: float-rotate 4s ease-in-out infinite;
+                        transform-style: preserve-3d;
+                        }
+
+                        .animate-spin-3d {
+                        animation: spin-3d 6s ease-in-out infinite;
+                        transform-style: preserve-3d;
+                        }
+
+                        .animate-ping-slow {
+                        animation: ping-slow 2s ease-in-out infinite;
+                        }
+                        `}</style>
                   <div className="relative">
                     <div className={`w-28 h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
                       activeRanking === 'global' ? 'border-yellow-500 ring-yellow-200' :
