@@ -64,7 +64,6 @@ export default function StripeConnectSetup() {
 
   /**
    * Fetch account status from Stripe API
-   * This retrieves the current onboarding status
    */
   const fetchAccountStatus = async () => {
     const accountId = getStripeAccountId();
@@ -75,40 +74,15 @@ export default function StripeConnectSetup() {
 
     setRefreshing(true);
     try {
-      /**
-       * BACKEND INTEGRATION REQUIRED:
-       * This should call your backend endpoint that does:
-       * 
-       * const stripe = require('stripe')('YOUR_STRIPE_SECRET_KEY');
-       * const account = await stripe.accounts.retrieve(accountId);
-       * return account;
-       */
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `This is a demo. Return a mock Stripe account object with:
-        {
-          "id": "${accountId}",
-          "charges_enabled": true,
-          "payouts_enabled": true,
-          "details_submitted": true,
-          "requirements": {
-            "currently_due": [],
-            "eventually_due": [],
-            "pending_verification": []
-          }
-        }`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            charges_enabled: { type: "boolean" },
-            payouts_enabled: { type: "boolean" },
-            details_submitted: { type: "boolean" },
-            requirements: { type: "object" }
-          }
-        }
+      const response = await base44.functions.retrieveStripeAccount({
+        accountId: accountId
       });
 
-      setAccountStatus(response);
+      if (response.success) {
+        setAccountStatus(response.account);
+      } else {
+        toast.error(response.error || "Failed to fetch account status");
+      }
     } catch (error) {
       console.error("Error fetching account status:", error);
       toast.error("Failed to fetch account status");
@@ -118,56 +92,57 @@ export default function StripeConnectSetup() {
 
   useEffect(() => {
     if (user) {
+      // Load account ID from user profile if exists
+      if (user.stripe_account_id) {
+        setStripeAccountId(user.stripe_account_id);
+      }
       fetchAccountStatus();
     }
   }, [user]);
 
+  // Handle return from Stripe onboarding
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      toast.success("Onboarding completed successfully!");
+      fetchAccountStatus();
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('refresh') === 'true') {
+      toast.info("Please complete the onboarding process");
+      const accountId = getStripeAccountId();
+      if (accountId) {
+        startOnboarding(accountId);
+      }
+    }
+  }, []);
+
   /**
    * Step 1: Create a Connected Account
-   * 
-   * BACKEND IMPLEMENTATION:
-   * 
-   * const stripe = require('stripe')('YOUR_STRIPE_SECRET_KEY');
-   * 
-   * const account = await stripe.accounts.create({
-   *   country: 'PT', // Portugal - adjust based on your market
-   *   email: userEmail,
-   *   controller: {
-   *     // Platform controls fee collection - connected account pays fees
-   *     fees: {
-   *       payer: 'account'
-   *     },
-   *     // Stripe handles payment disputes and losses
-   *     losses: {
-   *       payments: 'stripe'
-   *     },
-   *     // Connected account gets full access to Stripe dashboard
-   *     stripe_dashboard: {
-   *       type: 'full'
-   *     }
-   *   },
-   *   capabilities: {
-   *     card_payments: { requested: true },
-   *     transfers: { requested: true }
-   *   }
-   * });
-   * 
-   * IMPORTANT: Never use top-level type: 'express' or type: 'standard'
-   * Only use the controller properties shown above
    */
   const createConnectedAccount = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual backend call
-      const mockAccountId = `acct_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      setStripeAccountId(mockAccountId);
-      
-      toast.success("Connected account created! Now complete onboarding.");
-      
-      // Immediately start onboarding
-      await startOnboarding(mockAccountId);
-      
+      const response = await base44.functions.createStripeConnectedAccount({
+        email: user.email,
+        country: 'PT'
+      });
+
+      if (response.success) {
+        setStripeAccountId(response.accountId);
+        
+        // Update user profile with Stripe account ID
+        await base44.auth.updateMe({
+          stripe_account_id: response.accountId
+        });
+        
+        toast.success("Connected account created! Now complete onboarding.");
+        
+        // Immediately start onboarding
+        await startOnboarding(response.accountId);
+      } else {
+        toast.error(response.error || "Failed to create account");
+      }
     } catch (error) {
       console.error("Error creating account:", error);
       toast.error("Failed to create connected account");
@@ -177,19 +152,6 @@ export default function StripeConnectSetup() {
 
   /**
    * Step 2: Create Account Link for Onboarding
-   * 
-   * BACKEND IMPLEMENTATION:
-   * 
-   * const stripe = require('stripe')('YOUR_STRIPE_SECRET_KEY');
-   * 
-   * const accountLink = await stripe.accountLinks.create({
-   *   account: accountId,
-   *   refresh_url: `${YOUR_DOMAIN}/stripe-connect-setup?refresh=true`,
-   *   return_url: `${YOUR_DOMAIN}/stripe-connect-setup?success=true`,
-   *   type: 'account_onboarding',
-   * });
-   * 
-   * return accountLink.url;
    */
   const startOnboarding = async (accountId = null) => {
     const id = accountId || getStripeAccountId();
@@ -200,15 +162,19 @@ export default function StripeConnectSetup() {
 
     setLoading(true);
     try {
-      // TODO: Replace with actual backend call to create account link
-      toast.info("In production, this would redirect to Stripe onboarding");
-      
-      // Mock successful onboarding
-      setTimeout(() => {
-        toast.success("Onboarding completed!");
-        fetchAccountStatus();
-      }, 2000);
-      
+      const baseUrl = window.location.origin;
+      const response = await base44.functions.createStripeAccountLink({
+        accountId: id,
+        refreshUrl: `${baseUrl}/stripe-connect-setup?refresh=true`,
+        returnUrl: `${baseUrl}/stripe-connect-setup?success=true`
+      });
+
+      if (response.success) {
+        // Redirect to Stripe onboarding
+        window.location.href = response.url;
+      } else {
+        toast.error(response.error || "Failed to create onboarding link");
+      }
     } catch (error) {
       console.error("Error creating account link:", error);
       toast.error("Failed to start onboarding");
@@ -218,23 +184,6 @@ export default function StripeConnectSetup() {
 
   /**
    * Step 3: Create a Product on Connected Account
-   * 
-   * BACKEND IMPLEMENTATION:
-   * 
-   * const stripe = require('stripe')('YOUR_STRIPE_SECRET_KEY');
-   * 
-   * const product = await stripe.products.create({
-   *   name: productName,
-   *   description: productDescription,
-   *   default_price_data: {
-   *     unit_amount: priceInCents, // e.g., 2500 for €25.00
-   *     currency: currency, // e.g., 'eur'
-   *   },
-   * }, {
-   *   stripeAccount: accountId, // This sets the Stripe-Account header
-   * });
-   * 
-   * return product;
    */
   const createProduct = async (e) => {
     e.preventDefault();
@@ -254,18 +203,28 @@ export default function StripeConnectSetup() {
     try {
       const priceInCents = Math.round(parseFloat(productData.price) * 100);
       
-      // TODO: Replace with actual backend call
-      toast.success(`Product "${productData.name}" created!`);
-      
-      // Reset form
-      setProductData({
-        name: "",
-        description: "",
-        price: "",
-        currency: "eur"
+      const response = await base44.functions.createStripeProduct({
+        accountId: accountId,
+        name: productData.name,
+        description: productData.description,
+        price: priceInCents,
+        currency: productData.currency
       });
-      setShowProductForm(false);
-      
+
+      if (response.success) {
+        toast.success(`Product "${productData.name}" created!`);
+        
+        // Reset form
+        setProductData({
+          name: "",
+          description: "",
+          price: "",
+          currency: "eur"
+        });
+        setShowProductForm(false);
+      } else {
+        toast.error(response.error || "Failed to create product");
+      }
     } catch (error) {
       console.error("Error creating product:", error);
       toast.error("Failed to create product");
