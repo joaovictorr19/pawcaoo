@@ -368,17 +368,15 @@ export default function Gamification() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center relative -mt-8"
                 >
-                  <div className="relative mb-3 z-20">
-                    {/* Premium 3D Crown with Rotation */}
-                    <div className="relative w-20 h-20 flex items-center justify-center">
-                      {/* Animated glow rings */}
-                      <div className="absolute inset-0 animate-spin-slow">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 opacity-30 blur-xl"></div>
-                      </div>
+                  {/* 3D Rotating Crown - Floating Above */}
+                  <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-30">
+                    <div className="relative w-24 h-24 animate-float-rotate" style={{ transformStyle: 'preserve-3d' }}>
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 opacity-40 blur-2xl animate-pulse"></div>
 
-                      {/* Crown SVG with subtle float animation */}
-                      <div className="relative animate-float">
-                        <svg className="w-full h-full drop-shadow-2xl filter" viewBox="0 0 100 100" fill="none">
+                      {/* Crown SVG with 3D rotation */}
+                      <div className="relative animate-spin-3d" style={{ transformStyle: 'preserve-3d' }}>
+                        <svg className="w-full h-full drop-shadow-2xl" viewBox="0 0 100 100" fill="none" style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' }}>
                           {/* Crown band with 3D effect */}
                           <ellipse cx="50" cy="65" rx="28" ry="8" fill="url(#crown-base-gradient)" opacity="0.5"/>
                           <path d="M22 58 L24 68 L76 68 L78 58 Z" fill="url(#crown-band)" stroke="#8B6914" strokeWidth="1.5" strokeLinejoin="round"/>
