@@ -572,8 +572,12 @@ export default function Home() {
         schema={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-teal-600 to-blue-600 z-0">
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '30px 30px' }}></div>
+        {/* Premium Sapphire Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 z-0">
+          {/* Subtle decorative orbs */}
+          <div className="absolute top-10 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 left-10 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-300/5 rounded-full blur-3xl"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
@@ -774,16 +778,16 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20 animate-fade-in">
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-md rounded-full px-5 py-2 text-white text-sm font-bold mb-6 shadow-lg shadow-blue-600/20 border border-blue-400/30">
+                <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
                 #1 Plataforma de Pet Services em Portugal
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight">
+              <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-6 leading-tight">
                 {t('homeTitle', language)}
               </h1>
 
-              <p className="text-xl text-green-50 mb-10 max-w-2xl mx-auto font-medium">
+              <p className="text-xl text-slate-700 mb-10 max-w-2xl mx-auto font-medium">
                 Passeadores verificados, treinadores experientes e muito carinho.
                 Comece agora mesmo a sua busca.
               </p>
@@ -792,10 +796,10 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white rounded-2xl shadow-2xl p-6 max-w-3xl mx-auto flex flex-col gap-4 border-4 border-white/20 bg-clip-padding"
+                className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-900/10 p-6 max-w-3xl mx-auto flex flex-col gap-4 ring-1 ring-blue-100"
               >
-                <h3 className="text-gray-800 font-bold text-lg text-left mb-1 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-green-600" />
+                <h3 className="text-slate-900 font-bold text-lg text-left mb-1 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-indigo-600" />
                   Onde procura um Walker?
                 </h3>
                 <div className="flex flex-col md:flex-row gap-4 items-center w-full">
@@ -823,7 +827,7 @@ export default function Home() {
                         setActiveTab('walkers');
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-14 px-8 shadow-lg shadow-green-600/20 text-lg rounded-xl transition-transform hover:scale-105"
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold h-14 px-8 shadow-lg shadow-blue-600/30 text-lg rounded-xl transition-all hover:scale-105"
                     >
                       <Search className="w-5 h-5 mr-2" />
                       {t('findWalkerBtn', language)}
@@ -849,24 +853,24 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              <div className="mt-12 flex flex-wrap justify-center gap-8 text-white font-semibold">
-                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors cursor-default">
-                  <div className="bg-green-500 p-1 rounded-full">
+              <div className="mt-12 flex flex-wrap justify-center gap-6 font-semibold">
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-2xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all cursor-default">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-500 p-2 rounded-xl shadow-inner">
                      <Shield className="w-4 h-4 text-white" />
                   </div>
-                  {t('verifiedProfessionals', language)}
+                  <span className="text-slate-700">{t('verifiedProfessionals', language)}</span>
                 </div>
-                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors cursor-default">
-                  <div className="bg-green-500 p-1 rounded-full">
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-2xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all cursor-default">
+                  <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-2 rounded-xl shadow-inner">
                      <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
-                  {t('securePayment', language)}
+                  <span className="text-slate-700">{t('securePayment', language)}</span>
                 </div>
-                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors cursor-default">
-                  <div className="bg-green-500 p-1 rounded-full">
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-2xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all cursor-default">
+                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl shadow-inner">
                      <MessageCircle className="w-4 h-4 text-white" />
                   </div>
-                  {t('support247', language)}
+                  <span className="text-slate-700">{t('support247', language)}</span>
                 </div>
               </div>
             </div>
