@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon } from "lucide-react";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon, Star } from "lucide-react";
 import { getGoogleCalendarUrl, generateICS, downloadICS, bookingToEvent } from "../components/calendar/calendarHelpers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";

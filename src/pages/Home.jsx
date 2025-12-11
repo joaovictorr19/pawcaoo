@@ -28,12 +28,14 @@ import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 const InteractiveMap = React.lazy(() => import("../components/search/InteractiveMap"));
-import { Map as MapIcon, List, ChevronLeft, ChevronRight } from "lucide-react";
+import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
+import { getLevelFromXP } from "@/components/gamification/gamificationRules";
+
 export default function Home() {
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -120,7 +122,22 @@ export default function Home() {
   });
 
   const getLevelInfo = (xp = 0) => {
-      return LEVEL_THRESHOLDS.slice().reverse().find(t => xp >= t.min) || LEVEL_THRESHOLDS[0];
+      const level = getLevelFromXP(xp);
+      const levelNames = {
+        1: { title: 'Novato', icon: '🌱' },
+        5: { title: 'Bronze', icon: '🥉' },
+        10: { title: 'Silver', icon: '🥈' },
+        20: { title: 'Gold', icon: '🥇' },
+        30: { title: 'Sapphire', icon: '💎' },
+        50: { title: 'Diamond', icon: '💠' }
+      };
+      
+      // Find the appropriate tier based on level
+      const tier = Object.entries(levelNames)
+        .reverse()
+        .find(([lvl]) => level >= parseInt(lvl))?.[1] || levelNames[1];
+      
+      return { ...tier, level };
   };
 
   const priorityData = React.useMemo(() => {

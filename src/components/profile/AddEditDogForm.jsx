@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dog, Upload, X, Plus, Save, Heart, Camera } from "lucide-react"; // Added Heart and Camera icons
-import { Separator } from "@/components/ui/separator"; // Added Separator
+import { Dog, Upload, X, Plus, Save, Heart, Camera } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import OptimizedImageUpload from "../adoption/OptimizedImageUpload"; // Added OptimizedImageUpload
+import OptimizedImageUpload from "../adoption/OptimizedImageUpload";
+import { createPageUrl } from "@/utils";
 
 export default function AddEditDogForm({ dog, onClose, onSave }) {
   const queryClient = useQueryClient();
