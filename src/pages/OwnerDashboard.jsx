@@ -202,19 +202,23 @@ export default function OwnerDashboard({ user: propUser }) {
             </div>
           </div>
 
-          {/* Linha 3: Hall da Fama (5 Emblemas) */}
+          {/* Linha 3: Hall da Fama (5 Emblemas Mais Recentes) */}
           {user?.achievements_badges && user.achievements_badges.length > 0 && (
             <div className="mb-4">
               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-2">
                 Conquistas Recentes
               </p>
               <div className="flex flex-row gap-3 overflow-x-auto pb-1">
-                {user.achievements_badges
-                  .sort((a, b) => new Date(b.earned_date) - new Date(a.earned_date))
+                {[...user.achievements_badges]
+                  .sort((a, b) => {
+                    const dateA = new Date(a.earned_date || 0).getTime();
+                    const dateB = new Date(b.earned_date || 0).getTime();
+                    return dateB - dateA;
+                  })
                   .slice(0, 5)
                   .map((badge, i) => (
                     <div 
-                      key={i} 
+                      key={`badge-${i}-${badge.badge_id || i}`}
                       className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-default"
                       title={badge.name}
                     >
