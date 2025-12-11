@@ -100,6 +100,13 @@ export default function Home() {
     retry: false,
   });
 
+  const { data: myDogs = [] } = useQuery({
+    queryKey: ['myDogs', user?.email],
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    enabled: !!user?.email,
+    initialData: []
+  });
+
   const [reviewBooking, setReviewBooking] = useState(null);
 
   const { data: activeBookings = [] } = useQuery({
