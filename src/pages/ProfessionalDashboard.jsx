@@ -101,7 +101,7 @@ export default function ProfessionalDashboard() {
     refetchInterval: 30000,
   });
 
-  // Real-time bookings - PEGA TODOS OS PEDIDOS para este Walker (independente de ter sido aceite)
+  // Real-time bookings - PEGA TODOS OS PEDIDOS para este Walker
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings'],
     queryFn: async () => {
@@ -112,8 +112,33 @@ export default function ProfessionalDashboard() {
     },
     enabled: !!user && !!walkerProfile,
     initialData: [],
-    refetchInterval: 10000, // Real-time: refresh every 10s
+    refetchInterval: 5000, // Real-time: refresh every 5s (mais agressivo)
   });
+
+  // Detect new pending bookings and show toast
+  const prevPendingCountRef = React.useRef(0);
+  React.useEffect(() => {
+    const newPendingBookings = walkBookings.filter(b => b.status === 'pending');
+    const currentCount = newPendingBookings.length;
+    
+    if (currentCount > prevPendingCountRef.current && prevPendingCountRef.current > 0) {
+      const newBooking = newPendingBookings[0];
+      toast.success(`🐕 Novo Pedido! ${newBooking.dog_name} - ${format(new Date(newBooking.walk_date), 'dd/MM/yyyy')}`, {
+        description: 'Clique em "Reservas" para aceitar',
+        action: {
+          label: 'Ver Agora',
+          onClick: () => setActiveTab('bookings')
+        }
+      });
+      
+      // Play notification sound if available
+      try {
+        new Audio('/notification.mp3').play().catch(() => {});
+      } catch(e) {}
+    }
+    
+    prevPendingCountRef.current = currentCount;
+  }, [walkBookings]);
 
   const { data: trainingBookings = [] } = useQuery({
     queryKey: ['myTrainingBookings'],

@@ -220,12 +220,28 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         console.error("Erro ao sincronizar chat:", err);
       }
 
-      // 4. Enviar Email de Confirmação Imediata
+      // 4. NOTIFICAR O WALKER (Push/Real-Time)
+      try {
+        await createNotification.mutateAsync({
+          recipient_email: pro.created_by,
+          title: '🔔 Novo Pedido de Passeio!',
+          message: `${user.full_name} solicitou um passeio para ${bookingData.dog_name} em ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time}.`,
+          type: 'booking',
+          related_id: booking.id,
+          priority: 'urgent',
+          action_url: '/ProfessionalDashboard?tab=bookings'
+        });
+        console.log('🔔 Walker notificado via sistema de notificações');
+      } catch (err) {
+        console.error("Erro ao notificar walker:", err);
+      }
+
+      // 5. Enviar Email de Confirmação Imediata
       try {
         await base44.integrations.Core.SendEmail({
           to: user.email,
           subject: `Reserva Iniciada - ${proName}`,
-          body: `Olá ${user.full_name},\n\nSua reserva com ${proName} para ${formData.dog_name} no dia ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time} foi iniciada com sucesso!\n\nPor favor, conclua o processo de pagamento para confirmar.\n\nObrigado,\nEquipa PawCão`
+          body: `Olá ${user.full_name},\n\nSua reserva com ${proName} para ${formData.dog_name} no dia ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time} foi iniciada com sucesso!\n\nPor favor, aguarde a confirmação do profissional.\n\nObrigado,\nEquipa PawCão`
         });
         console.log('📧 Email de confirmação enviado');
       } catch (err) {
