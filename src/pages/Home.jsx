@@ -558,159 +558,83 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
           {user ? (
-            <div className="relative z-20">
-              <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              {/* Hero Gamification Card */}
+              <Card className={`border-0 shadow-2xl overflow-hidden relative ${
+                getLevelInfo(user.gamification_xp).level >= 30 ? 'bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500' :
+                getLevelInfo(user.gamification_xp).level >= 20 ? 'bg-gradient-to-br from-yellow-500 via-yellow-200 to-yellow-600' :
+                getLevelInfo(user.gamification_xp).level >= 10 ? 'bg-gradient-to-br from-gray-300 via-gray-100 to-gray-400' :
+                'bg-gradient-to-br from-orange-700 via-orange-600 to-yellow-700'
+              } text-white`}>
+                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
                 
-                {/* COLUNA 1 & 2: Status Dinâmico (Hero) */}
-                <div className="lg:col-span-2 flex flex-col">
-                  <motion.div 
-                    initial={{ scale: 0.98, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring" }}
-                    className="h-full min-h-[220px]"
-                  >
-                    {priorityData ? (
-                      <>
-                        {/* CASO A: Live Walk */}
-                        {priorityData.type === 'live' && (
-                          <Card className="bg-red-600/90 border-red-400/50 backdrop-blur-md text-white p-6 shadow-[0_0_30px_rgba(220,38,38,0.4)] relative overflow-hidden h-full flex flex-col justify-center">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-20 animate-pulse"></div>
-                            <div className="relative z-10 text-center">
-                              <div className="inline-flex items-center gap-2 bg-black/30 px-3 py-1 rounded-full text-xs font-bold mb-4 animate-bounce">
-                                <div className="w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
-                                AO VIVO AGORA
-                              </div>
-                              <h3 className="text-2xl font-bold mb-2">Passeio em Andamento!</h3>
-                              <p className="text-red-100 mb-6 text-sm">
-                                {priorityData.booking.walker_name} está a passear o {priorityData.booking.dog_name}.
-                              </p>
-                              <Button 
-                                onClick={() => navigate(`/walk/live/${priorityData.booking.id}`)}
-                                className="w-full bg-white text-red-600 hover:bg-red-50 font-bold h-12 text-lg shadow-lg"
-                              >
-                                <PlayCircle className="w-5 h-5 mr-2" />
-                                Acompanhar ao Vivo
-                              </Button>
-                            </div>
-                          </Card>
-                        )}
-
-                        {/* CASO B: Review Pendente */}
-                        {priorityData.type === 'review' && (
-                          <Card className="bg-orange-500/90 border-orange-300/50 backdrop-blur-md text-white p-6 shadow-xl relative overflow-hidden h-full flex flex-col justify-center">
-                            <div className="relative z-10 text-center">
-                              <div className="mx-auto bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-3">
-                                <StarHalf className="w-6 h-6 text-yellow-300" />
-                              </div>
-                              <h3 className="text-xl font-bold mb-1">Passeio Concluído!</h3>
-                              <p className="text-orange-100 mb-4 text-sm">
-                                Como foi a experiência com {priorityData.booking.walker_name}?
-                              </p>
-                              <Button 
-                                onClick={() => setReviewBooking(priorityData.booking)}
-                                className="w-full bg-white text-orange-600 hover:bg-orange-50 font-bold h-10 shadow-md"
-                              >
-                                <Star className="w-4 h-4 mr-2" />
-                                Deixar Review
-                              </Button>
-                            </div>
-                          </Card>
-                        )}
-
-                        {/* CASO C: Próximo Evento */}
-                        {priorityData.type === 'next' && (
-                          <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-6 shadow-xl h-full flex flex-col justify-center">
-                            <div className="flex items-start gap-4">
-                              <div className="bg-green-500 p-3 rounded-xl shadow-lg shrink-0">
-                                <Calendar className="w-8 h-8 text-white" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-green-200 font-bold uppercase tracking-wide mb-1">Próximo Agendamento</p>
-                                <h3 className="font-bold text-2xl leading-tight mb-1">
-                                  {priorityData.booking.walk_date}
-                                </h3>
-                                <p className="text-lg font-medium mb-1">{priorityData.booking.walk_time}</p>
-                                <p className="text-sm text-green-100 mb-3">
-                                  com {priorityData.booking.walker_name}
-                                </p>
-                                {priorityData.booking.pickup_address && (
-                                  <div className="flex items-center gap-2 text-xs bg-black/20 p-2 rounded-lg inline-flex">
-                                    <MapPin className="w-3 h-3 text-green-300" />
-                                    <span className="truncate max-w-[250px]">{priorityData.booking.pickup_address}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </Card>
-                        )}
-                      </>
-                    ) : (
-                      // Fallback: Welcome Card
-                      <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-8 h-full min-h-[220px] flex flex-col justify-center relative overflow-hidden">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                            <PawCaoLogo size="small" showText={false} />
-                          </div>
-                          <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
-                            Área do Cliente
+                {getLevelInfo(user.gamification_xp).level >= 20 && (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -inset-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" 
+                         style={{ transform: 'skewX(-20deg)', animationDuration: '3s' }}></div>
+                  </div>
+                )}
+                
+                <div className="relative z-10 p-6 md:p-8 grid lg:grid-cols-3 gap-6">
+                  {/* Status Column */}
+                  <div className="lg:col-span-2">
+                    <div className="flex items-start justify-between mb-6">
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">
+                            Área Premium
+                          </Badge>
+                          <Badge className={`${
+                            getLevelInfo(user.gamification_xp).level >= 30 ? 'bg-pink-500/80' :
+                            getLevelInfo(user.gamification_xp).level >= 20 ? 'bg-yellow-600/80' :
+                            getLevelInfo(user.gamification_xp).level >= 10 ? 'bg-gray-600/80' :
+                            'bg-orange-600/80'
+                          } text-white border-0`}>
+                            Nível {getLevelInfo(user.gamification_xp).level}
                           </Badge>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold mb-2 leading-tight">
+                        <h1 className="text-3xl md:text-5xl font-black mb-2">
                           Olá, {user.full_name?.split(' ')[0]}! 👋
                         </h1>
-                        <p className="text-green-50 text-lg mb-6">
-                          Seu pet merece o melhor. Vamos agendar algo hoje?
+                        <p className="text-lg opacity-90 mb-4">
+                          {getLevelInfo(user.gamification_xp).title} • {user.gamification_xp || 0} XP
                         </p>
-                        <Button 
-                          onClick={() => {
-                            setActiveTab('walkers');
-                            document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className="w-fit bg-green-600 hover:bg-green-700 border-0 font-bold shadow-lg px-6"
-                        >
-                          <Search className="w-4 h-4 mr-2" />
-                          Encontrar Passeador
-                        </Button>
-                      </Card>
-                    )}
-                  </motion.div>
-                </div>
-
-                {/* COLUNA 3: Gamification */}
-                <div className="lg:col-span-1">
-                  <Card className="bg-white/10 border-white/20 backdrop-blur-md text-white p-6 h-full min-h-[220px] flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <p className="text-xs text-green-200 uppercase font-bold tracking-wider">Nível Atual</p>
-                          <h3 className="text-2xl font-bold text-yellow-300 flex items-center gap-2">
-                            <Award className="w-6 h-6" />
-                            {getLevelInfo(user.gamification_xp).title}
-                          </h3>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-mono font-bold">{user.gamification_xp || 0}</p>
-                          <p className="text-xs text-green-200">Total XP</p>
-                        </div>
                       </div>
-                      
-                      <div className="h-3 bg-black/20 rounded-full overflow-hidden mb-4">
-                        <div 
-                          className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000" 
-                          style={{ width: `${Math.min(((user.gamification_xp || 0) / 7500) * 100, 100)}%` }}
+                      <div className="hidden md:block">
+                        <Crown className="w-16 h-16 text-yellow-300 drop-shadow-lg" />
+                      </div>
+                    </div>
+
+                    {/* XP Progress */}
+                    <div className="mb-6">
+                      <div className="flex justify-between text-sm mb-2 font-semibold opacity-90">
+                        <span>Progresso XP</span>
+                        <span>{Math.min(Math.round(((user.gamification_xp || 0) % 500) / 5), 100)}%</span>
+                      </div>
+                      <div className="h-4 bg-black/20 rounded-full overflow-hidden shadow-inner border border-white/10">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(((user.gamification_xp || 0) % 500) / 5, 100)}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className="h-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 rounded-full shadow-lg"
                         />
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-xs text-green-200 mb-2 font-bold">Últimas Conquistas</p>
-                      {(user.achievements_badges || user.public_badges) && (user.achievements_badges || user.public_badges).length > 0 ? (
-                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                          {(user.achievements_badges || user.public_badges).slice(0, 4).map((badge, i) => (
+                    {/* Badges Preview */}
+                    {(user.achievements_badges || user.public_badges) && (user.achievements_badges || user.public_badges).length > 0 && (
+                      <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                        <p className="text-xs font-bold uppercase tracking-wide mb-3 opacity-80">Conquistas Recentes</p>
+                        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                          {(user.achievements_badges || user.public_badges).slice(0, 6).map((badge, i) => (
                             <TooltipProvider key={i}>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl border border-white/10 shadow-sm cursor-default hover:bg-white/30 transition-colors">
+                                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl border-2 border-white/20 shadow-md cursor-default hover:bg-white/30 hover:scale-110 transition-all flex-shrink-0">
                                     {badge.icon || '🏅'}
                                   </div>
                                 </TooltipTrigger>
@@ -719,59 +643,109 @@ export default function Home() {
                             </TooltipProvider>
                           ))}
                         </div>
-                      ) : (
-                        <p className="text-sm text-white/50 italic">Ainda sem emblemas.</p>
-                      )}
-                    </div>
-                  </Card>
-                </div>
+                      </div>
+                    )}
+                  </div>
 
-                {/* COLUNA 4: Ações Rápidas */}
-                <div className="lg:col-span-3 xl:col-span-1 h-full">
-                  <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-1 gap-4 h-full">
-                    <motion.div whileHover={{ scale: 1.02 }} onClick={() => {
-                      setActiveTab('walkers');
-                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }} className="cursor-pointer h-full">
-                      <Card className="bg-white/90 hover:bg-white backdrop-blur-md border-0 p-4 shadow-lg group transition-all h-full flex items-center xl:justify-start justify-center gap-4">
-                        <div className="bg-green-100 p-3 rounded-xl group-hover:bg-green-600 transition-colors shrink-0">
-                          <Search className="w-6 h-6 text-green-600 group-hover:text-white" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="font-bold text-gray-900 leading-tight">{t('findWalkers', language)}</h3>
-                          <p className="text-xs text-gray-500 hidden xl:block">Buscar profissionais</p>
-                        </div>
-                      </Card>
-                    </motion.div>
+                  {/* Quick Actions */}
+                  <div className="space-y-3">
+                    <motion.button
+                      whileHover={{ scale: 1.03, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setActiveTab('walkers');
+                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="w-full bg-white text-gray-900 hover:bg-gray-50 rounded-xl p-4 shadow-lg flex items-center gap-3 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-600 transition-colors flex-shrink-0">
+                        <Search className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <h3 className="font-bold text-sm">Explorar</h3>
+                        <p className="text-xs text-gray-600">Passeadores verificados</p>
+                      </div>
+                    </motion.button>
 
-                    <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('Favorites'))} className="cursor-pointer h-full">
-                      <Card className="bg-white/90 hover:bg-white backdrop-blur-md border-0 p-4 shadow-lg group transition-all h-full flex items-center xl:justify-start justify-center gap-4">
-                        <div className="bg-pink-100 p-3 rounded-xl group-hover:bg-pink-600 transition-colors shrink-0">
-                          <Heart className="w-6 h-6 text-pink-600 group-hover:text-white" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="font-bold text-gray-900 leading-tight">Favoritos</h3>
-                          <p className="text-xs text-gray-500 hidden xl:block">Passeadores salvos</p>
-                        </div>
-                      </Card>
-                    </motion.div>
+                    <motion.button
+                      whileHover={{ scale: 1.03, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate(createPageUrl('Favorites'))}
+                      className="w-full bg-white text-gray-900 hover:bg-gray-50 rounded-xl p-4 shadow-lg flex items-center gap-3 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center group-hover:bg-pink-600 transition-colors flex-shrink-0">
+                        <Heart className="w-6 h-6 text-pink-600 group-hover:text-white transition-colors" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <h3 className="font-bold text-sm">Favoritos</h3>
+                        <p className="text-xs text-gray-600">Salvos</p>
+                      </div>
+                    </motion.button>
 
-                    <motion.div whileHover={{ scale: 1.02 }} onClick={() => navigate(createPageUrl('OwnerDashboard'))} className="cursor-pointer h-full">
-                      <Card className="bg-gradient-to-r from-indigo-600 to-blue-600 border-0 p-4 shadow-lg text-white h-full flex items-center xl:justify-start justify-center gap-4">
-                        <div className="bg-white/20 p-3 rounded-xl shrink-0">
-                          <TrendingUp className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="font-bold text-white leading-tight">Dashboard</h3>
-                          <p className="text-xs text-blue-100 hidden xl:block">Estatísticas</p>
-                        </div>
-                      </Card>
-                    </motion.div>
+                    <motion.button
+                      whileHover={{ scale: 1.03, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate(createPageUrl('OwnerDashboard'))}
+                      className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 rounded-xl p-4 shadow-lg flex items-center gap-3 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <BarChart3 className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <h3 className="font-bold text-sm">Dashboard</h3>
+                        <p className="text-xs opacity-90">Estatísticas</p>
+                      </div>
+                    </motion.button>
                   </div>
                 </div>
+              </Card>
 
-              </div>
-            </div>
+              {/* Dogs Carousel */}
+              {myDogs.length > 0 && (
+                <Card className="bg-white/95 backdrop-blur-md border-0 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Dog className="w-5 h-5 text-orange-600" />
+                      <h3 className="font-bold text-gray-900">My Pack ({myDogs.length})</h3>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                      {myDogs.map((dog) => (
+                        <motion.div
+                          key={dog.id}
+                          whileHover={{ scale: 1.05, y: -4 }}
+                          className="flex-shrink-0 w-20"
+                        >
+                          <div className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-2 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer">
+                            <div className="w-14 h-14 mx-auto mb-1 rounded-full border-3 border-white shadow-md overflow-hidden bg-white">
+                              {dog.photo_url ? (
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-xl font-bold">
+                                  {dog.dog_name?.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <p className="font-bold text-xs text-gray-900 truncate">{dog.dog_name}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                      <motion.div
+                        whileHover={{ scale: 1.05, y: -4 }}
+                        onClick={() => navigate(createPageUrl('AccountSettings'))}
+                        className="flex-shrink-0 w-20 cursor-pointer"
+                      >
+                        <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-2 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all">
+                          <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center mb-1">
+                            <Plus className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <p className="text-[10px] font-bold text-gray-500">Adicionar</p>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </motion.div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 text-white text-sm font-medium mb-6 border border-white/20 animate-fade-in">
