@@ -50,26 +50,36 @@ export default function EditWalkerProfile() {
 
   const submitEditRequestMutation = useMutation({
     mutationFn: async (changes) => {
-      // Ensure we have the latest user data for RLS compliance
-      const currentUser = await base44.auth.me();
-      if (!currentUser) throw new Error("Sessão expirada. Por favor faça login novamente.");
-
-      return await base44.entities.ProfileEditRequest.create({
-        profile_type: 'walker',
-        profile_id: walkerProfile.id,
-        requester_email: currentUser.email,
-        requester_name: currentUser.full_name,
-        changes_requested: changes,
-        status: 'pending'
+      // Direct update approach - Change status to pending on edit
+      await base44.entities.WalkerProfile.update(walkerProfile.id, {
+        ...changes,
+        verification_status: 'pending' // Requires admin re-approval
       });
+      
+      // Also create edit request for admin tracking
+      try {
+        const currentUser = await base44.auth.me();
+        await base44.entities.ProfileEditRequest.create({
+          profile_type: 'walker',
+          profile_id: walkerProfile.id,
+          requester_email: currentUser.email,
+          requester_name: currentUser.full_name,
+          changes_requested: changes,
+          status: 'pending'
+        });
+      } catch (err) {
+        console.error("Edit request tracking failed:", err);
+        // Don't block the update if tracking fails
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myWalkerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['editRequests'] });
-      toast.success('✅ Pedido de edição enviado! Aguarde aprovação do administrador.');
+      toast.success('✅ Alterações salvas! Status alterado para "Pendente de Aprovação".');
       setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 2000);
     },
     onError: (error) => {
-      toast.error('Erro ao enviar pedido: ' + error.message);
+      toast.error('Erro ao salvar: ' + error.message);
     }
   });
 
