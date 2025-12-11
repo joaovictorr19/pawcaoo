@@ -622,9 +622,9 @@ export default function Home() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-300/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-6 mb-8">
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
@@ -645,11 +645,11 @@ export default function Home() {
                 const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
                 
                 return (
-                  <div className="space-y-4 mb-8 relative">
+                  <div className="space-y-3 mb-6 relative">
                     {/* Ambient glow circle */}
                     <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
-                    <div className="bg-gradient-to-br from-blue-900 via-indigo-700 to-purple-800 text-white rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-blue-900 via-indigo-700 to-purple-800 text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden">
                       {/* Shimmer effect overlay */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
                       
@@ -659,7 +659,7 @@ export default function Home() {
                       <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
                       
                       <div className="relative z-10">
-                        <div className="mb-4">
+                        <div className="mb-3">
                           <h2 className="text-2xl font-bold text-white mb-1">
                             Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
                           </h2>
@@ -668,7 +668,7 @@ export default function Home() {
                           </p>
                         </div>
                         
-                        <div className="mb-4">
+                        <div className="mb-3">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-medium text-white/70">
                               Progresso para Nível {currentLevel + 1}
@@ -686,7 +686,7 @@ export default function Home() {
                         {(() => {
                           const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
                           return allBadges.length > 0 && (
-                            <div className="mb-4 pt-4">
+                            <div className="mb-3 pt-3">
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                                 Conquistas Recentes
                               </p>
@@ -728,7 +728,7 @@ export default function Home() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-4 w-full">
+                    <div className="grid grid-cols-3 gap-3 w-full">
                       <button
                         onClick={() => navigate(createPageUrl('Favorites'))}
                         className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
@@ -810,11 +810,11 @@ export default function Home() {
                 #1 Plataforma de Pet Services em Portugal
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-6 leading-tight">
+              <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-4 leading-tight">
                 {t('homeTitle', language)}
               </h1>
 
-              <p className="text-xl text-slate-700 mb-10 max-w-2xl mx-auto font-medium">
+              <p className="text-xl text-slate-700 mb-6 max-w-2xl mx-auto font-medium">
                 Passeadores verificados, treinadores experientes e muito carinho.
                 Comece agora mesmo a sua busca.
               </p>
@@ -823,13 +823,13 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-900/10 p-6 max-w-3xl mx-auto flex flex-col gap-4 ring-1 ring-blue-100"
+                className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-900/10 p-4 md:p-5 max-w-3xl mx-auto flex flex-col gap-3 ring-1 ring-blue-100"
               >
                 <h3 className="text-slate-900 font-bold text-lg text-left mb-1 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-indigo-600" />
                   Onde procura um Walker?
                 </h3>
-                <div className="flex flex-col md:flex-row gap-4 items-center w-full">
+                <div className="flex flex-col md:flex-row gap-3 items-center w-full">
                   <div className="flex-1 w-full relative">
                     <LocationSearch
                       onLocationChange={(loc) => {
@@ -846,7 +846,7 @@ export default function Home() {
                       placeholder="Ex: Porto, Lisboa, Matosinhos..."
                     />
                   </div>
-                  <div className="w-full md:w-auto flex gap-2">
+                  <div className="w-full md:w-auto flex gap-2 flex-shrink-0">
                     <Button 
                       id="find-walker-btn"
                       size="lg" 
@@ -880,7 +880,7 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              <div className="mt-12 flex flex-wrap justify-center gap-6 font-semibold">
+              <div className="mt-8 flex flex-wrap justify-center gap-4 font-semibold">
                 <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-2xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all cursor-default">
                   <div className="bg-gradient-to-br from-blue-500 to-indigo-500 p-2 rounded-xl shadow-inner">
                      <Shield className="w-4 h-4 text-white" />
@@ -917,7 +917,7 @@ export default function Home() {
         />
       )}
 
-      <div className="max-w-7xl mx-auto px-3 md:px-6 py-6 md:py-10">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         <div className="flex justify-between items-center mb-4">
           <Button
             variant="outline"
