@@ -154,15 +154,15 @@ export default function OwnerDashboard({ user: propUser }) {
 
   if (loadingUser || !user) return null;
 
-  // FORCE tier calculation based on points (Frontend Override)
-  const getTierData = (points) => {
-    if (points >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', icon: '💎' };
-    if (points >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', icon: '👑' };
-    if (points >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', icon: '⚔️' };
+  // FORCE tier calculation based on XP (not loyalty points!)
+  const getTierData = (xp) => {
+    if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', icon: '💎' };
+    if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', icon: '👑' };
+    if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', icon: '⚔️' };
     return { name: 'Bronze', color: 'from-orange-600 to-orange-400', icon: '🛡️' };
   };
   
-  const currentTier = getTierData(points || 0);
+  const currentTier = getTierData(currentXP || 0);
   const cardGradient = `bg-gradient-to-r ${currentTier.color}`;
 
   return (
@@ -179,10 +179,10 @@ export default function OwnerDashboard({ user: propUser }) {
           {/* Linha 1: Boas-vindas + XP */}
           <div className="mb-4">
             <h2 className="text-2xl font-bold text-white mb-1">
-              Olá, {user.full_name?.split(' ')[0] || 'Utilizador'} {currentTier.icon}
+              Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
             </h2>
             <p className="text-sm text-white/80">
-              Nível {currentLevel} • {displayedXP.toLocaleString()} XP • {currentTier.name}
+              Nível {currentLevel} • {displayedXP.toLocaleString()} XP • {currentTier.icon} {currentTier.name}
             </p>
           </div>
 
