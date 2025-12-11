@@ -793,6 +793,7 @@ export default function Home() {
                   </CardContent>
                 </Card>
               )}
+              </div>
             </div>
           ) : (
             <div className="text-center max-w-4xl mx-auto">
