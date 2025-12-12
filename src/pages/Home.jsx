@@ -740,40 +740,43 @@ export default function Home() {
               {/* Dogs Carousel */}
               {myDogs && myDogs.length > 0 && (
                 <Card className="glass-panel border-0 shadow-lg rounded-3xl">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Dog className="w-5 h-5 text-orange-600" />
-                      <h3 className="font-bold text-gray-900">My Pack ({myDogs.length})</h3>
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Dog className="w-4 h-4 text-orange-600" />
+                      <h3 className="font-bold text-sm text-gray-900">
+                        {language === 'pt' ? 'Meus Cães' : language === 'es' ? 'Mis Perros' : 'My Dogs'} ({myDogs.length})
+                      </h3>
                     </div>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                       {myDogs?.map((dog) => (
                         <motion.div
                           key={dog.id}
                           whileHover={{ scale: 1.05, y: -4 }}
-                          className="flex-shrink-0 w-20"
+                          onClick={() => navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`))}
+                          className="flex-shrink-0 w-16"
                         >
-                          <div className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-2 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer">
-                            <div className="w-14 h-14 mx-auto mb-1 rounded-full border-3 border-white shadow-md overflow-hidden bg-white">
+                          <div className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-1.5 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer">
+                            <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-white">
                               {dog.photo_url ? (
                                 <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-xl font-bold">
+                                <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-lg font-bold">
                                   {dog.dog_name?.charAt(0)}
                                 </div>
                               )}
                             </div>
-                            <p className="font-bold text-xs text-gray-900 truncate">{dog.dog_name}</p>
+                            <p className="font-bold text-[10px] text-gray-900 truncate">{dog.dog_name}</p>
                           </div>
                         </motion.div>
                       ))}
                       <motion.div
                         whileHover={{ scale: 1.05, y: -4 }}
                         onClick={() => navigate(createPageUrl('AccountSettings'))}
-                        className="flex-shrink-0 w-20 cursor-pointer"
+                        className="flex-shrink-0 w-16 cursor-pointer"
                       >
-                        <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-2 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all">
-                          <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center mb-1">
-                            <Plus className="w-6 h-6 text-gray-400" />
+                        <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-1.5 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all">
+                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-1">
+                            <Plus className="w-5 h-5 text-gray-400" />
                           </div>
                           <p className="text-[10px] font-bold text-gray-500">Adicionar</p>
                         </div>
