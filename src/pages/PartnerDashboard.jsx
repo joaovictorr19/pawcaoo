@@ -468,6 +468,7 @@ export default function PartnerDashboard() {
               products={myProducts}
               services={myServices}
               payments={myPayments}
+              companyId={company?.id}
             />
           </TabsContent>
         </Tabs>
