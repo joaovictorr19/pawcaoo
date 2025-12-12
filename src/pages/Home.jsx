@@ -66,21 +66,49 @@ function ShopTab({ language }) {
     initialData: [],
   });
 
-  const { data: partners = [] } = useQuery({
+  const { data: partners = [], isLoading: loadingPartners } = useQuery({
     queryKey: ['shopPartners'],
     queryFn: async () => {
       const all = await base44.entities.PartnerCompany.list();
-      return all.filter(p => p.is_active === true).slice(0, 9);
+      return all.filter(p => p.is_active === true).slice(0, 12);
     },
     initialData: [],
   });
 
+  if (loadingPartners) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+          <Skeleton key={i} className="h-56 rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (featuredAnnouncements.length === 0 && partners.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Store className="w-10 h-10 text-gray-400" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          {language === 'pt' ? 'Loja em Breve' : 'Shop Coming Soon'}
+        </h3>
+        <p className="text-gray-600">
+          {language === 'pt' 
+            ? 'Estamos a adicionar parceiros incríveis. Volte em breve!' 
+            : 'We are adding amazing partners. Check back soon!'}
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="text-center"
       >
         <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">
           {language === 'pt' ? '🛍️ Loja PawCão' : language === 'es' ? '🛍️ Tienda PawCão' : '🛍️ PawCão Shop'}
@@ -150,54 +178,56 @@ function ShopTab({ language }) {
         </div>
       )}
 
-      <div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-          {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-          {partners.map((partner, idx) => (
-            <motion.div
-              key={partner.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
-              className="cursor-pointer"
+      {partners.length > 0 && (
+        <div>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+            {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {partners.map((partner, idx) => (
+              <motion.div
+                key={partner.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
+                className="cursor-pointer"
+              >
+                <Card className="glass-panel hover:shadow-2xl transition-all border-0 overflow-hidden group">
+                  <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+                    {partner.logo_url ? (
+                      <img
+                        src={partner.logo_url}
+                        alt={partner.company_name}
+                        className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <Store className="w-12 h-12 text-gray-300" />
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h4 className="font-bold text-sm line-clamp-1">{partner.company_name}</h4>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {partner.company_type?.replace('_', ' ')}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button
+              size="lg"
+              onClick={() => navigate(createPageUrl('Partners'))}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-xl h-14 text-white font-bold"
             >
-              <Card className="glass-panel hover:shadow-xl transition-all border-0 overflow-hidden group">
-                <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-                  {partner.logo_url ? (
-                    <img
-                      src={partner.logo_url}
-                      alt={partner.company_name}
-                      className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <Store className="w-12 h-12 text-gray-300" />
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <h4 className="font-bold text-sm line-clamp-1">{partner.company_name}</h4>
-                  <Badge variant="outline" className="text-xs mt-1">
-                    {partner.company_type?.replace('_', ' ')}
-                  </Badge>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+              <Store className="w-5 h-5 mr-2" />
+              {language === 'pt' ? 'Ver Todas as Ofertas' : 'View All Deals'}
+            </Button>
+          </div>
         </div>
-      </div>
-
-      <div className="text-center mt-8">
-        <Button
-          size="lg"
-          onClick={() => navigate(createPageUrl('Partners'))}
-          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-xl h-14"
-        >
-          <Store className="w-5 h-5 mr-2" />
-          {language === 'pt' ? 'Ver Loja Completa' : 'View Full Shop'}
-        </Button>
-      </div>
+      )}
     </div>
   );
 }
@@ -1235,15 +1265,7 @@ export default function Home() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            <Tabs value={activeTab} onValueChange={(val) => {
-              if (val === 'adoption') {
-                navigate(createPageUrl('AdoptionListings'));
-              } else if (val === 'shop') {
-                setActiveTab('shop');
-              } else {
-                setActiveTab(val);
-              }
-            }} className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
