@@ -572,9 +572,8 @@ function LayoutContent({ children, currentPageName }) {
 
         {/* Floating Sidebar - Left Side (Hidden on Mobile) */}
         {authUser && (
-        <aside className="hidden md:block absolute top-4 left-4 bottom-4 z-50 pointer-events-none">
-          <div className="pointer-events-auto h-full">
-        <Sidebar className={`h-full backdrop-blur-2xl border transition-all duration-500 rounded-[2rem] shadow-2xl ${
+        <aside className="hidden md:block fixed top-4 left-4 bottom-4 w-72 z-50">
+        <Sidebar className={`h-full w-full backdrop-blur-2xl border transition-all duration-500 rounded-[2rem] shadow-2xl ${
           colors?.isDarkMode 
             ? 'bg-slate-900/60 border-slate-700/40' 
             : 'bg-white/40 border-white/40'
@@ -853,7 +852,6 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
-          </div>
         </aside>
             )}
 
@@ -865,7 +863,7 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* Main Content Area - Full Screen with Sidebar Offset */}
             <main className={`absolute inset-0 z-10 w-full h-full overflow-y-auto overflow-x-hidden transition-all duration-500 ${
-              authUser ? 'md:pl-80 px-4 md:pr-6 py-4 md:py-6' : 'px-4 md:px-6 py-4 md:py-6'
+              authUser ? 'md:pl-[22rem] md:pr-8 px-4 py-4 md:py-6' : 'px-4 md:px-6 py-4 md:py-6'
             }`}>
             <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-40 transition-all duration-300 shadow-lg backdrop-blur-xl rounded-2xl mb-6 ${
               colors?.isDarkMode ? 'bg-slate-900/60 border border-slate-700/40' : 'bg-white/60 border border-white/40'
