@@ -494,15 +494,18 @@ export default function Chat() {
   // Finish walk with verification
   const finishWalkMutation = useMutation({
     mutationFn: async () => {
+      console.log("🎯 INICIANDO FINALIZAÇÃO", { bookingId, user: user?.email, booking });
+      
       try {
         // Get current location with timeout
+        console.log("📍 Pedindo localização GPS...");
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(
             resolve,
             (error) => {
-              console.error("Location error:", error);
-              toast.error("Erro ao obter localização. Verifique se o GPS está ativado.");
-              reject(error);
+              console.error("❌ Location error:", error);
+              toast.error("Erro ao obter localização. Continuando sem GPS...");
+              resolve(null); // Continue without GPS
             },
             {
               enableHighAccuracy: true,
@@ -512,20 +515,25 @@ export default function Chat() {
           );
         });
 
-        const { latitude, longitude } = position.coords;
+        const latitude = position?.coords?.latitude || null;
+        const longitude = position?.coords?.longitude || null;
         let distance = 0;
 
+        console.log("📍 GPS obtido:", { latitude, longitude });
+
         // Calculate distance from pickup location
-        if (booking.pickup_lat && booking.pickup_lng) {
+        if (booking.pickup_lat && booking.pickup_lng && latitude && longitude) {
           distance = calculateDistance(
             latitude,
             longitude,
             booking.pickup_lat,
             booking.pickup_lng
           );
+          console.log("📏 Distância calculada:", distance);
         }
 
         // Create final checkpoint
+        console.log("✅ Criando checkpoint final...");
         await base44.entities.WalkCheckpoint.create({
           booking_id: bookingId,
           walker_email: user.email,
@@ -534,23 +542,29 @@ export default function Chat() {
           longitude,
           timestamp: new Date().toISOString(),
         });
+        console.log("✅ Checkpoint criado");
 
         // Update booking status
+        console.log("🔄 Atualizando status da reserva...");
         await base44.entities.Booking.update(bookingId, {
           status: "service_completed",
           completed_date: new Date().toISOString(),
           actual_delivery_distance: distance,
         });
+        console.log("✅ Reserva atualizada");
 
         // Release payment
         if (booking.payment_id) {
+          console.log("💰 Liberando pagamento...", booking.payment_id);
           await base44.entities.Payment.update(booking.payment_id, {
             status: "released",
             released_date: new Date().toISOString(),
           });
+          console.log("✅ Pagamento liberado");
         }
 
         // Notify owner
+        console.log("📧 Enviando notificação...");
         await base44.entities.Notification.create({
           recipient_email: booking.created_by || booking.owner_email,
           title: "✅ Serviço Concluído!",
@@ -559,21 +573,33 @@ export default function Chat() {
           related_id: bookingId,
           priority: "high",
         });
+        console.log("✅ Notificação enviada");
 
+        console.log("🎉 FINALIZAÇÃO COMPLETA!");
         return true;
       } catch (error) {
-        console.error("Finish walk error:", error);
+        console.error("❌ ERRO NA FINALIZAÇÃO:", error);
+        console.error("Detalhes do erro:", {
+          message: error.message,
+          stack: error.stack,
+          booking: booking,
+          bookingId: bookingId
+        });
         throw error;
       }
     },
     onSuccess: () => {
+      console.log("✅ onSuccess chamado");
       toast.success("✅ Serviço concluído e pagamento liberado!");
       queryClient.invalidateQueries(["booking", bookingId]);
-      setTimeout(() => navigate(-1), 1500);
+      setTimeout(() => {
+        console.log("🔙 Navegando de volta...");
+        navigate(-1);
+      }, 1500);
     },
     onError: (error) => {
-      console.error("Finish mutation error:", error);
-      toast.error(error.message || "Erro ao concluir serviço");
+      console.error("❌ onError chamado:", error);
+      toast.error(`Erro: ${error.message || "Erro desconhecido"}`);
     },
   });
 
@@ -1139,11 +1165,14 @@ export default function Chat() {
 
           <Button
             className="w-full bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => finishWalkMutation.mutate()}
+            onClick={() => {
+              console.log("🔘 Botão concluir clicado");
+              finishWalkMutation.mutate();
+            }}
             disabled={finishWalkMutation.isPending}
           >
             <CheckCircle2 className="w-4 h-4 mr-2" />
-            {finishWalkMutation.isPending ? "Finalizando..." : "Concluir Serviço"}
+            {finishWalkMutation.isPending ? "Processando..." : "Concluir Serviço"}
           </Button>
           
           <p className="text-[10px] text-center text-gray-600">
