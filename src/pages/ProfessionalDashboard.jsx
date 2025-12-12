@@ -734,41 +734,38 @@ export default function ProfessionalDashboard() {
 
         {/* Header */}
         <div className="mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Painel Profissional</h1>
               <p className="text-gray-600 mt-1">{profile.walker_name || profile.trainer_name}</p>
             </div>
-            
-            {/* Quick Actions - Compact Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:w-auto">
-              <Button
-                onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-                className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
-                size="lg"
-              >
-                <Edit className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Editar Perfil</span>
-              </Button>
-              <Button 
-                onClick={() => navigate(createPageUrl('ManageAvailability'))} 
-                variant="outline"
-                className="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-md"
-                size="lg"
-              >
-                <Calendar className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Agenda</span>
-              </Button>
-              <Button
-                onClick={() => setShowServiceForm(true)}
-                variant="outline"
-                className="border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 shadow-md col-span-2 md:col-span-1"
-                size="lg"
-              >
-                <Plus className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Novo Serviço</span>
-              </Button>
-            </div>
+          </div>
+          
+          {/* Quick Actions - Clean Row */}
+          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <Button
+              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+              className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg whitespace-nowrap"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Editar Perfil
+            </Button>
+            <Button 
+              onClick={() => navigate(createPageUrl('ManageAvailability'))} 
+              variant="outline"
+              className="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-md whitespace-nowrap"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Gerir Agenda
+            </Button>
+            <Button
+              onClick={() => setShowServiceForm(true)}
+              variant="outline"
+              className="border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 shadow-md whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Serviço
+            </Button>
           </div>
 
           {/* Stats Grid */}
@@ -1445,25 +1442,7 @@ export default function ProfessionalDashboard() {
                     </Button>
                   </div>
 
-                  <div className="pt-2 border-t">
-                    <h4 className="font-semibold text-xs text-gray-500 uppercase mb-2">Ações Rápidas</h4>
-                    <Button 
-                      className="w-full h-10 bg-green-600 hover:bg-green-700 mb-2" 
-                      onClick={() => navigate(createPageUrl('ManageAvailability'))}
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Gerir Horários
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="w-full h-10" 
-                      onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Editar Perfil
-                    </Button>
-                  </div>
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-3 pt-4 border-t">
                     <h4 className="font-semibold text-xs md:text-sm text-gray-600 uppercase">Próximos Passeios</h4>
                     {allBookings
                       .filter(b => b.status === 'confirmed' && new Date(b.walk_date || b.session_date) >= new Date())
