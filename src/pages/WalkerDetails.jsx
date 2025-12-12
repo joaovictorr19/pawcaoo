@@ -28,6 +28,7 @@ import { useTheme } from "@/components/ThemeContext";
 // Mini component for favorite button logic
 function FavoriteButton({ walker, user }) {
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
   
   const { data: favorites = [] } = useQuery({
     queryKey: ['myFavorites'],
