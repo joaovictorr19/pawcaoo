@@ -565,6 +565,15 @@ function LayoutContent({ children, currentPageName }) {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Hide scrollbar when collapsed */
+[data-sidebar="sidebar"][data-state="collapsed"] {
+  overflow: hidden !important;
+}
+
+[data-sidebar="sidebar"][data-state="collapsed"] * {
+  overflow: hidden !important;
+}
+
 /* Premium glass effect */
 [data-sidebar="sidebar"]::before {
   content: '';
@@ -577,6 +586,12 @@ function LayoutContent({ children, currentPageName }) {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+/* Ensure main content doesn't shift */
+main {
+  margin-left: 0 !important;
+  width: 100% !important;
 }
 
 /* Hide floating button when sidebar is open */
@@ -916,7 +931,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 transition-all duration-300 w-full">
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 w-full relative z-10">
             <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
