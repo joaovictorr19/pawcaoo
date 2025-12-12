@@ -20,11 +20,19 @@ export default function ProfileEditRequests() {
 
   const approveEditMutation = useMutation({
     mutationFn: async ({ requestId, profileType, profileId, changes }) => {
-      // Apply changes to profile
+      // Apply changes to profile AND mark as verified
       if (profileType === 'walker') {
-        await base44.entities.WalkerProfile.update(profileId, changes);
+        await base44.entities.WalkerProfile.update(profileId, {
+          ...changes,
+          verification_status: 'verified',
+          is_active: true
+        });
       } else if (profileType === 'trainer') {
-        await base44.entities.TrainerProfile.update(profileId, changes);
+        await base44.entities.TrainerProfile.update(profileId, {
+          ...changes,
+          verification_status: 'verified',
+          is_active: true
+        });
       }
 
       // Update request status
@@ -37,7 +45,9 @@ export default function ProfileEditRequests() {
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
       queryClient.invalidateQueries({ queryKey: ['walkers'] });
       queryClient.invalidateQueries({ queryKey: ['trainers'] });
-      toast.success('✅ Edição aprovada e aplicada!');
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+      toast.success('✅ Edição aprovada e perfil verificado!');
     },
   });
 

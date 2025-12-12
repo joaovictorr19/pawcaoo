@@ -86,7 +86,7 @@ export default function EditWalkerProfile() {
       queryClient.invalidateQueries({ queryKey: ['editRequests'] });
       
       if (data.hasSensitiveChanges) {
-        toast.warning('⚠️ Alterações enviadas para análise! Seu perfil ficará oculto até a aprovação da equipe.', {
+        toast.success('✅ Alterações enviadas para análise! Seu perfil permanece visível enquanto aguarda aprovação.', {
           duration: 6000
         });
       } else {
