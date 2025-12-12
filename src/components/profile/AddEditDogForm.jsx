@@ -94,29 +94,35 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
       // Clean payload: remove undefined values and empty strings for optional fields
       const cleanPayload = Object.entries(data).reduce((acc, [key, value]) => {
         // Keep required fields even if empty
-        if (['dog_name', 'size', 'owner_email'].includes(key)) {
-          acc[key] = value;
+        if (['dog_name', 'size', 'owner_email', 'pet_type'].includes(key)) {
+          acc[key] = value || (key === 'pet_type' ? 'dog' : key === 'size' ? 'medium' : '');
         } 
+        // For numbers, convert empty strings to undefined
+        else if (['age', 'weight'].includes(key)) {
+          acc[key] = value === '' || value === null ? undefined : value;
+        }
+        // For objects like gets_along_with, always include
+        else if (key === 'gets_along_with' && typeof value === 'object') {
+          acc[key] = value;
+        }
         // For optional fields, only include if they have a value
         else if (value !== undefined && value !== '' && value !== null) {
           acc[key] = value;
-        }
-        // For default_pickup_address, ensure it's a string or null
-        else if (key === 'default_pickup_address') {
-          acc[key] = value || '';
         }
         return acc;
       }, {});
 
       const payload = {
         ...cleanPayload,
-        owner_email: user.email
+        owner_email: user.email,
+        pet_type: cleanPayload.pet_type || 'dog',
+        size: cleanPayload.size || 'medium'
       };
 
       console.log('💾 Saving dog payload:', payload);
 
       try {
-        if (dog) {
+        if (dog?.id) {
           const result = await base44.entities.DogProfile.update(dog.id, payload);
           console.log('✅ Dog updated successfully:', result);
           return result;
