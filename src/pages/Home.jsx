@@ -927,7 +927,11 @@ export default function Home() {
           <Button
             variant="outline"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="hover:bg-gray-50"
+            className="hover:opacity-80"
+            style={{
+              borderColor: `${colors?.primary || '#3b82f6'}40`,
+              color: colors?.primary || '#3b82f6'
+            }}
           >
             <Sliders className="w-4 h-4 mr-2" />
             {showAdvancedFilters ? t('hideAdvancedFilters', language) : t('showAdvancedFilters', language)}
