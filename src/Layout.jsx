@@ -558,15 +558,18 @@ function LayoutContent({ children, currentPageName }) {
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] transition-all ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
-            <Link 
-              to={createPageUrl("Home")} 
-              className="block hover:opacity-80 transition-opacity"
-            >
-              <PawCaoLogo size="default" />
-            </Link>
+            <div className="flex items-center justify-between mb-3">
+              <Link 
+                to={createPageUrl("Home")} 
+                className="block hover:opacity-80 transition-opacity group-data-[state=collapsed]:hidden"
+              >
+                <PawCaoLogo size="default" />
+              </Link>
+              <SidebarTrigger className="ml-auto hover:bg-green-100 rounded-xl transition-colors" />
+            </div>
 
             {planBadge && (
-              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
+              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg group-data-[state=collapsed]:hidden`}>
                 <div className="text-xs font-semibold">
                   {planBadge.icon} {planBadge.name}
                 </div>
