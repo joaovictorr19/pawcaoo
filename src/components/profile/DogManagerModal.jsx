@@ -79,10 +79,10 @@ export default function DogManagerModal({ isOpen, onClose, userEmail }) {
         <div className="space-y-4 py-4">
           <Button
             onClick={handleAddNew}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white group"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Novo Cão
+            <Plus className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+            <span>Adicionar Novo Cão</span>
           </Button>
 
           {isLoading ? (

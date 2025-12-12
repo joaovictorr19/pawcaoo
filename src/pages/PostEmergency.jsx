@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +14,7 @@ import { toast } from "sonner";
 import NotificationService from "../components/NotificationService";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import { useQuery } from "@tanstack/react-query";
 
 export default function PostEmergency() {
   const { language } = useLanguage();
@@ -36,6 +36,31 @@ export default function PostEmergency() {
     special_notes: "",
     urgency_level: "urgent",
   });
+
+  // ✅ Buscar usuário e cães para preenchimento automático
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: myDogs = [] } = useQuery({
+    queryKey: ['myDogs'],
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    enabled: !!user?.email,
+    initialData: []
+  });
+
+  // ✅ Preencher dados do usuário automaticamente
+  React.useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        owner_name: user.full_name || prev.owner_name,
+        owner_phone: user.phone || prev.owner_phone,
+        location: user.address || user.location || user.city || prev.location
+      }));
+    }
+  }, [user]);
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
@@ -105,6 +130,40 @@ export default function PostEmergency() {
           </CardHeader>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Quick Fill from My Dogs */}
+              {myDogs?.length > 0 && (
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                  <Label className="font-semibold text-green-900 mb-2 block">🐕 Preencher com Meu Cão</Label>
+                  <Select 
+                    onValueChange={(dogId) => {
+                      const dog = myDogs.find(d => d.id === dogId);
+                      if (dog) {
+                        setFormData(prev => ({
+                          ...prev,
+                          dog_name: dog.dog_name,
+                          dog_size: dog.size,
+                          dog_breed: dog.breed || '',
+                          dog_photo_url: dog.photo_url || '',
+                          special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
+                        }));
+                        toast.success(`Dados de ${dog.dog_name} preenchidos!`);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Selecionar um dos meus cães" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {myDogs.map((dog) => (
+                        <SelectItem key={dog.id} value={dog.id}>
+                          {dog.dog_name} ({dog.breed || 'SRD'}) - {dog.size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {/* Dog Photo Upload */}
               <div className="space-y-2">
                 <Label htmlFor="photo">{t('dogPhoto', language)} *</Label>

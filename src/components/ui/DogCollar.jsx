@@ -27,7 +27,7 @@ export default function DogCollar({ userEmail, onClick }) {
       title={dogsCount > 0 ? `${dogsCount} ${dogsCount === 1 ? 'Cão' : 'Cães'} cadastrado(s)` : 'Adicionar Cão'}
     >
       {/* SVG Premium Closed Leather Collar - 3D Loop Design */}
-      <svg width="56" height="56" viewBox="0 0 56 56" className="drop-shadow-lg hover:drop-shadow-xl transition-all">
+      <svg width="28" height="28" viewBox="0 0 56 56" className="drop-shadow-lg hover:drop-shadow-xl transition-all">
         <defs>
           {/* Gradiente 3D para Couro Marrom Rico */}
           <linearGradient id="leatherFront" x1="0%" y1="0%" x2="0%" y2="100%">
