@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dog, Edit, Trash2, Calendar, Weight, Heart, Shield, FileText, AlertCircle } from "lucide-react";
+import { Dog, Edit, Trash2, Calendar, Weight, Heart, Shield, FileText, AlertCircle, Trophy, Star, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { calculateDogLevel, calculateDogStars, getDogLevelInfo, getAllDogAchievements } from "../gamification/dogGamificationSystem";
 
 export default function DogProfileCard({ dog, onEdit, onDelete }) {
+  const [showAchievements, setShowAchievements] = useState(false);
+  
   const getSizeLabel = (size) => {
     const labels = {
       small: "Pequeno",
@@ -23,6 +27,18 @@ export default function DogProfileCard({ dog, onEdit, onDelete }) {
 
   const hasVaccinationAlert = dog.vaccination_date && 
     new Date(dog.vaccination_date) < new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+
+  // Gamification calculations
+  const levelInfo = getDogLevelInfo(dog.total_walks || 0);
+  const stars = calculateDogStars(dog.perfect_walks_count || 0, dog.total_walks || 0);
+  const { earned, locked } = getAllDogAchievements(dog);
+  
+  const rarityColors = {
+    common: "bg-gray-100 text-gray-700 border-gray-300",
+    rare: "bg-blue-100 text-blue-700 border-blue-300",
+    epic: "bg-purple-100 text-purple-700 border-purple-300",
+    legendary: "bg-yellow-100 text-yellow-700 border-yellow-300"
+  };
 
   return (
     <motion.div
@@ -205,23 +221,208 @@ export default function DogProfileCard({ dog, onEdit, onDelete }) {
             </div>
           )}
 
+          {/* Gamification Section */}
+          <div className="mt-4 pt-4 border-t space-y-3">
+            {/* Level & Stars */}
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-3 border-2 border-yellow-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-600" />
+                  <span className="font-bold text-gray-900">Nível {levelInfo.level}</span>
+                  <Badge className="bg-yellow-500 text-white text-xs">{levelInfo.title}</Badge>
+                </div>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < stars ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              {levelInfo.level < 10 && (
+                <div>
+                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                    <span>Progresso</span>
+                    <span>{levelInfo.progress.remaining} passeios até nível {levelInfo.level + 1}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 h-full transition-all duration-500"
+                      style={{ width: `${levelInfo.progress.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Achievements Preview */}
+            {earned.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">🏅 Conquistas</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAchievements(true)}
+                    className="text-xs h-7"
+                  >
+                    Ver Todas ({earned.length})
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {earned.slice(0, 4).map((achievement, idx) => (
+                    <div
+                      key={idx}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 ${
+                        rarityColors[achievement.rarity] || rarityColors.common
+                      }`}
+                    >
+                      {achievement.icon} {achievement.name}
+                    </div>
+                  ))}
+                  {earned.length > 4 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{earned.length - 4}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Stats */}
-          <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-3 text-center">
+          <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-2 text-center">
             <div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl font-bold text-green-600">
                 {dog.total_walks || 0}
               </div>
               <div className="text-xs text-gray-600">Passeios</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-xl font-bold text-purple-600">
                 {dog.total_training_sessions || 0}
               </div>
               <div className="text-xs text-gray-600">Treinos</div>
             </div>
+            <div>
+              <div className="text-xl font-bold text-blue-600">
+                {dog.total_distance_km?.toFixed(1) || 0}
+              </div>
+              <div className="text-xs text-gray-600">km</div>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Achievements Modal */}
+      <Dialog open={showAchievements} onOpenChange={setShowAchievements}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Trophy className="w-6 h-6 text-yellow-600" />
+              Conquistas de {dog.dog_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Level Overview */}
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border-2 border-yellow-200">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-3xl font-bold text-gray-900">Nível {levelInfo.level}</div>
+                  <div className="text-sm text-gray-600">{levelInfo.title}</div>
+                </div>
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-6 h-6 ${
+                        i < stars ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              {levelInfo.level < 10 && (
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Próximo Nível</span>
+                    <span>{levelInfo.progress.remaining} passeios restantes</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 h-full rounded-full transition-all"
+                      style={{ width: `${levelInfo.progress.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Earned Achievements */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Award className="w-5 h-5 text-green-600" />
+                Desbloqueadas ({earned.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {earned.map((achievement, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className={`p-4 rounded-xl border-2 ${rarityColors[achievement.rarity]}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="text-3xl">{achievement.icon}</div>
+                      <div className="flex-1">
+                        <div className="font-bold text-sm">{achievement.name}</div>
+                        <div className="text-xs text-gray-600 mt-1">{achievement.description}</div>
+                        {achievement.earned_date && (
+                          <div className="text-xs text-gray-500 mt-2">
+                            {format(new Date(achievement.earned_date), 'dd/MM/yyyy')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Locked Achievements */}
+            {locked.length > 0 && (
+              <div>
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  🔒 Para Desbloquear ({locked.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {locked.map((achievement, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 opacity-60"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="text-3xl grayscale">{achievement.icon}</div>
+                        <div className="flex-1">
+                          <div className="font-bold text-sm text-gray-700">{achievement.name}</div>
+                          <div className="text-xs text-gray-600 mt-1">{achievement.description}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
