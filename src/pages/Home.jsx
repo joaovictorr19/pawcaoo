@@ -1795,6 +1795,7 @@ export default function Home() {
               </div>
               <span className="text-sm font-bold text-gray-700">{t('support247', language)}</span>
             </motion.div>
+            </div>
           </div>
         </div>
       </div>
