@@ -52,14 +52,6 @@ export const ThemeProvider = ({ children }) => {
         progress: tier.progress
       });
 
-      // Inject CSS variables dynamically
-      const root = document.documentElement;
-      if (tier.colors?.cssVars) {
-        Object.entries(tier.colors.cssVars).forEach(([key, value]) => {
-          root.style.setProperty(key, value);
-        });
-      }
-
       // Apply Cosmos dark mode
       if (tier.name === 'Cosmos') {
         document.documentElement.classList.add('dark-cosmos');
@@ -71,10 +63,7 @@ export const ThemeProvider = ({ children }) => {
 
   const value = {
     tier: tierTheme.name,
-    colors: {
-      ...tierTheme.colors,
-      isDarkMode: tierTheme.name === 'Cosmos'
-    },
+    colors: tierTheme.colors,
     icon: tierTheme.icon,
     progress: tierTheme.progress || 0,
   };
