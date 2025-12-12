@@ -1034,16 +1034,6 @@ export default function Home() {
               </Button>
               
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="h-7 text-[10px] px-2"
-              >
-                <Sliders className="w-3 h-3 mr-1" />
-                {showAdvancedFilters ? 'Menos' : 'Mais'}
-              </Button>
-              
-              <Button
                 variant={viewMode === "list" ? "default" : "outline"}
                 onClick={() => setViewMode("list")}
                 size="sm"
