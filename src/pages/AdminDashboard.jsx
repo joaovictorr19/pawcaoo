@@ -853,11 +853,23 @@ export default function AdminDashboard() {
             granted_by: user.email
           });
 
-          // Update User Profile (legacy/display)
+          // Update User Auth Entity
           await base44.entities.User.update(targetUser.id, {
             public_badges: [...currentPublicBadges, newBadge],
             gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
           });
+
+          // Sync to UserProfile Entity (for public leaderboards)
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+            if (profiles.length > 0) {
+              await base44.entities.UserProfile.update(profiles[0].id, {
+                gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
+              });
+            }
+          } catch (e) {
+            console.error("Error syncing XP to UserProfile:", e);
+          }
           
           grantedCount++;
         }));
@@ -916,11 +928,23 @@ export default function AdminDashboard() {
         granted_by: user.email
       });
 
-      // Update User Profile (Legacy sync)
+      // Update User Auth Entity
       await base44.entities.User.update(targetUser.id, {
         public_badges: [...currentPublicBadges, newBadge],
         gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
       });
+
+      // Sync to UserProfile Entity (for public leaderboards)
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+        if (profiles.length > 0) {
+          await base44.entities.UserProfile.update(profiles[0].id, {
+            gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
+          });
+        }
+      } catch (e) {
+        console.error("Error syncing XP to UserProfile:", e);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
@@ -1162,6 +1186,18 @@ export default function AdminDashboard() {
           public_badges: [...currentPublicBadges, badge],
           gamification_xp: (targetUser.gamification_xp || 0) + 100
         });
+
+        // Sync to UserProfile Entity
+        try {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+          if (profiles.length > 0) {
+            await base44.entities.UserProfile.update(profiles[0].id, {
+              gamification_xp: (targetUser.gamification_xp || 0) + 100
+            });
+          }
+        } catch (e) {
+          console.error("Error syncing XP to UserProfile:", e);
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
