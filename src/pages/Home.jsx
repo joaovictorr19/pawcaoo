@@ -95,7 +95,6 @@ export default function Home() {
 
   // Dashboard XP animation states (moved to top level)
   const [displayedXP, setDisplayedXP] = useState(0);
-  const [progressWidth, setProgressWidth] = useState(0);
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -205,21 +204,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [currentXP]);
 
-  // Progress width animation - moved to top level
-  useEffect(() => {
-    if (!user) return;
-    const currentLevel = user?.gamification_level || 1;
-    const nextLevelXP = currentLevel * 500;
-    const currentLevelStartXP = (currentLevel - 1) * 500;
-    const xpInCurrentLevel = currentXP - currentLevelStartXP;
-    const xpNeededForNext = nextLevelXP - currentLevelStartXP;
-    const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
-    
-    const timer = setTimeout(() => {
-      setProgressWidth(xpProgress);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [user, currentXP]);
+
 
   const { data: walkers, isLoading: loadingWalkers } = useQuery({
     queryKey: ['walkers'],
@@ -628,21 +613,11 @@ export default function Home() {
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
+                const currentTier = calculateTier(currentXP);
                 
-                const getTierData = (xp) => {
-                  if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', icon: '💎' };
-                  if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', icon: '👑' };
-                  if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', icon: '⚔️' };
-                  return { name: 'Bronze', color: 'from-orange-600 to-orange-400', icon: '🛡️' };
-                };
-                
-                const currentTier = getTierData(currentXP);
-                
-                const nextLevelXP = currentLevel * 500;
-                const currentLevelStartXP = (currentLevel - 1) * 500;
-                const xpInCurrentLevel = currentXP - currentLevelStartXP;
-                const xpNeededForNext = nextLevelXP - currentLevelStartXP;
-                const xpProgress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
+                // Tier-based progress (same as Gamification page)
+                const tierProgressPercentage = currentTier.progress || 0;
+                const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
                 
                 return (
                   <div className="space-y-3 mb-6 relative">
@@ -671,16 +646,21 @@ export default function Home() {
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-medium text-white/70">
-                              Progresso para Nível {currentLevel + 1}
+                              Progresso para {currentTier.max !== Infinity ? currentTier.next : 'Máximo'}
                             </span>
-                            <span className="text-xs text-white/90 font-semibold">{Math.round(xpProgress)}%</span>
+                            <span className="text-xs text-white/90 font-semibold">{Math.round(tierProgressPercentage)}%</span>
                           </div>
                           <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
-                              style={{ width: `${progressWidth}%` }}
+                              style={{ width: `${tierProgressPercentage}%` }}
                             />
                           </div>
+                          {xpRemainingForNextTier > 0 && (
+                            <p className="text-[10px] text-white/70 mt-1">
+                              Faltam {xpRemainingForNextTier.toLocaleString('pt-PT')} XP
+                            </p>
+                          )}
                         </div>
                         
                         {(() => {
