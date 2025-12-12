@@ -601,17 +601,26 @@ button[data-sidebar="trigger"] {
 /* Ensure main content doesn't shift */
 main {
   margin-left: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
   width: 100% !important;
 }
 
-/* Floating button always visible */
+/* Floating button always visible and above all */
 .floating-sidebar-trigger {
   display: flex !important;
+  z-index: 9999 !important;
 }
 
 /* Remove trigger from sidebar header */
 button[data-sidebar="trigger"] {
   display: none !important;
+}
+
+/* Zero top spacing globally */
+body, html, #root {
+  margin: 0 !important;
+  padding: 0 !important;
 }
         `}</style>
       {/* Dynamic Tier-based Aurora Background */}
