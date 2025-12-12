@@ -86,7 +86,7 @@ export default function Gamification() {
       const profiles = await base44.entities.WalkerProfile.list('-rating', 500);
       return profiles.filter(p => p.is_active && p.verification_status === 'verified');
     },
-    enabled: activeRanking !== 'global',
+    enabled: activeRanking === 'walkers',
   });
 
   // Fetch bookings for completed rides count
@@ -97,6 +97,16 @@ export default function Gamification() {
       return bookings;
     },
     enabled: activeRanking === 'walkers',
+  });
+
+  // Fetch dog profiles for Happy Dogs ranking
+  const { data: dogProfiles = [] } = useQuery({
+    queryKey: ['dogProfiles'],
+    queryFn: async () => {
+      const dogs = await base44.entities.DogProfile.list('-created_date', 500);
+      return dogs;
+    },
+    enabled: activeRanking === 'quality',
   });
 
   // Process data based on active ranking
@@ -129,17 +139,31 @@ export default function Gamification() {
     }
 
     if (activeRanking === 'quality') {
-      // Sort by rating and total walks (quality + quantity)
-      return walkerProfiles
-        .map(profile => ({
-          ...profile,
-          full_name: profile.walker_name,
-          profile_photo_url: profile.photo_url,
-          email: profile.created_by,
-          quality_score: ((profile.rating || 0) * 100) + (profile.total_walks || 0)
-        }))
-        .filter(w => w.rating && w.rating > 0 && w.total_walks > 0)
-        .sort((a, b) => b.quality_score - a.quality_score);
+      // Count completed bookings per dog
+      const dogBookingsCount = {};
+      allBookings.forEach(booking => {
+        const dogName = booking.dog_name;
+        const ownerEmail = booking.created_by;
+        const dogKey = `${ownerEmail}-${dogName}`;
+        if (dogName) {
+          dogBookingsCount[dogKey] = (dogBookingsCount[dogKey] || 0) + 1;
+        }
+      });
+
+      // Map to dog profiles and sort by bookings count
+      return dogProfiles
+        .map(dog => {
+          const dogKey = `${dog.owner_email}-${dog.dog_name}`;
+          return {
+            ...dog,
+            full_name: dog.dog_name,
+            profile_photo_url: dog.photo_url,
+            email: dog.owner_email,
+            total_walks: dogBookingsCount[dogKey] || 0
+          };
+        })
+        .filter(d => d.total_walks > 0)
+        .sort((a, b) => b.total_walks - a.total_walks);
     }
 
     return [];
@@ -218,9 +242,9 @@ export default function Gamification() {
       podiumColor: 'from-pink-400 to-pink-600',
       accentColor: 'text-pink-600',
       bgGradient: 'from-pink-50 to-rose-50',
-      metricKey: 'rating',
-      metricLabel: 'Avaliação',
-      formatMetric: (value) => `${(value || 0).toFixed(1)} ⭐`
+      metricKey: 'total_walks',
+      metricLabel: 'Passeios',
+      formatMetric: (value) => `${value || 0} Passeios`
     }
   };
 
@@ -592,7 +616,7 @@ export default function Gamification() {
                       <p className="text-xs text-gray-600">Walker Verificado</p>
                     )}
                     {activeRanking === 'quality' && (
-                      <p className="text-xs text-gray-600">⭐ Excelência</p>
+                      <p className="text-xs text-gray-600">🐾 Cão Feliz</p>
                     )}
                   </div>
                   <div className="text-right">
