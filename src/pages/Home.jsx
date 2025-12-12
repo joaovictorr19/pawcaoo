@@ -1096,8 +1096,11 @@ export default function Home() {
                       {myDogs?.map((dog) => (
                         <div
                           key={dog.id}
-                          onClick={() => navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`))}
-                          className="flex-shrink-0 w-16"
+                          onClick={() => {
+                            console.log('🐕 Dog clicked:', dog.id);
+                            navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                          }}
+                          className="flex-shrink-0 w-16 cursor-pointer"
                         >
                           <motion.div
                             whileHover={{ scale: 1.05, y: -4 }}

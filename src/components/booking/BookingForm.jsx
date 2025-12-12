@@ -106,6 +106,13 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         if (selectedDog.default_pickup_address) {
           setPickupAddress(selectedDog.default_pickup_address);
         }
+        // Auto-fill GPS if available
+        if (selectedDog.default_pickup_lat && selectedDog.default_pickup_lng) {
+          setPickupCoords({
+            lat: selectedDog.default_pickup_lat,
+            lng: selectedDog.default_pickup_lng
+          });
+        }
       }
     }
   }, [selectedDogId, myDogs]);

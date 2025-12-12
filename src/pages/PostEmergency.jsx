@@ -78,6 +78,20 @@ export default function PostEmergency() {
     }
   }, [user]);
 
+  // ✅ Auto-select dog from URL param
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dogId = urlParams.get('dogId');
+    
+    if (dogId && myDogs.length > 0) {
+      const dog = myDogs.find(d => d.id === dogId);
+      if (dog && !selectedDogs.find(d => d.id === dogId)) {
+        setSelectedDogs([dog]);
+        console.log('🐕 Dog auto-selected from URL:', dog.dog_name);
+      }
+    }
+  }, [myDogs]);
+
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
       const walk = await base44.entities.EmergencyWalk.create({
@@ -127,6 +141,22 @@ export default function PostEmergency() {
       }
     });
   };
+
+  // ✅ Auto-fill from first selected dog (for single selection scenario)
+  React.useEffect(() => {
+    if (selectedDogs.length === 1) {
+      const dog = selectedDogs[0];
+      setFormData(prev => ({
+        ...prev,
+        dog_name: dog.dog_name,
+        dog_size: dog.size,
+        dog_breed: dog.breed || "",
+        dog_photo_url: dog.photo_url || "",
+        location: dog.default_pickup_address || prev.location,
+        special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
+      }));
+    }
+  }, [selectedDogs]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
