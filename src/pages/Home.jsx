@@ -948,14 +948,13 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Compact Filters Section */}
-        <Card className="glass-panel border-0 shadow-md mb-4 overflow-hidden">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {/* Size Filter */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-700">{t('size', language)}</Label>
+        <Card className="glass-panel border-0 shadow-md mb-4">
+          <CardContent className="p-3">
+            <div className="flex flex-wrap gap-2 items-end">
+              <div className="flex-1 min-w-[120px]">
+                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('size', language)}</Label>
                 <Select value={filterSize} onValueChange={setFilterSize}>
-                  <SelectTrigger className="h-9 text-xs bg-white">
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -968,11 +967,10 @@ export default function Home() {
                 </Select>
               </div>
 
-              {/* Time Filter */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-700">{t('availability', language)}</Label>
+              <div className="flex-1 min-w-[120px]">
+                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('availability', language)}</Label>
                 <Select value={filterTime} onValueChange={setFilterTime}>
-                  <SelectTrigger className="h-9 text-xs bg-white">
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -985,30 +983,13 @@ export default function Home() {
                 </Select>
               </div>
 
-              {/* Service Type Filter */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-700">{t('serviceType', language)}</Label>
-                <Select value={filterDogSitting} onValueChange={setFilterDogSitting}>
-                  <SelectTrigger className="h-9 text-xs bg-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('allServices', language)}</SelectItem>
-                    <SelectItem value="boarding">{t('dogBoarding', language)}</SelectItem>
-                    <SelectItem value="house_sitting">{t('houseSitting', language)}</SelectItem>
-                    <SelectItem value="drop_in">{t('dropInVisits', language)}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Min Rating */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-700">{t('minRating', language)}</Label>
+              <div className="flex-1 min-w-[120px]">
+                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('rating', language)}</Label>
                 <Select 
                   value={advancedFilters.minRating.toString()} 
                   onValueChange={(v) => setAdvancedFilters({...advancedFilters, minRating: parseFloat(v)})}
                 >
-                  <SelectTrigger className="h-9 text-xs bg-white">
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1020,14 +1001,13 @@ export default function Home() {
                 </Select>
               </div>
 
-              {/* Max Price */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-700">{t('maxPrice', language)}</Label>
+              <div className="flex-1 min-w-[120px]">
+                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('maxPrice', language)}</Label>
                 <Select 
                   value={advancedFilters.maxPrice.toString()} 
                   onValueChange={(v) => setAdvancedFilters({...advancedFilters, maxPrice: parseFloat(v)})}
                 >
-                  <SelectTrigger className="h-9 text-xs bg-white">
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1039,23 +1019,6 @@ export default function Home() {
                 </Select>
               </div>
 
-              {/* Verified Only Toggle */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-700">{t('verified', language)}</Label>
-                <Button
-                  variant={advancedFilters.verifiedOnly ? "default" : "outline"}
-                  onClick={() => setAdvancedFilters({...advancedFilters, verifiedOnly: !advancedFilters.verifiedOnly})}
-                  size="sm"
-                  className={`w-full h-9 text-xs ${advancedFilters.verifiedOnly ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white' : ''}`}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-                  {advancedFilters.verifiedOnly ? t('verifiedOnly', language) : t('all', language)}
-                </Button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
               <Button
                 variant="ghost"
                 size="sm"
@@ -1064,44 +1027,38 @@ export default function Home() {
                   setFilterSize("all");
                   setFilterTime("all");
                   setFilterDogSitting("all");
-                  setSelectedServiceTypes([]);
-                  setSelectedSpecializations([]);
                 }}
-                className="text-xs text-gray-600 hover:text-gray-900"
+                className="h-8 text-[10px] px-2"
               >
-                {t('resetFilters', language)}
+                {t('reset', language)}
               </Button>
               
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="text-xs"
-                >
-                  <Sliders className="w-3.5 h-3.5 mr-1.5" />
-                  {showAdvancedFilters ? t('lessFilters', language) : t('moreFilters', language)}
-                </Button>
-                
-                <div className="flex gap-1.5">
-                  <Button
-                    variant={viewMode === "list" ? "default" : "outline"}
-                    onClick={() => setViewMode("list")}
-                    size="sm"
-                    className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-9 px-3' : 'text-gray-700 h-9 px-3'}
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "map" ? "default" : "outline"}
-                    onClick={() => setViewMode("map")}
-                    size="sm"
-                    className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-9 px-3' : 'text-gray-700 h-9 px-3'}
-                  >
-                    <MapIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="h-8 text-[10px] px-2"
+              >
+                <Sliders className="w-3 h-3 mr-1" />
+                {showAdvancedFilters ? t('less', language) : t('more', language)}
+              </Button>
+              
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                onClick={() => setViewMode("list")}
+                size="sm"
+                className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-8 px-2' : 'h-8 px-2'}
+              >
+                <List className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                variant={viewMode === "map" ? "default" : "outline"}
+                onClick={() => setViewMode("map")}
+                size="sm"
+                className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-8 px-2' : 'h-8 px-2'}
+              >
+                <MapIcon className="w-3.5 h-3.5" />
+              </Button>
             </div>
           </CardContent>
         </Card>
