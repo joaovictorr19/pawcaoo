@@ -40,6 +40,7 @@ import BadgeNotification from "@/components/gamification/BadgeNotification";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import { useRealtimeNotifications } from "@/components/notifications/useRealtimeNotifications";
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
+import DynamicBackground from "@/components/ui/DynamicBackground";
 import "./globals.css";
 
 // Query optimization configs - v1.1
@@ -492,6 +493,9 @@ function LayoutContent({ children, currentPageName }) {
         --primary-foreground: 0 0% 100%;
         --accent: 142 76% 92%;
         --accent-foreground: 142 76% 20%;
+        --color-orb-1: #fb923c;
+        --color-orb-2: #fdba74;
+        --color-primary: #f97316;
       }
 
       .glass-panel-dark {
@@ -547,10 +551,29 @@ function LayoutContent({ children, currentPageName }) {
           0%, 100% { transform: translateY(0px); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
           50% { transform: translateY(-8px); filter: drop-shadow(0 15px 10px rgba(0,0,0,0.1)); }
         }
-        
+
         .badge-4d-anim {
           animation: float-badge 4s ease-in-out infinite;
           will-change: transform;
+        }
+
+        /* --- 4. ANIMAÇÃO DOS ORBS (Flutuação Suave) --- */
+        @keyframes blob {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .animate-blob {
+          animation: blob 20s ease-in-out infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
         }
         
         @media (max-width: 768px) {
@@ -867,13 +890,16 @@ function LayoutContent({ children, currentPageName }) {
             </Sidebar>
             )}
 
+            {/* Dynamic Background - Orbs that change color based on user tier */}
+            <DynamicBackground />
+
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
 
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4 relative z-10">
             <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
