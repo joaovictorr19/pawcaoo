@@ -509,11 +509,25 @@ export default function Chat() {
   });
 
   // Handle photo upload
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      uploadPhotoMutation.mutate(file);
+    if (!file) return;
+    
+    // Check camera permission if available
+    if ('permissions' in navigator) {
+      try {
+        const permission = await navigator.permissions.query({ name: 'camera' });
+        if (permission.state === 'denied') {
+          toast.error("⚠️ Permissão de câmera negada. Autorize nas configurações do navegador.");
+          return;
+        }
+      } catch (err) {
+        // Permission API not supported, continue anyway
+        console.log("Permission API not supported:", err);
+      }
     }
+    
+    uploadPhotoMutation.mutate(file);
   };
 
   // Handle send message
