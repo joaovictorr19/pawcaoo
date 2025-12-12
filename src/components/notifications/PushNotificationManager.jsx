@@ -114,33 +114,33 @@ export default function PushNotificationManager({ user }) {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
           >
-            <Card className="border-2 border-blue-400 shadow-2xl backdrop-blur-xl bg-white/90">
-              <CardContent className="p-4">
+            <Card className="border-0 shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl overflow-hidden">
+              <CardContent className="p-6 relative">
                 <button
                   onClick={dismissBanner}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100 p-1"
                 >
                   <X className="w-4 h-4" />
                 </button>
                 
-                <div className="flex items-start gap-3">
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl shadow-lg">
+                <div className="flex items-start gap-4">
+                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-3 rounded-xl shadow-lg flex-shrink-0">
                     <Bell className="w-6 h-6 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 mb-1">
+                  <div className="flex-1 pr-6">
+                    <h3 className="font-bold text-lg text-gray-900 mb-1">
                       Ativar Notificações
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">
                       {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                        ? '📱 Receba alertas no seu celular sobre passeios e mensagens.'
-                        : '💻 Receba alertas em tempo real sobre passeios e mensagens.'}
+                        ? 'Receba alertas no seu celular sobre passeios e mensagens.'
+                        : 'Receba alertas em tempo real sobre passeios e mensagens.'}
                     </p>
                     <Button
                       onClick={requestPermission}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white shadow-lg font-semibold rounded-xl transform hover:scale-105 transition-all active:scale-95"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold rounded-xl h-11 transition-all"
                       size="sm"
                     >
                       <Bell className="w-4 h-4 mr-2" />
