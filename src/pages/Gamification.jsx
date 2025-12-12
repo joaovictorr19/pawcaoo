@@ -186,6 +186,7 @@ export default function Gamification() {
   const currentConfig = rankingConfig[activeRanking];
 
   // Donut chart data (based on tier progress, not level)
+  const xpInCurrentTier = currentTier.max !== Infinity ? currentXP - currentTier.min : currentXP;
   const chartData = [
     { name: 'Progress', value: xpInCurrentTier },
     { name: 'Remaining', value: Math.max(0, xpRemainingForNextTier) }
