@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "../ThemeContext";
 
 export default function RewardCard({ reward, index, userPoints, onRedeem, isRedeeming }) {
-  const { colors } = useTheme();
+  const { colors, tier } = useTheme();
   const canAfford = userPoints >= reward.points;
 
   return (
@@ -23,7 +23,7 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
         )}
         <CardHeader className="text-center pb-3 md:pb-4 p-3 md:p-6">
           <div className="text-3xl md:text-5xl lg:text-6xl mb-2 md:mb-3">{reward.icon}</div>
-          <CardTitle className={`text-base md:text-xl lg:text-2xl font-bold ${colors?.text || 'text-purple-600'} leading-tight`}>
+          <CardTitle className={`text-base md:text-xl lg:text-2xl font-bold leading-tight`} style={{ color: colors?.primary || '#3b82f6' }}>
             {reward.discount}
           </CardTitle>
           <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1.5 md:mt-2 leading-snug">{reward.description}</p>
