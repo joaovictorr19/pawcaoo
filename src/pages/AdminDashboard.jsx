@@ -59,6 +59,7 @@ import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import Pagination from "../components/ui/Pagination";
 import LazyImage from "../components/ui/LazyImage";
 import ClientDetails from "../components/admin/ClientDetails";
+import ProductManagement from "../components/admin/ProductManagement";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -2219,190 +2220,19 @@ export default function AdminDashboard() {
           <TabsContent value="products">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <CardTitle>Produtos da Loja ({filteredProducts.length})</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {pendingProducts.length} pendentes • {allPartnerProducts.filter(p => p.moderation_status === 'approved' && p.is_available).length} ativos
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={productFilter === 'all' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductFilter('all')}
-                    >
-                      Todos ({allPartnerProducts.length})
-                    </Button>
-                    <Button
-                      variant={productFilter === 'pending' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductFilter('pending')}
-                      className={productFilter === 'pending' ? 'bg-orange-500' : ''}
-                    >
-                      Em Análise ({allPartnerProducts.filter(p => p.moderation_status === 'pending').length})
-                    </Button>
-                    <Button
-                      variant={productFilter === 'approved' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductFilter('approved')}
-                      className={productFilter === 'approved' ? 'bg-green-600' : ''}
-                    >
-                      Aprovados ({allPartnerProducts.filter(p => p.moderation_status === 'approved').length})
-                    </Button>
-                    <Button
-                      variant={productFilter === 'rejected' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductFilter('rejected')}
-                      className={productFilter === 'rejected' ? 'bg-red-600' : ''}
-                    >
-                      Rejeitados ({allPartnerProducts.filter(p => p.moderation_status === 'rejected').length})
-                    </Button>
-                  </div>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-6 h-6 text-blue-600" />
+                  Gestão de Produtos ({allPartnerProducts.length})
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {pendingProducts.length} pendentes • {allPartnerProducts.filter(p => p.moderation_status === 'approved' && p.is_available).length} ativos
+                </p>
               </CardHeader>
               <CardContent>
-                {loadingProducts && filteredProducts.length === 0 ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
-                  </div>
-                ) : filteredProducts.length === 0 ? (
-                  <div className="text-center py-12">
-                    <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhum produto encontrado</p>
-                  </div>
-                ) : (
-                  <>
-                  <div className="space-y-4">
-                    {paginatedProducts.map((product) => {
-                      const isPending = product.moderation_status === 'pending';
-                      const isApproved = product.moderation_status === 'approved';
-                      const isActive = product.is_available;
-
-                      return (
-                        <Card 
-                          key={product.id} 
-                          className={`border-2 cursor-pointer hover:shadow-lg transition-all ${
-                            isPending ? 'border-orange-200 bg-orange-50' :
-                            isApproved && isActive ? 'border-green-200 bg-green-50' :
-                            isApproved && !isActive ? 'border-gray-300 bg-gray-100' :
-                            'border-red-200 bg-red-50'
-                          }`}
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            setShowProductModal(true);
-                          }}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              {product.image_url && (
-                                <img 
-                                  src={product.image_url} 
-                                  className="w-24 h-24 object-cover rounded-lg flex-shrink-0" 
-                                  alt={product.product_name}
-                                />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-lg truncate">{product.product_name}</h3>
-                                <p className="text-sm text-gray-600 truncate">{product.partner_name}</p>
-                                <p className="text-xs text-gray-500 line-clamp-2 mt-1">{product.description}</p>
-                                <div className="flex gap-2 mt-2 flex-wrap">
-                                  <Badge className={
-                                    isPending ? 'bg-orange-500' :
-                                    product.moderation_status === 'approved' ? 'bg-green-600' :
-                                    'bg-red-600'
-                                  }>
-                                    {isPending ? '⏳ Análise' : product.moderation_status === 'approved' ? '✅ Aprovado' : '❌ Rejeitado'}
-                                  </Badge>
-                                  <Badge variant="outline">€{product.price_euro}</Badge>
-                                  <Badge variant="outline" className="capitalize">{product.category}</Badge>
-                                  <Badge variant="outline">Stock: {product.stock_quantity || 0}</Badge>
-                                  {isActive ? (
-                                    <Badge className="bg-blue-600">🟢 Visível</Badge>
-                                  ) : (
-                                    <Badge variant="outline">🔴 Oculto</Badge>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                {isPending && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => updateProductMutation.mutate({
-                                        id: product.id,
-                                        data: { moderation_status: 'approved', is_available: true }
-                                      })}
-                                      className="bg-green-600 whitespace-nowrap"
-                                    >
-                                      Aprovar
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        const reason = prompt('Motivo da rejeição:');
-                                        if (!reason) return;
-                                        updateProductMutation.mutate({
-                                          id: product.id,
-                                          data: { moderation_status: 'rejected', is_available: false, rejection_reason: reason }
-                                        });
-                                      }}
-                                      className="border-red-500 text-red-600 whitespace-nowrap"
-                                    >
-                                      Rejeitar
-                                    </Button>
-                                  </>
-                                )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditingProduct(product);
-                                    setSelectedProduct(product);
-                                    setShowProductModal(true);
-                                  }}
-                                  className="whitespace-nowrap"
-                                >
-                                  <Edit className="w-3 h-3 mr-1" />
-                                  Editar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-red-500 text-red-600 whitespace-nowrap"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowDeleteProductConfirm(product);
-                                  }}
-                                >
-                                  <Trash2 className="w-3 h-3 mr-1" />
-                                  Deletar
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                  
-                  {filteredProducts.length > 0 && (
-                    <Pagination
-                      currentPage={productsPage}
-                      totalPages={Math.ceil(filteredProducts.length / productsPerPage)}
-                      onPageChange={setProductsPage}
-                      itemsPerPage={productsPerPage}
-                      totalItems={filteredProducts.length}
-                      onItemsPerPageChange={(value) => {
-                        setProductsPerPage(value);
-                        setProductsPage(1);
-                      }}
-                    />
-                  )}
-                  </>
-                )}
+                <ProductManagement 
+                  products={allPartnerProducts}
+                  isLoading={loadingProducts}
+                />
               </CardContent>
             </Card>
           </TabsContent>
