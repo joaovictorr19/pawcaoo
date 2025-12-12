@@ -24,6 +24,7 @@ export default function PostEmergency() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   
+  const [selectedDogs, setSelectedDogs] = useState([]);
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_photo_url: "",
@@ -103,10 +104,38 @@ export default function PostEmergency() {
     setUploading(false);
   };
 
+  const toggleDog = (dog) => {
+    setSelectedDogs(prev => {
+      const exists = prev.find(d => d.id === dog.id);
+      if (exists) {
+        return prev.filter(d => d.id !== dog.id);
+      } else {
+        return [...prev, dog];
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const dogs = selectedDogs.length > 0 
+      ? selectedDogs.map(dog => ({
+          dog_name: dog.dog_name,
+          dog_photo_url: dog.photo_url,
+          dog_size: dog.size,
+          dog_breed: dog.breed
+        }))
+      : [{
+          dog_name: formData.dog_name,
+          dog_photo_url: formData.dog_photo_url,
+          dog_size: formData.dog_size,
+          dog_breed: formData.dog_breed
+        }];
+    
     await createEmergencyWalkMutation.mutateAsync({
       ...formData,
+      dogs: dogs,
+      total_dogs: dogs.length,
       duration_hours: parseFloat(formData.duration_hours),
       offered_amount: parseFloat(formData.offered_amount),
     });
@@ -132,131 +161,153 @@ export default function PostEmergency() {
           </CardHeader>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Quick Fill from My Dogs */}
+              {/* Multi-Dog Selection */}
               {myDogs?.length > 0 && (
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                  <Label className="font-semibold text-green-900 mb-2 block">🐕 Preencher com Meu Cão</Label>
-                  <Select 
-                    onValueChange={(dogId) => {
-                      const dog = myDogs.find(d => d.id === dogId);
-                      if (dog) {
-                        setFormData(prev => ({
-                          ...prev,
-                          dog_name: dog.dog_name,
-                          dog_size: dog.size,
-                          dog_breed: dog.breed || '',
-                          dog_photo_url: dog.photo_url || '',
-                          special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
-                        }));
-                        toast.success(`Dados de ${dog.dog_name} preenchidos!`);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Selecionar um dos meus cães" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {myDogs.map((dog) => (
-                        <SelectItem key={dog.id} value={dog.id}>
-                          {dog.dog_name} ({dog.breed || 'SRD'}) - {dog.size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label className="font-semibold text-green-900 mb-3 block">🐕 Selecionar Meus Cães ({selectedDogs.length} selecionados)</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {myDogs.map((dog) => {
+                      const isSelected = selectedDogs.find(d => d.id === dog.id);
+                      return (
+                        <div
+                          key={dog.id}
+                          onClick={() => toggleDog(dog)}
+                          className={`cursor-pointer transition-all rounded-xl p-3 border-2 ${
+                            isSelected 
+                              ? 'bg-green-600 border-green-700 shadow-lg' 
+                              : 'bg-white border-green-300 hover:border-green-500'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 ${
+                              isSelected ? 'border-white' : 'border-green-200'
+                            }`}>
+                              {dog.photo_url ? (
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className={`w-full h-full flex items-center justify-center text-lg font-bold ${
+                                  isSelected ? 'bg-white text-green-600' : 'bg-green-200 text-green-700'
+                                }`}>
+                                  {dog.dog_name?.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-bold text-sm truncate ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                                {dog.dog_name}
+                              </p>
+                              <p className={`text-xs truncate ${isSelected ? 'text-green-100' : 'text-gray-600'}`}>
+                                {dog.breed || 'SRD'} • {dog.size}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {selectedDogs.length > 0 && (
+                    <p className="text-sm text-green-800 mt-3 font-semibold">
+                      ✅ {selectedDogs.length} {selectedDogs.length === 1 ? 'cão selecionado' : 'cães selecionados'}
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Dog Photo Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="photo">{t('dogPhoto', language)} *</Label>
-                <div className="flex items-center gap-4">
-                  {formData.dog_photo_url ? (
-                    <img
-                      src={formData.dog_photo_url}
-                      alt="Dog preview"
-                      className="w-32 h-32 rounded-xl object-cover border-4 border-orange-200"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 bg-orange-100 rounded-xl flex items-center justify-center border-4 border-orange-200">
-                      <Upload className="w-8 h-8 text-orange-400" />
+              {/* Dog Photo Upload - Only if manual entry */}
+              {selectedDogs.length === 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="photo">{t('dogPhoto', language)} *</Label>
+                  <div className="flex items-center gap-4">
+                    {formData.dog_photo_url ? (
+                      <img
+                        src={formData.dog_photo_url}
+                        alt="Dog preview"
+                        className="w-32 h-32 rounded-xl object-cover border-4 border-orange-200"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 bg-orange-100 rounded-xl flex items-center justify-center border-4 border-orange-200">
+                        <Upload className="w-8 h-8 text-orange-400" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                        className="cursor-pointer"
+                        required
+                      />
+                      <p className="text-sm text-gray-500 mt-2">
+                        {uploading ? t('uploading', language) : t('uploadClearPhoto', language)}
+                      </p>
                     </div>
-                  )}
-                  <div className="flex-1">
-                    <Input
-                      id="photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      disabled={uploading}
-                      className="cursor-pointer"
-                      required
-                    />
-                    <p className="text-sm text-gray-500 mt-2">
-                      {uploading ? t('uploading', language) : t('uploadClearPhoto', language)}
-                    </p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Dog Info */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="dog_name">{t('dogName', language)} *</Label>
-                  <Input
-                    id="dog_name"
-                    required
-                    value={formData.dog_name}
-                    onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
-                    placeholder="Max"
-                  />
-                </div>
+              {/* Dog Info - Manual entry if no dogs selected */}
+              {selectedDogs.length === 0 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="dog_name">{t('dogName', language)} *</Label>
+                    <Input
+                      id="dog_name"
+                      required
+                      value={formData.dog_name}
+                      onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
+                      placeholder="Max"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="dog_breed">{t('breed', language)}</Label>
-                  <Input
-                    id="dog_breed"
-                    value={formData.dog_breed}
-                    onChange={(e) => setFormData({...formData, dog_breed: e.target.value})}
-                    placeholder="Golden Retriever"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dog_breed">{t('breed', language)}</Label>
+                    <Input
+                      id="dog_breed"
+                      value={formData.dog_breed}
+                      onChange={(e) => setFormData({...formData, dog_breed: e.target.value})}
+                      placeholder="Golden Retriever"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="dog_size">{t('dogSize', language)} *</Label>
-                  <Select 
-                    required
-                    value={formData.dog_size}
-                    onValueChange={(value) => setFormData({...formData, dog_size: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectSize', language)} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">{t('small', language)}</SelectItem>
-                      <SelectItem value="medium">{t('medium', language)}</SelectItem>
-                      <SelectItem value="large">{t('large', language)}</SelectItem>
-                      <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Label htmlFor="dog_size">{t('dogSize', language)} *</Label>
+                    <Select 
+                      required
+                      value={formData.dog_size}
+                      onValueChange={(value) => setFormData({...formData, dog_size: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('selectSize', language)} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">{t('small', language)}</SelectItem>
+                        <SelectItem value="medium">{t('medium', language)}</SelectItem>
+                        <SelectItem value="large">{t('large', language)}</SelectItem>
+                        <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="urgency_level">{t('urgencyLevel', language)} *</Label>
-                  <Select 
-                    required
-                    value={formData.urgency_level}
-                    onValueChange={(value) => setFormData({...formData, urgency_level: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="urgent">{t('urgentTime', language)}</SelectItem>
-                      <SelectItem value="very_urgent">{t('veryUrgentTime', language)}</SelectItem>
-                      <SelectItem value="immediate">{t('immediateTime', language)}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="urgency_level">{t('urgencyLevel', language)} *</Label>
+                <Select 
+                  required
+                  value={formData.urgency_level}
+                  onValueChange={(value) => setFormData({...formData, urgency_level: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="urgent">{t('urgentTime', language)}</SelectItem>
+                    <SelectItem value="very_urgent">{t('veryUrgentTime', language)}</SelectItem>
+                    <SelectItem value="immediate">{t('immediateTime', language)}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Owner Info */}
