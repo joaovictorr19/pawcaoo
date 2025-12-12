@@ -1134,7 +1134,7 @@ export default function Home() {
                           ))}
                         </div>
                       ) : filteredWalkers.length === 0 ? (
-                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl">
+                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden">
                           <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                             <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                           </div>
