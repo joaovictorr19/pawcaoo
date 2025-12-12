@@ -81,6 +81,10 @@
   }
 
   .glass-panel {
+    border-radius: 1.5rem;
+  }
+
+  .glass-panel {
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
