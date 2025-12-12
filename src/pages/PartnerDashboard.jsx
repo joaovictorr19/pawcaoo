@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -108,9 +107,24 @@ export default function PartnerDashboard() {
     queryFn: async () => {
       if (!user?.email || !company?.id) return [];
       const all = await base44.entities.PartnerProduct.list();
-      return all.filter(p => p.created_by === user.email || p.partner_id === company.id);
+      
+      console.log('🛍️ MEUS PRODUTOS - DEBUG:');
+      console.log('Total DB:', all.length);
+      console.log('Meu email:', user.email);
+      console.log('Company ID:', company.id);
+      
+      const mine = all.filter(p => p.created_by === user.email || p.partner_id === company.id);
+      
+      console.log('MEUS:', mine.length);
+      mine.forEach(p => {
+        console.log(`- ${p.product_name}: ${p.moderation_status}, available=${p.is_available}`);
+      });
+      
+      return mine;
     },
     enabled: !!user?.email && !!company?.id,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const { data: myServices = [] } = useQuery({
@@ -183,14 +197,20 @@ export default function PartnerDashboard() {
         partner_id: company.id,
         partner_name: company.company_name,
         partner_company_email: user.email,
-        is_available: false, // Products start as not available until approved
-        moderation_status: 'pending' // Products start as pending moderation
+        is_available: false,
+        moderation_status: 'pending'
       };
-      return await base44.entities.PartnerProduct.create(payload);
+      
+      console.log('🚀 CRIANDO PRODUTO:', payload);
+      const result = await base44.entities.PartnerProduct.create(payload);
+      console.log('✅ PRODUTO CRIADO:', result);
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myProducts']);
       queryClient.invalidateQueries(['shopProducts']);
+      queryClient.invalidateQueries(['allPartnerProducts']);
       toast.success('✅ Produto enviado para aprovação!');
       setShowCreateProduct(false);
       setProductForm({
@@ -205,6 +225,7 @@ export default function PartnerDashboard() {
       });
     },
     onError: (error) => {
+      console.error('❌ ERRO AO CRIAR PRODUTO:', error);
       toast.error('Erro: ' + error.message);
     }
   });
