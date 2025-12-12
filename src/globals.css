@@ -157,24 +157,25 @@
     animation: blob 7s infinite;
   }
 
-  /* 3. Variações de tempo para as 3 Orbs (para não ficarem iguais) */
+  /* 3. Variações de tempo para as 3 Orbs (GRANDE DESLOCAMENTO) */
   @keyframes blob-rotate {
     0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
-    33% { transform: translate(30px, -50px) rotate(120deg) scale(1.2); }
-    66% { transform: translate(-20px, 20px) rotate(240deg) scale(0.9); }
+    25% { transform: translate(500px, 300px) rotate(90deg) scale(1.1); }
+    50% { transform: translate(-400px, -500px) rotate(180deg) scale(0.9); }
+    75% { transform: translate(200px, -600px) rotate(270deg) scale(1.2); }
     100% { transform: translate(0px, 0px) rotate(360deg) scale(1); }
   }
 
   .animate-blob-1 {
-    animation: blob-rotate 23s infinite ease-in-out;
+    animation: blob-rotate 30s infinite ease-in-out;
   }
 
   .animate-blob-2 {
-    animation: blob-rotate 29s infinite ease-in-out reverse;
+    animation: blob-rotate 35s infinite ease-in-out reverse;
   }
 
   .animate-blob-3 {
-    animation: blob-rotate 31s infinite ease-in-out;
+    animation: blob-rotate 40s infinite ease-in-out;
   }
 
   .animation-delay-2000 {
