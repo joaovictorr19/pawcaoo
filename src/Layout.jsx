@@ -562,7 +562,21 @@ function LayoutContent({ children, currentPageName }) {
   transform: translateX(-100%);
   opacity: 0;
   pointer-events: none;
-  border: none !important;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Premium glass effect */
+[data-sidebar="sidebar"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2rem;
+  padding: 1px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* Hide floating button when sidebar is open */
@@ -598,13 +612,13 @@ function LayoutContent({ children, currentPageName }) {
         </div>
         {authUser && (
         <>
-        <Sidebar className={`backdrop-blur-xl border-r transition-all duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 fixed left-0 top-0 z-40 ${
+        <Sidebar className={`backdrop-blur-2xl border transition-all duration-500 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-2xl fixed left-0 top-0 z-40 overflow-hidden ${
           colors?.isDarkMode 
-            ? 'bg-slate-900/40 border-slate-700/20' 
-            : 'bg-white/40 border-white/30'
+            ? 'bg-slate-900/30 border-slate-700/20 shadow-purple-900/20' 
+            : 'bg-white/30 border-white/40 shadow-blue-900/10'
         }`} collapsible="offcanvas">
-          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] transition-all ${
-            colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
+          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] transition-all backdrop-blur-xl ${
+            colors?.isDarkMode ? 'border-slate-700/30 bg-slate-900/20' : 'border-white/40 bg-white/20'
           }`}>
             <div className="flex items-center justify-between mb-3">
               <Link 
@@ -613,7 +627,9 @@ function LayoutContent({ children, currentPageName }) {
               >
                 <PawCaoLogo size="default" />
               </Link>
-              <SidebarTrigger className="ml-auto hover:bg-green-100 rounded-xl transition-colors" />
+              <SidebarTrigger className={`ml-auto rounded-xl transition-all hover:scale-110 ${
+                colors?.isDarkMode ? 'hover:bg-slate-800/60' : 'hover:bg-green-100/60'
+              }`} />
             </div>
 
             {planBadge && (
@@ -645,7 +661,7 @@ function LayoutContent({ children, currentPageName }) {
             </DropdownMenu>
           </SidebarHeader>
 
-          <SidebarContent className="p-3 md:p-4">
+          <SidebarContent className="p-3 md:p-4 backdrop-blur-sm">
             {/* My Profile - Now in bottom nav */}
 
             {/* MENU PRINCIPAL */}
@@ -885,11 +901,13 @@ function LayoutContent({ children, currentPageName }) {
             
             {/* Floating Trigger Button - Shows when sidebar is hidden */}
             {authUser && (
-              <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 flex items-center justify-center ${
+              <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ${
                 colors?.isDarkMode 
-                  ? 'bg-slate-900/60 border border-slate-700/30 hover:bg-slate-800/80' 
-                  : 'bg-white/60 border border-white/40 hover:bg-white/80'
-              }`} />
+                  ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
+                  : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
+              }`}>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </SidebarTrigger>
             )}
 
             {/* Push Notification Manager */}
