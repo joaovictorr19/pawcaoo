@@ -264,6 +264,59 @@ export default function Chat() {
     },
   });
 
+  // Start service (check-in)
+  const startServiceMutation = useMutation({
+    mutationFn: async () => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            // Create check-in checkpoint
+            await base44.entities.WalkCheckpoint.create({
+              booking_id: bookingId,
+              walker_email: user.email,
+              checkpoint_type: "check_in",
+              latitude,
+              longitude,
+              timestamp: new Date().toISOString(),
+            });
+
+            // Update booking status and location
+            await base44.entities.Booking.update(bookingId, {
+              status: "in_progress",
+              walker_lat: latitude,
+              walker_lng: longitude,
+              walk_start_time: new Date().toISOString(),
+              last_update: new Date().toISOString(),
+            });
+
+            // Notify owner
+            await base44.entities.Notification.create({
+              recipient_email: booking.created_by || booking.owner_email,
+              title: "🚶 Passeio Iniciado!",
+              message: `${booking.walker_name} iniciou o passeio com ${booking.dog_name}. Acompanhe em tempo real!`,
+              type: "check_in",
+              related_id: bookingId,
+              priority: "high",
+            });
+
+            resolve();
+          },
+          (error) => reject(error)
+        );
+      });
+    },
+    onSuccess: () => {
+      toast.success("✅ Serviço iniciado!");
+      queryClient.invalidateQueries(["booking", bookingId]);
+      queryClient.invalidateQueries(["checkpoints", bookingId]);
+    },
+    onError: () => {
+      toast.error("Erro ao iniciar serviço");
+    },
+  });
+
   // Finish walk with verification
   const finishWalkMutation = useMutation({
     mutationFn: async () => {
@@ -313,6 +366,16 @@ export default function Chat() {
                 released_date: new Date().toISOString(),
               });
             }
+
+            // Notify owner
+            await base44.entities.Notification.create({
+              recipient_email: booking.created_by || booking.owner_email,
+              title: "✅ Serviço Concluído!",
+              message: `${booking.walker_name} concluiu o passeio com ${booking.dog_name}. Pagamento liberado automaticamente.`,
+              type: "check_out",
+              related_id: bookingId,
+              priority: "high",
+            });
 
             resolve();
           },
@@ -424,7 +487,33 @@ export default function Chat() {
           {booking.status === "in_progress" ? "Em Andamento" : 
            booking.status === "confirmed" ? "Confirmado" : "Pendente"}
         </Badge>
+
+        {booking.total_amount && (
+          <div className="flex items-center gap-1 text-sm font-semibold text-gray-700">
+            <Euro className="w-4 h-4" />
+            {booking.total_amount}€
+          </div>
+        )}
       </div>
+
+      {/* Payment Status Bar */}
+      {booking.payment_id && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b px-4 py-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-600">Pagamento:</span>
+            <Badge className={
+              booking.payment_status === "released" 
+                ? "bg-green-100 text-green-800"
+                : booking.payment_status === "held"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-800"
+            }>
+              {booking.payment_status === "released" ? "✅ Liberado" :
+               booking.payment_status === "held" ? "🔒 Retido (Seguro)" : "⏳ Pendente"}
+            </Badge>
+          </div>
+        </div>
+      )}
 
       {/* GPS Map (if service is in progress) */}
       {booking.status === "in_progress" && routeCoords.length > 0 && (
@@ -488,6 +577,18 @@ export default function Chat() {
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-4 max-w-3xl mx-auto">
+          {/* Service Start Notification */}
+          {checkpoints.find(c => c.checkpoint_type === 'check_in') && (
+            <div className="flex justify-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-xs text-center">
+                <CheckCircle2 className="w-4 h-4 inline-block mr-1 text-blue-600" />
+                <span className="text-blue-800 font-medium">
+                  Serviço iniciado às {format(new Date(checkpoints.find(c => c.checkpoint_type === 'check_in').created_date), "HH:mm")}
+                </span>
+              </div>
+            </div>
+          )}
+
           {messages.map((msg) => {
             const isMine = msg.sender_email === user?.email;
             return (
@@ -509,22 +610,84 @@ export default function Chat() {
                       className="rounded-lg mb-2 max-w-full"
                     />
                   )}
+                  {msg.location && (
+                    <div className="mb-2 p-2 bg-white/20 rounded-lg">
+                      <p className="text-xs flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        Localização partilhada
+                      </p>
+                    </div>
+                  )}
                   <p className="text-sm">{msg.message}</p>
                   <p
-                    className={`text-xs mt-1 ${
+                    className={`text-xs mt-1 flex items-center gap-1 ${
                       isMine ? "text-blue-100" : "text-gray-500"
                     }`}
                   >
                     {format(new Date(msg.created_date), "HH:mm")}
+                    {isMine && msg.is_read && <CheckCircle2 className="w-3 h-3" />}
                   </p>
                 </div>
               </div>
             );
           })}
+
+          {/* Checkpoints Timeline */}
+          {checkpoints.filter(c => c.checkpoint_type !== 'check_in' && c.notes).map((checkpoint) => (
+            <div key={checkpoint.id} className="flex justify-center">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs max-w-[80%]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="w-3 h-3 text-gray-500" />
+                  <span className="font-medium text-gray-700">
+                    {format(new Date(checkpoint.created_date), "HH:mm")}
+                  </span>
+                </div>
+                <p className="text-gray-600">{checkpoint.notes}</p>
+                {checkpoint.dog_behavior && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p className="text-gray-500 text-[10px]">
+                      Humor: {checkpoint.dog_behavior.mood} • 
+                      Energia: {checkpoint.dog_behavior.energy_level}
+                      {checkpoint.dog_behavior.water_intake && " • 💧 Bebeu água"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Service End Notification */}
+          {checkpoints.find(c => c.checkpoint_type === 'check_out') && (
+            <div className="flex justify-center">
+              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-xs text-center">
+                <CheckCircle2 className="w-4 h-4 inline-block mr-1 text-green-600" />
+                <span className="text-green-800 font-medium">
+                  Serviço concluído às {format(new Date(checkpoints.find(c => c.checkpoint_type === 'check_out').created_date), "HH:mm")}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
-      {/* Professional Actions Bar */}
+      {/* Professional Actions Bar - Start Service */}
+      {isProfessional && booking.status === "confirmed" && (
+        <div className="bg-green-50 border-t border-green-200 px-4 py-3">
+          <Button
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+            onClick={() => startServiceMutation.mutate()}
+            disabled={startServiceMutation.isPending}
+          >
+            <Navigation className="w-5 h-5 mr-2" />
+            {startServiceMutation.isPending ? "Iniciando..." : "Iniciar Serviço"}
+          </Button>
+          <p className="text-xs text-center text-green-800 mt-2">
+            📍 Sua localização será partilhada ao iniciar
+          </p>
+        </div>
+      )}
+
+      {/* Professional Actions Bar - In Progress */}
       {isProfessional && booking.status === "in_progress" && (
         <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-3">
           <div className="flex items-center gap-2">
@@ -575,6 +738,21 @@ export default function Chat() {
           <p className="text-xs text-center text-yellow-800 mt-2">
             ⚠️ Aproxime-se a menos de 50m do destino para concluir o serviço
           </p>
+        </div>
+      )}
+
+      {/* Owner View - Payment Info */}
+      {isOwner && booking.status === "service_completed" && (
+        <div className="bg-green-50 border-t border-green-200 px-4 py-3">
+          <div className="text-center">
+            <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+            <p className="text-sm font-semibold text-green-800">
+              Serviço Concluído!
+            </p>
+            <p className="text-xs text-green-700 mt-1">
+              Pagamento de {booking.total_amount}€ liberado automaticamente para {booking.walker_name}
+            </p>
+          </div>
         </div>
       )}
 
