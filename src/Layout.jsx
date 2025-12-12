@@ -594,10 +594,10 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
+        <Sidebar className={`backdrop-blur-2xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
           colors?.isDarkMode 
-            ? 'bg-slate-900/60 border-slate-700/40' 
-            : 'bg-white/60 border-white/40'
+            ? 'bg-slate-900/30 border-slate-700/40' 
+            : 'bg-white/30 border-white/40'
         }`}>
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
