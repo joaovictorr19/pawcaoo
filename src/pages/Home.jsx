@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -43,7 +44,7 @@ import { Plus } from "lucide-react";
 function ShopTab({ language }) {
   const navigate = useNavigate();
 
-  const { data: featuredAnnouncements = [] } = useQuery({
+  const { data: featuredAnnouncements = [], isLoading: loadingAnnouncements } = useQuery({
     queryKey: ['shopFeaturedAnnouncements'],
     queryFn: async () => {
       const all = await base44.entities.CompanyAnnouncement.filter({
@@ -66,45 +67,26 @@ function ShopTab({ language }) {
     initialData: [],
   });
 
-  const { data: partners = [], isLoading: loadingPartners } = useQuery({
-    queryKey: ['shopPartners'],
+  const { data: products = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ['shopProducts'],
     queryFn: async () => {
-      const all = await base44.entities.PartnerCompany.list();
-      return all.filter(p => p.is_active === true).slice(0, 12);
+      const all = await base44.entities.PartnerProduct.filter({ is_available: true }, '-created_date', 8);
+      return all;
     },
     initialData: [],
   });
 
-  if (loadingPartners) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-          <Skeleton key={i} className="h-56 rounded-2xl" />
-        ))}
-      </div>
-    );
-  }
-
-  if (featuredAnnouncements.length === 0 && partners.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Store className="w-10 h-10 text-gray-400" />
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-          {language === 'pt' ? 'Loja em Breve' : 'Shop Coming Soon'}
-        </h3>
-        <p className="text-gray-600">
-          {language === 'pt' 
-            ? 'Estamos a adicionar parceiros incríveis. Volte em breve!' 
-            : 'We are adding amazing partners. Check back soon!'}
-        </p>
-      </div>
-    );
-  }
+  const { data: partners = [], isLoading: loadingPartners } = useQuery({
+    queryKey: ['shopPartners'],
+    queryFn: async () => {
+      const all = await base44.entities.PartnerCompany.list();
+      return all.filter(p => p.is_active === true).slice(0, 8);
+    },
+    initialData: [],
+  });
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -120,17 +102,21 @@ function ShopTab({ language }) {
         </p>
       </motion.div>
 
-      {featuredAnnouncements.length > 0 && (
+      {loadingAnnouncements ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-80 rounded-2xl" />)}
+        </div>
+      ) : featuredAnnouncements.length > 0 ? (
         <div>
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
               <Star className="w-6 h-6 text-white fill-white" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
               {language === 'pt' ? 'Promoções em Destaque' : 'Featured Deals'}
             </h3>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredAnnouncements.map((announcement, idx) => (
               <motion.div
                 key={announcement.id}
@@ -176,9 +162,68 @@ function ShopTab({ language }) {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {partners.length > 0 && (
+      {loadingProducts ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-64 rounded-2xl" />)}
+        </div>
+      ) : products.length > 0 ? (
+        <div>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+            {language === 'pt' ? 'Produtos em Destaque' : 'Featured Products'}
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {products.map((product, idx) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+              >
+                <Card className="glass-panel hover:shadow-2xl transition-all border-0 overflow-hidden group cursor-pointer">
+                  <div className="relative h-48 bg-gray-100 overflow-hidden">
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.product_name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ShoppingBag className="w-12 h-12 text-gray-300" />
+                      </div>
+                    )}
+                    {product.discount_percentage > 0 && (
+                      <Badge className="absolute top-2 right-2 bg-red-500 text-white shadow-lg">
+                        -{product.discount_percentage}%
+                      </Badge>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h4 className="font-bold text-sm mb-1 line-clamp-2">{product.product_name}</h4>
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-1">{product.partner_name}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-black text-indigo-600">€{product.price_euro}</p>
+                      {product.is_redeemable_with_points && product.points_cost && (
+                        <Badge variant="outline" className="text-xs">
+                          {product.points_cost} pts
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {loadingPartners ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+        </div>
+      ) : partners.length > 0 ? (
         <div>
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
             {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
@@ -226,6 +271,23 @@ function ShopTab({ language }) {
               {language === 'pt' ? 'Ver Todas as Ofertas' : 'View All Deals'}
             </Button>
           </div>
+        </div>
+      ) : null}
+
+      {!loadingAnnouncements && !loadingProducts && !loadingPartners && 
+       featuredAnnouncements.length === 0 && products.length === 0 && partners.length === 0 && (
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Store className="w-10 h-10 text-purple-400" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            {language === 'pt' ? 'Loja em Breve' : 'Shop Coming Soon'}
+          </h3>
+          <p className="text-gray-600">
+            {language === 'pt' 
+              ? 'Estamos a adicionar parceiros incríveis. Volte em breve!' 
+              : 'We are adding amazing partners. Check back soon!'}
+          </p>
         </div>
       )}
     </div>
@@ -1290,7 +1352,7 @@ export default function Home() {
                 
                 <TabsTrigger 
                   value="adoption" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {t('adoptAPet', language)}

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,9 +25,21 @@ export default function PartnerDashboard() {
   const navigate = useNavigate();
   
   const [showCreateService, setShowCreateService] = useState(false);
+  const [showCreateProduct, setShowCreateProduct] = useState(false); // Added
   const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
   const [showMyServices, setShowMyServices] = useState(false);
   const [showMyAnnouncements, setShowMyAnnouncements] = useState(false);
+  
+  const [productForm, setProductForm] = useState({ // Added
+    product_name: "",
+    category: "food",
+    description: "",
+    price_euro: "",
+    points_cost: "",
+    stock_quantity: "",
+    image_url: "",
+    discount_percentage: ""
+  });
   
   const [serviceForm, setServiceForm] = useState({
     service_name: "",
@@ -89,6 +102,16 @@ export default function PartnerDashboard() {
     }
   });
 
+  const { data: myProducts = [] } = useQuery({ // Added
+    queryKey: ['myProducts', user?.email],
+    queryFn: async () => {
+      if (!user?.email || !company?.id) return [];
+      const all = await base44.entities.PartnerProduct.list();
+      return all.filter(p => p.created_by === user.email || p.partner_id === company.id);
+    },
+    enabled: !!user?.email && !!company?.id,
+  });
+
   const { data: myServices = [] } = useQuery({
     queryKey: ['myServices', user?.email],
     queryFn: async () => {
@@ -146,6 +169,42 @@ export default function PartnerDashboard() {
     enabled: !!user?.email && !!company?.id,
     staleTime: 0,
     refetchOnMount: 'always',
+  });
+
+  const createProductMutation = useMutation({ // Added
+    mutationFn: async (data) => {
+      const payload = {
+        ...data,
+        price_euro: parseFloat(data.price_euro) || 0,
+        points_cost: parseInt(data.points_cost) || 0,
+        stock_quantity: parseInt(data.stock_quantity) || 0,
+        discount_percentage: parseInt(data.discount_percentage) || 0,
+        partner_id: company.id,
+        partner_name: company.company_name,
+        partner_company_email: user.email,
+        is_available: true
+      };
+      return await base44.entities.PartnerProduct.create(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myProducts']);
+      queryClient.invalidateQueries(['shopProducts']);
+      toast.success('✅ Produto criado!');
+      setShowCreateProduct(false);
+      setProductForm({
+        product_name: "",
+        category: "food",
+        description: "",
+        price_euro: "",
+        points_cost: "",
+        stock_quantity: "",
+        image_url: "",
+        discount_percentage: ""
+      });
+    },
+    onError: (error) => {
+      toast.error('Erro: ' + error.message);
+    }
   });
 
   const createServiceMutation = useMutation({
@@ -298,13 +357,20 @@ export default function PartnerDashboard() {
         </div>
 
         {/* BOTÕES RÁPIDOS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"> {/* Changed md:grid-cols-4 to md:grid-cols-5 */}
           <Button
             onClick={() => setShowCreateService(true)}
             className="bg-blue-600 hover:bg-blue-700 h-16"
           >
             <Plus className="w-5 h-5 mr-2" />
             Criar Serviço
+          </Button>
+          <Button // Added this button
+            onClick={() => setShowCreateProduct(true)}
+            className="bg-green-600 hover:bg-green-700 h-16"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Criar Produto
           </Button>
           <Button
             onClick={() => setShowCreateAnnouncement(true)}
@@ -611,6 +677,135 @@ export default function PartnerDashboard() {
               className="w-full bg-purple-600 hover:bg-purple-700 h-12"
             >
               {createAnnouncementMutation.isPending ? 'Criando...' : 'Criar Anúncio'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* CRIAR PRODUTO */}
+      <Dialog open={showCreateProduct} onOpenChange={setShowCreateProduct}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Produto para a Loja</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Imagem do Produto *</Label>
+              {productForm.image_url && (
+                <div className="relative w-full h-48 mb-2">
+                  <img src={productForm.image_url} className="w-full h-full object-cover rounded-lg" alt="Produto" />
+                  <button
+                    type="button"
+                    onClick={() => setProductForm({...productForm, image_url: ""})}
+                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const url = await uploadImageMutation.mutateAsync(file);
+                    setProductForm({...productForm, image_url: url});
+                  }
+                }}
+              />
+            </div>
+
+            <div>
+              <Label>Nome do Produto *</Label>
+              <Input
+                value={productForm.product_name}
+                onChange={(e) => setProductForm({...productForm, product_name: e.target.value})}
+                placeholder="Ração Premium 15kg"
+              />
+            </div>
+
+            <div>
+              <Label>Categoria *</Label>
+              <Select value={productForm.category} onValueChange={(v) => setProductForm({...productForm, category: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="food">🍖 Comida</SelectItem>
+                  <SelectItem value="toys">🎾 Brinquedos</SelectItem>
+                  <SelectItem value="accessories">🎀 Acessórios</SelectItem>
+                  <SelectItem value="grooming">✂️ Grooming</SelectItem>
+                  <SelectItem value="health">💊 Saúde</SelectItem>
+                  <SelectItem value="training">🎓 Treino</SelectItem>
+                  <SelectItem value="other">📦 Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Descrição</Label>
+              <Textarea
+                value={productForm.description}
+                onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                rows={3}
+                placeholder="Descreva o produto..."
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Preço (€) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={productForm.price_euro}
+                  onChange={(e) => setProductForm({...productForm, price_euro: e.target.value})}
+                  placeholder="29.99"
+                />
+              </div>
+              <div>
+                <Label>Custo em Pontos</Label>
+                <Input
+                  type="number"
+                  value={productForm.points_cost}
+                  onChange={(e) => setProductForm({...productForm, points_cost: e.target.value})}
+                  placeholder="500"
+                />
+              </div>
+              <div>
+                <Label>Stock</Label>
+                <Input
+                  type="number"
+                  value={productForm.stock_quantity}
+                  onChange={(e) => setProductForm({...productForm, stock_quantity: e.target.value})}
+                  placeholder="100"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Desconto (%)</Label>
+              <Input
+                type="number"
+                value={productForm.discount_percentage}
+                onChange={(e) => setProductForm({...productForm, discount_percentage: e.target.value})}
+                placeholder="10"
+              />
+            </div>
+
+            <Button
+              onClick={() => {
+                if (!productForm.product_name || !productForm.price_euro || !productForm.image_url) {
+                  toast.error('Preencha nome, preço e adicione uma imagem!');
+                  return;
+                }
+                createProductMutation.mutate(productForm);
+              }}
+              disabled={createProductMutation.isPending}
+              className="w-full bg-green-600 hover:bg-green-700 h-12"
+            >
+              {createProductMutation.isPending ? 'Criando...' : 'Criar Produto'}
             </Button>
           </div>
         </DialogContent>
