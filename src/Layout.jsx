@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users, LogOut, Building2, Download, MessageCircle } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, CreditCard, Megaphone, ShoppingBag, Sparkles, Users, LogOut, Building2, Download, MessageCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -120,6 +120,7 @@ function LayoutContent({ children, currentPageName }) {
   const { language, setLanguage } = useLanguage();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
+  const [collapsed, setCollapsed] = React.useState(true);
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
@@ -553,48 +554,68 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
+        <Sidebar className={`backdrop-blur-xl border-r transition-all duration-500 ease-in-out m-4 rounded-[3rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
+          collapsed ? 'w-24' : 'w-80'
+        } ${
           colors?.isDarkMode 
             ? 'bg-slate-900/60 border-slate-700/40' 
             : 'bg-white/60 border-white/40'
         }`}>
-          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
+          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[3rem] relative ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
-            <Link 
-              to={createPageUrl("Home")} 
-              className="block hover:opacity-80 transition-opacity"
+            <button 
+              onClick={() => setCollapsed(!collapsed)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 text-slate-700 transition-all hover:scale-110 z-50"
+              aria-label="Toggle sidebar"
             >
-              <PawCaoLogo size="default" />
-            </Link>
+              {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+            </button>
 
-            {planBadge && (
-              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
-                <div className="text-xs font-semibold">
-                  {planBadge.icon} {planBadge.name}
-                </div>
+            {collapsed ? (
+              <div className="flex justify-center">
+                <PawCaoLogo size="small" showText={false} />
               </div>
+            ) : (
+              <Link 
+                to={createPageUrl("Home")} 
+                className="block hover:opacity-80 transition-opacity"
+              >
+                <PawCaoLogo size="default" />
+              </Link>
             )}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="mt-3 w-full text-xs md:text-sm">
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-2" />
-                  {languageFlags[language]} {languageNames[language]}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48">
-                <DropdownMenuItem onClick={() => setLanguage('pt')} className="cursor-pointer">
-                  🇵🇹 Português
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
-                  🇬🇧 English
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('es')} className="cursor-pointer">
-                  🇪🇸 Español
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {!collapsed && (
+              <>
+                {planBadge && (
+                  <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
+                    <div className="text-xs font-semibold">
+                      {planBadge.icon} {planBadge.name}
+                    </div>
+                  </div>
+                )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="mt-3 w-full text-xs md:text-sm">
+                      <Globe className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+                      {languageFlags[language]} {languageNames[language]}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-48">
+                    <DropdownMenuItem onClick={() => setLanguage('pt')} className="cursor-pointer">
+                      🇵🇹 Português
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
+                      🇬🇧 English
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('es')} className="cursor-pointer">
+                      🇪🇸 Español
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
           </SidebarHeader>
 
           <SidebarContent className="p-3 md:p-4">
@@ -602,9 +623,11 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* MENU PRINCIPAL */}
             <SidebarGroup className="md:hidden">
-              <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
-              {t('mainMenu', language)}
-              </SidebarGroupLabel>
+              {!collapsed && (
+                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
+                  {t('mainMenu', language)}
+                </SidebarGroupLabel>
+              )}
               <SidebarGroupContent>
               <SidebarMenu>
                 {mainMenu.map((item) => ( 
@@ -612,6 +635,8 @@ function LayoutContent({ children, currentPageName }) {
                   <SidebarMenuButton 
                     asChild 
                     className={`mb-1.5 rounded-lg transition-all ${
+                      collapsed ? 'justify-center' : ''
+                    } ${
                       isRouteActive(item.url)
                         ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90 shadow-md` 
                         : (item.className || (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
@@ -619,25 +644,21 @@ function LayoutContent({ children, currentPageName }) {
                   >
                     <Link 
                       to={item.url} 
-                      className={`flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2.5 md:py-3 relative ${item.className ? '' : ''}`}
+                      className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 md:gap-4 px-4 md:px-5'} py-2.5 md:py-3 relative ${item.className ? '' : ''}`}
                       {...getPrefetchHandlers(item)}
                     >
-                      {isRouteActive(item.url) && (
+                      {!collapsed && isRouteActive(item.url) && (
                         <div 
                           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full"
                           style={{ backgroundColor: colors?.primary || '#3b82f6' }}
                         />
                       )}
-                      <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
-                      <span className="font-medium text-xs md:text-sm flex-1 min-w-0">
-                        {item.title.length > 22 ? (
-                          <span className="animate-marquee inline-block whitespace-nowrap">
-                            {item.title}
-                          </span>
-                        ) : (
-                          <span className="truncate block">{item.title}</span>
-                        )}
-                      </span>
+                      <item.icon className={`w-5 h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
+                      {!collapsed && (
+                        <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">
+                          {item.title}
+                        </span>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -648,16 +669,18 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
-              <SidebarGroupLabel 
-                className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
-                  colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
-                }`}
-                onClick={() => setMyActivityExpanded(!myActivityExpanded)}
-              >
-                <span>{t('myActivity', language)}</span>
-                <span className={`transition-transform duration-300 ${myActivityExpanded ? 'rotate-90' : ''}`}>▶</span>
-              </SidebarGroupLabel>
-              {myActivityExpanded && (
+              {!collapsed && (
+                <SidebarGroupLabel 
+                  className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
+                    colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  onClick={() => setMyActivityExpanded(!myActivityExpanded)}
+                >
+                  <span>{t('myActivity', language)}</span>
+                  <span className={`transition-transform duration-300 ${myActivityExpanded ? 'rotate-90' : ''}`}>▶</span>
+                </SidebarGroupLabel>
+              )}
+              {(!collapsed ? myActivityExpanded : true) && (
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {myActivityMenu.map((item) => ( 
@@ -665,24 +688,35 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`transition-all duration-200 rounded-lg mb-1 ${
+                            collapsed ? 'justify-center' : ''
+                          } ${
                             isRouteActive(item.url) 
                               ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
                               : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
                           }`}
                         >
-                          <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
-                            {isRouteActive(item.url) && (
+                          <Link to={item.url} id={item.id} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 md:gap-4 px-4 md:px-5'} py-2 md:py-2.5 relative`}>
+                            {!collapsed && isRouteActive(item.url) && (
                               <div 
                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
                                 style={{ backgroundColor: colors?.primary || '#3b82f6' }}
                               />
                             )}
-                            <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
-                            <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">{item.title}</span>
-                            {item.hasNotifications && unreadCount > 0 && (
-                              <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
-                                {unreadCount}
-                              </Badge>
+                            <item.icon className={`w-5 h-5 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
+                            {!collapsed && (
+                              <>
+                                <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">{item.title}</span>
+                                {item.hasNotifications && unreadCount > 0 && (
+                                  <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
+                                    {unreadCount}
+                                  </Badge>
+                                )}
+                              </>
+                            )}
+                            {collapsed && item.hasNotifications && unreadCount > 0 && (
+                              <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[8px] font-bold text-white bg-red-500 rounded-full">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                              </span>
                             )}
                           </Link>
                         </SidebarMenuButton>
@@ -696,16 +730,18 @@ function LayoutContent({ children, currentPageName }) {
             {/* PROFISSIONAL - Only show if user is walker/trainer/both */}
             {authUser && (authUser.account_type === 'walker' || authUser.account_type === 'trainer' || authUser.account_type === 'both' || authUser.role === 'admin') && (
             <SidebarGroup>
-              <SidebarGroupLabel 
-                className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
-                  colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
-                }`}
-                onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
-              >
-                <span>{getMenuText('becomeProfessional')}</span>
-                <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
-              </SidebarGroupLabel>
-              {professionalServicesExpanded && (
+              {!collapsed && (
+                <SidebarGroupLabel 
+                  className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
+                    colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
+                >
+                  <span>{getMenuText('becomeProfessional')}</span>
+                  <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
+                </SidebarGroupLabel>
+              )}
+              {(!collapsed ? professionalServicesExpanded : true) && (
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {professionalMenu.map((item) => ( 
@@ -713,20 +749,24 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`transition-all duration-200 rounded-lg mb-1 ${
+                            collapsed ? 'justify-center' : ''
+                          } ${
                             isRouteActive(item.url) 
                               ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
                               : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
-                            {isRouteActive(item.url) && (
+                          <Link to={item.url} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2 md:py-2.5 relative`}>
+                            {!collapsed && isRouteActive(item.url) && (
                               <div 
                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
                                 style={{ backgroundColor: colors?.primary || '#3b82f6' }}
                               />
                             )}
-                            <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            {!collapsed && (
+                              <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -740,11 +780,13 @@ function LayoutContent({ children, currentPageName }) {
             {/* COMPANY */}
             {companyMenu.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 font-semibold uppercase ${
-                  colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  {getMenuText('company')}
-                </SidebarGroupLabel>
+                {!collapsed && (
+                  <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 font-semibold uppercase ${
+                    colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                    {getMenuText('company')}
+                  </SidebarGroupLabel>
+                )}
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {companyMenu.map((item) => ( 
@@ -752,20 +794,24 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`transition-all duration-200 rounded-lg mb-1 ${
+                            collapsed ? 'justify-center' : ''
+                          } ${
                             isRouteActive(item.url) 
                               ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
                               : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
-                            {isRouteActive(item.url) && (
+                          <Link to={item.url} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2 md:py-2.5 relative`}>
+                            {!collapsed && isRouteActive(item.url) && (
                               <div 
                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
                                 style={{ backgroundColor: colors?.primary || '#3b82f6' }}
                               />
                             )}
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            {!collapsed && (
+                              <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -778,7 +824,9 @@ function LayoutContent({ children, currentPageName }) {
             {/* ADMINISTRAÇÃO */}
             {adminMenu.length > 0 && ( 
               <SidebarGroup>
-                <SidebarGroupLabel className="text-[10px] md:text-xs text-red-600 px-2 font-semibold uppercase">{getMenuText('administration')}</SidebarGroupLabel>
+                {!collapsed && (
+                  <SidebarGroupLabel className="text-[10px] md:text-xs text-red-600 px-2 font-semibold uppercase">{getMenuText('administration')}</SidebarGroupLabel>
+                )}
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {adminMenu.map((item) => ( 
@@ -786,17 +834,21 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`transition-all duration-200 rounded-lg mb-1 ${
+                            collapsed ? 'justify-center' : ''
+                          } ${
                             isRouteActive(item.url) 
                               ? 'bg-red-600 text-white shadow-md' 
                               : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-red-50 text-gray-700')
                           }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
-                            {isRouteActive(item.url) && (
+                          <Link to={item.url} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2 md:py-2.5 relative`}>
+                            {!collapsed && isRouteActive(item.url) && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-red-400" />
                             )}
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            {!collapsed && (
+                              <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -816,14 +868,18 @@ function LayoutContent({ children, currentPageName }) {
                     <SidebarMenuButton 
                       onClick={handleLogout}
                       className={`text-red-600 rounded-lg transition-colors w-full ${
+                        collapsed ? 'justify-center' : ''
+                      } ${
                         colors?.isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-red-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3">
-                        <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                        <span className="font-semibold text-xs md:text-sm truncate">
-                          {getMenuText('logout')}
-                        </span>
+                      <div className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2.5 md:py-3`}>
+                        <LogOut className="w-5 h-5 flex-shrink-0" />
+                        {!collapsed && (
+                          <span className="font-semibold text-xs md:text-sm truncate">
+                            {getMenuText('logout')}
+                          </span>
+                        )}
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -840,7 +896,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
             <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
