@@ -521,7 +521,56 @@ export default function AdminDashboard() {
   const { data: badgeDefinitions = [], isFetching: loadingBadges } = useQuery({
     queryKey: ['badgeDefinitions'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.BadgeDefinition.list('-created_date'),
+    queryFn: async () => {
+      const badges = await base44.entities.BadgeDefinition.list('-created_date', 1000);
+      
+      // Se não houver badges, criar os pré-definidos
+      if (!badges || badges.length === 0) {
+        const defaultBadges = [
+          {
+            badge_id: 'welcome',
+            name: 'Bem-vindo à PawCão',
+            description: 'Primeiro login na plataforma',
+            icon: '🎉',
+            rarity: 'common',
+            category: 'milestone',
+            xp: 50
+          },
+          {
+            badge_id: 'first_booking',
+            name: 'Primeira Reserva',
+            description: 'Completou a primeira reserva',
+            icon: '🎯',
+            rarity: 'common',
+            category: 'milestone',
+            xp: 100
+          },
+          {
+            badge_id: 'super_owner',
+            name: 'Super Dono',
+            description: 'Completou 10 reservas',
+            icon: '⭐',
+            rarity: 'rare',
+            category: 'activity',
+            xp: 200
+          },
+          {
+            badge_id: 'verified_professional',
+            name: 'Profissional Verificado',
+            description: 'Perfil profissional aprovado',
+            icon: '✅',
+            rarity: 'epic',
+            category: 'professional',
+            xp: 300
+          }
+        ];
+        
+        await Promise.all(defaultBadges.map(b => base44.entities.BadgeDefinition.create(b)));
+        return await base44.entities.BadgeDefinition.list('-created_date', 1000);
+      }
+      
+      return badges;
+    },
     enabled: user?.role === 'admin',
     initialData: [],
     staleTime: 2 * 60 * 1000,
