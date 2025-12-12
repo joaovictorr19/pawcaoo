@@ -1010,7 +1010,9 @@ export default function Home() {
               <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:text-white rounded-lg transition-all"
+                  className={`text-xs md:text-sm font-semibold rounded-lg transition-all ${
+                    activeTab === 'walkers' ? 'text-white' : 'text-gray-700'
+                  }`}
                   style={{
                     background: activeTab === 'walkers' ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` : 'transparent'
                   }}
