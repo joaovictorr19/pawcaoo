@@ -31,6 +31,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import ReviewForm from "../components/reviews/ReviewForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AchievementModal from "../components/gamification/AchievementModal";
+import CheckoutModal from "../components/payments/CheckoutModal";
+import { CreditCard } from "lucide-react";
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -61,6 +63,10 @@ export default function MyBookings() {
   // Reward Modal State
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [rewardData, setRewardData] = useState(null);
+  
+  // Checkout Modal State
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutBooking, setCheckoutBooking] = useState(null);
 
   // Buscar usuário atual
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -582,6 +588,20 @@ export default function MyBookings() {
             </Button>
 
             {/* Ações Condicionais */}
+            {booking.status === 'pending' && !isProfessional && (
+              <Button 
+                size="sm" 
+                className="flex-1 h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  setCheckoutBooking({...booking, user});
+                  setShowCheckoutModal(true);
+                }}
+              >
+                <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                Pagar
+              </Button>
+            )}
+
             {booking.status === 'in_progress' && (
               <Button 
                 size="sm" 
@@ -894,6 +914,22 @@ export default function MyBookings() {
         onClose={() => setShowRewardModal(false)} 
         badgeData={rewardData} 
       />
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && checkoutBooking && (
+        <CheckoutModal 
+          booking={checkoutBooking}
+          onClose={() => {
+            setShowCheckoutModal(false);
+            setCheckoutBooking(null);
+          }}
+          onSuccess={() => {
+            queryClient.invalidateQueries(['myWalks']);
+            queryClient.invalidateQueries(['myTrainings']);
+            setShowCheckoutModal(false);
+          }}
+        />
+      )}
 
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
