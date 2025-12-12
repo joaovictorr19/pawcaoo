@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import RewardCard from "../components/loyalty/RewardCard";
 import TierProgressCard from "../components/loyalty/TierProgressCard";
+import ActiveRedemptions from "../components/loyalty/ActiveRedemptions";
 
 export default function LoyaltyRewards() {
   const queryClient = useQueryClient();
@@ -257,6 +258,9 @@ export default function LoyaltyRewards() {
           loyaltyPoints={loyaltyPoints}
           progressToNext={progressToNext}
         />
+
+        {/* Active Redemptions */}
+        <ActiveRedemptions userEmail={user?.email} />
 
         {/* Category Filters - Mobile Optimized */}
         <div className="flex overflow-x-auto gap-2 md:gap-3 mb-4 md:mb-6 pb-2 scrollbar-hide">
