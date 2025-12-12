@@ -160,6 +160,10 @@ export default function Chat() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
+      if (!conversation?.id) {
+        throw new Error("Chat não inicializado");
+      }
+      
       await base44.entities.ChatMessage.create({
         conversation_id: conversation.id,
         sender_email: user.email,
@@ -506,7 +510,12 @@ export default function Chat() {
 
   // Handle send message
   const handleSendMessage = () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !conversation?.id) {
+      if (!conversation?.id) {
+        toast.error("Aguarde o carregamento do chat...");
+      }
+      return;
+    }
     sendMessageMutation.mutate({ text: message, type: "text" });
   };
 
@@ -1116,7 +1125,7 @@ export default function Chat() {
           <Button
             size="icon"
             onClick={handleSendMessage}
-            disabled={!message.trim() || sendMessageMutation.isPending}
+            disabled={!message.trim() || sendMessageMutation.isPending || !conversation?.id}
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Send className="w-4 h-4" />
