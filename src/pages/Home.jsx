@@ -949,51 +949,51 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Compact Filters Section */}
         <Card className="glass-panel border-0 shadow-md mb-4">
-          <CardContent className="p-3">
-            <div className="flex flex-wrap gap-2 items-end">
-              <div className="flex-1 min-w-[120px]">
-                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('size', language)}</Label>
+          <CardContent className="p-2">
+            <div className="flex flex-wrap gap-1.5 items-end">
+              <div className="flex-1 min-w-[90px]">
+                <Label className="text-[9px] font-semibold text-gray-600 mb-0.5 block">Tamanho</Label>
                 <Select value={filterSize} onValueChange={setFilterSize}>
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-7 text-[11px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t('all', language)}</SelectItem>
-                    <SelectItem value="small">{t('small', language)}</SelectItem>
-                    <SelectItem value="medium">{t('medium', language)}</SelectItem>
-                    <SelectItem value="large">{t('large', language)}</SelectItem>
-                    <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="small">Pequeno</SelectItem>
+                    <SelectItem value="medium">Médio</SelectItem>
+                    <SelectItem value="large">Grande</SelectItem>
+                    <SelectItem value="extra_large">Extra Grande</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="flex-1 min-w-[120px]">
-                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('availability', language)}</Label>
+              <div className="flex-1 min-w-[90px]">
+                <Label className="text-[9px] font-semibold text-gray-600 mb-0.5 block">Horário</Label>
                 <Select value={filterTime} onValueChange={setFilterTime}>
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-7 text-[11px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t('all', language)}</SelectItem>
-                    <SelectItem value="morning">{t('morning', language)}</SelectItem>
-                    <SelectItem value="afternoon">{t('afternoon', language)}</SelectItem>
-                    <SelectItem value="evening">{t('evening', language)}</SelectItem>
-                    <SelectItem value="night">{t('night', language)}</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="morning">Manhã</SelectItem>
+                    <SelectItem value="afternoon">Tarde</SelectItem>
+                    <SelectItem value="evening">Noite</SelectItem>
+                    <SelectItem value="night">Madrugada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="flex-1 min-w-[120px]">
-                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('rating', language)}</Label>
+              <div className="flex-1 min-w-[80px]">
+                <Label className="text-[9px] font-semibold text-gray-600 mb-0.5 block">Avaliação</Label>
                 <Select 
                   value={advancedFilters.minRating.toString()} 
                   onValueChange={(v) => setAdvancedFilters({...advancedFilters, minRating: parseFloat(v)})}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-7 text-[11px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">{t('any', language)}</SelectItem>
+                    <SelectItem value="0">Todas</SelectItem>
                     <SelectItem value="3">3+</SelectItem>
                     <SelectItem value="4">4+</SelectItem>
                     <SelectItem value="4.5">4.5+</SelectItem>
@@ -1001,13 +1001,13 @@ export default function Home() {
                 </Select>
               </div>
 
-              <div className="flex-1 min-w-[120px]">
-                <Label className="text-[10px] font-semibold text-gray-600 mb-1 block">{t('maxPrice', language)}</Label>
+              <div className="flex-1 min-w-[80px]">
+                <Label className="text-[9px] font-semibold text-gray-600 mb-0.5 block">Preço Max.</Label>
                 <Select 
                   value={advancedFilters.maxPrice.toString()} 
                   onValueChange={(v) => setAdvancedFilters({...advancedFilters, maxPrice: parseFloat(v)})}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-7 text-[11px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1028,36 +1028,36 @@ export default function Home() {
                   setFilterTime("all");
                   setFilterDogSitting("all");
                 }}
-                className="h-8 text-[10px] px-2"
+                className="h-7 text-[10px] px-2"
               >
-                {t('reset', language)}
+                Limpar
               </Button>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="h-8 text-[10px] px-2"
+                className="h-7 text-[10px] px-2"
               >
                 <Sliders className="w-3 h-3 mr-1" />
-                {showAdvancedFilters ? t('less', language) : t('more', language)}
+                {showAdvancedFilters ? 'Menos' : 'Mais'}
               </Button>
               
               <Button
                 variant={viewMode === "list" ? "default" : "outline"}
                 onClick={() => setViewMode("list")}
                 size="sm"
-                className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-8 px-2' : 'h-8 px-2'}
+                className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-7 px-2' : 'h-7 px-2'}
               >
-                <List className="w-3.5 h-3.5" />
+                <List className="w-3 h-3" />
               </Button>
               <Button
                 variant={viewMode === "map" ? "default" : "outline"}
                 onClick={() => setViewMode("map")}
                 size="sm"
-                className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-8 px-2' : 'h-8 px-2'}
+                className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-7 px-2' : 'h-7 px-2'}
               >
-                <MapIcon className="w-3.5 h-3.5" />
+                <MapIcon className="w-3 h-3" />
               </Button>
             </div>
           </CardContent>
