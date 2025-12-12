@@ -1032,23 +1032,6 @@ export default function Home() {
               >
                 Limpar
               </Button>
-              
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                onClick={() => setViewMode("list")}
-                size="sm"
-                className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-7 px-2' : 'h-7 px-2'}
-              >
-                <List className="w-3 h-3" />
-              </Button>
-              <Button
-                variant={viewMode === "map" ? "default" : "outline"}
-                onClick={() => setViewMode("map")}
-                size="sm"
-                className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-7 px-2' : 'h-7 px-2'}
-              >
-                <MapIcon className="w-3 h-3" />
-              </Button>
             </div>
           </CardContent>
         </Card>
