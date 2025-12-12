@@ -515,7 +515,7 @@ export default function Chat() {
         const { latitude, longitude } = position.coords;
         let distance = 0;
 
-        // Verify proximity (50m from pickup location)
+        // Calculate distance from pickup location
         if (booking.pickup_lat && booking.pickup_lng) {
           distance = calculateDistance(
             latitude,
@@ -523,11 +523,6 @@ export default function Chat() {
             booking.pickup_lat,
             booking.pickup_lng
           );
-
-          if (distance > 50) {
-            toast.error(`Está a ${Math.round(distance)}m do destino. Aproxime-se a menos de 50m para concluir.`);
-            throw new Error("Muito longe do destino");
-          }
         }
 
         // Create final checkpoint
@@ -1152,7 +1147,7 @@ export default function Chat() {
           </Button>
           
           <p className="text-[10px] text-center text-gray-600">
-            ⚠️ Aproxime-se a menos de 50m do destino para concluir
+            ✓ Pode concluir o serviço a partir de qualquer localização
           </p>
         </div>
       )}
