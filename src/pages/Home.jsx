@@ -1721,7 +1721,6 @@ export default function Home() {
                   )}
                 </div>
               </TabsContent>
-            </Tabs>
           </div>
         </div>
 
