@@ -85,7 +85,7 @@ export default function Partners() {
   const regularAnnouncements = announcements.filter(a => !a.is_featured || !a.featured_tier || a.featured_tier === 'none');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+    <div className="min-h-screen">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -116,7 +116,7 @@ export default function Partners() {
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {featuredAnnouncements.map((announcement) => (
-                <Card key={announcement.id} className="border-2 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-xl">
+                <Card key={announcement.id} className="glass-panel border-2 border-yellow-400 shadow-xl">
                   <CardContent className="p-4">
                     {announcement.image_url && (
                       <img
@@ -247,7 +247,7 @@ export default function Partners() {
                 onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
                 className="cursor-pointer"
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
+                <Card className="glass-panel h-full hover:shadow-lg transition-shadow border-0">
                   <div className="relative h-40 bg-gray-100 flex items-center justify-center p-4">
                     {partner.logo_url ? (
                       <img
