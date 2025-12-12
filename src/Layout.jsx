@@ -574,6 +574,21 @@ function LayoutContent({ children, currentPageName }) {
   overflow: hidden !important;
 }
 
+/* Hide floating button when sidebar is open */
+.floating-sidebar-trigger {
+  display: none;
+}
+
+/* Show floating button only when sidebar is collapsed */
+[data-sidebar="sidebar"][data-state="collapsed"] ~ * .floating-sidebar-trigger {
+  display: flex !important;
+}
+
+/* Remove trigger from sidebar header when collapsed */
+[data-sidebar="sidebar"][data-state="collapsed"] button[data-sidebar="trigger"] {
+  display: none !important;
+}
+
 /* Premium glass effect */
 [data-sidebar="sidebar"]::before {
   content: '';
@@ -635,16 +650,13 @@ main {
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] transition-all backdrop-blur-xl ${
             colors?.isDarkMode ? 'border-slate-700/30 bg-slate-900/20' : 'border-white/40 bg-white/20'
           }`}>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-center mb-3">
               <Link 
                 to={createPageUrl("Home")} 
                 className="block hover:opacity-80 transition-opacity group-data-[state=collapsed]:hidden"
               >
                 <PawCaoLogo size="default" />
               </Link>
-              <SidebarTrigger className={`ml-auto rounded-xl transition-all hover:scale-110 ${
-                colors?.isDarkMode ? 'hover:bg-slate-800/60' : 'hover:bg-green-100/60'
-              }`} />
             </div>
 
             {planBadge && (
@@ -914,9 +926,9 @@ main {
             </>
             )}
             
-            {/* Floating Trigger Button - Shows when sidebar is hidden */}
+            {/* Floating Trigger Button - Always visible */}
             {authUser && (
-              <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ${
+              <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 items-center justify-center group ${
                 colors?.isDarkMode 
                   ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
                   : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
