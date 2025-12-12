@@ -1721,7 +1721,46 @@ export default function AdminDashboard() {
                     </CardTitle>
                     <p className="text-xs md:text-sm text-gray-600 mt-1">{t('grantSpecialBadges', language)}</p>
                   </div>
-                  <div className="flex gap-2 w-full md:w-auto">
+                  <div className="flex gap-2 w-full md:w-auto flex-wrap">
+                    <Button
+                      onClick={async () => {
+                        if (!confirm("Isto irá recalcular o XP de todos os usuários baseado nos emblemas que possuem. Continuar?")) return;
+                        toast.info("Recalculando XP de todos os usuários...");
+                        try {
+                          let updatedCount = 0;
+                          for (const targetUser of allUsers) {
+                            const badges = targetUser.public_badges || [];
+                            const totalBadgeXP = badges.reduce((sum, b) => sum + (b.xp || 50), 0);
+                            
+                            if (totalBadgeXP > 0) {
+                              await base44.entities.User.update(targetUser.id, {
+                                gamification_xp: totalBadgeXP
+                              });
+                              
+                              // Sync to UserProfile
+                              const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+                              if (profiles.length > 0) {
+                                await base44.entities.UserProfile.update(profiles[0].id, {
+                                  gamification_xp: totalBadgeXP
+                                });
+                              }
+                              updatedCount++;
+                            }
+                          }
+                          
+                          queryClient.invalidateQueries(['allUsers']);
+                          queryClient.invalidateQueries(['leaderboard']);
+                          toast.success(`✅ ${updatedCount} usuários sincronizados!`);
+                        } catch (error) {
+                          toast.error("Erro: " + error.message);
+                        }
+                      }}
+                      variant="outline"
+                      className="text-green-600 border-green-300 w-full md:w-auto"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Recalcular XP
+                    </Button>
                     <Button
                       onClick={async () => {
                         if (!confirm("Isto irá remover seguidores duplicados de todas as contas. Continuar?")) return;
