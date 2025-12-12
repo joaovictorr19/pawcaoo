@@ -623,21 +623,7 @@ body, html, #root {
   padding: 0 !important;
 }
         `}</style>
-      {/* Dynamic Tier-based Aurora Background */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div 
-          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"
-          style={{ backgroundColor: 'var(--orb-1)', transition: 'background-color 1s ease' }}
-        />
-        <div 
-          className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-2000"
-          style={{ backgroundColor: 'var(--orb-2)', transition: 'background-color 1s ease' }}
-        />
-        <div 
-          className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-50 animate-blob animation-delay-4000"
-          style={{ backgroundColor: 'var(--orb-1)', transition: 'background-color 1s ease' }}
-        />
-      </div>
+
 
       {/* Floating Trigger Button - Always visible */}
       {authUser && (
