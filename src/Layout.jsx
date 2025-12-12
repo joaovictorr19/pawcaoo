@@ -1053,8 +1053,8 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
-            colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
+          <footer className={`mt-auto backdrop-blur-2xl border-t transition-colors duration-300 relative z-10 ${
+            colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
