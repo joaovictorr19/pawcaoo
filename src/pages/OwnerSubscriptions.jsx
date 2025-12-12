@@ -92,7 +92,7 @@ export default function OwnerSubscriptions() {
 
       // Paid plans - redirect to Stripe checkout
       const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
-      const { data } = await base44.functions.invoke('createOwnerSubscriptionCheckout', {
+      const response = await base44.functions.invoke('createOwnerSubscriptionCheckout', {
         plan_type: plan.type,
         billing_cycle: billingCycle,
         amount: price,
@@ -108,8 +108,13 @@ export default function OwnerSubscriptions() {
         }
       });
 
-      if (data?.url) {
-        window.location.href = data.url;
+      console.log('Checkout response:', response);
+
+      if (response?.data?.url) {
+        window.location.href = response.data.url;
+        return null;
+      } else {
+        throw new Error('Erro ao criar sessão de pagamento');
       }
     },
     onSuccess: (result) => {
@@ -117,6 +122,10 @@ export default function OwnerSubscriptions() {
         queryClient.invalidateQueries({ queryKey: ['ownerSubscription'] });
         toast.success("Subscrição atualizada com sucesso!");
       }
+    },
+    onError: (error) => {
+      console.error('Subscription error:', error);
+      toast.error("Erro ao processar pagamento: " + error.message);
     },
   });
 
