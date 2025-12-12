@@ -862,9 +862,16 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
-
-
             </>
+            )}
+            
+            {/* Floating Trigger Button - Shows when sidebar is hidden */}
+            {authUser && (
+              <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 flex items-center justify-center ${
+                colors?.isDarkMode 
+                  ? 'bg-slate-900/60 border border-slate-700/30 hover:bg-slate-800/80' 
+                  : 'bg-white/60 border border-white/40 hover:bg-white/80'
+              }`} />
             )}
 
             {/* Push Notification Manager */}
