@@ -99,33 +99,44 @@ export default function Chat() {
     queryFn: async () => {
       if (!bookingId || !booking) return null;
 
-      // Check if conversation exists
-      const existing = await base44.entities.ChatConversation.filter({
-        booking_id: bookingId,
-      });
+      try {
+        // Check if conversation exists
+        const existing = await base44.entities.ChatConversation.filter({
+          booking_id: bookingId,
+        });
 
-      if (existing && existing.length > 0) {
-        return existing[0];
+        if (existing && existing.length > 0) {
+          return existing[0];
+        }
+
+        // Create new conversation
+        const participants = [
+          booking.created_by || booking.owner_email,
+          booking.walker_email || booking.trainer_email,
+        ].filter(Boolean);
+
+        if (participants.length < 2) {
+          console.error("Insufficient participants for conversation", { booking, participants });
+          return null;
+        }
+
+        const newConvo = await base44.entities.ChatConversation.create({
+          participants,
+          booking_id: bookingId,
+          tags: ["booking", booking.type || "walk"],
+          last_message: "Chat iniciado",
+          last_message_date: new Date().toISOString(),
+          unread_counts: {},
+        });
+
+        return newConvo;
+      } catch (error) {
+        console.error("Error fetching/creating conversation:", error);
+        return null;
       }
-
-      // Create new conversation
-      const participants = [
-        booking.created_by || booking.owner_email,
-        booking.walker_email || booking.trainer_email,
-      ].filter(Boolean);
-
-      const newConvo = await base44.entities.ChatConversation.create({
-        participants,
-        booking_id: bookingId,
-        tags: ["booking", booking.type || "walk"],
-        last_message: "Chat iniciado",
-        last_message_date: new Date().toISOString(),
-        unread_counts: {},
-      });
-
-      return newConvo;
     },
     enabled: !!bookingId && !!booking,
+    retry: 2,
   });
 
   // Fetch messages
