@@ -156,10 +156,10 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl max-w-3xl w-full my-8"
       >
-        <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-2xl">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-2xl p-4 md:p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <Repeat className="w-6 h-6" />
+            <CardTitle className="text-lg md:text-2xl flex items-center gap-2">
+              <Repeat className="w-5 h-5 md:w-6 md:h-6" />
               Agendamento Recorrente
             </CardTitle>
             <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
@@ -171,11 +171,11 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
           </p>
         </CardHeader>
 
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="p-4 md:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             {/* Frequency */}
             <div>
-              <Label className="text-lg font-bold mb-3 block">📅 Frequência dos Passeios</Label>
+              <Label className="text-sm md:text-lg font-bold mb-2 md:mb-3 block">📅 Frequência dos Passeios</Label>
               <Select value={formData.recurrence} onValueChange={(v) => setFormData({ ...formData, recurrence: v })}>
                 <SelectTrigger className="h-12">
                   <SelectValue />
@@ -202,14 +202,14 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
             {/* Days of Week (for weekly/biweekly) */}
             {(formData.recurrence === "weekly" || formData.recurrence === "biweekly") && (
               <div>
-                <Label className="text-base font-bold mb-3 block">🗓️ Dias da Semana</Label>
-                <div className="grid grid-cols-7 gap-2">
+                <Label className="text-sm md:text-base font-bold mb-2 md:mb-3 block">🗓️ Dias da Semana</Label>
+                <div className="grid grid-cols-7 gap-1 md:gap-2">
                   {weekDays.map((day) => (
                     <button
                       key={day.value}
                       type="button"
                       onClick={() => toggleDay(day.value)}
-                      className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                      className={`p-2 md:p-3 rounded-lg md:rounded-xl border-2 text-[10px] md:text-sm font-semibold transition-all ${
                         formData.daysOfWeek.includes(day.value)
                           ? 'border-purple-600 bg-purple-50 text-purple-700'
                           : 'border-gray-200 hover:border-purple-300 text-gray-600'
@@ -232,22 +232,22 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
 
             {/* Time Slot */}
             <div>
-              <Label className="text-base font-bold mb-3 block">🕐 Horário Preferido</Label>
-              <div className="grid grid-cols-3 gap-3">
+              <Label className="text-sm md:text-base font-bold mb-2 md:mb-3 block">🕐 Horário Preferido</Label>
+              <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {timeSlots.map((slot) => (
                   <button
                     key={slot.value}
                     type="button"
                     onClick={() => setFormData({ ...formData, timeSlot: slot.value })}
-                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                    className={`p-2 md:p-4 rounded-lg md:rounded-xl border-2 text-center transition-all ${
                       formData.timeSlot === slot.value
                         ? 'border-blue-600 bg-blue-50'
                         : 'border-gray-200 hover:border-blue-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">{slot.icon}</div>
-                    <div className="font-bold text-sm">{slot.label}</div>
-                    <div className="text-xs text-gray-600">{slot.time}</div>
+                    <div className="text-xl md:text-2xl mb-1">{slot.icon}</div>
+                    <div className="font-bold text-xs md:text-sm">{slot.label}</div>
+                    <div className="text-[10px] md:text-xs text-gray-600">{slot.time}</div>
                   </button>
                 ))}
               </div>
@@ -255,7 +255,7 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
 
             {/* Duration */}
             <div>
-              <Label className="text-base font-bold mb-3 block">⏱️ Duração do Passeio</Label>
+              <Label className="text-sm md:text-base font-bold mb-2 md:mb-3 block">⏱️ Duração do Passeio</Label>
               <Select 
                 value={formData.durationHours.toString()} 
                 onValueChange={(v) => setFormData({ ...formData, durationHours: parseFloat(v) })}
@@ -273,9 +273,9 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
             </div>
 
             {/* Date Range */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
-                <Label className="mb-2 block">Data de Início *</Label>
+                <Label className="mb-2 block text-sm">Data de Início *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start h-12">
@@ -295,7 +295,7 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
               </div>
 
               <div>
-                <Label className="mb-2 block">Data de Fim (opcional)</Label>
+                <Label className="mb-2 block text-sm">Data de Fim (opcional)</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start h-12">
@@ -319,22 +319,22 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
 
             {/* Pricing Summary */}
             <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
-              <CardContent className="p-6">
-                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-600" />
+              <CardContent className="p-4 md:p-6">
+                <h3 className="text-sm md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2">
+                  <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-600" />
                   Resumo & Economia
                 </h3>
                 
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
+                <div className="space-y-2 md:space-y-3">
+                  <div className="flex justify-between text-xs md:text-sm">
                     <span className="text-gray-600">Preço por passeio:</span>
                     <span className="font-semibold">€{totalBeforeDiscount.toFixed(2)}</span>
                   </div>
                   
                   {discount > 0 && (
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs md:text-sm">
                       <span className="text-green-600 font-semibold flex items-center gap-1">
-                        <TrendingDown className="w-4 h-4" />
+                        <TrendingDown className="w-3 h-3 md:w-4 md:h-4" />
                         Desconto Recorrente ({discount}%):
                       </span>
                       <span className="font-bold text-green-600">-€{discountAmount.toFixed(2)}</span>
@@ -344,23 +344,23 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
                   <Separator />
                   
                   <div className="flex justify-between">
-                    <span className="font-bold text-lg">Preço Final/Passeio:</span>
-                    <span className="font-bold text-2xl text-green-600">€{finalPrice.toFixed(2)}</span>
+                    <span className="font-bold text-sm md:text-lg">Preço Final/Passeio:</span>
+                    <span className="font-bold text-xl md:text-2xl text-green-600">€{finalPrice.toFixed(2)}</span>
                   </div>
 
-                  <div className="bg-white rounded-lg p-4 mt-4 border-2 border-purple-300">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Zap className="w-5 h-5 text-yellow-600" />
-                      <span className="font-bold text-gray-900">Projeção Mensal</span>
+                  <div className="bg-white rounded-lg p-3 md:p-4 mt-3 md:mt-4 border-2 border-purple-300">
+                    <div className="flex items-center gap-2 mb-2 md:mb-3">
+                      <Zap className="w-4 h-4 md:w-5 md:h-5 text-yellow-600" />
+                      <span className="text-sm md:text-base font-bold text-gray-900">Projeção Mensal</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
                       <div>
-                        <p className="text-gray-600">Passeios/mês:</p>
-                        <p className="font-bold text-xl text-purple-600">{monthlyWalks}x</p>
+                        <p className="text-xs md:text-sm text-gray-600">Passeios/mês:</p>
+                        <p className="font-bold text-lg md:text-xl text-purple-600">{monthlyWalks}x</p>
                       </div>
                       <div>
-                        <p className="text-gray-600">Economia mensal:</p>
-                        <p className="font-bold text-xl text-green-600">€{monthlySavings.toFixed(2)}</p>
+                        <p className="text-xs md:text-sm text-gray-600">Economia mensal:</p>
+                        <p className="font-bold text-lg md:text-xl text-green-600">€{monthlySavings.toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -384,25 +384,25 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex flex-col md:flex-row gap-2 md:gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1"
+                className="w-full md:flex-1 h-11 md:h-10 text-sm md:text-base"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={createRecurringMutation.isPending}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white h-14 text-lg font-bold"
+                className="w-full md:flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white h-11 md:h-14 text-sm md:text-lg font-bold"
               >
                 {createRecurringMutation.isPending ? (
                   "Criando..."
                 ) : (
                   <>
-                    <Repeat className="w-5 h-5 mr-2" />
+                    <Repeat className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                     Confirmar Agendamento
                   </>
                 )}

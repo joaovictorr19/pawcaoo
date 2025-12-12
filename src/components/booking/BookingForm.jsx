@@ -387,14 +387,14 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
           }}
         >
-          <CardTitle className="text-2xl">{isWalker ? 'Agendar Passeio' : 'Agendar Sessão'}</CardTitle>
-          <p className="text-white/80">com {proName}</p>
+          <CardTitle className="text-lg md:text-2xl">{isWalker ? 'Agendar Passeio' : 'Agendar Sessão'}</CardTitle>
+          <p className="text-sm md:text-base text-white/80">com {proName}</p>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
           {/* Select Dog from My Pack */}
           {myDogs?.length > 0 && (
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-              <Label className="font-semibold text-green-900 mb-2 block">🐕 Selecionar do My Pack</Label>
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 md:p-4">
+              <Label className="text-sm md:text-base font-semibold text-green-900 mb-2 block">🐕 Selecionar do My Pack</Label>
               <Select value={selectedDogId} onValueChange={setSelectedDogId}>
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Escolher um dos meus cães" />
@@ -413,7 +413,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Nome do Cão */}
           <div>
-            <Label>Nome do Cão *</Label>
+            <Label className="text-sm">Nome do Cão *</Label>
             <Input
               value={formData.dog_name}
               onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
@@ -424,7 +424,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Tamanho */}
           <div>
-            <Label>Tamanho do Cão *</Label>
+            <Label className="text-sm">Tamanho do Cão *</Label>
             <Select
               value={formData.dog_size}
               onValueChange={(value) => setFormData({...formData, dog_size: value})}
@@ -443,7 +443,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Data */}
           <div>
-            <Label>Data do Passeio *</Label>
+            <Label className="text-sm">Data do Passeio *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -479,7 +479,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Horário */}
           <div>
-            <Label>Horário Preferido *</Label>
+            <Label className="text-sm">Horário Preferido *</Label>
             <Select
               value={formData.walk_time}
               onValueChange={(value) => setFormData({...formData, walk_time: value})}
@@ -508,7 +508,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Duração */}
           <div>
-            <Label>Duração (horas) *</Label>
+            <Label className="text-sm">Duração (horas) *</Label>
             <Select
               value={formData.duration_hours.toString()}
               onValueChange={(value) => setFormData({...formData, duration_hours: parseInt(value)})}
@@ -527,7 +527,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Local de Recolha com Geocoding */}
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
+            <Label className="flex items-center gap-2 text-sm">
                 <MapPin className="w-4 h-4 text-purple-600" /> 
                 Local de Recolha do Animal <span className="text-red-500">*</span>
             </Label>
@@ -572,7 +572,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
           {/* Notas Especiais */}
           <div>
-            <Label>Notas Especiais</Label>
+            <Label className="text-sm">Notas Especiais</Label>
             <Textarea
               value={formData.special_notes}
               onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
@@ -582,27 +582,27 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           </div>
 
           {/* Resumo de Valores */}
-          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 space-y-3 border border-white/30 shadow-sm">
-            <h4 className="font-semibold text-gray-900 mb-3">Resumo do Valor Estimado</h4>
+          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-3 md:p-4 space-y-2 md:space-y-3 border border-white/30 shadow-sm">
+            <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">Resumo do Valor Estimado</h4>
 
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs md:text-sm">
               <span>Taxa horária</span>
               <span>€{pro?.hourly_rate}/hora</span>
             </div>
 
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs md:text-sm">
               <span>Duração</span>
               <span>{formData.duration_hours}h</span>
             </div>
               
             {amounts.discount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
+              <div className="flex justify-between text-xs md:text-sm text-green-600">
                 <span>Desconto ({amounts.discount}%)</span>
                 <span>-€{amounts.discountAmount.toFixed(2)}</span>
               </div>
             )}
               
-            <div className="border-t border-gray-200 pt-3 flex justify-between font-bold text-lg">
+            <div className="border-t border-gray-200 pt-2 md:pt-3 flex justify-between font-bold text-base md:text-lg">
               <span>Valor a Combinar</span>
               <span className="text-gray-900">€{amounts.totalAmount.toFixed(2)}</span>
             </div>
@@ -613,29 +613,29 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           </div>
 
           {/* Aviso Pagamento */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 md:gap-3">
+            <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs md:text-sm text-blue-800">
               <p className="font-semibold mb-1">Pagamento após Confirmação</p>
-              <p>O contacto para pagamento (MBWay) será disponibilizado aqui na plataforma assim que o profissional aceitar o seu pedido.</p>
+              <p className="text-xs md:text-sm">O contacto para pagamento (MBWay) será disponibilizado aqui na plataforma assim que o profissional aceitar o seu pedido.</p>
             </div>
           </div>
 
           {/* Botões */}
-          <div className="flex gap-3">
+          <div className="flex flex-col md:flex-row gap-2 md:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={isProcessing}
-              className="flex-1"
+              className="w-full md:flex-1 h-11 md:h-10 text-sm md:text-base"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isProcessing}
-              className="flex-1 text-white hover:opacity-90"
+              className="w-full md:flex-1 h-11 md:h-10 text-sm md:text-base text-white hover:opacity-90"
               style={{
                 background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
               }}
