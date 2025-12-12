@@ -109,14 +109,15 @@ export default function Chat() {
           return existing[0];
         }
 
-        // Create new conversation
-        const participants = [
-          booking.created_by || booking.owner_email,
-          booking.walker_email || booking.trainer_email,
-        ].filter(Boolean);
+        // Create new conversation with proper participant extraction
+        const ownerEmail = booking.created_by || booking.owner_email || user?.email;
+        const professionalEmail = booking.walker_email || booking.trainer_email;
+        
+        const participants = [ownerEmail, professionalEmail].filter(Boolean);
 
         if (participants.length < 2) {
-          console.error("Insufficient participants for conversation", { booking, participants });
+          console.error("Insufficient participants for conversation", { booking, participants, ownerEmail, professionalEmail });
+          toast.error("Erro ao criar chat: dados de participantes incompletos");
           return null;
         }
 
