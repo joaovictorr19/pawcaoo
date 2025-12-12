@@ -71,6 +71,8 @@ export default function Chat() {
     played_with_other_dogs: false,
     special_notes: ""
   });
+  const [trackingActive, setTrackingActive] = useState(false);
+  const watchIdRef = useRef(null);
 
   // Fetch current user
   const { data: user } = useQuery({
@@ -344,7 +346,14 @@ export default function Chat() {
   // Start service (check-in)
   const startServiceMutation = useMutation({
     mutationFn: async () => {
+      // Request location permission explicitly
       return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          toast.error("Geolocalização não suportada neste dispositivo");
+          reject(new Error("Geolocation not supported"));
+          return;
+        }
+
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords;
@@ -364,6 +373,8 @@ export default function Chat() {
               status: "in_progress",
               walker_lat: latitude,
               walker_lng: longitude,
+              pickup_lat: latitude,
+              pickup_lng: longitude,
               walk_start_time: new Date().toISOString(),
               last_update: new Date().toISOString(),
             });
@@ -378,19 +389,33 @@ export default function Chat() {
               priority: "high",
             });
 
+            toast.success("🎯 Rastreamento GPS ativado! A localização será atualizada automaticamente.");
             resolve();
           },
-          (error) => reject(error)
+          (error) => {
+            if (error.code === error.PERMISSION_DENIED) {
+              toast.error("⚠️ Permissão de localização negada. Por favor, autorize o acesso nas configurações do navegador para continuar.");
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+              toast.error("Localização não disponível. Verifique se o GPS está ativado.");
+            } else if (error.code === error.TIMEOUT) {
+              toast.error("Tempo de espera esgotado. Tente novamente.");
+            }
+            reject(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
         );
       });
     },
     onSuccess: () => {
-      toast.success("✅ Serviço iniciado!");
       queryClient.invalidateQueries(["booking", bookingId]);
       queryClient.invalidateQueries(["checkpoints", bookingId]);
     },
-    onError: () => {
-      toast.error("Erro ao iniciar serviço");
+    onError: (error) => {
+      console.error("Start service error:", error);
     },
   });
 
@@ -490,6 +515,118 @@ export default function Chat() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Continuous GPS tracking when service is in progress
+  useEffect(() => {
+    if (!isProfessional || booking?.status !== "in_progress" || !bookingId) {
+      // Stop tracking if conditions not met
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+        setTrackingActive(false);
+      }
+      return;
+    }
+
+    // Start continuous tracking
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        if (result.state === 'granted' || result.state === 'prompt') {
+          startContinuousTracking();
+        }
+      });
+    } else {
+      startContinuousTracking();
+    }
+
+    function startContinuousTracking() {
+      setTrackingActive(true);
+
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        async (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+
+          // Only update if accuracy is reasonable (< 50m)
+          if (accuracy > 50) return;
+
+          try {
+            // Calculate distance from last checkpoint
+            let distanceKm = 0;
+            if (checkpoints.length > 0) {
+              const lastCheckpoint = checkpoints[checkpoints.length - 1];
+              if (lastCheckpoint.latitude && lastCheckpoint.longitude) {
+                const distanceM = calculateDistance(
+                  lastCheckpoint.latitude,
+                  lastCheckpoint.longitude,
+                  latitude,
+                  longitude
+                );
+                distanceKm = distanceM / 1000;
+
+                // Only create checkpoint if moved more than 50m
+                if (distanceM < 50) {
+                  // Just update booking coordinates without checkpoint
+                  await base44.entities.Booking.update(bookingId, {
+                    walker_lat: latitude,
+                    walker_lng: longitude,
+                    last_update: new Date().toISOString(),
+                  });
+                  return;
+                }
+              }
+            }
+
+            // Create automatic checkpoint
+            await base44.entities.WalkCheckpoint.create({
+              booking_id: bookingId,
+              walker_email: user.email,
+              checkpoint_type: "midpoint",
+              latitude,
+              longitude,
+              distance_km: distanceKm,
+              timestamp: new Date().toISOString(),
+            });
+
+            // Update booking
+            const totalDistance = checkpoints.reduce((sum, c) => sum + (c.distance_km || 0), 0) + distanceKm;
+            await base44.entities.Booking.update(bookingId, {
+              walker_lat: latitude,
+              walker_lng: longitude,
+              distance_km: totalDistance,
+              last_update: new Date().toISOString(),
+            });
+
+            // Invalidate queries to update UI
+            queryClient.invalidateQueries(["booking", bookingId]);
+            queryClient.invalidateQueries(["checkpoints", bookingId]);
+          } catch (error) {
+            console.error("Error updating GPS position:", error);
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            toast.error("Permissão de localização negada. Ative nas configurações do navegador.");
+          }
+          setTrackingActive(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+        setTrackingActive(false);
+      }
+    };
+  }, [isProfessional, booking?.status, bookingId, checkpoints, user?.email, queryClient]);
 
   // Determine user role
   const isProfessional = user?.email === booking?.walker_email || user?.email === booking?.trainer_email;
@@ -767,15 +904,32 @@ export default function Chat() {
             <Navigation className="w-5 h-5 mr-2" />
             {startServiceMutation.isPending ? "Iniciando..." : "Iniciar Serviço"}
           </Button>
-          <p className="text-xs text-center text-green-800 mt-2">
-            📍 Sua localização será partilhada ao iniciar
-          </p>
+          <div className="mt-2 bg-white rounded-lg p-2 border border-green-200">
+            <p className="text-xs text-green-800 font-medium mb-1">
+              ℹ️ Ao iniciar, será pedida permissão de localização:
+            </p>
+            <ul className="text-[10px] text-green-700 space-y-0.5">
+              <li>• Rastreamento GPS automático durante o serviço</li>
+              <li>• Atualizações contínuas de localização</li>
+              <li>• Necessário manter app aberto em segundo plano</li>
+            </ul>
+          </div>
         </div>
       )}
 
       {/* Professional Actions Bar - In Progress */}
       {isProfessional && booking.status === "in_progress" && !showBehaviorForm && (
         <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-3 space-y-2">
+          {/* GPS Status Indicator */}
+          {trackingActive && (
+            <div className="flex items-center justify-center gap-2 bg-blue-50 rounded-lg p-2 mb-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+              <span className="text-xs font-medium text-blue-800">
+                GPS Ativo - Rastreamento Automático
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <Button
               size="sm"
