@@ -1701,11 +1701,24 @@ export default function Home() {
                   )}
                 </div>
               </TabsContent>
+            </div>
           </div>
-        </div>
+        </Tabs>
 
-        {/* Professional Call-to-Action Section */}
+        {/* Testimonials Section */}
+        {!user && <TestimonialsSection />}
+
+        {/* Modal de Avaliação */}
+        {reviewBooking && (
+          <ReviewModal 
+            booking={reviewBooking} 
+            isOpen={!!reviewBooking} 
+            onClose={() => setReviewBooking(null)} 
+          />
+        )}
+
         <div className="max-w-7xl mx-auto px-3 md:px-6">
+          {/* Professional Call-to-Action Section */}
         <div className="mt-16 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
