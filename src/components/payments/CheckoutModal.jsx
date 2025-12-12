@@ -21,43 +21,22 @@ export default function CheckoutModal({
   const { user } = booking;
   const [processing, setProcessing] = useState(false);
 
-  const handleConfirmAndChat = async () => {
+  const handleStripeCheckout = async () => {
     setProcessing(true);
 
     try {
-      // Just update booking status to pending (already is, but confirming intent)
-      // In this manual flow, 'pending' means "requested, discussing payment/details"
-      // We don't create a Payment record yet as it's off-platform
-      
-      // Create a payment record as pending
-      await base44.entities.Payment.create({
-        booking_id: booking.id,
-        payer_email: user.email,
-        payer_name: user.full_name,
-        recipient_email: booking.walker_email,
-        recipient_name: booking.walker_name,
-        service_amount: booking.service_amount,
-        total_amount: booking.total_amount,
-        status: "pending",
-        payment_method: "mbway",
-        platform_fee: booking.platform_fee
+      const { data } = await base44.functions.invoke('createStripeCheckout', {
+        bookingId: booking.id,
+        successUrl: `${window.location.origin}${createPageUrl('CheckoutSuccess')}?booking_id=${booking.id}`,
+        cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`,
       });
 
-      toast.success(language === 'pt' ? "Solicitação enviada! Combine o pagamento no chat." : "Request sent! Arrange payment in chat.");
-      
-      if (onSuccess) {
-        onSuccess(null); // No payment object
+      if (data.url) {
+        window.location.href = data.url;
       }
-      
-      // Navigate to messages with this walker
-      const walkerId = booking.walker_id || booking.professional_id;
-      navigate(createPageUrl(`Messages?walker_id=${walkerId}`));
-      
-      onClose();
     } catch (err) {
-      console.error("Error:", err);
-      toast.error(language === 'pt' ? "Erro ao processar" : "Processing failed");
-    } finally {
+      console.error("Stripe error:", err);
+      toast.error(language === 'pt' ? "Erro ao iniciar pagamento" : "Payment failed");
       setProcessing(false);
     }
   };
@@ -108,19 +87,19 @@ export default function CheckoutModal({
           </div>
 
           {/* Payment Instructions */}
-          <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-5">
-            <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" />
-              {language === 'pt' ? 'Como Pagar' : 'How to Pay'}
+          <div className="bg-green-50 border-2 border-green-100 rounded-xl p-5">
+            <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">
+              <Check className="w-5 h-5" />
+              {language === 'pt' ? 'Pagamento Seguro' : 'Secure Payment'}
             </h4>
-            <p className="text-sm text-blue-700 mb-3 leading-relaxed">
+            <p className="text-sm text-green-700 mb-3 leading-relaxed">
               {language === 'pt' 
-                ? 'No momento, os pagamentos são combinados diretamente com o passeador. Clique abaixo para abrir o chat e solicitar o número MBWay.'
-                : 'Currently, payments are arranged directly with the walker. Click below to open the chat and request their MBWay number.'}
+                ? 'Pagamento processado de forma segura pelo Stripe. O valor ficará retido até a conclusão do serviço.'
+                : 'Payment securely processed by Stripe. Amount will be held until service completion.'}
             </p>
-            <div className="flex items-center gap-2 text-xs text-blue-600 font-medium bg-white/50 p-2 rounded-lg">
+            <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-white/50 p-2 rounded-lg">
               <Check className="w-4 h-4" />
-              {language === 'pt' ? 'Sua reserva ficará pendente até confirmação.' : 'Your booking will be pending confirmation.'}
+              {language === 'pt' ? '🔒 Pagamento protegido' : '🔒 Protected payment'}
             </div>
           </div>
 
@@ -136,14 +115,14 @@ export default function CheckoutModal({
               {language === 'pt' ? 'Cancelar' : 'Cancel'}
             </Button>
             <Button
-              onClick={handleConfirmAndChat}
+              onClick={handleStripeCheckout}
               disabled={processing}
               className="flex-1 h-12 font-bold text-white hover:opacity-90"
               style={{
                 background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
               }}
             >
-              {language === 'pt' ? 'Combinar no Chat' : 'Arrange in Chat'}
+              {processing ? (language === 'pt' ? 'Processando...' : 'Processing...') : (language === 'pt' ? 'Pagar Agora' : 'Pay Now')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
