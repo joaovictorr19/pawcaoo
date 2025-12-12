@@ -1001,40 +1001,42 @@ export default function Chat() {
 
       {/* Professional Actions Bar - In Progress */}
       {isProfessional && booking.status === "in_progress" && !showBehaviorForm && (
-        <div className="bg-yellow-50 border-t border-yellow-200 px-3 py-2 md:px-4 md:py-3 space-y-2 flex-shrink-0">
+        <div className="bg-gradient-to-b from-yellow-50 to-white border-t border-yellow-200 px-3 py-3 md:px-4 md:py-4 space-y-3 flex-shrink-0">
           {/* GPS Status Indicator */}
           {trackingActive && (
-            <div className="flex items-center justify-center gap-2 bg-blue-50 rounded-lg p-2 mb-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-              <span className="text-xs font-medium text-blue-800">
+            <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-2.5 mb-2 shadow-md">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <span className="text-xs font-semibold">
                 GPS Ativo - Rastreamento Automático
               </span>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Button
-              size="sm"
-              variant="outline"
+              size="lg"
               onClick={() => shareLocationMutation.mutate()}
               disabled={sharingLocation}
-              className="flex-1"
+              className="flex-col h-auto py-3 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
             >
-              <MapPin className="w-4 h-4 mr-2" />
-              {sharingLocation ? "..." : "Localização"}
+              <MapPin className="w-6 h-6 mb-1" />
+              <span className="text-xs font-medium">
+                {sharingLocation ? "Enviando..." : "Localização"}
+              </span>
             </Button>
 
-            <label htmlFor="photo-upload" className="flex-1">
+            <label htmlFor="photo-upload" className="cursor-pointer">
               <Button
-                size="sm"
-                variant="outline"
+                size="lg"
                 disabled={uploadingPhoto}
-                className="w-full"
+                className="w-full flex-col h-auto py-3 bg-gradient-to-b from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
                 asChild
               >
                 <span>
-                  <Camera className="w-4 h-4 mr-2" />
-                  {uploadingPhoto ? "..." : "Foto"}
+                  <Camera className="w-6 h-6 mb-1" />
+                  <span className="text-xs font-medium">
+                    {uploadingPhoto ? "Enviando..." : "Foto"}
+                  </span>
                 </span>
               </Button>
               <input
@@ -1048,27 +1050,26 @@ export default function Chat() {
             </label>
 
             <Button
-              size="sm"
-              variant="outline"
+              size="lg"
               onClick={() => setShowBehaviorForm(true)}
-              className="flex-1"
+              className="flex-col h-auto py-3 bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all"
             >
-              <Clock className="w-4 h-4 mr-2" />
-              Comportamento
+              <Clock className="w-6 h-6 mb-1" />
+              <span className="text-xs font-medium">Comportamento</span>
             </Button>
           </div>
 
           <Button
-            size="sm"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+            size="lg"
+            className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-lg hover:shadow-xl transition-all"
             onClick={() => finishWalkMutation.mutate()}
             disabled={finishWalkMutation.isPending}
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <CheckCircle2 className="w-5 h-5 mr-2" />
             {finishWalkMutation.isPending ? "Finalizando..." : "Concluir Serviço"}
           </Button>
           
-          <p className="text-[10px] md:text-xs text-center text-yellow-800">
+          <p className="text-[10px] md:text-xs text-center text-yellow-800 font-medium">
             ⚠️ Aproxime-se a menos de 50m do destino para concluir
           </p>
         </div>
