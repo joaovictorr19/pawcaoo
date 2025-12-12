@@ -172,8 +172,8 @@ export default function OwnerSubscriptions() {
     {
       type: "premium",
       name: "Premium",
-      monthlyPrice: 39.99,
-      annualPrice: 399.99,
+      monthlyPrice: 44.99,
+      annualPrice: 449.99,
       icon: Star,
       color: "from-purple-500 to-purple-600",
       bookingDiscount: 0,
@@ -198,14 +198,14 @@ export default function OwnerSubscriptions() {
     {
       type: "vip",
       name: "VIP",
-      monthlyPrice: 59.99,
-      annualPrice: 599.99,
+      monthlyPrice: 79.99,
+      annualPrice: 799.99,
       icon: Crown,
       color: "from-yellow-500 to-yellow-600",
       bookingDiscount: 0,
       pointsMultiplier: 3,
       cashbackRate: 15,
-      freeWalksPerMonth: 4,
+      freeWalksPerMonth: 3,
       freeCancellations: 999,
       priorityBooking: true,
       freeInsurance: true,
@@ -214,7 +214,7 @@ export default function OwnerSubscriptions() {
       features: [
         "3 pontos por cada €1 na loja",
         "15% cashback em compras",
-        "4 passeios grátis/mês (até €15)",
+        "3 passeios grátis/mês (até €15)",
         "Cancelamentos ilimitados",
         "1 banho grátis/mês",
         "Prioridade máxima",
@@ -421,7 +421,7 @@ export default function OwnerSubscriptions() {
                           <td className="text-center py-2 px-2">0</td>
                           <td className="text-center py-2 px-2 bg-blue-50">1</td>
                           <td className="text-center py-2 px-2">2</td>
-                          <td className="text-center py-2 px-2 text-green-600 font-bold">4</td>
+                          <td className="text-center py-2 px-2 text-green-600 font-bold">3</td>
                         </tr>
                         <tr className="border-b border-gray-100">
                           <td className="py-2 px-2">PawPoints</td>
