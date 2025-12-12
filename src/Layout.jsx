@@ -977,7 +977,9 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </div>
 
-          {/* Mobile Navigation Bar */}
+          </main>
+
+          {/* Floating Components - Above Content */}
           <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
 
           <NotificationArea 
@@ -1080,7 +1082,7 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </div>
           </footer>
-        </main>
+
       </div>
     </SidebarProvider>
   );

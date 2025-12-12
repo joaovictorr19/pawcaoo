@@ -151,4 +151,18 @@
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+
+  /* === MOBILE RESPONSIVE === */
+  @media (max-width: 768px) {
+    [data-sidebar] {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      z-index: 9999;
+    }
+  }
   }
