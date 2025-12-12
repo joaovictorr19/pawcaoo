@@ -58,6 +58,7 @@ import AdminUserTable from "../components/admin/AdminUserTable";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import Pagination from "../components/ui/Pagination";
 import LazyImage from "../components/ui/LazyImage";
+import ClientDetails from "../components/admin/ClientDetails";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -186,6 +187,12 @@ export default function AdminDashboard() {
   const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
   const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState(""); 
   const [usersToGrantBadge, setUsersToGrantBadge] = useState([]);
+  
+  // CRM States
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [showClientDetails, setShowClientDetails] = useState(false);
+  const [crmSearchTerm, setCrmSearchTerm] = useState("");
+  const [crmFilter, setCrmFilter] = useState("all");
   
   // Estado para o Modal de Concessão de Badge Individual
   const [showGrantSingleBadgeModal, setShowGrantSingleBadgeModal] = useState(false);
@@ -1268,6 +1275,7 @@ export default function AdminDashboard() {
           <TabsList className="flex flex-wrap justify-center w-full gap-2 bg-white shadow-lg p-2 h-auto rounded-xl min-h-[3rem]">
             <TabsTrigger value="overview">{t('overview', language)}</TabsTrigger>
             <TabsTrigger value="analytics">{t('analytics', language)}</TabsTrigger>
+            <TabsTrigger value="crm">👥 CRM</TabsTrigger>
             <TabsTrigger value="users">{t('accounts', language)}</TabsTrigger>
             <TabsTrigger value="applications">{t('verifications', language)}</TabsTrigger>
             <TabsTrigger value="profile_edits">✏️ Edições</TabsTrigger>
@@ -1349,6 +1357,86 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="crm">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      👥 CRM - Gestão de Clientes
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">Visualização completa de clientes com histórico e segmentação</p>
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <Input
+                      placeholder="Buscar cliente..."
+                      value={crmSearchTerm}
+                      onChange={(e) => setCrmSearchTerm(e.target.value)}
+                      className="flex-1 md:w-64"
+                    />
+                    <Select value={crmFilter} onValueChange={setCrmFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="vip">VIP</SelectItem>
+                        <SelectItem value="active">Ativos</SelectItem>
+                        <SelectItem value="inactive">Inativos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allUsers
+                    .filter(u => {
+                      const search = crmSearchTerm.toLowerCase();
+                      const matchesSearch = !search || 
+                        u.full_name?.toLowerCase().includes(search) ||
+                        u.email?.toLowerCase().includes(search);
+                      return matchesSearch;
+                    })
+                    .slice(0, 50)
+                    .map(client => (
+                    <Card 
+                      key={client.id} 
+                      className="border-2 border-gray-200 hover:border-blue-400 cursor-pointer hover:shadow-lg transition-all"
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setShowClientDetails(true);
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={client.profile_photo_url} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
+                              {client.full_name?.[0] || client.email?.[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm truncate">{client.full_name || 'Sem Nome'}</h4>
+                            <p className="text-xs text-gray-600 truncate">{client.email}</p>
+                            <div className="flex gap-1 mt-2 flex-wrap">
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {client.account_type || 'owner'}
+                              </Badge>
+                              {client.is_verified && (
+                                <Badge className="bg-green-500 text-white text-xs">✓</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="users">
@@ -3939,6 +4027,17 @@ export default function AdminDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Client Details Modal */}
+        {showClientDetails && selectedClient && (
+          <ClientDetails
+            user={selectedClient}
+            onClose={() => {
+              setShowClientDetails(false);
+              setSelectedClient(null);
+            }}
+          />
+        )}
 
         </ErrorBoundary>
       </div>
