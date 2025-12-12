@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -665,7 +666,7 @@ export default function Chat() {
         <Button
           size="icon"
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(createPageUrl('MyBookings'))}
           className="flex-shrink-0"
         >
           <ChevronLeft className="w-5 h-5" />
