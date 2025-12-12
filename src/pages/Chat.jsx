@@ -74,6 +74,7 @@ export default function Chat() {
   });
   const [trackingActive, setTrackingActive] = useState(false);
   const watchIdRef = useRef(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   // Fetch current user
   const { data: user } = useQuery({
@@ -610,6 +611,32 @@ export default function Chat() {
   const isProfessional = user?.email === booking?.walker_email || user?.email === booking?.trainer_email;
   const isOwner = user?.email === booking?.created_by || user?.email === booking?.owner_email;
 
+  // Timer for walk duration
+  useEffect(() => {
+    if (!booking?.walk_start_time || booking?.status !== 'in_progress') {
+      setElapsedTime(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const start = new Date(booking.walk_start_time).getTime();
+      const now = Date.now();
+      const diff = Math.floor((now - start) / 1000);
+      setElapsedTime(diff);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [booking?.walk_start_time, booking?.status]);
+
+  const formatTime = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   // Auto scroll to bottom (smooth like WhatsApp)
   useEffect(() => {
     if (scrollRef.current) {
@@ -814,6 +841,17 @@ export default function Chat() {
           </div>
         )}
       </div>
+
+      {/* Walk Timer Bar */}
+      {booking.status === 'in_progress' && booking.walk_start_time && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b px-3 py-2 md:px-4 md:py-2.5 flex-shrink-0 sticky top-[60px] z-40">
+          <div className="flex items-center justify-center gap-2 text-sm md:text-base">
+            <Clock className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+            <span className="font-mono font-bold text-blue-900">{formatTime(elapsedTime)}</span>
+            <span className="text-gray-600 text-xs md:text-sm">em andamento</span>
+          </div>
+        </div>
+      )}
 
       {/* Payment Status Bar */}
       {booking.payment_id && (
