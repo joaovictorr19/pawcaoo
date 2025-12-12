@@ -308,37 +308,6 @@ export default function AdminDashboard() {
     return allPartnerProducts.filter(p => p.moderation_status === productFilter);
   }, [allPartnerProducts, productFilter]);
 
-  // Paginated data for all sections
-  const paginatedCompanies = React.useMemo(() => {
-    const startIndex = (companiesPage - 1) * companiesPerPage;
-    return companies.slice(startIndex, startIndex + companiesPerPage);
-  }, [companies, companiesPage, companiesPerPage]);
-
-  const paginatedProducts = React.useMemo(() => {
-    const startIndex = (productsPage - 1) * productsPerPage;
-    return filteredProducts.slice(startIndex, startIndex + productsPerPage);
-  }, [filteredProducts, productsPage, productsPerPage]);
-
-  const paginatedServices = React.useMemo(() => {
-    const startIndex = (servicesPage - 1) * servicesPerPage;
-    return allPartnerServices.slice(startIndex, startIndex + servicesPerPage);
-  }, [allPartnerServices, servicesPage, servicesPerPage]);
-
-  const paginatedBookings = React.useMemo(() => {
-    const startIndex = (bookingsPage - 1) * bookingsPerPage;
-    return allBookings.slice(startIndex, startIndex + bookingsPerPage);
-  }, [allBookings, bookingsPage, bookingsPerPage]);
-
-  const paginatedPayments = React.useMemo(() => {
-    const startIndex = (paymentsPage - 1) * paymentsPerPage;
-    return allPayments.slice(startIndex, startIndex + paymentsPerPage);
-  }, [allPayments, paymentsPage, paymentsPerPage]);
-
-  const paginatedAnnouncements = React.useMemo(() => {
-    const startIndex = (announcementsPage - 1) * announcementsPerPage;
-    return allAnnouncements.slice(startIndex, startIndex + announcementsPerPage);
-  }, [allAnnouncements, announcementsPage, announcementsPerPage]);
-
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
     placeholderData: keepPreviousData,
@@ -495,6 +464,37 @@ export default function AdminDashboard() {
     enabled: user?.role === 'admin' && activeTab === 'badges',
     initialData: [],
   });
+
+  // Paginated data for all sections - AFTER all queries
+  const paginatedCompanies = React.useMemo(() => {
+    const startIndex = (companiesPage - 1) * companiesPerPage;
+    return companies.slice(startIndex, startIndex + companiesPerPage);
+  }, [companies, companiesPage, companiesPerPage]);
+
+  const paginatedProducts = React.useMemo(() => {
+    const startIndex = (productsPage - 1) * productsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredProducts, productsPage, productsPerPage]);
+
+  const paginatedServices = React.useMemo(() => {
+    const startIndex = (servicesPage - 1) * servicesPerPage;
+    return allPartnerServices.slice(startIndex, startIndex + servicesPerPage);
+  }, [allPartnerServices, servicesPage, servicesPerPage]);
+
+  const paginatedBookings = React.useMemo(() => {
+    const startIndex = (bookingsPage - 1) * bookingsPerPage;
+    return allBookings.slice(startIndex, startIndex + bookingsPerPage);
+  }, [allBookings, bookingsPage, bookingsPerPage]);
+
+  const paginatedPayments = React.useMemo(() => {
+    const startIndex = (paymentsPage - 1) * paymentsPerPage;
+    return allPayments.slice(startIndex, startIndex + paymentsPerPage);
+  }, [allPayments, paymentsPage, paymentsPerPage]);
+
+  const paginatedAnnouncements = React.useMemo(() => {
+    const startIndex = (announcementsPage - 1) * announcementsPerPage;
+    return allAnnouncements.slice(startIndex, startIndex + announcementsPerPage);
+  }, [allAnnouncements, announcementsPage, announcementsPerPage]);
 
   // Mutations
   const updateUserMutation = useMutation({
