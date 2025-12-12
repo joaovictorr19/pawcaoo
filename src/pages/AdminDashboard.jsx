@@ -1568,17 +1568,17 @@ export default function AdminDashboard() {
           <TabsContent value="badges">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                   <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
-                      <Award className="w-6 h-6 text-purple-600" />
+                    <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
+                      <Award className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
                       {t('badgeManagement', language)}
                     </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">{t('grantSpecialBadges', language)}</p>
+                    <p className="text-xs md:text-sm text-gray-600 mt-1">{t('grantSpecialBadges', language)}</p>
                   </div>
                   <Button
                     onClick={() => setShowCreateCustomBadgeModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-purple-600 hover:bg-purple-700 w-full md:w-auto"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     {t('createCustomBadge', language)}
@@ -1616,23 +1616,23 @@ export default function AdminDashboard() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                           {badgeDefinitions
                             .filter(b => !badgeSearchTerm || b.name.toLowerCase().includes(badgeSearchTerm.toLowerCase()))
                             .slice(0, showAllBadges ? undefined : 6)
                             .map((badgeDef) => (
                             <Card key={badgeDef.id} className="border border-purple-200 hover:shadow-md transition-shadow">
-                              <CardContent className="p-4">
-                                <div className="flex items-start gap-3">
-                                  <div className="text-3xl bg-purple-50 p-2 rounded-lg w-14 h-14 flex items-center justify-center">
-                                    {badgeDef.image_url ? (
-                                      <img src={badgeDef.image_url} alt={badgeDef.name} className="w-full h-full object-cover rounded" />
+                              <CardContent className="p-3 md:p-4">
+                                <div className="flex items-start gap-2 md:gap-3">
+                                  <div className="text-2xl md:text-3xl bg-purple-50 p-2 rounded-lg w-12 h-12 md:w-14 md:h-14 flex items-center justify-center flex-shrink-0">
+                                    {badgeDef.image_url || badgeDef.image_png_file ? (
+                                      <img src={badgeDef.image_png_file || badgeDef.image_url} alt={badgeDef.name} className="w-full h-full object-cover rounded" />
                                     ) : (
-                                      badgeDef.icon
+                                      <span className="text-3xl">{badgeDef.icon}</span>
                                     )}
                                   </div>
-                                  <div className="flex-1">
-                                    <h4 className="font-bold text-base">{badgeDef.name}</h4>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm md:text-base truncate">{badgeDef.name}</h4>
                                     <p className="text-xs text-gray-600 line-clamp-2" title={badgeDef.description}>
                                       {badgeDef.description}
                                     </p>
@@ -1642,7 +1642,7 @@ export default function AdminDashboard() {
                                 <div className="flex gap-2 mt-3">
                                   <Button
                                     size="sm"
-                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs"
+                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs md:text-sm h-8 md:h-9"
                                     onClick={() => {
                                       setSelectedBadgeForAll({
                                         badge_id: badgeDef.id,
@@ -1655,7 +1655,7 @@ export default function AdminDashboard() {
                                         category: badgeDef.category,
                                         xp: badgeDef.xp || 100
                                       });
-                                      setUsersToGrantBadge([]); // Reset selection
+                                      setUsersToGrantBadge([]);
                                       setShowGrantAllUsersModal(true);
                                     }}
                                   >
@@ -1664,14 +1664,14 @@ export default function AdminDashboard() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="text-red-600 px-2"
+                                    className="text-red-600 px-2 h-8 md:h-9"
                                     onClick={() => {
                                       if(confirm(`${t('deleteBadge', language)} "${badgeDef.name}"?`)) {
                                         deleteBadgeDefinitionMutation.mutate(badgeDef.id);
                                       }
                                     }}
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                                   </Button>
                                 </div>
                               </CardContent>
@@ -3002,7 +3002,7 @@ export default function AdminDashboard() {
 
       {/* NOVO: Modal para Criar Badge Customizado */}
         <Dialog open={showCreateCustomBadgeModal} onOpenChange={setShowCreateCustomBadgeModal}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle>Criar Emblema Customizado</DialogTitle>
             </DialogHeader>
@@ -3033,8 +3033,9 @@ export default function AdminDashboard() {
                     value={customBadgeForm.icon}
                     onChange={(e) => setCustomBadgeForm({...customBadgeForm, icon: e.target.value})}
                     placeholder="⭐"
-                    maxLength={2}
+                    className="text-2xl h-14"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Cole qualquer emoji aqui (📱💎🎯🔥)</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
