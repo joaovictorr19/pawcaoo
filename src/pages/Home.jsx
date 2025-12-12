@@ -1335,126 +1335,7 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-        {/* Modern Collapsible Filters */}
-        <div className="mb-4">
-          <Button
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            variant="outline"
-            className="w-full justify-between h-12 bg-white/95 backdrop-blur-sm border-2 hover:border-purple-400 transition-all shadow-md hover:shadow-lg rounded-xl"
-          >
-            <div className="flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-purple-600" />
-              <span className="font-bold text-gray-800">Filtros Rápidos</span>
-              {(filterSize !== "all" || filterTime !== "all" || advancedFilters.minRating > 0 || advancedFilters.maxPrice < 100) && (
-                <Badge className="bg-purple-600 text-white ml-2">Ativos</Badge>
-              )}
-            </div>
-            <motion.div
-              animate={{ rotate: showAdvancedFilters ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </motion.div>
-          </Button>
 
-          <AnimatePresence>
-            {showAdvancedFilters && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <Card className="glass-panel border-0 shadow-lg mt-2">
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div>
-                        <Select value={filterSize} onValueChange={setFilterSize}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Tamanho" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todos os Tamanhos</SelectItem>
-                            <SelectItem value="small">🐕 Pequeno</SelectItem>
-                            <SelectItem value="medium">🐕 Médio</SelectItem>
-                            <SelectItem value="large">🐕 Grande</SelectItem>
-                            <SelectItem value="extra_large">🐕 Extra Grande</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Select value={filterTime} onValueChange={setFilterTime}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Horário" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todos os Horários</SelectItem>
-                            <SelectItem value="morning">🌅 Manhã</SelectItem>
-                            <SelectItem value="afternoon">☀️ Tarde</SelectItem>
-                            <SelectItem value="evening">🌆 Noite</SelectItem>
-                            <SelectItem value="night">🌙 Madrugada</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Select 
-                          value={advancedFilters.minRating.toString()} 
-                          onValueChange={(v) => setAdvancedFilters({...advancedFilters, minRating: parseFloat(v)})}
-                        >
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Avaliação" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">Todas as Avaliações</SelectItem>
-                            <SelectItem value="3">⭐ 3+</SelectItem>
-                            <SelectItem value="4">⭐ 4+</SelectItem>
-                            <SelectItem value="4.5">⭐ 4.5+</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Select 
-                          value={advancedFilters.maxPrice.toString()} 
-                          onValueChange={(v) => setAdvancedFilters({...advancedFilters, maxPrice: parseFloat(v)})}
-                        >
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Preço Máx." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="20">💰 Até 20€</SelectItem>
-                            <SelectItem value="30">💰 Até 30€</SelectItem>
-                            <SelectItem value="50">💰 Até 50€</SelectItem>
-                            <SelectItem value="100">💰 100€+</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end mt-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          resetAdvancedFilters();
-                          setFilterSize("all");
-                          setFilterTime("all");
-                          setFilterDogSitting("all");
-                        }}
-                        className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
-                      >
-                        <span className="mr-1">🔄</span> Limpar Filtros
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
         {/* AI Recommendations Section */}
         {user && (
@@ -1535,6 +1416,47 @@ export default function Home() {
 
               <TabsContent value="walkers">
                 <div>
+                  {/* Compact Filters */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Select value={filterSize} onValueChange={setFilterSize}>
+                      <SelectTrigger className="h-9 w-32 text-xs">
+                        <SelectValue placeholder="Tamanho" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="small">Pequeno</SelectItem>
+                        <SelectItem value="medium">Médio</SelectItem>
+                        <SelectItem value="large">Grande</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={filterTime} onValueChange={setFilterTime}>
+                      <SelectTrigger className="h-9 w-32 text-xs">
+                        <SelectValue placeholder="Horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="morning">Manhã</SelectItem>
+                        <SelectItem value="afternoon">Tarde</SelectItem>
+                        <SelectItem value="evening">Noite</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {(filterSize !== "all" || filterTime !== "all") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setFilterSize("all");
+                          setFilterTime("all");
+                        }}
+                        className="h-9 text-xs"
+                      >
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900">
