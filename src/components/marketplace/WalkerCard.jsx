@@ -175,11 +175,19 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           </motion.button>
         </div>
 
-        <CardContent className="p-3 md:p-4">
+        <CardContent className="p-4 md:p-5">
           <div className="flex items-start justify-between mb-1.5 md:mb-2 gap-2">
-            <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors truncate flex-1">
-              {walker.walker_name}
-            </h3>
+            <div className="flex-1 overflow-hidden">
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                {walker.walker_name.length > 20 ? (
+                  <span className="animate-marquee inline-block">
+                    {walker.walker_name}
+                  </span>
+                ) : (
+                  walker.walker_name
+                )}
+              </h3>
+            </div>
             {(walker.rating > 0 && walker.total_walks > 0) ? (
               <div className="flex items-center gap-0.5 md:gap-1 bg-yellow-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-lg flex-shrink-0">
                 <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
@@ -200,9 +208,9 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             </div>
           )}
 
-          <div className="flex items-center text-gray-600 text-xs md:text-sm mb-1.5 md:mb-2">
+          <div className="flex items-center text-gray-600 text-xs md:text-sm mb-1.5 md:mb-2 overflow-hidden">
             <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1 text-green-600 flex-shrink-0" />
-            <span className="truncate">{walker.location}</span>
+            <span className="truncate flex-1">{walker.location}</span>
           </div>
 
           <div className="flex items-center justify-between mb-2 md:mb-3">

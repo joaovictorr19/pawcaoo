@@ -607,33 +607,41 @@ function LayoutContent({ children, currentPageName }) {
               </SidebarGroupLabel>
               <SidebarGroupContent>
               <SidebarMenu>
-              {mainMenu.map((item) => ( 
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton 
-                  asChild 
-                  className={`mb-1.5 rounded-lg transition-all ${
-                    isRouteActive(item.url)
-                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90 shadow-md` 
-                      : (item.className || (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
-                  }`}
-                >
-                  <Link 
-                    to={item.url} 
-                    className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 relative ${item.className ? '' : ''}`}
-                    {...getPrefetchHandlers(item)}
+                {mainMenu.map((item) => ( 
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild 
+                    className={`mb-1.5 rounded-lg transition-all ${
+                      isRouteActive(item.url)
+                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90 shadow-md` 
+                        : (item.className || (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
+                    }`}
                   >
-                    {isRouteActive(item.url) && (
-                      <div 
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full"
-                        style={{ backgroundColor: colors?.primary || '#3b82f6' }}
-                      />
-                    )}
-                    <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
-                    <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              ))}
+                    <Link 
+                      to={item.url} 
+                      className={`flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2.5 md:py-3 relative ${item.className ? '' : ''}`}
+                      {...getPrefetchHandlers(item)}
+                    >
+                      {isRouteActive(item.url) && (
+                        <div 
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full"
+                          style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                        />
+                      )}
+                      <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
+                      <span className="font-medium text-xs md:text-sm flex-1 min-w-0">
+                        {item.title.length > 22 ? (
+                          <span className="animate-marquee inline-block whitespace-nowrap">
+                            {item.title}
+                          </span>
+                        ) : (
+                          <span className="truncate block">{item.title}</span>
+                        )}
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                ))}
               </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -662,7 +670,7 @@ function LayoutContent({ children, currentPageName }) {
                               : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
                           }`}
                         >
-                          <Link to={item.url} id={item.id} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
+                          <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
                             {isRouteActive(item.url) && (
                               <div 
                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
@@ -670,7 +678,7 @@ function LayoutContent({ children, currentPageName }) {
                               />
                             )}
                             <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">{item.title}</span>
                             {item.hasNotifications && unreadCount > 0 && (
                               <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
                                 {unreadCount}

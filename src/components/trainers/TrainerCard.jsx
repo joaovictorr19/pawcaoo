@@ -152,12 +152,20 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
           </div>
         </div>
 
-        <CardContent className="p-4 space-y-4"> {/* Changed padding to p-4 */}
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors flex items-center gap-2"> {/* Changed text size and added hover effect */}
-              {trainer.trainer_name}
-              {isProPlan && <Crown className="w-4 h-4 text-yellow-500" />} {/* Reduced Crown size */}
-            </h3>
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-start justify-between mb-2 gap-2">
+            <div className="flex-1 overflow-hidden">
+              <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors flex items-center gap-2">
+                {trainer.trainer_name.length > 20 ? (
+                  <span className="animate-marquee inline-block">
+                    {trainer.trainer_name}
+                  </span>
+                ) : (
+                  trainer.trainer_name
+                )}
+                {isProPlan && <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />}
+              </h3>
+            </div>
             {/* Rating moved here */}
             {(trainer.average_rating || trainer.rating) && (
               <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
@@ -169,9 +177,9 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
 
           {/* Location moved here */}
           {trainer.location && (
-            <div className="flex items-center text-gray-600 text-sm mb-2">
-              <MapPin className="w-4 h-4 mr-1" />
-              {trainer.location}
+            <div className="flex items-center text-gray-600 text-sm mb-2 overflow-hidden">
+              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="truncate flex-1">{trainer.location}</span>
             </div>
           )}
 

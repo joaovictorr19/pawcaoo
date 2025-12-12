@@ -105,4 +105,25 @@
   img, video {
     @apply max-w-full h-auto;
   }
+
+  /* === TEXT SAFETY & MARQUEE EFFECT === */
+  @keyframes scroll-text {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  .animate-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll-text 10s linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  /* Curve-safe padding utility */
+  .curve-safe-padding {
+    @apply px-6;
+  }
 }
