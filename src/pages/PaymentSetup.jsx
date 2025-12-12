@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, CreditCard, Check, AlertCircle, ExternalLink } from "lucide-react";
+import { Shield, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function PaymentSetup() {
@@ -154,7 +154,7 @@ export default function PaymentSetup() {
         <Card className="mb-6 border-0 shadow-xl">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <CardTitle className="flex items-center gap-3">
-              <CreditCard className="w-7 h-7" />
+              <Shield className="w-7 h-7" />
               {t.stripe.title}
             </CardTitle>
             <p className="text-white/90 text-sm mt-2">{t.stripe.description}</p>
