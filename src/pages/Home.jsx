@@ -1440,7 +1440,7 @@ export default function Home() {
 
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">
+                      <h2 className="text-lg md:text-2xl font-semibold text-slate-800 tracking-tight">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
