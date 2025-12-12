@@ -927,15 +927,13 @@ main {
             )}
             
             {/* Floating Trigger Button - Always visible */}
-            {authUser && (
-              <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 items-center justify-center group ${
-                colors?.isDarkMode 
-                  ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
-                  : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
-              }`}>
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </SidebarTrigger>
-            )}
+            <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ${
+              colors?.isDarkMode 
+                ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
+                : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
+            }`}>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            </SidebarTrigger>
 
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
