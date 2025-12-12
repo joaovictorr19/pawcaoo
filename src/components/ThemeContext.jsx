@@ -65,12 +65,20 @@ export const ThemeProvider = ({ children }) => {
         progress: tier.progress
       });
 
+      // Inject CSS Variables into :root for dynamic orbs
+      const root = document.documentElement;
+      root.style.setProperty('--color-orb-1', tier.colors.orb1 || tier.colors.primary);
+      root.style.setProperty('--color-orb-2', tier.colors.orb2 || tier.colors.primary);
+      root.style.setProperty('--color-primary', tier.colors.primary);
+
       // Apply Cosmos dark mode
       if (tier.name === 'Cosmos') {
         document.documentElement.classList.add('dark-cosmos');
       } else {
         document.documentElement.classList.remove('dark-cosmos');
       }
+
+      console.log(`🎨 Tema ${tier.name} aplicado | XP: ${xp} | Cores: ${tier.colors.orb1 || tier.colors.primary}, ${tier.colors.orb2 || tier.colors.primary}`);
     }
   }, [userProfile]);
 
