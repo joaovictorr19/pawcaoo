@@ -62,6 +62,15 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [sharingLocation, setSharingLocation] = useState(false);
+  const [showBehaviorForm, setShowBehaviorForm] = useState(false);
+  const [behaviorData, setBehaviorData] = useState({
+    mood: "happy",
+    energy_level: "normal",
+    bathroom_breaks: 0,
+    water_intake: false,
+    played_with_other_dogs: false,
+    special_notes: ""
+  });
 
   // Fetch current user
   const { data: user } = useQuery({
@@ -220,6 +229,21 @@ export default function Chat() {
           async (position) => {
             const { latitude, longitude, accuracy } = position.coords;
 
+            // Calculate distance from previous checkpoint
+            let distanceKm = 0;
+            if (checkpoints.length > 0) {
+              const lastCheckpoint = checkpoints[checkpoints.length - 1];
+              if (lastCheckpoint.latitude && lastCheckpoint.longitude) {
+                const distanceM = calculateDistance(
+                  lastCheckpoint.latitude,
+                  lastCheckpoint.longitude,
+                  latitude,
+                  longitude
+                );
+                distanceKm = distanceM / 1000;
+              }
+            }
+
             // Create checkpoint
             await base44.entities.WalkCheckpoint.create({
               booking_id: bookingId,
@@ -227,19 +251,23 @@ export default function Chat() {
               checkpoint_type: "midpoint",
               latitude,
               longitude,
+              distance_km: distanceKm,
               timestamp: new Date().toISOString(),
             });
 
-            // Update booking coordinates
+            // Update booking coordinates and total distance
+            const totalDistance = checkpoints.reduce((sum, c) => sum + (c.distance_km || 0), 0) + distanceKm;
+            
             await base44.entities.Booking.update(bookingId, {
               walker_lat: latitude,
               walker_lng: longitude,
+              distance_km: totalDistance,
               last_update: new Date().toISOString(),
             });
 
             // Send in chat
             await sendMessageMutation.mutateAsync({
-              text: `📍 Localização partilhada`,
+              text: `📍 Localização partilhada • ${totalDistance.toFixed(2)}km percorridos`,
               type: "location",
               location: { latitude, longitude, accuracy },
             });
@@ -261,6 +289,55 @@ export default function Chat() {
     onError: () => {
       setSharingLocation(false);
       toast.error("Erro ao partilhar localização");
+    },
+  });
+
+  // Submit behavior update
+  const submitBehaviorMutation = useMutation({
+    mutationFn: async () => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            await base44.entities.WalkCheckpoint.create({
+              booking_id: bookingId,
+              walker_email: user.email,
+              checkpoint_type: "behavior_note",
+              latitude,
+              longitude,
+              dog_behavior: behaviorData,
+              notes: behaviorData.special_notes || "Atualização de comportamento",
+              timestamp: new Date().toISOString(),
+            });
+
+            // Send in chat
+            await sendMessageMutation.mutateAsync({
+              text: `🐕 Atualização: ${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
+              type: "text",
+            });
+
+            resolve();
+          },
+          (error) => reject(error)
+        );
+      });
+    },
+    onSuccess: () => {
+      toast.success("Comportamento registrado!");
+      setShowBehaviorForm(false);
+      setBehaviorData({
+        mood: "happy",
+        energy_level: "normal",
+        bathroom_breaks: 0,
+        water_intake: false,
+        played_with_other_dogs: false,
+        special_notes: ""
+      });
+      queryClient.invalidateQueries(["checkpoints", bookingId]);
+    },
+    onError: () => {
+      toast.error("Erro ao registrar comportamento");
     },
   });
 
@@ -556,21 +633,30 @@ export default function Chat() {
             )}
           </MapContainer>
 
-          {/* Distance indicator */}
-          {lastKnownPosition && booking.pickup_lat && booking.pickup_lng && (
-            <div className="absolute bottom-2 left-2 bg-white rounded-lg shadow-lg px-3 py-2 z-[1000]">
-              <p className="text-xs font-semibold text-gray-700">
-                Distância: {Math.round(
-                  calculateDistance(
-                    lastKnownPosition[0],
-                    lastKnownPosition[1],
-                    booking.pickup_lat,
-                    booking.pickup_lng
-                  )
-                )}m
+          {/* Stats overlay */}
+          <div className="absolute top-2 left-2 right-2 flex gap-2 z-[1000]">
+            <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-3 py-2 flex-1">
+              <p className="text-[10px] text-gray-500">Percorrido</p>
+              <p className="text-sm font-bold text-blue-600">
+                {(booking.distance_km || 0).toFixed(2)}km
               </p>
             </div>
-          )}
+            {lastKnownPosition && booking.pickup_lat && booking.pickup_lng && (
+              <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-3 py-2 flex-1">
+                <p className="text-[10px] text-gray-500">Até destino</p>
+                <p className="text-sm font-bold text-green-600">
+                  {Math.round(
+                    calculateDistance(
+                      lastKnownPosition[0],
+                      lastKnownPosition[1],
+                      booking.pickup_lat,
+                      booking.pickup_lng
+                    )
+                  )}m
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -688,8 +774,8 @@ export default function Chat() {
       )}
 
       {/* Professional Actions Bar - In Progress */}
-      {isProfessional && booking.status === "in_progress" && (
-        <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-3">
+      {isProfessional && booking.status === "in_progress" && !showBehaviorForm && (
+        <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-3 space-y-2">
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -699,7 +785,7 @@ export default function Chat() {
               className="flex-1"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              {sharingLocation ? "Partilhando..." : "Partilhar Localização"}
+              {sharingLocation ? "..." : "Localização"}
             </Button>
 
             <label htmlFor="photo-upload" className="flex-1">
@@ -712,7 +798,7 @@ export default function Chat() {
               >
                 <span>
                   <Camera className="w-4 h-4 mr-2" />
-                  {uploadingPhoto ? "Enviando..." : "Enviar Foto"}
+                  {uploadingPhoto ? "..." : "Foto"}
                 </span>
               </Button>
               <input
@@ -727,17 +813,122 @@ export default function Chat() {
 
             <Button
               size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white flex-1"
-              onClick={() => finishWalkMutation.mutate()}
-              disabled={finishWalkMutation.isPending}
+              variant="outline"
+              onClick={() => setShowBehaviorForm(true)}
+              className="flex-1"
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              {finishWalkMutation.isPending ? "Finalizando..." : "Concluir"}
+              <Clock className="w-4 h-4 mr-2" />
+              Comportamento
             </Button>
           </div>
-          <p className="text-xs text-center text-yellow-800 mt-2">
-            ⚠️ Aproxime-se a menos de 50m do destino para concluir o serviço
+
+          <Button
+            size="sm"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+            onClick={() => finishWalkMutation.mutate()}
+            disabled={finishWalkMutation.isPending}
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {finishWalkMutation.isPending ? "Finalizando..." : "Concluir Serviço"}
+          </Button>
+          
+          <p className="text-xs text-center text-yellow-800">
+            ⚠️ Aproxime-se a menos de 50m do destino para concluir
           </p>
+        </div>
+      )}
+
+      {/* Behavior Form */}
+      {isProfessional && showBehaviorForm && (
+        <div className="bg-white border-t px-4 py-4 space-y-3">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-gray-900">Como está {booking.dog_name}?</h3>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowBehaviorForm(false)}
+            >
+              ✕
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Humor</label>
+              <select
+                value={behaviorData.mood}
+                onChange={(e) => setBehaviorData({...behaviorData, mood: e.target.value})}
+                className="w-full text-sm border rounded-lg px-3 py-2"
+              >
+                <option value="happy">😊 Feliz</option>
+                <option value="calm">😌 Calmo</option>
+                <option value="excited">🤩 Animado</option>
+                <option value="anxious">😰 Ansioso</option>
+                <option value="tired">😴 Cansado</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Energia</label>
+              <select
+                value={behaviorData.energy_level}
+                onChange={(e) => setBehaviorData({...behaviorData, energy_level: e.target.value})}
+                className="w-full text-sm border rounded-lg px-3 py-2"
+              >
+                <option value="low">🔵 Baixa</option>
+                <option value="normal">🟢 Normal</option>
+                <option value="high">🟡 Alta</option>
+                <option value="very_high">🟠 Muito Alta</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">Pausas para necessidades</label>
+            <input
+              type="number"
+              min="0"
+              value={behaviorData.bathroom_breaks}
+              onChange={(e) => setBehaviorData({...behaviorData, bathroom_breaks: parseInt(e.target.value)})}
+              className="w-full text-sm border rounded-lg px-3 py-2"
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={behaviorData.water_intake}
+                onChange={(e) => setBehaviorData({...behaviorData, water_intake: e.target.checked})}
+                className="rounded"
+              />
+              💧 Bebeu água
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={behaviorData.played_with_other_dogs}
+                onChange={(e) => setBehaviorData({...behaviorData, played_with_other_dogs: e.target.checked})}
+                className="rounded"
+              />
+              🐕 Brincou c/ outros
+            </label>
+          </div>
+
+          <textarea
+            placeholder="Notas adicionais (opcional)..."
+            value={behaviorData.special_notes}
+            onChange={(e) => setBehaviorData({...behaviorData, special_notes: e.target.value})}
+            className="w-full text-sm border rounded-lg px-3 py-2 h-20 resize-none"
+          />
+
+          <Button
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => submitBehaviorMutation.mutate()}
+            disabled={submitBehaviorMutation.isPending}
+          >
+            {submitBehaviorMutation.isPending ? "Enviando..." : "Registrar Comportamento"}
+          </Button>
         </div>
       )}
 
