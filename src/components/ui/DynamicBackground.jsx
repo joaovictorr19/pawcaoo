@@ -2,23 +2,23 @@ import React from "react";
 
 export default function DynamicBackground() {
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-slate-900">
       {/* Wrapper que roda lentamente tudo (Efeito Galáxia) */}
-      <div className="absolute inset-0 animate-spin-slow opacity-60">
+      <div className="absolute inset-0 animate-spin-slow">
         
-        {/* Orb 1: TOP-LEFT - COR PRINCIPAL */}
+        {/* Orb 1: COR MAIS CLARA (Brilho) - Use ORB-2 */}
         <div 
           className="absolute top-[25%] left-[25%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-80 animate-blob-1"
-          style={{ backgroundColor: 'var(--color-orb-1, #fb923c)', transition: 'background-color 1s ease' }}
-        />
-
-        {/* Orb 2: BOTTOM-RIGHT - COR SECUNDÁRIA */}
-        <div 
-          className="absolute bottom-[25%] right-[25%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-80 animate-blob-2"
           style={{ backgroundColor: 'var(--color-orb-2, #fdba74)', transition: 'background-color 1s ease' }}
         />
 
-        {/* Orb 3: CENTRO-LEFT - COR DE PROFUNDIDADE */}
+        {/* Orb 2: COR BASE DA TIER - Use ORB-1 */}
+        <div 
+          className="absolute bottom-[25%] right-[25%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-80 animate-blob-2"
+          style={{ backgroundColor: 'var(--color-orb-1, #fb923c)', transition: 'background-color 1s ease' }}
+        />
+
+        {/* Orb 3: COR DE PROFUNDIDADE (A mais escura) - Use PRIMARY */}
         <div 
           className="absolute top-[33%] left-[33%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob-3"
           style={{ backgroundColor: 'var(--color-primary, #f97316)', transition: 'background-color 1s ease' }}
