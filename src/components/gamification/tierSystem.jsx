@@ -40,13 +40,13 @@ export const TIER_COLORS = {
     orb2: '#fef08a'
   },
   Safira: {
-    primary: '#0f52ba',
-    gradient: 'from-blue-500 to-indigo-600',
-    glass_border: 'border-blue-200/50',
-    text: 'text-blue-600',
-    bg: 'bg-blue-50',
-    orb1: '#3b82f6',
-    orb2: '#8b5cf6'
+    primary: '#1d4ed8',
+    gradient: 'from-cyan-500 via-blue-600 to-indigo-700',
+    glass_border: 'border-cyan-200/50',
+    text: 'text-cyan-600',
+    bg: 'bg-cyan-50',
+    orb1: '#06b6d4',
+    orb2: '#3b82f6'
   },
   Rubi: {
     primary: '#e0115f',
