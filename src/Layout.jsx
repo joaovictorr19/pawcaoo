@@ -481,6 +481,18 @@ function LayoutContent({ children, currentPageName }) {
         --accent-foreground: 142 76% 20%;
       }
 
+      .glass-panel-dark {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+      }
+
+      .dark-cosmos .glass-panel-dark {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(147, 51, 234, 0.4);
+      }
+
       /* === SAPPHIRE PREMIUM THEME === */
 
       /* --- 1. MELHORIA NOS BOTÕES (Micro-interações) --- */

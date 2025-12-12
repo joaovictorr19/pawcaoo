@@ -34,6 +34,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
 import { getLevelFromXP, calculateTier } from "@/components/gamification/gamificationRules";
+import { useTheme } from "@/components/ThemeContext";
 import { CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Trophy } from "lucide-react";
@@ -41,6 +42,7 @@ import { Plus } from "lucide-react";
 
 export default function Home() {
   const { language } = useLanguage();
+  const { colors } = useTheme();
   const navigate = useNavigate();
   
   const urlParams = new URLSearchParams(window.location.search);
@@ -649,7 +651,7 @@ export default function Home() {
                     {/* Ambient glow circle */}
                     <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
-                    <div className="bg-gradient-to-br from-blue-900 via-indigo-700 to-purple-800 text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden">
+                    <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
                       {/* Shimmer effect overlay */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
                       
@@ -854,7 +856,7 @@ export default function Home() {
                         setActiveTab('walkers');
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold h-14 px-8 shadow-lg shadow-blue-600/30 text-lg rounded-xl transition-all hover:scale-105"
+                      className={`flex-1 bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} hover:opacity-90 text-white font-bold h-14 px-8 shadow-lg text-lg rounded-xl transition-all hover:scale-105`}
                     >
                       <Search className="w-5 h-5 mr-2" />
                       {t('findWalkerBtn', language)}
