@@ -733,87 +733,77 @@ export default function ProfessionalDashboard() {
         <VerificationBanner profile={profile} type={walkerProfile ? 'walker' : 'trainer'} />
 
         {/* Header */}
-        <div className="mb-4 md:mb-6">
-          <div className="mb-4">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Painel Profissional</h1>
-            <p className="text-sm md:text-base text-gray-600">{profile.walker_name || profile.trainer_name}</p>
-          </div>
-          
-          {/* Mobile Actions */}
-          <div className="grid grid-cols-1 gap-2 md:hidden mb-4">
-            <Button
-              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-              className="bg-green-600 hover:bg-green-700 text-white w-full h-12"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Editar Perfil
-            </Button>
-            <Button onClick={() => navigate(createPageUrl('ManageAvailability'))} className="w-full h-12">
-              <Calendar className="w-4 h-4 mr-2" />
-              Gerir Disponibilidade
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
-              className="border-blue-200 bg-blue-50 text-blue-700 w-full h-12"
-            >
-              <DollarSign className="w-4 h-4 mr-2" />
-              Configurar Pagamentos
-            </Button>
-          </div>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex gap-2">
-            <Button
-              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Editar Perfil
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate(createPageUrl('StripeConnectSetup'))}
-              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
-            >
-              <DollarSign className="w-4 h-4 mr-2" />
-              Configurar Pagamentos
-            </Button>
-            <Button onClick={() => navigate(createPageUrl('ManageAvailability'))}>
-              <Calendar className="w-4 h-4 mr-2" />
-              Gerir Disponibilidade
-            </Button>
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Painel Profissional</h1>
+              <p className="text-gray-600 mt-1">{profile.walker_name || profile.trainer_name}</p>
+            </div>
+            
+            {/* Quick Actions - Compact Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:w-auto">
+              <Button
+                onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+                className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
+                size="lg"
+              >
+                <Edit className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Editar Perfil</span>
+              </Button>
+              <Button 
+                onClick={() => navigate(createPageUrl('ManageAvailability'))} 
+                variant="outline"
+                className="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-md"
+                size="lg"
+              >
+                <Calendar className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Agenda</span>
+              </Button>
+              <Button
+                onClick={() => setShowServiceForm(true)}
+                variant="outline"
+                className="border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 shadow-md col-span-2 md:col-span-1"
+                size="lg"
+              >
+                <Plus className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Novo Serviço</span>
+              </Button>
+            </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {stats.map((stat, idx) => (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.08, type: "spring" }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 className="h-full"
               >
-                <Card className="border-0 shadow-lg overflow-hidden h-full flex flex-col">
-                  <CardContent className="p-0 flex-1">
-                    <div className={`bg-gradient-to-br ${stat.color} p-4 text-white h-full flex flex-col justify-between`}>
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <stat.icon className="w-8 h-8 opacity-80" />
+                <Card className="border-0 shadow-xl hover:shadow-2xl overflow-hidden h-full transition-all duration-300">
+                  <CardContent className="p-0">
+                    <div className={`bg-gradient-to-br ${stat.color} p-5 text-white min-h-[140px] flex flex-col justify-between relative overflow-hidden`}>
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                            <stat.icon className="w-5 h-5" />
+                          </div>
                           {stat.badge && (
-                            <Badge className="bg-white/20 text-white border-0 whitespace-nowrap">
+                            <Badge className="bg-white/25 text-white border-0 text-[10px] backdrop-blur-sm">
                               {stat.badge}
                             </Badge>
                           )}
                         </div>
-                        <div className="text-3xl font-bold mb-1">{stat.value}</div>
-                        <div className="text-sm opacity-90">{stat.label}</div>
+                        <div className="text-2xl md:text-3xl font-extrabold mb-1">{stat.value}</div>
+                        <div className="text-xs opacity-90 font-medium">{stat.label}</div>
                       </div>
                       {stat.change && (
-                        <div className="flex items-center gap-1 text-xs mt-2 opacity-90">
+                        <div className="flex items-center gap-1 text-xs mt-3 opacity-90 font-semibold relative z-10">
                           <ArrowUp className="w-3 h-3" />
-                          {stat.change} {t('vsLastPeriod', language)}
+                          {stat.change} vs anterior
                         </div>
                       )}
                     </div>
@@ -825,36 +815,54 @@ export default function ProfessionalDashboard() {
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto bg-white shadow-lg rounded-xl p-1 md:p-2 gap-1">
-            <TabsTrigger value="overview" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
-              <BarChart3 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-              <span className="hidden md:inline">Resumo</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="w-full bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-2 border border-white/50 flex flex-wrap gap-2 justify-center">
+            <TabsTrigger 
+              value="overview" 
+              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Resumo
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="rounded-lg text-xs md:text-sm py-2 md:py-3 relative">
-              <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-              <span className="hidden md:inline">Reservas</span>
+            <TabsTrigger 
+              value="bookings" 
+              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 relative transition-all"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Reservas
               {directRequests.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse">
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse shadow-lg">
                   {directRequests.length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
-              <TrendingUp className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-              <span className="hidden md:inline">Stats</span>
+            <TabsTrigger 
+              value="analytics" 
+              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Analytics
             </TabsTrigger>
-            <TabsTrigger value="services" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
-              <Package className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-              <span className="hidden md:inline">Serviços</span>
+            <TabsTrigger 
+              value="services" 
+              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Serviços
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
-              <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-              <span className="hidden md:inline">Agenda</span>
+            <TabsTrigger 
+              value="calendar" 
+              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
+            >
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              Agenda
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="rounded-lg text-xs md:text-sm py-2 md:py-3">
-              <Star className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-              <span className="hidden md:inline">Reviews</span>
+            <TabsTrigger 
+              value="reviews" 
+              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Reviews
             </TabsTrigger>
           </TabsList>
 
@@ -982,204 +990,220 @@ export default function ProfessionalDashboard() {
           <TabsContent value="bookings">
             {/* SOLICITAÇÕES DIRETAS - Prioridade Máxima */}
             {directRequests.length > 0 && (
-              <Card className="border-2 border-purple-400 shadow-2xl mb-6 bg-gradient-to-r from-purple-50 to-pink-50">
-                <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                  <CardTitle className="flex items-center gap-2">
-                    🎯 Solicitações Diretas para Você ({directRequests.length})
-                  </CardTitle>
-                  <p className="text-sm text-purple-100">Clientes que escolheram VOCÊ especificamente</p>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
-                    {directRequests.map((booking) => (
-                      <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white rounded-xl border-2 border-purple-200 shadow-md gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <Badge className="bg-purple-600 text-white">🎯 DIRETO</Badge>
-                            <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
-                            <Badge variant="outline" className="text-xs">
-                              {booking.dog_size === 'small' && '🐕 Pequeno'}
-                              {booking.dog_size === 'medium' && '🐕 Médio'}
-                              {booking.dog_size === 'large' && '🐕 Grande'}
-                              {booking.dog_size === 'extra_large' && '🐕 XL'}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 font-semibold">{booking.owner_name} • {booking.owner_phone}</p>
-                          <p className="text-sm text-gray-500">
-                            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time} • {booking.duration_hours}h
-                          </p>
-                          {booking.pickup_address && (
-                            <p className="text-sm text-gray-600 flex items-center gap-1 mt-1 font-medium">
-                              <MapPin className="w-3.5 h-3.5 text-purple-500" /> 
-                              {booking.pickup_address}
-                            </p>
-                          )}
-                          {booking.special_notes && (
-                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                              <p className="text-xs text-gray-700"><strong>Notas:</strong> {booking.special_notes}</p>
-                            </div>
-                          )}
-                          <p className="text-xl md:text-2xl font-bold text-green-600 mt-2 md:hidden">€{booking.service_amount}</p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6"
+              >
+                <Card className="border-0 shadow-2xl overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
+                  <CardHeader className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                    <div className="relative z-10">
+                      <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
+                        <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                          🎯
                         </div>
-                        <div className="md:text-right">
-                          <p className="text-2xl font-bold text-green-600 hidden md:block">€{booking.service_amount}</p>
-                          <div className="flex flex-col gap-2 mt-2">
-                            {booking.owner_phone && (
-                              <Button
-                                size="sm"
-                                onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
-                                className="w-full h-10 bg-green-600 text-white hover:bg-green-700"
-                              >
-                                <MessageCircle className="w-4 h-4 mr-2" />
-                                WhatsApp Dono
-                              </Button>
-                            )}
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                size="sm"
-                                onClick={async () => {
-                                  console.log('✅ Aceitando solicitação direta:', booking.id);
-                                  const entity = base44.entities.Booking;
-                                  
-                                  try {
-                                    await entity.update(booking.id, {
-                                      status: 'confirmed'
-                                    });
-                                    
-                                    queryClient.invalidateQueries(['myWalkBookings']);
-                                    toast.success('Pedido aceite!');
-                                    
-                                    await createNotification.mutateAsync({
-                                      recipient_email: booking.owner_email || booking.created_by,
-                                      title: '✅ Pedido Aceite!',
-                                      message: `${user.full_name} aceitou o seu pedido de passeio para ${booking.dog_name}.`,
-                                      type: 'booking',
-                                      related_id: booking.id,
-                                      priority: 'high'
-                                    });
-                                  } catch (error) {
-                                    console.error('Erro ao aceitar:', error);
-                                    toast.error('Erro ao aceitar pedido');
-                                  }
-                                }}
-                                className="bg-purple-600 hover:bg-purple-700 text-white h-10"
-                              >
-                                ✓ Aceitar
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleBookingAction(booking, 'cancelled')}
-                                variant="outline"
-                                className="text-red-600 hover:bg-red-50 border-red-200 h-10"
-                              >
-                                ✗ Recusar
-                              </Button>
+                        Pedidos Diretos ({directRequests.length})
+                      </CardTitle>
+                      <p className="text-sm text-purple-100 mt-1">Clientes que escolheram VOCÊ</p>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      {directRequests.map((booking) => (
+                        <div key={booking.id} className="bg-white rounded-2xl border-2 border-purple-200 shadow-lg hover:shadow-xl transition-all p-4">
+                          <div className="grid md:grid-cols-[1fr,auto] gap-4">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md">🎯 DIRETO</Badge>
+                                <h3 className="font-bold text-lg text-gray-900">{booking.dog_name}</h3>
+                                <Badge variant="outline" className="text-xs font-semibold">
+                                  {booking.dog_size === 'small' && '🐕 Pequeno'}
+                                  {booking.dog_size === 'medium' && '🐕 Médio'}
+                                  {booking.dog_size === 'large' && '🐕 Grande'}
+                                  {booking.dog_size === 'extra_large' && '🐕 XL'}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-700 font-semibold mb-1">{booking.owner_name} • {booking.owner_phone}</p>
+                              <p className="text-sm text-gray-600 flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time} • {booking.duration_hours}h
+                              </p>
+                              {booking.pickup_address && (
+                                <p className="text-sm text-gray-600 flex items-center gap-1 mt-2 font-medium">
+                                  <MapPin className="w-3.5 h-3.5 text-purple-500" /> 
+                                  {booking.pickup_address}
+                                </p>
+                              )}
+                              {booking.special_notes && (
+                                <div className="mt-3 p-3 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
+                                  <p className="text-xs text-gray-800"><strong>⚠️ Notas:</strong> {booking.special_notes}</p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-2 min-w-[180px]">
+                              <div className="text-3xl font-bold text-green-600 mb-2">€{booking.service_amount}</div>
+                              {booking.owner_phone && (
+                                <Button
+                                  onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
+                                  className="w-full bg-green-600 hover:bg-green-700 text-white shadow-md"
+                                >
+                                  <MessageCircle className="w-4 h-4 mr-2" />
+                                  WhatsApp
+                                </Button>
+                              )}
+                              <div className="grid grid-cols-1 gap-2 w-full">
+                                <Button
+                                  onClick={async () => {
+                                    try {
+                                      await base44.entities.Booking.update(booking.id, { status: 'confirmed' });
+                                      queryClient.invalidateQueries(['myWalkBookings']);
+                                      toast.success('✅ Pedido aceite!');
+                                      await createNotification.mutateAsync({
+                                        recipient_email: booking.owner_email || booking.created_by,
+                                        title: '✅ Pedido Aceite!',
+                                        message: `${user.full_name} aceitou o seu pedido para ${booking.dog_name}.`,
+                                        type: 'booking',
+                                        related_id: booking.id,
+                                        priority: 'high'
+                                      });
+                                    } catch (error) {
+                                      toast.error('Erro ao aceitar');
+                                    }
+                                  }}
+                                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Aceitar
+                                </Button>
+                                <Button
+                                  onClick={() => handleBookingAction(booking, 'cancelled')}
+                                  variant="outline"
+                                  className="text-red-600 hover:bg-red-50 border-2 border-red-300"
+                                >
+                                  <AlertCircle className="w-4 h-4 mr-2" />
+                                  Recusar
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
 
             {/* TODAS AS RESERVAS */}
-            <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle>Todas as Reservas</CardTitle>
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-lg">
+              <CardHeader className="border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl md:text-2xl">Todas as Reservas</CardTitle>
+                  <Badge className="bg-gray-100 text-gray-700 font-semibold">
+                    {allBookings.length} Total
+                  </Badge>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {allBookings.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhuma reserva ainda</p>
+                  <div className="text-center py-16">
+                    <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Calendar className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma reserva ainda</h3>
+                    <p className="text-gray-600">Quando os clientes fizerem reservas, elas aparecerão aqui.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allBookings.filter(b => !(b.status === 'pending' && b.walker_id === walkerProfile?.id)).map((booking) => (
-                     <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between p-4 bg-white/90 backdrop-blur-md rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-all gap-3">
-                       <div className="flex-1">
-                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                           <h3 className="font-bold text-gray-900">{booking.dog_name}</h3>
-                           <Badge className={
-                             booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                             booking.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                             'bg-blue-100 text-blue-800'
-                           }>
-                             {booking.status}
-                           </Badge>
+                     <div key={booking.id} className="bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-gray-200 hover:border-green-300 shadow-md hover:shadow-lg transition-all p-4">
+                       <div className="grid md:grid-cols-[1fr,auto] gap-4">
+                         <div>
+                           <div className="flex items-center gap-2 mb-2 flex-wrap">
+                             <h3 className="font-bold text-lg text-gray-900">{booking.dog_name}</h3>
+                             <Badge className={`font-semibold ${
+                               booking.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                               booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                               booking.status === 'service_completed' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                               'bg-orange-100 text-orange-800 border-orange-300'
+                             } border-2`}>
+                               {booking.status === 'service_completed' ? '💰 Aguarda Pagamento' : booking.status}
+                             </Badge>
+                           </div>
+                           <p className="text-sm text-gray-700 font-medium mb-1">{booking.owner_name}</p>
+                           <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                             <span className="flex items-center gap-1">
+                               <Clock className="w-3.5 h-3.5 text-blue-500" />
+                               {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })}
+                             </span>
+                             <span>•</span>
+                             <span>{booking.walk_time || booking.session_time}</span>
+                             <span>•</span>
+                             <span className="font-semibold">{booking.duration_hours}h</span>
+                           </div>
+                           {booking.pickup_address && (
+                             <p className="text-sm text-gray-600 flex items-center gap-1 mt-2 bg-gray-50 p-2 rounded-lg">
+                               <MapPin className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" /> 
+                               {booking.pickup_address}
+                             </p>
+                           )}
+                           {booking.special_notes && (
+                             <div className="mt-3 p-3 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
+                               <p className="text-xs text-gray-800"><strong>⚠️ Notas:</strong> {booking.special_notes}</p>
+                             </div>
+                           )}
                          </div>
-                         <p className="text-sm text-gray-600">{booking.owner_name} • {booking.owner_phone}</p>
-                         <p className="text-sm text-gray-500">
-                           {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • {booking.walk_time || booking.session_time}
-                         </p>
-                         {booking.pickup_address && (
-                           <p className="text-sm text-gray-600 flex items-center gap-1 mt-1 font-medium">
-                             <MapPin className="w-3.5 h-3.5 text-purple-500" /> 
-                             {booking.pickup_address}
-                           </p>
-                         )}
-                         <p className="text-xl md:text-2xl font-bold text-green-600 mt-2 md:hidden">€{booking.service_amount}</p>
-                       </div>
-                       <div className="md:text-right">
-                         <p className="text-2xl font-bold text-green-600 hidden md:block">€{booking.service_amount}</p>
-
-                         <div className="flex flex-col gap-2 mt-2">
-                            {/* Não mostrar botões aqui - já estão na seção de Solicitações Diretas */}
+                         <div className="flex flex-col items-end gap-2 min-w-[140px]">
+                           <div className="text-3xl font-bold text-green-600 mb-2">€{booking.service_amount}</div>
 
                             {booking.status === 'confirmed' && (
-                                <div className="flex flex-col gap-1 mb-2">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        if (window.confirm('Tem certeza que deseja cancelar esta reserva confirmada? Isso notificará o cliente e libertará o horário.')) {
-                                          handleBookingAction(booking, 'cancelled');
-                                        }
-                                      }}
-                                      className="text-red-600 hover:bg-red-50 border-red-200 h-10 w-full"
-                                      disabled={updateBookingStatusMutation.isPending}
-                                    >
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                      Cancelar Reserva
-                                    </Button>
-                                </div>
-                            )}
-
-                            {booking.status === 'confirmed' && new Date(booking.walk_date || booking.session_date) <= new Date() && (
-                               <Button
-                                  size="sm"
-                                  onClick={() => handleServiceCompleted(booking)}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md h-10"
+                              <>
+                                {new Date(booking.walk_date || booking.session_date) <= new Date() && (
+                                  <Button
+                                    onClick={() => handleServiceCompleted(booking)}
+                                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                                    disabled={updateBookingStatusMutation.isPending}
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Concluído
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    if (window.confirm('Cancelar esta reserva?')) {
+                                      handleBookingAction(booking, 'cancelled');
+                                    }
+                                  }}
+                                  className="w-full text-red-600 hover:bg-red-50 border-2 border-red-300"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Serviço Concluído
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Cancelar
                                 </Button>
+                              </>
                             )}
 
                             {booking.status === 'service_completed' && (
                                <Button
-                                  size="sm"
                                   onClick={() => handlePaymentReceived(booking)}
-                                  className="bg-purple-600 hover:bg-purple-700 text-white w-full shadow-md animate-pulse h-10"
+                                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg animate-pulse"
                                   disabled={updateBookingStatusMutation.isPending}
                                 >
                                   <DollarSign className="w-4 h-4 mr-2" />
-                                  Pagamento Recebido
+                                  Confirmar €
                                 </Button>
                             )}
                             
-                            {booking.owner_phone && (
+                            {booking.owner_phone && booking.status !== 'completed' && (
                               <Button
-                                size="sm"
                                 onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
                                 variant="outline"
-                                className="w-full h-10 bg-green-50 border-green-200 text-green-700"
+                                className="w-full bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100"
                               >
-                                <MessageCircle className="w-3 h-3 mr-1" />
-                                WhatsApp
+                                <MessageCircle className="w-4 h-4 mr-2" />
+                                Chat
                               </Button>
                             )}
                           </div>
