@@ -514,10 +514,18 @@ export default function Chat() {
   const isProfessional = user?.email === booking?.walker_email || user?.email === booking?.trainer_email;
   const isOwner = user?.email === booking?.created_by || user?.email === booking?.owner_email;
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom (smooth like WhatsApp)
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const scrollElement = scrollRef.current;
+      const isNearBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight < 100;
+      
+      if (isNearBottom || messages.length <= 1) {
+        scrollElement.scrollTo({
+          top: scrollElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
   }, [messages]);
 
@@ -660,9 +668,9 @@ export default function Chat() {
     routeCoords.length > 0 ? routeCoords[routeCoords.length - 1] : null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center gap-3 shadow-sm">
+      <div className="bg-white border-b px-3 py-2 md:px-4 md:py-3 flex items-center gap-2 md:gap-3 shadow-sm flex-shrink-0">
         <Button
           size="icon"
           variant="ghost"
@@ -672,7 +680,7 @@ export default function Chat() {
           <ChevronLeft className="w-5 h-5" />
         </Button>
 
-        <Avatar className="h-10 w-10">
+        <Avatar className="h-8 w-8 md:h-10 md:w-10">
           <AvatarImage
             src={isProfessional ? booking.owner?.photo_url : booking.walker?.photo_url}
           />
@@ -682,10 +690,10 @@ export default function Chat() {
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate">
+          <h3 className="font-semibold text-sm md:text-base text-gray-900 truncate">
             {isProfessional ? booking.owner_name : booking.walker_name}
           </h3>
-          <p className="text-xs text-gray-500">
+          <p className="text-[10px] md:text-xs text-gray-500">
             {booking.dog_name} • {format(new Date(booking.walk_date || booking.session_date), "dd MMM", { locale: pt })}
           </p>
         </div>
@@ -713,8 +721,8 @@ export default function Chat() {
 
       {/* Payment Status Bar */}
       {booking.payment_id && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b px-4 py-2">
-          <div className="flex items-center justify-between text-xs">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b px-3 py-1.5 md:px-4 md:py-2 flex-shrink-0">
+          <div className="flex items-center justify-between text-[10px] md:text-xs">
             <span className="text-gray-600">Pagamento:</span>
             <Badge className={
               booking.payment_status === "released" 
@@ -732,7 +740,7 @@ export default function Chat() {
 
       {/* GPS Map (if service is in progress) */}
       {booking.status === "in_progress" && routeCoords.length > 0 && (
-        <div className="h-48 relative">
+        <div className="h-32 md:h-48 relative flex-shrink-0">
           <MapContainer
             center={lastKnownPosition || [38.7223, -9.1393]}
             zoom={15}
@@ -799,8 +807,8 @@ export default function Chat() {
       )}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-4 max-w-3xl mx-auto">
+      <div className="flex-1 overflow-y-auto px-3 py-2 md:px-4 md:py-4" ref={scrollRef}>
+        <div className="space-y-2 md:space-y-4 max-w-3xl mx-auto pb-2">
           {/* Service Start Notification */}
           {checkpoints.find(c => c.checkpoint_type === 'check_in') && (
             <div className="flex justify-center">
@@ -896,7 +904,7 @@ export default function Chat() {
 
       {/* Professional Actions Bar - Start Service */}
       {isProfessional && booking.status === "confirmed" && (
-        <div className="bg-green-50 border-t border-green-200 px-4 py-3">
+        <div className="bg-green-50 border-t border-green-200 px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
           <Button
             className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
             onClick={() => startServiceMutation.mutate()}
@@ -905,22 +913,15 @@ export default function Chat() {
             <Navigation className="w-5 h-5 mr-2" />
             {startServiceMutation.isPending ? "Iniciando..." : "Iniciar Serviço"}
           </Button>
-          <div className="mt-2 bg-white rounded-lg p-2 border border-green-200">
-            <p className="text-xs text-green-800 font-medium mb-1">
-              ℹ️ Ao iniciar, será pedida permissão de localização:
-            </p>
-            <ul className="text-[10px] text-green-700 space-y-0.5">
-              <li>• Rastreamento GPS automático durante o serviço</li>
-              <li>• Atualizações contínuas de localização</li>
-              <li>• Necessário manter app aberto em segundo plano</li>
-            </ul>
-          </div>
+          <p className="text-[10px] md:text-xs text-center text-green-700 mt-1.5">
+            ℹ️ Será pedida permissão de GPS para rastreamento automático
+          </p>
         </div>
       )}
 
       {/* Professional Actions Bar - In Progress */}
       {isProfessional && booking.status === "in_progress" && !showBehaviorForm && (
-        <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-3 space-y-2">
+        <div className="bg-yellow-50 border-t border-yellow-200 px-3 py-2 md:px-4 md:py-3 space-y-2 flex-shrink-0">
           {/* GPS Status Indicator */}
           {trackingActive && (
             <div className="flex items-center justify-center gap-2 bg-blue-50 rounded-lg p-2 mb-2">
@@ -987,7 +988,7 @@ export default function Chat() {
             {finishWalkMutation.isPending ? "Finalizando..." : "Concluir Serviço"}
           </Button>
           
-          <p className="text-xs text-center text-yellow-800">
+          <p className="text-[10px] md:text-xs text-center text-yellow-800">
             ⚠️ Aproxime-se a menos de 50m do destino para concluir
           </p>
         </div>
@@ -995,7 +996,7 @@ export default function Chat() {
 
       {/* Behavior Form */}
       {isProfessional && showBehaviorForm && (
-        <div className="bg-white border-t px-4 py-4 space-y-3">
+        <div className="bg-white border-t px-3 py-3 md:px-4 md:py-4 space-y-3 flex-shrink-0 max-h-[50vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-semibold text-gray-900">Como está {booking.dog_name}?</h3>
             <Button
@@ -1089,7 +1090,7 @@ export default function Chat() {
 
       {/* Owner View - Payment Info */}
       {isOwner && booking.status === "service_completed" && (
-        <div className="bg-green-50 border-t border-green-200 px-4 py-3">
+        <div className="bg-green-50 border-t border-green-200 px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
           <div className="text-center">
             <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
             <p className="text-sm font-semibold text-green-800">
@@ -1103,7 +1104,7 @@ export default function Chat() {
       )}
 
       {/* Message Input */}
-      <div className="bg-white border-t px-4 py-3">
+      <div className="bg-white border-t px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
         <div className="flex items-center gap-2 max-w-3xl mx-auto">
           <Input
             value={message}
