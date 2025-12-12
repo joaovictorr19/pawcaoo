@@ -240,7 +240,7 @@ export default function OwnerSubscriptions() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Compact Header */}
         <div className="text-center mb-6">
@@ -294,14 +294,9 @@ export default function OwnerSubscriptions() {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="relative"
               >
-                <Card className={`relative overflow-hidden backdrop-blur-xl border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 h-full ${
-                  plan.popular ? 'ring-2 ring-blue-400 scale-105' : ''
-                } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
-                  style={{
-                    background: plan.popular 
-                      ? 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(239,246,255,0.9) 100%)'
-                      : 'rgba(255, 255, 255, 0.8)'
-                  }}
+                <Card className={`glass-panel relative overflow-hidden border-2 shadow-2xl hover:shadow-3xl transition-all duration-300 h-full ${
+                  plan.popular ? 'ring-2 ring-blue-400 scale-105 border-blue-300/60' : 'border-white/40'
+                } ${isCurrentPlan ? 'ring-2 ring-green-500 border-green-300/60' : ''}`}
                 >
                   {plan.popular && (
                     <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 text-xs font-bold z-10 rounded-bl-lg shadow-lg">
@@ -379,7 +374,7 @@ export default function OwnerSubscriptions() {
         </div>
 
         {/* Collapsible Comparison Table */}
-        <Card className="glass-panel border-0 shadow-xl mb-6">
+        <Card className="glass-panel border-2 border-white/40 shadow-xl mb-6">
           <CardHeader 
             className="cursor-pointer hover:bg-gray-50 transition-colors p-4"
             onClick={() => setShowComparison(!showComparison)}
@@ -461,7 +456,7 @@ export default function OwnerSubscriptions() {
         </Card>
 
         {/* Benefits - Glass Design */}
-        <Card className="backdrop-blur-xl bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-white/40 shadow-xl mb-8">
+        <Card className="glass-panel border-2 border-green-300/40 shadow-xl mb-8">
           <CardContent className="p-6 md:p-8">
             <h3 className="text-2xl font-black text-gray-900 mb-6 text-center">
               ✨ Porquê Ser Membro PawCão?
@@ -490,7 +485,7 @@ export default function OwnerSubscriptions() {
         </Card>
 
         {/* Elite Partner for Companies */}
-        <Card className="relative overflow-hidden border-0 shadow-2xl">
+        <Card className="glass-panel relative overflow-hidden border-2 border-purple-300/40 shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-100" />
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
           
