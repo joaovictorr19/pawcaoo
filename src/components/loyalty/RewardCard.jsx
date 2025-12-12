@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { useTheme } from "../ThemeContext";
 
 export default function RewardCard({ reward, index, userPoints, onRedeem, isRedeeming }) {
+  const { colors } = useTheme();
   const canAfford = userPoints >= reward.points;
 
   return (
@@ -21,7 +23,7 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
         )}
         <CardHeader className="text-center pb-3 md:pb-4 p-3 md:p-6">
           <div className="text-3xl md:text-5xl lg:text-6xl mb-2 md:mb-3">{reward.icon}</div>
-          <CardTitle className="text-base md:text-xl lg:text-2xl font-bold text-purple-600 leading-tight">
+          <CardTitle className={`text-base md:text-xl lg:text-2xl font-bold ${colors?.text || 'text-purple-600'} leading-tight`}>
             {reward.discount}
           </CardTitle>
           <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1.5 md:mt-2 leading-snug">{reward.description}</p>
@@ -29,7 +31,7 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
         <CardContent className="text-center pt-0 p-3 md:p-6">
           <p className="text-sm md:text-base lg:text-lg font-semibold mb-2 md:mb-3 lg:mb-4">{reward.points} points</p>
           <Button
-            className="w-full bg-purple-600 hover:bg-purple-700 h-8 md:h-10 lg:h-11 text-xs md:text-sm"
+            className={`w-full bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} hover:opacity-90 text-white h-8 md:h-10 lg:h-11 text-xs md:text-sm border-0`}
             disabled={!canAfford || isRedeeming}
             onClick={() => onRedeem(reward)}
           >

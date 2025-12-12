@@ -13,9 +13,12 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { useTheme } from "@/components/ThemeContext";
+import { calculateTier } from "@/components/gamification/tierSystem";
 
 export default function Gamification() {
   const navigate = useNavigate();
+  const { colors } = useTheme();
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRanking, setActiveRanking] = useState("global"); // global, walkers, quality
 
@@ -101,27 +104,13 @@ export default function Gamification() {
     return [];
   }, [activeRanking, allUsers, walkerProfiles, allBookings]);
 
-  // Tier calculation based on XP with tier ranges
-  const getTierData = (xp) => {
-    if (xp >= 6000) return { name: 'Safira', color: 'from-blue-700 via-indigo-600 to-purple-700', bgColor: 'from-blue-600 to-purple-600', icon: '💎', chartColor: '#3b82f6', min: 6000, max: 10000 };
-    if (xp >= 3000) return { name: 'Ouro', color: 'from-yellow-500 via-amber-400 to-yellow-600', bgColor: 'from-yellow-500 to-orange-500', icon: '👑', chartColor: '#f59e0b', min: 3000, max: 6000 };
-    if (xp >= 1000) return { name: 'Prata', color: 'from-slate-400 via-gray-300 to-slate-500', bgColor: 'from-gray-400 to-slate-500', icon: '⚔️', chartColor: '#94a3b8', min: 1000, max: 3000 };
-    return { name: 'Bronze', color: 'from-orange-600 to-orange-400', bgColor: 'from-orange-500 to-orange-400', icon: '🛡️', chartColor: '#f97316', min: 0, max: 1000 };
-  };
-
   const currentXP = user?.gamification_xp || 0;
   const currentLevel = user?.gamification_level || 1;
-  const currentTier = getTierData(currentXP);
+  const currentTier = calculateTier(currentXP);
 
-  // XP Progress calculation (relative to current tier)
-  const xpPerLevel = 500;
-  const xpInCurrentLevel = currentXP - ((currentLevel - 1) * xpPerLevel);
-  
-  // Tier-based progress (relative to tier range, not absolute)
-  const xpInCurrentTier = currentXP - currentTier.min;
-  const tierRange = currentTier.max - currentTier.min;
-  const tierProgressPercentage = Math.min((xpInCurrentTier / tierRange) * 100, 100);
-  const xpRemainingForNextTier = currentTier.max - currentXP;
+  // Tier-based progress
+  const tierProgressPercentage = currentTier.progress || 0;
+  const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
@@ -204,10 +193,10 @@ export default function Gamification() {
 
   return (
     <div className="min-h-screen pb-8">
-      {/* 1. HERO SECTION - Motor de Pontos Premium */}
-      <div className="relative overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 opacity-90"></div>
+    {/* 1. HERO SECTION - Motor de Pontos Premium */}
+    <div className="relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${colors?.gradient || 'from-indigo-600 via-purple-600 to-pink-600'} opacity-90`}></div>
         
         {/* Decorative orbs */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -291,13 +280,11 @@ export default function Gamification() {
                     transition={{ duration: 1, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-xs opacity-90 mt-2">
-                  Faltam <span className="font-bold">{xpRemainingForNextTier.toLocaleString('pt-PT')}</span> para {
-                    currentTier.name === 'Safira' ? 'Máximo' :
-                    currentTier.name === 'Ouro' ? 'Safira' :
-                    currentTier.name === 'Prata' ? 'Ouro' : 'Prata'
-                  }
-                </p>
+                {xpRemainingForNextTier > 0 && (
+                  <p className="text-xs opacity-90 mt-2">
+                    Faltam <span className="font-bold">{xpRemainingForNextTier.toLocaleString('pt-PT')}</span> XP para próximo tier
+                  </p>
+                )}
               </div>
             </div>
 
@@ -326,7 +313,7 @@ export default function Gamification() {
               onClick={() => setActiveRanking('global')}
               className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
                 activeRanking === 'global'
-                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg'
+                  ? `bg-gradient-to-r ${colors?.gradient || 'from-yellow-400 to-orange-500'} text-white shadow-lg`
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -494,7 +481,7 @@ export default function Gamification() {
                     <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey])}</p>
                     {activeRanking === 'global' && (
                       <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
-                        {getTierData(rankedData[0].gamification_xp || 0).icon} {getTierData(rankedData[0].gamification_xp || 0).name}
+                        {calculateTier(rankedData[0].gamification_xp || 0).icon} {calculateTier(rankedData[0].gamification_xp || 0).name}
                       </Badge>
                     )}
                   </div>
@@ -614,7 +601,7 @@ export default function Gamification() {
                   variant={activeCategory === cat ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveCategory(cat)}
-                  className={activeCategory === cat ? "bg-purple-600" : ""}
+                  className={activeCategory === cat ? `bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white border-0` : ""}
                 >
                   {cat === 'all' && '🌟 Todos'}
                   {cat === 'social' && '💬 Social'}
