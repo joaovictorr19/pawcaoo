@@ -164,11 +164,18 @@ export default function Chat() {
         throw new Error("Chat não inicializado");
       }
       
+      // Get participants from conversation for RLS
+      const participants = conversation.participants || [
+        booking.created_by || booking.owner_email,
+        booking.walker_email || booking.trainer_email
+      ].filter(Boolean);
+
       await base44.entities.ChatMessage.create({
         conversation_id: conversation.id,
         sender_email: user.email,
         sender_name: user.full_name || user.email,
-        message: messageData.text,
+        content: messageData.text,
+        participants: participants,
         message_type: messageData.type || "text",
         photo_url: messageData.photo_url,
         location: messageData.location,
