@@ -893,9 +893,6 @@ function LayoutContent({ children, currentPageName }) {
             </Sidebar>
             )}
 
-            {/* Dynamic Background - Orbs that change color based on user tier */}
-            <DynamicBackground />
-
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
 
