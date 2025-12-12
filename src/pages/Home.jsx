@@ -708,29 +708,29 @@ export default function Home() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-3 w-full">
+                    <div className="grid grid-cols-3 gap-2 w-full">
                       <button
                         onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-2 p-4 glass-panel rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Heart className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
-                        <span className="text-xs font-semibold text-slate-700">Favoritos</span>
+                        <Heart className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" strokeWidth={1.5} />
+                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Favoritos</span>
                       </button>
 
                       <button
                         onClick={() => navigate(createPageUrl('Gamification'))}
-                        className="flex flex-col items-center gap-2 p-4 glass-panel rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Trophy className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
-                        <span className="text-xs font-semibold text-slate-700">Hall da Fama</span>
+                        <Trophy className="w-4 h-4 md:w-5 md:h-5 text-purple-600" strokeWidth={1.5} />
+                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Hall da Fama</span>
                       </button>
 
                       <button
                         onClick={() => navigate(createPageUrl('MyBookings'))}
-                        className="flex flex-col items-center gap-2 p-4 glass-panel rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Calendar className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
-                        <span className="text-xs font-semibold text-slate-700">Histórico</span>
+                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" strokeWidth={1.5} />
+                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
                   </div>
