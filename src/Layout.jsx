@@ -548,9 +548,11 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
 
-        [data-sidebar="sidebar"][data-state="collapsed"] {
-          width: 96px !important;
-        }
+[data-sidebar="sidebar"][data-state="collapsed"] {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
