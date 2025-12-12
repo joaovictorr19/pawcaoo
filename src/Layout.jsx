@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -563,7 +562,36 @@ function LayoutContent({ children, currentPageName }) {
           will-change: transform;
         }
 
-        /* --- 4. ANIMAÇÃO DOS ORBS (Flutuação Suave) --- */
+        /* --- 4. MOTOR DE 3 ORBS COM ROTAÇÃO COMPLEXA --- */
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes blob-rotate {
+          0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+          33% { transform: translate(30px, -50px) rotate(120deg) scale(1.2); }
+          66% { transform: translate(-20px, 20px) rotate(240deg) scale(0.9); }
+          100% { transform: translate(0px, 0px) rotate(360deg) scale(1); }
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 60s linear infinite;
+        }
+
+        .animate-blob-1 {
+          animation: blob-rotate 23s infinite ease-in-out;
+        }
+
+        .animate-blob-2 {
+          animation: blob-rotate 29s infinite ease-in-out reverse;
+        }
+
+        .animate-blob-3 {
+          animation: blob-rotate 31s infinite ease-in-out;
+        }
+
+        /* Legacy animations for compatibility */
         @keyframes blob {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(30px, -50px) scale(1.1); }
