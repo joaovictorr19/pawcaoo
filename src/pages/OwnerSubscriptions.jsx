@@ -17,6 +17,19 @@ export default function OwnerSubscriptions() {
   const [billingCycle, setBillingCycle] = React.useState("monthly");
   const [showComparison, setShowComparison] = React.useState(false);
 
+  // Check URL params for success
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      toast.success("✅ Pagamento processado! A sua subscrição será ativada em breve.");
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('canceled') === 'true') {
+      toast.info("Pagamento cancelado. Pode tentar novamente quando quiser.");
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -36,42 +49,70 @@ export default function OwnerSubscriptions() {
 
   const subscribeMutation = useMutation({
     mutationFn: async ({ plan, billingCycle }) => {
-      if (subscription) {
-        return await base44.entities.OwnerSubscription.update(subscription.id, {
-          plan_type: plan.type,
-          billing_cycle: billingCycle,
-          monthly_price: billingCycle === 'monthly' ? plan.monthlyPrice : 0,
-          annual_price: billingCycle === 'annual' ? plan.annualPrice : 0,
-          booking_discount_percentage: plan.bookingDiscount,
-          points_multiplier: plan.pointsMultiplier,
-          free_cancellations: plan.freeCancellations,
-          priority_booking: plan.priorityBooking,
-          free_insurance: plan.freeInsurance,
-          priority_support: plan.prioritySupport,
-          exclusive_walkers: plan.exclusiveWalkers,
-        });
-      } else {
-        return await base44.entities.OwnerSubscription.create({
-          owner_email: user?.email,
-          owner_name: user?.full_name,
-          plan_type: plan.type,
-          billing_cycle: billingCycle,
-          monthly_price: billingCycle === 'monthly' ? plan.monthlyPrice : 0,
-          annual_price: billingCycle === 'annual' ? plan.annualPrice : 0,
-          booking_discount_percentage: plan.bookingDiscount,
-          points_multiplier: plan.pointsMultiplier,
-          free_cancellations: plan.freeCancellations,
-          priority_booking: plan.priorityBooking,
-          free_insurance: plan.freeInsurance,
-          priority_support: plan.prioritySupport,
-          exclusive_walkers: plan.exclusiveWalkers,
-          start_date: new Date().toISOString().split('T')[0],
-        });
+      if (plan.type === 'free') {
+        // Free plan - just create/update subscription
+        if (subscription) {
+          return await base44.entities.OwnerSubscription.update(subscription.id, {
+            plan_type: 'free',
+            billing_cycle: 'monthly',
+            monthly_price: 0,
+            annual_price: 0,
+            booking_discount_percentage: 0,
+            points_multiplier: 1,
+            free_cancellations: 0,
+            priority_booking: false,
+            free_insurance: false,
+            priority_support: false,
+            exclusive_walkers: false,
+          });
+        } else {
+          return await base44.entities.OwnerSubscription.create({
+            owner_email: user?.email,
+            owner_name: user?.full_name,
+            plan_type: 'free',
+            billing_cycle: 'monthly',
+            monthly_price: 0,
+            annual_price: 0,
+            booking_discount_percentage: 0,
+            points_multiplier: 1,
+            free_cancellations: 0,
+            priority_booking: false,
+            free_insurance: false,
+            priority_support: false,
+            exclusive_walkers: false,
+            start_date: new Date().toISOString().split('T')[0],
+            is_active: true
+          });
+        }
+      }
+
+      // Paid plans - redirect to Stripe checkout
+      const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+      const { data } = await base44.functions.invoke('createOwnerSubscriptionCheckout', {
+        plan_type: plan.type,
+        billing_cycle: billingCycle,
+        amount: price,
+        plan_details: {
+          cashbackRate: plan.cashbackRate,
+          freeWalksPerMonth: plan.freeWalksPerMonth,
+          pointsMultiplier: plan.pointsMultiplier,
+          freeCancellations: plan.freeCancellations,
+          priorityBooking: plan.priorityBooking,
+          freeInsurance: plan.freeInsurance,
+          prioritySupport: plan.prioritySupport,
+          exclusiveWalkers: plan.exclusiveWalkers,
+        }
+      });
+
+      if (data?.url) {
+        window.location.href = data.url;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ownerSubscription'] });
-      toast.success("Subscrição atualizada com sucesso!");
+    onSuccess: (result) => {
+      if (result) {
+        queryClient.invalidateQueries({ queryKey: ['ownerSubscription'] });
+        toast.success("Subscrição atualizada com sucesso!");
+      }
     },
   });
 
@@ -85,6 +126,8 @@ export default function OwnerSubscriptions() {
       color: "from-gray-500 to-gray-600",
       bookingDiscount: 0,
       pointsMultiplier: 1,
+      cashbackRate: 0,
+      freeWalksPerMonth: 0,
       freeCancellations: 0,
       priorityBooking: false,
       freeInsurance: false,
@@ -92,9 +135,9 @@ export default function OwnerSubscriptions() {
       exclusiveWalkers: false,
       features: [
         "Perfil completo",
-        "10 pontos/€1",
-        "Suporte email",
-        "Todos os passeadores"
+        "1 ponto por cada €1 gasto na loja",
+        "Sem cashback",
+        "Suporte email"
       ]
     },
     {
@@ -105,16 +148,19 @@ export default function OwnerSubscriptions() {
       icon: Heart,
       color: "from-blue-500 to-blue-600",
       popular: true,
-      bookingDiscount: 10,
+      bookingDiscount: 0,
       pointsMultiplier: 1.5,
+      cashbackRate: 5,
+      freeWalksPerMonth: 1,
       freeCancellations: 2,
       priorityBooking: false,
       freeInsurance: false,
       prioritySupport: false,
       exclusiveWalkers: false,
       features: [
-        "10% desconto reservas",
-        "15 pontos/€1",
+        "1.5 pontos por cada €1 na loja",
+        "5% cashback em compras",
+        "1 passeio grátis/mês (até €15)",
         "2 cancelamentos grátis/mês",
         "Suporte rápido"
       ]
@@ -126,21 +172,23 @@ export default function OwnerSubscriptions() {
       annualPrice: 399.99,
       icon: Star,
       color: "from-purple-500 to-purple-600",
-      bookingDiscount: 15,
+      bookingDiscount: 0,
       pointsMultiplier: 2,
+      cashbackRate: 10,
+      freeWalksPerMonth: 2,
       freeCancellations: 5,
       priorityBooking: true,
       freeInsurance: true,
       prioritySupport: true,
       exclusiveWalkers: false,
       features: [
-        "15% desconto reservas",
-        "20 pontos/€1 (2x)",
+        "2 pontos por cada €1 na loja",
+        "10% cashback em compras",
+        "2 passeios grátis/mês (até €15)",
         "5 cancelamentos/mês",
         "Prioridade agenda",
         "Seguro incluído",
-        "Suporte 24/7",
-        "10% desconto loja"
+        "Suporte 24/7"
       ]
     },
     {
@@ -150,21 +198,23 @@ export default function OwnerSubscriptions() {
       annualPrice: 599.99,
       icon: Crown,
       color: "from-yellow-500 to-yellow-600",
-      bookingDiscount: 25,
+      bookingDiscount: 0,
       pointsMultiplier: 3,
+      cashbackRate: 15,
+      freeWalksPerMonth: 4,
       freeCancellations: 999,
       priorityBooking: true,
       freeInsurance: true,
       prioritySupport: true,
       exclusiveWalkers: true,
       features: [
-        "25% desconto reservas",
-        "30 pontos/€1 (3x)",
+        "3 pontos por cada €1 na loja",
+        "15% cashback em compras",
+        "4 passeios grátis/mês (até €15)",
         "Cancelamentos ilimitados",
         "1 banho grátis/mês",
         "Prioridade máxima",
         "Suporte dedicado",
-        "15% desconto loja",
         "Passeadores VIP exclusivos"
       ]
     }
@@ -180,12 +230,13 @@ export default function OwnerSubscriptions() {
   const getSavings = (plan) => {
     if (plan.type === "free" || billingCycle === "monthly") return null;
     const monthlyTotal = plan.monthlyPrice * 12;
-    const savings = monthlyTotal - plan.annualPrice;
-    return savings;
+    const savings = (monthlyTotal - plan.annualPrice).toFixed(2);
+    const percentSaved = ((savings / monthlyTotal) * 100).toFixed(0);
+    return { amount: savings, percent: percentSaved };
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       <div className="max-w-7xl mx-auto">
         {/* Compact Header */}
         <div className="text-center mb-6">
@@ -202,76 +253,119 @@ export default function OwnerSubscriptions() {
           )}
         </div>
 
-        {/* Billing Toggle - Compact */}
-        <div className="flex justify-center mb-6">
-          <Tabs value={billingCycle} onValueChange={setBillingCycle} className="w-auto">
-            <TabsList className="bg-white border border-green-200 shadow-sm p-1">
-              <TabsTrigger value="monthly" className="text-sm px-4 data-[state=active]:bg-green-600 data-[state=active]:text-white">
-                Mensal
-              </TabsTrigger>
-              <TabsTrigger value="annual" className="text-sm px-4 data-[state=active]:bg-green-600 data-[state=active]:text-white">
-                Anual <Badge className="ml-1 bg-orange-500 text-white text-xs">-17%</Badge>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        {/* Billing Toggle - Modern */}
+        <div className="flex justify-center mb-8">
+          <div className="backdrop-blur-xl bg-white/80 border border-white/40 rounded-2xl shadow-xl p-1.5">
+            <Tabs value={billingCycle} onValueChange={setBillingCycle} className="w-auto">
+              <TabsList className="bg-transparent p-0 gap-2">
+                <TabsTrigger 
+                  value="monthly" 
+                  className="text-sm px-6 py-2.5 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+                >
+                  💳 Mensal
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="annual" 
+                  className="text-sm px-6 py-2.5 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+                >
+                  💎 Anual <Badge className="ml-2 bg-orange-500 text-white text-xs animate-pulse">Poupe 17%</Badge>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
-        {/* Compact Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Plans Grid - Modern Glass Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {plans.map((plan, index) => {
             const savings = getSavings(plan);
             const Icon = plan.icon;
+            const isCurrentPlan = subscription?.plan_type === plan.type;
 
             return (
               <motion.div
                 key={plan.type}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="relative"
               >
-                <Card className={`glass-panel border-0 shadow-xl hover:shadow-2xl transition-all h-full ${
-                  plan.popular ? 'ring-2 ring-blue-400' : ''
-                }`}>
+                <Card className={`relative overflow-hidden backdrop-blur-xl border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 h-full ${
+                  plan.popular ? 'ring-2 ring-blue-400 scale-105' : ''
+                } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
+                  style={{
+                    background: plan.popular 
+                      ? 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(239,246,255,0.9) 100%)'
+                      : 'rgba(255, 255, 255, 0.8)'
+                  }}
+                >
                   {plan.popular && (
-                    <div className="absolute top-0 right-0 bg-blue-500 text-white px-2 py-0.5 text-xs font-bold z-10 rounded-bl">
-                      Popular
+                    <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 text-xs font-bold z-10 rounded-bl-lg shadow-lg">
+                      ⭐ Popular
                     </div>
                   )}
-                  <div className={`h-2 bg-gradient-to-r ${plan.color}`} />
-                  <CardContent className="p-4">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${plan.color} rounded-xl flex items-center justify-center mb-3`}>
-                      <Icon className="w-6 h-6 text-white" />
+                  {isCurrentPlan && (
+                    <div className="absolute top-0 left-0 bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 text-xs font-bold z-10 rounded-br-lg shadow-lg">
+                      ✓ Ativo
                     </div>
-                    <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                    <div className="text-2xl font-bold text-gray-900 mb-2">
-                      {getPrice(plan)}
+                  )}
+                  
+                  <div className={`h-1 bg-gradient-to-r ${plan.color}`} />
+                  
+                  <CardContent className="p-6">
+                    <div className={`w-16 h-16 bg-gradient-to-br ${plan.color} rounded-2xl flex items-center justify-center mb-4 shadow-lg transform hover:scale-110 transition-transform`}>
+                      <Icon className="w-8 h-8 text-white" />
                     </div>
-                    {savings && (
-                      <Badge className="text-xs bg-green-500 text-white mb-3">
-                        Poupe €{savings.toFixed(0)}
-                      </Badge>
-                    )}
-                    {plan.bookingDiscount > 0 && (
-                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300 mb-3">
-                        {plan.bookingDiscount}% desconto
-                      </Badge>
+                    
+                    <h3 className="text-2xl font-black mb-2 text-gray-900">{plan.name}</h3>
+                    
+                    <div className="mb-3">
+                      <div className="text-3xl font-black text-gray-900">
+                        {getPrice(plan)}
+                      </div>
+                      {savings && (
+                        <div className="mt-2 space-y-1">
+                          <Badge className="text-xs bg-green-500 text-white shadow-md">
+                            Economize €{savings.amount}
+                          </Badge>
+                          <p className="text-xs text-green-600 font-semibold">
+                            {savings.percent}% de desconto
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {plan.cashbackRate > 0 && (
+                      <div className="mb-4 p-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg">
+                        <p className="text-sm font-bold text-green-700 text-center">
+                          💰 {plan.cashbackRate}% Cashback em Compras
+                        </p>
+                      </div>
                     )}
                     
-                    <ul className="space-y-1.5 mb-4 min-h-[120px]">
+                    {plan.freeWalksPerMonth > 0 && (
+                      <div className="mb-4 p-2 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-300 rounded-lg">
+                        <p className="text-sm font-bold text-blue-700 text-center">
+                          🐕 {plan.freeWalksPerMonth} Passeio{plan.freeWalksPerMonth > 1 ? 's' : ''} Grátis/Mês
+                        </p>
+                      </div>
+                    )}
+                    
+                    <ul className="space-y-2 mb-6 min-h-[140px]">
                       {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-700">
-                          <Check className="w-3 h-3 text-green-500 flex-shrink-0 mt-0.5" />
+                        <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
+                          <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                           <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
 
                     <Button
-                      className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white shadow-lg h-9 text-sm`}
+                      className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white shadow-lg h-11 text-sm font-bold rounded-xl transform hover:scale-105 transition-all active:scale-95`}
                       onClick={() => subscribeMutation.mutate({ plan, billingCycle })}
-                      disabled={subscription?.plan_type === plan.type || subscribeMutation.isPending}
+                      disabled={isCurrentPlan || subscribeMutation.isPending}
                     >
-                      {subscription?.plan_type === plan.type ? 'Atual' : 'Subscrever'}
+                      {isCurrentPlan ? '✓ Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever Agora'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -312,11 +406,18 @@ export default function OwnerSubscriptions() {
                       </thead>
                       <tbody>
                         <tr className="border-b border-gray-100">
-                          <td className="py-2 px-2">Desconto Reservas</td>
+                          <td className="py-2 px-2">Cashback Loja</td>
                           <td className="text-center py-2 px-2">0%</td>
-                          <td className="text-center py-2 px-2 bg-blue-50">10%</td>
-                          <td className="text-center py-2 px-2">15%</td>
-                          <td className="text-center py-2 px-2 text-green-600 font-bold">25%</td>
+                          <td className="text-center py-2 px-2 bg-blue-50">5%</td>
+                          <td className="text-center py-2 px-2">10%</td>
+                          <td className="text-center py-2 px-2 text-green-600 font-bold">15%</td>
+                        </tr>
+                        <tr className="border-b border-gray-100">
+                          <td className="py-2 px-2">Passeios Grátis/Mês</td>
+                          <td className="text-center py-2 px-2">0</td>
+                          <td className="text-center py-2 px-2 bg-blue-50">1</td>
+                          <td className="text-center py-2 px-2">2</td>
+                          <td className="text-center py-2 px-2 text-green-600 font-bold">4</td>
                         </tr>
                         <tr className="border-b border-gray-100">
                           <td className="py-2 px-2">PawPoints</td>
@@ -355,47 +456,80 @@ export default function OwnerSubscriptions() {
           </AnimatePresence>
         </Card>
 
-        {/* Compact Benefits */}
-        <Card className="border-2 border-green-200 bg-green-50 mb-6">
-          <CardContent className="p-4 md:p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
-              Porquê Ser Membro?
+        {/* Benefits - Glass Design */}
+        <Card className="backdrop-blur-xl bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-white/40 shadow-xl mb-8">
+          <CardContent className="p-6 md:p-8">
+            <h3 className="text-2xl font-black text-gray-900 mb-6 text-center">
+              ✨ Porquê Ser Membro PawCão?
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { icon: TrendingUp, label: "Poupe até 25%" },
-                { icon: Sparkles, label: "3x PawPoints" },
-                { icon: Shield, label: "Seguro Incluído" },
-                { icon: Crown, label: "Tratamento VIP" }
+                { icon: Gift, label: "Até 15% Cashback", color: "from-green-500 to-emerald-600" },
+                { icon: Sparkles, label: "3x PawPoints", color: "from-purple-500 to-pink-600" },
+                { icon: Heart, label: "Passeios Grátis", color: "from-blue-500 to-cyan-600" },
+                { icon: Crown, label: "Tratamento VIP", color: "from-yellow-500 to-orange-600" }
               ].map((benefit, idx) => (
-                <div key={idx} className="text-center">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
-                    <benefit.icon className="w-6 h-6 text-green-600" />
+                <motion.div 
+                  key={idx} 
+                  className="text-center"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className={`w-16 h-16 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                    <benefit.icon className="w-8 h-8 text-white" />
                   </div>
-                  <p className="text-xs md:text-sm font-semibold text-gray-700">{benefit.label}</p>
-                </div>
+                  <p className="text-sm font-bold text-gray-800">{benefit.label}</p>
+                </motion.div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Compact Elite Partner */}
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-          <CardContent className="p-4 md:p-6">
-            <div className="text-center">
-              <Award className="w-12 h-12 mx-auto mb-3" />
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">Elite Partner — €149/mês</h2>
-              <p className="text-sm md:text-base text-white/90 mb-4">
-                Para empresas que querem vender produtos e serviços no PawCão
-              </p>
-              <Button
-                size="sm"
-                className="bg-white text-indigo-700 hover:bg-gray-100"
-                onClick={() => navigate(createPageUrl(user?.account_type === 'company' ? 'PartnerDashboard' : 'RegisterCompany'))}
-              >
-                {user?.account_type === 'company' ? 'Ir para o Painel' : 'Registrar Empresa'}
-              </Button>
+        {/* Elite Partner for Companies */}
+        <Card className="relative overflow-hidden border-0 shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-100" />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
+          
+          <CardContent className="relative p-8 md:p-10 text-center text-white">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="w-20 h-20 mx-auto mb-4"
+            >
+              <Award className="w-full h-full drop-shadow-2xl" />
+            </motion.div>
+            
+            <h2 className="text-3xl md:text-4xl font-black mb-3 drop-shadow-lg">
+              Elite Partner
+            </h2>
+            <div className="text-5xl font-black mb-2 drop-shadow-lg">
+              €149<span className="text-2xl font-normal">/mês</span>
             </div>
+            <p className="text-lg text-white/95 mb-6 drop-shadow">
+              Para empresas que querem vender produtos e serviços no PawCão
+            </p>
+            
+            <div className="grid grid-cols-2 gap-3 mb-6 text-left">
+              {[
+                "📦 Produtos ilimitados",
+                "🛍️ Loja própria",
+                "📊 Analytics avançado",
+                "🎯 Promoções destacadas"
+              ].map((feat, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm bg-white/20 backdrop-blur px-3 py-2 rounded-lg">
+                  <Check className="w-4 h-4 flex-shrink-0" />
+                  <span className="font-medium">{feat}</span>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              size="lg"
+              className="bg-white text-indigo-700 hover:bg-gray-100 shadow-2xl font-bold text-base px-8 h-12 rounded-xl transform hover:scale-105 transition-all active:scale-95"
+              onClick={() => navigate(createPageUrl(user?.account_type === 'company' ? 'PartnerDashboard' : 'RegisterCompany'))}
+            >
+              {user?.account_type === 'company' ? '🏪 Ir para o Painel' : '🚀 Registrar Empresa'}
+            </Button>
           </CardContent>
         </Card>
       </div>
