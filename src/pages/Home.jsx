@@ -1717,9 +1717,9 @@ export default function Home() {
               </TabsContent>
           </div>
         </div>
-        </Tabs>
 
         {/* Professional Call-to-Action Section */}
+        <div className="max-w-7xl mx-auto px-3 md:px-6">
         <div className="mt-16 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
