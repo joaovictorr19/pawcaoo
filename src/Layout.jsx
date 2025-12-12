@@ -837,7 +837,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 transition-all duration-300">
             <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
