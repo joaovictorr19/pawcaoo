@@ -94,6 +94,29 @@ export default function NotificationTriggers({ user }) {
     refetchInterval: 10000,
   });
 
+  // ✅ Monitorar checkpoints de comportamento
+  const { data: behaviorCheckpoints } = useQuery({
+    queryKey: ['behaviorCheckpoints', user?.email, activeRides],
+    queryFn: async () => {
+      if (!activeRides || activeRides.length === 0) return [];
+      
+      const allCheckpoints = [];
+      for (const ride of activeRides) {
+        const checkpoints = await base44.entities.WalkCheckpoint.filter({
+          booking_id: ride.id,
+          checkpoint_type: 'behavior_note'
+        }, '-created_date', 1);
+        
+        if (checkpoints.length > 0) {
+          allCheckpoints.push({ ...checkpoints[0], booking: ride });
+        }
+      }
+      return allCheckpoints;
+    },
+    enabled: !!user?.email && !!activeRides && activeRides.length > 0,
+    refetchInterval: 10000,
+  });
+
   // Notificar quando recebe mensagem de chat
   useEffect(() => {
     if (!activeRides || activeRides.length === 0) return;
@@ -131,6 +154,51 @@ export default function NotificationTriggers({ user }) {
 
     checkChatMessages();
   }, [activeRides, user?.email]);
+
+  // ✅ Notificar quando há atualização de comportamento
+  useEffect(() => {
+    if (!behaviorCheckpoints || behaviorCheckpoints.length === 0) return;
+
+    const notifyBehaviorUpdate = async () => {
+      for (const checkpoint of behaviorCheckpoints) {
+        try {
+          const isRecent = (Date.now() - new Date(checkpoint.created_date).getTime()) < 15000;
+          const isOwner = checkpoint.booking?.created_by === user.email || checkpoint.booking?.owner_email === user.email;
+
+          if (isRecent && isOwner && checkpoint.dog_behavior) {
+            const behavior = checkpoint.dog_behavior;
+            const moodEmojis = {
+              happy: "😊",
+              calm: "😌",
+              excited: "🤩",
+              anxious: "😰",
+              tired: "😴"
+            };
+
+            // Browser Push Native
+            if ('Notification' in window && Notification.permission === 'granted') {
+              const notification = new Notification('🐕 Atualização de Comportamento', {
+                body: `${checkpoint.booking.dog_name} está ${behavior.mood} ${moodEmojis[behavior.mood] || ''} com energia ${behavior.energy_level}`,
+                icon: '/logo.png',
+                badge: '/favicon.png',
+                tag: `behavior_${checkpoint.booking.id}`,
+                requireInteraction: false,
+                vibrate: [200, 100, 200],
+                silent: false
+              });
+
+              // Auto close após 6 segundos
+              setTimeout(() => notification.close(), 6000);
+            }
+          }
+        } catch (err) {
+          console.error('Erro ao notificar comportamento:', err);
+        }
+      }
+    };
+
+    notifyBehaviorUpdate();
+  }, [behaviorCheckpoints, user?.email]);
 
   return null; // Componente invisível
 }
