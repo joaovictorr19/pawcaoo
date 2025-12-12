@@ -24,6 +24,7 @@ import useRideTracker from '../components/tracking/useRideTracker';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import FinishRideModal from '../components/tracking/FinishRideModal';
+import RideChat from '../components/tracking/RideChat';
 
 /**
  * ✅ PÁGINA DE RASTREAMENTO COM INTEGRIDADE DE DADOS
@@ -461,6 +462,9 @@ export default function ActiveRide() {
           setShowFinishModal(false);
         }}
       />
+
+      {/* ✅ CHAT EM TEMPO REAL */}
+      <RideChat booking={booking} user={user} />
     </div>
   );
 }
