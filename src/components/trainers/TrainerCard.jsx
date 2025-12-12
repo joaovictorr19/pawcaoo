@@ -91,7 +91,7 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
       onClick={handleClick}
       className="cursor-pointer group"
     >
-      <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full relative"> {/* Updated className, keep relative for ribbons */}
+      <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full relative rounded-3xl"> {/* Updated className, keep relative for ribbons */}
         {/* Premium Ribbon */}
         {isProPlan && (
           <div className="absolute top-0 left-0 z-20">
