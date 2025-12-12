@@ -631,13 +631,15 @@ button[data-sidebar="trigger"] {
       </div>
 
       {/* Floating Trigger Button - Always visible */}
-      <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ${
-        colors?.isDarkMode 
-          ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
-          : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
-      }`}>
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-      </SidebarTrigger>
+      {authUser && (
+        <SidebarTrigger className="floating-sidebar-trigger fixed left-4 top-4 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group bg-green-600 hover:bg-green-700 text-white border-2 border-white">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-menu">
+            <line x1="4" x2="20" y1="12" y2="12"/>
+            <line x1="4" x2="20" y1="6" y2="6"/>
+            <line x1="4" x2="20" y1="18" y2="18"/>
+          </svg>
+        </SidebarTrigger>
+      )}
 
       <div className="w-full min-h-screen overflow-x-hidden relative flex flex-col">
         {authUser && (
@@ -932,8 +934,8 @@ button[data-sidebar="trigger"] {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex flex-col min-w-0 pb-20 md:pb-0 w-full relative z-10">
-            <header className={`px-3 md:px-6 py-3 md:py-4 sticky top-0 z-30 transition-all duration-300 shadow-lg backdrop-blur-xl ${
+            <main className="flex flex-col min-w-0 pb-20 md:pb-0 w-full relative z-10 mt-0">
+            <header className={`px-3 md:px-6 py-2 md:py-3 sticky top-0 z-30 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
