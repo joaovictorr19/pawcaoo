@@ -226,4 +226,6 @@ function useRideTracker(rideId) {
     stopTracking,
     finishRide
   };
-};
+}
+
+export default useRideTracker;
