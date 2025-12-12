@@ -226,13 +226,60 @@ export default function AdminDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
+  // STATS QUERY - Dedicated for dashboard overview
+  const { data: adminStats, isLoading: loadingStats } = useQuery({
+    queryKey: ['adminDashboardStats'],
+    queryFn: async () => {
+      try {
+        const [allUsers, allWalkers, allTrainers, pendingBookings, completedBookings] = await Promise.all([
+          base44.entities.User.list('-created_date', 5000),
+          base44.entities.WalkerProfile.list('-created_date', 5000),
+          base44.entities.TrainerProfile.list('-created_date', 5000),
+          base44.entities.Booking.filter({ status: 'pending' }),
+          base44.entities.Booking.filter({ status: 'completed' })
+        ]);
+
+        return {
+          totalUsers: allUsers?.length || 0,
+          totalWalkers: allWalkers?.length || 0,
+          verifiedWalkers: allWalkers?.filter(w => w.verification_status === 'verified')?.length || 0,
+          activeWalkers: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified')?.length || 0,
+          totalTrainers: allTrainers?.length || 0,
+          verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
+          pendingBookings: pendingBookings?.length || 0,
+          completedBookings: completedBookings?.length || 0,
+          pendingWalkers: allWalkers?.filter(w => w.verification_status === 'pending')?.length || 0,
+          pendingTrainers: allTrainers?.filter(t => t.verification_status === 'pending')?.length || 0
+        };
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+        return {
+          totalUsers: 0,
+          totalWalkers: 0,
+          verifiedWalkers: 0,
+          activeWalkers: 0,
+          totalTrainers: 0,
+          verifiedTrainers: 0,
+          pendingBookings: 0,
+          completedBookings: 0,
+          pendingWalkers: 0,
+          pendingTrainers: 0
+        };
+      }
+    },
+    enabled: user?.role === 'admin',
+    refetchInterval: 30000,
+    staleTime: 10000,
+    refetchOnMount: 'always',
+  });
+
   const { data: allUsers = [], isLoading: loadingAllUsers } = useQuery({
     queryKey: ['allUsers'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.User.list('-created_date', 1000),
+    queryFn: () => base44.entities.User.list('-created_date', 5000),
     enabled: user?.role === 'admin',
     initialData: [],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -1137,12 +1184,36 @@ export default function AdminDashboard() {
     );
   }
 
-  const stats = React.useMemo(() => [
-    { icon: Users, value: allUsers?.length || 0, label: "Total Users", key: "totalUsersStats", color: "from-blue-600 to-cyan-600" },
-    { icon: Shield, value: (walkerApplications?.length || 0) + (trainerApplications?.length || 0), label: "Pending Apps", key: "pendingAppsStats", color: "from-purple-600 to-pink-600" },
-    { icon: CheckCircle, value: activeWalkers?.length || 0, label: "Active Walkers", key: "activeWalkersStats", color: "from-green-600 to-emerald-600" },
-    { icon: Calendar, value: allBookings?.length || 0, label: "Total Bookings", key: "totalBookingsStats", color: "from-orange-600 to-red-600" },
-  ], [allUsers, walkerApplications, trainerApplications, activeWalkers, allBookings]);
+  const dashboardStats = React.useMemo(() => [
+    { 
+      icon: Users, 
+      value: adminStats?.totalUsers || 0, 
+      label: "Utilizadores Totais", 
+      subLabel: `${(adminStats?.totalUsers || 0)} contas registadas`,
+      color: "from-blue-600 to-cyan-600" 
+    },
+    { 
+      icon: Shield, 
+      value: adminStats?.activeWalkers || 0, 
+      label: "Walkers Ativos", 
+      subLabel: `${adminStats?.verifiedWalkers || 0} verificados`,
+      color: "from-green-600 to-emerald-600" 
+    },
+    { 
+      icon: Clock, 
+      value: adminStats?.pendingBookings || 0, 
+      label: "Reservas Pendentes", 
+      subLabel: `${adminStats?.completedBookings || 0} concluídas`,
+      color: "from-orange-600 to-red-600" 
+    },
+    { 
+      icon: AlertCircle, 
+      value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0), 
+      label: "Candidaturas", 
+      subLabel: `${adminStats?.pendingWalkers || 0} walkers + ${adminStats?.pendingTrainers || 0} trainers`,
+      color: "from-purple-600 to-pink-600" 
+    },
+  ], [adminStats]);
 
   return (
     <div className="min-h-screen">
@@ -1161,19 +1232,28 @@ export default function AdminDashboard() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, idx) => (
-              <Card key={idx} className="glass-panel border-0 shadow-lg">
-                <CardContent className="p-6 text-center">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600 font-medium">{t(stat.key || stat.label, language) === stat.key ? stat.label : t(stat.key || stat.label, language)}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {loadingStats ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-36 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {dashboardStats.map((stat, idx) => (
+                <Card key={idx} className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all">
+                  <CardContent className="p-4 md:p-6 text-center">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                      <stat.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-3xl md:text-4xl font-black text-gray-900">{stat.value}</div>
+                    <div className="text-sm font-semibold text-gray-800 mt-1">{stat.label}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">{stat.subLabel}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
