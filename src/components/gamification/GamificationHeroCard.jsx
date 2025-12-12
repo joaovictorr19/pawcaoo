@@ -18,7 +18,7 @@ export default function GamificationHeroCard({ userProfile }) {
         backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`
       }} />
       
-      <CardContent className="p-6 relative z-10">
+      <CardContent className="p-7 relative z-10">
         <div className="flex justify-between items-start mb-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
