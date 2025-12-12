@@ -1299,16 +1299,12 @@ export default function Home() {
 
 
             </div>
-            )}
-            </div>
-
-            </div>
           )}
         </div>
 
         {/* Barra de Abas - Movida para o topo */}
-        <div className="max-w-5xl mx-auto mb-6 md:mb-8 px-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="max-w-5xl mx-auto mb-6 md:mb-8 px-4">
             <TabsList className="grid w-full grid-cols-4 h-auto md:h-14 bg-white/95 backdrop-blur-lg shadow-lg rounded-xl border-2 border-gray-200 p-1 transition-colors">
               <TabsTrigger 
                 value="walkers" 
