@@ -151,7 +151,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
   };
 
   return (
-    <div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 p-4 md:p-6"}>
+    <div className={isEmbedded ? "" : "min-h-screen p-4 md:p-6"}>
       {!isEmbedded && (
         <SEO 
           title={language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}
@@ -189,7 +189,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
             </div>
 
             {/* Featured Banner */}
-            <Card className="border-0 shadow-xl bg-gradient-to-r from-green-600 via-blue-600 to-emerald-600 mb-5 overflow-hidden relative">
+            <Card className="glass-panel border-0 shadow-xl mb-5 overflow-hidden relative">
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
               <CardContent className="p-5 relative z-10">
                 <div className="flex items-center gap-4">
@@ -277,7 +277,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
             <p className="text-gray-600">Por favor, tente novamente mais tarde.</p>
           </div>
         ) : filteredListings.length === 0 ? (
-          <Card className="border-0 shadow-2xl bg-white">
+          <Card className="glass-panel border-0 shadow-2xl">
             <CardContent className="p-10 text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-4">
                 <Home className="w-10 h-10 text-gray-400" />
