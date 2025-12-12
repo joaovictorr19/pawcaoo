@@ -553,12 +553,12 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 ${
+        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] ${
           colors?.isDarkMode 
             ? 'bg-slate-900/80 border-slate-700/60' 
             : 'bg-white/70 border-white/40'
         }`}>
-          <SidebarHeader className={`border-b p-4 md:p-6 ${
+          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
             <Link 

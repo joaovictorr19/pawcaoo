@@ -56,8 +56,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   ];
 
   return (
-    <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] backdrop-blur-xl ${
-      isDarkMode ? 'bg-slate-900/80 border-t border-slate-700/60' : 'bg-white/70 border-t border-white/40'
+    <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe backdrop-blur-xl mb-4 mx-4 rounded-2xl shadow-2xl ${
+      isDarkMode ? 'bg-slate-900/80 border border-slate-700/60' : 'bg-white/70 border border-white/40'
     }`}>
       <nav className="flex justify-around items-center h-16 px-2">
         {navItems.map((item, index) => {
