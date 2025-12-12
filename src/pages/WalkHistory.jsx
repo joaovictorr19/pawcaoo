@@ -67,7 +67,7 @@ export default function WalkHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
@@ -79,7 +79,7 @@ export default function WalkHistory() {
 
         {/* Statistics Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -93,7 +93,7 @@ export default function WalkHistory() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -107,7 +107,7 @@ export default function WalkHistory() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -132,7 +132,7 @@ export default function WalkHistory() {
             ))}
           </div>
         ) : bookings.length === 0 ? (
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardContent className="p-12 text-center">
               <Calendar className="w-20 h-20 text-gray-300 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">No completed walks yet</h3>
@@ -151,7 +151,7 @@ export default function WalkHistory() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <Card className="border-0 shadow-xl hover:shadow-2xl transition-shadow">
+                  <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-shadow">
                     <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b">
                       <div className="flex justify-between items-start">
                         <div>
@@ -237,7 +237,7 @@ export default function WalkHistory() {
         {/* Photo Modal */}
         {selectedBooking && checkpoints.length > 0 && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6">
-            <Card className="max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <Card className="glass-panel max-w-4xl w-full max-h-[90vh] overflow-auto border-0 shadow-2xl">
               <CardHeader>
                 <CardTitle>Walk Photos & Checkpoints</CardTitle>
               </CardHeader>
