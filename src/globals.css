@@ -1,3 +1,4 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -78,6 +79,22 @@
 
   button {
     @apply whitespace-normal h-auto min-h-[2.5rem] break-words !important;
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .dark-cosmos {
+    background: linear-gradient(to bottom right, rgb(15, 23, 42), rgb(88, 28, 135), rgb(0, 0, 0));
+  }
+  
+  .dark-cosmos .glass-panel {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(147, 51, 234, 0.3);
   }
   
   img, video {

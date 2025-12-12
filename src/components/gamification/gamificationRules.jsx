@@ -30,33 +30,42 @@ export const getLevelFromXP = (xp) => {
   return level;
 };
 
-// Calculate tier from points (NEW THRESHOLDS)
+// Calculate tier from points (INFINITE TIERS SYSTEM)
 export const calculateTier = (points) => {
-  if (points >= 10000) return 'diamond';
-  if (points >= 6000) return 'sapphire';
-  if (points >= 3000) return 'gold';
-  if (points >= 1000) return 'silver';
-  return 'bronze';
+  const xp = Number(points) || 0;
+  const tiers = [
+    { name: 'Bronze', min: 0, max: 999, icon: '🛡️', gradient: 'from-orange-400 to-orange-600' },
+    { name: 'Prata', min: 1000, max: 2999, icon: '⚔️', gradient: 'from-gray-300 to-gray-500' },
+    { name: 'Ouro', min: 3000, max: 5999, icon: '👑', gradient: 'from-yellow-400 to-yellow-600' },
+    { name: 'Safira', min: 6000, max: 9999, icon: '💎', gradient: 'from-blue-500 to-indigo-600' },
+    { name: 'Rubi', min: 10000, max: 19999, icon: '🌹', gradient: 'from-red-600 via-pink-600 to-rose-700' },
+    { name: 'Esmeralda', min: 20000, max: 49999, icon: '🌿', gradient: 'from-emerald-500 via-green-500 to-teal-600' },
+    { name: 'Diamante', min: 50000, max: 99999, icon: '💠', gradient: 'from-cyan-300 via-blue-200 to-white' },
+    { name: 'Cosmos', min: 100000, max: Infinity, icon: '🌌', gradient: 'from-slate-900 via-purple-900 to-black' }
+  ];
+  
+  for (let i = tiers.length - 1; i >= 0; i--) {
+    if (xp >= tiers[i].min) {
+      const nextTier = tiers[i + 1];
+      const progress = nextTier ? ((xp - tiers[i].min) / (nextTier.min - tiers[i].min)) * 100 : 100;
+      return { ...tiers[i], progress };
+    }
+  }
+  return { ...tiers[0], progress: 0 };
 };
 
-// Get tier name
+// Get tier name from level
 export const getTierName = (level) => {
-  if (level <= 5) return 'Bronze';
-  if (level <= 10) return 'Silver';
-  if (level <= 20) return 'Gold';
-  if (level <= 30) return 'Sapphire';
-  if (level <= 50) return 'Diamond';
-  return 'Top';
+  const xp = getXPForLevel(level);
+  const tier = calculateTier(xp);
+  return `${tier.name} ${tier.icon}`;
 };
 
-// Get tier color
+// Get tier color from level
 export const getTierColor = (level) => {
-  if (level <= 5) return 'from-orange-700 to-orange-500';
-  if (level <= 10) return 'from-gray-400 to-gray-300';
-  if (level <= 20) return 'from-yellow-500 to-yellow-300';
-  if (level <= 30) return 'from-blue-600 to-cyan-400';
-  if (level <= 50) return 'from-purple-600 to-pink-400';
-  return 'from-red-600 via-yellow-500 to-purple-600';
+  const xp = getXPForLevel(level);
+  const tier = calculateTier(xp);
+  return tier.gradient || 'from-blue-500 to-indigo-600';
 };
 
 // XP Rewards
