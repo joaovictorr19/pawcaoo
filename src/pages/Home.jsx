@@ -856,7 +856,10 @@ export default function Home() {
                         setActiveTab('walkers');
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`flex-1 bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} hover:opacity-90 text-white font-bold h-14 px-8 shadow-lg text-lg rounded-xl transition-all hover:scale-105`}
+                      className="flex-1 text-white font-bold h-14 px-8 shadow-lg text-lg rounded-xl transition-all hover:scale-105 hover:opacity-90"
+                      style={{
+                        background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                      }}
                     >
                       <Search className="w-5 h-5 mr-2" />
                       {t('findWalkerBtn', language)}
@@ -924,7 +927,7 @@ export default function Home() {
           <Button
             variant="outline"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="border-2 border-green-200 hover:bg-green-50"
+            className="hover:bg-gray-50"
           >
             <Sliders className="w-4 h-4 mr-2" />
             {showAdvancedFilters ? t('hideAdvancedFilters', language) : t('showAdvancedFilters', language)}
@@ -943,7 +946,10 @@ export default function Home() {
               variant={viewMode === "map" ? "default" : "outline"}
               onClick={() => setViewMode("map")}
               size="sm"
-              className={`bg-gradient-to-r from-green-600 to-emerald-600 text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'} `}
+              className={`text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'}`}
+              style={viewMode === "map" ? {
+                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+              } : {}}
             >
               <MapIcon className="w-4 h-4 mr-2" />
               {t('map', language)}
@@ -998,7 +1004,10 @@ export default function Home() {
               <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
+                  className="text-xs md:text-sm font-semibold data-[state=active]:text-white rounded-lg transition-all"
+                  style={{
+                    background: activeTab === 'walkers' ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` : 'transparent'
+                  }}
                 >
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {t('findWalkers', language)}
@@ -1135,7 +1144,10 @@ export default function Home() {
                                   setSearchLocation("");
                                   setFilterDogSitting("all");
                               }}
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="text-white hover:opacity-90"
+                              style={{
+                                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                              }}
                             >
                               Limpar Todos os Filtros
                             </Button>
@@ -1184,7 +1196,7 @@ export default function Home() {
                                 size="sm"
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="border-green-200 hover:bg-green-50 hover:text-green-700"
+                                className="hover:bg-gray-50"
                               >
                                 <ChevronLeft className="w-4 h-4" />
                                 <span className="sr-only">{t('previousPage', language)}</span>
@@ -1222,7 +1234,7 @@ export default function Home() {
                                 size="sm"
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="border-green-200 hover:bg-green-50 hover:text-green-700"
+                                className="hover:bg-gray-50"
                               >
                                 <ChevronRight className="w-4 h-4" />
                                 <span className="sr-only">{t('nextPage', language)}</span>
