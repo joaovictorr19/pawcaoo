@@ -133,6 +133,9 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             const ownerEmail = booking.owner_email || booking.created_by;
             await awardLoyaltyPoints(base44, ownerEmail, booking.total_amount, bookingId, 'reserva');
 
+            // 🎁 CHECK & REWARD REFERRAL (primeira reserva)
+            await checkAndRewardReferral(base44, ownerEmail, booking.total_amount);
+
             // Send notification to walker
             await base44.asServiceRole.entities.Notification.create({
                 recipient_email: booking.walker_email,
@@ -230,6 +233,82 @@ async function awardLoyaltyPoints(base44, userEmail, amountEuro, relatedId, acti
         message: `Ganhou ${pointsEarned} pontos! (${currentTier.multiplier}x multiplier tier ${currentTier.name})`,
         type: 'system',
         priority: 'normal'
+    });
+}
+
+async function checkAndRewardReferral(base44, userEmail, bookingAmount) {
+    // Buscar se este utilizador foi indicado
+    const referrals = await base44.asServiceRole.entities.Referral.filter({
+        referee_email: userEmail,
+        status: 'pending'
+    });
+
+    if (referrals.length === 0) return;
+
+    const referral = referrals[0];
+
+    // Atualizar referral
+    await base44.asServiceRole.entities.Referral.update(referral.id, {
+        status: 'completed',
+        first_booking_completed: true,
+        first_booking_date: new Date().toISOString(),
+        total_referee_value: (referral.total_referee_value || 0) + bookingAmount,
+        conversion_date: new Date().toISOString()
+    });
+
+    // Dar 200 pontos ao indicador
+    await awardReferralPoints(base44, referral.referrer_email, 200, referral.id, 'primeira reserva do indicado');
+
+    // Atualizar pontos ganhos
+    await base44.asServiceRole.entities.Referral.update(referral.id, {
+        points_awarded_referrer: 200,
+        status: 'rewarded'
+    });
+
+    // Notificar indicador
+    await base44.asServiceRole.entities.Notification.create({
+        recipient_email: referral.referrer_email,
+        title: '🎉 Recompensa de Afiliado!',
+        message: `${referral.referee_name} completou a primeira reserva! Ganhou 200 PawPoints!`,
+        type: 'system',
+        priority: 'high'
+    });
+}
+
+async function awardReferralPoints(base44, userEmail, points, referralId, description) {
+    let loyaltyRecords = await base44.asServiceRole.entities.LoyaltyPoints.filter({
+        user_email: userEmail
+    });
+
+    let loyaltyRecord = loyaltyRecords[0];
+
+    if (!loyaltyRecord) {
+        loyaltyRecord = await base44.asServiceRole.entities.LoyaltyPoints.create({
+            user_email: userEmail,
+            points_balance: points,
+            total_earned: points,
+            total_redeemed: 0,
+            tier: 'bronze',
+            achievements: [],
+            lifetime_bookings: 0,
+            lifetime_redemptions: 0
+        });
+    } else {
+        const newBalance = (loyaltyRecord.points_balance || 0) + points;
+        const newTotalEarned = (loyaltyRecord.total_earned || 0) + points;
+        
+        await base44.asServiceRole.entities.LoyaltyPoints.update(loyaltyRecord.id, {
+            points_balance: newBalance,
+            total_earned: newTotalEarned
+        });
+    }
+
+    await base44.asServiceRole.entities.PointsTransaction.create({
+        user_email: userEmail,
+        transaction_type: 'earned',
+        points_amount: points,
+        description: `Programa Afiliados: ${description}`,
+        balance_after: (loyaltyRecord.points_balance || 0) + points
     });
 }
 
