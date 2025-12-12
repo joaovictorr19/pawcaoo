@@ -731,7 +731,7 @@ export default function Home() {
                     <div className="grid grid-cols-3 gap-3 w-full">
                       <button
                         onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-2 p-4 glass-panel rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
                       >
                         <Heart className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
                         <span className="text-xs font-semibold text-slate-700">Favoritos</span>
@@ -739,7 +739,7 @@ export default function Home() {
 
                       <button
                         onClick={() => navigate(createPageUrl('Gamification'))}
-                        className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-2 p-4 glass-panel rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
                       >
                         <Trophy className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
                         <span className="text-xs font-semibold text-slate-700">Hall da Fama</span>
@@ -747,7 +747,7 @@ export default function Home() {
 
                       <button
                         onClick={() => navigate(createPageUrl('MyBookings'))}
-                        className="flex flex-col items-center gap-2 p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-2 p-4 glass-panel rounded-xl shadow-lg shadow-blue-900/5 ring-1 ring-blue-100 hover:shadow-xl transition-all duration-300 active:scale-95"
                       >
                         <Calendar className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
                         <span className="text-xs font-semibold text-slate-700">Histórico</span>
@@ -759,7 +759,7 @@ export default function Home() {
 
               {/* Dogs Carousel */}
               {myDogs && myDogs.length > 0 && (
-                <Card className="bg-white border-0 shadow-lg rounded-3xl">
+                <Card className="glass-panel border-0 shadow-lg rounded-3xl">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Dog className="w-5 h-5 text-orange-600" />
