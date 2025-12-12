@@ -574,18 +574,13 @@ function LayoutContent({ children, currentPageName }) {
   overflow: hidden !important;
 }
 
-/* Hide floating button when sidebar is open */
+/* Floating button always visible */
 .floating-sidebar-trigger {
-  display: none;
-}
-
-/* Show floating button only when sidebar is collapsed */
-[data-sidebar="sidebar"][data-state="collapsed"] ~ * .floating-sidebar-trigger {
   display: flex !important;
 }
 
-/* Remove trigger from sidebar header when collapsed */
-[data-sidebar="sidebar"][data-state="collapsed"] button[data-sidebar="trigger"] {
+/* Remove trigger from sidebar header */
+button[data-sidebar="trigger"] {
   display: none !important;
 }
 
@@ -609,18 +604,13 @@ main {
   width: 100% !important;
 }
 
-/* Hide floating button when sidebar is open */
+/* Floating button always visible */
 .floating-sidebar-trigger {
-  display: none;
-}
-
-/* Show floating button only when sidebar is collapsed */
-[data-sidebar="sidebar"][data-state="collapsed"] ~ * .floating-sidebar-trigger {
   display: flex !important;
 }
 
-/* Remove trigger from sidebar header when collapsed */
-[data-sidebar="sidebar"][data-state="collapsed"] button[data-sidebar="trigger"] {
+/* Remove trigger from sidebar header */
+button[data-sidebar="trigger"] {
   display: none !important;
 }
         `}</style>
