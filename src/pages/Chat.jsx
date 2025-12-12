@@ -141,7 +141,7 @@ export default function Chat() {
     retry: 2,
   });
 
-  // Fetch messages
+  // Fetch messages with real-time updates (1 second interval)
   const { data: messages = [] } = useQuery({
     queryKey: ["messages", conversation?.id],
     queryFn: async () => {
@@ -153,7 +153,8 @@ export default function Chat() {
       return msgs;
     },
     enabled: !!conversation?.id,
-    refetchInterval: 3000, // Real-time polling
+    refetchInterval: 1000, // Real-time polling every 1 second
+    refetchIntervalInBackground: true,
   });
 
   // Fetch checkpoints for GPS tracking

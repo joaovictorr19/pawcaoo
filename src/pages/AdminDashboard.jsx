@@ -60,6 +60,7 @@ import Pagination from "../components/ui/Pagination";
 import LazyImage from "../components/ui/LazyImage";
 import ClientDetails from "../components/admin/ClientDetails";
 import ProductManagement from "../components/admin/ProductManagement";
+import BroadcastManager from "../components/admin/BroadcastManager";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
