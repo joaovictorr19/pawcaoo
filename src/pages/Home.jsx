@@ -466,7 +466,8 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }, '-rating', 100);
+        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
+        console.log('🔍 Walkers carregados:', res.length);
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("Walkers fetch error:", error);

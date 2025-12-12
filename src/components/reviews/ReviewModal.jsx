@@ -23,12 +23,16 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
     setIsSubmitting(true);
 
     try {
+      console.log('📤 Enviando review para booking:', booking.id, 'Rating:', rating);
+      
       // ✅ Chamar backend function que processa tudo
       const response = await base44.functions.invoke('processReview', {
         bookingId: booking.id,
         rating: rating,
         comment: comment
       });
+
+      console.log('📥 Resposta do backend:', response.data);
 
       if (response.data.success) {
         // Efeito Wow para 5 estrelas

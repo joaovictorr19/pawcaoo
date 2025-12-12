@@ -58,21 +58,30 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // ✅ 4. Criar Review
-    const review = await base44.asServiceRole.entities.Review.create({
+    // ✅ 4. Criar Review com TODOS os campos necessários
+    const reviewData = {
       booking_id: bookingId,
-      walker_id: booking.walker_id,
-      walker_name: booking.walker_name,
-      trainer_id: booking.trainer_id,
-      trainer_name: booking.trainer_name,
+      walker_id: booking.walker_id || null,
+      walker_name: booking.walker_name || null,
+      trainer_id: booking.trainer_id || null,
+      trainer_name: booking.trainer_name || null,
       reviewer_email: user.email,
-      reviewer_name: user.full_name,
+      reviewer_name: user.full_name || user.email,
       rating: rating,
       comment: comment || '',
-      is_verified: true
-    });
-
-    console.log('✅ Review criado:', review.id);
+      is_verified: true,
+      categories: {
+        punctuality: rating,
+        care: rating,
+        communication: rating,
+        professionalism: rating
+      },
+      would_recommend: rating >= 4
+    };
+    
+    console.log('📝 Criando review com dados:', reviewData);
+    const review = await base44.asServiceRole.entities.Review.create(reviewData);
+    console.log('✅ Review criado com sucesso:', review.id);
 
     // ✅ 5. Atualizar Booking com review_id
     const entityToUpdate = bookingEntity === 'Booking' 
