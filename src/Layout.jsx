@@ -453,7 +453,7 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider>
       <Helmet>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
@@ -476,9 +476,6 @@ function LayoutContent({ children, currentPageName }) {
         --primary-foreground: 0 0% 100%;
         --accent: 142 76% 92%;
         --accent-foreground: 142 76% 20%;
-        --orb-1: #3b82f6;
-        --orb-2: #8b5cf6;
-        --orb-primary: #2563eb;
       }
 
       .glass-panel-dark {
@@ -550,129 +547,26 @@ function LayoutContent({ children, currentPageName }) {
             gap: 1rem;
           }
         }
-
-[data-sidebar="sidebar"] {
-  position: fixed !important;
-  left: 0;
-  top: 0;
-  z-index: 40;
-}
-
-[data-sidebar="sidebar"][data-state="collapsed"] {
-  transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Hide scrollbar when collapsed */
-[data-sidebar="sidebar"][data-state="collapsed"] {
-  overflow: hidden !important;
-}
-
-[data-sidebar="sidebar"][data-state="collapsed"] * {
-  overflow: hidden !important;
-}
-
-/* Floating button always visible */
-.floating-sidebar-trigger {
-  display: flex !important;
-}
-
-/* Remove trigger from sidebar header */
-button[data-sidebar="trigger"] {
-  display: none !important;
-}
-
-/* Premium glass effect */
-[data-sidebar="sidebar"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 2rem;
-  padding: 1px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Ensure main content doesn't shift */
-main {
-  margin-left: 0 !important;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  width: 100% !important;
-}
-
-/* Floating button always visible and above all */
-.floating-sidebar-trigger {
-  display: flex !important;
-  z-index: 9999 !important;
-}
-
-/* Remove trigger from sidebar header */
-button[data-sidebar="trigger"] {
-  display: none !important;
-}
-
-/* Zero top spacing globally */
-body, html, #root {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Fix content positioning */
-.min-h-screen {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-header {
-  margin: 0 !important;
-}
-
-[data-sidebar="sidebar"] + div {
-  margin: 0 !important;
-  padding: 0 !important;
-}
         `}</style>
-
-
-      {/* Floating Trigger Button - Always visible */}
-      {authUser && (
-        <SidebarTrigger className="floating-sidebar-trigger fixed left-4 top-4 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group bg-green-600 hover:bg-green-700 text-white border-2 border-white">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-menu">
-            <line x1="4" x2="20" y1="12" y2="12"/>
-            <line x1="4" x2="20" y1="6" y2="6"/>
-            <line x1="4" x2="20" y1="18" y2="18"/>
-          </svg>
-        </SidebarTrigger>
-      )}
-
-      <div className="w-full min-h-screen overflow-x-hidden relative flex flex-col">
+      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <>
-        <Sidebar className={`backdrop-blur-2xl border transition-all duration-500 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-2xl fixed left-0 top-0 z-40 overflow-hidden ${
+        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
           colors?.isDarkMode 
-            ? 'bg-slate-900/30 border-slate-700/20 shadow-purple-900/20' 
-            : 'bg-white/30 border-white/40 shadow-blue-900/10'
-        }`} collapsible="offcanvas">
-          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] transition-all backdrop-blur-xl ${
-            colors?.isDarkMode ? 'border-slate-700/30 bg-slate-900/20' : 'border-white/40 bg-white/20'
+            ? 'bg-slate-900/60 border-slate-700/40' 
+            : 'bg-white/60 border-white/40'
+        }`}>
+          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
+            colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
-            <div className="flex items-center justify-center mb-3">
-              <Link 
-                to={createPageUrl("Home")} 
-                className="block hover:opacity-80 transition-opacity group-data-[state=collapsed]:hidden"
-              >
-                <PawCaoLogo size="default" />
-              </Link>
-            </div>
+            <Link 
+              to={createPageUrl("Home")} 
+              className="block hover:opacity-80 transition-opacity"
+            >
+              <PawCaoLogo size="default" />
+            </Link>
 
             {planBadge && (
-              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg group-data-[state=collapsed]:hidden`}>
+              <div className={`mt-3 ${planBadge.color} text-white rounded-lg px-3 py-2 text-center shadow-lg`}>
                 <div className="text-xs font-semibold">
                   {planBadge.icon} {planBadge.name}
                 </div>
@@ -700,7 +594,7 @@ header {
             </DropdownMenu>
           </SidebarHeader>
 
-          <SidebarContent className="p-3 md:p-4 backdrop-blur-sm">
+          <SidebarContent className="p-3 md:p-4">
             {/* My Profile - Now in bottom nav */}
 
             {/* MENU PRINCIPAL */}
@@ -935,7 +829,6 @@ header {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
-            </>
             )}
 
             {/* Push Notification Manager */}
@@ -944,11 +837,14 @@ header {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex flex-col min-w-0 pb-20 md:pb-0 w-full relative z-10 mt-0">
-            <header className={`px-3 md:px-6 py-2 md:py-3 sticky top-0 z-30 transition-all duration-300 shadow-lg backdrop-blur-xl ${
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
+            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
+              {authUser && (
+                <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
+              )}
 
               <Link 
                 to={createPageUrl("Home")} 
@@ -1091,7 +987,7 @@ header {
             />
           )}
 
-          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 ${
+          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
             colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">

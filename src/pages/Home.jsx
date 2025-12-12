@@ -256,29 +256,27 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
-        const [walkerProfiles, regularBookings, trainingBookings, adoptions] = await Promise.all([
+        const [totalWalkers, completedBookings, adoptedDogs] = await Promise.all([
           base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }),
           base44.entities.Booking.filter({ status: 'completed' }),
-          base44.entities.TrainingBooking ? base44.entities.TrainingBooking.filter({ status: 'completed' }) : Promise.resolve([]),
           base44.entities.AdoptionApplication.filter({ status: 'approved' })
         ]);
-
-        const totalCompletedServices = (regularBookings?.length || 0) + (trainingBookings?.length || 0);
-
+        
         return {
-          totalWalkers: walkerProfiles?.length || 0,
-          happyDogs: totalCompletedServices,
-          adoptedDogs: adoptions?.length || 0
+          totalWalkers: totalWalkers.length || 0,
+          happyDogs: completedBookings.length || 0,
+          adoptedDogs: adoptedDogs.length || 0
         };
       } catch (error) {
         console.error("Stats fetch error:", error);
         return { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 };
       }
     },
-    staleTime: 10000, // 10 seconds
-    refetchOnMount: true,
+    initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
+    staleTime: 0,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
-    refetchInterval: 60000, // 1 minute
+    refetchInterval: 30000,
   });
 
   const getWalkerDistance = (walker) => {
