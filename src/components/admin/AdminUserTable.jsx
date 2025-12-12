@@ -109,26 +109,31 @@ export default function AdminUserTable({
 
   return (
     <div className="glass-panel rounded-xl border border-white/40 shadow-xl bg-white/70 backdrop-blur-md mt-6 overflow-hidden">
-      <div className="p-6 border-b border-white/30">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <CardTitle className="text-2xl">{t('accountManagement', language)} ({filteredUsers.length})</CardTitle>
+      <div className="p-4 md:p-6 border-b border-white/30">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <CardTitle className="text-xl md:text-2xl">{t('accountManagement', language)}</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              {filteredUsers.length} {language === 'pt' ? 'de' : 'of'} {users.length} {language === 'pt' ? 'contas' : 'accounts'}
+            </p>
+          </div>
           
           <div className="flex gap-2 items-center w-full md:w-auto">
             <Button 
               variant="outline" 
               onClick={onSyncProfiles} 
               disabled={isSyncing}
-              size="icon"
+              size="sm"
               title="Sincronizar Perfis Públicos"
-              className="bg-white/50 hover:bg-white"
+              className="bg-white/50 hover:bg-white flex-shrink-0"
             >
               {isSyncing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sync...</>
               ) : (
-                <RefreshCw className="w-4 h-4" />
+                <><RefreshCw className="w-4 h-4 mr-2" /> Sync</>
               )}
             </Button>
-            <div className="w-full md:w-auto min-w-[400px]">
+            <div className="flex-1 md:min-w-[400px]">
               <UserSearchAdvanced 
                 onSearch={handleSearch} 
                 usersSource={users}
@@ -148,14 +153,20 @@ export default function AdminUserTable({
           <>
             {/* Mobile List View */}
             <div className="md:hidden p-4 space-y-4">
-              {paginatedUsers.map(user => (
+              {paginatedUsers.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <p className="text-sm">{filteredUsers.length === 0 && users.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
+                </div>
+              ) : (
+                paginatedUsers.map(user => (
                 <Card key={user.id} className="p-4 border border-gray-200 bg-white/80">
                   <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <div className="font-bold text-sm">{user.full_name || 'N/A'}</div>
-                      <div className="text-xs text-gray-500 truncate max-w-[200px]">{user.email}</div>
+                    <div className="flex-1 min-w-0 mr-2">
+                      <div className="font-bold text-sm truncate">{user.full_name || 'Sem Nome'}</div>
+                      <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                      <div className="text-[10px] text-gray-400 mt-0.5">ID: {user.id.substring(0, 12)}...</div>
                     </div>
-                    <Badge variant="outline" className="capitalize text-xs bg-gray-100">
+                    <Badge variant="outline" className="capitalize text-xs bg-gray-100 flex-shrink-0">
                       {user.account_type || 'owner'}
                     </Badge>
                   </div>
@@ -163,16 +174,26 @@ export default function AdminUserTable({
                     <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-xs text-white`}>
                       {user.role === 'admin' ? 'Admin' : 'User'}
                     </Badge>
-                    {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 text-xs bg-green-50">✓ {t('verified', language)}</Badge>}
+                    {user.is_verified ? (
+                      <Badge variant="outline" className="border-green-500 text-green-600 text-xs bg-green-50">✓ Verificado</Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-gray-300 text-gray-600 text-xs bg-gray-50">○ Não Verificado</Badge>
+                    )}
+                    {user.created_date && (
+                      <Badge variant="outline" className="text-xs">
+                        {new Date(user.created_date).toLocaleDateString('pt-PT')}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0 bg-white"><Eye className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="h-8 w-8 p-0 bg-white"><Edit className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="default" className="bg-purple-600 hover:bg-purple-700 h-8 w-8 p-0" onClick={() => onGrantBadge(user.email)}>🎖️</Button>
-                    <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 w-8 p-0 bg-white"><Trash2 className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0 bg-white" title="Ver Perfil"><Eye className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="h-8 w-8 p-0 bg-white" title="Editar"><Edit className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="default" className="bg-purple-600 hover:bg-purple-700 h-8 w-8 p-0" onClick={() => onGrantBadge(user.email)} title="Conceder Badge">🎖️</Button>
+                    <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 w-8 p-0 bg-white" title="Eliminar"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </Card>
-              ))}
+              ))
+              )}
             </div>
 
             {/* Desktop Table View */}
@@ -180,16 +201,28 @@ export default function AdminUserTable({
               <Table>
                 <TableHeader className="bg-gray-50/80">
                   <TableRow className="hover:bg-transparent">
+                    <TableHead className="text-gray-700 font-bold">ID</TableHead>
                     <TableHead className="text-gray-700 font-bold">{t('email', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold">{t('fullName', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold">{t('accountType', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold">{t('status', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold">Data Criação</TableHead>
                     <TableHead className="text-gray-700 font-bold text-right pr-6">{t('actions', language)}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedUsers.map(user => (
+                  {paginatedUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-32 text-center text-gray-500">
+                        {filteredUsers.length === 0 && users.length > 0 
+                          ? (language === 'pt' ? 'Nenhum utilizador encontrado com os filtros aplicados' : 'No users found with applied filters')
+                          : (language === 'pt' ? 'A carregar utilizadores...' : 'Loading users...')}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedUsers.map(user => (
                     <TableRow key={user.id} className="hover:bg-purple-50/40 transition-colors border-b border-gray-100">
+                      <TableCell className="font-mono text-xs text-gray-500">{user.id.substring(0, 8)}...</TableCell>
                       <TableCell className="font-medium text-gray-800">{user.email}</TableCell>
                       <TableCell className="text-gray-600">{user.full_name || 'N/A'}</TableCell>
                       <TableCell>
@@ -202,27 +235,31 @@ export default function AdminUserTable({
                           <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'} text-white hover:opacity-90`}>
                             {user.role === 'admin' ? 'Admin' : 'User'}
                           </Badge>
-                          {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">✓ {t('verified', language)}</Badge>}
+                          {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">✓ Verificado</Badge>}
                         </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-gray-500">
+                        {user.created_date ? new Date(user.created_date).toLocaleDateString('pt-PT') : 'N/A'}
                       </TableCell>
                       <TableCell className="text-right pr-4">
                         <div className="flex gap-2 justify-end">
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title={t('viewPublicProfile', language)}>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
                             <Eye className="w-4 h-4 text-gray-500" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)}>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
                             <Edit className="w-4 h-4 text-blue-600" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-purple-100 rounded-full" onClick={() => onGrantBadge(user.email)} title={t('grantBadge', language)}>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-purple-100 rounded-full" onClick={() => onGrantBadge(user.email)} title="Conceder Emblema">
                             <span className="text-base">🎖️</span>
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)}>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
                             <Trash2 className="w-4 h-4 text-red-600" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ))
+                  )}
                   {paginatedUsers.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="h-24 text-center text-gray-500">
