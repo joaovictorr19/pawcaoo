@@ -15,6 +15,7 @@ import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { format } from "date-fns";
 import { pt, enUS, es } from "date-fns/locale";
 import RecurringBookingModal from "../components/booking/RecurringBookingModal";
+import CheckoutModal from "../components/payments/CheckoutModal";
 import { AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -95,6 +96,7 @@ export default function WalkerDetails() {
   
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedDogForRecurring, setSelectedDogForRecurring] = useState(null);
+  const [bookingForCheckout, setBookingForCheckout] = useState(null);
   
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -226,22 +228,11 @@ export default function WalkerDetails() {
 
   // Function to handle booking completion from BookingForm
   const handleBookingInitiated = async (booking) => {
-    setSelectedDate(null); // Reset selection
-
-    // Create notifications asynchronously
-    try {
-      // 1. Notify Walker
-      createNotification.mutate({
-        recipient_email: walker.created_by,
-        title: '📅 Nova Solicitação de Agendamento',
-        message: `${user.full_name} solicitou um agendamento para ${booking.dog_name}. Aceite para liberar os detalhes de pagamento.`,
-        type: 'booking',
-        related_id: booking.id,
-        priority: 'high'
-      });
-    } catch (e) { console.error(e); }
-
-    toast.success("Solicitação Enviada! Aguarde a confirmação do profissional.", { duration: 6000 });
+    console.log('📋 Booking criada, abrindo checkout:', booking);
+    setSelectedDate(null);
+    
+    // Abrir modal de pagamento
+    setBookingForCheckout({ ...booking, user });
 
     queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
   };
@@ -670,6 +661,18 @@ export default function WalkerDetails() {
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['scheduledAppointments'] });
               toast.success("Agendamento recorrente criado! Seu agendamento recorrente foi configurado com sucesso.");
+            }}
+          />
+        )}
+
+        {/* Checkout Modal */}
+        {bookingForCheckout && (
+          <CheckoutModal
+            booking={bookingForCheckout}
+            onClose={() => setBookingForCheckout(null)}
+            onSuccess={() => {
+              setBookingForCheckout(null);
+              toast.success("Pagamento processado! Redirecionando...");
             }}
           />
         )}
