@@ -168,10 +168,36 @@ function LayoutContent({ children, currentPageName }) {
     queryFn: async () => {
       try {
         const userData = await base44.auth.me();
-        // console.log("User loaded:", userData?.email);
+
+        // Sync XP bidirectionally between User and UserProfile
+        if (userData?.email) {
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
+            if (profiles.length > 0) {
+              const profileXP = profiles[0].gamification_xp || 0;
+              const userXP = userData.gamification_xp || 0;
+
+              // Use the highest XP value
+              const correctXP = Math.max(profileXP, userXP);
+
+              if (correctXP !== userXP || correctXP !== profileXP) {
+                if (correctXP !== userXP) {
+                  await base44.auth.updateMe({ gamification_xp: correctXP });
+                }
+                if (correctXP !== profileXP) {
+                  await base44.entities.UserProfile.update(profiles[0].id, { gamification_xp: correctXP });
+                }
+              }
+
+              userData.gamification_xp = correctXP;
+            }
+          } catch (e) {
+            console.log('XP sync skipped');
+          }
+        }
+
         return userData;
       } catch (err) {
-        // console.error("Auth error:", err);
         return null;
       }
     },

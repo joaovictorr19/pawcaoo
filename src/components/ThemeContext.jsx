@@ -49,7 +49,25 @@ export const ThemeProvider = ({ children }) => {
     queryFn: async () => {
       if (!user?.email) return null;
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      return profiles[0] || null;
+      const profile = profiles[0] || null;
+      
+      // Sync XP from User if UserProfile XP is lower
+      if (profile && user) {
+        const profileXP = profile.gamification_xp || 0;
+        const userXP = user.gamification_xp || 0;
+        const correctXP = Math.max(profileXP, userXP);
+        
+        if (correctXP !== profileXP && correctXP > 0) {
+          try {
+            await base44.entities.UserProfile.update(profile.id, { gamification_xp: correctXP });
+            profile.gamification_xp = correctXP;
+          } catch (e) {
+            console.error('Failed to sync XP to UserProfile:', e);
+          }
+        }
+      }
+      
+      return profile;
     },
     enabled: !!user?.email,
   });
