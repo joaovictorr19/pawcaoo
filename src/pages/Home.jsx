@@ -1249,8 +1249,12 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight px-4 text-gray-900 drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]">
-                    {t('homeTitle', language)}
+                  <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight relative px-4">
+                    {/* White background with shadow for better readability */}
+                    <span className="absolute inset-0 bg-white/90 rounded-3xl blur-xl -z-10"></span>
+                    <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+                      {t('homeTitle', language)}
+                    </span>
                   </h1>
                 </motion.div>
               </div>
