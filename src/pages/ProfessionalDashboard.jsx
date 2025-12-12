@@ -777,34 +777,36 @@ export default function ProfessionalDashboard() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.08, type: "spring" }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="h-full"
               >
-                <Card className="border-0 shadow-xl hover:shadow-2xl overflow-hidden h-full transition-all duration-300">
-                  <CardContent className="p-0">
-                    <div className={`bg-gradient-to-br ${stat.color} p-5 text-white min-h-[140px] flex flex-col justify-between relative overflow-hidden`}>
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                      <div className="relative z-10">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                <Card className="border-0 shadow-xl hover:shadow-2xl overflow-hidden transition-all duration-300 h-full">
+                  <div className={`bg-gradient-to-br ${stat.color} p-5 text-white h-full min-h-[160px] flex flex-col justify-between relative overflow-hidden`}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                    
+                    <div className="relative z-10 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm shadow-lg">
                             <stat.icon className="w-5 h-5" />
                           </div>
                           {stat.badge && (
-                            <Badge className="bg-white/25 text-white border-0 text-[10px] backdrop-blur-sm">
+                            <Badge className="bg-white/30 text-white border-0 text-[10px] backdrop-blur-sm shadow-md px-2 py-1">
                               {stat.badge}
                             </Badge>
                           )}
                         </div>
-                        <div className="text-2xl md:text-3xl font-extrabold mb-1">{stat.value}</div>
-                        <div className="text-xs opacity-90 font-medium">{stat.label}</div>
+                        <div className="text-3xl md:text-4xl font-extrabold mb-2 drop-shadow-lg">{stat.value}</div>
+                        <div className="text-xs opacity-95 font-semibold tracking-wide">{stat.label}</div>
                       </div>
+                      
                       {stat.change && (
-                        <div className="flex items-center gap-1 text-xs mt-3 opacity-90 font-semibold relative z-10">
-                          <ArrowUp className="w-3 h-3" />
+                        <div className="flex items-center gap-1.5 text-xs mt-4 opacity-95 font-bold bg-white/15 rounded-lg px-2.5 py-1.5 backdrop-blur-sm w-fit">
+                          <ArrowUp className="w-3.5 h-3.5" />
                           {stat.change} vs anterior
                         </div>
                       )}
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               </motion.div>
             ))}
