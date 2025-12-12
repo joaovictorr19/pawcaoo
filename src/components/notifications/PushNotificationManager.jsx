@@ -123,7 +123,9 @@ export default function PushNotificationManager({ user }) {
                       Ativar Notificações
                     </h3>
                     <p className="text-sm text-gray-600 mb-3">
-                      Receba alertas em tempo real sobre passeios, mensagens e atualizações importantes.
+                      {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                        ? '📱 Receba alertas no seu celular sobre passeios e mensagens.'
+                        : '💻 Receba alertas em tempo real sobre passeios e mensagens.'}
                     </p>
                     <Button
                       onClick={requestPermission}
