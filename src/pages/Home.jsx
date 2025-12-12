@@ -40,6 +40,168 @@ import { Progress } from "@/components/ui/progress";
 import { Trophy } from "lucide-react";
 import { Plus } from "lucide-react";
 
+function ShopTab({ language }) {
+  const navigate = useNavigate();
+
+  const { data: featuredAnnouncements = [] } = useQuery({
+    queryKey: ['shopFeaturedAnnouncements'],
+    queryFn: async () => {
+      const all = await base44.entities.CompanyAnnouncement.filter({
+        is_active: true,
+        moderation_status: 'approved',
+        is_featured: true
+      }, '-featured_position', 6);
+      
+      const now = new Date();
+      return all.filter(a => {
+        const startDate = a.start_date ? new Date(a.start_date) : null;
+        const endDate = a.end_date ? new Date(a.end_date) : null;
+        
+        if (startDate && startDate > now) return false;
+        if (endDate && endDate < now) return false;
+        
+        return true;
+      });
+    },
+    initialData: [],
+  });
+
+  const { data: partners = [] } = useQuery({
+    queryKey: ['shopPartners'],
+    queryFn: async () => {
+      const all = await base44.entities.PartnerCompany.list();
+      return all.filter(p => p.is_active === true).slice(0, 9);
+    },
+    initialData: [],
+  });
+
+  return (
+    <div className="space-y-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">
+          {language === 'pt' ? '🛍️ Loja PawCão' : language === 'es' ? '🛍️ Tienda PawCão' : '🛍️ PawCão Shop'}
+        </h2>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          {language === 'pt' 
+            ? 'Descubra promoções exclusivas e serviços dos nossos parceiros de confiança' 
+            : 'Discover exclusive deals from our trusted partners'}
+        </p>
+      </motion.div>
+
+      {featuredAnnouncements.length > 0 && (
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Star className="w-6 h-6 text-white fill-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">
+              {language === 'pt' ? 'Promoções em Destaque' : 'Featured Deals'}
+            </h3>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {featuredAnnouncements.map((announcement, idx) => (
+              <motion.div
+                key={announcement.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <Card className="glass-panel border-2 border-yellow-400 shadow-2xl hover:shadow-3xl transition-all overflow-hidden group cursor-pointer">
+                  {announcement.image_url && (
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={announcement.image_url}
+                        alt={announcement.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <Badge className="absolute top-4 right-4 bg-yellow-500 text-white shadow-xl border-2 border-white">
+                        ⭐ {announcement.featured_tier?.toUpperCase()}
+                      </Badge>
+                    </div>
+                  )}
+                  <CardContent className="p-6">
+                    <h4 className="font-black text-xl mb-3">{announcement.title}</h4>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{announcement.message}</p>
+                    
+                    {announcement.discount_percentage > 0 && (
+                      <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 mb-4 shadow-lg">
+                        <p className="text-4xl font-black text-white text-center">
+                          -{announcement.discount_percentage}%
+                        </p>
+                      </div>
+                    )}
+                    
+                    <Button
+                      onClick={() => navigate(createPageUrl('Partners'))}
+                      className="w-full h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg text-white font-bold"
+                    >
+                      {language === 'pt' ? 'Ver Oferta' : 'View Deal'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">
+          {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          {partners.map((partner, idx) => (
+            <motion.div
+              key={partner.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+              onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
+              className="cursor-pointer"
+            >
+              <Card className="glass-panel hover:shadow-xl transition-all border-0 overflow-hidden group">
+                <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+                  {partner.logo_url ? (
+                    <img
+                      src={partner.logo_url}
+                      alt={partner.company_name}
+                      className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
+                    />
+                  ) : (
+                    <Store className="w-12 h-12 text-gray-300" />
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <h4 className="font-bold text-sm line-clamp-1">{partner.company_name}</h4>
+                  <Badge variant="outline" className="text-xs mt-1">
+                    {partner.company_type?.replace('_', ' ')}
+                  </Badge>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center mt-8">
+        <Button
+          size="lg"
+          onClick={() => navigate(createPageUrl('Partners'))}
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-xl h-14"
+        >
+          <Store className="w-5 h-5 mr-2" />
+          {language === 'pt' ? 'Ver Loja Completa' : 'View Full Shop'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const { language } = useLanguage();
   const { colors } = useTheme();
@@ -1076,6 +1238,8 @@ export default function Home() {
             <Tabs value={activeTab} onValueChange={(val) => {
               if (val === 'adoption') {
                 navigate(createPageUrl('AdoptionListings'));
+              } else if (val === 'shop') {
+                setActiveTab('shop');
               } else {
                 setActiveTab(val);
               }
@@ -1092,6 +1256,14 @@ export default function Home() {
                 >
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {t('findWalkers', language)}
+                </TabsTrigger>
+                
+                <TabsTrigger 
+                  value="shop" 
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
+                >
+                  <Store className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                  {language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}
                 </TabsTrigger>
                 
                 <TabsTrigger 
@@ -1335,6 +1507,10 @@ export default function Home() {
                     </>
                   )}
                 </div>
+              </TabsContent>
+
+              <TabsContent value="shop">
+                <ShopTab language={language} />
               </TabsContent>
 
               <TabsContent value="adoption">
