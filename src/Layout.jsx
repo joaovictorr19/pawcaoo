@@ -453,7 +453,7 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <Helmet>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
@@ -467,7 +467,67 @@ function LayoutContent({ children, currentPageName }) {
             gtag('js', new Date());
 
             gtag('config', 'G-9LBZ1D08FT');
-          `}
+
+
+                        /* Prevent sidebar from affecting layout */
+                        [data-sidebar="sidebar"] {
+                          position: fixed !important;
+                          left: 0;
+                          top: 0;
+                          z-index: 40;
+                        }
+
+                        [data-sidebar="sidebar"][data-state="collapsed"] {
+                          transform: translateX(-100%);
+                          opacity: 0;
+                          pointer-events: none;
+                          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                        }
+
+                        /* Hide scrollbar when collapsed */
+                        [data-sidebar="sidebar"][data-state="collapsed"] {
+                          overflow: hidden !important;
+                        }
+
+                        [data-sidebar="sidebar"][data-state="collapsed"] * {
+                          overflow: hidden !important;
+                        }
+
+                        /* Premium glass effect */
+                        [data-sidebar="sidebar"]::before {
+                          content: '';
+                          position: absolute;
+                          inset: 0;
+                          border-radius: 2rem;
+                          padding: 1px;
+                          background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+                          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                          -webkit-mask-composite: xor;
+                          mask-composite: exclude;
+                          pointer-events: none;
+                        }
+
+                        /* Ensure main content doesn't shift */
+                        main {
+                          margin-left: 0 !important;
+                          width: 100% !important;
+                        }
+
+                        /* Hide floating button when sidebar is open */
+                        .floating-sidebar-trigger {
+                          display: none;
+                        }
+
+                        /* Show floating button only when sidebar is collapsed */
+                        [data-sidebar="sidebar"][data-state="collapsed"] ~ * .floating-sidebar-trigger {
+                          display: flex !important;
+                        }
+
+                        /* Remove trigger from sidebar header when collapsed */
+                        [data-sidebar="sidebar"][data-state="collapsed"] button[data-sidebar="trigger"] {
+                          display: none !important;
+                        }
+                        `}
         </script>
       </Helmet>
       <style>{`
@@ -624,7 +684,7 @@ main {
   display: none !important;
 }
         `}</style>
-      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden relative">
+      <div className="w-full min-h-screen overflow-x-hidden relative">
         {/* Dynamic Tier-based Aurora Background */}
         <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
           <div 
