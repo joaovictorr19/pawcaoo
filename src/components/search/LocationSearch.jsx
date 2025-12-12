@@ -3,8 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, Navigation } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function LocationSearch({ onLocationChange, currentLocation }) {
+  const { language } = useLanguage();
   const [address, setAddress] = useState(currentLocation?.address || "");
   const [loading, setLoading] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
@@ -108,11 +111,11 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
             className="pl-10"
           />
         </div>
-        <Button type="submit" disabled={loading || !address.trim()}>
+        <Button type="submit" disabled={loading || !address.trim()} variant="outline">
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            "Search"
+            language === 'pt' ? 'Buscar' : language === 'es' ? 'Buscar' : 'Search'
           )}
         </Button>
         <Button
