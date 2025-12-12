@@ -203,7 +203,7 @@ export default function Gamification() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 pb-8">
+    <div className="min-h-screen pb-8">
       {/* 1. HERO SECTION - Motor de Pontos Premium */}
       <div className="relative overflow-hidden">
         {/* Animated gradient background */}
@@ -356,7 +356,7 @@ export default function Gamification() {
         </div>
 
         {/* 3. PÓDIO ADAPTATIVO */}
-        <Card className={`border-0 shadow-2xl bg-gradient-to-br ${currentConfig.bgGradient} overflow-hidden`}>
+        <Card className="glass-panel border-0 shadow-2xl overflow-hidden">
           <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
             <CardTitle className="flex items-center gap-3 text-2xl">
               <Trophy className={`w-7 h-7 ${currentConfig.accentColor}`} />
@@ -596,7 +596,7 @@ export default function Gamification() {
         </Card>
 
         {/* 3. GALERIA DE EMBLEMAS */}
-        <Card className="border-0 shadow-2xl">
+        <Card className="glass-panel border-0 shadow-2xl">
           <CardHeader className="border-b">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-2xl">
@@ -695,7 +695,7 @@ export default function Gamification() {
 
         {/* Call to Actions */}
         <div className="grid md:grid-cols-2 gap-4">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-blue-50 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('SocialFeed'))}>
+          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('SocialFeed'))}>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -710,7 +710,7 @@ export default function Gamification() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('Home'))}>
+          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('Home'))}>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
