@@ -1123,7 +1123,8 @@ export default function Home() {
                 </div>
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-4 leading-tight">
+              <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative">
+                <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 opacity-20 -z-10"></span>
                 {t('homeTitle', language)}
               </h1>
 
