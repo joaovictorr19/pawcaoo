@@ -21,12 +21,28 @@ Deno.serve(async (req) => {
 
     console.log('⭐ Processando avaliação:', bookingId, 'Rating:', rating);
 
-    // ✅ 1. Buscar booking
+    // ✅ 1. Buscar booking (tentar Booking e TrainingBooking)
+    let booking = null;
+    let bookingEntity = 'Booking';
+    
     const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
-    if (!bookings || bookings.length === 0) {
+    if (bookings && bookings.length > 0) {
+      booking = bookings[0];
+    } else {
+      // Tentar TrainingBooking
+      const trainingBookings = await base44.asServiceRole.entities.TrainingBooking.filter({ id: bookingId });
+      if (trainingBookings && trainingBookings.length > 0) {
+        booking = trainingBookings[0];
+        bookingEntity = 'TrainingBooking';
+      }
+    }
+    
+    if (!booking) {
+      console.error('❌ Booking não encontrado:', bookingId);
       return Response.json({ error: 'Booking não encontrado' }, { status: 404 });
     }
-    const booking = bookings[0];
+    
+    console.log('✅ Booking encontrado:', booking.id, 'Walker:', booking.walker_id);
 
     // ✅ 2. Verificar se é o dono do booking
     if (booking.owner_email !== user.email && booking.created_by !== user.email) {
@@ -59,9 +75,15 @@ Deno.serve(async (req) => {
     console.log('✅ Review criado:', review.id);
 
     // ✅ 5. Atualizar Booking com review_id
-    await base44.asServiceRole.entities.Booking.update(bookingId, {
+    const entityToUpdate = bookingEntity === 'Booking' 
+      ? base44.asServiceRole.entities.Booking 
+      : base44.asServiceRole.entities.TrainingBooking;
+    
+    await entityToUpdate.update(bookingId, {
       review_id: review.id
     });
+    
+    console.log('✅ Booking atualizado com review_id:', review.id);
 
     // ✅ 6. Recalcular Média do Walker/Trainer
     try {
