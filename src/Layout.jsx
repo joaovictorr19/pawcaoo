@@ -29,7 +29,7 @@ import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { ThemeProvider, useTheme } from "@/components/ThemeContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import { toast, Toaster } from "sonner";
+import { ToastProvider } from "@/components/notifications/NotificationToast";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MobileNavBar from "@/components/layout/MobileNavBar";
@@ -159,7 +159,6 @@ function LayoutContent({ children, currentPageName }) {
   React.useEffect(() => {
     if (location.pathname === '/login' || location.pathname === '/login/') {
       navigate(createPageUrl('Home'), { replace: true });
-      toast.info("Redirecionando para a página inicial...");
     }
   }, [location.pathname, navigate]);
 
@@ -444,8 +443,6 @@ function LayoutContent({ children, currentPageName }) {
 
       console.log('Navigating to profile:', profileUrl);
       navigate(profileUrl);
-    } else {
-      toast.error('Erro ao carregar perfil. Faça login novamente.');
     }
   };
 
