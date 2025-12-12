@@ -1136,60 +1136,38 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-900/10 p-4 md:p-5 max-w-3xl mx-auto flex flex-col gap-3 ring-1 ring-blue-100"
+                className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-4 max-w-2xl mx-auto"
               >
-                <h3 className="text-slate-900 font-bold text-lg text-left mb-1 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-indigo-600" />
-                  Onde procura um Walker?
-                </h3>
-                <div className="flex flex-col md:flex-row gap-3 items-center w-full">
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch w-full">
                   <div className="flex-1 w-full relative">
                     <LocationSearch
                       onLocationChange={(loc) => {
+                          console.log('📍 Location selected:', loc);
                           setUserLocation(loc);
-                          // Auto scroll to results when location is picked for instant gratification
-                          if(loc && loc.lat) {
+                          if(loc && loc.lat && loc.lng) {
+                            console.log('✅ GPS coordinates set:', { lat: loc.lat, lng: loc.lng });
                             setTimeout(() => {
                               document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                             }, 500);
                           }
                       }}
                       currentLocation={userLocation}
-                      className="border-2 border-gray-100 shadow-sm bg-gray-50 h-14 text-lg focus:border-green-500 transition-all rounded-xl"
-                      placeholder="Ex: Porto, Lisboa, Matosinhos..."
+                      className="border-2 border-gray-200 shadow-sm bg-white h-12 text-base focus:border-blue-500 transition-all rounded-xl"
+                      placeholder="📍 Onde procura? (Ex: Porto, Lisboa...)"
                     />
                   </div>
-                  <div className="w-full md:w-auto flex gap-2 flex-shrink-0">
-                    <Button 
-                      id="find-walker-btn"
-                      size="lg" 
-                      onClick={() => {
-                        setActiveTab('walkers');
-                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="flex-1 text-white font-bold h-14 px-8 shadow-lg text-lg rounded-xl transition-all hover:scale-105 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
-                    >
-                      <Search className="w-5 h-5 mr-2" />
-                      {t('findWalkerBtn', language)}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* AI Search Assistant Embedded - Compact Mode */}
-                <div className="w-full border-t border-gray-100 pt-3 mt-1">
-                   <AISearchAssistant 
-                      currentMode="walkers"
-                      onApplyFilters={(aiFilters) => {
-                        if (aiFilters.location) setSearchLocation(aiFilters.location);
-                        if (aiFilters.maxPrice) setAdvancedFilters(prev => ({ ...prev, maxPrice: aiFilters.maxPrice }));
-                        if (aiFilters.serviceType) {
-                           if (aiFilters.serviceType.includes('boarding')) setFilterDogSitting('boarding');
-                           else if (aiFilters.serviceType.includes('sitting')) setFilterDogSitting('house_sitting');
-                           else if (aiFilters.serviceType.includes('drop')) setFilterDogSitting('drop_in');
-                        }
-                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                   />
+                  <Button 
+                    id="find-walker-btn"
+                    size="lg" 
+                    onClick={() => {
+                      setActiveTab('walkers');
+                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-white font-bold h-12 px-6 shadow-lg rounded-xl transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
+                  >
+                    <Search className="w-5 h-5 mr-2" />
+                    Procurar
+                  </Button>
                 </div>
               </motion.div>
 
