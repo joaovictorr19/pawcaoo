@@ -1102,7 +1102,7 @@ export default function AdminDashboard() {
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <Card className="border-0 shadow-xl">
+              <Card className="glass-panel border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle>{t('financialOverview', language)}</CardTitle>
                 </CardHeader>
@@ -1124,7 +1124,7 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-xl">
+              <Card className="glass-panel border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle>{t('userDistribution', language)}</CardTitle>
                 </CardHeader>
@@ -1165,7 +1165,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="active_walkers">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
               </CardHeader>
@@ -1306,7 +1306,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="adoptions">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>{t('adoptionApplications', language)} ({adoptionApplications.length})</CardTitle>
               </CardHeader>
@@ -1451,7 +1451,7 @@ export default function AdminDashboard() {
 
           {/* NOVA TAB: BADGES */}
           <TabsContent value="badges">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
@@ -1637,7 +1637,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="companies">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
@@ -1735,7 +1735,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="announcements">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Megaphone className="w-6 h-6 text-pink-600" />
@@ -1835,7 +1835,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="services">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>{t('allServices', language)} ({allPartnerServices.length})</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
@@ -1981,7 +1981,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="bookings">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>Todas as Reservas ({allBookings.length})</CardTitle>
               </CardHeader>
@@ -2074,7 +2074,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="payments">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>Pagamentos ({allPayments.length})</CardTitle>
               </CardHeader>
@@ -2134,7 +2134,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="reviews">
-            <Card className="border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>{t('pendingReviews', language)} ({pendingReviews.length})</CardTitle>
               </CardHeader>
