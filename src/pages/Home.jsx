@@ -1398,44 +1398,6 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 max-w-5xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
-                <TabsTrigger 
-                  value="walkers" 
-                  className={`text-xs md:text-sm font-semibold rounded-lg transition-all ${
-                    activeTab === 'walkers' ? 'text-white' : 'text-gray-700'
-                  }`}
-                  style={{
-                    background: activeTab === 'walkers' ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` : 'transparent'
-                  }}
-                >
-                  <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {t('findWalkers', language)}
-                </TabsTrigger>
-                
-                <TabsTrigger 
-                  value="shop" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-lg transition-all"
-                >
-                  <Store className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}
-                </TabsTrigger>
-                
-                <TabsTrigger 
-                  value="adoption" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg transition-all"
-                >
-                  <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {t('adoptAPet', language)}
-                </TabsTrigger>
-
-                <TabsTrigger 
-                  value="emergency" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-lg transition-all"
-                >
-                  <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {t('emergency', language)}
-                </TabsTrigger>
-              </TabsList>
 
               <TabsContent value="walkers">
                 <div>
