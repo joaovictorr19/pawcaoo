@@ -82,28 +82,43 @@ Deno.serve(async (req) => {
       console.error('Erro ao notificar cliente:', err);
     }
 
-    // ✅ 6. TODO: Integração Stripe (Captura de Pagamento)
-    // Nota: Implementar quando Stripe Connect estiver configurado
-    /*
+    // ✅ 6. Integração Stripe (Captura de Pagamento)
     try {
       if (booking.payment_id && booking.payment_status === 'held') {
-        // Capturar pagamento autorizado
-        const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+        const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
         
-        const paymentIntent = await stripe.paymentIntents.capture(booking.payment_id);
-        
-        // Atualizar status do pagamento
-        await base44.asServiceRole.entities.Payment.update(booking.payment_id, {
-          payment_status: 'released',
-          released_date: new Date().toISOString()
-        });
-        
-        console.log('💳 Pagamento capturado:', paymentIntent.id);
+        if (!stripeKey) {
+          console.warn('⚠️ STRIPE_SECRET_KEY não configurada');
+        } else {
+          // Importar Stripe dinamicamente
+          const Stripe = (await import('npm:stripe@14.5.0')).default;
+          const stripe = new Stripe(stripeKey);
+          
+          // Capturar pagamento autorizado
+          const paymentIntent = await stripe.paymentIntents.capture(booking.payment_id);
+          
+          if (paymentIntent.status === 'succeeded') {
+            // Atualizar status do pagamento na tabela Payment
+            await base44.asServiceRole.entities.Payment.update(booking.payment_id, {
+              status: 'released',
+              payment_status: 'released',
+              released_date: new Date().toISOString()
+            });
+            
+            // Atualizar booking
+            await base44.asServiceRole.entities.Booking.update(rideId, {
+              payment_status: 'released'
+            });
+            
+            console.log('✅ Pagamento capturado com sucesso:', paymentIntent.id);
+            console.log(`💰 Valor liberado: €${(paymentIntent.amount / 100).toFixed(2)}`);
+          }
+        }
       }
     } catch (err) {
-      console.error('Erro ao processar pagamento Stripe:', err);
+      console.error('❌ Erro ao processar pagamento Stripe:', err);
+      // Não falhar a operação se o pagamento falhar - apenas logar
     }
-    */
 
     return Response.json({
       success: true,

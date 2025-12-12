@@ -23,57 +23,33 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
     setIsSubmitting(true);
 
     try {
-      // 1. Obter o usuário atual para garantir que temos o email
-      const user = await base44.auth.me();
-
-      // 2. Criar a avaliação
-      const review = await base44.entities.Review.create({
-        booking_id: booking.id,
-        walker_id: booking.walker_id,
-        walker_name: booking.walker_name,
-        reviewer_email: user.email,
-        reviewer_name: user.full_name,
+      // ✅ Chamar backend function que processa tudo
+      const response = await base44.functions.invoke('processReview', {
+        bookingId: booking.id,
         rating: rating,
-        comment: comment,
-        is_verified: true
+        comment: comment
       });
 
-      // 3. Atualizar a reserva com o ID da avaliação
-      await base44.entities.Booking.update(booking.id, {
-        review_id: review.id
-      });
+      if (response.data.success) {
+        // Efeito Wow para 5 estrelas
+        if (rating === 5) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#8b5cf6', '#fbbf24']
+          });
+        }
 
-      // 4. Efeito Wow para 5 estrelas
-      if (rating === 5) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#10b981', '#8b5cf6', '#fbbf24']
-        });
+        const xpEarned = response.data.review.xp_earned;
+        toast.success(`Avaliação enviada! +${xpEarned} XP ganhos! 🏆`);
+        onClose();
+      } else {
+        throw new Error(response.data.error || 'Erro desconhecido');
       }
-
-      // 5. Gamificação: Atribuir XP ao Dono
-      const currentXP = user.gamification_xp || 0;
-      await base44.auth.updateMe({
-        gamification_xp: currentXP + 50
-      });
-
-      // Tentar atribuir XP ao Passeador (Se permitido por RLS, senão o backend deve tratar)
-      // Nota: Em produção, isso deve ser um Backend Trigger
-      try {
-          // Lógica simplificada: O backend deve escutar a criação da Review
-          console.log("XP atribuído ao dono. Passeador será recompensado via sistema.");
-      } catch (err) {
-          console.warn("Não foi possível atribuir XP ao passeador diretamente.", err);
-      }
-
-      toast.success("Avaliação enviada com sucesso! Ganhou +50 XP! 🏆");
-
-      onClose();
     } catch (error) {
       console.error("Erro ao enviar avaliação:", error);
-      toast.error("Ocorreu um erro ao enviar sua avaliação. Tente novamente.");
+      toast.error(error.response?.data?.error || "Erro ao enviar avaliação. Tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
