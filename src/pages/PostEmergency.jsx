@@ -86,11 +86,21 @@ export default function PostEmergency() {
     if (dogId && myDogs.length > 0) {
       const dog = myDogs.find(d => d.id === dogId);
       if (dog && !selectedDogs.find(d => d.id === dogId)) {
+        console.log('🐕 Auto-selecting dog from URL:', dog.dog_name);
         setSelectedDogs([dog]);
-        console.log('🐕 Dog auto-selected from URL:', dog.dog_name);
+        // Also populate form data
+        setFormData(prev => ({
+          ...prev,
+          dog_name: dog.dog_name,
+          dog_size: dog.size,
+          dog_breed: dog.breed || "",
+          dog_photo_url: dog.photo_url || "",
+          location: dog.default_pickup_address || prev.location || user?.address || user?.location || user?.city || "",
+          special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
+        }));
       }
     }
-  }, [myDogs]);
+  }, [myDogs, user]);
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
@@ -160,6 +170,28 @@ export default function PostEmergency() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 Emergency walk submit initiated');
+    
+    // Validações
+    if (selectedDogs.length === 0 && !formData.dog_name) {
+      toast.error("Selecione um cão ou preencha os dados manualmente");
+      return;
+    }
+    
+    if (!formData.location) {
+      toast.error("Indique o local de recolha");
+      return;
+    }
+    
+    if (!formData.needed_time) {
+      toast.error("Indique quando precisa do passeio");
+      return;
+    }
+    
+    if (!formData.offered_amount || parseFloat(formData.offered_amount) <= 0) {
+      toast.error("Indique o valor oferecido");
+      return;
+    }
     
     const dogs = selectedDogs.length > 0 
       ? selectedDogs.map(dog => ({
@@ -175,13 +207,20 @@ export default function PostEmergency() {
           dog_breed: formData.dog_breed
         }];
     
-    await createEmergencyWalkMutation.mutateAsync({
-      ...formData,
-      dogs: dogs,
-      total_dogs: dogs.length,
-      duration_hours: parseFloat(formData.duration_hours),
-      offered_amount: parseFloat(formData.offered_amount),
-    });
+    console.log('📋 Submitting emergency walk data:', { ...formData, dogs, total_dogs: dogs.length });
+    
+    try {
+      await createEmergencyWalkMutation.mutateAsync({
+        ...formData,
+        dogs: dogs,
+        total_dogs: dogs.length,
+        duration_hours: parseFloat(formData.duration_hours),
+        offered_amount: parseFloat(formData.offered_amount),
+      });
+    } catch (error) {
+      console.error('❌ Error submitting emergency walk:', error);
+      toast.error("Erro ao publicar passeio de emergência. Tente novamente.");
+    }
   };
 
   return (
@@ -259,7 +298,7 @@ export default function PostEmergency() {
               {/* Dog Photo Upload - Only if manual entry */}
               {selectedDogs.length === 0 && (
                 <div className="space-y-2">
-                  <Label htmlFor="photo">{t('dogPhoto', language)} *</Label>
+                  <Label htmlFor="photo">{t('dogPhoto', language)}</Label>
                   <div className="flex items-center gap-4">
                     {formData.dog_photo_url ? (
                       <img
@@ -280,7 +319,6 @@ export default function PostEmergency() {
                         onChange={handleFileUpload}
                         disabled={uploading}
                         className="cursor-pointer"
-                        required
                       />
                       <p className="text-sm text-gray-500 mt-2">
                         {uploading ? t('uploading', language) : t('uploadClearPhoto', language)}
@@ -297,7 +335,6 @@ export default function PostEmergency() {
                     <Label htmlFor="dog_name">{t('dogName', language)} *</Label>
                     <Input
                       id="dog_name"
-                      required
                       value={formData.dog_name}
                       onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
                       placeholder="Max"
@@ -317,7 +354,6 @@ export default function PostEmergency() {
                   <div className="space-y-2">
                     <Label htmlFor="dog_size">{t('dogSize', language)} *</Label>
                     <Select 
-                      required
                       value={formData.dog_size}
                       onValueChange={(value) => setFormData({...formData, dog_size: value})}
                     >
@@ -359,7 +395,6 @@ export default function PostEmergency() {
                   <Label htmlFor="owner_name">{t('yourName', language)} *</Label>
                   <Input
                     id="owner_name"
-                    required
                     value={formData.owner_name}
                     onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
                     placeholder="John Doe"
@@ -370,10 +405,9 @@ export default function PostEmergency() {
                   <Label htmlFor="owner_phone">{t('phoneNumber', language)} *</Label>
                   <Input
                     id="owner_phone"
-                    required
                     value={formData.owner_phone}
                     onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+351 912 345 678"
                   />
                 </div>
               </div>
@@ -384,10 +418,9 @@ export default function PostEmergency() {
                   <Label htmlFor="location">{t('pickupLocation', language)} *</Label>
                   <Input
                     id="location"
-                    required
                     value={formData.location}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    placeholder="Brooklyn, NY"
+                    placeholder="Lisboa, Porto..."
                   />
                 </div>
 
@@ -395,10 +428,9 @@ export default function PostEmergency() {
                   <Label htmlFor="needed_time">{t('whenNeeded', language)} *</Label>
                   <Input
                     id="needed_time"
-                    required
                     value={formData.needed_time}
                     onChange={(e) => setFormData({...formData, needed_time: e.target.value})}
-                    placeholder="Now, In 30 mins, etc."
+                    placeholder="Agora, Em 30 mins, etc."
                   />
                 </div>
 
@@ -409,19 +441,18 @@ export default function PostEmergency() {
                     type="number"
                     min="0.5"
                     step="0.5"
-                    required
                     value={formData.duration_hours}
                     onChange={(e) => setFormData({...formData, duration_hours: e.target.value})}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="offered_amount">{t('offeredPayment', language)} *</Label>
+                  <Label htmlFor="offered_amount">{t('offeredPayment', language)} (€) *</Label>
                   <Input
                     id="offered_amount"
                     type="number"
                     step="0.01"
-                    required
+                    min="1"
                     value={formData.offered_amount}
                     onChange={(e) => setFormData({...formData, offered_amount: e.target.value})}
                     placeholder="50"
@@ -451,29 +482,32 @@ export default function PostEmergency() {
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-6">
+              <div className="flex flex-col md:flex-row gap-3 pt-6">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate(createPageUrl('Home'))}
-                  className="flex-1"
+                  className="w-full md:flex-1 h-12"
                 >
                   {t('cancel', language)}
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createEmergencyWalkMutation.isPending || uploading}
-                  className="flex-1 text-white h-12 text-base font-semibold hover:opacity-90"
+                  disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
+                  className="w-full md:flex-1 text-white h-12 text-base font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
-                    background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                    background: createEmergencyWalkMutation.isPending ? '#94a3b8' : `linear-gradient(135deg, #f97316, #ea580c)`
                   }}
                 >
                   {createEmergencyWalkMutation.isPending ? (
-                    t('posting', language)
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      A Publicar...
+                    </>
                   ) : (
                     <>
                       <Zap className="w-5 h-5 mr-2" />
-                      {t('postEmergency', language)}
+                      Publicar Passeio de Emergência
                     </>
                   )}
                 </Button>
