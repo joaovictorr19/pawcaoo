@@ -999,14 +999,18 @@ function LayoutContent({ children, currentPageName }) {
               </header>
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <div className="md:hidden">
               <PullToRefresh>
-                {children}
+                <div className="relative z-10">
+                  {children}
+                </div>
               </PullToRefresh>
             </div>
             <div className="hidden md:block h-full">
-              {children}
+              <div className="relative z-10">
+                {children}
+              </div>
             </div>
           </div>
 
