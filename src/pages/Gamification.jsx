@@ -196,7 +196,7 @@ export default function Gamification() {
     { id: "community_legend", name: "Lenda Comunitária", desc: "Membro lendário", icon: "👑", category: "special", rarity: "legendary" },
   ];
 
-  // Combine system badges with earned custom badges for display
+  // Combine system badges with earned custom badges for display (remove duplicates by id)
   const customEarnedBadges = (user?.public_badges || []).map(badge => ({
     id: badge.badge_id,
     name: badge.name,
@@ -207,7 +207,12 @@ export default function Gamification() {
     rarity: badge.rarity || 'rare'
   }));
 
-  const allBadgesForDisplay = [...allPossibleBadges, ...customEarnedBadges];
+  // Remove duplicates - keep only unique badge IDs
+  const uniqueCustomBadges = customEarnedBadges.filter((badge, index, self) => 
+    index === self.findIndex(b => b.id === badge.id)
+  );
+
+  const allBadgesForDisplay = [...allPossibleBadges, ...uniqueCustomBadges];
 
   // Filter by category
   const filteredBadges = activeCategory === "all" 
@@ -258,9 +263,9 @@ export default function Gamification() {
   ];
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className="min-h-screen pb-8 relative">
     {/* 1. HERO SECTION - Minimalista */}
-    <div className="relative overflow-hidden bg-white">
+    <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 relative z-10">
           {/* Header Title - Minimalista */}
           <motion.div 
@@ -268,11 +273,11 @@ export default function Gamification() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-4xl md:text-5xl font-black mb-2" style={{ color: colors?.primary || '#3b82f6' }}>
-              Hall da Fama
+            <h1 className="text-4xl md:text-6xl font-black mb-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              🏆 Hall da Fama
             </h1>
             <p className="text-sm md:text-base text-gray-600">
-              Conquistas e rankings
+              Conquistas e rankings da comunidade
             </p>
           </motion.div>
 
