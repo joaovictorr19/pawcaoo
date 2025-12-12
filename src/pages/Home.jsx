@@ -1724,27 +1724,27 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 md:p-12 text-white relative overflow-hidden"
+            className="bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 rounded-2xl shadow-lg p-6 md:p-8 text-gray-800 relative overflow-hidden border border-gray-200"
           >
             {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl"></div>
             
             <div className="relative z-10 text-center">
-              <h2 className="text-3xl md:text-4xl font-black mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-gray-900">
                 {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
               </h2>
-              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              <p className="text-sm md:text-base text-gray-600 mb-6 max-w-2xl mx-auto">
                 {language === 'pt' 
                   ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
                   : 'Earn money doing what you love. Become a certified walker or trainer.'}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   size="lg"
                   onClick={() => navigate(createPageUrl('BecomeWalker'))}
-                  className="bg-white text-indigo-600 hover:bg-gray-100 shadow-xl font-bold h-14 px-8 rounded-xl"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md font-semibold h-12 px-6 rounded-xl"
                 >
                   <Dog className="w-5 h-5 mr-2" />
                   {language === 'pt' ? 'Tornar-me Passeador' : 'Become a Walker'}
@@ -1753,7 +1753,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   onClick={() => navigate(createPageUrl('BecomeTrainer'))}
-                  className="bg-white text-purple-600 hover:bg-gray-100 shadow-xl font-bold h-14 px-8 rounded-xl"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:opacity-90 shadow-md font-semibold h-12 px-6 rounded-xl"
                 >
                   <Award className="w-5 h-5 mr-2" />
                   {language === 'pt' ? 'Tornar-me Treinador' : 'Become a Trainer'}
