@@ -252,8 +252,8 @@ export default function PartnerDashboard() {
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <Card className="max-w-md">
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="glass-panel max-w-md border-0 shadow-xl">
           <CardContent className="p-12 text-center">
             <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Empresa não encontrada</h2>
@@ -268,7 +268,7 @@ export default function PartnerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
         {/* HEADER */}
         <div className="mb-8">

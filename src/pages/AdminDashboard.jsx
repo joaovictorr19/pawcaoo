@@ -1015,8 +1015,8 @@ export default function AdminDashboard() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-6">
-        <Card className="max-w-md border-0 shadow-2xl">
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="glass-panel max-w-md border-0 shadow-2xl">
           <CardContent className="p-12 text-center">
             <Ban className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
@@ -1035,7 +1035,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
       <ErrorBoundary>
         {/* Header */}
@@ -1053,7 +1053,7 @@ export default function AdminDashboard() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat, idx) => (
-              <Card key={idx} className="border-0 shadow-lg">
+              <Card key={idx} className="glass-panel border-0 shadow-lg">
                 <CardContent className="p-6 text-center">
                   <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
                     <stat.icon className="w-6 h-6 text-white" />
