@@ -59,8 +59,8 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-white/90 backdrop-blur-md border-purple-100 shadow-2xl">
-        <DialogHeader className="text-center">
+      <DialogContent className="sm:max-w-md bg-white/90 backdrop-blur-md border-purple-100 shadow-2xl max-h-[95vh] flex flex-col">
+        <DialogHeader className="text-center flex-shrink-0">
           <div className="mx-auto bg-yellow-100 p-3 rounded-full w-fit mb-4">
             <Trophy className="w-8 h-8 text-yellow-600" />
           </div>
@@ -79,7 +79,7 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
           ✨ Avalie o passeador e ganhe <span className="font-bold text-yellow-300">+50 XP!</span>
         </motion.div>
 
-        <div className="flex flex-col items-center space-y-6 py-4">
+        <div className="flex flex-col items-center space-y-6 py-4 overflow-y-auto flex-1">
           {/* Stars */}
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -116,7 +116,7 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
           />
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 flex-shrink-0 pt-4 border-t">
           <Button variant="ghost" onClick={onClose} className="text-gray-500 hover:text-gray-700">
             Lembrar mais tarde
           </Button>
