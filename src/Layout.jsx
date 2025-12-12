@@ -472,14 +472,16 @@ function LayoutContent({ children, currentPageName }) {
         </script>
       </Helmet>
       <style>{`
-        :root {
-          --primary: 142 76% 36%;
-          --primary-foreground: 0 0% 100%;
-          --accent: 142 76% 92%;
-          --accent-foreground: 142 76% 20%;
-        }
+      :root {
+        --primary: 142 76% 36%;
+        --primary-foreground: 0 0% 100%;
+        --accent: 142 76% 92%;
+        --accent-foreground: 142 76% 20%;
+      }
 
-        /* --- 1. MELHORIA NOS BOTÕES (Micro-interações) --- */
+      /* === SAPPHIRE PREMIUM THEME === */
+
+      /* --- 1. MELHORIA NOS BOTÕES (Micro-interações) --- */
         /* Aplica-se a qualquer botão do shadcn ou html padrão */
         button, .button-premium {
           transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -535,9 +537,9 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="flex w-full max-w-[100vw] min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 overflow-x-hidden">
+      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className="glass-panel border-r border-white/30">
+        <Sidebar className="glass-panel-dark border-r border-white/50">
           <SidebarHeader className="border-b border-white/20 p-4 md:p-6">
             <Link 
               to={createPageUrl("Home")} 
@@ -767,7 +769,7 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
             <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
-            <header className="glass-panel px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300">
+            <header className="glass-panel-dark px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg">
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
                 <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
@@ -841,7 +843,7 @@ function LayoutContent({ children, currentPageName }) {
               {!authUser && (
                 <Button 
                   onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                  className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm"
+                  className="btn-sapphire shadow-sm"
                   size="sm"
                 >
                   {getMenuText('login')}
@@ -914,7 +916,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className="bg-white border-t border-gray-200 mt-auto">
+          <footer className="glass-panel-dark border-t border-white/50 mt-auto">
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
                 <div>

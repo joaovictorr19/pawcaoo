@@ -736,7 +736,7 @@ export default function ProfessionalDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-3 md:p-6">
+    <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         <ErrorBoundary>
         {/* Verification Banner */}
