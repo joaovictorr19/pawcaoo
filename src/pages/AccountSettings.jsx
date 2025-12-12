@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 // ImageCropModal removed
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
+import SubscriptionManager from "../components/subscriptions/SubscriptionManager";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
@@ -407,6 +408,15 @@ export default function AccountSettings() {
                 <Shield className="w-4 h-4 mr-2" />
                 Segurança
               </Button>
+              <Button
+                variant={activeSection === "subscription" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection("subscription")}
+                className="rounded-full"
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                Subscrição
+              </Button>
             </div>
           </div>
 
@@ -450,6 +460,15 @@ export default function AccountSettings() {
                   >
                     <Shield className="w-4 h-4 mr-2" />
                     Segurança
+                  </Button>
+                  <Button
+                    variant={activeSection === "subscription" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    size="sm"
+                    onClick={() => setActiveSection("subscription")}
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Subscrição
                   </Button>
                 </nav>
               </CardContent>
@@ -837,6 +856,11 @@ export default function AccountSettings() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Subscription Section */}
+            {activeSection === "subscription" && (
+              <SubscriptionManager subscriptionType="owner" />
             )}
           </div>
         </div>
