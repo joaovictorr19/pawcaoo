@@ -15,7 +15,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
   const videoUrl = professional.video_intro_url;
   
   return (
-    <Card className="overflow-hidden border-0 shadow-sm mb-6">
+    <Card className="overflow-hidden border-0 shadow-sm mb-6 rounded-3xl">
       {/* Banner Area */}
       <div className={`relative w-full aspect-video overflow-hidden ${professional.cover_photo_url ? '' : (isWalker ? 'bg-gradient-to-r from-green-400 to-emerald-600' : 'bg-gradient-to-r from-purple-400 to-indigo-600')}`}>
         {professional.cover_photo_url && (

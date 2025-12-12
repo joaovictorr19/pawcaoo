@@ -93,7 +93,7 @@ export default function TestimonialsSection() {
             {reviews.map((review) => (
               <CarouselItem key={review.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
-                  <Card className="border-0 shadow-lg bg-white h-full">
+                  <Card className="border-0 shadow-lg bg-white h-full rounded-3xl">
                     <CardContent className="p-6 flex flex-col h-full">
                       <div className="mb-4 text-green-500">
                         <Quote className="w-8 h-8 opacity-20" />

@@ -20,7 +20,7 @@ export default function ServiceList({ services, type }) {
       </h3>
       <div className="grid md:grid-cols-2 gap-4">
         {services.map((service, idx) => (
-          <Card key={idx} className={`border-2 ${isWalker ? 'border-green-200' : 'border-purple-200'} hover:shadow-lg transition-shadow`}>
+          <Card key={idx} className={`border-2 ${isWalker ? 'border-green-200' : 'border-purple-200'} hover:shadow-lg transition-shadow rounded-3xl`}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-3">
                 <h4 className="font-bold text-lg text-gray-900">{service.service_name}</h4>

@@ -380,7 +380,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="glass-panel border-0 shadow-xl">
+      <Card className="glass-panel border-0 shadow-xl rounded-3xl">
         <CardHeader 
           className="text-white"
           style={{
