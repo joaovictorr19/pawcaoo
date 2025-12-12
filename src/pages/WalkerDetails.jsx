@@ -23,6 +23,7 @@ import ProfessionalProfileHeader from "../components/professionals/ProfessionalP
 import ServiceList from "../components/professionals/ServiceList";
 const ServiceAreaMap = lazy(() => import("../components/professionals/ServiceAreaMap"));
 import SEO from "../components/SEO";
+import { useTheme } from "@/components/ThemeContext";
 
 // Mini component for favorite button logic
 function FavoriteButton({ walker, user }) {
@@ -82,6 +83,7 @@ import { t } from "@/components/translations";
 
 export default function WalkerDetails() {
   const { language } = useLanguage();
+  const { colors } = useTheme();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
@@ -249,7 +251,13 @@ export default function WalkerDetails() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Ups! Não conseguimos encontrar este Passeador.</h2>
           <p className="text-gray-600 mb-6">O perfil pode ter sido desativado ou o link pode estar incorreto.</p>
-          <Button onClick={() => navigate(createPageUrl('Home'))} className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6">
+          <Button 
+            onClick={() => navigate(createPageUrl('Home'))} 
+            className="text-white font-semibold px-6 hover:opacity-90"
+            style={{
+              background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+            }}
+          >
             Voltar à Busca
           </Button>
         </div>
@@ -589,7 +597,10 @@ export default function WalkerDetails() {
                       <Button
                         onClick={() => setShowRecurringModal(true)}
                         disabled={!selectedDogForRecurring || walker.verification_status !== "verified"}
-                        className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white h-9 text-xs"
+                        className="w-full mt-3 text-white h-9 text-xs hover:opacity-90"
+                        style={{
+                          background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                        }}
                         size="sm"
                       >
                         {t('setupSchedule', language)}
