@@ -1249,8 +1249,8 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-slate-600 via-slate-500 to-slate-700 bg-clip-text text-transparent mb-4 leading-tight relative px-4">
-                    <span className="absolute inset-0 blur-2xl bg-gradient-to-r from-slate-300 via-gray-300 to-slate-400 opacity-10 -z-10"></span>
+                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-orange-500 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative px-4">
+                    <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-indigo-300 via-purple-300 to-orange-300 opacity-20 -z-10"></span>
                     {t('homeTitle', language)}
                   </h1>
                 </motion.div>
@@ -1440,7 +1440,7 @@ export default function Home() {
 
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-lg md:text-2xl font-semibold text-slate-700 tracking-tight">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -1676,7 +1676,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-700 flex items-center gap-2">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
                         <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
@@ -1724,27 +1724,27 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 rounded-2xl shadow-lg p-6 md:p-8 text-gray-800 relative overflow-hidden border border-gray-200"
+            className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 md:p-12 text-white relative overflow-hidden"
           >
             {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
             
             <div className="relative z-10 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-gray-900">
+              <h2 className="text-3xl md:text-4xl font-black mb-4">
                 {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
               </h2>
-              <p className="text-sm md:text-base text-gray-600 mb-6 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
                 {language === 'pt' 
                   ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
                   : 'Earn money doing what you love. Become a certified walker or trainer.'}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   size="lg"
                   onClick={() => navigate(createPageUrl('BecomeWalker'))}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md font-semibold h-12 px-6 rounded-xl"
+                  className="bg-white text-indigo-600 hover:bg-gray-100 shadow-xl font-bold h-14 px-8 rounded-xl"
                 >
                   <Dog className="w-5 h-5 mr-2" />
                   {language === 'pt' ? 'Tornar-me Passeador' : 'Become a Walker'}
@@ -1753,7 +1753,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   onClick={() => navigate(createPageUrl('BecomeTrainer'))}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:opacity-90 shadow-md font-semibold h-12 px-6 rounded-xl"
+                  className="bg-white text-purple-600 hover:bg-gray-100 shadow-xl font-bold h-14 px-8 rounded-xl"
                 >
                   <Award className="w-5 h-5 mr-2" />
                   {language === 'pt' ? 'Tornar-me Treinador' : 'Become a Trainer'}

@@ -145,22 +145,14 @@ export default function PersonalizedRecommendations({ user }) {
 
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between mb-4 bg-gradient-to-r from-purple-50 to-indigo-50 p-3 rounded-xl border border-purple-100/50">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-2 rounded-xl shadow-sm">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-bold text-base text-gray-900">Passeadores Disponíveis para {user.full_name?.split(' ')[0]}</h3>
-            <p className="text-xs text-gray-600 flex items-center gap-1">
-              <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-              Recomendações personalizadas por IA
-            </p>
-          </div>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="bg-purple-100 p-1.5 rounded-lg">
+          <Sparkles className="w-4 h-4 text-purple-600" />
         </div>
-        <Badge variant="outline" className="bg-white/50 text-purple-700 border-purple-200 hidden md:flex">
-          Top {recommendations.length}
-        </Badge>
+        <div>
+          <h3 className="font-semibold text-sm text-gray-900">Recomendado para {user.full_name?.split(' ')[0]}</h3>
+          <p className="text-xs text-gray-500">IA sugeriu com base no seu perfil</p>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-3">
