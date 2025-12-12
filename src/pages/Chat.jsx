@@ -494,75 +494,90 @@ export default function Chat() {
   // Finish walk with verification
   const finishWalkMutation = useMutation({
     mutationFn: async () => {
-      // Get current location
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            
-            // Verify proximity (50m from pickup location)
-            if (booking.pickup_lat && booking.pickup_lng) {
-              const distance = calculateDistance(
-                latitude,
-                longitude,
-                booking.pickup_lat,
-                booking.pickup_lng
-              );
-
-              if (distance > 50) {
-                toast.error(`Está a ${Math.round(distance)}m do local. Aproxime-se a menos de 50m para concluir.`);
-                reject(new Error("Muito longe do destino"));
-                return;
-              }
+      try {
+        // Get current location with timeout
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            (error) => {
+              console.error("Location error:", error);
+              toast.error("Erro ao obter localização. Verifique se o GPS está ativado.");
+              reject(error);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
             }
+          );
+        });
 
-            // Create final checkpoint
-            await base44.entities.WalkCheckpoint.create({
-              booking_id: bookingId,
-              walker_email: user.email,
-              checkpoint_type: "check_out",
-              latitude,
-              longitude,
-              timestamp: new Date().toISOString(),
-            });
+        const { latitude, longitude } = position.coords;
+        let distance = 0;
 
-            // Update booking status
-            await base44.entities.Booking.update(bookingId, {
-              status: "service_completed",
-              completed_date: new Date().toISOString(),
-              actual_delivery_distance: distance || 0,
-            });
+        // Verify proximity (50m from pickup location)
+        if (booking.pickup_lat && booking.pickup_lng) {
+          distance = calculateDistance(
+            latitude,
+            longitude,
+            booking.pickup_lat,
+            booking.pickup_lng
+          );
 
-            // Release payment
-            if (booking.payment_id) {
-              await base44.entities.Payment.update(booking.payment_id, {
-                status: "released",
-                released_date: new Date().toISOString(),
-              });
-            }
+          if (distance > 50) {
+            toast.error(`Está a ${Math.round(distance)}m do destino. Aproxime-se a menos de 50m para concluir.`);
+            throw new Error("Muito longe do destino");
+          }
+        }
 
-            // Notify owner
-            await base44.entities.Notification.create({
-              recipient_email: booking.created_by || booking.owner_email,
-              title: "✅ Serviço Concluído!",
-              message: `${booking.walker_name} concluiu o passeio com ${booking.dog_name}. Pagamento liberado automaticamente.`,
-              type: "check_out",
-              related_id: bookingId,
-              priority: "high",
-            });
+        // Create final checkpoint
+        await base44.entities.WalkCheckpoint.create({
+          booking_id: bookingId,
+          walker_email: user.email,
+          checkpoint_type: "check_out",
+          latitude,
+          longitude,
+          timestamp: new Date().toISOString(),
+        });
 
-            resolve();
-          },
-          (error) => reject(error)
-        );
-      });
+        // Update booking status
+        await base44.entities.Booking.update(bookingId, {
+          status: "service_completed",
+          completed_date: new Date().toISOString(),
+          actual_delivery_distance: distance,
+        });
+
+        // Release payment
+        if (booking.payment_id) {
+          await base44.entities.Payment.update(booking.payment_id, {
+            status: "released",
+            released_date: new Date().toISOString(),
+          });
+        }
+
+        // Notify owner
+        await base44.entities.Notification.create({
+          recipient_email: booking.created_by || booking.owner_email,
+          title: "✅ Serviço Concluído!",
+          message: `${booking.walker_name} concluiu o passeio com ${booking.dog_name}. Pagamento liberado automaticamente.`,
+          type: "check_out",
+          related_id: bookingId,
+          priority: "high",
+        });
+
+        return true;
+      } catch (error) {
+        console.error("Finish walk error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("✅ Serviço concluído e pagamento liberado!");
       queryClient.invalidateQueries(["booking", bookingId]);
-      navigate(-1);
+      setTimeout(() => navigate(-1), 1500);
     },
     onError: (error) => {
+      console.error("Finish mutation error:", error);
       toast.error(error.message || "Erro ao concluir serviço");
     },
   });
