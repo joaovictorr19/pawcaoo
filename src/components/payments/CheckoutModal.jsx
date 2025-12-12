@@ -46,6 +46,7 @@ export default function CheckoutModal({
 
   const handleStripeCheckout = async () => {
     setProcessing(true);
+    console.log('🔵 Iniciando checkout Stripe...');
 
     try {
       // Se houver voucher aplicado, marcar como usado
@@ -55,7 +56,13 @@ export default function CheckoutModal({
         });
       }
 
-      const { data } = await base44.functions.invoke('createStripeCheckout', {
+      console.log('📦 Payload:', {
+        bookingId: booking.id,
+        voucherCode: appliedVoucher?.redemption_code,
+        discountAmount: appliedVoucher?.euro_value || 0,
+      });
+
+      const response = await base44.functions.invoke('createStripeCheckout', {
         bookingId: booking.id,
         voucherCode: appliedVoucher?.redemption_code,
         discountAmount: appliedVoucher?.euro_value || 0,
@@ -63,12 +70,19 @@ export default function CheckoutModal({
         cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`,
       });
 
-      if (data.url) {
-        window.location.href = data.url;
+      console.log('✅ Resposta do backend:', response);
+
+      if (response?.data?.url) {
+        console.log('🔗 Redirecionando para:', response.data.url);
+        window.location.href = response.data.url;
+      } else {
+        console.error('❌ URL do Stripe não encontrada na resposta:', response);
+        toast.error('Erro: Link de pagamento não foi gerado');
+        setProcessing(false);
       }
     } catch (err) {
-      console.error("Stripe error:", err);
-      toast.error(language === 'pt' ? "Erro ao iniciar pagamento" : "Payment failed");
+      console.error("❌ Stripe error:", err);
+      toast.error(language === 'pt' ? "Erro ao iniciar pagamento. Verifique o console." : "Payment failed");
       setProcessing(false);
     }
   };

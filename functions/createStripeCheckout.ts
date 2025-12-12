@@ -9,20 +9,42 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user) {
+      console.error('🔴 Auth failed - no user');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { bookingId, successUrl, cancelUrl } = await req.json();
+    console.log('🟢 User authenticated:', user.email);
+
+    const payload = await req.json();
+    console.log('📥 Received payload:', payload);
+
+    const { bookingId, successUrl, cancelUrl, voucherCode, discountAmount } = payload;
 
     // Get booking details
+    console.log('🔍 Buscando booking:', bookingId);
     const bookings = await base44.entities.Booking.filter({ id: bookingId });
     const booking = bookings[0];
 
     if (!booking) {
+      console.error('❌ Booking não encontrada:', bookingId);
       return Response.json({ error: 'Booking not found' }, { status: 404 });
     }
 
+    console.log('✅ Booking encontrada:', booking);
+
+    // Calculate final amount
+    const finalAmount = discountAmount > 0 
+      ? Math.max(0, booking.total_amount - discountAmount)
+      : booking.total_amount;
+
+    console.log('💰 Amount calculation:', {
+      original: booking.total_amount,
+      discount: discountAmount,
+      final: finalAmount
+    });
+
     // Create Stripe Checkout Session
+    console.log('🔵 Criando sessão Stripe...');
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -30,10 +52,10 @@ Deno.serve(async (req) => {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `Passeio com ${booking.walker_name}`,
+              name: `Passeio com ${booking.walker_name || 'Walker'}`,
               description: `${booking.dog_name} - ${booking.walk_date} às ${booking.walk_time}`,
             },
-            unit_amount: Math.round(booking.total_amount * 100), // Stripe usa centavos
+            unit_amount: Math.round(finalAmount * 100),
           },
           quantity: 1,
         },
@@ -41,30 +63,54 @@ Deno.serve(async (req) => {
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
+      customer_email: user.email,
       metadata: {
         booking_id: bookingId,
         user_email: user.email,
+        voucher_code: voucherCode || '',
+        discount_amount: discountAmount || 0,
       },
     });
 
+    console.log('✅ Sessão criada:', session.id);
+
     // Create payment record
-    await base44.asServiceRole.entities.Payment.create({
+    console.log('💳 Criando Payment record...');
+    const paymentRecord = await base44.asServiceRole.entities.Payment.create({
       booking_id: bookingId,
       payer_email: user.email,
-      payer_name: user.full_name,
-      recipient_email: booking.walker_email,
-      recipient_name: booking.walker_name,
-      service_amount: booking.service_amount,
-      platform_fee: booking.platform_fee,
-      total_amount: booking.total_amount,
+      payer_name: user.full_name || 'Cliente',
+      recipient_email: booking.walker_email || booking.created_by,
+      recipient_name: booking.walker_name || 'Walker',
+      service_amount: booking.service_amount || 0,
+      platform_fee: booking.platform_fee || 0,
+      total_amount: finalAmount,
+      loyalty_points_discount: discountAmount || 0,
       status: 'pending',
       payment_method: 'stripe',
       stripe_payment_intent_id: session.payment_intent,
     });
 
-    return Response.json({ sessionId: session.id, url: session.url });
+    console.log('✅ Payment record criado:', paymentRecord.id);
+
+    // Update booking with payment info
+    await base44.asServiceRole.entities.Booking.update(bookingId, {
+      payment_id: paymentRecord.id,
+      payment_status: 'pending'
+    });
+
+    console.log('🎉 Checkout completo! Retornando URL:', session.url);
+
+    return Response.json({ 
+      sessionId: session.id, 
+      url: session.url,
+      success: true 
+    });
   } catch (error) {
-    console.error('Stripe error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('❌ Erro completo:', error);
+    return Response.json({ 
+      error: error.message,
+      details: error.stack 
+    }, { status: 500 });
   }
 });
