@@ -554,8 +554,9 @@ function LayoutContent({ children, currentPageName }) {
   pointer-events: none;
 }
         `}</style>
-      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
+      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden relative">
         {authUser && (
+        <>
         <Sidebar className={`backdrop-blur-xl border-r transition-all duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 data-[state=collapsed]:w-[80px] ${
           colors?.isDarkMode 
             ? 'bg-slate-900/40 border-slate-700/20' 
@@ -838,6 +839,16 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
+
+            {/* Floating Trigger Button */}
+            <div className="fixed left-4 top-4 z-50 md:block hidden group-data-[state=expanded]:hidden">
+              <SidebarTrigger className={`backdrop-blur-xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 ${
+                colors?.isDarkMode 
+                  ? 'bg-slate-900/60 border border-slate-700/30 hover:bg-slate-800/80' 
+                  : 'bg-white/60 border border-white/40 hover:bg-white/80'
+              }`} />
+            </div>
+            </>
             )}
 
             {/* Push Notification Manager */}
