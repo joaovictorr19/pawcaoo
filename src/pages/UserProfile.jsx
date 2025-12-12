@@ -780,6 +780,17 @@ export default function UserProfile() {
 
       console.log('📤 Criando follow:', { follower: currentUser.email, following: profileEmail });
       
+      // Check for duplicates before creating
+      const existing = await base44.entities.SocialFollow.filter({
+        follower_email: currentUser.email,
+        following_email: profileEmail
+      });
+
+      if (existing.length > 0) {
+        console.log('⚠️ Follow já existe, ignorando criação duplicada');
+        return;
+      }
+
       await base44.entities.SocialFollow.create({
         follower_email: currentUser.email,
         follower_name: currentUser.full_name,
@@ -1075,8 +1086,8 @@ export default function UserProfile() {
                     </div>
                   )}
 
-                  {/* Dog Collar - ALWAYS visible below name/badges */}
-                  <div className="mt-3 flex justify-center md:justify-start">
+                  {/* Dog Collar - ALWAYS visible with forced display */}
+                  <div className="mt-3 flex justify-center md:justify-start" style={{ display: 'flex' }}>
                     <DogCollar 
                       userEmail={profileEmail} 
                       onClick={() => isOwnProfile && setIsDogModalOpen(true)} 

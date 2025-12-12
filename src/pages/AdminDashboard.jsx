@@ -1685,13 +1685,33 @@ export default function AdminDashboard() {
                     </CardTitle>
                     <p className="text-xs md:text-sm text-gray-600 mt-1">{t('grantSpecialBadges', language)}</p>
                   </div>
-                  <Button
-                    onClick={() => setShowCreateCustomBadgeModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700 w-full md:w-auto"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('createCustomBadge', language)}
-                  </Button>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <Button
+                      onClick={async () => {
+                        if (!confirm("Isto irá remover seguidores duplicados de todas as contas. Continuar?")) return;
+                        toast.info("Processando...");
+                        try {
+                          const res = await base44.functions.invoke('deduplicateFollowers');
+                          toast.success(res.data.message);
+                          queryClient.invalidateQueries(['allUsers']);
+                        } catch (error) {
+                          toast.error("Erro: " + error.message);
+                        }
+                      }}
+                      variant="outline"
+                      className="text-orange-600 border-orange-300 w-full md:w-auto"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Limpar Duplicados
+                    </Button>
+                    <Button
+                      onClick={() => setShowCreateCustomBadgeModal(true)}
+                      className="bg-purple-600 hover:bg-purple-700 w-full md:w-auto"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t('createCustomBadge', language)}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
