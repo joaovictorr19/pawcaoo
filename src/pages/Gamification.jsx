@@ -27,13 +27,53 @@ export default function Gamification() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch all users for Global Ranking - FROM UserProfile (public data)
+  // Fetch all users for Global Ranking - Try both sources
   const { data: allUsers = [] } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 100);
-      return profiles
-        .filter(u => (u.gamification_xp || 0) > 0)
+      // Get from both User and UserProfile
+      const [users, profiles] = await Promise.all([
+        base44.entities.User.list('-gamification_xp', 500),
+        base44.entities.UserProfile.list('-gamification_xp', 500)
+      ]);
+      
+      // Create a map of emails to XP from both sources
+      const userMap = new Map();
+      
+      // Add from User entity
+      users.forEach(u => {
+        if ((u.gamification_xp || 0) > 0) {
+          userMap.set(u.email, {
+            email: u.email,
+            full_name: u.full_name,
+            profile_photo_url: u.profile_photo_url,
+            gamification_xp: u.gamification_xp || 0,
+            gamification_level: u.gamification_level || 1,
+            id: u.id
+          });
+        }
+      });
+      
+      // Merge with UserProfile (use higher XP)
+      profiles.forEach(p => {
+        const xp = p.gamification_xp || 0;
+        if (xp > 0) {
+          const existing = userMap.get(p.user_email);
+          if (!existing || xp > existing.gamification_xp) {
+            userMap.set(p.user_email, {
+              email: p.user_email,
+              full_name: p.full_name || existing?.full_name,
+              profile_photo_url: p.profile_photo_url || existing?.profile_photo_url,
+              gamification_xp: xp,
+              gamification_level: p.gamification_level || existing?.gamification_level || 1,
+              id: p.user_id || p.id
+            });
+          }
+        }
+      });
+      
+      // Convert to array and sort
+      return Array.from(userMap.values())
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
     enabled: activeRanking === 'global',
@@ -43,8 +83,8 @@ export default function Gamification() {
   const { data: walkerProfiles = [] } = useQuery({
     queryKey: ['walkerProfiles'],
     queryFn: async () => {
-      const profiles = await base44.entities.WalkerProfile.filter({ is_active: true });
-      return profiles;
+      const profiles = await base44.entities.WalkerProfile.list('-rating', 500);
+      return profiles.filter(p => p.is_active && p.verification_status === 'verified');
     },
     enabled: activeRanking !== 'global',
   });
@@ -89,16 +129,17 @@ export default function Gamification() {
     }
 
     if (activeRanking === 'quality') {
-      // Sort by rating (quality)
+      // Sort by rating and total walks (quality + quantity)
       return walkerProfiles
         .map(profile => ({
           ...profile,
           full_name: profile.walker_name,
           profile_photo_url: profile.photo_url,
-          email: profile.created_by
+          email: profile.created_by,
+          quality_score: ((profile.rating || 0) * 100) + (profile.total_walks || 0)
         }))
-        .filter(w => w.rating && w.rating > 0)
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        .filter(w => w.rating && w.rating > 0 && w.total_walks > 0)
+        .sort((a, b) => b.quality_score - a.quality_score);
     }
 
     return [];
@@ -179,7 +220,7 @@ export default function Gamification() {
       bgGradient: 'from-pink-50 to-rose-50',
       metricKey: 'rating',
       metricLabel: 'Avaliação',
-      formatMetric: (value) => `${(value || 0).toFixed(2)} ⭐`
+      formatMetric: (value) => `${(value || 0).toFixed(1)} ⭐`
     }
   };
 
