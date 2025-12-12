@@ -286,9 +286,10 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.User.list('-created_date', 5000),
     enabled: user?.role === 'admin',
     initialData: [],
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
     cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   // Lógica de filtragem movida para AdminUserTable
