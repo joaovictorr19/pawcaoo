@@ -38,7 +38,7 @@ export default function EmergencyDogCard({ walk }) {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group border-2 border-orange-200 bg-white relative">
+    <Card className="glass-panel overflow-hidden hover:shadow-2xl transition-all duration-300 group border-2 border-orange-200 relative">
       {/* Urgency Badge Overlay */}
       <div className="absolute top-4 left-4 z-10">
         <Badge className={`${getUrgencyColor(walk.urgency_level)} border-2 font-bold text-base px-3 py-1 shadow-lg`}>

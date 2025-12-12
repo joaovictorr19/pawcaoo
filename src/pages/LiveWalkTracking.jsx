@@ -84,8 +84,8 @@ export default function LiveWalkTracking() {
 
   if (!bookingId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card className="glass-panel max-w-md border-0 shadow-2xl">
           <CardContent className="p-8 text-center">
             <Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Active Walk</h3>
@@ -100,7 +100,7 @@ export default function LiveWalkTracking() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -114,7 +114,7 @@ export default function LiveWalkTracking() {
         </div>
 
         {/* Status Banner */}
-        <Card className="border-0 shadow-xl mb-6 bg-gradient-to-r from-green-600 to-blue-600 text-white">
+        <Card className="glass-panel border-0 shadow-xl mb-6">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
