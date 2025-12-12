@@ -24,12 +24,19 @@ const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
 const deg2rad = (deg) => deg * (Math.PI / 180);
 
 export default function WalkerTracker({ bookingId: propBookingId }) {
-  // 1. Pegar o ID da URL (Prioridade: Prop > Query Param > Route Param)
   const { bookingId: paramBookingId } = useParams();
   const [queryBookingId] = useState(() => new URLSearchParams(window.location.search).get('bookingId'));
   
   const bookingId = propBookingId || queryBookingId || paramBookingId;
   const navigate = useNavigate();
+  
+  // ✅ PROTEÇÃO: Redirecionar se não houver bookingId
+  useEffect(() => {
+    if (!bookingId) {
+      toast.error('ID da reserva não encontrado');
+      navigate(createPageUrl('ProfessionalDashboard'), { replace: true });
+    }
+  }, [bookingId, navigate]);
 
   // Fetch current user for chat
   const { data: user } = useQuery({ 
@@ -50,12 +57,19 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
   const watchId = useRef(null);
   const timerRef = useRef(null);
 
-  // 2. Buscar dados da reserva (Protegido)
+  // ✅ Buscar dados da reserva com WHERE id = bookingId
   const { data: booking, isLoading, error } = useQuery({
     queryKey: ['booking', bookingId],
-    queryFn: () => base44.entities.Booking.filter({ id: bookingId }).then(res => res[0]),
-    enabled: !!bookingId, // Só busca se o ID existir na URL
-    retry: 1
+    queryFn: async () => {
+      const bookings = await base44.entities.Booking.filter({ id: bookingId });
+      if (!bookings || bookings.length === 0) {
+        throw new Error('Reserva não encontrada');
+      }
+      return bookings[0];
+    },
+    enabled: !!bookingId,
+    retry: 1,
+    refetchInterval: 5000 // Atualizar dados a cada 5s
   });
 
   // 3. Estado de Loading (Mostra Spinner enquanto carrega)
@@ -136,10 +150,16 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
 
     setIsTracking(true);
 
-    // Update status to in_progress
-    base44.entities.Booking.update(bookingId, { status: 'in_progress' })
-      .then(() => toast.success("Passeio iniciado! Status atualizado."))
-      .catch(err => console.error("Erro ao atualizar status:", err));
+    // ✅ UPDATE COM WHERE id = bookingId
+    base44.entities.Booking.update(bookingId, { 
+      status: 'in_progress',
+      walk_start_time: new Date().toISOString()
+    })
+      .then(() => toast.success("✅ Passeio iniciado! GPS ativo."))
+      .catch(err => {
+        console.error("Erro ao atualizar status:", err);
+        toast.error("Erro ao iniciar passeio");
+      });
 
     // Resume previous distance/route if continuing
     if (booking?.route_coordinates?.length > 0) {
@@ -185,46 +205,24 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
             distanceRef.current += dist;
             setDistance(distanceRef.current);
             
-            // Persist to backend
+            // ✅ PERSISTIR COM WHERE id = bookingId
             try {
-              // IMPORTANT: We fetch fresh booking data inside callback to append to LATEST route
-              // In a real app, use atomic push or dedicated endpoint to avoid race conditions.
-              // Here we try to be safe by reading the local prop which might be stale, 
-              // but for a single walker it's usually fine. Better: read from server if possible? 
-              // No, 'booking' from useQuery updates via websocket/polling in background.
-              // We'll assume 'booking' prop is relatively fresh or just append to what we know.
-              
-              // Actually, better to just read from the query cache or assume linear append.
-              // Simplification: We read 'booking' from closure. It IS stale.
-              // We must rely on the server to handle the array update or fetch fresh.
-              // Since we can't easily fetch fresh here without async overhead, 
-              // let's just send the full new array if we kept it in a Ref, OR just send the new point if backend supported push.
-              // Base44 update overrides. We must use a Ref for the route too to avoid overwriting with stale data.
-              
-              // For now, let's assume we just update coordinates and distance.
-              // We'll pull the route from a Ref that we initialize.
-              // *However*, 'booking' updates via useQuery.
-              
-              // Workaround: We'll just push the new point to the backend array using $push if supported, 
-              // or we need to maintain the full route in a ref.
-              
-              // Let's maintain full route in a ref for safety in this session
-              // Initialized in useEffect or outside. 
-              // Actually, let's just read the ref.
-              
-              // (Simplified for this context: just send the update)
-              const updatedRoute = [...(booking?.route_coordinates || []), newPoint];
-              // Note: This still uses stale 'booking'. 
-              // For a robust verification, we should rely on the fact that tracking works for the user.
-              // To fix the stale closure properly without refetching:
-              // We accept that in this demo context, precise race-condition handling is complex.
+              // Buscar rota atual para evitar sobrescrever
+              const currentBooking = await base44.entities.Booking.filter({ id: bookingId }).then(r => r[0]);
+              const updatedRoute = [...(currentBooking?.route_coordinates || []), newPoint];
               
               await base44.entities.Booking.update(bookingId, {
+                walker_lat: latitude,
+                walker_lng: longitude,
                 route_coordinates: updatedRoute, 
-                distance_km: (distanceRef.current / 1000).toFixed(2)
+                distance_km: (distanceRef.current / 1000).toFixed(2),
+                last_update: new Date().toISOString()
               });
+              
+              console.log('💾 GPS atualizado no ride:', bookingId);
             } catch (err) {
-              console.error("Failed to update location", err);
+              console.error("❌ Erro ao salvar GPS:", err);
+              toast.error("Erro ao atualizar localização");
             }
           }
         }
@@ -252,19 +250,21 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
       }
     }
 
-    // 3. Update Booking
+    // ✅ UPDATE COM WHERE id = bookingId
     try {
       await base44.entities.Booking.update(bookingId, {
-        status: 'completed',
-        completed_date: new Date().toISOString(), // Using completed_date as end_time
+        status: 'service_completed',
+        completed_date: new Date().toISOString(),
         distance_km: (distance / 1000).toFixed(2)
       });
       
-      toast.success("Passeio concluído! Bom trabalho.");
-      navigate(createPageUrl('ProfessionalDashboard'));
+      toast.success("🎉 Passeio concluído! Bom trabalho.");
+      setTimeout(() => {
+        navigate(createPageUrl('ProfessionalDashboard'));
+      }, 1500);
     } catch (error) {
-      console.error("Error finishing walk:", error);
-      toast.error("Erro ao finalizar passeio. Tente novamente.");
+      console.error("❌ Erro ao finalizar:", error);
+      toast.error("Erro ao finalizar passeio");
     }
   };
 

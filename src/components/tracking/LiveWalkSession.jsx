@@ -58,13 +58,22 @@ const LiveMapViewer = ({ path }) => {
 // --- MAIN COMPONENT ---
 
 export default function LiveWalkSession({ bookingId }) {
-  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ 
+    queryKey: ['currentUser'], 
+    queryFn: () => base44.auth.me() 
+  });
 
+  // ✅ Subscrição realtime filtrada por bookingId específico
   const { data: booking, isLoading } = useQuery({
     queryKey: ['liveBooking', bookingId],
-    queryFn: () => base44.entities.Booking.filter({ id: bookingId }).then(res => res[0]),
-    refetchInterval: 5000, // 5s refresh
-    enabled: !!bookingId, // Só busca se tiver ID
+    queryFn: async () => {
+      if (!bookingId) return null;
+      const bookings = await base44.entities.Booking.filter({ id: bookingId });
+      return bookings[0] || null;
+    },
+    refetchInterval: 3000, // Atualizar a cada 3s para realtime
+    enabled: !!bookingId,
+    retry: 2
   });
 
   if (!bookingId) return (
