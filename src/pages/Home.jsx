@@ -1763,11 +1763,10 @@ export default function Home() {
               </div>
             </div>
           </motion.div>
-        </div>
 
-        {/* Trust Badges Section */}
-        <div className="mt-12 mb-8">
-          <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+          {/* Trust Badges Section */}
+          <div className="mt-12 mb-8">
+            <div className="flex flex-wrap justify-center gap-6 md:gap-8">
             <motion.div 
               whileHover={{ scale: 1.05, y: -4 }}
               className="flex flex-col items-center gap-2 cursor-default group"
