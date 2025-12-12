@@ -550,7 +550,7 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-all duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 data-[state=collapsed]:w-[80px] ${
+        <Sidebar className={`backdrop-blur-xl border-r transition-all duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 shrink-0 ${
           colors?.isDarkMode 
             ? 'bg-slate-900/40 border-slate-700/20' 
             : 'bg-white/40 border-white/30'
