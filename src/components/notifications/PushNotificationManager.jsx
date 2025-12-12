@@ -24,31 +24,53 @@ export default function PushNotificationManager({ user }) {
   }, [user, permission]);
 
   const requestPermission = async () => {
+    // Verificar suporte a notificações (desktop e mobile)
     if (!('Notification' in window)) {
-      toast.error('Notificações não suportadas neste navegador');
+      toast.error('Notificações não suportadas neste dispositivo');
       return;
     }
 
+    // No mobile, verificar se está em PWA ou navegador
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     try {
+      // Solicitar permissão (funciona em desktop e mobile)
       const result = await Notification.requestPermission();
       setPermission(result);
       
       if (result === 'granted') {
-        toast.success('Notificações ativadas! 🔔');
+        toast.success('✅ Notificações ativadas com sucesso!');
         setShowBanner(false);
         
-        // Testar notificação
-        new Notification('PawCão', {
-          body: 'Notificações ativadas com sucesso!',
-          icon: '/logo.png',
-          badge: '/favicon.png'
-        });
+        // Testar notificação (compatível com desktop e mobile)
+        try {
+          const notification = new Notification('PawCão - Notificações Ativas', {
+            body: isMobile 
+              ? 'Você receberá alertas importantes no seu celular' 
+              : 'Você receberá alertas em tempo real',
+            icon: '/logo.png',
+            badge: '/favicon.png',
+            tag: 'welcome-notification',
+            requireInteraction: false,
+            vibrate: isMobile ? [200, 100, 200] : undefined,
+            silent: false
+          });
+
+          // Fechar automaticamente após 4 segundos
+          setTimeout(() => notification.close(), 4000);
+        } catch (notifError) {
+          console.log('Notification created but may not display:', notifError);
+          // Não mostrar erro ao usuário, pois a permissão foi concedida
+        }
+      } else if (result === 'denied') {
+        toast.error('❌ Permissão negada. Para ativar, vá em configurações do navegador.');
       } else {
-        toast.error('Permissão negada para notificações');
+        toast.info('⚠️ Permissão de notificações cancelada');
       }
     } catch (error) {
       console.error('Erro ao solicitar permissão:', error);
-      toast.error('Erro ao ativar notificações');
+      toast.error('Erro ao ativar notificações. Tente novamente.');
     }
   };
 
