@@ -528,6 +528,11 @@ function LayoutContent({ children, currentPageName }) {
           filter: brightness(0.95);
         }
 
+        /* Força renderização de SVGs em Windows/todos dispositivos */
+        svg {
+          display: block !important;
+        }
+
         /* --- 2. GLASSMORPHISM PREMIUM (Vidro Fosco) --- */
         .glass-panel {
           background: rgba(255, 255, 255, 0.7);
