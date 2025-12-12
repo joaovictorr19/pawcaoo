@@ -17,6 +17,7 @@ import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import { calculateTier } from "@/components/gamification/tierSystem";
 
 export default function Leaderboard() {
   const { language } = useLanguage();
@@ -47,17 +48,21 @@ export default function Leaderboard() {
           .map(id => userBadges.find(b => b.badge_id === id || b.id === id))
           .filter(Boolean);
 
+        const xp = p.gamification_xp || 0;
+        const tier = calculateTier(xp);
+
         return {
           id: p.user_id || p.id,
           name: p.full_name,
           photo: p.profile_photo_url,
-          secondary: `${p.gamification_xp || 0} XP`,
-          value: p.gamification_xp || 0,
+          secondary: `${tier.name} ${tier.icon} • ${xp} XP`,
+          value: xp,
           badges: userBadges,
-          pinnedBadges: pinnedBadges.slice(0, 2), // Take top 2
+          pinnedBadges: pinnedBadges.slice(0, 2),
           isVerified: p.is_verified,
           type: 'user',
-          email: p.user_email
+          email: p.user_email,
+          tier: tier
         };
       }).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
 
@@ -104,11 +109,13 @@ export default function Leaderboard() {
     return index !== -1 ? { rank: index + 1, data: activeList[index] } : null;
   }, [currentUser, activeList, activeCategory]);
 
-  const getPodiumStyle = (rank) => {
-    if (rank === 1) return "border-yellow-400/80 bg-gradient-to-br from-yellow-200/80 via-yellow-50/50 to-white/90 scale-110 z-20 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.6)] ring-4 ring-yellow-400/20 transform-gpu";
-    if (rank === 2) return "border-slate-300/80 bg-gradient-to-br from-slate-200/80 via-slate-50/50 to-white/90 mt-8 z-10 shadow-[0_10px_30px_-10px_rgba(148,163,184,0.4)] ring-2 ring-slate-300/20 transform-gpu";
-    if (rank === 3) return "border-orange-300/80 bg-gradient-to-br from-orange-200/80 via-orange-50/50 to-white/90 mt-16 z-0 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.4)] ring-2 ring-orange-300/20 transform-gpu";
-    return "";
+  const getPodiumStyle = (rank, item) => {
+    const tierColor = item?.tier?.colors?.gradient || 'from-blue-500 to-indigo-600';
+    
+    if (rank === 1) return `glass-panel border-yellow-400/80 scale-110 z-20 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.6)] ring-4 ring-yellow-400/20 transform-gpu`;
+    if (rank === 2) return `glass-panel border-slate-300/80 mt-8 z-10 shadow-[0_10px_30px_-10px_rgba(148,163,184,0.4)] ring-2 ring-slate-300/20 transform-gpu`;
+    if (rank === 3) return `glass-panel border-orange-300/80 mt-16 z-0 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.4)] ring-2 ring-orange-300/20 transform-gpu`;
+    return "glass-panel";
   };
 
   const renderBadge = (badge, idx) => (
@@ -197,7 +204,7 @@ export default function Leaderboard() {
                     <div className={`
                       relative rounded-2xl p-4 w-full flex flex-col items-center text-center
                       border-2 backdrop-blur-xl transition-all duration-300
-                      ${getPodiumStyle(rank)}
+                      ${getPodiumStyle(rank, item)}
                     `}>
                       <div className="relative overflow-visible w-fit mx-auto">
                         {rank === 1 && (
@@ -267,14 +274,14 @@ export default function Leaderboard() {
             </div>
 
             {/* LIST SECTION (4th - 50th) */}
-            <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 overflow-hidden">
+            <div className="glass-panel rounded-3xl shadow-xl overflow-hidden">
               {activeList.slice(3).map((item, idx) => (
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="flex items-center p-4 border-b border-gray-100/50 hover:bg-white/50 transition-colors cursor-pointer group"
+                  className="flex items-center p-4 border-b border-gray-100/50 hover:bg-white/30 transition-colors cursor-pointer group"
                   onClick={() => {
                       if(item.type === 'user') navigate(createPageUrl(`UserProfile?email=${item.email}`));
                       if(item.type === 'walker') navigate(createPageUrl(`WalkerDetails?id=${item.id}`));
