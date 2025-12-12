@@ -65,7 +65,7 @@ export default function DogSittingServices() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -79,7 +79,7 @@ export default function DogSittingServices() {
 
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {services.map((service) => (
-            <Card key={service.id} className="border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden">
+            <Card key={service.id} className="glass-panel border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden">
               <div className={`h-3 bg-gradient-to-r ${service.color}`} />
               <CardHeader className="text-center pt-8">
                 <div className={`w-16 h-16 bg-gradient-to-br ${service.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
@@ -108,7 +108,7 @@ export default function DogSittingServices() {
           ))}
         </div>
 
-        <Card className="border-2 border-blue-200 bg-blue-50">
+        <Card className="glass-panel border-2 border-blue-200">
           <CardContent className="p-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               {t('whyChooseDogSitting', language)}
