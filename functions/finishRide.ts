@@ -66,16 +66,16 @@ Deno.serve(async (req) => {
       console.error('Erro ao atualizar gamification:', err);
     }
 
-    // ✅ 5. Notificar Cliente
+    // ✅ 5. Notificar Cliente - Passeio Concluído + Solicitação de Review
     try {
       await base44.asServiceRole.entities.Notification.create({
         recipient_email: booking.owner_email || booking.created_by,
         title: '✅ Passeio Concluído!',
-        message: `${user.full_name} concluiu o passeio com ${booking.dog_name}. Por favor, confirme o pagamento de €${booking.service_amount}.`,
+        message: `${user.full_name} concluiu o passeio com ${booking.dog_name}. Veja a foto e confirme o pagamento de €${booking.service_amount}.`,
         type: 'booking',
         related_id: rideId,
         priority: 'high',
-        action_url: '/MyBookings'
+        action_url: `/MyBookings?review=${rideId}`
       });
       console.log('📧 Cliente notificado');
     } catch (err) {

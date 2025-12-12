@@ -36,6 +36,9 @@ import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
+import PushNotificationManager from "@/components/notifications/PushNotificationManager";
+import { useRealtimeNotifications } from "@/components/notifications/useRealtimeNotifications";
+import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import "./globals.css";
 
 // Query optimization configs - v1.1
@@ -216,6 +219,9 @@ function LayoutContent({ children, currentPageName }) {
   });
 
   const unreadCount = notifications?.length || 0;
+
+  // ✅ Sistema de Notificações em Tempo Real
+  useRealtimeNotifications(authUser);
 
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
@@ -753,6 +759,12 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarContent>
             </Sidebar>
             )}
+
+            {/* Push Notification Manager */}
+            <PushNotificationManager user={authUser} />
+
+            {/* Notification Triggers (invisible) */}
+            <NotificationTriggers user={authUser} />
 
             <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
             <header className="glass-panel px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300">

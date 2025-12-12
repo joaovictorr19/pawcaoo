@@ -130,8 +130,18 @@ export default function ProfessionalDashboard() {
             label: 'Aceitar Agora',
             onClick: () => setActiveTab('bookings')
           },
-          duration: 10000 // Mais tempo para solicitações diretas
+          duration: 10000
         });
+        
+        // Browser Push
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('🎯 Nova Solicitação Direta!', {
+            body: `${newBooking.owner_name} escolheu você para passear ${newBooking.dog_name}`,
+            icon: '/logo.png',
+            badge: '/favicon.png',
+            requireInteraction: true
+          });
+        }
         
         try {
           new Audio('/notification.mp3').play().catch(() => {});

@@ -72,10 +72,25 @@ function useRideTracker(rideId) {
 
     // ✅ ATUALIZAR STATUS DA RESERVA PARA "in_progress"
     try {
+      const booking = await base44.entities.Booking.filter({ id: rideId }).then(r => r[0]);
+      
       await base44.entities.Booking.update(rideId, { 
         status: 'in_progress',
         walk_start_time: new Date().toISOString()
       });
+
+      // 🔔 Notificar Cliente: Passeio Iniciado
+      if (booking?.owner_email || booking?.created_by) {
+        await base44.entities.Notification.create({
+          recipient_email: booking.owner_email || booking.created_by,
+          title: '🚀 Passeio Iniciado!',
+          message: `O passeio com ${booking.dog_name} começou. Acompanhe em tempo real!`,
+          type: 'booking',
+          related_id: rideId,
+          priority: 'high',
+          action_url: `/LiveWalkTracking?id=${rideId}`
+        });
+      }
     } catch (err) {
       console.error('Erro ao iniciar ride:', err);
       toast.error('Erro ao atualizar status do passeio');
