@@ -1080,7 +1080,7 @@ export default function Home() {
                 setActiveTab(val);
               }
             }} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
+              <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
                   className={`text-xs md:text-sm font-semibold rounded-lg transition-all ${
