@@ -170,7 +170,7 @@ export default function Notifications() {
             ))}
           </div>
         ) : filteredNotifications.length === 0 ? (
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardContent className="p-8 md:p-12 text-center">
               <Bell className="w-12 h-12 md:w-20 md:h-20 text-gray-300 mx-auto mb-3 md:mb-4" />
               <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-1 md:mb-2">{t('noNotifications', language)}</h3>

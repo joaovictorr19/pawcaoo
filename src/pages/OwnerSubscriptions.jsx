@@ -185,7 +185,7 @@ export default function OwnerSubscriptions() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Compact Header */}
         <div className="text-center mb-6">
@@ -229,7 +229,7 @@ export default function OwnerSubscriptions() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                <Card className={`border-0 shadow-xl hover:shadow-2xl transition-all h-full ${
+                <Card className={`glass-panel border-0 shadow-xl hover:shadow-2xl transition-all h-full ${
                   plan.popular ? 'ring-2 ring-blue-400' : ''
                 }`}>
                   {plan.popular && (
@@ -281,7 +281,7 @@ export default function OwnerSubscriptions() {
         </div>
 
         {/* Collapsible Comparison Table */}
-        <Card className="border-0 shadow-xl mb-6">
+        <Card className="glass-panel border-0 shadow-xl mb-6">
           <CardHeader 
             className="cursor-pointer hover:bg-gray-50 transition-colors p-4"
             onClick={() => setShowComparison(!showComparison)}
