@@ -186,8 +186,9 @@ export default function Chat() {
       queryClient.invalidateQueries(["conversation", bookingId]);
       setMessage("");
     },
-    onError: () => {
-      toast.error("Erro ao enviar mensagem");
+    onError: (error) => {
+      console.error("Error sending message:", error);
+      toast.error("Erro ao enviar mensagem: " + (error.message || "Desconhecido"));
     },
   });
 
@@ -510,12 +511,19 @@ export default function Chat() {
 
   // Handle send message
   const handleSendMessage = () => {
-    if (!message.trim() || !conversation?.id) {
-      if (!conversation?.id) {
-        toast.error("Aguarde o carregamento do chat...");
-      }
+    if (!message.trim()) return;
+    
+    if (!conversation?.id) {
+      toast.error("Aguarde o carregamento do chat...");
       return;
     }
+    
+    if (!user?.email) {
+      toast.error("Usuário não autenticado");
+      return;
+    }
+    
+    console.log("Sending message:", { text: message, conversationId: conversation.id, userEmail: user.email });
     sendMessageMutation.mutate({ text: message, type: "text" });
   };
 
