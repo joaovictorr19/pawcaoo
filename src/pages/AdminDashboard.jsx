@@ -3110,23 +3110,29 @@ export default function AdminDashboard() {
           <DialogContent className="max-w-md h-[85vh] md:h-[80vh] flex flex-col p-4 md:p-6">
             <DialogHeader>
               <DialogTitle className="text-lg md:text-xl">Entregar Emblema</DialogTitle>
-              <DialogDescription className="text-sm">
-                Para: <span className="font-semibold text-gray-900 break-all">{grantBadgeTargetEmail}</span>
+              <DialogDescription className="text-sm break-all">
+                Para: <span className="font-semibold text-gray-900">{grantBadgeTargetEmail}</span>
               </DialogDescription>
             </DialogHeader>
             
             <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 md:w-4 md:h-4 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
               <Input 
                 placeholder="Buscar emblema..." 
                 value={badgeSearchTerm}
                 onChange={(e) => setBadgeSearchTerm(e.target.value)}
-                className="pl-10 h-11 md:h-9 text-base md:text-sm"
+                className="pl-10 h-10 md:h-9 text-sm"
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1 md:pr-2 space-y-2">
-              {badgeDefinitions.length === 0 ? (
+            <div className="flex-1 overflow-y-auto pr-1 space-y-2">
+              {loadingBadges ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : badgeDefinitions.length === 0 ? (
                 <div className="text-center py-10">
                   <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm mb-3">Nenhum emblema na biblioteca.</p>
@@ -3149,13 +3155,13 @@ export default function AdminDashboard() {
                   <div 
                     key={badge.id} 
                     onClick={() => setSelectedBadgeToGrant(badge)}
-                    className={`flex items-center gap-2 md:gap-3 p-3 md:p-3 rounded-xl border-2 transition-all cursor-pointer active:scale-[0.98] ${
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer active:scale-[0.98] ${
                       selectedBadgeToGrant?.id === badge.id 
-                        ? 'border-purple-600 bg-purple-100 shadow-md ring-2 ring-purple-300' 
+                        ? 'border-purple-600 bg-purple-100 shadow-md' 
                         : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white'
                     }`}
                   >
-                    <div className="w-14 h-14 md:w-12 md:h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center shadow-sm text-3xl md:text-2xl border border-gray-100">
+                    <div className="w-12 h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100">
                       {badge.image_url || badge.image_png_file ? (
                         <img 
                           src={badge.image_png_file || badge.image_url} 
@@ -3163,21 +3169,21 @@ export default function AdminDashboard() {
                           alt={badge.name}
                         />
                       ) : (
-                        <span className="text-3xl">{badge.icon}</span>
+                        <span className="text-2xl">{badge.icon}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm md:text-sm text-gray-900 truncate">{badge.name}</h4>
+                      <h4 className="font-bold text-sm text-gray-900 truncate">{badge.name}</h4>
                       <p className="text-xs text-gray-600 line-clamp-2">{badge.description}</p>
-                      <div className="flex gap-2 mt-1.5 flex-wrap">
+                      <div className="flex gap-1.5 mt-1.5 flex-wrap">
                         <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{badge.rarity}</Badge>
-                        {badge.xp > 0 && <Badge className="text-[10px] bg-green-100 text-green-700 border-green-300 h-5">+{badge.xp} XP</Badge>}
+                        {(badge.xp || 0) > 0 && <Badge className="text-[10px] bg-green-100 text-green-700 h-5">+{badge.xp} XP</Badge>}
                       </div>
                     </div>
-                    <div className={`w-6 h-6 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                       selectedBadgeToGrant?.id === badge.id ? 'border-purple-600 bg-purple-600' : 'border-gray-400'
                     }`}>
-                      {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
+                      {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
                   </div>
                 ))
