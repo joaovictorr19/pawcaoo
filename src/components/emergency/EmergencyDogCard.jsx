@@ -6,11 +6,9 @@ import { MapPin, Clock, DollarSign, Zap, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useTheme } from "@/components/ThemeContext";
-import { useTheme } from "@/components/ThemeContext";
 
 export default function EmergencyDogCard({ walk }) {
   const navigate = useNavigate();
-  const { colors } = useTheme();
   const { colors } = useTheme();
 
   const getSizeLabel = (size) => {
@@ -126,7 +124,10 @@ export default function EmergencyDogCard({ walk }) {
         )}
 
         <Button 
-          className="w-full text-white shadow-lg h-12 text-base font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+          className="w-full text-white shadow-lg h-12 text-base font-semibold hover:opacity-90"
+          style={{
+            background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+          }}
           onClick={() => navigate(createPageUrl(`EmergencyWalkDetails?id=${walk.id}`))}
         >
           <Zap className="w-5 h-5 mr-2" />
