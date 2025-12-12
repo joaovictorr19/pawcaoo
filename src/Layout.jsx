@@ -1026,7 +1026,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 ${
+          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 rounded-b-3xl ${
             colors?.isDarkMode ? 'bg-slate-900/90 border-slate-700/60' : 'bg-white/80 border-white/40'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
