@@ -100,8 +100,8 @@ export default function LiveWalkTracking() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-900 p-0">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
