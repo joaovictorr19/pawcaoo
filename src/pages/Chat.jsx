@@ -384,6 +384,14 @@ export default function Chat() {
   // Start service (check-in)
   const startServiceMutation = useMutation({
     mutationFn: async () => {
+      // Request notification permission for walker
+      if ('Notification' in window && Notification.permission === 'default') {
+        const walkerPermission = await Notification.requestPermission();
+        if (walkerPermission === 'granted') {
+          toast.success("✅ Notificações ativadas!");
+        }
+      }
+
       // Request location permission explicitly
       return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
@@ -417,7 +425,7 @@ export default function Chat() {
               last_update: new Date().toISOString(),
             });
 
-            // Notify owner
+            // Notify owner with notification permission prompt
             await base44.entities.Notification.create({
               recipient_email: booking.created_by || booking.owner_email,
               title: "🚶 Passeio Iniciado!",
@@ -426,6 +434,17 @@ export default function Chat() {
               related_id: bookingId,
               priority: "high",
             });
+
+            // Send browser push to owner if permission granted
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('🚶 Passeio Iniciado!', {
+                body: `${booking.walker_name} iniciou o passeio com ${booking.dog_name}`,
+                icon: '/logo.png',
+                badge: '/favicon.png',
+                tag: `start_${bookingId}`,
+                vibrate: [200, 100, 200]
+              });
+            }
 
             toast.success("🎯 Rastreamento GPS ativado! A localização será atualizada automaticamente.");
             resolve();
