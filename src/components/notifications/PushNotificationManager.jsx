@@ -90,6 +90,7 @@ export default function PushNotificationManager({ user }) {
   const dismissBanner = () => {
     setShowBanner(false);
     localStorage.setItem('push_banner_dismissed', 'true');
+    localStorage.setItem('push_banner_dismissed_time', Date.now().toString());
   };
 
   if (!user) return null;
