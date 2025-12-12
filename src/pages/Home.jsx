@@ -537,6 +537,39 @@ export default function Home() {
   });
 
   // Stats em tempo real
+  // Featured items for floating elements
+  const { data: featuredWalkers = [] } = useQuery({
+    queryKey: ['featuredWalkers'],
+    queryFn: async () => {
+      const walkers = await base44.entities.WalkerProfile.filter({ 
+        is_active: true, 
+        verification_status: 'verified' 
+      }, '-rating', 6);
+      return walkers.filter(w => w.photo_url);
+    },
+    initialData: [],
+  });
+
+  const { data: featuredDogs = [] } = useQuery({
+    queryKey: ['featuredDogs'],
+    queryFn: async () => {
+      const dogs = await base44.entities.DogProfile.list('-created_date', 6);
+      return dogs.filter(d => d.photo_url);
+    },
+    initialData: [],
+  });
+
+  const { data: featuredAdoptions = [] } = useQuery({
+    queryKey: ['featuredAdoptions'],
+    queryFn: async () => {
+      const adoptions = await base44.entities.AdoptionListing.filter({ 
+        status: 'available' 
+      }, '-created_date', 6);
+      return adoptions.filter(a => a.primary_photo_url);
+    },
+    initialData: [],
+  });
+
   const { data: stats } = useQuery({
     queryKey: ['platformStats'],
     queryFn: async () => {
@@ -1103,30 +1136,125 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="text-center max-w-4xl mx-auto">
-              {/* Estatísticas em Tempo Real */}
-              <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
-                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
-                  <Users className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-bold text-slate-700">{stats.totalWalkers}</span>
-                  <span className="text-xs text-slate-600">Walkers</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
-                  <Dog className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-bold text-slate-700">{stats.happyDogs}</span>
-                  <span className="text-xs text-slate-600">Cães Felizes</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
-                  <Heart className="w-4 h-4 text-pink-600 fill-pink-600" />
-                  <span className="text-sm font-bold text-slate-700">{stats.adoptedDogs}</span>
-                  <span className="text-xs text-slate-600">Adoções</span>
-                </div>
-              </div>
+            <div className="text-center max-w-6xl mx-auto relative">
+              {/* Floating Interactive Elements */}
+              <div className="relative mb-8">
+                {/* Walkers - Top Left & Top Right */}
+                {featuredWalkers.slice(0, 2).map((walker, idx) => (
+                  <motion.div
+                    key={`walker-${walker.id}`}
+                    initial={{ opacity: 0, scale: 0.5, y: -20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
+                    onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
+                      className="relative"
+                    >
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110">
+                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        🚶 Walker
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
 
-              <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-orange-500 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative">
-                <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-indigo-300 via-purple-300 to-orange-300 opacity-20 -z-10"></span>
-                {t('homeTitle', language)}
-              </h1>
+                {/* Happy Dogs - Middle Left & Right */}
+                {featuredDogs.slice(0, 2).map((dog, idx) => (
+                  <motion.div
+                    key={`dog-${dog.id}`}
+                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
+                    onClick={() => navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`))}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
+                      className="relative"
+                    >
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110">
+                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        🐕 {dog.dog_name}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
+
+                {/* Adoptions - Bottom Left & Right */}
+                {featuredAdoptions.slice(0, 2).map((adoption, idx) => (
+                  <motion.div
+                    key={`adoption-${adoption.id}`}
+                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 0.6 + idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden lg:block ${idx === 0 ? '-left-12 bottom-8' : '-right-12 bottom-8'} cursor-pointer group z-20`}
+                    onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
+                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.9 }}
+                      className="relative"
+                    >
+                      <div className="w-18 h-18 rounded-2xl overflow-hidden border-4 border-pink-400 shadow-2xl group-hover:border-pink-600 transition-all group-hover:scale-110">
+                        <img src={adoption.primary_photo_url} alt={adoption.pet_name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        ❤️ Adotar
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
+
+                {/* Center Title with Stats */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 }}
+                >
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      onClick={() => setActiveTab('walkers')}
+                    >
+                      <Users className="w-4 h-4" />
+                      <span className="text-sm font-bold">{stats.totalWalkers}</span>
+                      <span className="text-xs opacity-90">Walkers</span>
+                    </motion.div>
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full shadow-lg cursor-default"
+                    >
+                      <Dog className="w-4 h-4" />
+                      <span className="text-sm font-bold">{stats.happyDogs}</span>
+                      <span className="text-xs opacity-90">Cães Felizes</span>
+                    </motion.div>
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      onClick={() => setActiveTab('adoption')}
+                    >
+                      <Heart className="w-4 h-4 fill-white" />
+                      <span className="text-sm font-bold">{stats.adoptedDogs}</span>
+                      <span className="text-xs opacity-90">Adoções</span>
+                    </motion.div>
+                  </div>
+
+                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-orange-500 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative px-4">
+                    <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-indigo-300 via-purple-300 to-orange-300 opacity-20 -z-10"></span>
+                    {t('homeTitle', language)}
+                  </h1>
+                </motion.div>
+              </div>
 
               <p className="text-xl text-slate-700 mb-6 max-w-2xl mx-auto font-medium">
                 Passeadores verificados, treinadores experientes e muito carinho.
