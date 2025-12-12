@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -199,6 +198,13 @@ export default function AdminDashboard() {
   const [broadcastContent, setBroadcastContent] = useState("");
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
 
+  // Product management states
+  const [productFilter, setProductFilter] = useState('all');
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(null);
+
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -269,8 +275,15 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'products',
     initialData: [],
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
+
+  const filteredProducts = React.useMemo(() => {
+    if (productFilter === 'all') return allPartnerProducts;
+    return allPartnerProducts.filter(p => p.moderation_status === productFilter);
+  }, [allPartnerProducts, productFilter]);
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
@@ -475,6 +488,31 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
       queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); 
       toast.success("Anúncio eliminado!");
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      return await base44.entities.PartnerProduct.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
+      setShowProductModal(false);
+      setEditingProduct(null);
+      toast.success('Produto atualizado!');
+    },
+  });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id) => {
+      return await base44.entities.PartnerProduct.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
+      setShowDeleteProductConfirm(null);
+      toast.success('Produto eliminado!');
     },
   });
 
@@ -1852,134 +1890,165 @@ export default function AdminDashboard() {
           <TabsContent value="products">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>Produtos da Loja ({allPartnerProducts.length})</CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  {pendingProducts.length} pendentes • {allPartnerProducts.filter(p => p.moderation_status === 'approved' && p.is_available).length} ativos
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <CardTitle>Produtos da Loja ({filteredProducts.length})</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {pendingProducts.length} pendentes • {allPartnerProducts.filter(p => p.moderation_status === 'approved' && p.is_available).length} ativos
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={productFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductFilter('all')}
+                    >
+                      Todos ({allPartnerProducts.length})
+                    </Button>
+                    <Button
+                      variant={productFilter === 'pending' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductFilter('pending')}
+                      className={productFilter === 'pending' ? 'bg-orange-500' : ''}
+                    >
+                      Em Análise ({allPartnerProducts.filter(p => p.moderation_status === 'pending').length})
+                    </Button>
+                    <Button
+                      variant={productFilter === 'approved' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductFilter('approved')}
+                      className={productFilter === 'approved' ? 'bg-green-600' : ''}
+                    >
+                      Aprovados ({allPartnerProducts.filter(p => p.moderation_status === 'approved').length})
+                    </Button>
+                    <Button
+                      variant={productFilter === 'rejected' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductFilter('rejected')}
+                      className={productFilter === 'rejected' ? 'bg-red-600' : ''}
+                    >
+                      Rejeitados ({allPartnerProducts.filter(p => p.moderation_status === 'rejected').length})
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                {loadingProducts && allPartnerProducts.length === 0 ? (
+                {loadingProducts && filteredProducts.length === 0 ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
                   </div>
-                ) : allPartnerProducts.length === 0 ? (
+                ) : filteredProducts.length === 0 ? (
                   <div className="text-center py-12">
                     <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhum produto cadastrado</p>
+                    <p className="text-gray-600">Nenhum produto encontrado</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {allPartnerProducts.map((product) => {
+                    {filteredProducts.map((product) => {
                       const isPending = product.moderation_status === 'pending';
                       const isApproved = product.moderation_status === 'approved';
                       const isActive = product.is_available;
 
                       return (
-                        <Card key={product.id} className={`border-2 ${
-                          isPending ? 'border-orange-200 bg-orange-50' :
-                          isApproved && isActive ? 'border-green-200 bg-green-50' :
-                          isApproved && !isActive ? 'border-gray-300 bg-gray-100' :
-                          'border-red-200 bg-red-50'
-                        }`}>
+                        <Card 
+                          key={product.id} 
+                          className={`border-2 cursor-pointer hover:shadow-lg transition-all ${
+                            isPending ? 'border-orange-200 bg-orange-50' :
+                            isApproved && isActive ? 'border-green-200 bg-green-50' :
+                            isApproved && !isActive ? 'border-gray-300 bg-gray-100' :
+                            'border-red-200 bg-red-50'
+                          }`}
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShowProductModal(true);
+                          }}
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               {product.image_url && (
                                 <img 
                                   src={product.image_url} 
-                                  className="w-20 h-20 object-cover rounded-lg" 
+                                  className="w-24 h-24 object-cover rounded-lg flex-shrink-0" 
                                   alt={product.product_name}
                                 />
                               )}
-                              <div className="flex-1">
-                                <h3 className="font-bold text-lg">{product.product_name}</h3>
-                                <p className="text-sm text-gray-600">{product.partner_name}</p>
-                                <p className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-lg truncate">{product.product_name}</h3>
+                                <p className="text-sm text-gray-600 truncate">{product.partner_name}</p>
+                                <p className="text-xs text-gray-500 line-clamp-2 mt-1">{product.description}</p>
                                 <div className="flex gap-2 mt-2 flex-wrap">
                                   <Badge className={
                                     isPending ? 'bg-orange-500' :
                                     product.moderation_status === 'approved' ? 'bg-green-600' :
                                     'bg-red-600'
                                   }>
-                                    {product.moderation_status}
-                                  </Badge>
-                                  <Badge variant="outline">
-                                    {isActive ? `🟢 Disponível` : `🔴 Oculto`}
+                                    {isPending ? '⏳ Análise' : product.moderation_status === 'approved' ? '✅ Aprovado' : '❌ Rejeitado'}
                                   </Badge>
                                   <Badge variant="outline">€{product.price_euro}</Badge>
-                                  {product.points_cost > 0 && (
-                                    <Badge variant="outline">{product.points_cost} pts</Badge>
-                                  )}
                                   <Badge variant="outline" className="capitalize">{product.category}</Badge>
+                                  <Badge variant="outline">Stock: {product.stock_quantity || 0}</Badge>
+                                  {isActive ? (
+                                    <Badge className="bg-blue-600">🟢 Visível</Badge>
+                                  ) : (
+                                    <Badge variant="outline">🔴 Oculto</Badge>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex gap-2">
-                                {isPending ? (
+                              <div className="flex flex-col gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                {isPending && (
                                   <>
                                     <Button
                                       size="sm"
-                                      onClick={async () => {
-                                        await base44.entities.PartnerProduct.update(product.id, {
-                                          moderation_status: 'approved',
-                                          is_available: true
-                                        });
-                                        queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
-                                        queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
-                                        toast.success("✅ Produto aprovado e visível na loja!");
-                                      }}
-                                      className="bg-green-600"
+                                      onClick={() => updateProductMutation.mutate({
+                                        id: product.id,
+                                        data: { moderation_status: 'approved', is_available: true }
+                                      })}
+                                      className="bg-green-600 whitespace-nowrap"
                                     >
-                                      ✓ Aprovar
+                                      Aprovar
                                     </Button>
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={async () => {
+                                      onClick={() => {
                                         const reason = prompt('Motivo da rejeição:');
                                         if (!reason) return;
-                                        await base44.entities.PartnerProduct.update(product.id, {
-                                          moderation_status: 'rejected',
-                                          is_available: false,
-                                          rejection_reason: reason
+                                        updateProductMutation.mutate({
+                                          id: product.id,
+                                          data: { moderation_status: 'rejected', is_available: false, rejection_reason: reason }
                                         });
-                                        queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
-                                        toast.success("Produto rejeitado");
                                       }}
-                                      className="text-red-600"
+                                      className="border-red-500 text-red-600 whitespace-nowrap"
                                     >
-                                      ✗ Rejeitar
+                                      Rejeitar
                                     </Button>
                                   </>
-                                ) : isApproved && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={async () => {
-                                      await base44.entities.PartnerProduct.update(product.id, {
-                                        is_available: !isActive 
-                                      });
-                                      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
-                                      queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
-                                      toast.success(`Produto ${!isActive ? 'ativado' : 'desativado'}!`);
-                                    }}
-                                    className={isActive ? 'text-orange-600 border-orange-300' : 'text-green-600 border-green-300'}
-                                  >
-                                    {isActive ? '⏸ Ocultar' : '▶ Mostrar'}
-                                  </Button>
                                 )}
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={async () => {
-                                    if (confirm(`Eliminar "${product.product_name}"?`)) {
-                                      await base44.entities.PartnerProduct.delete(product.id);
-                                      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
-                                      queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
-                                      toast.success('✅ Produto eliminado!');
-                                    }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingProduct(product);
+                                    setSelectedProduct(product);
+                                    setShowProductModal(true);
                                   }}
-                                  className="text-red-600 border-red-200"
+                                  className="whitespace-nowrap"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Edit className="w-3 h-3 mr-1" />
+                                  Editar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-500 text-red-600 whitespace-nowrap"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowDeleteProductConfirm(product);
+                                  }}
+                                >
+                                  <Trash2 className="w-3 h-3 mr-1" />
+                                  Deletar
                                 </Button>
                               </div>
                             </div>
@@ -3125,6 +3194,306 @@ export default function AdminDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {/* Product Detail/Edit Modal */}
+        <Dialog open={showProductModal} onOpenChange={(open) => {
+          if (!open) {
+            setShowProductModal(false);
+            setSelectedProduct(null);
+            setEditingProduct(null);
+          }
+        }}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingProduct ? 'Editar Produto' : 'Detalhes do Produto'}</DialogTitle>
+            </DialogHeader>
+            {selectedProduct && (
+              <div className="space-y-4 py-4">
+                {editingProduct ? (
+                  <>
+                    <div>
+                      <Label>Imagem</Label>
+                      {editingProduct.image_url && (
+                        <img src={editingProduct.image_url} className="w-full max-w-md h-48 object-cover rounded-lg mb-2" alt="Product" />
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            try {
+                              const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                              setEditingProduct({ ...editingProduct, image_url: file_url });
+                              toast.success("Imagem carregada!");
+                            } catch (error) {
+                              toast.error("Erro ao carregar imagem");
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Nome do Produto</Label>
+                      <Input
+                        value={editingProduct.product_name || ""}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, product_name: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Descrição</Label>
+                      <Textarea
+                        value={editingProduct.description || ""}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Preço (€)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingProduct.price_euro || ""}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, price_euro: parseFloat(e.target.value) })}
+                        />
+                      </div>
+                      <div>
+                        <Label>Custo em Pontos</Label>
+                        <Input
+                          type="number"
+                          value={editingProduct.points_cost || ""}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, points_cost: parseInt(e.target.value) })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Stock</Label>
+                        <Input
+                          type="number"
+                          value={editingProduct.stock_quantity || ""}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, stock_quantity: parseInt(e.target.value) })}
+                        />
+                      </div>
+                      <div>
+                        <Label>Desconto (%)</Label>
+                        <Input
+                          type="number"
+                          value={editingProduct.discount_percentage || ""}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, discount_percentage: parseInt(e.target.value) })}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>Categoria</Label>
+                      <Select value={editingProduct.category} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="food">🍖 Comida</SelectItem>
+                          <SelectItem value="toys">🎾 Brinquedos</SelectItem>
+                          <SelectItem value="accessories">🎀 Acessórios</SelectItem>
+                          <SelectItem value="grooming">✂️ Grooming</SelectItem>
+                          <SelectItem value="health">💊 Saúde</SelectItem>
+                          <SelectItem value="training">🎓 Treino</SelectItem>
+                          <SelectItem value="other">📦 Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Status de Moderação</Label>
+                      <Select value={editingProduct.moderation_status} onValueChange={(v) => setEditingProduct({ ...editingProduct, moderation_status: v })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Em Análise</SelectItem>
+                          <SelectItem value="approved">Aprovado</SelectItem>
+                          <SelectItem value="rejected">Rejeitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {editingProduct.moderation_status === 'rejected' && (
+                      <div>
+                        <Label>Motivo da Rejeição</Label>
+                        <Textarea
+                          value={editingProduct.rejection_reason || ""}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, rejection_reason: e.target.value })}
+                          rows={2}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editingProduct.is_available || false}
+                        onChange={(e) => setEditingProduct({ ...editingProduct, is_available: e.target.checked })}
+                        className="w-4 h-4 accent-blue-600"
+                      />
+                      <Label>Produto Visível na Loja</Label>
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => setEditingProduct(null)}
+                        className="flex-1"
+                      >
+                        Cancelar Edição
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          updateProductMutation.mutate({
+                            id: editingProduct.id,
+                            data: {
+                              product_name: editingProduct.product_name,
+                              description: editingProduct.description,
+                              category: editingProduct.category,
+                              price_euro: editingProduct.price_euro,
+                              points_cost: editingProduct.points_cost,
+                              stock_quantity: editingProduct.stock_quantity,
+                              discount_percentage: editingProduct.discount_percentage,
+                              image_url: editingProduct.image_url,
+                              moderation_status: editingProduct.moderation_status,
+                              rejection_reason: editingProduct.rejection_reason,
+                              is_available: editingProduct.is_available
+                            }
+                          });
+                        }}
+                        className="flex-1 bg-blue-600"
+                        disabled={updateProductMutation.isPending}
+                      >
+                        Salvar Alterações
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {selectedProduct.image_url && (
+                      <img src={selectedProduct.image_url} className="w-full max-w-md mx-auto h-64 object-cover rounded-xl" alt={selectedProduct.product_name} />
+                    )}
+
+                    <div>
+                      <h3 className="text-2xl font-bold">{selectedProduct.product_name}</h3>
+                      <p className="text-gray-600 mt-1">{selectedProduct.partner_name}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 py-4 border-y">
+                      <div>
+                        <Label className="text-xs text-gray-500">Preço</Label>
+                        <p className="text-xl font-bold text-indigo-600">€{selectedProduct.price_euro}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Custo em Pontos</Label>
+                        <p className="text-xl font-bold text-purple-600">{selectedProduct.points_cost || 0} pts</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Stock Disponível</Label>
+                        <p className="text-xl font-bold">{selectedProduct.stock_quantity || 0}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Desconto</Label>
+                        <p className="text-xl font-bold text-red-600">{selectedProduct.discount_percentage || 0}%</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm text-gray-500">Descrição</Label>
+                      <p className="text-gray-800 mt-1">{selectedProduct.description}</p>
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge className={
+                        selectedProduct.moderation_status === 'pending' ? 'bg-orange-500' :
+                        selectedProduct.moderation_status === 'approved' ? 'bg-green-600' :
+                        'bg-red-600'
+                      }>
+                        {selectedProduct.moderation_status === 'pending' ? '⏳ Em Análise' :
+                         selectedProduct.moderation_status === 'approved' ? '✅ Aprovado' : '❌ Rejeitado'}
+                      </Badge>
+                      <Badge variant="outline" className="capitalize">{selectedProduct.category}</Badge>
+                      <Badge className={selectedProduct.is_available ? 'bg-blue-600' : 'bg-gray-600'}>
+                        {selectedProduct.is_available ? '🟢 Visível' : '🔴 Oculto'}
+                      </Badge>
+                    </div>
+
+                    {selectedProduct.rejection_reason && (
+                      <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                        <Label className="text-xs text-red-600">Motivo da Rejeição</Label>
+                        <p className="text-sm text-red-800 mt-1">{selectedProduct.rejection_reason}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => setEditingProduct(selectedProduct)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar Produto
+                      </Button>
+                      {selectedProduct.moderation_status === 'pending' && (
+                        <Button
+                          onClick={() => updateProductMutation.mutate({
+                            id: selectedProduct.id,
+                            data: { moderation_status: 'approved', is_available: true }
+                          })}
+                          className="bg-green-600"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Aprovar
+                        </Button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Product Confirmation */}
+        <Dialog open={!!showDeleteProductConfirm} onOpenChange={() => setShowDeleteProductConfirm(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirmar Eliminação</DialogTitle>
+            </DialogHeader>
+            {showDeleteProductConfirm && (
+              <div className="space-y-4 py-4">
+                <p className="text-gray-700">
+                  Tem certeza que deseja eliminar o produto <strong>{showDeleteProductConfirm.product_name}</strong>?
+                </p>
+                <p className="text-sm text-red-600">Esta ação não pode ser desfeita.</p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteProductConfirm(null)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => deleteProductMutation.mutate(showDeleteProductConfirm.id)}
+                    className="flex-1 bg-red-600"
+                    disabled={deleteProductMutation.isPending}
+                  >
+                    Eliminar Produto
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Application Details Dialog */}
         <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
