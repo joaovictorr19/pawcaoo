@@ -54,10 +54,11 @@ export default function EditWalkerProfile() {
       const sensitiveFields = ['photo_url', 'bio', 'hourly_rate', 'cover_photo_url', 'video_intro_url', 'experience_years'];
       const hasSensitiveChanges = Object.keys(changes).some(key => sensitiveFields.includes(key));
       
-      // Force pending_approval if sensitive data changed
+      // Force pending if sensitive data changed BUT keep profile active and visible
       const updateData = {
         ...changes,
-        ...(hasSensitiveChanges ? { verification_status: 'pending_approval' } : {})
+        ...(hasSensitiveChanges ? { verification_status: 'pending' } : {}),
+        is_active: true // CRITICAL: Keep profile visible during review
       };
       
       await base44.entities.WalkerProfile.update(walkerProfile.id, updateData);
