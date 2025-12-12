@@ -64,6 +64,7 @@ import ShelterRegister from './pages/ShelterRegister';
 import ShelterProfile from './pages/ShelterProfile';
 import EditWalkerProfile from './pages/EditWalkerProfile';
 import WalkerTrack from './pages/WalkerTrack';
+import BecomeProfessional from './pages/BecomeProfessional';
 import __Layout from './Layout.jsx';
 
 
@@ -134,6 +135,7 @@ export const PAGES = {
     "ShelterProfile": ShelterProfile,
     "EditWalkerProfile": EditWalkerProfile,
     "WalkerTrack": WalkerTrack,
+    "BecomeProfessional": BecomeProfessional,
 }
 
 export const pagesConfig = {
