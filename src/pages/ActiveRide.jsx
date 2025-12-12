@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
@@ -16,12 +16,14 @@ import {
   Loader2, 
   MapPin,
   CheckCircle,
-  Phone
+  Phone,
+  Camera
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRideTracker } from '@/components/tracking/useRideTracker';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import FinishRideModal from '../components/tracking/FinishRideModal';
 
 /**
  * ✅ PÁGINA DE RASTREAMENTO COM INTEGRIDADE DE DADOS
@@ -129,6 +131,31 @@ export default function ActiveRide() {
     stopTracking, 
     finishRide 
   } = useRideTracker(rideId);
+
+  // ✅ Mutation para finalizar passeio com backend
+  const finishRideMutation = useMutation({
+    mutationFn: async ({ photoUrl, forcedFinishReason, actualDistance }) => {
+      const response = await base44.functions.invoke('finishRide', {
+        rideId,
+        photoUrl,
+        forcedFinishReason,
+        actualDistance
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('🎉 Passeio finalizado!');
+      queryClient.invalidateQueries(['activeRide', rideId]);
+      queryClient.invalidateQueries(['myWalkBookings']);
+      setTimeout(() => {
+        navigate(createPageUrl('ProfessionalDashboard'));
+      }, 1500);
+    },
+    onError: (error) => {
+      console.error('Erro:', error);
+      toast.error('Erro ao finalizar');
+    }
+  });
 
   // Timer para duração do passeio
   useEffect(() => {
@@ -381,38 +408,24 @@ export default function ActiveRide() {
               INICIAR RASTREAMENTO
             </Button>
           ) : (
-            <div className="space-y-3">
-              <Button
-                onClick={handleFinish}
-                className={`w-full h-16 text-lg font-bold rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-all ${
-                  showFinishConfirm
-                    ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 animate-pulse'
-                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
-                } text-white`}
-              >
-                {showFinishConfirm ? (
-                  <>
-                    <CheckCircle className="w-6 h-6" />
-                    CONFIRMAR CONCLUSÃO
-                  </>
-                ) : (
-                  <>
-                    <StopCircle className="w-6 h-6" />
-                    CONCLUIR PASSEIO
-                  </>
-                )}
-              </Button>
-              
-              {showFinishConfirm && (
-                <Button
-                  onClick={() => setShowFinishConfirm(false)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Cancelar
-                </Button>
-              )}
-            </div>
+            <Button
+              onClick={() => setShowFinishModal(true)}
+              disabled={!destinationCoords}
+              className={`w-full h-16 text-lg font-bold rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-all ${
+                distanceToDestination !== null && distanceToDestination < 50
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 animate-pulse'
+                  : distanceToDestination !== null && distanceToDestination < 200
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'
+                  : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700'
+              } text-white`}
+            >
+              <Camera className="w-6 h-6" />
+              {distanceToDestination !== null && distanceToDestination < 50
+                ? 'ENTREGAR E FINALIZAR'
+                : distanceToDestination !== null && distanceToDestination < 200
+                ? `${Math.round(distanceToDestination)}m DO DESTINO`
+                : 'LONGE DO DESTINO'}
+            </Button>
           )}
           
           {/* Info de Localização */}
@@ -436,6 +449,18 @@ export default function ActiveRide() {
           </div>
         </div>
       )}
+
+      {/* Modal de Finalização */}
+      <FinishRideModal
+        isOpen={showFinishModal}
+        onClose={() => setShowFinishModal(false)}
+        booking={booking}
+        distanceToDestination={distanceToDestination}
+        onConfirm={async (data) => {
+          await finishRideMutation.mutateAsync(data);
+          setShowFinishModal(false);
+        }}
+      />
     </div>
   );
 }
