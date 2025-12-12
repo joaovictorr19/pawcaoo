@@ -74,7 +74,7 @@ export default function FinishRideModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="glass-panel max-w-lg border-0 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             {isFarFromDestination ? (

@@ -88,7 +88,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
       onClick={handleCardClick}
       className="cursor-pointer group"
     >
-      <Card className="border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full">
+      <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full">
         <div className="relative h-40 md:h-56 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden">
           {walker.photo_url ? (
             <img
