@@ -20,7 +20,7 @@ export default function LiveWalkTracking() {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   
   const urlParams = new URLSearchParams(window.location.search);
-  const bookingId = urlParams.get('id') || urlParams.get('booking_id');
+  const bookingId = urlParams.get('bookingId') || urlParams.get('id') || urlParams.get('booking_id');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
