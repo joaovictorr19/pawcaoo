@@ -504,15 +504,29 @@ function LayoutContent({ children, currentPageName }) {
       }
 
       .glass-panel-dark {
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.6);
       }
 
       .dark-cosmos .glass-panel-dark {
-        background: rgba(15, 23, 42, 0.85);
-        border: 1px solid rgba(147, 51, 234, 0.4);
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(147, 51, 234, 0.6);
+      }
+
+      /* Fix for transparent forms/dialogs */
+      [role="dialog"], 
+      .dialog-content,
+      form {
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(20px);
+      }
+
+      .dark-cosmos [role="dialog"], 
+      .dark-cosmos .dialog-content,
+      .dark-cosmos form {
+        background: rgba(15, 23, 42, 0.98) !important;
       }
 
       /* === SAPPHIRE PREMIUM THEME === */
