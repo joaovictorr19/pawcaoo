@@ -13,60 +13,76 @@ export const TIER_THRESHOLDS = [
 
 export const TIER_COLORS = {
   Bronze: {
-    primary: 'orange-600',
+    primary: '#cd7f32',
     gradient: 'from-orange-400 to-orange-600',
     glass_border: 'border-orange-200/50',
     text: 'text-orange-600',
-    bg: 'bg-orange-50'
+    bg: 'bg-orange-50',
+    orb1: '#fb923c',
+    orb2: '#fdba74'
   },
   Prata: {
-    primary: 'gray-400',
+    primary: '#c0c0c0',
     gradient: 'from-gray-300 to-gray-500',
     glass_border: 'border-gray-200/50',
     text: 'text-gray-600',
-    bg: 'bg-gray-50'
+    bg: 'bg-gray-50',
+    orb1: '#94a3b8',
+    orb2: '#cbd5e1'
   },
   Ouro: {
-    primary: 'yellow-500',
+    primary: '#ffd700',
     gradient: 'from-yellow-400 to-yellow-600',
     glass_border: 'border-yellow-200/50',
     text: 'text-yellow-600',
-    bg: 'bg-yellow-50'
+    bg: 'bg-yellow-50',
+    orb1: '#facc15',
+    orb2: '#fef08a'
   },
   Safira: {
-    primary: 'blue-600',
+    primary: '#0f52ba',
     gradient: 'from-blue-500 to-indigo-600',
     glass_border: 'border-blue-200/50',
     text: 'text-blue-600',
-    bg: 'bg-blue-50'
+    bg: 'bg-blue-50',
+    orb1: '#3b82f6',
+    orb2: '#8b5cf6'
   },
   Rubi: {
-    primary: 'rose-600',
+    primary: '#e0115f',
     gradient: 'from-red-600 via-pink-600 to-rose-700',
     glass_border: 'border-rose-200/50',
     text: 'text-rose-600',
-    bg: 'bg-rose-50'
+    bg: 'bg-rose-50',
+    orb1: '#f43f5e',
+    orb2: '#fb7185'
   },
   Esmeralda: {
-    primary: 'emerald-600',
+    primary: '#50c878',
     gradient: 'from-emerald-500 via-green-500 to-teal-600',
     glass_border: 'border-emerald-200/50',
     text: 'text-emerald-600',
-    bg: 'bg-emerald-50'
+    bg: 'bg-emerald-50',
+    orb1: '#34d399',
+    orb2: '#a7f3d0'
   },
   Diamante: {
-    primary: 'cyan-400',
+    primary: '#b9f2ff',
     gradient: 'from-cyan-300 via-blue-200 to-white',
     glass_border: 'border-white/80',
     text: 'text-cyan-500',
-    bg: 'bg-cyan-50'
+    bg: 'bg-cyan-50',
+    orb1: '#22d3ee',
+    orb2: '#e0f2fe'
   },
   Cosmos: {
-    primary: 'violet-500',
+    primary: '#8b5cf6',
     gradient: 'from-slate-900 via-purple-900 to-black',
     glass_border: 'border-purple-400/50',
     text: 'text-violet-400',
-    bg: 'bg-slate-950'
+    bg: 'bg-slate-950',
+    orb1: '#4c1d95',
+    orb2: '#2e1065'
   }
 };
 
