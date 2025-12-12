@@ -7,7 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 
 export default function PartnerAnalytics({ bookings = [], products = [], services = [], payments = [], companyId }) {
-  // Fetch redemptions (product sales)
+  // Fetch redemptions (product sales) with caching
   const { data: redemptions = [] } = useQuery({
     queryKey: ['partnerRedemptions', companyId],
     queryFn: async () => {
@@ -17,6 +17,9 @@ export default function PartnerAnalytics({ bookings = [], products = [], service
     },
     enabled: !!companyId,
     initialData: [],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 15 * 60 * 1000, // 15 minutes
+    refetchOnWindowFocus: false,
   });
   // Calculate metrics
   const totalEarnings = payments.reduce((sum, p) => sum + (p.service_amount || 0), 0);

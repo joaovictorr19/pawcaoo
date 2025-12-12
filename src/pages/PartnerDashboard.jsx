@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PartnerAnalytics from "../components/partner/PartnerAnalytics";
+import Pagination from "../components/ui/Pagination";
+import LazyImage from "../components/ui/LazyImage";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
@@ -30,6 +32,12 @@ export default function PartnerDashboard() {
   const [showMyServices, setShowMyServices] = useState(false);
   const [showMyProducts, setShowMyProducts] = useState(false);
   const [showMyAnnouncements, setShowMyAnnouncements] = useState(false);
+  
+  // Pagination states
+  const [productsPage, setProductsPage] = useState(1);
+  const [servicesPage, setServicesPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(10);
+  const [servicesPerPage, setServicesPerPage] = useState(10);
   
   const [productForm, setProductForm] = useState({
     product_name: "",
@@ -109,53 +117,48 @@ export default function PartnerDashboard() {
       if (!user?.email || !company?.id) return [];
       const all = await base44.entities.PartnerProduct.list();
       
-      console.log('🛍️ MEUS PRODUTOS - DEBUG:');
-      console.log('Total DB:', all.length);
-      console.log('Meu email:', user.email);
-      console.log('Company ID:', company.id);
-      
       const mine = all.filter(p => p.created_by === user.email || p.partner_id === company.id);
-      
-      console.log('MEUS:', mine.length);
-      mine.forEach(p => {
-        console.log(`- ${p.product_name}: ${p.moderation_status}, available=${p.is_available}`);
-      });
-      
       return mine;
     },
     enabled: !!user?.email && !!company?.id,
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 3 * 60 * 1000, // 3 minutes cache
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
+
+  // Paginated products
+  const paginatedProducts = React.useMemo(() => {
+    const startIndex = (productsPage - 1) * productsPerPage;
+    return myProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [myProducts, productsPage, productsPerPage]);
+
+  const totalProductPages = Math.ceil(myProducts.length / productsPerPage);
 
   const { data: myServices = [] } = useQuery({
     queryKey: ['myServices', user?.email],
     queryFn: async () => {
       if (!user?.email || !company?.id) return [];
-
       const all = await base44.entities.PartnerService.list();
-      
-      console.log('🔧 MEUS SERVIÇOS - DEBUG:');
-      console.log('Total DB:', all.length);
-      console.log('Meu email:', user.email);
-      console.log('Company ID:', company.id);
       
       const mine = all.filter(s => 
         s.partner_company_email === user.email || 
         s.created_by === user.email
       );
-      
-      console.log('MEUS:', mine.length);
-      mine.forEach(s => {
-        console.log(`- ${s.service_name}: ${s.moderation_status}, active=${s.is_active}`);
-      });
-      
       return mine;
     },
     enabled: !!user?.email && !!company?.id,
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 3 * 60 * 1000, // 3 minutes cache
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
+
+  // Paginated services
+  const paginatedServices = React.useMemo(() => {
+    const startIndex = (servicesPage - 1) * servicesPerPage;
+    return myServices.slice(startIndex, startIndex + servicesPerPage);
+  }, [myServices, servicesPage, servicesPerPage]);
+
+  const totalServicePages = Math.ceil(myServices.length / servicesPerPage);
 
   const { data: myAnnouncements = [] } = useQuery({
     queryKey: ['myAnnouncements', user?.email],
@@ -195,6 +198,9 @@ export default function PartnerDashboard() {
       return all;
     },
     enabled: !!company?.id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: myPayments = [] } = useQuery({
@@ -205,6 +211,9 @@ export default function PartnerDashboard() {
       return all;
     },
     enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const createProductMutation = useMutation({
@@ -907,7 +916,8 @@ export default function PartnerDashboard() {
                 <p className="text-gray-600">Nenhum serviço criado</p>
               </div>
             ) : (
-              myServices.map(service => (
+              <>
+              {paginatedServices.map(service => (
                 <Card key={service.id} className="border-2 border-blue-200">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -928,15 +938,30 @@ export default function PartnerDashboard() {
                         <p className="text-xs text-gray-500">{service.duration_minutes}min</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+                    </CardContent>
+                    </Card>
+                    ))}
 
-      {/* EDIT COMPANY PROFILE */}
+                    {myServices.length > 0 && (
+                    <Pagination
+                    currentPage={servicesPage}
+                    totalPages={totalServicePages}
+                    onPageChange={setServicesPage}
+                    itemsPerPage={servicesPerPage}
+                    totalItems={myServices.length}
+                    onItemsPerPageChange={(value) => {
+                    setServicesPerPage(value);
+                    setServicesPage(1);
+                    }}
+                    />
+                    )}
+                    </>
+                    )}
+                    </div>
+                    </DialogContent>
+                    </Dialog>
+
+                    {/* EDIT COMPANY PROFILE */}
       <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1022,7 +1047,8 @@ export default function PartnerDashboard() {
                 <p className="text-gray-600">Nenhum produto criado</p>
               </div>
             ) : (
-              myProducts.map(product => (
+              <>
+              {paginatedProducts.map(product => (
                 <Card key={product.id} className={`border-2 ${
                   product.moderation_status === 'pending' ? 'border-orange-200 bg-orange-50' :
                   product.moderation_status === 'approved' ? 'border-green-200 bg-green-50' :
@@ -1031,7 +1057,7 @@ export default function PartnerDashboard() {
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       {product.image_url && (
-                        <img 
+                        <LazyImage
                           src={product.image_url} 
                           className="w-24 h-24 object-cover rounded-lg" 
                           alt={product.product_name}
