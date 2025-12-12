@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Crown, Zap, Star, Sparkles, Shield, Heart, TrendingUp, Gift, Award, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Crown, Zap, Star, Sparkles, Shield, Heart, TrendingUp, Gift, Award, ChevronDown, ChevronUp, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
