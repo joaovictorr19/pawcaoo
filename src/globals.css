@@ -71,11 +71,8 @@
     @apply border-border;
   }
   
-  html, body, #root {
-    @apply bg-background text-foreground w-full h-full;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
+  html, body {
+    @apply bg-background text-foreground overflow-x-hidden max-w-[100vw] w-full;
     position: relative;
   }
 
@@ -153,28 +150,5 @@
 
   .animation-delay-4000 {
     animation-delay: 4s;
-  }
-
-  /* === MOBILE RESPONSIVE === */
-  @media (max-width: 768px) {
-    * {
-      max-width: 100vw;
-    }
-
-    [data-sidebar] {
-      position: fixed !important;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 280px !important;
-      margin: 0 !important;
-      border-radius: 0 !important;
-      z-index: 9999;
-    }
-
-    main {
-      padding-left: 1rem !important;
-      padding-right: 1rem !important;
-    }
   }
   }

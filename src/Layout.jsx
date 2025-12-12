@@ -570,9 +570,9 @@ function LayoutContent({ children, currentPageName }) {
           <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
         </div>
 
-        {/* Floating Sidebar - Left Side (Hidden on Mobile) */}
+        {/* Floating Sidebar - Left Side */}
         {authUser && (
-        <aside className="hidden md:block absolute top-4 left-4 bottom-4 z-50 pointer-events-none">
+        <aside className="absolute top-4 left-4 bottom-4 z-50 pointer-events-none">
           <div className="pointer-events-auto h-full">
         <Sidebar className={`h-full backdrop-blur-2xl border transition-all duration-500 rounded-[2rem] shadow-2xl ${
           colors?.isDarkMode 
@@ -864,8 +864,8 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
             {/* Main Content Area - Full Screen with Sidebar Offset */}
-            <main className={`absolute inset-0 z-10 w-full h-full overflow-y-auto overflow-x-hidden transition-all duration-500 ${
-              authUser ? 'md:pl-80 px-4 md:pr-6 py-4 md:py-6' : 'px-4 md:px-6 py-4 md:py-6'
+            <main className={`absolute inset-0 z-10 w-full h-full overflow-y-auto transition-all duration-500 ${
+              authUser ? 'pl-80 pr-6 py-6' : 'px-6 py-6'
             }`}>
             <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-40 transition-all duration-300 shadow-lg backdrop-blur-xl rounded-2xl mb-6 ${
               colors?.isDarkMode ? 'bg-slate-900/60 border border-slate-700/40' : 'bg-white/60 border border-white/40'
@@ -977,9 +977,7 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </div>
 
-          </main>
-
-          {/* Floating Components - Above Content */}
+          {/* Mobile Navigation Bar */}
           <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
 
           <NotificationArea 
@@ -1018,10 +1016,10 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`mt-12 backdrop-blur-xl border transition-colors duration-300 rounded-2xl hidden md:block ${
+          <footer className={`mt-12 backdrop-blur-xl border transition-colors duration-300 rounded-2xl ${
             colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/60 border-white/40'
           }`}>
-            <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+            <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
                 <div>
                   <PawCaoLogo size="default" className="mb-4" />
@@ -1082,7 +1080,7 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </div>
           </footer>
-
+        </main>
       </div>
     </SidebarProvider>
   );
