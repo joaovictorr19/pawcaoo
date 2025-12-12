@@ -947,41 +947,164 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-        <div className="flex justify-between items-center mb-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="hover:opacity-80"
-            style={{
-              borderColor: `${colors?.primary || '#3b82f6'}40`,
-              color: colors?.primary || '#3b82f6'
-            }}
-          >
-            <Sliders className="w-4 h-4 mr-2" />
-            {showAdvancedFilters ? t('hideAdvancedFilters', language) : t('showAdvancedFilters', language)}
-          </Button>
-          
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              onClick={() => setViewMode("list")}
-              size="sm"
-              className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-700'}
-            >
-              <List className="w-4 h-4 mr-2" />
-              {t('list', language)}
-            </Button>
-            <Button
-              variant={viewMode === "map" ? "default" : "outline"}
-              onClick={() => setViewMode("map")}
-              size="sm"
-              className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-700'}
-            >
-              <MapIcon className="w-4 h-4 mr-2" />
-              {t('map', language)}
-            </Button>
-          </div>
-        </div>
+        {/* Compact Filters Section */}
+        <Card className="glass-panel border-0 shadow-md mb-4 overflow-hidden">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {/* Size Filter */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">{t('size', language)}</Label>
+                <Select value={filterSize} onValueChange={setFilterSize}>
+                  <SelectTrigger className="h-9 text-xs bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('all', language)}</SelectItem>
+                    <SelectItem value="small">{t('small', language)}</SelectItem>
+                    <SelectItem value="medium">{t('medium', language)}</SelectItem>
+                    <SelectItem value="large">{t('large', language)}</SelectItem>
+                    <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Time Filter */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">{t('availability', language)}</Label>
+                <Select value={filterTime} onValueChange={setFilterTime}>
+                  <SelectTrigger className="h-9 text-xs bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('all', language)}</SelectItem>
+                    <SelectItem value="morning">{t('morning', language)}</SelectItem>
+                    <SelectItem value="afternoon">{t('afternoon', language)}</SelectItem>
+                    <SelectItem value="evening">{t('evening', language)}</SelectItem>
+                    <SelectItem value="night">{t('night', language)}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Service Type Filter */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">{t('serviceType', language)}</Label>
+                <Select value={filterDogSitting} onValueChange={setFilterDogSitting}>
+                  <SelectTrigger className="h-9 text-xs bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('allServices', language)}</SelectItem>
+                    <SelectItem value="boarding">{t('dogBoarding', language)}</SelectItem>
+                    <SelectItem value="house_sitting">{t('houseSitting', language)}</SelectItem>
+                    <SelectItem value="drop_in">{t('dropInVisits', language)}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Min Rating */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">{t('minRating', language)}</Label>
+                <Select 
+                  value={advancedFilters.minRating.toString()} 
+                  onValueChange={(v) => setAdvancedFilters({...advancedFilters, minRating: parseFloat(v)})}
+                >
+                  <SelectTrigger className="h-9 text-xs bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">{t('any', language)}</SelectItem>
+                    <SelectItem value="3">3+</SelectItem>
+                    <SelectItem value="4">4+</SelectItem>
+                    <SelectItem value="4.5">4.5+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Max Price */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">{t('maxPrice', language)}</Label>
+                <Select 
+                  value={advancedFilters.maxPrice.toString()} 
+                  onValueChange={(v) => setAdvancedFilters({...advancedFilters, maxPrice: parseFloat(v)})}
+                >
+                  <SelectTrigger className="h-9 text-xs bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20€</SelectItem>
+                    <SelectItem value="30">30€</SelectItem>
+                    <SelectItem value="50">50€</SelectItem>
+                    <SelectItem value="100">100€+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Verified Only Toggle */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">{t('verified', language)}</Label>
+                <Button
+                  variant={advancedFilters.verifiedOnly ? "default" : "outline"}
+                  onClick={() => setAdvancedFilters({...advancedFilters, verifiedOnly: !advancedFilters.verifiedOnly})}
+                  size="sm"
+                  className={`w-full h-9 text-xs ${advancedFilters.verifiedOnly ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white' : ''}`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+                  {advancedFilters.verifiedOnly ? t('verifiedOnly', language) : t('all', language)}
+                </Button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  resetAdvancedFilters();
+                  setFilterSize("all");
+                  setFilterTime("all");
+                  setFilterDogSitting("all");
+                  setSelectedServiceTypes([]);
+                  setSelectedSpecializations([]);
+                }}
+                className="text-xs text-gray-600 hover:text-gray-900"
+              >
+                {t('resetFilters', language)}
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className="text-xs"
+                >
+                  <Sliders className="w-3.5 h-3.5 mr-1.5" />
+                  {showAdvancedFilters ? t('lessFilters', language) : t('moreFilters', language)}
+                </Button>
+                
+                <div className="flex gap-1.5">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    onClick={() => setViewMode("list")}
+                    size="sm"
+                    className={viewMode === "list" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-9 px-3' : 'text-gray-700 h-9 px-3'}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "map" ? "default" : "outline"}
+                    onClick={() => setViewMode("map")}
+                    size="sm"
+                    className={viewMode === "map" ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white h-9 px-3' : 'text-gray-700 h-9 px-3'}
+                  >
+                    <MapIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* AI Recommendations Section */}
         {user && (
