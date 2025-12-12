@@ -1,7 +1,15 @@
 import Stripe from 'npm:stripe';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+
+if (!stripeKey) {
+  console.error('❌ STRIPE_SECRET_KEY não configurada!');
+}
+
+const stripe = new Stripe(stripeKey, {
+  apiVersion: '2023-10-16',
+});
 
 Deno.serve(async (req) => {
   try {
@@ -101,16 +109,29 @@ Deno.serve(async (req) => {
 
     console.log('🎉 Checkout completo! Retornando URL:', session.url);
 
-    return Response.json({ 
+    return new Response(JSON.stringify({ 
       sessionId: session.id, 
       url: session.url,
       success: true 
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
   } catch (error) {
     console.error('❌ Erro completo:', error);
-    return Response.json({ 
+    console.error('Stack trace:', error.stack);
+    
+    return new Response(JSON.stringify({ 
       error: error.message,
-      details: error.stack 
-    }, { status: 500 });
+      details: error.stack,
+      type: error.type || 'unknown'
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
   }
 });

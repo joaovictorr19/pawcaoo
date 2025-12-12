@@ -71,18 +71,40 @@ export default function CheckoutModal({
       });
 
       console.log('✅ Resposta do backend:', response);
+      console.log('📊 Response structure:', {
+        hasData: !!response?.data,
+        dataKeys: response?.data ? Object.keys(response.data) : [],
+        fullResponse: response
+      });
 
-      if (response?.data?.url) {
-        console.log('🔗 Redirecionando para:', response.data.url);
-        window.location.href = response.data.url;
+      const checkoutUrl = response?.data?.url;
+
+      if (checkoutUrl) {
+        console.log('🔗 Redirecionando para Stripe:', checkoutUrl);
+        
+        // Add timeout warning
+        const timeoutId = setTimeout(() => {
+          console.warn('⚠️ Redirect está demorando mais de 3 segundos...');
+          toast.error('Redirecionamento lento. Se não funcionar, tente novamente.');
+          setProcessing(false);
+        }, 3000);
+
+        // Redirect
+        window.location.href = checkoutUrl;
+        
+        // Clear timeout if redirect happens
+        clearTimeout(timeoutId);
       } else {
-        console.error('❌ URL do Stripe não encontrada na resposta:', response);
-        toast.error('Erro: Link de pagamento não foi gerado');
+        console.error('❌ URL do Stripe não encontrada!');
+        console.error('Response completa:', JSON.stringify(response, null, 2));
+        toast.error('Erro: Link de pagamento não foi gerado. Verifique o console.');
         setProcessing(false);
       }
     } catch (err) {
-      console.error("❌ Stripe error:", err);
-      toast.error(language === 'pt' ? "Erro ao iniciar pagamento. Verifique o console." : "Payment failed");
+      console.error("❌ Erro no checkout:", err);
+      console.error("Tipo de erro:", err.name);
+      console.error("Mensagem:", err.message);
+      toast.error(language === 'pt' ? `Erro: ${err.message}` : `Error: ${err.message}`);
       setProcessing(false);
     }
   };
@@ -188,13 +210,22 @@ export default function CheckoutModal({
             <Button
               onClick={handleStripeCheckout}
               disabled={processing}
-              className="flex-1 h-12 font-bold text-white hover:opacity-90"
+              className="flex-1 h-12 font-bold text-white hover:opacity-90 disabled:opacity-50"
               style={{
                 background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
               }}
             >
-              {processing ? (language === 'pt' ? 'Processando...' : 'Processing...') : (language === 'pt' ? 'Pagar Agora' : 'Pay Now')}
-              <ArrowRight className="w-4 h-4 ml-2" />
+              {processing ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin">⏳</span>
+                  {language === 'pt' ? 'Abrindo Stripe...' : 'Opening Stripe...'}
+                </span>
+              ) : (
+                <>
+                  {language === 'pt' ? 'Pagar Agora' : 'Pay Now'}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
             </Button>
           </div>
         </div>
