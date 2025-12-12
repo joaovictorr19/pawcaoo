@@ -803,10 +803,10 @@ export default function Chat() {
 
       {/* GPS Map (if service is in progress) */}
       {booking.status === "in_progress" && routeCoords.length > 0 && (
-        <div className="h-32 md:h-48 relative flex-shrink-0">
+        <div className="h-64 md:h-48 relative flex-shrink-0">
           <MapContainer
             center={lastKnownPosition || [38.7223, -9.1393]}
-            zoom={15}
+            zoom={16}
             style={{ height: "100%", width: "100%" }}
             className="z-0"
           >
@@ -842,8 +842,25 @@ export default function Chat() {
             )}
           </MapContainer>
 
+          {/* GPS Status Badge */}
+          <div className="absolute top-2 left-2 z-[1000]">
+            <div className="bg-green-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-medium">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <span>GPS Ativo</span>
+            </div>
+          </div>
+
+          {/* Last Update Info */}
+          {booking.last_update && (
+            <div className="absolute top-2 right-2 z-[1000]">
+              <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-2 py-1 text-[10px] text-gray-600">
+                Atualizado há {Math.floor((Date.now() - new Date(booking.last_update).getTime()) / 1000)}s
+              </div>
+            </div>
+          )}
+
           {/* Stats overlay */}
-          <div className="absolute top-2 left-2 right-2 flex gap-2 z-[1000]">
+          <div className="absolute bottom-2 left-2 right-2 flex gap-2 z-[1000]">
             <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-3 py-2 flex-1">
               <p className="text-[10px] text-gray-500">Percorrido</p>
               <p className="text-sm font-bold text-blue-600">
