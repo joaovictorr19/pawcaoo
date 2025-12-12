@@ -474,14 +474,6 @@ function LayoutContent({ children, currentPageName }) {
         </script>
       </Helmet>
       <style>{`
-      /* === FULL SCREEN GLASS OVERLAY FIX === */
-      html, body, #root {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
       :root {
         --primary: 142 76% 36%;
         --primary-foreground: 0 0% 100%;
@@ -559,25 +551,12 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      
-      {/* Full Screen Container with Aurora Background */}
-      <div className="relative w-screen h-screen overflow-hidden bg-slate-50">
-        
-        {/* Aurora Background Animation - Behind Everything */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-          <div className="absolute top-0 -right-4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
-        </div>
-
-        {/* Floating Sidebar - Left Side */}
+      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <aside className="absolute top-4 left-4 bottom-4 z-50 pointer-events-none">
-          <div className="pointer-events-auto h-full">
-        <Sidebar className={`h-full backdrop-blur-2xl border transition-all duration-500 rounded-[2rem] shadow-2xl ${
+        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
           colors?.isDarkMode 
             ? 'bg-slate-900/60 border-slate-700/40' 
-            : 'bg-white/40 border-white/40'
+            : 'bg-white/60 border-white/40'
         }`}>
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
@@ -853,8 +832,6 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
-          </div>
-        </aside>
             )}
 
             {/* Push Notification Manager */}
@@ -863,12 +840,9 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            {/* Main Content Area - Full Screen with Sidebar Offset */}
-            <main className={`absolute inset-0 z-10 w-full h-full overflow-y-auto transition-all duration-500 ${
-              authUser ? 'pl-80 pr-6 py-6' : 'px-6 py-6'
-            }`}>
-            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-40 transition-all duration-300 shadow-lg backdrop-blur-xl rounded-2xl mb-6 ${
-              colors?.isDarkMode ? 'bg-slate-900/60 border border-slate-700/40' : 'bg-white/60 border border-white/40'
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
+            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
+              colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
@@ -965,14 +939,14 @@ function LayoutContent({ children, currentPageName }) {
               </div>
               </header>
 
-          {/* Page Content */}
-          <div className="flex-1 pb-24 md:pb-0">
+          {/* Main Content Area with bottom padding for mobile nav */}
+          <div className="flex-1">
             <div className="md:hidden">
               <PullToRefresh>
                 {children}
               </PullToRefresh>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:block h-full">
               {children}
             </div>
           </div>
@@ -1016,8 +990,8 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`mt-12 backdrop-blur-xl border transition-colors duration-300 rounded-2xl ${
-            colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/60 border-white/40'
+          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
+            colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
