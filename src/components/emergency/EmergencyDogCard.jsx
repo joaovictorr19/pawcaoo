@@ -6,9 +6,11 @@ import { MapPin, Clock, DollarSign, Zap, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useTheme } from "@/components/ThemeContext";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function EmergencyDogCard({ walk }) {
   const navigate = useNavigate();
+  const { colors } = useTheme();
   const { colors } = useTheme();
 
   const getSizeLabel = (size) => {
