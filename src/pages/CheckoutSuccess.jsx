@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Package, Home, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import confetti from "canvas-confetti";
 
 /**
  * Checkout Success Page
@@ -37,43 +40,76 @@ import { createPageUrl } from "@/utils";
 export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const sessionId = searchParams.get('session_id');
+  const queryClient = useQueryClient();
+  const bookingId = searchParams.get('booking_id');
   const [sessionDetails, setSessionDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Update payment status
+  const updatePaymentMutation = useMutation({
+    mutationFn: async () => {
+      if (!bookingId) return;
+      
+      const bookings = await base44.entities.Booking.filter({ id: bookingId });
+      const booking = bookings[0];
+      
+      if (!booking) return;
+      
+      await base44.entities.Booking.update(bookingId, {
+        status: 'confirmed'
+      });
+      
+      const payments = await base44.entities.Payment.filter({ booking_id: bookingId });
+      if (payments.length > 0) {
+        await base44.entities.Payment.update(payments[0].id, {
+          status: 'held',
+          held_date: new Date().toISOString()
+        });
+      }
+      
+      await base44.entities.Notification.create({
+        recipient_email: booking.walker_email,
+        title: '💰 Novo Passeio Confirmado!',
+        message: `Pagamento recebido para ${booking.dog_name} em ${booking.walk_date}. Passeio confirmado!`,
+        type: 'booking',
+        related_id: bookingId,
+        priority: 'high'
+      });
+
+      return booking;
+    },
+    onSuccess: (booking) => {
+      if (booking) {
+        setSessionDetails({
+          id: bookingId,
+          amount_total: booking.total_amount * 100,
+          currency: 'eur',
+          customer_email: booking.owner_email,
+          payment_status: 'paid',
+          dog_name: booking.dog_name,
+          walk_date: booking.walk_date
+        });
+      }
+      queryClient.invalidateQueries(['myWalks']);
+      setLoading(false);
+    }
+  });
+
   useEffect(() => {
-    if (sessionId) {
-      fetchSessionDetails();
+    if (bookingId) {
+      updatePaymentMutation.mutate();
     } else {
       setLoading(false);
     }
-  }, [sessionId]);
+    
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  }, [bookingId]);
 
-  /**
-   * Fetch session details from backend
-   * In production, this would retrieve actual payment information
-   */
-  const fetchSessionDetails = async () => {
-    setLoading(true);
-    try {
-      // TODO: Replace with actual backend call
-      // Mock session details
-      setTimeout(() => {
-        setSessionDetails({
-          id: sessionId,
-          amount_total: 5000, // €50.00 in cents
-          currency: 'eur',
-          customer_email: 'customer@example.com',
-          payment_status: 'paid',
-          application_fee_amount: 750, // 15% of €50
-        });
-        setLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error fetching session:", error);
-      setLoading(false);
-    }
-  };
+
 
   const formatPrice = (amount, currency) => {
     const formatter = new Intl.NumberFormat('en-US', {
@@ -95,7 +131,7 @@ export default function CheckoutSuccess() {
     );
   }
 
-  if (!sessionId || !sessionDetails) {
+  if (!bookingId || !sessionDetails) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center p-6">
         <Card className="max-w-md border-0 shadow-2xl">
@@ -138,10 +174,10 @@ export default function CheckoutSuccess() {
 
             {/* Success Message */}
             <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
-              Payment Successful!
+              Pagamento Confirmado!
             </h1>
             <p className="text-center text-gray-600 text-lg mb-8">
-              Thank you for your purchase. Your payment has been processed successfully.
+              O pagamento para o passeio de {sessionDetails?.dog_name} foi processado com sucesso.
             </p>
 
             {/* Payment Details */}
