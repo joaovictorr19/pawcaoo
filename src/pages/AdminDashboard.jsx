@@ -1137,16 +1137,12 @@ export default function AdminDashboard() {
     );
   }
 
-  const stats = [
-    { icon: Users, value: allUsers.length, label: "Total Users", key: "totalUsersStats", color: "from-blue-600 to-cyan-600" },
-    { icon: Briefcase, value: walkerApplications.length + trainerApplications.length, label: "Pending Apps", key: "pendingAppsStats", color: "from-purple-600 to-pink-600" },
-    { icon: Package, value: pendingApprovalServices.length, label: "Services Pending", key: "servicesPendingStats", color: "from-orange-600 to-red-600" },
-    { icon: Calendar, value: allBookings.length, label: "Total Bookings", key: "totalBookingsStats", color: "from-green-600 to-emerald-600" },
-  ];
-
-  if (activeTab === 'products') {
-    stats[2] = { icon: ShoppingBag, value: pendingProducts.length, label: "Products Pending", key: "productsPendingStats", color: "from-indigo-600 to-purple-600" };
-  }
+  const stats = React.useMemo(() => [
+    { icon: Users, value: allUsers?.length || 0, label: "Total Users", key: "totalUsersStats", color: "from-blue-600 to-cyan-600" },
+    { icon: Shield, value: (walkerApplications?.length || 0) + (trainerApplications?.length || 0), label: "Pending Apps", key: "pendingAppsStats", color: "from-purple-600 to-pink-600" },
+    { icon: CheckCircle, value: activeWalkers?.length || 0, label: "Active Walkers", key: "activeWalkersStats", color: "from-green-600 to-emerald-600" },
+    { icon: Calendar, value: allBookings?.length || 0, label: "Total Bookings", key: "totalBookingsStats", color: "from-orange-600 to-red-600" },
+  ], [allUsers, walkerApplications, trainerApplications, activeWalkers, allBookings]);
 
   return (
     <div className="min-h-screen">

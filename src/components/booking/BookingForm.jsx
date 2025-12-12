@@ -198,15 +198,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     mutationFn: async (bookingData) => {
       console.log('📝 Criando booking:', bookingData);
       
-      // 1. Criar RESERVA DIRETA com Walker Específico
+      // 1. Criar RESERVA DIRETA com Walker Específico - SEMPRE VISÍVEL
       const booking = await base44.entities.Booking.create({
         ...bookingData,
-        status: 'pending', // Aguardando aprovação do walker escolhido
-        walker_email: pro.created_by, // Walker ESPECÍFICO (NÃO é broadcast)
-        walker_id: pro.id, // Define ID do walker escolhido
+        status: 'pending', // Aguardando aprovação - MAS JÁ EXISTE NA DB
+        payment_status: 'pending', // Pagamento pendente - não bloqueia visibilidade
+        walker_email: pro.created_by,
+        walker_id: pro.id,
         walker_name: proName
       });
-      console.log('✅ RESERVA DIRETA criada - Walker:', proName, 'ID:', booking.id);
+      console.log('✅ RESERVA criada e VISÍVEL para Walker:', proName, 'ID:', booking.id);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
