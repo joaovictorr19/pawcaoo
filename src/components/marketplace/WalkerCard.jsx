@@ -142,12 +142,23 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
               >
-                <div className="relative">
-                  <Badge className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-2 border-white shadow-xl text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 font-bold flex items-center gap-1">
-                    <Shield className="w-3 h-3 md:w-4 md:h-4 fill-white" />
-                    <span className="relative z-10">Verificado</span>
+                <div className="relative group/badge">
+                  {/* Glow effect */}
+                  <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-full blur-md opacity-75 group-hover/badge:opacity-100 transition-opacity animate-pulse" />
+                  
+                  {/* Main badge */}
+                  <Badge className="relative bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white border-2 border-white/80 shadow-2xl text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 font-bold flex items-center gap-1 backdrop-blur-sm">
+                    {/* Shine effect overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 rounded-full transform -skew-x-12" />
+                    
+                    {/* Icon with glow */}
+                    <div className="relative">
+                      <Shield className="w-3 h-3 md:w-4 md:h-4 fill-white drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+                    </div>
+                    
+                    {/* Text with shadow */}
+                    <span className="relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">Verificado</span>
                   </Badge>
-                  <div className="absolute inset-0 bg-white/30 rounded-full blur-sm animate-pulse" />
                 </div>
               </motion.div>
             )}
