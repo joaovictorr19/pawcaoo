@@ -883,10 +883,7 @@ export default function Home() {
                         setActiveTab('walkers');
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="flex-1 text-white font-bold h-14 px-8 shadow-lg text-lg rounded-xl transition-all hover:scale-105 hover:opacity-90"
-                      style={{
-                        background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-                      }}
+                      className="flex-1 text-white font-bold h-14 px-8 shadow-lg text-lg rounded-xl transition-all hover:scale-105 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
                     >
                       <Search className="w-5 h-5 mr-2" />
                       {t('findWalkerBtn', language)}
