@@ -14,10 +14,23 @@ export default function PushNotificationManager({ user }) {
   useEffect(() => {
     if (!user) return;
     
+    // Verificar suporte em diferentes dispositivos
+    const hasNotificationSupport = 'Notification' in window;
+    if (!hasNotificationSupport) {
+      console.warn('Notificações não suportadas neste navegador');
+      return;
+    }
+
     // Verificar se precisa mostrar banner
     const dismissed = localStorage.getItem('push_banner_dismissed');
-    if (permission === 'default' && !dismissed) {
-      // Mostrar após 3 segundos
+    const dismissedTime = localStorage.getItem('push_banner_dismissed_time');
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    // Re-mostrar banner após 7 dias se ainda não tiver permissão
+    const shouldShow = permission === 'default' && (!dismissed || (dismissedTime && parseInt(dismissedTime) < sevenDaysAgo));
+
+    if (shouldShow) {
+      // Mostrar após 3 segundos (menos intrusivo)
       const timer = setTimeout(() => setShowBanner(true), 3000);
       return () => clearTimeout(timer);
     }
