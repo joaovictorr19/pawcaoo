@@ -327,26 +327,38 @@ export default function Chat() {
           async (position) => {
             const { latitude, longitude } = position.coords;
 
-            await base44.entities.WalkCheckpoint.create({
-              booking_id: bookingId,
-              walker_email: user.email,
-              checkpoint_type: "behavior_note",
-              latitude,
-              longitude,
-              dog_behavior: behaviorData,
-              notes: behaviorData.special_notes || "Atualização de comportamento",
-              timestamp: new Date().toISOString(),
-            });
+            try {
+              await base44.entities.WalkCheckpoint.create({
+                booking_id: bookingId,
+                walker_email: user.email,
+                checkpoint_type: "behavior_note",
+                latitude,
+                longitude,
+                dog_behavior: behaviorData,
+                notes: behaviorData.special_notes || "Atualização de comportamento",
+                timestamp: new Date().toISOString(),
+              });
 
-            // Send in chat
-            await sendMessageMutation.mutateAsync({
-              text: `🐕 Atualização: ${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
-              type: "text",
-            });
+              // Send in chat
+              await sendMessageMutation.mutateAsync({
+                text: `🐕 Atualização: ${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
+                type: "text",
+              });
 
-            resolve();
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
           },
-          (error) => reject(error)
+          (error) => {
+            toast.error("Erro ao obter localização");
+            reject(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
         );
       });
     },
@@ -363,7 +375,8 @@ export default function Chat() {
       });
       queryClient.invalidateQueries(["checkpoints", bookingId]);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Behavior error:", error);
       toast.error("Erro ao registrar comportamento");
     },
   });
