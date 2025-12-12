@@ -48,6 +48,27 @@ const startIcon = new L.Icon({
   iconAnchor: [15, 15]
 });
 
+const homeIcon = new L.Icon({
+  iconUrl: 'https://placehold.co/40x40/10b981/white?text=🏠',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
+  className: 'rounded-full border-2 border-white shadow-lg'
+});
+
+// ✅ Haversine para calcular distância até o destino
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000; // Raio da Terra em metros
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  return R * c;
+};
+
 // Componente para centralizar mapa em tempo real
 const MapCenterController = ({ center }) => {
   const map = useMap();
@@ -66,6 +87,7 @@ export default function ActiveRide() {
   const navigate = useNavigate();
   const [duration, setDuration] = useState(0);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [distanceToDestination, setDistanceToDestination] = useState(null);
 
   // ✅ PROTEÇÃO 1: ID obrigatório na URL
   useEffect(() => {
@@ -198,6 +220,24 @@ export default function ActiveRide() {
     ? [routePath[routePath.length - 1].lat, routePath[routePath.length - 1].lng]
     : [38.7223, -9.1393]; // Lisboa default
 
+  // ✅ Calcular distância até o destino em tempo real
+  useEffect(() => {
+    if (location && booking?.pickup_lat && booking?.pickup_lng) {
+      const dist = calculateDistance(
+        location.lat,
+        location.lng,
+        booking.pickup_lat,
+        booking.pickup_lng
+      );
+      setDistanceToDestination(dist);
+    }
+  }, [location, booking?.pickup_lat, booking?.pickup_lng]);
+
+  // ✅ Coordenadas do destino (Casa do cliente)
+  const destinationCoords = booking?.pickup_lat && booking?.pickup_lng
+    ? [booking.pickup_lat, booking.pickup_lng]
+    : null;
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-gray-900">
       {/* ✅ MAPA DE FUNDO (Z-INDEX 0) */}
@@ -234,6 +274,11 @@ export default function ActiveRide() {
           {/* Posição atual do cachorro */}
           {location && (
             <Marker position={[location.lat, location.lng]} icon={dogIcon} />
+          )}
+          
+          {/* 🏠 Destino: Casa do Cliente */}
+          {destinationCoords && (
+            <Marker position={destinationCoords} icon={homeIcon} />
           )}
         </MapContainer>
       </div>
@@ -279,23 +324,49 @@ export default function ActiveRide() {
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           
           {/* Estatísticas */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-3">
             <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-              <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-2xl font-bold text-blue-900 font-mono">{formatTime(duration)}</div>
-              <div className="text-xs text-blue-600 font-semibold">Duração</div>
+              <Clock className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+              <div className="text-xl font-bold text-blue-900 font-mono">{formatTime(duration)}</div>
+              <div className="text-[10px] text-blue-600 font-semibold">Duração</div>
             </div>
             
             <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-              <Navigation className="w-5 h-5 text-green-600 mx-auto mb-1" />
-              <div className="text-2xl font-bold text-green-900">{distance.toFixed(2)}</div>
-              <div className="text-xs text-green-600 font-semibold">Km Percorridos</div>
+              <Navigation className="w-4 h-4 text-green-600 mx-auto mb-1" />
+              <div className="text-xl font-bold text-green-900">{distance.toFixed(2)}</div>
+              <div className="text-[10px] text-green-600 font-semibold">Km Total</div>
             </div>
             
+            {/* ✅ DISTÂNCIA ATÉ O DESTINO */}
+            {destinationCoords && distanceToDestination !== null && (
+              <div className={`text-center p-3 rounded-xl ${
+                distanceToDestination < 50 
+                  ? 'bg-gradient-to-br from-orange-50 to-red-100 animate-pulse' 
+                  : 'bg-gradient-to-br from-yellow-50 to-yellow-100'
+              }`}>
+                <MapPin className={`w-4 h-4 mx-auto mb-1 ${
+                  distanceToDestination < 50 ? 'text-red-600' : 'text-yellow-600'
+                }`} />
+                <div className={`text-xl font-bold ${
+                  distanceToDestination < 50 ? 'text-red-900' : 'text-yellow-900'
+                }`}>
+                  {distanceToDestination < 1000 
+                    ? `${Math.round(distanceToDestination)}m`
+                    : `${(distanceToDestination / 1000).toFixed(1)}km`
+                  }
+                </div>
+                <div className={`text-[10px] font-semibold ${
+                  distanceToDestination < 50 ? 'text-red-600' : 'text-yellow-600'
+                }`}>
+                  {distanceToDestination < 50 ? '🏠 CHEGANDO!' : 'Até Casa'}
+                </div>
+              </div>
+            )}
+            
             <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-              <MapPin className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-              <div className="text-2xl font-bold text-purple-900">{routePath.length}</div>
-              <div className="text-xs text-purple-600 font-semibold">Checkpoints</div>
+              <MapPin className="w-4 h-4 text-purple-600 mx-auto mb-1" />
+              <div className="text-xl font-bold text-purple-900">{routePath.length}</div>
+              <div className="text-[10px] text-purple-600 font-semibold">Pontos GPS</div>
             </div>
           </div>
 
