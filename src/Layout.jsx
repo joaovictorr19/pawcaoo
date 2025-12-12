@@ -552,15 +552,29 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
+      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden relative">
+        {/* Aurora Background - Reactive to Tier */}
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className={`absolute top-20 -left-32 w-96 h-96 ${colors?.orb1 || 'bg-blue-400'} rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob`}></div>
+          <div className={`absolute top-40 -right-32 w-96 h-96 ${colors?.orb2 || 'bg-indigo-400'} rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000`}></div>
+          <div className={`absolute -bottom-32 left-1/3 w-96 h-96 ${colors?.orb1 || 'bg-blue-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000`}></div>
+        </div>
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-all duration-500 ease-in-out m-4 rounded-[3rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
-          collapsed ? 'w-24' : 'w-80'
-        } ${
-          colors?.isDarkMode 
-            ? 'bg-slate-900/60 border-slate-700/40' 
-            : 'bg-white/60 border-white/40'
-        }`}>
+        <Sidebar 
+          className={`backdrop-blur-xl border-r transition-all duration-500 ease-in-out m-4 rounded-[3rem] h-[calc(100vh-2rem)] shadow-xl ${
+            collapsed ? 'w-24' : 'w-80'
+          } ${
+            colors?.isDarkMode 
+              ? 'bg-slate-900/60 border-purple-400/30' 
+              : 'bg-white/60'
+          }`}
+          style={{
+            borderColor: colors?.isDarkMode ? 'rgba(167, 139, 250, 0.3)' : 'rgba(255, 255, 255, 0.4)',
+            boxShadow: colors?.isDarkMode 
+              ? '0 20px 60px rgba(139, 92, 246, 0.15)' 
+              : '0 20px 60px rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[3rem] relative ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
