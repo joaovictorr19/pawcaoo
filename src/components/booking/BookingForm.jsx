@@ -58,6 +58,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   });
 
   const [pickupAddress, setPickupAddress] = useState(""); 
+  const [pickupCoords, setPickupCoords] = useState({ lat: null, lng: null });
   const [selectedDogId, setSelectedDogId] = useState("");
 
   // Update address when user is loaded
@@ -66,6 +67,28 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         setPickupAddress(user.address || user.location || user.city || "");
     }
   }, [user]);
+
+  // ✅ GEOCODING: Capturar coordenadas atuais do usuário como "Casa"
+  const captureCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocalização não suportada");
+      return;
+    }
+
+    toast.info("📍 Obtendo sua localização...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setPickupCoords({ lat: latitude, lng: longitude });
+        toast.success("✅ Localização capturada!");
+      },
+      (error) => {
+        console.error("Erro ao obter localização:", error);
+        toast.error("Não foi possível obter sua localização");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   // AUTO-FILL from selected dog
   React.useEffect(() => {
@@ -309,31 +332,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
     try {
       const bookingData = {
-        // Handle generic ID field. WalkerDetails uses 'walker_id', TrainerDetails likely needs generic or specific.
-        // CheckoutModal expects 'walker_id' for display/logic? 
-        // Let's standardize on keeping the specific ID field based on type or adding both?
-        // Booking entity has 'walker_id'. TrainingBooking has 'trainer_id'.
-        // But here we create 'Booking' entity which is for Walkers.
-        // If this is for Trainer, we might need to handle differently or this form assumes Booking entity.
-        // TrainerDetails was creating 'TrainingBooking'.
-        // If we use this form for Trainers, we need to know if we create Booking or TrainingBooking.
-        // However, CheckoutModal likely assumes Booking entity or generic.
-        // Let's stick to generating the data structure and let the callback/checkout handle entity creation if needed, 
-        // OR if this mutation creates 'Booking', then it's only for Walkers.
-        // TrainerDetails used to create TrainingBooking. 
-        // If we want to unify, we should probably pass the create function or make this form agnostic.
-        // BUT, the mutation creates `base44.entities.Booking`. 
-        // For now, I will adapt this to work for Walkers (as is) and add basic support for passing data back.
-        
-        // If creating a Booking entity:
         walker_id: isWalker ? pro.id : undefined, 
         walker_name: proName,
         walker_email: pro.created_by,
-        walker_payment_contact: pro.whatsapp_number || pro.phone, // Store contact for payment
+        walker_payment_contact: pro.whatsapp_number || pro.phone,
         
         // Common fields
         owner_name: user.full_name,
         owner_phone: user.phone || '',
+        owner_email: user.email,
         dog_name: formData.dog_name,
         dog_size: formData.dog_size,
         walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
@@ -345,7 +352,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         special_notes: formData.special_notes,
         pickup_address: pickupAddress,
         
-        // Extra fields for context if needed
+        // ✅ COORDENADAS DO DESTINO (Ancoragem)
+        pickup_lat: pickupCoords.lat,
+        pickup_lng: pickupCoords.lng,
+        
         professional_type: isWalker ? 'walker' : 'trainer',
         professional_id: pro.id
       };
@@ -508,7 +518,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             </Select>
           </div>
 
-          {/* Local de Recolha */}
+          {/* Local de Recolha com Geocoding */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-purple-600" /> 
@@ -520,7 +530,32 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 placeholder="Ex: Rua das Flores, 123, Lisboa"
                 className="bg-gray-50 border-purple-100"
             />
-            <p className="text-xs text-gray-500">Onde o passeador deve buscar o cão?</p>
+            
+            {/* ✅ Botão para Capturar GPS */}
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={captureCurrentLocation}
+                variant="outline"
+                size="sm"
+                className="text-xs border-green-300 bg-green-50 hover:bg-green-100 text-green-700"
+              >
+                <MapPin className="w-3 h-3 mr-1" />
+                Usar Minha Localização Atual
+              </Button>
+              
+              {pickupCoords.lat && pickupCoords.lng && (
+                <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                  ✅ GPS: {pickupCoords.lat.toFixed(5)}, {pickupCoords.lng.toFixed(5)}
+                </span>
+              )}
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              {pickupCoords.lat 
+                ? "📍 Localização GPS capturada - o Walker saberá a distância exata até você!" 
+                : "Onde o passeador deve buscar o cão? (Recomendado: Capture GPS para rastreamento preciso)"}
+            </p>
           </div>
 
           {/* Notas Especiais */}
