@@ -76,5 +76,61 @@ export default function NotificationTriggers({ user }) {
     checkReviewReminders();
   }, [pendingReviews, user?.email]);
 
+  // ✅ Monitorar mensagens de chat em rides ativos
+  const { data: activeRides } = useQuery({
+    queryKey: ['myActiveRides', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return await base44.entities.Booking.filter({
+        $or: [
+          { walker_email: user.email },
+          { owner_email: user.email },
+          { created_by: user.email }
+        ],
+        status: 'in_progress'
+      });
+    },
+    enabled: !!user?.email,
+    refetchInterval: 10000,
+  });
+
+  // Notificar quando recebe mensagem de chat
+  useEffect(() => {
+    if (!activeRides || activeRides.length === 0) return;
+
+    const checkChatMessages = async () => {
+      for (const ride of activeRides) {
+        try {
+          const messages = await base44.entities.ChatMessage.filter({
+            booking_id: ride.id
+          }, '-created_date', 1);
+
+          if (messages.length > 0) {
+            const lastMsg = messages[0];
+            const isFromOther = lastMsg.sender_email !== user.email;
+            const isRecent = (Date.now() - new Date(lastMsg.created_date).getTime()) < 15000;
+
+            if (isFromOther && isRecent) {
+              // Browser Push
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(`💬 ${lastMsg.sender_name}`, {
+                  body: lastMsg.content.substring(0, 100),
+                  icon: '/logo.png',
+                  badge: '/favicon.png',
+                  tag: `chat_${ride.id}`,
+                  requireInteraction: false
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Erro ao verificar mensagens:', err);
+        }
+      }
+    };
+
+    checkChatMessages();
+  }, [activeRides, user?.email]);
+
   return null; // Componente invisível
 }
