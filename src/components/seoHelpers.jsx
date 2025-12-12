@@ -3,7 +3,11 @@ export const generateOrganizationSchema = () => ({
   "@type": "Organization",
   "name": "PawCão",
   "url": window.location.origin,
-  "logo": `${window.location.origin}/logo.png`,
+  "logo": {
+    "@type": "ImageObject",
+    "url": `${window.location.origin}/logo.png`
+  },
+  "image": `${window.location.origin}/logo.png`,
   "sameAs": [
     "https://www.facebook.com/pawcao",
     "https://www.instagram.com/pawcao"

@@ -671,13 +671,13 @@ function LayoutContent({ children, currentPageName }) {
 
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden relative z-10 bg-transparent">
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl overflow-hidden ${
+        <Sidebar className={`backdrop-blur-2xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent ${
           colors?.isDarkMode 
-            ? 'bg-slate-900/30 border-slate-700/40' 
-            : 'bg-white/30 border-white/40'
+            ? 'border-slate-700/40' 
+            : 'border-white/40'
         }`}>
           <SidebarHeader className={`border-b p-4 md:p-6 ${
-            colors?.isDarkMode ? 'border-slate-700/40' : 'border-white/40'
+            colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
             <Link 
               to={createPageUrl("Home")} 
