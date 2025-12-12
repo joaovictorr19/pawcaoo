@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -1344,7 +1343,7 @@ export default function Home() {
                 
                 <TabsTrigger 
                   value="shop" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Store className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}
@@ -1352,7 +1351,7 @@ export default function Home() {
                 
                 <TabsTrigger 
                   value="adoption" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Heart className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {t('adoptAPet', language)}
@@ -1360,7 +1359,7 @@ export default function Home() {
 
                 <TabsTrigger 
                   value="emergency" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white rounded-lg transition-all"
+                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {t('emergency', language)}
