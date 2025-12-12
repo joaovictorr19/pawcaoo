@@ -97,10 +97,6 @@
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
   }
 
-  [data-sidebar="sidebar"] {
-    background: transparent !important;
-  }
-
   .dark-cosmos {
     background: linear-gradient(to bottom right, rgb(15, 23, 42), rgb(88, 28, 135), rgb(0, 0, 0));
   }
