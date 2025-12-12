@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { toast } from 'sonner';
+import { useNotificationToast } from './NotificationToast';
 
 export function useRealtimeNotifications(user) {
   const queryClient = useQueryClient();
+  const toast = useNotificationToast();
   const lastCheckRef = useRef(Date.now());
   const intervalRef = useRef(null);
 
@@ -31,15 +32,14 @@ export function useRealtimeNotifications(user) {
           // Mostrar toast para a mais recente
           const latest = newNotifications[0];
           
-          // Toast com ação
-          toast(latest.title, {
-            description: latest.message,
-            action: latest.action_url ? {
-              label: 'Ver',
-              onClick: () => window.location.href = latest.action_url
-            } : undefined,
-            duration: 5000,
-          });
+          // Toast com ação usando nosso sistema
+          const toastType = latest.type === 'emergency' ? 'warning' : 
+                          latest.type === 'payment' ? 'success' : 'info';
+          
+          toast[toastType](latest.title, latest.message, latest.action_url ? {
+            label: 'Ver',
+            onClick: () => window.location.href = latest.action_url
+          } : undefined);
 
           // Browser Push Notification
           if ('Notification' in window && Notification.permission === 'granted') {

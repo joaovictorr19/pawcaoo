@@ -1065,22 +1065,12 @@ export default function Layout({ children, currentPageName }) {
     <HelmetProvider>
       <LanguageProvider>
         <ThemeProvider>
-          <ErrorBoundary>
-            <LayoutContent children={children} currentPageName={currentPageName} />
-          </ErrorBoundary>
+          <ToastProvider>
+            <ErrorBoundary>
+              <LayoutContent children={children} currentPageName={currentPageName} />
+            </ErrorBoundary>
+          </ToastProvider>
         </ThemeProvider>
-        <Toaster 
-          position="top-right"
-          duration={3000}
-          visibleToasts={3}
-          closeButton
-          richColors
-          toastOptions={{
-            style: {
-              zIndex: 9999,
-            },
-          }}
-        />
       </LanguageProvider>
     </HelmetProvider>
   );
