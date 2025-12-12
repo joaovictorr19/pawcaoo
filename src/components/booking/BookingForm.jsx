@@ -378,7 +378,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="border-0 shadow-xl">
+      <Card className="glass-panel border-0 shadow-xl">
         <CardHeader className={`bg-gradient-to-r ${isWalker ? 'from-green-600 to-green-500' : 'from-purple-600 to-purple-500'} text-white`}>
           <CardTitle className="text-2xl">{isWalker ? 'Agendar Passeio' : 'Agendar Sessão'}</CardTitle>
           <p className={isWalker ? "text-green-50" : "text-purple-50"}>com {proName}</p>
@@ -570,7 +570,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           </div>
 
           {/* Resumo de Valores */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-100">
+          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 space-y-3 border border-white/30 shadow-sm">
             <h4 className="font-semibold text-gray-900 mb-3">Resumo do Valor Estimado</h4>
 
             <div className="flex justify-between text-sm">

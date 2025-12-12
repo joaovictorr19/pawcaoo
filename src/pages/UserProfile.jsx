@@ -884,7 +884,7 @@ export default function UserProfile() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando perfil...</p>
@@ -895,8 +895,8 @@ export default function UserProfile() {
 
   if (!profileUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full shadow-xl border-0">
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="glass-panel max-w-md w-full shadow-xl border-0">
           <CardContent className="p-12 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <User className="w-10 h-10 text-gray-400" />
@@ -947,14 +947,14 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <Button variant="outline" className="mb-6" onClick={() => navigate(createPageUrl('Home'))}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
 
-        <Card className="border-0 shadow-xl mb-6 overflow-hidden bg-white">
+        <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden">
           <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             {profileUser.cover_photo_url && (
               <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" />
@@ -1286,7 +1286,7 @@ export default function UserProfile() {
           </TabsContent>
 
           <TabsContent value="about">
-            <Card>
+            <Card className="glass-panel border-0 shadow-lg">
               <CardContent className="pt-6">
                 {profileUser.about_me || profileUser.bio ? (
                   <p className="text-gray-700">{profileUser.about_me || profileUser.bio}</p>
@@ -1337,7 +1337,7 @@ export default function UserProfile() {
           </TabsContent>
 
           <TabsContent value="activity">
-            <Card>
+            <Card className="glass-panel border-0 shadow-lg">
               <CardHeader><CardTitle>Estatísticas</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
