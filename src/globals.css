@@ -80,6 +80,10 @@
     @apply whitespace-normal h-auto min-h-[2.5rem] break-words rounded-full !important;
   }
 
+  button[style*="background"] {
+    background: inherit !important;
+  }
+
   .glass-panel {
     border-radius: 1.5rem;
   }
