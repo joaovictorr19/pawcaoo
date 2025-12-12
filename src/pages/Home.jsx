@@ -1717,6 +1717,7 @@ export default function Home() {
               </TabsContent>
           </div>
         </div>
+        </Tabs>
 
         {/* Professional Call-to-Action Section */}
         <div className="mt-16 mb-12">
