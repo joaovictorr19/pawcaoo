@@ -30,10 +30,12 @@ export default function LiveWalkTracking() {
   const { data: booking } = useQuery({
     queryKey: ['booking', bookingId],
     queryFn: async () => {
-      const bookings = await base44.entities.Booking.list();
-      return bookings.find(b => b.id === bookingId);
+      if (!bookingId) return null;
+      const bookings = await base44.entities.Booking.filter({ id: bookingId });
+      return bookings[0] || null;
     },
     enabled: !!bookingId,
+    refetchInterval: 5000,
   });
 
   const { data: checkpoints, isLoading } = useQuery({
