@@ -474,6 +474,25 @@ function LayoutContent({ children, currentPageName }) {
         </script>
       </Helmet>
       <style>{`
+      /* === AURORA ANIMATIONS === */
+      @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+      }
+
+      .animate-blob {
+        animation: blob 7s infinite;
+      }
+
+      .animation-delay-2000 {
+        animation-delay: 2s;
+      }
+
+      .animation-delay-4000 {
+        animation-delay: 4s;
+      }
       :root {
         --primary: 142 76% 36%;
         --primary-foreground: 0 0% 100%;
@@ -551,13 +570,24 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
-        {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
-          colors?.isDarkMode 
-            ? 'bg-slate-900/60 border-slate-700/40' 
-            : 'bg-white/60 border-white/40'
-        }`}>
+      
+      {/* === CONTAINER MESTRE === */}
+      <div className="flex h-screen w-full overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative">
+        
+        {/* === CAMADA 1: FUNDO AURORA (Z-0) === */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
+
+        {/* === CAMADA 2: SPLIT-SCREEN CONTENT (Z-10) === */}
+        <div className="relative z-10 flex w-full h-full p-4 gap-4">
+          
+          {/* === COLUNA ESQUERDA: SIDEBAR (Desktop Only) === */}
+          {authUser && (
+          <aside className="hidden md:flex w-72 flex-col shrink-0">
+            <Sidebar className="backdrop-blur-xl border transition-all duration-300 rounded-[2rem] h-full shadow-2xl overflow-hidden bg-white/60 border-white/40"
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
@@ -832,7 +862,8 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
-            )}
+          </aside>
+          )}
 
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
@@ -840,9 +871,10 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
-            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
-              colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
+          {/* === COLUNA DIREITA: MAIN CONTENT === */}
+          <main className="flex-1 flex flex-col min-w-0 overflow-hidden rounded-3xl glass-panel shadow-2xl border border-white/40 bg-white/70 backdrop-blur-xl pb-20 md:pb-0">
+            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-sm backdrop-blur-xl rounded-t-3xl ${
+              colors?.isDarkMode ? 'bg-slate-900/90 border-b border-slate-700/60' : 'bg-white/80 border-b border-white/40'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
@@ -939,15 +971,19 @@ function LayoutContent({ children, currentPageName }) {
               </div>
               </header>
 
-          {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1">
+          {/* Main Content Area - Scrollable */}
+          <div className="flex-1 overflow-y-auto scroll-smooth">
             <div className="md:hidden">
               <PullToRefresh>
-                {children}
+                <div className="p-4 md:p-6">
+                  {children}
+                </div>
               </PullToRefresh>
             </div>
-            <div className="hidden md:block h-full">
-              {children}
+            <div className="hidden md:block">
+              <div className="p-6">
+                {children}
+              </div>
             </div>
           </div>
 
@@ -990,8 +1026,8 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
-            colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
+          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 rounded-b-3xl ${
+            colors?.isDarkMode ? 'bg-slate-900/90 border-slate-700/60' : 'bg-white/80 border-white/40'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
@@ -1055,7 +1091,12 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </footer>
         </main>
+
+        </div>
+        {/* Fim do Split-Screen Container */}
+
       </div>
+      {/* Fim do Container Mestre */}
     </SidebarProvider>
   );
 }
