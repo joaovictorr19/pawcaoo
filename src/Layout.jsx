@@ -614,22 +614,32 @@ button[data-sidebar="trigger"] {
   display: none !important;
 }
         `}</style>
+      {/* Dynamic Tier-based Aurora Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div 
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"
+          style={{ backgroundColor: 'var(--orb-1)', transition: 'background-color 1s ease' }}
+        />
+        <div 
+          className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-2000"
+          style={{ backgroundColor: 'var(--orb-2)', transition: 'background-color 1s ease' }}
+        />
+        <div 
+          className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-50 animate-blob animation-delay-4000"
+          style={{ backgroundColor: 'var(--orb-1)', transition: 'background-color 1s ease' }}
+        />
+      </div>
+
+      {/* Floating Trigger Button - Always visible */}
+      <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ${
+        colors?.isDarkMode 
+          ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
+          : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
+      }`}>
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      </SidebarTrigger>
+
       <div className="w-full min-h-screen overflow-x-hidden relative flex flex-col">
-        {/* Dynamic Tier-based Aurora Background */}
-        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-          <div 
-            className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"
-            style={{ backgroundColor: 'var(--orb-1)', transition: 'background-color 1s ease' }}
-          />
-          <div 
-            className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-2000"
-            style={{ backgroundColor: 'var(--orb-2)', transition: 'background-color 1s ease' }}
-          />
-          <div 
-            className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full mix-blend-multiply filter blur-[80px] opacity-50 animate-blob animation-delay-4000"
-            style={{ backgroundColor: 'var(--orb-1)', transition: 'background-color 1s ease' }}
-          />
-        </div>
         {authUser && (
         <>
         <Sidebar className={`backdrop-blur-2xl border transition-all duration-500 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-2xl fixed left-0 top-0 z-40 overflow-hidden ${
@@ -915,15 +925,6 @@ button[data-sidebar="trigger"] {
             </Sidebar>
             </>
             )}
-            
-            {/* Floating Trigger Button - Always visible */}
-            <SidebarTrigger className={`floating-sidebar-trigger fixed left-4 top-4 z-50 backdrop-blur-2xl shadow-2xl rounded-full w-14 h-14 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group ${
-              colors?.isDarkMode 
-                ? 'bg-slate-900/40 border border-slate-700/30 hover:bg-slate-800/60 hover:shadow-purple-500/20' 
-                : 'bg-white/40 border border-white/50 hover:bg-white/60 hover:shadow-blue-500/20'
-            }`}>
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            </SidebarTrigger>
 
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
@@ -931,14 +932,11 @@ button[data-sidebar="trigger"] {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex flex-col min-w-0 pb-24 md:pb-0 w-full relative z-10">
-            <header className={`px-3 md:px-6 py-3 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
+            <main className="flex flex-col min-w-0 pb-20 md:pb-0 w-full relative z-10">
+            <header className={`px-3 md:px-6 py-3 md:py-4 sticky top-0 z-30 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
-              {authUser && (
-                <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
-              )}
 
               <Link 
                 to={createPageUrl("Home")} 
