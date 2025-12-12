@@ -40,29 +40,26 @@ export default function InteractiveMap({
 }) {
   const navigate = useNavigate();
   const [selectedWalker, setSelectedWalker] = useState(null);
+  const [currentWalkerIndex, setCurrentWalkerIndex] = useState(0);
   
-  // Find nearest walker to center map on them
-  const nearestWalker = React.useMemo(() => {
-    if (!userLocation || !walkers || walkers.length === 0) return null;
-    
-    const walkersWithDistance = walkers
-      .filter(w => w.latitude && w.longitude)
-      .map(w => ({
-        ...w,
-        dist: Math.sqrt(
-          Math.pow(w.latitude - userLocation.lat, 2) + 
-          Math.pow(w.longitude - userLocation.lng, 2)
-        )
-      }))
-      .sort((a, b) => a.dist - b.dist);
-    
-    return walkersWithDistance[0] || null;
-  }, [walkers, userLocation]);
+  // Get valid walkers with coordinates
+  const validWalkers = React.useMemo(() => 
+    walkers.filter(w => w.latitude && w.longitude),
+    [walkers]
+  );
   
-  // Center on nearest walker if exists, otherwise user location, otherwise Lisboa
+  // Current focused walker
+  const focusedWalker = validWalkers[currentWalkerIndex] || null;
+  
+  // Navigate to next walker
+  const goToNextWalker = () => {
+    setCurrentWalkerIndex((prev) => (prev + 1) % validWalkers.length);
+  };
+  
+  // Center on focused walker or user location or Lisboa
   const defaultCenter = [38.7223, -9.1393];
-  const mapCenter = nearestWalker 
-    ? [nearestWalker.latitude, nearestWalker.longitude]
+  const mapCenter = focusedWalker 
+    ? [focusedWalker.latitude, focusedWalker.longitude]
     : (userLocation ? [userLocation.lat, userLocation.lng] : defaultCenter);
   
   // Custom marker icon for walkers
@@ -108,11 +105,11 @@ export default function InteractiveMap({
       
       <MapContainer
         center={mapCenter}
-        zoom={13}
+        zoom={14}
         style={{ height: "100%", width: "100%" }}
         className="z-0"
       >
-        <MapUpdater center={mapCenter} zoom={13} />
+        <MapUpdater center={mapCenter} zoom={14} />
         
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -219,19 +216,19 @@ export default function InteractiveMap({
                 </Popup>
               </Marker>
               
-              {/* Service Areas for each walker */}
-              {walker.service_areas?.map((area, idx) => (
+              {/* Service Areas - only show for focused walker */}
+              {focusedWalker && walker.id === focusedWalker.id && walker.service_areas?.map((area, idx) => (
                 area.latitude && area.longitude && area.radius_km && (
                   <Circle
                     key={`${walker.id}-area-${idx}`}
                     center={[area.latitude, area.longitude]}
                     radius={area.radius_km * 1000}
                     pathOptions={{
-                      color: isNearest ? '#22c55e' : '#3b82f6',
-                      fillColor: isNearest ? '#22c55e' : '#3b82f6',
-                      fillOpacity: 0.08,
-                      weight: isNearest ? 2.5 : 1.5,
-                      dashArray: isNearest ? '5, 5' : '10, 10'
+                      color: '#22c55e',
+                      fillColor: '#22c55e',
+                      fillOpacity: 0.15,
+                      weight: 3,
+                      dashArray: '5, 5'
                     }}
                   />
                 )
@@ -241,25 +238,55 @@ export default function InteractiveMap({
         })}
       </MapContainer>
       
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-xl shadow-xl p-3 z-[1000]">
-        <h4 className="font-bold text-sm mb-2">Legenda</h4>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span>Você</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Passeadores ({walkers.length})</span>
-          </div>
-          {userLocation && (
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 border-2 border-purple-500 rounded-full"></div>
-              <span>Raio {radiusKm}km</span>
-            </div>
+      {/* Interactive Legend */}
+      <div className="absolute bottom-4 left-4 bg-white rounded-xl shadow-xl p-3 z-[1000] max-w-xs">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-bold text-sm">Explorar Passeadores</h4>
+          {validWalkers.length > 0 && (
+            <span className="text-xs text-gray-500">{currentWalkerIndex + 1}/{validWalkers.length}</span>
           )}
         </div>
+        
+        {focusedWalker ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-200">
+              <Avatar className="h-8 w-8 ring-2 ring-green-400">
+                <AvatarImage src={focusedWalker.photo_url} />
+                <AvatarFallback className="bg-green-600 text-white text-xs">
+                  {focusedWalker.walker_name?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-xs text-gray-900 truncate">{focusedWalker.walker_name}</p>
+                <div className="flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xs">{focusedWalker.rating?.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500">• €{focusedWalker.hourly_rate}/h</span>
+                </div>
+              </div>
+            </div>
+            
+            <Button
+              onClick={goToNextWalker}
+              size="sm"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white h-8 text-xs"
+              disabled={validWalkers.length <= 1}
+            >
+              Próximo Passeador →
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-1 text-xs text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>Você</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span>Passeadores ({walkers.length})</span>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Walker Count Badge */}
