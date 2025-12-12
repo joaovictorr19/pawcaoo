@@ -138,14 +138,17 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             
             {walker.verification_status === "verified" && (
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1 }}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
               >
-                <Badge className="bg-green-500 text-white border-0 shadow-lg text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
-                  <Shield className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
-                  Verified
-                </Badge>
+                <div className="relative">
+                  <Badge className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-2 border-white shadow-xl text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 font-bold flex items-center gap-1">
+                    <Shield className="w-3 h-3 md:w-4 md:h-4 fill-white" />
+                    <span className="relative z-10">Verificado</span>
+                  </Badge>
+                  <div className="absolute inset-0 bg-white/30 rounded-full blur-sm animate-pulse" />
+                </div>
               </motion.div>
             )}
             {walker.total_walks > 50 && (
