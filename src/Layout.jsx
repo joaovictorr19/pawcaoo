@@ -957,15 +957,6 @@ function LayoutContent({ children, currentPageName }) {
                 <div className="flex-1"></div>
               )}
 
-              {planBadge && (
-                <Badge className={`${planBadge.color} text-white text-[10px] md:text-sm shadow-lg flex-shrink-0 px-2 md:px-3 py-1`}>
-                  <span className="hidden sm:inline">{planBadge.icon} </span>
-                  {planBadge.name}
-                </Badge>
-              )}
-
-
-
               {/* Notification Trigger */}
               <div className="relative flex-shrink-0 cursor-pointer mr-2 group" onClick={() => setIsNotificationPanelOpen(true)}>
                 <div className="p-2.5 rounded-full hover:bg-red-50 transition-all duration-200 active:scale-95">
