@@ -185,45 +185,45 @@ export default function NotificationArea({ isOpen, onClose }) {
             className="fixed inset-y-0 right-0 z-50 w-full md:w-[450px] bg-white shadow-2xl flex flex-col"
           >
             {/* Header */}
-            <div className="p-4 border-b flex items-center justify-between bg-white sticky top-0 z-10">
+            <div className="p-3 md:p-4 border-b flex items-center justify-between bg-white sticky top-0 z-10">
               <div className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-blue-600" />
-                <h2 className="font-bold text-lg">{t('notifications', language)}</h2>
+                <Bell className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+                <h2 className="font-bold text-base md:text-lg">Notificações</h2>
                 {unreadCount > 0 && (
-                  <Badge className="bg-red-500 text-white text-xs px-2 rounded-full">
+                  <Badge className="bg-red-500 text-white text-[10px] md:text-xs px-1.5 md:px-2 rounded-full">
                     {unreadCount}
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 md:gap-2">
                 {unreadCount > 0 && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => markAllAsReadMutation.mutate()}
                     disabled={markAllAsReadMutation.isPending}
-                    className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    className="text-[10px] md:text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7 md:h-8 px-2 md:px-3"
                   >
-                    {t('markAllAsRead', language)}
+                    Marcar Lidas
                   </Button>
                 )}
-                <Button variant="ghost" size="icon" onClick={handleCloseAll}>
-                  <X className="w-5 h-5 text-gray-500" />
+                <Button variant="ghost" size="icon" onClick={handleCloseAll} className="h-8 w-8">
+                  <X className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
                 </Button>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="px-4 pt-2 pb-0 border-b overflow-x-auto">
+            <div className="px-2 md:px-4 pt-2 pb-0 border-b overflow-x-auto scrollbar-hide">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="bg-transparent p-0 h-auto flex gap-4">
+                <TabsList className="bg-transparent p-0 h-auto flex gap-2 md:gap-4 min-w-max">
                   {["all", "unread", "booking", "payment", "emergency"].map(tab => (
                     <TabsTrigger 
                       key={tab} 
                       value={tab}
-                      className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none px-1 py-3 bg-transparent font-medium text-gray-500 hover:text-gray-800 transition-all text-sm"
+                      className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none px-2 md:px-1 py-2 md:py-3 bg-transparent font-medium text-gray-500 hover:text-gray-800 transition-all text-xs md:text-sm whitespace-nowrap"
                     >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                      {tab === 'all' ? 'Todas' : tab === 'unread' ? 'Não Lidas' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -231,18 +231,18 @@ export default function NotificationArea({ isOpen, onClose }) {
             </div>
 
             {/* Content */}
-            <ScrollArea className="flex-1 bg-gray-50 p-4">
+            <ScrollArea className="flex-1 bg-gray-50 p-2 md:p-4">
               {isLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
+                <div className="space-y-2 md:space-y-3">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 md:h-24 w-full rounded-xl" />)}
                 </div>
               ) : filteredNotifications.length === 0 ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center text-gray-500">
-                  <Bell className="w-12 h-12 mb-3 opacity-20" />
-                  <p>{t('noNotifications', language)}</p>
+                  <Bell className="w-10 h-10 md:w-12 md:h-12 mb-3 opacity-20" />
+                  <p className="text-sm">Sem notificações</p>
                 </div>
               ) : (
-                <div className="space-y-3 pb-20">
+                <div className="space-y-2 md:space-y-3 pb-20">
                   {filteredNotifications.map((notification) => (
                     <motion.div
                       layout
@@ -252,50 +252,52 @@ export default function NotificationArea({ isOpen, onClose }) {
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
                       <Card 
-                       className={`relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group rounded-2xl ${
+                       className={`relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group rounded-xl md:rounded-2xl ${
                          notification.is_system ? 'bg-purple-50/50 ring-1 ring-purple-100' : 
                          !notification.is_read ? 'bg-white ring-1 ring-blue-100' : 'bg-white/60'
                        }`}
                         onClick={() => handleNotificationClick(notification)}
-                        onMouseEnter={() => !notification.is_read && markAsReadMutation.mutate(notification)}
+                        onTouchStart={() => !notification.is_read && markAsReadMutation.mutate(notification)}
                       >
                         {!notification.is_read && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
                         )}
-                        <div className="p-4 flex gap-3">
-                          <div className={`mt-1 p-2 rounded-full flex-shrink-0 ${
+                        <div className="p-3 md:p-4 flex gap-2 md:gap-3">
+                          <div className={`mt-0.5 md:mt-1 p-1.5 md:p-2 rounded-full flex-shrink-0 ${
                             !notification.is_read ? 'bg-blue-50' : 'bg-gray-100'
                           }`}>
-                            {getNotificationIcon(notification.type)}
+                            {React.cloneElement(getNotificationIcon(notification.type), {
+                              className: "w-4 h-4 md:w-5 md:h-5"
+                            })}
                           </div>
                           
                           <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                              <h4 className={`text-sm font-semibold leading-tight ${
+                            <div className="flex justify-between items-start mb-0.5 md:mb-1 gap-2">
+                              <h4 className={`text-xs md:text-sm font-semibold leading-tight flex-1 ${
                                 !notification.is_read ? 'text-gray-900' : 'text-gray-600'
                               }`}>
                                 {notification.title}
                               </h4>
-                              <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
-                                {format(new Date(notification.created_date), "MMM d, HH:mm")}
+                              <span className="text-[9px] md:text-[10px] text-gray-400 whitespace-nowrap flex-shrink-0">
+                                {format(new Date(notification.created_date), "dd/MM HH:mm")}
                               </span>
                             </div>
                             
-                            <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                            <p className="text-[11px] md:text-xs text-gray-600 line-clamp-2 mb-1.5 md:mb-2 leading-relaxed">
                               {notification.message}
                             </p>
 
-                            <div className="flex items-center justify-between">
-                              <Badge variant="secondary" className="text-[10px] px-1.5 h-5 font-normal bg-gray-100 text-gray-500">
+                            <div className="flex items-center justify-between gap-2">
+                              <Badge variant="secondary" className="text-[9px] md:text-[10px] px-1.5 h-4 md:h-5 font-normal bg-gray-100 text-gray-500">
                                 {notification.type}
                               </Badge>
                               
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 {!notification.is_read && (
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-6 w-6 text-blue-600"
+                                    className="h-6 w-6 md:h-6 md:w-6 text-blue-600"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       markAsReadMutation.mutate(notification);
@@ -304,17 +306,19 @@ export default function NotificationArea({ isOpen, onClose }) {
                                     <Check className="w-3 h-3" />
                                   </Button>
                                 )}
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteNotificationMutation.mutate(notification.id);
-                                  }}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
+                                {!notification.is_system && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 md:h-6 md:w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteNotificationMutation.mutate(notification.id);
+                                    }}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </div>

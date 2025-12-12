@@ -114,33 +114,33 @@ export default function PushNotificationManager({ user }) {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+            className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md px-0"
           >
             <Card className="border-0 shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl overflow-hidden">
-              <CardContent className="p-6 relative">
+              <CardContent className="p-4 md:p-6 relative">
                 <button
                   onClick={dismissBanner}
-                  className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100 p-1"
+                  className="absolute top-2 right-2 md:top-3 md:right-3 text-gray-400 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100 p-1.5 z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
                 
-                <div className="flex items-start gap-4">
-                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-3 rounded-xl shadow-lg flex-shrink-0">
-                    <Bell className="w-6 h-6 text-white" />
+                <div className="flex flex-col md:flex-row items-start gap-3 md:gap-4">
+                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2.5 md:p-3 rounded-xl shadow-lg flex-shrink-0">
+                    <Bell className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
-                  <div className="flex-1 pr-6">
-                    <h3 className="font-bold text-lg text-gray-900 mb-1">
+                  <div className="flex-1 pr-0 md:pr-6 w-full">
+                    <h3 className="font-bold text-base md:text-lg text-gray-900 mb-1">
                       Ativar Notificações
                     </h3>
-                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 leading-relaxed">
                       {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                        ? 'Receba alertas no seu celular sobre passeios e mensagens.'
-                        : 'Receba alertas em tempo real sobre passeios e mensagens.'}
+                        ? 'Alertas no celular sobre passeios.'
+                        : 'Alertas em tempo real sobre passeios.'}
                     </p>
                     <Button
                       onClick={requestPermission}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold rounded-xl h-11 transition-all"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold rounded-xl h-10 md:h-11 transition-all text-sm"
                       size="sm"
                     >
                       <Bell className="w-4 h-4 mr-2" />
