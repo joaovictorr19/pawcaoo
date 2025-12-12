@@ -8,6 +8,7 @@ import { Star, MapPin, Navigation, Euro } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import "leaflet/dist/leaflet.css";
+import { X } from "lucide-react";
 
 // Fix for default marker icons in react-leaflet
 import L from "leaflet";
@@ -95,11 +96,11 @@ export default function InteractiveMap({
       {onClose && (
         <Button
           onClick={onClose}
-          size="sm"
+          size="icon"
           variant="secondary"
-          className="absolute top-4 left-4 z-[1000] bg-white hover:bg-gray-100 shadow-lg"
+          className="absolute top-4 right-4 z-[1000] bg-white hover:bg-gray-100 shadow-lg rounded-full h-10 w-10"
         >
-          ← Voltar
+          <X className="w-5 h-5" />
         </Button>
       )}
       
