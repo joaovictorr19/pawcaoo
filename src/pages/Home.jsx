@@ -976,10 +976,10 @@ export default function Home() {
                                             )}
                                           </div>
                                         </TooltipTrigger>
-                                        <TooltipContent className="bg-gray-900 text-white p-3 max-w-xs">
-                                          <p className="font-bold text-sm mb-1">{badge.name}</p>
+                                        <TooltipContent className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700">
+                                          <p className="font-bold text-xs mb-1 leading-tight">{badge.name}</p>
                                           {badge.description && (
-                                            <p className="text-xs text-gray-300">{badge.description}</p>
+                                            <p className="text-[10px] text-gray-300 leading-snug line-clamp-2">{badge.description}</p>
                                           )}
                                         </TooltipContent>
                                       </Tooltip>
