@@ -5,11 +5,7 @@ const LanguageContext = createContext();
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (!context) {
-    // Return default language instead of throwing error
-    return {
-      language: 'pt',
-      setLanguage: () => {},
-    };
+    throw new Error('useLanguage must be used within LanguageProvider');
   }
   return context;
 };
