@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -36,7 +37,7 @@ import {
   Users, Shield, CheckCircle, X, Clock, Ban, Briefcase, Package,
   Calendar, DollarSign, Star, AlertCircle, BarChart3, Store,
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
-  CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send,
+  CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send, ShoppingBag,
   XCircle, Upload, Eye,
   RefreshCw, Loader2, ArrowLeft
 } from "lucide-react";
@@ -257,10 +258,19 @@ export default function AdminDashboard() {
     queryKey: ['allPartnerServices'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
-    enabled: user?.role === 'admin' && activeTab === 'services',
+    enabled: user?.role === 'admin' && (activeTab === 'services' || activeTab === 'products'),
     initialData: [],
   });
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
+
+  const { data: allPartnerProducts = [], isFetching: loadingProducts } = useQuery({
+    queryKey: ['allPartnerProducts'],
+    placeholderData: keepPreviousData,
+    queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
+    enabled: user?.role === 'admin' && activeTab === 'products',
+    initialData: [],
+  });
+  const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
@@ -1034,6 +1044,10 @@ export default function AdminDashboard() {
     { icon: Calendar, value: allBookings.length, label: "Total Bookings", key: "totalBookingsStats", color: "from-green-600 to-emerald-600" },
   ];
 
+  if (activeTab === 'products') {
+    stats[2] = { icon: ShoppingBag, value: pendingProducts.length, label: "Products Pending", key: "productsPendingStats", color: "from-indigo-600 to-purple-600" };
+  }
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
@@ -1080,6 +1094,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="companies">{t('companies', language)}</TabsTrigger>
             <TabsTrigger value="announcements">{t('announcements', language)}</TabsTrigger>
             <TabsTrigger value="services">{t('services', language)}</TabsTrigger>
+            <TabsTrigger value="products">🛍️ Produtos</TabsTrigger>
             <TabsTrigger value="bookings">{t('bookings', language)}</TabsTrigger>
             <TabsTrigger value="payments">{t('payments', language)}</TabsTrigger>
             <TabsTrigger value="reviews">{t('reviews', language)}</TabsTrigger>
@@ -1821,6 +1836,150 @@ export default function AdminDashboard() {
                                   className="text-red-600 border-red-200"
                                 >
                                   <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="products">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
+              <CardHeader>
+                <CardTitle>Produtos da Loja ({allPartnerProducts.length})</CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {pendingProducts.length} pendentes • {allPartnerProducts.filter(p => p.moderation_status === 'approved' && p.is_available).length} ativos
+                </p>
+              </CardHeader>
+              <CardContent>
+                {loadingProducts && allPartnerProducts.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+                  </div>
+                ) : allPartnerProducts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhum produto cadastrado</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {allPartnerProducts.map((product) => {
+                      const isPending = product.moderation_status === 'pending';
+                      const isApproved = product.moderation_status === 'approved';
+                      const isActive = product.is_available;
+
+                      return (
+                        <Card key={product.id} className={`border-2 ${
+                          isPending ? 'border-orange-200 bg-orange-50' :
+                          isApproved && isActive ? 'border-green-200 bg-green-50' :
+                          isApproved && !isActive ? 'border-gray-300 bg-gray-100' :
+                          'border-red-200 bg-red-50'
+                        }`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              {product.image_url && (
+                                <img 
+                                  src={product.image_url} 
+                                  className="w-20 h-20 object-cover rounded-lg" 
+                                  alt={product.product_name}
+                                />
+                              )}
+                              <div className="flex-1">
+                                <h3 className="font-bold text-lg">{product.product_name}</h3>
+                                <p className="text-sm text-gray-600">{product.partner_name}</p>
+                                <p className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  <Badge className={
+                                    isPending ? 'bg-orange-500' :
+                                    product.moderation_status === 'approved' ? 'bg-green-600' :
+                                    'bg-red-600'
+                                  }>
+                                    {product.moderation_status}
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    {isActive ? `🟢 Disponível` : `🔴 Oculto`}
+                                  </Badge>
+                                  <Badge variant="outline">€{product.price_euro}</Badge>
+                                  {product.points_cost > 0 && (
+                                    <Badge variant="outline">{product.points_cost} pts</Badge>
+                                  )}
+                                  <Badge variant="outline" className="capitalize">{product.category}</Badge>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                {isPending ? (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={async () => {
+                                        await base44.entities.PartnerProduct.update(product.id, {
+                                          moderation_status: 'approved',
+                                          is_available: true
+                                        });
+                                        queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+                                        queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
+                                        toast.success("✅ Produto aprovado e visível na loja!");
+                                      }}
+                                      className="bg-green-600"
+                                    >
+                                      ✓ Aprovar
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={async () => {
+                                        const reason = prompt('Motivo da rejeição:');
+                                        if (!reason) return;
+                                        await base44.entities.PartnerProduct.update(product.id, {
+                                          moderation_status: 'rejected',
+                                          is_available: false,
+                                          rejection_reason: reason
+                                        });
+                                        queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+                                        toast.success("Produto rejeitado");
+                                      }}
+                                      className="text-red-600"
+                                    >
+                                      ✗ Rejeitar
+                                    </Button>
+                                  </>
+                                ) : isApproved && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      await base44.entities.PartnerProduct.update(product.id, {
+                                        is_available: !isActive 
+                                      });
+                                      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+                                      queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
+                                      toast.success(`Produto ${!isActive ? 'ativado' : 'desativado'}!`);
+                                    }}
+                                    className={isActive ? 'text-orange-600 border-orange-300' : 'text-green-600 border-green-300'}
+                                  >
+                                    {isActive ? '⏸ Ocultar' : '▶ Mostrar'}
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={async () => {
+                                    if (confirm(`Eliminar "${product.product_name}"?`)) {
+                                      await base44.entities.PartnerProduct.delete(product.id);
+                                      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+                                      queryClient.invalidateQueries({ queryKey: ['shopProducts'] });
+                                      toast.success('✅ Produto eliminado!');
+                                    }
+                                  }}
+                                  className="text-red-600 border-red-200"
+                                >
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               </div>
                             </div>
