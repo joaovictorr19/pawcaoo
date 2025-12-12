@@ -813,55 +813,57 @@ export default function ProfessionalDashboard() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-2 border border-white/50 flex flex-wrap gap-2 justify-center">
-            <TabsTrigger 
-              value="overview" 
-              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Resumo
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bookings" 
-              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 relative transition-all"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Reservas
-              {directRequests.length > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse shadow-lg">
-                  {directRequests.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
-            >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger 
-              value="services" 
-              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
-            >
-              <Package className="w-4 h-4 mr-2" />
-              Serviços
-            </TabsTrigger>
-            <TabsTrigger 
-              value="calendar" 
-              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
-            >
-              <CalendarIcon className="w-4 h-4 mr-2" />
-              Agenda
-            </TabsTrigger>
-            <TabsTrigger 
-              value="reviews" 
-              className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-4 py-3 transition-all"
-            >
-              <Star className="w-4 h-4 mr-2" />
-              Reviews
-            </TabsTrigger>
-          </TabsList>
+          <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-3 border border-white/50">
+            <TabsList className="w-full bg-transparent flex flex-wrap gap-2 justify-start h-auto">
+              <TabsTrigger 
+                value="overview" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Resumo
+              </TabsTrigger>
+              <TabsTrigger 
+                value="bookings" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 relative transition-all flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                Reservas
+                {directRequests.length > 0 && (
+                  <Badge className="ml-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse shadow-lg">
+                    {directRequests.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analytics" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <TrendingUp className="w-4 h-4" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="services" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <Package className="w-4 h-4" />
+                Serviços
+              </TabsTrigger>
+              <TabsTrigger 
+                value="calendar" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <CalendarIcon className="w-4 h-4" />
+                Agenda
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reviews" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <Star className="w-4 h-4" />
+                Reviews
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
