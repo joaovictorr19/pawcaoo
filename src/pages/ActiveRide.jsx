@@ -314,7 +314,7 @@ export default function ActiveRide() {
 
       {/* ✅ TOP BAR: Informações da Reserva (Z-INDEX 10) */}
       <div className="absolute top-4 left-4 right-4 z-10 pointer-events-none">
-        <Card className="bg-white/95 backdrop-blur-md shadow-2xl border-0 max-w-2xl mx-auto pointer-events-auto">
+        <Card className="glass-panel shadow-2xl border-0 max-w-2xl mx-auto pointer-events-auto">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
