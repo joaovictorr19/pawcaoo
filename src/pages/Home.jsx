@@ -938,6 +938,10 @@ export default function Home() {
               variant={viewMode === "list" ? "default" : "outline"}
               onClick={() => setViewMode("list")}
               size="sm"
+              className={viewMode === "list" ? 'text-white' : ''}
+              style={viewMode === "list" ? {
+                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+              } : {}}
             >
               <List className="w-4 h-4 mr-2" />
               {t('list', language)}
@@ -1219,9 +1223,12 @@ export default function Home() {
                                       onClick={() => setCurrentPage(pageNum)}
                                       className={`w-8 h-8 p-0 font-medium ${
                                         currentPage === pageNum 
-                                          ? 'bg-green-600 text-white hover:bg-green-700' 
-                                          : 'text-gray-600 hover:bg-green-50 hover:text-green-700'
+                                          ? 'text-white' 
+                                          : 'text-gray-600 hover:bg-gray-50'
                                       }`}
+                                      style={currentPage === pageNum ? {
+                                        background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                                      } : {}}
                                     >
                                       {pageNum}
                                     </Button>
