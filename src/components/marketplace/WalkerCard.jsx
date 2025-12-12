@@ -295,11 +295,8 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
 
           <div className="flex gap-2">
             <Button 
-              className="flex-1 text-white shadow-lg text-xs md:text-sm h-9 md:h-10 hover:opacity-90"
+              className="flex-1 text-white shadow-lg text-xs md:text-sm h-9 md:h-10 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
               onClick={handleViewProfile}
-              style={{
-                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-              }}
             >
               Ver Detalhes
             </Button>
