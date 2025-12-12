@@ -238,7 +238,7 @@ function LayoutContent({ children, currentPageName }) {
   ];
 
   const professionalMenu = [
-    { title: t('becomeWalker', language), url: createPageUrl("BecomeWalker"), icon: PlusCircle },
+    { title: language === 'pt' ? 'Tornar-me Profissional' : language === 'es' ? 'Ser Profesional' : 'Become Professional', url: createPageUrl("BecomeProfessional"), icon: PlusCircle },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown },
     ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
       { title: "Stripe Connect", url: createPageUrl("StripeConnectSetup"), icon: CreditCard }
