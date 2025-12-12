@@ -251,6 +251,31 @@ export default function Home() {
     staleTime: 30000,
   });
 
+  // Stats em tempo real
+  const { data: stats } = useQuery({
+    queryKey: ['platformStats'],
+    queryFn: async () => {
+      try {
+        const [totalWalkers, completedBookings, adoptedDogs] = await Promise.all([
+          base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }),
+          base44.entities.Booking.filter({ status: 'completed' }),
+          base44.entities.AdoptionApplication.filter({ status: 'approved' })
+        ]);
+        
+        return {
+          totalWalkers: totalWalkers.length || 0,
+          happyDogs: completedBookings.length || 0,
+          adoptedDogs: adoptedDogs.length || 0
+        };
+      } catch (error) {
+        console.error("Stats fetch error:", error);
+        return { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 };
+      }
+    },
+    initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
+    staleTime: 60000, // Atualiza a cada minuto
+  });
+
   const getWalkerDistance = (walker) => {
     if (!userLocation || !userLocation.lat || !userLocation.lng) {
       return null;
@@ -795,6 +820,25 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-md rounded-full px-5 py-2 text-white text-sm font-bold mb-6 shadow-lg shadow-blue-600/20 border border-blue-400/30">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
                 #1 Plataforma de Pet Services em Portugal
+              </div>
+
+              {/* Estatísticas em Tempo Real */}
+              <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6">
+                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
+                  <Users className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-bold text-slate-700">{stats.totalWalkers}</span>
+                  <span className="text-xs text-slate-600">Walkers</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
+                  <Dog className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-bold text-slate-700">{stats.happyDogs}</span>
+                  <span className="text-xs text-slate-600">Cães Felizes</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
+                  <Heart className="w-4 h-4 text-pink-600 fill-pink-600" />
+                  <span className="text-sm font-bold text-slate-700">{stats.adoptedDogs}</span>
+                  <span className="text-xs text-slate-600">Adoções</span>
+                </div>
               </div>
 
               <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-4 leading-tight">
