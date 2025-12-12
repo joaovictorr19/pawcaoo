@@ -152,9 +152,16 @@ export default function WalkerDetails() {
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['walkerReviews', walkerId],
-    queryFn: () => base44.entities.Review.filter({ walker_id: walkerId }, '-created_date'),
+    queryFn: async () => {
+      if (!walkerId) return [];
+      console.log('🔍 Buscando reviews para walker_id:', walkerId);
+      const allReviews = await base44.entities.Review.filter({ walker_id: walkerId }, '-created_date');
+      console.log('📊 Reviews encontradas:', allReviews.length, allReviews);
+      return allReviews;
+    },
     enabled: !!walkerId,
     initialData: [],
+    staleTime: 30000,
   });
 
   const { data: availability } = useQuery({

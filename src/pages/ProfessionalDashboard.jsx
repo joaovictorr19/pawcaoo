@@ -166,14 +166,23 @@ export default function ProfessionalDashboard() {
   const { data: reviews = [] } = useQuery({
     queryKey: ['myReviews'],
     queryFn: async () => {
+      console.log('🔍 Buscando reviews do profissional');
+      console.log('Walker Profile ID:', walkerProfile?.id);
+      console.log('Trainer Profile ID:', trainerProfile?.id);
+      
       const walkerReviews = walkerProfile ? 
         await base44.entities.Review.filter({ walker_id: walkerProfile.id }) : [];
       const trainerReviews = trainerProfile ?
         await base44.entities.Review.filter({ trainer_id: trainerProfile.id }) : [];
+      
+      console.log('📊 Walker Reviews:', walkerReviews.length);
+      console.log('📊 Trainer Reviews:', trainerReviews.length);
+      
       return [...walkerReviews, ...trainerReviews];
     },
     enabled: !!user && (!!walkerProfile || !!trainerProfile),
     initialData: [],
+    refetchInterval: 10000, // Atualizar a cada 10 segundos
   });
 
   // Availability

@@ -54,13 +54,18 @@ export default function EditWalkerProfile() {
       const sensitiveFields = ['photo_url', 'bio', 'hourly_rate', 'cover_photo_url', 'video_intro_url', 'experience_years'];
       const hasSensitiveChanges = Object.keys(changes).some(key => sensitiveFields.includes(key));
       
-      // Force pending if sensitive data changed BUT keep profile active and visible
+      // CRITICAL: Always preserve is_active status
       const updateData = {
         ...changes,
-        ...(hasSensitiveChanges ? { verification_status: 'pending' } : {}),
-        is_active: true // CRITICAL: Keep profile visible during review
+        is_active: true
       };
+
+      // Only change verification if there are sensitive changes AND currently verified
+      if (hasSensitiveChanges && walkerProfile.verification_status === 'verified') {
+        updateData.verification_status = 'pending';
+      }
       
+      console.log('📝 Updating walker profile with:', updateData);
       await base44.entities.WalkerProfile.update(walkerProfile.id, updateData);
       
       // Create edit request for admin tracking
