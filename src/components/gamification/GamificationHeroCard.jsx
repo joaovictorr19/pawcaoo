@@ -13,7 +13,7 @@ export default function GamificationHeroCard({ userProfile }) {
   const nextTier = tierData.max !== Infinity ? tierData.max + 1 : null;
 
   return (
-    <Card className={`glass-panel border-2 ${colors.glass_border} shadow-2xl overflow-hidden relative`}>
+    <Card className={`glass-panel border-2 ${colors.glass_border} shadow-2xl overflow-hidden relative rounded-3xl`}>
       <div className="absolute inset-0 bg-gradient-to-br opacity-10" style={{
         backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`
       }} />

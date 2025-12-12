@@ -252,10 +252,10 @@ export default function NotificationArea({ isOpen, onClose }) {
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
                       <Card 
-                        className={`relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group ${
-                          notification.is_system ? 'bg-purple-50/50 ring-1 ring-purple-100' : 
-                          !notification.is_read ? 'bg-white ring-1 ring-blue-100' : 'bg-white/60'
-                        }`}
+                       className={`relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group rounded-2xl ${
+                         notification.is_system ? 'bg-purple-50/50 ring-1 ring-purple-100' : 
+                         !notification.is_read ? 'bg-white ring-1 ring-blue-100' : 'bg-white/60'
+                       }`}
                         onClick={() => handleNotificationClick(notification)}
                         onMouseEnter={() => !notification.is_read && markAsReadMutation.mutate(notification)}
                       >
