@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Clock, DollarSign, Zap, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function EmergencyDogCard({ walk }) {
   const navigate = useNavigate();
+  const { colors } = useTheme();
 
   const getSizeLabel = (size) => {
     const labels = {
@@ -122,7 +124,7 @@ export default function EmergencyDogCard({ walk }) {
         )}
 
         <Button 
-          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-12 text-base font-semibold"
+          className="w-full text-white shadow-lg h-12 text-base font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
           onClick={() => navigate(createPageUrl(`EmergencyWalkDetails?id=${walk.id}`))}
         >
           <Zap className="w-5 h-5 mr-2" />

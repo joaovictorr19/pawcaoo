@@ -7,10 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { motion } from "framer-motion"; // Added framer-motion import
+import { motion } from "framer-motion";
+import { useTheme } from "@/components/ThemeContext";
 
-const TrainerCard = React.memo(({ trainer, distance }) => { // Added distance prop
+const TrainerCard = React.memo(({ trainer, distance }) => {
   const navigate = useNavigate();
+  const { colors } = useTheme();
 
   // Fetch trainer's subscription to determine if premium
   const { data: trainerSubscription } = useQuery({
@@ -282,14 +284,15 @@ const TrainerCard = React.memo(({ trainer, distance }) => { // Added distance pr
           </div>
 
           <Button 
-            className={`w-full shadow-lg h-12 text-base font-semibold ${
+            className={`w-full shadow-lg h-12 text-base font-semibold text-white hover:opacity-90 ${
               isProPlan 
-                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
-                : isPremium
-                ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
-                : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
-            } text-white`}
-            onClick={handleClick} // Button also uses handleClick
+                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                : ''
+            }`}
+            style={!isProPlan ? {
+              background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+            } : {}}
+            onClick={handleClick}
             disabled={trainer.verification_status !== "verified"}
           >
             {trainer.verification_status === "verified" ? "View Profile & Book" : "Verification Pending"}
