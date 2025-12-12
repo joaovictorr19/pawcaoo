@@ -48,8 +48,19 @@ export default function PushNotificationManager({ user }) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     try {
-      // Solicitar permissão (funciona em desktop e mobile)
-      const result = await Notification.requestPermission();
+      // Solicitar permissão - funciona em desktop e mobile, mas requer interação do usuário
+      let result;
+      
+      // Para garantir que funciona no PC, verificar se já não está concedido
+      if (Notification.permission === 'granted') {
+        result = 'granted';
+      } else if (Notification.permission === 'denied') {
+        result = 'denied';
+      } else {
+        // Solicitar nova permissão - DEVE ser chamado em resposta a uma ação do usuário
+        result = await Notification.requestPermission();
+      }
+      
       setPermission(result);
       
       if (result === 'granted') {
@@ -105,18 +116,18 @@ export default function PushNotificationManager({ user }) {
             exit={{ opacity: 0, y: -50 }}
             className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
           >
-            <Card className="border-2 border-green-500 shadow-2xl bg-white/95 backdrop-blur-lg">
+            <Card className="border-2 border-blue-400 shadow-2xl backdrop-blur-xl bg-white/90">
               <CardContent className="p-4">
                 <button
                   onClick={dismissBanner}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
                 
                 <div className="flex items-start gap-3">
-                  <div className="bg-green-100 p-2 rounded-full">
-                    <Bell className="w-6 h-6 text-green-600" />
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl shadow-lg">
+                    <Bell className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-gray-900 mb-1">
@@ -129,7 +140,7 @@ export default function PushNotificationManager({ user }) {
                     </p>
                     <Button
                       onClick={requestPermission}
-                      className="w-full bg-green-600 hover:bg-green-700"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white shadow-lg font-semibold rounded-xl transform hover:scale-105 transition-all active:scale-95"
                       size="sm"
                     >
                       <Bell className="w-4 h-4 mr-2" />
@@ -145,7 +156,7 @@ export default function PushNotificationManager({ user }) {
 
       {/* Botão de controle no header (se já tiver permissão) */}
       {permission === 'granted' && (
-        <div className="hidden md:flex items-center gap-2 text-xs text-green-600">
+        <div className="hidden md:flex items-center gap-2 text-xs text-blue-600">
           <Bell className="w-4 h-4" />
           <span>Notificações ativas</span>
         </div>
