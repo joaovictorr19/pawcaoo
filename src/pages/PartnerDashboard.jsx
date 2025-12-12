@@ -13,11 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Store, Package, Megaphone, CheckCircle, Clock,
-  Plus, Trash, Eye, Calendar, AlertCircle, X, Upload, ShoppingBag
+  Plus, Trash, Eye, Calendar, AlertCircle, X, Upload, ShoppingBag, BarChart3
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import PartnerAnalytics from "../components/partner/PartnerAnalytics";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
@@ -186,6 +187,26 @@ export default function PartnerDashboard() {
     refetchOnMount: 'always',
   });
 
+  const { data: myBookings = [] } = useQuery({
+    queryKey: ['partnerBookings', company?.id],
+    queryFn: async () => {
+      if (!company?.id) return [];
+      const all = await base44.entities.ServiceBooking.filter({ partner_id: company.id }, '-created_date');
+      return all;
+    },
+    enabled: !!company?.id,
+  });
+
+  const { data: myPayments = [] } = useQuery({
+    queryKey: ['partnerPayments', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const all = await base44.entities.Payment.filter({ recipient_email: user.email }, '-held_date');
+      return all;
+    },
+    enabled: !!user?.email,
+  });
+
   const createProductMutation = useMutation({
     mutationFn: async (data) => {
       const payload = {
@@ -349,6 +370,8 @@ export default function PartnerDashboard() {
     );
   }
 
+  const [activeTab, setActiveTab] = useState("overview");
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
@@ -379,54 +402,76 @@ export default function PartnerDashboard() {
           </Button>
         </div>
 
-        {/* BOTÕES RÁPIDOS */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
-          <Button
-            onClick={() => setShowCreateService(true)}
-            className="bg-blue-600 hover:bg-blue-700 h-16"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Criar Serviço
-          </Button>
-          <Button
-            onClick={() => setShowCreateProduct(true)}
-            className="bg-green-600 hover:bg-green-700 h-16"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Criar Produto
-          </Button>
-          <Button
-            onClick={() => setShowCreateAnnouncement(true)}
-            className="bg-purple-600 hover:bg-purple-700 h-16"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Criar Anúncio
-          </Button>
-          <Button
-            onClick={() => setShowMyServices(true)}
-            variant="outline"
-            className="h-16 border-blue-300"
-          >
-            <Package className="w-5 h-5 mr-2" />
-            Meus Serviços ({myServices.length})
-          </Button>
-          <Button
-            onClick={() => setShowMyAnnouncements(true)}
-            variant="outline"
-            className="h-16 border-purple-300"
-          >
-            <Megaphone className="w-5 h-5 mr-2" />
-            Meus Anúncios ({myAnnouncements.length})
-          </Button>
-          <Button
-            onClick={() => setShowMyProducts(true)}
-            variant="outline"
-            className="h-16 border-green-300"
-          >
-            <ShoppingBag className="w-5 h-5 mr-2" />
-            Meus Produtos ({myProducts.length})
-          </Button>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            {/* BOTÕES RÁPIDOS */}
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-6">
+              <Button
+                onClick={() => setShowCreateService(true)}
+                className="bg-blue-600 hover:bg-blue-700 h-16"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Criar Serviço
+              </Button>
+              <Button
+                onClick={() => setShowCreateProduct(true)}
+                className="bg-green-600 hover:bg-green-700 h-16"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Criar Produto
+              </Button>
+              <Button
+                onClick={() => setShowCreateAnnouncement(true)}
+                className="bg-purple-600 hover:bg-purple-700 h-16"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Criar Anúncio
+              </Button>
+              <Button
+                onClick={() => setShowMyServices(true)}
+                variant="outline"
+                className="h-16 border-blue-300"
+              >
+                <Package className="w-5 h-5 mr-2" />
+                Meus Serviços ({myServices.length})
+              </Button>
+              <Button
+                onClick={() => setShowMyAnnouncements(true)}
+                variant="outline"
+                className="h-16 border-purple-300"
+              >
+                <Megaphone className="w-5 h-5 mr-2" />
+                Meus Anúncios ({myAnnouncements.length})
+              </Button>
+              <Button
+                onClick={() => setShowMyProducts(true)}
+                variant="outline"
+                className="h-16 border-green-300"
+              >
+                <ShoppingBag className="w-5 h-5 mr-2" />
+                Meus Produtos ({myProducts.length})
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <PartnerAnalytics 
+              bookings={myBookings}
+              products={myProducts}
+              services={myServices}
+              payments={myPayments}
+            />
+          </TabsContent>
+        </Tabs>
+
       </div>
 
       {/* CRIAR SERVIÇO - COM FOTO E LOCALIZAÇÃO */}
