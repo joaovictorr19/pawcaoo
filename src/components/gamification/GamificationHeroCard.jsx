@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Zap, TrendingUp, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../ThemeContext";
-import { calculateTier } from "./tierSystem";
+import { calculateTier, TIER_THRESHOLDS } from "./tierSystem";
 
 export default function GamificationHeroCard({ userProfile }) {
   const { colors, tier, icon } = useTheme();

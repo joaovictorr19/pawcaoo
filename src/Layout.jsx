@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
+import { ThemeProvider } from "@/components/ThemeContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { toast, Toaster } from "sonner";
@@ -988,9 +989,11 @@ export default function Layout({ children, currentPageName }) {
   return (
     <HelmetProvider>
       <LanguageProvider>
-        <ErrorBoundary>
-          <LayoutContent children={children} currentPageName={currentPageName} />
-        </ErrorBoundary>
+        <ThemeProvider>
+          <ErrorBoundary>
+            <LayoutContent children={children} currentPageName={currentPageName} />
+          </ErrorBoundary>
+        </ThemeProvider>
         <Toaster 
           position="top-right"
           duration={3000}
