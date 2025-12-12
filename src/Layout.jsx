@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, Bell, History, Crown, Store, Award, Globe, Camera, Shield, ShieldCheck, BarChart3, Trophy, Megaphone, Users, LogOut, Building2, Download, MessageCircle, ChevronRight, ChevronLeft } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, Bell, History, Crown, Store, Award, Globe, Camera, Shield, ShieldCheck, BarChart3, Trophy, Megaphone, LogOut, Building2, Download, MessageCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,6 @@ import { useRealtimeNotifications } from "@/components/notifications/useRealtime
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import "./globals.css";
 
-// Query optimization configs
 const queryConfig = {
   user: {
     staleTime: 10 * 60 * 1000,
@@ -74,7 +73,6 @@ function LayoutContent({ children, currentPageName }) {
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
   const [newBadge, setNewBadge] = React.useState(null);
 
-  // Dictionary for menu translations
   const menuTranslations = {
     shelterArea: { pt: 'Área de Abrigos', es: 'Área de Refugios', en: 'Shelter Area' },
     becomeProfessional: { pt: 'Tornar-me Profissional', es: 'Ser Profesional', en: 'Become Professional' },
@@ -318,15 +316,9 @@ function LayoutContent({ children, currentPageName }) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="center" className="w-48">
-                          <DropdownMenuItem onClick={() => setLanguage('pt')} className="cursor-pointer">
-                            🇵🇹 Português
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
-                            🇬🇧 English
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setLanguage('es')} className="cursor-pointer">
-                            🇪🇸 Español
-                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setLanguage('pt')} className="cursor-pointer">🇵🇹 Português</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">🇬🇧 English</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setLanguage('es')} className="cursor-pointer">🇪🇸 Español</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </>
@@ -334,7 +326,6 @@ function LayoutContent({ children, currentPageName }) {
                 </SidebarHeader>
 
                 <SidebarContent className="p-3 md:p-4">
-                  {/* Menu items - keeping existing implementation */}
                   <SidebarGroup className="md:hidden">
                     {!collapsed && (
                       <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 mb-2 font-semibold uppercase">
@@ -360,7 +351,128 @@ function LayoutContent({ children, currentPageName }) {
                     </SidebarGroupContent>
                   </SidebarGroup>
 
-                  {/* Logout Button */}
+                  <SidebarGroup>
+                    {!collapsed && (
+                      <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`} onClick={() => setMyActivityExpanded(!myActivityExpanded)}>
+                        <span>{t('myActivity', language)}</span>
+                        <span className={`transition-transform duration-300 ${myActivityExpanded ? 'rotate-90' : ''}`}>▶</span>
+                      </SidebarGroupLabel>
+                    )}
+                    {(!collapsed ? myActivityExpanded : true) && (
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {myActivityMenu.map((item) => (
+                            <SidebarMenuItem key={item.title}>
+                              <SidebarMenuButton asChild className={`transition-all duration-200 rounded-lg mb-1 ${collapsed ? 'justify-center' : ''} ${isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')}`}>
+                                <Link to={item.url} id={item.id} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 md:gap-4 px-4 md:px-5'} py-2 md:py-2.5 relative`}>
+                                  {!collapsed && isRouteActive(item.url) && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: colors?.primary || '#3b82f6' }} />
+                                  )}
+                                  <item.icon className={`w-5 h-5 flex-shrink-0`} />
+                                  {!collapsed && (
+                                    <>
+                                      <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">{item.title}</span>
+                                      {item.hasNotifications && unreadCount > 0 && (
+                                        <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">{unreadCount}</Badge>
+                                      )}
+                                    </>
+                                  )}
+                                  {collapsed && item.hasNotifications && unreadCount > 0 && (
+                                    <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[8px] font-bold text-white bg-red-500 rounded-full">
+                                      {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                  )}
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    )}
+                  </SidebarGroup>
+
+                  {authUser && (authUser.account_type === 'walker' || authUser.account_type === 'trainer' || authUser.account_type === 'both' || authUser.role === 'admin') && (
+                    <SidebarGroup>
+                      {!collapsed && (
+                        <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`} onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}>
+                          <span>{getMenuText('becomeProfessional')}</span>
+                          <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
+                        </SidebarGroupLabel>
+                      )}
+                      {(!collapsed ? professionalServicesExpanded : true) && (
+                        <SidebarGroupContent>
+                          <SidebarMenu>
+                            {professionalMenu.map((item) => (
+                              <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton asChild className={`transition-all duration-200 rounded-lg mb-1 ${collapsed ? 'justify-center' : ''} ${isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')}`}>
+                                  <Link to={item.url} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2 md:py-2.5 relative`}>
+                                    {!collapsed && isRouteActive(item.url) && (
+                                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: colors?.primary || '#3b82f6' }} />
+                                    )}
+                                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                                    {!collapsed && <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>}
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            ))}
+                          </SidebarMenu>
+                        </SidebarGroupContent>
+                      )}
+                    </SidebarGroup>
+                  )}
+
+                  {companyMenu.length > 0 && (
+                    <SidebarGroup>
+                      {!collapsed && (
+                        <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 font-semibold uppercase ${colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {getMenuText('company')}
+                        </SidebarGroupLabel>
+                      )}
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {companyMenu.map((item) => (
+                            <SidebarMenuItem key={item.title}>
+                              <SidebarMenuButton asChild className={`transition-all duration-200 rounded-lg mb-1 ${collapsed ? 'justify-center' : ''} ${isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')}`}>
+                                <Link to={item.url} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2 md:py-2.5 relative`}>
+                                  {!collapsed && isRouteActive(item.url) && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: colors?.primary || '#3b82f6' }} />
+                                  )}
+                                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                                  {!collapsed && <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>}
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </SidebarGroup>
+                  )}
+
+                  {adminMenu.length > 0 && (
+                    <SidebarGroup>
+                      {!collapsed && (
+                        <SidebarGroupLabel className="text-[10px] md:text-xs text-red-600 px-2 font-semibold uppercase">{getMenuText('administration')}</SidebarGroupLabel>
+                      )}
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {adminMenu.map((item) => (
+                            <SidebarMenuItem key={item.title}>
+                              <SidebarMenuButton asChild className={`transition-all duration-200 rounded-lg mb-1 ${collapsed ? 'justify-center' : ''} ${isRouteActive(item.url) ? 'bg-red-600 text-white shadow-md' : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-red-50 text-gray-700')}`}>
+                                <Link to={item.url} className={`flex items-center ${collapsed ? 'justify-center px-2' : 'gap-2 md:gap-3 px-3 md:px-4'} py-2 md:py-2.5 relative`}>
+                                  {!collapsed && isRouteActive(item.url) && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-red-400" />
+                                  )}
+                                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                                  {!collapsed && <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>}
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </SidebarGroup>
+                  )}
+
                   <SidebarGroup className={`mt-auto border-t pt-3 ${colors?.isDarkMode ? 'border-slate-700/60' : 'border-gray-200'}`}>
                     <SidebarGroupContent>
                       <SidebarMenu>
