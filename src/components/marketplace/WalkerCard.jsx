@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useTheme } from "@/components/ThemeContext";
 
 // Dummy data for specializations for the purpose of this component
 // In a real application, this would likely be imported from a constants file or fetched from an API.
@@ -27,6 +28,7 @@ const quickSpecializations = [
 const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
 
   const { data: user } = useQuery({ 
     queryKey: ['currentUser'], 
@@ -285,8 +287,11 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
 
           <div className="flex gap-2">
             <Button 
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg text-xs md:text-sm h-9 md:h-10"
+              className="flex-1 text-white shadow-lg text-xs md:text-sm h-9 md:h-10 hover:opacity-90"
               onClick={handleViewProfile}
+              style={{
+                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+              }}
             >
               Ver Detalhes
             </Button>
