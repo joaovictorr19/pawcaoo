@@ -291,24 +291,27 @@ export default function AdminDashboard() {
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin' && (activeTab === 'applications' || activeTab === 'active_walkers' || activeTab === 'analytics' || activeTab === 'overview'),
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: allTrainers = [] } = useQuery({
     queryKey: ['allTrainersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.TrainerProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin' && activeTab === 'applications',
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: allShelters = [] } = useQuery({
     queryKey: ['allSheltersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.ShelterProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin' && activeTab === 'applications',
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   // Filter in memory for robust matching
@@ -322,15 +325,16 @@ export default function AdminDashboard() {
     queryKey: ['allAdoptionApplications'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.AdoptionApplication.list('-created_date', 100),
-    enabled: user?.role === 'admin' && activeTab === 'adoptions',
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: allPartnerServices = [], isFetching: loadingServices } = useQuery({
     queryKey: ['allPartnerServices'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
-    enabled: user?.role === 'admin' && (activeTab === 'services' || activeTab === 'products'),
+    enabled: user?.role === 'admin',
     initialData: [],
     staleTime: 3 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -342,9 +346,9 @@ export default function AdminDashboard() {
     queryKey: ['allPartnerProducts'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
-    enabled: user?.role === 'admin' && activeTab === 'products',
+    enabled: user?.role === 'admin',
     initialData: [],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -363,7 +367,7 @@ export default function AdminDashboard() {
       const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 200)).map(b => ({...b, entityType: 'training'}));
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
-    enabled: user?.role === 'admin' && activeTab === 'bookings',
+    enabled: user?.role === 'admin',
     initialData: [],
     staleTime: 2 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -421,8 +425,9 @@ export default function AdminDashboard() {
   const { data: supportTickets = [] } = useQuery({
     queryKey: ['supportTickets'],
     queryFn: () => base44.entities.ChatConversation.filter({ tags: 'emergency' }),
-    enabled: user?.role === 'admin' && activeTab === 'support',
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: allAnnouncements = [], isFetching: loadingAnnouncements } = useQuery({
@@ -432,7 +437,7 @@ export default function AdminDashboard() {
       const announcements = await base44.entities.CompanyAnnouncement.list('-created_date');
       return announcements;
     },
-    enabled: user?.role === 'admin' && activeTab === 'announcements',
+    enabled: user?.role === 'admin',
     initialData: [],
     staleTime: 3 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -481,8 +486,8 @@ export default function AdminDashboard() {
 
       return companiesWithStats;
     },
-    enabled: user?.role === 'admin' && activeTab === 'companies',
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    enabled: user?.role === 'admin',
+    staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     initialData: [], 
@@ -492,24 +497,27 @@ export default function AdminDashboard() {
     queryKey: ['allReviews'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.Review.list('-created_date', 100),
-    enabled: user?.role === 'admin' && activeTab === 'reviews',
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
   const pendingReviews = allReviews.filter(r => !r.is_verified);
 
   const { data: adoptionListings = [] } = useQuery({
     queryKey: ['allAdoptionListings'],
     queryFn: () => base44.entities.AdoptionListing.list('-created_date', 100),
-    enabled: user?.role === 'admin' && (activeTab === 'analytics' || activeTab === 'overview'),
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: badgeDefinitions = [], isFetching: loadingBadges } = useQuery({
     queryKey: ['badgeDefinitions'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date'),
-    enabled: user?.role === 'admin' && activeTab === 'badges',
+    enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
   });
 
   // Paginated data for all sections - AFTER all queries
