@@ -1249,7 +1249,7 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-slate-700 via-slate-600 to-slate-800 bg-clip-text text-transparent mb-4 leading-tight relative px-4">
+                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-slate-600 via-slate-500 to-slate-700 bg-clip-text text-transparent mb-4 leading-tight relative px-4">
                     <span className="absolute inset-0 blur-2xl bg-gradient-to-r from-slate-300 via-gray-300 to-slate-400 opacity-10 -z-10"></span>
                     {t('homeTitle', language)}
                   </h1>
@@ -1440,7 +1440,7 @@ export default function Home() {
 
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-lg md:text-2xl font-semibold text-slate-800 tracking-tight">
+                      <h2 className="text-lg md:text-2xl font-semibold text-slate-700 tracking-tight">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -1676,7 +1676,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-700 flex items-center gap-2">
                         <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
