@@ -3204,8 +3204,8 @@ export default function AdminDashboard() {
                   onChange={(e) => setBadgeUserSearchTerm(e.target.value)} 
                   className="mb-3 mt-2 h-10 md:h-9"
                 />
-                <div className="border-2 rounded-lg p-2 md:p-3 max-h-56 overflow-y-auto space-y-1.5 bg-gray-50">
-                  <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-2 bg-purple-100 border-2 border-purple-300 rounded-lg cursor-pointer active:scale-[0.98]"
+                <div className="border-2 rounded-lg p-3 h-80 overflow-y-auto space-y-2 bg-gray-50">
+                  <div className="flex items-center gap-3 p-3 bg-purple-100 border-2 border-purple-400 rounded-lg cursor-pointer hover:bg-purple-200 transition-colors mb-2 shadow-sm"
                        onClick={() => {
                          if (selectedUsersForBadge.length === allUsers.length) {
                            setSelectedUsersForBadge([]);
@@ -3214,36 +3214,43 @@ export default function AdminDashboard() {
                          }
                        }}
                   >
-                    <div className={`w-5 h-5 md:w-4 md:h-4 rounded border-2 flex items-center justify-center ${selectedUsersForBadge.length === allUsers.length ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
-                      {selectedUsersForBadge.length === allUsers.length && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${selectedUsersForBadge.length === allUsers.length ? 'bg-purple-600 border-purple-600' : 'border-gray-500'}`}>
+                      {selectedUsersForBadge.length === allUsers.length && <CheckCircle className="w-3.5 h-3.5 text-white" />}
                     </div>
                     <span className="font-bold text-sm">📋 Selecionar Todos ({allUsers.length})</span>
                   </div>
-                  {allUsers
-                    .filter(u => {
-                      if (!badgeUserSearchTerm) return true;
-                      const search = badgeUserSearchTerm.toLowerCase();
-                      return (u.full_name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
-                    })
-                    .map((user) => (
-                    <div key={user.id} className="flex items-start gap-2 md:gap-3 p-2.5 md:p-2 hover:bg-white bg-white/50 rounded-lg cursor-pointer border border-transparent hover:border-purple-200 transition-all active:scale-[0.98]"
-                         onClick={() => {
-                           if (selectedUsersForBadge.includes(user.email)) {
-                             setSelectedUsersForBadge(selectedUsersForBadge.filter(email => email !== user.email));
-                           } else {
-                             setSelectedUsersForBadge([...selectedUsersForBadge, user.email]);
-                           }
-                         }}
-                    >
-                      <div className={`w-5 h-5 md:w-4 md:h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selectedUsersForBadge.includes(user.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
-                        {selectedUsersForBadge.includes(user.email) && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
+                  {allUsers && allUsers.length > 0 ? (
+                    allUsers
+                      .filter(u => {
+                        if (!badgeUserSearchTerm) return true;
+                        const search = badgeUserSearchTerm.toLowerCase();
+                        return (u.full_name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
+                      })
+                      .map((user) => (
+                      <div key={user.id} className="flex items-start gap-3 p-3 hover:bg-white bg-white rounded-lg cursor-pointer border-2 border-gray-200 hover:border-purple-400 transition-all active:scale-[0.98] shadow-sm hover:shadow-md"
+                           onClick={() => {
+                             if (selectedUsersForBadge.includes(user.email)) {
+                               setSelectedUsersForBadge(selectedUsersForBadge.filter(email => email !== user.email));
+                             } else {
+                               setSelectedUsersForBadge([...selectedUsersForBadge, user.email]);
+                             }
+                           }}
+                      >
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selectedUsersForBadge.includes(user.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
+                          {selectedUsersForBadge.includes(user.email) && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-900">{user.full_name || 'Sem nome'}</p>
+                          <p className="text-xs text-gray-600">{user.email}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name || 'Sem nome'}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p>Nenhum usuário disponível</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <p className="text-xs md:text-sm text-gray-700 font-medium mt-3">
                   ✅ {selectedUsersForBadge.length} usuário{selectedUsersForBadge.length !== 1 ? 's' : ''} selecionado{selectedUsersForBadge.length !== 1 ? 's' : ''}
