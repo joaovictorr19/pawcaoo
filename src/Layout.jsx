@@ -622,6 +622,21 @@ body, html, #root {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* Fix content positioning */
+.min-h-screen {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+header {
+  margin: 0 !important;
+}
+
+[data-sidebar="sidebar"] + div {
+  margin: 0 !important;
+  padding: 0 !important;
+}
         `}</style>
 
 
