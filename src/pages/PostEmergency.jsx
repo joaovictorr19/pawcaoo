@@ -15,9 +15,11 @@ import NotificationService from "../components/NotificationService";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { useQuery } from "@tanstack/react-query";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function PostEmergency() {
   const { language } = useLanguage();
+  const { colors } = useTheme();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
@@ -367,7 +369,10 @@ export default function PostEmergency() {
                 <Button
                   type="submit"
                   disabled={createEmergencyWalkMutation.isPending || uploading}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-12 text-base font-semibold"
+                  className="flex-1 text-white h-12 text-base font-semibold hover:opacity-90"
+                  style={{
+                    background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                  }}
                 >
                   {createEmergencyWalkMutation.isPending ? (
                     t('posting', language)
