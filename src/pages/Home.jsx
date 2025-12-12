@@ -1345,27 +1345,13 @@ export default function Home() {
             </TabsList>
           </div>
 
-          {/* Testimonials Section */}
-            {!user && <TestimonialsSection />}
+          <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
+            {/* AI Recommendations Section */}
+            {user && (
+              <PersonalizedRecommendations user={user} />
+            )}
 
-      {/* Modal de Avaliação */}
-      {reviewBooking && (
-        <ReviewModal 
-          booking={reviewBooking} 
-          isOpen={!!reviewBooking} 
-          onClose={() => setReviewBooking(null)} 
-        />
-      )}
-
-      <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-
-
-        {/* AI Recommendations Section */}
-        {user && (
-          <PersonalizedRecommendations user={user} />
-        )}
-
-        <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
+            <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
             {showAdvancedFilters && (
               <motion.div
