@@ -35,7 +35,7 @@ export default function ScheduledWalks() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex justify-between items-start">
           <div>
@@ -60,7 +60,7 @@ export default function ScheduledWalks() {
             ))}
           </div>
         ) : scheduledWalks.length === 0 ? (
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardContent className="p-12 text-center">
               <CalendarClock className="w-24 h-24 text-gray-300 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">No scheduled walks</h3>
@@ -73,7 +73,7 @@ export default function ScheduledWalks() {
         ) : (
           <div className="space-y-6">
             {scheduledWalks.map((schedule) => (
-              <Card key={schedule.id} className="border-0 shadow-xl hover:shadow-2xl transition-shadow">
+              <Card key={schedule.id} className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-shadow">
                 <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b">
                   <div className="flex justify-between items-start">
                     <div>

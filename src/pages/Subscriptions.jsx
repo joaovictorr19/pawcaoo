@@ -152,7 +152,7 @@ export default function Subscriptions() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Compact Header */}
         <div className="text-center mb-6">
@@ -170,7 +170,7 @@ export default function Subscriptions() {
         </div>
 
         {/* Compact Calculator */}
-        <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 shadow-xl mb-6">
+        <Card className="glass-panel border-2 border-purple-200 shadow-xl mb-6">
           <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <Calculator className="w-5 h-5" />
@@ -241,7 +241,7 @@ export default function Subscriptions() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                <Card className={`border-0 shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden h-full ${
+                <Card className={`glass-panel border-0 shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden h-full ${
                   plan.popular ? 'ring-2 ring-blue-400' : ''
                 }`}>
                   {plan.popular && (
@@ -296,7 +296,7 @@ export default function Subscriptions() {
         </div>
 
         {/* Collapsible Comparison Table */}
-        <Card className="border-0 shadow-xl mb-6">
+        <Card className="glass-panel border-0 shadow-xl mb-6">
           <CardHeader 
             className="cursor-pointer hover:bg-gray-50 transition-colors"
             onClick={() => setShowComparison(!showComparison)}

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -150,7 +149,7 @@ export default function LoyaltyRewards() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
+      <div className="min-h-screen p-4 md:p-6">
         <Skeleton className="h-48 md:h-64 rounded-2xl mb-6 md:mb-8" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           {[1,2,3,4].map(i => <Skeleton key={i} className="h-48 md:h-64" />)}
@@ -207,7 +206,7 @@ export default function LoyaltyRewards() {
         </div>
 
         {/* How to Earn - Mobile Optimized */}
-        <Card className="border-2 border-purple-200 bg-purple-50 mb-6 md:mb-8">
+        <Card className="glass-panel border-2 border-purple-200 mb-6 md:mb-8">
           <CardContent className="p-4 md:p-8">
             <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
@@ -236,7 +235,7 @@ export default function LoyaltyRewards() {
 
         {/* Transaction History - Mobile Optimized */}
         <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Points History</h2>
-        <Card className="border-0 shadow-xl">
+        <Card className="glass-panel border-0 shadow-xl">
           <CardContent className="p-3 md:p-6">
             {transactions.length === 0 ? (
               <div className="text-center py-8 md:py-12">

@@ -120,7 +120,7 @@ export default function Leaderboard() {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Skeleton className="w-full max-w-md h-96" /></div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 pb-20">
+    <div className="min-h-screen pb-20">
       <style>{`
         .glass-panel {
           background: rgba(255, 255, 255, 0.65);
