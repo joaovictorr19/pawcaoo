@@ -72,8 +72,9 @@
   }
   
   html, body {
-    @apply bg-background text-foreground overflow-x-hidden max-w-[100vw] w-full;
+    @apply text-foreground overflow-x-hidden max-w-[100vw] w-full;
     position: relative;
+    background: transparent;
   }
 
   button {
