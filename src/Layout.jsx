@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
-import { ThemeProvider } from "@/components/ThemeContext";
+import { ThemeProvider, useTheme } from "@/components/ThemeContext";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { toast, Toaster } from "sonner";
@@ -118,6 +118,7 @@ function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
@@ -594,7 +595,7 @@ function LayoutContent({ children, currentPageName }) {
                   asChild 
                   className={`mb-1.5 rounded-lg transition-colors ${
                     isRouteActive(item.url)
-                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90` 
                       : (item.className || 'hover:bg-gray-100 text-gray-700')
                   }`}
                 >
@@ -631,7 +632,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white` : 'text-gray-700'
                           } ${item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : ''}`}
                         >
                           <Link to={item.url} id={item.id} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -669,7 +670,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white` : 'text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -698,7 +699,7 @@ function LayoutContent({ children, currentPageName }) {
                         <SidebarMenuButton 
                           asChild 
                           className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? 'bg-green-600 text-white' : 'text-gray-700'
+                            isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white` : 'text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
@@ -792,7 +793,7 @@ function LayoutContent({ children, currentPageName }) {
                       to={item.url}
                       className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                         isRouteActive(item.url)
-                          ? "bg-green-600 text-white shadow-md"
+                          ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
                           : "text-gray-600 hover:bg-gray-100"
                       } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', 'text-gray-600') : ""}`}
                     >
@@ -805,7 +806,7 @@ function LayoutContent({ children, currentPageName }) {
                     to={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                       location.pathname.includes('UserProfile')
-                        ? "bg-green-600 text-white shadow-md"
+                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
