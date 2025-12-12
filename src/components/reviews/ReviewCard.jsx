@@ -71,7 +71,7 @@ export default function ReviewCard({ review }) {
   };
 
   return (
-    <Card className="glass-panel border-0 shadow-sm hover:shadow-md transition-all">
+    <Card className="glass-panel border-0 shadow-sm hover:shadow-md transition-all rounded-3xl">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
