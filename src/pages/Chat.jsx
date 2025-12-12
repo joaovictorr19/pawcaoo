@@ -874,7 +874,7 @@ export default function Chat() {
                       </p>
                     </div>
                   )}
-                  <p className="text-sm">{msg.message}</p>
+                  <p className="text-sm">{msg.content}</p>
                   <p
                     className={`text-xs mt-1 flex items-center gap-1 ${
                       isMine ? "text-blue-100" : "text-gray-500"
