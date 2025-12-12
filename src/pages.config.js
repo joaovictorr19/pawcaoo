@@ -65,6 +65,7 @@ import ShelterProfile from './pages/ShelterProfile';
 import EditWalkerProfile from './pages/EditWalkerProfile';
 import WalkerTrack from './pages/WalkerTrack';
 import BecomeProfessional from './pages/BecomeProfessional';
+import ActiveRide from './pages/ActiveRide';
 import __Layout from './Layout.jsx';
 
 
@@ -136,6 +137,7 @@ export const PAGES = {
     "EditWalkerProfile": EditWalkerProfile,
     "WalkerTrack": WalkerTrack,
     "BecomeProfessional": BecomeProfessional,
+    "ActiveRide": ActiveRide,
 }
 
 export const pagesConfig = {
