@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Settings, User, Mail, Phone, MapPin, LogOut, Upload, Save,
-  Lock, Bell, Globe, Shield, ChevronRight
+  Lock, Bell, Globe, Shield, ChevronRight, CreditCard
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
