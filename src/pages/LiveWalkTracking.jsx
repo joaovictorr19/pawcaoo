@@ -144,7 +144,7 @@ export default function LiveWalkTracking() {
 
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* Live Stats */}
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
               <CardTitle className="flex items-center gap-2">
                 <Navigation className="w-5 h-5 text-blue-600" />
@@ -173,7 +173,7 @@ export default function LiveWalkTracking() {
 
           {/* Dog Behavior */}
           {latestBehavior && (
-            <Card className="border-0 shadow-xl">
+            <Card className="glass-panel border-0 shadow-xl">
               <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
                 <CardTitle className="flex items-center gap-2">
                   <Heart className="w-5 h-5 text-green-600" />
@@ -211,7 +211,7 @@ export default function LiveWalkTracking() {
           )}
 
           {/* Media Summary */}
-          <Card className="border-0 shadow-xl">
+          <Card className="glass-panel border-0 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="w-5 h-5 text-purple-600" />
@@ -389,7 +389,7 @@ export default function LiveWalkTracking() {
                 className="max-w-4xl w-full"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Card className="border-0">
+                <Card className="glass-panel border-0 shadow-2xl">
                   <CardContent className="p-6">
                     <img
                       src={selectedPhoto.photo_url}
