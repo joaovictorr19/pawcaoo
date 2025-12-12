@@ -2795,10 +2795,10 @@ export default function AdminDashboard() {
 
         {/* Modal Unificado para Conceder Badge (Seleção ou Todos) */}
         <Dialog open={showGrantAllUsersModal} onOpenChange={setShowGrantAllUsersModal}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
-              <DialogTitle>{t('grantBadgeTitle', language)}</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg md:text-xl">{t('grantBadgeTitle', language)}</DialogTitle>
+              <DialogDescription className="text-sm">
                 {t('selectUsers', language)}
               </DialogDescription>
             </DialogHeader>
@@ -2806,40 +2806,41 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {/* Badge Preview */}
                 <Card className="border-2 border-purple-200 bg-purple-50">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-3xl shadow-sm">
+                  <CardContent className="p-3 md:p-4 flex items-center gap-2 md:gap-3">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg flex items-center justify-center text-3xl md:text-4xl shadow-sm flex-shrink-0">
                       {selectedBadgeForAll.image_url || selectedBadgeForAll.image_png_file ? (
                         <img 
                           src={selectedBadgeForAll.image_png_file || selectedBadgeForAll.image_url} 
                           className="w-full h-full object-cover rounded"
+                          alt={selectedBadgeForAll.name}
                         />
-                      ) : selectedBadgeForAll.icon}
+                      ) : <span className="text-4xl">{selectedBadgeForAll.icon}</span>}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900">{selectedBadgeForAll.name}</h4>
-                      <p className="text-xs text-gray-600">{selectedBadgeForAll.description}</p>
-                      <Badge className="mt-1 bg-purple-600">+{selectedBadgeForAll.xp} XP</Badge>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">{selectedBadgeForAll.name}</h4>
+                      <p className="text-xs text-gray-600 line-clamp-2">{selectedBadgeForAll.description}</p>
+                      <Badge className="mt-1 bg-purple-600 text-xs">+{selectedBadgeForAll.xp} XP</Badge>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* User Selection */}
                 <div>
-                  <Label className="mb-2 block">{t('selectUsers', language)}</Label>
+                  <Label className="mb-2 block text-sm font-semibold">{t('selectUsers', language)}</Label>
                   <Input 
                     placeholder={t('searchUser', language)}
                     value={grantBadgeSearchTerm}
                     onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
-                    className="mb-2"
+                    className="mb-3 h-10 md:h-9"
                   />
-                  <div className="border rounded-lg p-2 max-h-60 overflow-y-auto space-y-1">
+                  <div className="border-2 rounded-lg p-2 md:p-3 max-h-72 overflow-y-auto space-y-1.5 bg-gray-50">
                     {allUsers
                       .filter(u => !grantBadgeSearchTerm || 
                         u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
                         u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
                       )
                       .map(u => (
-                        <div key={u.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        <div key={u.id} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 hover:bg-white bg-white/50 rounded-lg cursor-pointer border border-transparent hover:border-purple-200 transition-all active:scale-[0.98]"
                              onClick={() => {
                                if (usersToGrantBadge.includes(u.email)) {
                                  setUsersToGrantBadge(usersToGrantBadge.filter(e => e !== u.email));
@@ -2848,58 +2849,63 @@ export default function AdminDashboard() {
                                }
                              }}
                         >
-                          <div className={`w-4 h-4 rounded border flex items-center justify-center ${usersToGrantBadge.includes(u.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-300'}`}>
-                            {usersToGrantBadge.includes(u.email) && <CheckCircle className="w-3 h-3 text-white" />}
+                          <div className={`w-5 h-5 md:w-4 md:h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${usersToGrantBadge.includes(u.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
+                            {usersToGrantBadge.includes(u.email) && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
                           </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{u.full_name || 'Sem nome'}</p>
-                            <p className="text-xs text-gray-500">{u.email}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm md:text-sm font-semibold text-gray-900 truncate">{u.full_name || 'Sem nome'}</p>
+                            <p className="text-xs text-gray-500 truncate">{u.email}</p>
                           </div>
                           {u.public_badges?.some(b => b.badge_id === selectedBadgeForAll.badge_id) && (
-                            <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">Já possui</Badge>
+                            <Badge variant="outline" className="text-[9px] md:text-[10px] bg-green-50 text-green-700 border-green-200 flex-shrink-0 h-5">Já tem</Badge>
                           )}
                         </div>
                       ))}
                   </div>
-                  <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
-                    <span>{usersToGrantBadge.length} selecionados</span>
+                  <div className="flex justify-between items-center mt-3 text-sm text-gray-700 font-medium">
+                    <span>{usersToGrantBadge.length} selecionado{usersToGrantBadge.length !== 1 ? 's' : ''}</span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-xs h-auto py-1"
+                      className="text-xs h-7"
                       onClick={() => setUsersToGrantBadge([])}
+                      disabled={usersToGrantBadge.length === 0}
                     >
-                      Limpar
+                      Limpar Tudo
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex gap-2 flex-col mt-4">
+                <div className="flex gap-2 flex-col mt-4 pt-4 border-t">
                   <Button
                     onClick={() => grantBadgeMutation.mutate({ badge: selectedBadgeForAll, targetEmails: usersToGrantBadge })}
                     disabled={usersToGrantBadge.length === 0 || grantBadgeMutation.isPending}
-                    className="bg-purple-600 hover:bg-purple-700 w-full"
+                    className="bg-purple-600 hover:bg-purple-700 w-full h-11 md:h-10 text-sm md:text-base font-semibold"
                   >
-                    {grantBadgeMutation.isPending ? `${t('loading', language)}...` : `${t('grantToSelected', language)} ${usersToGrantBadge.length} User(s)`}
+                    {grantBadgeMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Entregando...</>
+                    ) : (
+                      `✅ Entregar a ${usersToGrantBadge.length} Conta${usersToGrantBadge.length !== 1 ? 's' : ''}`
+                    )}
                   </Button>
                   
-                  <div className="relative flex py-2 items-center">
-                    <div className="flex-grow border-t border-gray-200"></div>
-                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">OR</span>
-                    <div className="flex-grow border-t border-gray-200"></div>
+                  <div className="relative flex py-3 items-center">
+                    <div className="flex-grow border-t border-gray-300"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-500 text-xs font-medium">OU</span>
+                    <div className="flex-grow border-t border-gray-300"></div>
                   </div>
 
                   <Button
                     variant="outline"
                     onClick={() => {
-                      if(confirm("Are you sure? This will grant the badge to ALL users in the system!")) {
+                      if(confirm("Tem certeza? Isto irá entregar o emblema a TODOS os usuários do sistema!")) {
                         grantBadgeMutation.mutate({ badge: selectedBadgeForAll, targetEmails: 'all' });
                       }
                     }}
                     disabled={grantBadgeMutation.isPending}
-                    className="text-red-600 border-red-200 hover:bg-red-50 w-full"
+                    className="text-red-600 border-2 border-red-300 hover:bg-red-50 w-full h-11 md:h-10 text-sm md:text-base font-semibold"
                   >
-                    ⚠️ {t('grantToAll', language)}
+                    ⚠️ Entregar a TODOS ({allUsers.length})
                   </Button>
                 </div>
               </div>
@@ -2909,35 +2915,38 @@ export default function AdminDashboard() {
 
           {/* Modal de Concessão Individual de Badge Melhorado */}
         <Dialog open={showGrantSingleBadgeModal} onOpenChange={setShowGrantSingleBadgeModal}>
-          <DialogContent className="max-w-md h-[80vh] flex flex-col">
+          <DialogContent className="max-w-md h-[85vh] md:h-[80vh] flex flex-col p-4 md:p-6">
             <DialogHeader>
-              <DialogTitle>Entregar Emblema</DialogTitle>
-              <DialogDescription>
-                Para: <span className="font-semibold text-gray-900">{grantBadgeTargetEmail}</span>
+              <DialogTitle className="text-lg md:text-xl">Entregar Emblema</DialogTitle>
+              <DialogDescription className="text-sm">
+                Para: <span className="font-semibold text-gray-900 break-all">{grantBadgeTargetEmail}</span>
               </DialogDescription>
             </DialogHeader>
             
-            <div className="relative mb-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 md:w-4 md:h-4 pointer-events-none" />
               <Input 
                 placeholder="Buscar emblema..." 
                 value={badgeSearchTerm}
                 onChange={(e) => setBadgeSearchTerm(e.target.value)}
-                className="pl-9"
+                className="pl-10 h-11 md:h-9 text-base md:text-sm"
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 space-y-2">
+            <div className="flex-1 overflow-y-auto pr-1 md:pr-2 space-y-2">
               {badgeDefinitions.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-gray-500">Nenhum emblema na biblioteca.</p>
+                  <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm mb-3">Nenhum emblema na biblioteca.</p>
                   <Button 
-                    variant="link" 
+                    variant="outline" 
+                    size="sm"
                     onClick={() => {
                       setShowGrantSingleBadgeModal(false);
                       setShowCreateCustomBadgeModal(true);
                     }}
                   >
+                    <Plus className="w-4 h-4 mr-2" />
                     Criar Novo
                   </Button>
                 </div>
@@ -2948,13 +2957,13 @@ export default function AdminDashboard() {
                   <div 
                     key={badge.id} 
                     onClick={() => setSelectedBadgeToGrant(badge)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group ${
+                    className={`flex items-center gap-2 md:gap-3 p-3 md:p-3 rounded-xl border-2 transition-all cursor-pointer active:scale-[0.98] ${
                       selectedBadgeToGrant?.id === badge.id 
-                        ? 'border-purple-600 bg-purple-50 shadow-sm ring-1 ring-purple-600' 
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                        ? 'border-purple-600 bg-purple-100 shadow-md ring-2 ring-purple-300' 
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white'
                     }`}
                   >
-                    <div className="w-12 h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center shadow-sm text-2xl border border-gray-100">
+                    <div className="w-14 h-14 md:w-12 md:h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center shadow-sm text-3xl md:text-2xl border border-gray-100">
                       {badge.image_url || badge.image_png_file ? (
                         <img 
                           src={badge.image_png_file || badge.image_url} 
@@ -2962,38 +2971,40 @@ export default function AdminDashboard() {
                           alt={badge.name}
                         />
                       ) : (
-                        badge.icon
+                        <span className="text-3xl">{badge.icon}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-gray-900 truncate">{badge.name}</h4>
-                      <p className="text-xs text-gray-500 line-clamp-1">{badge.description}</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1">{badge.rarity}</Badge>
-                        {badge.xp > 0 && <span className="text-[10px] text-green-600 font-medium">+{badge.xp} XP</span>}
+                      <h4 className="font-bold text-sm md:text-sm text-gray-900 truncate">{badge.name}</h4>
+                      <p className="text-xs text-gray-600 line-clamp-2">{badge.description}</p>
+                      <div className="flex gap-2 mt-1.5 flex-wrap">
+                        <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{badge.rarity}</Badge>
+                        {badge.xp > 0 && <Badge className="text-[10px] bg-green-100 text-green-700 border-green-300 h-5">+{badge.xp} XP</Badge>}
                       </div>
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      selectedBadgeToGrant?.id === badge.id ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
+                    <div className={`w-6 h-6 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                      selectedBadgeToGrant?.id === badge.id ? 'border-purple-600 bg-purple-600' : 'border-gray-400'
                     }`}>
-                      {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-3 h-3 text-white" />}
+                      {selectedBadgeToGrant?.id === badge.id && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
                     </div>
                   </div>
                 ))
               )}
             </div>
 
-            <DialogFooter className="mt-4 pt-2 border-t">
-              <Button variant="outline" onClick={() => setShowGrantSingleBadgeModal(false)}>Cancelar</Button>
+            <DialogFooter className="mt-4 pt-4 border-t flex flex-col-reverse md:flex-row gap-2">
+              <Button variant="outline" onClick={() => setShowGrantSingleBadgeModal(false)} className="w-full md:w-auto h-11 md:h-10">
+                Cancelar
+              </Button>
               <Button 
                 onClick={() => grantBadgeToUserMutation.mutate({ email: grantBadgeTargetEmail, badge: selectedBadgeToGrant })}
                 disabled={!selectedBadgeToGrant || grantBadgeToUserMutation.isPending}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-purple-600 hover:bg-purple-700 w-full md:w-auto h-11 md:h-10 font-semibold"
               >
                 {grantBadgeToUserMutation.isPending ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Entregando...</>
                 ) : (
-                  <>Entregar <ArrowLeft className="w-4 h-4 ml-2 rotate-180" /></>
+                  <>✅ Entregar Emblema</>
                 )}
               </Button>
             </DialogFooter>
@@ -3179,28 +3190,27 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <Label>Selecionar Usuários</Label>
+                <Label className="text-sm font-semibold">Selecionar Usuários</Label>
                 <Input 
                   placeholder="Buscar por nome ou email..." 
                   value={badgeUserSearchTerm} 
                   onChange={(e) => setBadgeUserSearchTerm(e.target.value)} 
-                  className="mb-2 mt-1"
+                  className="mb-3 mt-2 h-10 md:h-9"
                 />
-                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
-                  <div className="flex items-center gap-2 p-2 bg-purple-50 rounded">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsersForBadge.length === allUsers.length && allUsers.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedUsersForBadge(allUsers.map(u => u.email));
-                        } else {
-                          setSelectedUsersForBadge([]);
-                        }
-                      }}
-                      className="w-4 h-4 accent-purple-600"
-                    />
-                    <span className="font-semibold">Selecionar Todos ({allUsers.length})</span>
+                <div className="border-2 rounded-lg p-2 md:p-3 max-h-56 overflow-y-auto space-y-1.5 bg-gray-50">
+                  <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-2 bg-purple-100 border-2 border-purple-300 rounded-lg cursor-pointer active:scale-[0.98]"
+                       onClick={() => {
+                         if (selectedUsersForBadge.length === allUsers.length) {
+                           setSelectedUsersForBadge([]);
+                         } else {
+                           setSelectedUsersForBadge(allUsers.map(u => u.email));
+                         }
+                       }}
+                  >
+                    <div className={`w-5 h-5 md:w-4 md:h-4 rounded border-2 flex items-center justify-center ${selectedUsersForBadge.length === allUsers.length ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
+                      {selectedUsersForBadge.length === allUsers.length && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
+                    </div>
+                    <span className="font-bold text-sm">📋 Selecionar Todos ({allUsers.length})</span>
                   </div>
                   {allUsers
                     .filter(u => {
@@ -3209,51 +3219,52 @@ export default function AdminDashboard() {
                       return (u.full_name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
                     })
                     .map((user) => (
-                    <div key={user.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                      <input
-                        type="checkbox"
-                        checked={selectedUsersForBadge.includes(user.email)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedUsersForBadge([...selectedUsersForBadge, user.email]);
-                          } else {
-                            setSelectedUsersForBadge(selectedUsersForBadge.filter(email => email !== user.email));
-                          }
-                        }}
-                        className="w-4 h-4 accent-purple-600"
-                      />
-                      <span className="text-sm">{user.full_name} ({user.email})</span>
+                    <div key={user.id} className="flex items-start gap-2 md:gap-3 p-2.5 md:p-2 hover:bg-white bg-white/50 rounded-lg cursor-pointer border border-transparent hover:border-purple-200 transition-all active:scale-[0.98]"
+                         onClick={() => {
+                           if (selectedUsersForBadge.includes(user.email)) {
+                             setSelectedUsersForBadge(selectedUsersForBadge.filter(email => email !== user.email));
+                           } else {
+                             setSelectedUsersForBadge([...selectedUsersForBadge, user.email]);
+                           }
+                         }}
+                    >
+                      <div className={`w-5 h-5 md:w-4 md:h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selectedUsersForBadge.includes(user.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
+                        {selectedUsersForBadge.includes(user.email) && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name || 'Sem nome'}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-600 mt-2">
-                  {selectedUsersForBadge.length} usuário(s) selecionado(s)
+                <p className="text-xs md:text-sm text-gray-700 font-medium mt-3">
+                  ✅ {selectedUsersForBadge.length} usuário{selectedUsersForBadge.length !== 1 ? 's' : ''} selecionado{selectedUsersForBadge.length !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
 
-            <DialogFooter>
-              <div className="flex justify-between w-full">
-                <Button 
-                  variant="outline" 
-                  onClick={handleSaveBadgeDefinition}
-                  disabled={!customBadgeForm.name || !customBadgeForm.description || createBadgeDefinitionMutation.isPending}
-                >
-                  💾 Salvar na Biblioteca
+            <DialogFooter className="flex flex-col gap-2 md:flex-row md:justify-between">
+              <Button 
+                variant="outline" 
+                onClick={handleSaveBadgeDefinition}
+                disabled={!customBadgeForm.name || !customBadgeForm.description || createBadgeDefinitionMutation.isPending}
+                className="w-full md:w-auto h-11 md:h-10 order-2 md:order-1"
+              >
+                💾 Salvar na Biblioteca
+              </Button>
+              <div className="flex gap-2 order-1 md:order-2">
+                <Button variant="ghost" onClick={() => setShowCreateCustomBadgeModal(false)} className="flex-1 md:flex-none h-11 md:h-10">
+                  Cancelar
                 </Button>
-                <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => setShowCreateCustomBadgeModal(false)}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={handleGrantCustomBadge}
-                    className="bg-purple-600 hover:bg-purple-700"
-                    disabled={!customBadgeForm.name || !customBadgeForm.description}
-                  >
-                    <Award className="w-4 h-4 mr-2" />
-                    Conceder Agora
-                  </Button>
-                </div>
+                <Button
+                  onClick={handleGrantCustomBadge}
+                  className="bg-purple-600 hover:bg-purple-700 flex-1 md:flex-none h-11 md:h-10 font-semibold"
+                  disabled={!customBadgeForm.name || !customBadgeForm.description}
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Conceder Agora
+                </Button>
               </div>
             </DialogFooter>
           </DialogContent>
