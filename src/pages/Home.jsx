@@ -942,7 +942,7 @@ export default function Home() {
               variant={viewMode === "list" ? "default" : "outline"}
               onClick={() => setViewMode("list")}
               size="sm"
-              className={viewMode === "list" ? 'text-white' : ''}
+              className={viewMode === "list" ? 'text-white' : 'text-gray-700'}
               style={viewMode === "list" ? {
                 background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
               } : {}}
@@ -954,7 +954,7 @@ export default function Home() {
               variant={viewMode === "map" ? "default" : "outline"}
               onClick={() => setViewMode("map")}
               size="sm"
-              className={`text-white ${viewMode === "map" ? 'opacity-100' : 'opacity-80 hover:opacity-90'}`}
+              className={viewMode === "map" ? 'text-white' : 'text-gray-700'}
               style={viewMode === "map" ? {
                 background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
               } : {}}
