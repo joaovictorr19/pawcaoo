@@ -8,7 +8,20 @@ const ThemeContext = createContext();
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    // Return default theme instead of throwing error
+    return {
+      tier: 'Safira',
+      colors: {
+        primary: 'blue-600',
+        gradient: 'from-blue-500 to-indigo-600',
+        glass_border: 'border-blue-200/50',
+        text: 'text-blue-600',
+        bg: 'bg-blue-50',
+        isDarkMode: false
+      },
+      icon: '💎',
+      progress: 0,
+    };
   }
   return context;
 };
@@ -63,7 +76,10 @@ export const ThemeProvider = ({ children }) => {
 
   const value = {
     tier: tierTheme.name,
-    colors: tierTheme.colors,
+    colors: {
+      ...tierTheme.colors,
+      isDarkMode: tierTheme.name === 'Cosmos'
+    },
     icon: tierTheme.icon,
     progress: tierTheme.progress || 0,
   };
