@@ -358,23 +358,36 @@ export default function Home() {
       try {
         const userData = await base44.auth.me();
 
-        // Sync XP from UserProfile if available
+        // Sync XP bidirectionally between User and UserProfile
         if (userData?.email) {
           try {
             const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
-            if (profiles.length > 0 && profiles[0].gamification_xp !== userData.gamification_xp) {
-              // UserProfile is source of truth, sync back to User
-              userData.gamification_xp = profiles[0].gamification_xp;
+            if (profiles.length > 0) {
+              const profileXP = profiles[0].gamification_xp || 0;
+              const userXP = userData.gamification_xp || 0;
+
+              // Use the highest XP value as source of truth
+              const correctXP = Math.max(profileXP, userXP);
+
+              if (correctXP !== userXP || correctXP !== profileXP) {
+                // Sync both to the correct value
+                if (correctXP !== userXP) {
+                  await base44.auth.updateMe({ gamification_xp: correctXP });
+                }
+                if (correctXP !== profileXP) {
+                  await base44.entities.UserProfile.update(profiles[0].id, { gamification_xp: correctXP });
+                }
+              }
+
+              userData.gamification_xp = correctXP;
             }
           } catch (e) {
-            // Fallback to User XP if UserProfile doesn't exist
-            console.log('Using User XP as fallback');
+            console.log('XP sync skipped:', e.message);
           }
         }
 
         return userData;
       } catch (err) {
-        // console.error("Home auth error:", err);
         return null;
       }
     },
