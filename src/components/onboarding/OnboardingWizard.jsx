@@ -109,7 +109,7 @@ export default function OnboardingWizard({ steps, user }) {
       <div 
         className="fixed z-[9999] transition-all duration-300 flex flex-col items-center"
         style={{
-          // Ancoragem Dinâmica (Mobile Force Bottom)
+          // Ancoragem Dinâmica (Mobile Safe)
           ...(window.innerWidth >= 768 ? {
             // Desktop: Relativo ao elemento
             top: targetRect.position === 'bottom' ? targetRect.top + targetRect.height + 20 : 'auto',
@@ -117,23 +117,23 @@ export default function OnboardingWizard({ steps, user }) {
             left: targetRect.left + (targetRect.width / 2) - 150,
             width: '300px'
           } : {
-            // Mobile: Posicionamento Inteligente (Evita cobrir o alvo)
+            // Mobile: Safe positioning
             position: 'fixed',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '90vw',
+            left: '4%',
+            right: '4%',
+            width: 'auto',
             maxWidth: '400px',
-            // Se o alvo estiver na metade inferior da tela, mostra o balão no topo
-            top: targetRect.top > (window.innerHeight / 2) ? '80px' : 'auto',
-            // Se o alvo estiver na metade superior, mostra o balão embaixo
-            bottom: targetRect.top > (window.innerHeight / 2) ? 'auto' : '100px',
+            margin: '0 auto',
+            // Always bottom with safe spacing
+            bottom: '120px',
+            top: 'auto',
           })
         }}
       >
         {/* Seta do Balão (Apenas Desktop) */}
         <div className="hidden md:block w-4 h-4 bg-white transform rotate-45 absolute -top-2 left-1/2 -translate-x-1/2" />
 
-        <div className="bg-white rounded-xl p-4 shadow-2xl border-2 border-purple-500 relative w-full animate-in slide-in-from-bottom-5 duration-500">
+        <div className="bg-white rounded-2xl p-4 shadow-2xl border-2 border-purple-500 relative w-full animate-in slide-in-from-bottom-5 duration-500 max-h-[40vh] md:max-h-none overflow-y-auto">
           
           {/* Botão Fechar (X) - Também marca como visto! */}
           <button 

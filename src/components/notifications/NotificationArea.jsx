@@ -182,10 +182,10 @@ export default function NotificationArea({ isOpen, onClose }) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 w-full md:w-[450px] bg-white shadow-2xl flex flex-col"
+            className="fixed inset-y-0 right-0 z-50 w-full md:w-[450px] bg-white shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="p-3 md:p-4 border-b flex items-center justify-between bg-white sticky top-0 z-10">
+            <div className="p-4 border-b flex items-center justify-between bg-white flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                 <h2 className="font-bold text-base md:text-lg">Notificações</h2>
@@ -214,14 +214,14 @@ export default function NotificationArea({ isOpen, onClose }) {
             </div>
 
             {/* Tabs */}
-            <div className="px-2 md:px-4 pt-2 pb-0 border-b overflow-x-auto scrollbar-hide">
+            <div className="px-4 py-2 border-b overflow-x-auto scrollbar-hide flex-shrink-0">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="bg-transparent p-0 h-auto flex gap-2 md:gap-4 min-w-max">
+                <TabsList className="bg-transparent p-0 h-auto flex gap-3 min-w-max">
                   {["all", "unread", "booking", "payment", "emergency"].map(tab => (
                     <TabsTrigger 
                       key={tab} 
                       value={tab}
-                      className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none px-2 md:px-1 py-2 md:py-3 bg-transparent font-medium text-gray-500 hover:text-gray-800 transition-all text-xs md:text-sm whitespace-nowrap"
+                      className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none px-1 py-2.5 bg-transparent font-medium text-gray-500 hover:text-gray-800 transition-all text-sm whitespace-nowrap"
                     >
                       {tab === 'all' ? 'Todas' : tab === 'unread' ? 'Não Lidas' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </TabsTrigger>
@@ -231,18 +231,18 @@ export default function NotificationArea({ isOpen, onClose }) {
             </div>
 
             {/* Content */}
-            <ScrollArea className="flex-1 bg-gray-50 p-2 md:p-4">
+            <ScrollArea className="flex-1 bg-gray-50 p-4 overflow-y-auto">
               {isLoading ? (
                 <div className="space-y-2 md:space-y-3">
                   {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 md:h-24 w-full rounded-xl" />)}
                 </div>
               ) : filteredNotifications.length === 0 ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center text-gray-500">
-                  <Bell className="w-10 h-10 md:w-12 md:h-12 mb-3 opacity-20" />
+                  <Bell className="w-12 h-12 mb-3 opacity-20" />
                   <p className="text-sm">Sem notificações</p>
                 </div>
               ) : (
-                <div className="space-y-2 md:space-y-3 pb-20">
+                <div className="space-y-3 pb-24">
                   {filteredNotifications.map((notification) => (
                     <motion.div
                       layout

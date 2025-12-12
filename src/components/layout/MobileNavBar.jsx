@@ -31,9 +31,9 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       activeColor: "text-blue-600"
     },
     {
-      label: "Ranking",
+      label: "Hall da Fama",
       icon: Trophy,
-      path: createPageUrl("Leaderboard"),
+      path: createPageUrl("Gamification"),
       activeColor: "text-yellow-500",
       isSpecial: true,
       id: "nav-gamification"
