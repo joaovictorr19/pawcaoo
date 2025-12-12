@@ -383,10 +383,13 @@ export default function OwnerSubscriptions() {
 
                     <Button
                       className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white shadow-lg h-11 text-sm font-bold rounded-xl transform hover:scale-105 transition-all active:scale-95`}
-                      onClick={() => subscribeMutation.mutate({ plan, billingCycle })}
+                      onClick={() => {
+                        console.log('Botão clicado:', plan.type, billingCycle);
+                        subscribeMutation.mutate({ plan, billingCycle });
+                      }}
                       disabled={isCurrentPlan || subscribeMutation.isPending}
                     >
-                      {isCurrentPlan ? '✓ Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever Agora'}
+                      {isCurrentPlan ? '✓ Plano Atual' : subscribeMutation.isPending ? '⏳ Processando...' : 'Subscrever Agora'}
                     </Button>
                   </CardContent>
                 </Card>
