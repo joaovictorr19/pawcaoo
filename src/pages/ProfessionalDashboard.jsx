@@ -742,10 +742,10 @@ export default function ProfessionalDashboard() {
           </div>
           
           {/* Quick Actions - Clean Row */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex flex-wrap gap-3 mb-6">
             <Button
               onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-              className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg whitespace-nowrap"
+              className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
             >
               <Edit className="w-4 h-4 mr-2" />
               Editar Perfil
@@ -753,7 +753,7 @@ export default function ProfessionalDashboard() {
             <Button 
               onClick={() => navigate(createPageUrl('ManageAvailability'))} 
               variant="outline"
-              className="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-md whitespace-nowrap"
+              className="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-md"
             >
               <Calendar className="w-4 h-4 mr-2" />
               Gerir Agenda
@@ -761,7 +761,7 @@ export default function ProfessionalDashboard() {
             <Button
               onClick={() => setShowServiceForm(true)}
               variant="outline"
-              className="border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 shadow-md whitespace-nowrap"
+              className="border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 shadow-md"
             >
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Serviço
