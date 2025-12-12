@@ -16,7 +16,6 @@ const AdvancedTrainerFilters = React.lazy(() => import("../components/search/Adv
 const AdoptionListings = React.lazy(() => import("./AdoptionListings"));
 import AISearchAssistant from "../components/ai/AISearchAssistant";
 import PersonalizedRecommendations from "../components/ai/PersonalizedRecommendations";
-import AIMatchSuggestions from "../components/matching/AIMatchSuggestions";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
@@ -1331,7 +1330,7 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 max-w-5xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
+              <TabsList className="grid w-full grid-cols-4 max-w-5xl mx-auto mb-6 md:mb-8 h-auto md:h-14 bg-white/80 backdrop-blur-lg shadow-lg rounded-xl border-2 border-white/50 p-1 transition-colors">
                 <TabsTrigger 
                   value="walkers" 
                   className={`text-xs md:text-sm font-semibold rounded-lg transition-all ${
@@ -1343,14 +1342,6 @@ export default function Home() {
                 >
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
                   {t('findWalkers', language)}
-                </TabsTrigger>
-
-                <TabsTrigger 
-                  value="ai-matches" 
-                  className="text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white rounded-lg transition-all"
-                >
-                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  IA Matches
                 </TabsTrigger>
                 
                 <TabsTrigger 
@@ -1377,37 +1368,6 @@ export default function Home() {
                   {t('emergency', language)}
                 </TabsTrigger>
               </TabsList>
-
-              <TabsContent value="ai-matches">
-                {user && myDogs && myDogs.length > 0 ? (
-                  <AIMatchSuggestions 
-                    dogProfile={myDogs[0]}
-                    preferences={{
-                      location: searchLocation || user.city || '',
-                      max_price: advancedFilters.maxPrice,
-                      preferred_time: filterTime !== 'all' ? [filterTime] : [],
-                    }}
-                  />
-                ) : (
-                  <Card className="glass-panel border-0 shadow-xl py-16 text-center">
-                    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Sparkles className="w-10 h-10 text-purple-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      Sistema de Matching Inteligente
-                    </h3>
-                    <p className="text-gray-600 max-w-md mx-auto mb-4">
-                      Adicione um perfil de cão para receber recomendações personalizadas baseadas em IA
-                    </p>
-                    <Button 
-                      onClick={() => navigate(createPageUrl('AccountSettings'))}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:opacity-90"
-                    >
-                      Adicionar Perfil de Cão
-                    </Button>
-                  </Card>
-                )}
-              </TabsContent>
 
               <TabsContent value="walkers">
                 <div>
