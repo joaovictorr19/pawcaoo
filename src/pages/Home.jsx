@@ -1256,10 +1256,7 @@ export default function Home() {
                 </motion.div>
               </div>
 
-              <p className="text-xl text-slate-700 mb-6 max-w-2xl mx-auto font-medium">
-                Passeadores verificados, treinadores experientes e muito carinho.
-                Comece agora mesmo a sua busca.
-              </p>
+
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
