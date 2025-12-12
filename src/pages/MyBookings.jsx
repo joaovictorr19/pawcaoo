@@ -587,8 +587,7 @@ export default function MyBookings() {
                 size="sm" 
                 className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => {
-                  // Hard navigation para garantir reset do estado e layout correto
-                  window.location.href = createPageUrl('LiveTrackingPage') + `?id=${booking.id}`;
+                  navigate(createPageUrl('LiveWalkTracking') + `?bookingId=${booking.id}`);
                 }}
               >
                 <MapIcon className="w-3.5 h-3.5 mr-1.5" />
