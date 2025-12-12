@@ -1400,7 +1400,7 @@ export default function Home() {
                   {/* Compact Filters */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     <Select value={filterSize} onValueChange={setFilterSize}>
-                      <SelectTrigger className="h-9 w-32 text-xs">
+                      <SelectTrigger className="h-9 w-32 text-xs bg-white/95 backdrop-blur-sm border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
                         <SelectValue placeholder="Tamanho" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1412,7 +1412,7 @@ export default function Home() {
                     </Select>
 
                     <Select value={filterTime} onValueChange={setFilterTime}>
-                      <SelectTrigger className="h-9 w-32 text-xs">
+                      <SelectTrigger className="h-9 w-32 text-xs bg-white/95 backdrop-blur-sm border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
                         <SelectValue placeholder="Horário" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1431,7 +1431,7 @@ export default function Home() {
                           setFilterSize("all");
                           setFilterTime("all");
                         }}
-                        className="h-9 text-xs"
+                        className="h-9 text-xs bg-white/95 backdrop-blur-sm border-2 border-gray-200 hover:bg-red-50 hover:border-red-400 transition-all"
                       >
                         Limpar
                       </Button>
