@@ -269,14 +269,14 @@ export default function Gamification() {
         <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 relative z-10">
           {/* Header Title - Minimalista */}
           <motion.div 
-            className="text-center mb-8"
+            className="text-center mb-8 glass-panel p-6 rounded-3xl max-w-2xl mx-auto"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-4xl md:text-6xl font-black mb-2 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-black mb-3" style={{ color: colors?.primary || '#f97316' }}>
               🏆 Hall da Fama
             </h1>
-            <p className="text-sm md:text-base text-gray-600">
+            <p className="text-base md:text-lg font-semibold text-gray-700">
               Conquistas e rankings da comunidade
             </p>
           </motion.div>
