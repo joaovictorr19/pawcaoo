@@ -15,11 +15,13 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCreateNotification } from "../NotificationService";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function BookingForm({ walker, professional, onClose, initialDate }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
+  const { colors } = useTheme();
   
   // Support both legacy 'walker' prop and new generic 'professional' prop
   const pro = professional || walker;
@@ -379,9 +381,14 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   return (
     <form onSubmit={handleSubmit}>
       <Card className="glass-panel border-0 shadow-xl">
-        <CardHeader className={`bg-gradient-to-r ${isWalker ? 'from-green-600 to-green-500' : 'from-purple-600 to-purple-500'} text-white`}>
+        <CardHeader 
+          className="text-white"
+          style={{
+            background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+          }}
+        >
           <CardTitle className="text-2xl">{isWalker ? 'Agendar Passeio' : 'Agendar Sessão'}</CardTitle>
-          <p className={isWalker ? "text-green-50" : "text-purple-50"}>com {proName}</p>
+          <p className="text-white/80">com {proName}</p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           {/* Select Dog from My Pack */}
@@ -538,7 +545,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 onClick={captureCurrentLocation}
                 variant="outline"
                 size="sm"
-                className="text-xs border-green-300 bg-green-50 hover:bg-green-100 text-green-700"
+                className="text-xs hover:opacity-80"
+                style={{
+                  backgroundColor: `${colors?.primary || '#3b82f6'}10`,
+                  borderColor: `${colors?.primary || '#3b82f6'}40`,
+                  color: colors?.primary || '#3b82f6'
+                }}
               >
                 <MapPin className="w-3 h-3 mr-1" />
                 Usar Minha Localização Atual
@@ -623,7 +635,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             <Button
               type="submit"
               disabled={isProcessing}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              className="flex-1 text-white hover:opacity-90"
+              style={{
+                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+              }}
             >
               {isProcessing ? (
                 <>

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function CheckoutModal({ 
   booking, 
@@ -15,6 +16,7 @@ export default function CheckoutModal({
   onSuccess 
 }) {
   const { language } = useLanguage();
+  const { colors } = useTheme();
   const navigate = useNavigate();
   const { user } = booking;
   const [processing, setProcessing] = useState(false);
@@ -136,7 +138,10 @@ export default function CheckoutModal({
             <Button
               onClick={handleConfirmAndChat}
               disabled={processing}
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-500 h-12 font-bold text-white"
+              className="flex-1 h-12 font-bold text-white hover:opacity-90"
+              style={{
+                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+              }}
             >
               {language === 'pt' ? 'Combinar no Chat' : 'Arrange in Chat'}
               <ArrowRight className="w-4 h-4 ml-2" />
