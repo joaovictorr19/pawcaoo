@@ -1343,11 +1343,9 @@ export default function Home() {
                 {t('emergency', language)}
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
-      </div>
+          </div>
 
-            {/* Testimonials Section */}
+          {/* Testimonials Section */}
             {!user && <TestimonialsSection />}
 
       {/* Modal de Avaliação */}
