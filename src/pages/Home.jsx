@@ -1724,17 +1724,17 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 md:p-12 text-white relative overflow-hidden"
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
           >
             {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
             
             <div className="relative z-10 text-center">
-              <h2 className="text-3xl md:text-4xl font-black mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
                 {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
               </h2>
-              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
                 {language === 'pt' 
                   ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
                   : 'Earn money doing what you love. Become a certified walker or trainer.'}
