@@ -16,10 +16,12 @@ import ProfessionalProfileHeader from "../components/professionals/ProfessionalP
 import ServiceList from "../components/professionals/ServiceList";
 import { AnimatePresence } from "framer-motion";
 import CheckoutModal from "../components/payments/CheckoutModal";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [currentBooking, setCurrentBooking] = useState(null);
@@ -174,13 +176,22 @@ export default function TrainerDetails() {
     );
   }
 
-  if (!trainer) {
+  if (!trainerId) {
+    navigate(createPageUrl('Home'));
+    return null;
+  }
+
+  if (!trainer && !isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Trainer not found</h2>
-          <Button onClick={() => navigate(createPageUrl('Trainers'))}>
-            Back to Trainers
+          <Button 
+            onClick={() => navigate(createPageUrl('Home'))}
+            className={`bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white`}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
           </Button>
         </div>
       </div>
@@ -192,11 +203,11 @@ export default function TrainerDetails() {
       <div className="max-w-5xl mx-auto p-6">
         <Button
           variant="outline"
-          className="mb-6 border-purple-200 hover:bg-purple-50"
-          onClick={() => navigate(createPageUrl('Trainers'))}
+          className="mb-6"
+          onClick={() => navigate(createPageUrl('Home'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Trainers
+          Back to Home
         </Button>
 
         {/* Profile Header */}
@@ -270,7 +281,7 @@ export default function TrainerDetails() {
                           {getMethodologyLabel(method.methodology_name)}
                         </h4>
                         {method.primary && (
-                          <Badge className="bg-purple-600 text-white text-sm">
+                          <Badge className={`bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white text-sm border-0`}>
                             ★ Primary Method
                           </Badge>
                         )}
@@ -293,7 +304,14 @@ export default function TrainerDetails() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Available Consultation Methods</h3>
                 <div className="flex gap-3">
                   {trainer.consultation_options.map(method => (
-                    <Badge key={method} className="bg-blue-100 text-blue-700 text-base px-4 py-2">
+                    <Badge 
+                      key={method} 
+                      className="text-base px-4 py-2"
+                      style={{ 
+                        backgroundColor: `${colors?.primary || '#3b82f6'}20`,
+                        color: colors?.primary || '#3b82f6'
+                      }}
+                    >
                       {method === "online" && <Video className="w-4 h-4 mr-2" />}
                       {method === "in_person" && <UserIcon className="w-4 h-4 mr-2" />}
                       <span className="capitalize">{method.replace('_', ' ')}</span>
@@ -334,7 +352,7 @@ export default function TrainerDetails() {
 
             <div className="flex gap-3">
               <Button
-                className="flex-1 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-lg h-14 px-8 text-lg font-semibold"
+                className={`flex-1 bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-500'} hover:opacity-90 text-white shadow-lg h-14 px-8 text-lg font-semibold`}
                 onClick={() => setShowBookingForm(true)}
                 disabled={trainer.verification_status !== "verified"}
               >
@@ -343,7 +361,7 @@ export default function TrainerDetails() {
               
               <Button
                 variant="outline"
-                className="h-14 px-6 border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                className="h-14 px-6"
                 onClick={() => navigate(createPageUrl(`Messages?trainer_id=${trainer.id}`))}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
