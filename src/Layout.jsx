@@ -582,11 +582,10 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
 
             {planBadge && (
-              <div className={`mt-3 ${planBadge.color} text-white rounded-2xl px-4 py-3 text-center shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden`}>
+              <div className={`mt-2 ${planBadge.color} text-white rounded-xl px-3 py-1.5 text-center shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden`}>
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer"></div>
-                <div className="relative flex items-center justify-center gap-2">
-                  <span className="text-2xl animate-bounce">{planBadge.icon}</span>
-                  <span className="text-sm font-bold tracking-wider">{planBadge.name}</span>
+                <div className="relative">
+                  <span className="text-xs font-bold tracking-wider">{planBadge.name}</span>
                 </div>
               </div>
             )}
