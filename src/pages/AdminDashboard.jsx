@@ -1445,7 +1445,6 @@ export default function AdminDashboard() {
               isLoading={loadingAllUsers}
               onEdit={handleEditUser}
               onDelete={handleDeleteUser}
-              onGrantBadge={(email) => openGrantBadgeDialog(email)}
               onSyncProfiles={handleSyncUserProfiles}
               isSyncing={isSyncingProfiles}
             />
@@ -1870,9 +1869,22 @@ export default function AdminDashboard() {
 
                   {/* Lista de Usuários com Badges */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('usersAndBadges', language)}</h3>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold">{t('usersAndBadges', language)}</h3>
+                      <Input
+                        placeholder="Buscar utilizador..."
+                        value={grantBadgeSearchTerm}
+                        onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
+                        className="w-64"
+                      />
+                    </div>
                     <div className="space-y-3">
-                      {allUsers.map((user) => (
+                      {allUsers
+                        .filter(u => !grantBadgeSearchTerm || 
+                          u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) ||
+                          u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
+                        )
+                        .map((user) => (
                         <Card key={user.id} className="border-2 border-gray-200">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
@@ -1907,10 +1919,11 @@ export default function AdminDashboard() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleOpenBadgesDialog(user)}
+                                onClick={() => openGrantBadgeDialog(user.email)}
+                                className="border-purple-500 text-purple-600"
                               >
-                                <Edit className="w-4 h-4 mr-2" />
-                                {t('editBadges', language)}
+                                <Plus className="w-4 h-4 mr-2" />
+                                Conceder Badge
                               </Button>
                             </div>
                           </CardContent>
