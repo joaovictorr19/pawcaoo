@@ -56,7 +56,6 @@ import MyAdoptionApplications from './pages/MyAdoptionApplications';
 import CreateAdoptionListing from './pages/CreateAdoptionListing';
 import ManageAdoptionListings from './pages/ManageAdoptionListings';
 import Sitemap from './pages/Sitemap';
-import Home from './pages/Home';
 import ShelterDashboard from './pages/ShelterDashboard';
 import AdminShelterVerification from './pages/AdminShelterVerification';
 import StaticExport from './pages/StaticExport';
@@ -133,7 +132,6 @@ export const PAGES = {
     "CreateAdoptionListing": CreateAdoptionListing,
     "ManageAdoptionListings": ManageAdoptionListings,
     "Sitemap": Sitemap,
-    "Home": Home,
     "ShelterDashboard": ShelterDashboard,
     "AdminShelterVerification": AdminShelterVerification,
     "StaticExport": StaticExport,
