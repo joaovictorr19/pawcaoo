@@ -68,7 +68,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
             )}
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-900 mb-1 text-center">
+          <h1 className="text-3xl font-bold text-slate-700 mb-2 text-center px-4 leading-tight">
             {name}
           </h1>
           
