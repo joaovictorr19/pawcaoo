@@ -2833,34 +2833,41 @@ export default function AdminDashboard() {
                     onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
                     className="mb-3 h-10 md:h-9"
                   />
-                  <div className="border-2 rounded-lg p-2 md:p-3 max-h-72 overflow-y-auto space-y-1.5 bg-gray-50">
-                    {allUsers
-                      .filter(u => !grantBadgeSearchTerm || 
-                        u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
-                        u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
-                      )
-                      .map(u => (
-                        <div key={u.id} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 hover:bg-white bg-white/50 rounded-lg cursor-pointer border border-transparent hover:border-purple-200 transition-all active:scale-[0.98]"
-                             onClick={() => {
-                               if (usersToGrantBadge.includes(u.email)) {
-                                 setUsersToGrantBadge(usersToGrantBadge.filter(e => e !== u.email));
-                               } else {
-                                 setUsersToGrantBadge([...usersToGrantBadge, u.email]);
-                               }
-                             }}
-                        >
-                          <div className={`w-5 h-5 md:w-4 md:h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${usersToGrantBadge.includes(u.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
-                            {usersToGrantBadge.includes(u.email) && <CheckCircle className="w-4 h-4 md:w-3 md:h-3 text-white" />}
+                  <div className="border-2 rounded-lg p-3 h-96 overflow-y-auto space-y-1.5 bg-gray-50">
+                    {allUsers && allUsers.length > 0 ? (
+                      allUsers
+                        .filter(u => !grantBadgeSearchTerm || 
+                          u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
+                          u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
+                        )
+                        .map(u => (
+                          <div key={u.id} className="flex items-start gap-3 p-3 hover:bg-white bg-white rounded-lg cursor-pointer border-2 border-gray-200 hover:border-purple-400 transition-all active:scale-[0.98] shadow-sm hover:shadow-md"
+                               onClick={() => {
+                                 if (usersToGrantBadge.includes(u.email)) {
+                                   setUsersToGrantBadge(usersToGrantBadge.filter(e => e !== u.email));
+                                 } else {
+                                   setUsersToGrantBadge([...usersToGrantBadge, u.email]);
+                                 }
+                               }}
+                          >
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${usersToGrantBadge.includes(u.email) ? 'bg-purple-600 border-purple-600' : 'border-gray-400'}`}>
+                              {usersToGrantBadge.includes(u.email) && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-gray-900">{u.full_name || 'Sem nome'}</p>
+                              <p className="text-xs text-gray-600">{u.email}</p>
+                            </div>
+                            {u.public_badges?.some(b => b.badge_id === selectedBadgeForAll.badge_id) && (
+                              <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-300 flex-shrink-0 h-5 font-medium">✓ Já tem</Badge>
+                            )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm md:text-sm font-semibold text-gray-900 truncate">{u.full_name || 'Sem nome'}</p>
-                            <p className="text-xs text-gray-500 truncate">{u.email}</p>
-                          </div>
-                          {u.public_badges?.some(b => b.badge_id === selectedBadgeForAll.badge_id) && (
-                            <Badge variant="outline" className="text-[9px] md:text-[10px] bg-green-50 text-green-700 border-green-200 flex-shrink-0 h-5">Já tem</Badge>
-                          )}
-                        </div>
-                      ))}
+                        ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                        <p>Nenhum usuário disponível</p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-between items-center mt-3 text-sm text-gray-700 font-medium">
                     <span>{usersToGrantBadge.length} selecionado{usersToGrantBadge.length !== 1 ? 's' : ''}</span>
