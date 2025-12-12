@@ -457,7 +457,7 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   return (
-    <SidebarProvider>
+    <div>
       <Helmet>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
@@ -552,47 +552,21 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="flex w-full h-screen overflow-hidden relative">
-        {/* Aurora Background - Reactive to Tier */}
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      <div className="relative w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* CAMADA 0: Aurora Background - Reactive to Tier */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className={`absolute top-20 -left-32 w-96 h-96 ${colors?.orb1 || 'bg-blue-400'} rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob`}></div>
           <div className={`absolute top-40 -right-32 w-96 h-96 ${colors?.orb2 || 'bg-indigo-400'} rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000`}></div>
           <div className={`absolute -bottom-32 left-1/3 w-96 h-96 ${colors?.orb1 || 'bg-blue-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000`}></div>
         </div>
 
-        <div className="flex w-full h-full p-2 gap-2 relative z-10">
-        {authUser && (
-        <aside 
-          className={`backdrop-blur-xl border transition-all duration-500 ease-in-out rounded-2xl shadow-xl flex-shrink-0 flex flex-col overflow-hidden relative ${
-            collapsed ? 'w-20' : 'w-80'
-          } ${
-            colors?.isDarkMode 
-              ? 'bg-slate-900/60' 
-              : 'bg-white/60'
-          }`}
-          style={{
-            borderColor: colors?.isDarkMode ? 'rgba(167, 139, 250, 0.3)' : 'rgba(255, 255, 255, 0.4)',
-            boxShadow: colors?.isDarkMode 
-              ? '0 20px 60px rgba(139, 92, 246, 0.15)' 
-              : '0 20px 60px rgba(0, 0, 0, 0.08)'
-          }}
-        >
-          <button 
-            onClick={() => setCollapsed(prev => !prev)}
-            className={`absolute top-8 -right-3 p-2 rounded-full shadow-lg z-50 cursor-pointer transition-all hover:scale-110 ${
-              colors?.isDarkMode 
-                ? 'bg-violet-600 text-white hover:bg-violet-500' 
-                : `bg-${colors?.primary || 'blue-600'} text-white hover:opacity-90`
-            }`}
-            style={{
-              backgroundColor: colors?.isDarkMode ? '#8b5cf6' : 'var(--tier-primary, #2563eb)'
-            }}
-            aria-label="Toggle sidebar"
-          >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
+        {/* CAMADA 1: Main Content - Full Screen */}
+        <main className="absolute inset-0 z-10 w-full h-full overflow-y-auto">
+          <div className={`w-full min-h-full transition-all duration-500 ${
+            authUser ? (collapsed ? 'pl-24 pr-6 py-6' : 'pl-[22rem] pr-6 py-6') : 'px-6 py-6'
+          }`}>
         <Sidebar 
-          className="flex-1 flex flex-col h-full"
+          className="flex flex-col h-full overflow-hidden"
         >
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-2xl ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
@@ -917,28 +891,13 @@ function LayoutContent({ children, currentPageName }) {
         </aside>
             )}
 
-            <main className={`flex-1 flex flex-col min-w-0 rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${
-              colors?.isDarkMode 
-                ? 'bg-slate-900/60' 
-                : 'bg-white/60'
-            }`}
-            style={{
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderColor: colors?.isDarkMode ? 'rgba(167, 139, 250, 0.3)' : 'rgba(255, 255, 255, 0.4)',
-              border: '1px solid',
-              boxShadow: colors?.isDarkMode 
-                ? '0 20px 60px rgba(139, 92, 246, 0.15)' 
-                : '0 20px 60px rgba(0, 0, 0, 0.08)'
-            }}
-            >
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
 
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 backdrop-blur-xl border-b ${
+            <header className={`sticky top-0 z-40 px-3 md:px-6 py-2.5 md:py-4 transition-all duration-300 backdrop-blur-xl border-b ${
               colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/40 border-white/30'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
@@ -1036,8 +995,8 @@ function LayoutContent({ children, currentPageName }) {
               </div>
               </header>
 
-          {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 overflow-y-auto pb-24 md:pb-0">
+          {/* Content Area */}
+          <div className="pb-24 md:pb-0">
             <div className="md:hidden">
               <PullToRefresh>
                 {children}
@@ -1050,11 +1009,6 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Mobile Navigation Bar */}
           <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
-
-          <NotificationArea 
-            isOpen={isNotificationPanelOpen} 
-            onClose={() => setIsNotificationPanelOpen(false)} 
-          />
 
           {/* Badge Notification */}
           {newBadge && (
@@ -1087,7 +1041,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 relative z-10 ${
+          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 mt-12 ${
             colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/40 border-white/30'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
@@ -1151,10 +1105,56 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </div>
           </footer>
+          </div>
         </main>
+
+        {/* CAMADA 2: Sidebar Overlay (Flutuante) */}
+        {authUser && (
+        <aside 
+          className={`absolute left-4 top-4 bottom-4 z-50 backdrop-blur-2xl border transition-all duration-500 ease-out rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden ${
+            collapsed ? 'w-20' : 'w-72'
+          } ${
+            colors?.isDarkMode 
+              ? 'bg-slate-900/40 border-purple-400/30' 
+              : 'bg-white/40 border-white/50'
+          }`}
+          style={{
+            boxShadow: colors?.isDarkMode 
+              ? '0 25px 70px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+              : '0 25px 70px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
+          }}
+        >
+          <button 
+            onClick={() => setCollapsed(prev => !prev)}
+            className={`absolute top-8 -right-3 p-2 rounded-full shadow-lg z-[60] cursor-pointer transition-all hover:scale-110 ${
+              colors?.isDarkMode 
+                ? 'bg-violet-600 text-white hover:bg-violet-500' 
+                : 'text-white hover:opacity-90'
+            }`}
+            style={{
+              backgroundColor: colors?.isDarkMode ? '#8b5cf6' : 'var(--tier-primary, #2563eb)'
+            }}
+            aria-label="Toggle sidebar"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+          <SidebarProvider>
+            <Sidebar className="flex flex-col h-full overflow-hidden">
+              {/* Sidebar content stays the same */}
+            </Sidebar>
+          </SidebarProvider>
+        </aside>
+        )}
+
+        {/* CAMADA 3: Notifications & Chat */}
+        <div className="absolute bottom-6 right-6 z-[60]">
+          <NotificationArea 
+            isOpen={isNotificationPanelOpen} 
+            onClose={() => setIsNotificationPanelOpen(false)} 
+          />
         </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
 
