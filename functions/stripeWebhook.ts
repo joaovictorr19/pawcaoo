@@ -51,6 +51,30 @@ Deno.serve(async (req) => {
                 break;
             }
 
+            case 'customer.subscription.updated': {
+                const subscription = event.data.object;
+                await handleSubscriptionUpdated(base44, subscription);
+                break;
+            }
+
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object;
+                await handleSubscriptionDeleted(base44, subscription);
+                break;
+            }
+
+            case 'invoice.payment_succeeded': {
+                const invoice = event.data.object;
+                await handleInvoicePaymentSucceeded(base44, invoice);
+                break;
+            }
+
+            case 'invoice.payment_failed': {
+                const invoice = event.data.object;
+                await handleInvoicePaymentFailed(base44, invoice);
+                break;
+            }
+
             case 'account.updated': {
                 const account = event.data.object;
                 await handleAccountUpdated(base44, account);
@@ -179,27 +203,106 @@ async function handleCheckoutCompleted(base44, session) {
     if (subscriptionType) {
         // Handle subscription purchase
         const userEmail = session.customer_email;
+        const billingCycle = session.metadata?.billing_cycle || 'monthly';
+        const planType = session.metadata?.plan_type || 'basic';
+        
+        // Calculate next billing date
+        const startDate = new Date();
+        const nextBillingDate = new Date(startDate);
+        if (billingCycle === 'annual') {
+            nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+        } else {
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+        }
+
+        // Get Stripe customer ID
+        const stripeCustomerId = session.customer;
         
         if (subscriptionType === 'walker' || subscriptionType === 'trainer') {
-            await base44.asServiceRole.entities.WalkerSubscription.create({
+            // Check if subscription already exists
+            const existing = await base44.asServiceRole.entities.WalkerSubscription.filter({
                 walker_email: userEmail,
-                walker_name: session.metadata?.user_name || userEmail,
-                plan_type: session.metadata?.plan_type || 'basic',
-                monthly_fee: session.amount_total / 100,
-                commission_rate: 0,
-                start_date: new Date().toISOString(),
-                is_active: true,
-                stripe_subscription_id: session.subscription
+                is_active: true
+            });
+
+            if (existing.length > 0) {
+                // Update existing
+                await base44.asServiceRole.entities.WalkerSubscription.update(existing[0].id, {
+                    plan_type: planType,
+                    monthly_fee: session.amount_total / 100,
+                    billing_cycle: billingCycle,
+                    commission_rate: 0,
+                    stripe_subscription_id: session.subscription,
+                    stripe_customer_id: stripeCustomerId,
+                    next_billing_date: nextBillingDate.toISOString()
+                });
+            } else {
+                // Create new
+                await base44.asServiceRole.entities.WalkerSubscription.create({
+                    walker_email: userEmail,
+                    walker_name: session.metadata?.user_name || userEmail,
+                    plan_type: planType,
+                    billing_cycle: billingCycle,
+                    monthly_fee: session.amount_total / 100,
+                    commission_rate: 0,
+                    start_date: startDate.toISOString(),
+                    next_billing_date: nextBillingDate.toISOString(),
+                    is_active: true,
+                    stripe_subscription_id: session.subscription,
+                    stripe_customer_id: stripeCustomerId
+                });
+            }
+
+            // Notify user
+            await base44.asServiceRole.entities.Notification.create({
+                recipient_email: userEmail,
+                title: 'Subscrição Ativa',
+                message: `A sua subscrição ${planType.toUpperCase()} foi ativada com sucesso!`,
+                type: 'system',
+                priority: 'high'
             });
         } else if (subscriptionType === 'owner') {
-            await base44.asServiceRole.entities.OwnerSubscription.create({
+            // Check if subscription already exists
+            const existing = await base44.asServiceRole.entities.OwnerSubscription.filter({
                 owner_email: userEmail,
-                owner_name: session.metadata?.user_name || userEmail,
-                plan_type: session.metadata?.plan_type || 'basic',
-                monthly_fee: session.amount_total / 100,
-                start_date: new Date().toISOString(),
-                is_active: true,
-                stripe_subscription_id: session.subscription
+                is_active: true
+            });
+
+            if (existing.length > 0) {
+                // Update existing
+                await base44.asServiceRole.entities.OwnerSubscription.update(existing[0].id, {
+                    plan_type: planType,
+                    billing_cycle: billingCycle,
+                    monthly_price: billingCycle === 'monthly' ? session.amount_total / 100 : 0,
+                    annual_price: billingCycle === 'annual' ? session.amount_total / 100 : 0,
+                    stripe_subscription_id: session.subscription,
+                    stripe_customer_id: stripeCustomerId,
+                    next_billing_date: nextBillingDate.toISOString()
+                });
+            } else {
+                // Create new
+                await base44.asServiceRole.entities.OwnerSubscription.create({
+                    owner_email: userEmail,
+                    owner_name: session.metadata?.user_name || userEmail,
+                    plan_type: planType,
+                    billing_cycle: billingCycle,
+                    monthly_price: billingCycle === 'monthly' ? session.amount_total / 100 : 0,
+                    annual_price: billingCycle === 'annual' ? session.amount_total / 100 : 0,
+                    start_date: startDate.toISOString(),
+                    next_billing_date: nextBillingDate.toISOString(),
+                    is_active: true,
+                    stripe_subscription_id: session.subscription,
+                    stripe_customer_id: stripeCustomerId
+                });
+            }
+
+            // Notify user
+            await base44.asServiceRole.entities.Notification.create({
+                recipient_email: userEmail,
+                title: 'Subscrição Ativa',
+                message: `A sua subscrição ${planType.toUpperCase()} foi ativada com sucesso!`,
+                type: 'system',
+                priority: 'high'
             });
         }
     } else if (bookingId) {
@@ -207,6 +310,143 @@ async function handleCheckoutCompleted(base44, session) {
         await base44.asServiceRole.entities.Booking.update(bookingId, {
             payment_status: 'held',
             status: 'confirmed'
+        });
+    }
+}
+
+async function handleSubscriptionUpdated(base44, subscription) {
+    const customerId = subscription.customer;
+    const subscriptionId = subscription.id;
+
+    // Find subscription in database
+    const ownerSubs = await base44.asServiceRole.entities.OwnerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const walkerSubs = await base44.asServiceRole.entities.WalkerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const allSubs = [...ownerSubs, ...walkerSubs];
+    
+    if (allSubs.length > 0) {
+        const sub = allSubs[0];
+        const isOwner = ownerSubs.length > 0;
+        const entityName = isOwner ? 'OwnerSubscription' : 'WalkerSubscription';
+
+        // Update subscription status
+        await base44.asServiceRole.entities[entityName].update(sub.id, {
+            is_active: subscription.status === 'active',
+            auto_renew: !subscription.cancel_at_period_end
+        });
+    }
+}
+
+async function handleSubscriptionDeleted(base44, subscription) {
+    const subscriptionId = subscription.id;
+
+    // Find and deactivate subscription
+    const ownerSubs = await base44.asServiceRole.entities.OwnerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const walkerSubs = await base44.asServiceRole.entities.WalkerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const allSubs = [...ownerSubs, ...walkerSubs];
+    
+    if (allSubs.length > 0) {
+        const sub = allSubs[0];
+        const isOwner = ownerSubs.length > 0;
+        const entityName = isOwner ? 'OwnerSubscription' : 'WalkerSubscription';
+        const userEmail = isOwner ? sub.owner_email : sub.walker_email;
+
+        await base44.asServiceRole.entities[entityName].update(sub.id, {
+            is_active: false,
+            end_date: new Date().toISOString()
+        });
+
+        // Notify user
+        await base44.asServiceRole.entities.Notification.create({
+            recipient_email: userEmail,
+            title: 'Subscrição Cancelada',
+            message: 'A sua subscrição foi cancelada. Esperamos vê-lo de volta em breve!',
+            type: 'system',
+            priority: 'high'
+        });
+    }
+}
+
+async function handleInvoicePaymentSucceeded(base44, invoice) {
+    const subscriptionId = invoice.subscription;
+    
+    if (!subscriptionId) return;
+
+    // Find subscription
+    const ownerSubs = await base44.asServiceRole.entities.OwnerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const walkerSubs = await base44.asServiceRole.entities.WalkerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const allSubs = [...ownerSubs, ...walkerSubs];
+    
+    if (allSubs.length > 0) {
+        const sub = allSubs[0];
+        const isOwner = ownerSubs.length > 0;
+        const entityName = isOwner ? 'OwnerSubscription' : 'WalkerSubscription';
+        const userEmail = isOwner ? sub.owner_email : sub.walker_email;
+
+        // Calculate next billing date
+        const nextBillingDate = new Date(invoice.period_end * 1000);
+
+        await base44.asServiceRole.entities[entityName].update(sub.id, {
+            next_billing_date: nextBillingDate.toISOString(),
+            is_active: true
+        });
+
+        // Notify user
+        await base44.asServiceRole.entities.Notification.create({
+            recipient_email: userEmail,
+            title: 'Pagamento Processado',
+            message: `O pagamento da sua subscrição foi processado com sucesso. Próxima cobrança: ${nextBillingDate.toLocaleDateString('pt-PT')}`,
+            type: 'payment',
+            priority: 'normal'
+        });
+    }
+}
+
+async function handleInvoicePaymentFailed(base44, invoice) {
+    const subscriptionId = invoice.subscription;
+    
+    if (!subscriptionId) return;
+
+    // Find subscription
+    const ownerSubs = await base44.asServiceRole.entities.OwnerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const walkerSubs = await base44.asServiceRole.entities.WalkerSubscription.filter({
+        stripe_subscription_id: subscriptionId
+    });
+
+    const allSubs = [...ownerSubs, ...walkerSubs];
+    
+    if (allSubs.length > 0) {
+        const sub = allSubs[0];
+        const isOwner = ownerSubs.length > 0;
+        const userEmail = isOwner ? sub.owner_email : sub.walker_email;
+
+        // Notify user
+        await base44.asServiceRole.entities.Notification.create({
+            recipient_email: userEmail,
+            title: 'Falha no Pagamento',
+            message: 'O pagamento da sua subscrição falhou. Por favor, atualize o seu método de pagamento para continuar a usufruir dos benefícios.',
+            type: 'payment',
+            priority: 'urgent'
         });
     }
 }
