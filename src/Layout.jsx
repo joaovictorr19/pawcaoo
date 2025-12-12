@@ -642,7 +642,9 @@ function LayoutContent({ children, currentPageName }) {
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
+                className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
+                  colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                }`}
                 onClick={() => setMyActivityExpanded(!myActivityExpanded)}
               >
                 <span>{t('myActivity', language)}</span>
@@ -688,7 +690,9 @@ function LayoutContent({ children, currentPageName }) {
             {authUser && (authUser.account_type === 'walker' || authUser.account_type === 'trainer' || authUser.account_type === 'both' || authUser.role === 'admin') && (
             <SidebarGroup>
               <SidebarGroupLabel 
-                className="text-[10px] md:text-xs text-gray-600 px-2 cursor-pointer hover:text-gray-900 flex items-center justify-between group transition-all py-2 font-semibold uppercase"
+                className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
+                  colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                }`}
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
                 <span>{getMenuText('becomeProfessional')}</span>
@@ -701,10 +705,18 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white` : 'text-gray-700'
+                          className={`transition-all duration-200 rounded-lg mb-1 relative ${
+                            isRouteActive(item.url) 
+                              ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
+                              : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
+                          {isRouteActive(item.url) && (
+                            <div 
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
+                              style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                            />
+                          )}
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
                             <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
@@ -721,7 +733,9 @@ function LayoutContent({ children, currentPageName }) {
             {/* COMPANY */}
             {companyMenu.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-[10px] md:text-xs text-gray-600 px-2 font-semibold uppercase">
+                <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 font-semibold uppercase ${
+                  colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   {getMenuText('company')}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -730,10 +744,18 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white` : 'text-gray-700'
+                          className={`transition-all duration-200 rounded-lg mb-1 relative ${
+                            isRouteActive(item.url) 
+                              ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
+                              : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
+                          {isRouteActive(item.url) && (
+                            <div 
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
+                              style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                            />
+                          )}
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
                             <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
@@ -961,7 +983,9 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className="glass-panel-dark border-t border-white/50 mt-auto">
+          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
+            colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
+          }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
                 <div>
