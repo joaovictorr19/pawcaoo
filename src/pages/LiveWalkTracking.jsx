@@ -20,7 +20,7 @@ export default function LiveWalkTracking() {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   
   const urlParams = new URLSearchParams(window.location.search);
-  const bookingId = urlParams.get('booking_id');
+  const bookingId = urlParams.get('id') || urlParams.get('booking_id');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -133,10 +133,10 @@ export default function LiveWalkTracking() {
               <Button
                 variant="outline"
                 className="bg-white text-green-700 hover:bg-green-50"
-                onClick={() => navigate(createPageUrl(`Messages?walker_id=${booking?.walker_id}`))}
+                onClick={() => navigate(createPageUrl('Chat') + `?bookingId=${bookingId}`)}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
-                Message Walker
+                Chat ao Vivo
               </Button>
             </div>
           </CardContent>
