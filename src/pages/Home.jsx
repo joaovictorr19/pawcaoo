@@ -1215,9 +1215,10 @@ export default function Home() {
                       <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
                         <InteractiveMap
                           walkers={filteredWalkers}
-                          userLocation={userLocation}
+                          userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
                           radiusKm={advancedFilters.radius || 50}
                           onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                          onClose={() => setViewMode("list")}
                         />
                       </React.Suspense>
                     </div>
