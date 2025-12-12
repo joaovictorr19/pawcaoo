@@ -43,8 +43,21 @@ export default function PostEmergency() {
   // ✅ Buscar usuário e cães para preenchimento automático
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch (err) {
+        return null;
+      }
+    },
   });
+
+  // ✅ Redirecionar para login se não estiver autenticado
+  React.useEffect(() => {
+    if (user === null) {
+      base44.auth.redirectToLogin(window.location.href);
+    }
+  }, [user]);
 
   const { data: myDogs = [] } = useQuery({
     queryKey: ['myDogs'],
