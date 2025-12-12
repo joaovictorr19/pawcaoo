@@ -914,7 +914,7 @@ function LayoutContent({ children, currentPageName }) {
               {!authUser && (
                 <Button 
                   onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                  className="btn-sapphire shadow-sm"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm"
                   size="sm"
                 >
                   {getMenuText('login')}
