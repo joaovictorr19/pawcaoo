@@ -587,7 +587,7 @@ function LayoutContent({ children, currentPageName }) {
           {/* === COLUNA ESQUERDA: SIDEBAR (Desktop Only) === */}
           {authUser && (
           <aside className="hidden md:flex w-72 flex-col shrink-0">
-            <Sidebar className="h-full w-full rounded-3xl glass-panel flex flex-col border border-white/40 shadow-2xl overflow-hidden">
+            <Sidebar className="backdrop-blur-xl border transition-all duration-300 rounded-[2rem] h-full shadow-2xl overflow-hidden bg-white/60 border-white/40">
             <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
               colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
             }`}>
