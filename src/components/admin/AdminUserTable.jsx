@@ -23,7 +23,6 @@ export default function AdminUserTable({
   isLoading = false, 
   onEdit, 
   onDelete, 
-  onGrantBadge, 
   onSyncProfiles, 
   isSyncing 
 }) {
@@ -188,7 +187,6 @@ export default function AdminUserTable({
                   <div className="flex gap-2 justify-end">
                     <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0 bg-white" title="Ver Perfil"><Eye className="w-4 h-4" /></Button>
                     <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="h-8 w-8 p-0 bg-white" title="Editar"><Edit className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="default" className="bg-purple-600 hover:bg-purple-700 h-8 w-8 p-0" onClick={() => onGrantBadge(user.email)} title="Conceder Badge">🎖️</Button>
                     <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 w-8 p-0 bg-white" title="Eliminar"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </Card>
@@ -248,9 +246,6 @@ export default function AdminUserTable({
                           </Button>
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
                             <Edit className="w-4 h-4 text-blue-600" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-purple-100 rounded-full" onClick={() => onGrantBadge(user.email)} title="Conceder Emblema">
-                            <span className="text-base">🎖️</span>
                           </Button>
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
                             <Trash2 className="w-4 h-4 text-red-600" />
