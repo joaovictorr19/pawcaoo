@@ -56,6 +56,8 @@ import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminUserTable from "../components/admin/AdminUserTable";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
+import Pagination from "../components/ui/Pagination";
+import LazyImage from "../components/ui/LazyImage";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -204,6 +206,20 @@ export default function AdminDashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(null);
+  
+  // Pagination states for all sections
+  const [companiesPage, setCompaniesPage] = useState(1);
+  const [companiesPerPage, setCompaniesPerPage] = useState(10);
+  const [productsPage, setProductsPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(10);
+  const [servicesPage, setServicesPage] = useState(1);
+  const [servicesPerPage, setServicesPerPage] = useState(10);
+  const [bookingsPage, setBookingsPage] = useState(1);
+  const [bookingsPerPage, setBookingsPerPage] = useState(20);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsPerPage, setPaymentsPerPage] = useState(20);
+  const [announcementsPage, setAnnouncementsPage] = useState(1);
+  const [announcementsPerPage, setAnnouncementsPerPage] = useState(10);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -216,6 +232,9 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.User.list('-created_date', 1000),
     enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Lógica de filtragem movida para AdminUserTable
@@ -266,6 +285,9 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
     enabled: user?.role === 'admin' && (activeTab === 'services' || activeTab === 'products'),
     initialData: [],
+    staleTime: 3 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
 
@@ -275,8 +297,9 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
     enabled: user?.role === 'admin' && activeTab === 'products',
     initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
 
@@ -285,16 +308,50 @@ export default function AdminDashboard() {
     return allPartnerProducts.filter(p => p.moderation_status === productFilter);
   }, [allPartnerProducts, productFilter]);
 
+  // Paginated data for all sections
+  const paginatedCompanies = React.useMemo(() => {
+    const startIndex = (companiesPage - 1) * companiesPerPage;
+    return companies.slice(startIndex, startIndex + companiesPerPage);
+  }, [companies, companiesPage, companiesPerPage]);
+
+  const paginatedProducts = React.useMemo(() => {
+    const startIndex = (productsPage - 1) * productsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredProducts, productsPage, productsPerPage]);
+
+  const paginatedServices = React.useMemo(() => {
+    const startIndex = (servicesPage - 1) * servicesPerPage;
+    return allPartnerServices.slice(startIndex, startIndex + servicesPerPage);
+  }, [allPartnerServices, servicesPage, servicesPerPage]);
+
+  const paginatedBookings = React.useMemo(() => {
+    const startIndex = (bookingsPage - 1) * bookingsPerPage;
+    return allBookings.slice(startIndex, startIndex + bookingsPerPage);
+  }, [allBookings, bookingsPage, bookingsPerPage]);
+
+  const paginatedPayments = React.useMemo(() => {
+    const startIndex = (paymentsPage - 1) * paymentsPerPage;
+    return allPayments.slice(startIndex, startIndex + paymentsPerPage);
+  }, [allPayments, paymentsPage, paymentsPerPage]);
+
+  const paginatedAnnouncements = React.useMemo(() => {
+    const startIndex = (announcementsPage - 1) * announcementsPerPage;
+    return allAnnouncements.slice(startIndex, startIndex + announcementsPerPage);
+  }, [allAnnouncements, announcementsPage, announcementsPerPage]);
+
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const walkerBookings = (await base44.entities.Booking.list('-created_date', 100)).map(b => ({...b, entityType: 'walk'}));
-      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 100)).map(b => ({...b, entityType: 'training'}));
+      const walkerBookings = (await base44.entities.Booking.list('-created_date', 200)).map(b => ({...b, entityType: 'walk'}));
+      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 200)).map(b => ({...b, entityType: 'training'}));
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: user?.role === 'admin' && activeTab === 'bookings',
     initialData: [],
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const adminDeleteBookingMutation = useMutation({
@@ -337,9 +394,12 @@ export default function AdminDashboard() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.Payment.list('-held_date', 100),
+    queryFn: () => base44.entities.Payment.list('-held_date', 200),
     enabled: user?.role === 'admin',
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: supportTickets = [] } = useQuery({
@@ -358,6 +418,9 @@ export default function AdminDashboard() {
     },
     enabled: user?.role === 'admin' && activeTab === 'announcements',
     initialData: [],
+    staleTime: 3 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: companies = [], isFetching: loadingCompanies } = useQuery({
@@ -365,9 +428,6 @@ export default function AdminDashboard() {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const allCompanies = await base44.entities.PartnerCompany.list();
-      
-      // Simplified stats fetching to prevent heavy load - filtering in memory if lists are small or fetch separately
-      // Ideally backend should provide stats, but here we optimise slightly
       const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
       const allServices = await base44.entities.PartnerService.list();
 
@@ -406,7 +466,9 @@ export default function AdminDashboard() {
       return companiesWithStats;
     },
     enabled: user?.role === 'admin' && activeTab === 'companies',
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
     initialData: [], 
   });
 
@@ -1722,8 +1784,9 @@ export default function AdminDashboard() {
                 ) : companies.length === 0 ? (
                   <p className="text-center py-8 text-gray-600">{t('noCompanies', language)}</p>
                 ) : (
+                  <>
                   <div className="space-y-4">
-                    {companies.map((company) => (
+                    {paginatedCompanies.map((company) => (
                       <Card key={company.id} className="border-2 border-green-100">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-3">
@@ -1782,6 +1845,21 @@ export default function AdminDashboard() {
                       </Card>
                     ))}
                   </div>
+                  
+                  {companies.length > 0 && (
+                    <Pagination
+                      currentPage={companiesPage}
+                      totalPages={Math.ceil(companies.length / companiesPerPage)}
+                      onPageChange={setCompaniesPage}
+                      itemsPerPage={companiesPerPage}
+                      totalItems={companies.length}
+                      onItemsPerPageChange={(value) => {
+                        setCompaniesPerPage(value);
+                        setCompaniesPage(1);
+                      }}
+                    />
+                  )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -1803,8 +1881,9 @@ export default function AdminDashboard() {
                 ) : allAnnouncements.length === 0 ? (
                   <p className="text-center py-8 text-gray-600">{t('noAnnouncements', language)}</p>
                 ) : (
+                  <>
                   <div className="space-y-4">
-                    {allAnnouncements.map((announcement) => {
+                    {paginatedAnnouncements.map((announcement) => {
                       const now = new Date();
                       const isActive = announcement.is_active && announcement.moderation_status === 'approved';
                       const endDate = announcement.end_date ? new Date(announcement.end_date) : null;
@@ -1882,6 +1961,21 @@ export default function AdminDashboard() {
                       );
                     })}
                   </div>
+                  
+                  {allAnnouncements.length > 0 && (
+                    <Pagination
+                      currentPage={announcementsPage}
+                      totalPages={Math.ceil(allAnnouncements.length / announcementsPerPage)}
+                      onPageChange={setAnnouncementsPage}
+                      itemsPerPage={announcementsPerPage}
+                      totalItems={allAnnouncements.length}
+                      onItemsPerPageChange={(value) => {
+                        setAnnouncementsPerPage(value);
+                        setAnnouncementsPage(1);
+                      }}
+                    />
+                  )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -1943,8 +2037,9 @@ export default function AdminDashboard() {
                     <p className="text-gray-600">Nenhum produto encontrado</p>
                   </div>
                 ) : (
+                  <>
                   <div className="space-y-4">
-                    {filteredProducts.map((product) => {
+                    {paginatedProducts.map((product) => {
                       const isPending = product.moderation_status === 'pending';
                       const isApproved = product.moderation_status === 'approved';
                       const isActive = product.is_available;
@@ -2057,6 +2152,21 @@ export default function AdminDashboard() {
                       );
                     })}
                   </div>
+                  
+                  {filteredProducts.length > 0 && (
+                    <Pagination
+                      currentPage={productsPage}
+                      totalPages={Math.ceil(filteredProducts.length / productsPerPage)}
+                      onPageChange={setProductsPage}
+                      itemsPerPage={productsPerPage}
+                      totalItems={filteredProducts.length}
+                      onItemsPerPageChange={(value) => {
+                        setProductsPerPage(value);
+                        setProductsPage(1);
+                      }}
+                    />
+                  )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -2081,8 +2191,9 @@ export default function AdminDashboard() {
                     <p className="text-gray-600">{t('noServices', language)}</p>
                   </div>
                 ) : (
+                  <>
                   <div className="space-y-4">
-                    {allPartnerServices.map((service) => {
+                    {paginatedServices.map((service) => {
                       const isPending = service.moderation_status === 'pending';
                       const isApproved = service.moderation_status === 'approved';
                       const isActive = service.is_active;
@@ -2203,6 +2314,21 @@ export default function AdminDashboard() {
                       );
                     })}
                   </div>
+                  
+                  {allPartnerServices.length > 0 && (
+                    <Pagination
+                      currentPage={servicesPage}
+                      totalPages={Math.ceil(allPartnerServices.length / servicesPerPage)}
+                      onPageChange={setServicesPage}
+                      itemsPerPage={servicesPerPage}
+                      totalItems={allPartnerServices.length}
+                      onItemsPerPageChange={(value) => {
+                        setServicesPerPage(value);
+                        setServicesPage(1);
+                      }}
+                    />
+                  )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -2216,7 +2342,7 @@ export default function AdminDashboard() {
               <CardContent>
                 {/* Mobile View */}
                 <div className="md:hidden space-y-4">
-                  {allBookings.slice(0, 20).map(booking => (
+                  {paginatedBookings.map(booking => (
                     <Card key={booking.id} className="p-4 border border-gray-200">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -2266,7 +2392,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allBookings.slice(0, 20).map(booking => (
+                      {paginatedBookings.map(booking => (
                         <TableRow key={booking.id}>
                           <TableCell>{booking.owner_name}</TableCell>
                           <TableCell>{booking.walker_name || booking.trainer_name}</TableCell>
@@ -2297,6 +2423,22 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 </div>
+                
+                {allBookings.length > 0 && (
+                  <div className="mt-6">
+                    <Pagination
+                      currentPage={bookingsPage}
+                      totalPages={Math.ceil(allBookings.length / bookingsPerPage)}
+                      onPageChange={setBookingsPage}
+                      itemsPerPage={bookingsPerPage}
+                      totalItems={allBookings.length}
+                      onItemsPerPageChange={(value) => {
+                        setBookingsPerPage(value);
+                        setBookingsPage(1);
+                      }}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -2309,7 +2451,7 @@ export default function AdminDashboard() {
               <CardContent>
                 {/* Mobile View */}
                 <div className="md:hidden space-y-4">
-                  {allPayments.slice(0, 20).map(payment => (
+                  {paginatedPayments.map(payment => (
                     <Card key={payment.id} className="p-4 border border-gray-200">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -2341,7 +2483,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allPayments.slice(0, 20).map(payment => (
+                      {paginatedPayments.map(payment => (
                         <TableRow key={payment.id}>
                           <TableCell>{payment.payer_name}</TableCell>
                           <TableCell>{payment.recipient_name}</TableCell>
@@ -2357,6 +2499,22 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 </div>
+                
+                {allPayments.length > 0 && (
+                  <div className="mt-6">
+                    <Pagination
+                      currentPage={paymentsPage}
+                      totalPages={Math.ceil(allPayments.length / paymentsPerPage)}
+                      onPageChange={setPaymentsPage}
+                      itemsPerPage={paymentsPerPage}
+                      totalItems={allPayments.length}
+                      onItemsPerPageChange={(value) => {
+                        setPaymentsPerPage(value);
+                        setPaymentsPage(1);
+                      }}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
