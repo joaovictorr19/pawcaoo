@@ -276,151 +276,69 @@ export default function Gamification() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8 items-stretch">
-            {/* Card 1: Tier & Level Info */}
-            <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl border-2 border-white/50"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="text-center">
-                <div className="text-7xl md:text-8xl mb-4 animate-bounce">{currentTier.icon}</div>
-                <h2 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                  {currentTier.name}
-                </h2>
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2 rounded-full border-2 border-purple-200">
-                  <Star className="w-5 h-5 text-purple-600 fill-purple-600" />
-                  <span className="font-bold text-purple-900">Nível {currentLevel}</span>
-                </div>
-                
-                {/* XP Display */}
-                <div className="mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-5 border-2 border-yellow-200">
-                  <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">
-                    {currentXP.toLocaleString('pt-PT')}
-                  </div>
-                  <div className="text-sm font-bold text-gray-600 mt-1">Total XP</div>
+          <div className="grid md:grid-cols-3 gap-4 items-stretch mb-8">
+            {/* Card 1: Tier Simples */}
+            <div className="glass-panel p-6 rounded-2xl border-l-4" style={{ borderColor: colors?.primary }}>
+              <div className="flex items-center gap-4">
+                <div className="text-5xl">{currentTier.icon}</div>
+                <div>
+                  <h2 className="text-2xl font-bold" style={{ color: colors?.primary }}>{currentTier.name}</h2>
+                  <p className="text-sm text-gray-600">Nível {currentLevel}</p>
                 </div>
               </div>
-            </motion.div>
+              <div className="mt-4 text-center bg-gray-50 rounded-xl p-3">
+                <div className="text-3xl font-black" style={{ color: colors?.primary }}>
+                  {currentXP.toLocaleString('pt-PT')}
+                </div>
+                <div className="text-xs text-gray-600">Total XP</div>
+              </div>
+            </div>
 
-            {/* Card 2: Progress Premium */}
-            <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl border-2 border-white/50"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-                Progresso
+            {/* Card 2: Progresso Limpo */}
+            <div className="glass-panel p-6 rounded-2xl">
+              <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" style={{ color: colors?.primary }} />
+                Próximo Tier
               </h3>
               
-              {/* Modern Progress Bar */}
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold text-gray-700">Próximo Tier</span>
-                    <span className="text-sm font-bold text-purple-600">{Math.round(tierProgressPercentage)}%</span>
-                  </div>
-                  <div className="h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
-                    <motion.div 
-                      className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-full shadow-lg"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${tierProgressPercentage}%` }}
-                      transition={{ duration: 1.5, ease: "easeOut" }}
-                    />
-                  </div>
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Progresso</span>
+                  <span className="font-bold">{Math.round(tierProgressPercentage)}%</span>
+                </div>
+                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full rounded-full"
+                    style={{ background: `linear-gradient(90deg, ${colors?.orb2 || colors?.primary}, ${colors?.primary})` }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${tierProgressPercentage}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
                 </div>
                 
                 {xpRemainingForNextTier > 0 && (
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border-2 border-blue-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                        <Trophy className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                          {xpRemainingForNextTier.toLocaleString('pt-PT')}
-                        </div>
-                        <div className="text-xs font-semibold text-gray-600">XP para próximo tier</div>
-                      </div>
+                  <div className="bg-gray-50 rounded-lg p-3 mt-3">
+                    <div className="text-xl font-black" style={{ color: colors?.primary }}>
+                      {xpRemainingForNextTier.toLocaleString('pt-PT')}
                     </div>
+                    <div className="text-xs text-gray-600">XP restantes</div>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Tier List Preview */}
-              <div className="mt-6 space-y-2">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Tiers Disponíveis</p>
-                {['Safira', 'Esmeralda', 'Rubi', 'Diamante', 'Cosmos'].map((tier, idx) => (
-                  <div 
-                    key={tier}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                      tier === currentTier.name 
-                        ? 'bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-300 shadow-md' 
-                        : 'bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    <div className={`text-xl ${tier === currentTier.name ? 'animate-bounce' : ''}`}>
-                      {tier === 'Safira' ? '💎' : tier === 'Esmeralda' ? '💚' : tier === 'Rubi' ? '💝' : tier === 'Diamante' ? '💍' : '🌌'}
-                    </div>
-                    <span className={`text-sm font-bold ${tier === currentTier.name ? 'text-purple-900' : 'text-gray-600'}`}>
-                      {tier}
-                    </span>
-                    {tier === currentTier.name && (
-                      <Badge className="ml-auto bg-purple-600 text-white text-xs">Atual</Badge>
-                    )}
-                  </div>
-                ))}
+            {/* Card 3: Badges Simples */}
+            <div className="glass-panel p-6 rounded-2xl text-center">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                   style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}>
+                <Award className="w-8 h-8 text-white" />
               </div>
-            </motion.div>
-
-            {/* Card 3: Badges Summary */}
-            <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl border-2 border-white/50"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl transform hover:rotate-6 transition-transform">
-                  <Award className="w-11 h-11 text-white" />
-                </div>
-                <div className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-orange-600 to-pink-600 mb-2">
-                  {allEarnedBadges.length}
-                </div>
-                <p className="text-lg font-bold text-gray-900 mb-1">Emblemas</p>
-                <p className="text-sm text-gray-600">de {allPossibleBadges.length} disponíveis</p>
-                
-                {/* Badge Rarity Breakdown */}
-                <div className="mt-6 space-y-2">
-                  {['legendary', 'epic', 'rare', 'common'].map(rarity => {
-                    const count = allEarnedBadges.filter(b => b.rarity === rarity).length;
-                    if (count === 0) return null;
-                    
-                    const rarityConfig = {
-                      legendary: { icon: '👑', color: 'from-yellow-400 to-orange-500', label: 'Lendário' },
-                      epic: { icon: '💜', color: 'from-purple-500 to-pink-500', label: 'Épico' },
-                      rare: { icon: '💙', color: 'from-blue-500 to-cyan-500', label: 'Raro' },
-                      common: { icon: '🤍', color: 'from-gray-400 to-gray-500', label: 'Comum' }
-                    };
-                    
-                    return (
-                      <div key={rarity} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{rarityConfig[rarity].icon}</span>
-                          <span className="text-xs font-semibold text-gray-700">{rarityConfig[rarity].label}</span>
-                        </div>
-                        <Badge className={`bg-gradient-to-r ${rarityConfig[rarity].color} text-white border-0`}>
-                          {count}
-                        </Badge>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="text-4xl font-black" style={{ color: colors?.primary }}>
+                {allEarnedBadges.length}
               </div>
-            </motion.div>
+              <p className="text-sm text-gray-600">Emblemas</p>
+              <p className="text-xs text-gray-500 mt-1">de {allPossibleBadges.length}</p>
+            </div>
           </div>
         </div>
       </div>
