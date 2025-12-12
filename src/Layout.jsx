@@ -900,8 +900,8 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
             <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4 relative z-10">
-            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
-              colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
+            <header className={`mx-3 md:mx-6 mt-4 mb-2 px-3 md:px-6 py-2.5 md:py-4 sticky top-4 z-50 transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
+              colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
