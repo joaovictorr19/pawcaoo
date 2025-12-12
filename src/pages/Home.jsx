@@ -609,20 +609,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen relative w-full overflow-hidden bg-slate-50">
       <SEO 
         title={t('seoTitle', language)}
         description={t('seoDescription', language)}
         schema={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
-      <div className="relative overflow-hidden">
-        {/* Premium Sapphire Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 z-0">
-          {/* Subtle decorative orbs */}
-          <div className="absolute top-10 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 left-10 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-300/5 rounded-full blur-3xl"></div>
-        </div>
+      {/* Aurora Animated Background */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+
+      <div className="relative z-10 overflow-hidden">
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
