@@ -3013,19 +3013,30 @@ export default function AdminDashboard() {
                 <div>
                   <Label className="mb-2 block text-sm font-semibold">{t('selectUsers', language)}</Label>
                   <Input 
-                    placeholder={t('searchUser', language)}
-                    value={grantBadgeSearchTerm}
-                    onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
-                    className="mb-3 h-10 md:h-9"
+                   placeholder="Buscar por nome ou email..."
+                   value={grantBadgeSearchTerm}
+                   onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
+                   className="mb-3 h-10"
                   />
                   <div className="border-2 rounded-lg p-3 h-96 overflow-y-auto space-y-1.5 bg-gray-50">
-                    {allUsers && allUsers.length > 0 ? (
-                      allUsers
-                        .filter(u => !grantBadgeSearchTerm || 
-                          u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
-                          u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
-                        )
-                        .map(u => (
+                   {loadingAllUsers ? (
+                     <div className="space-y-2">
+                       {[1, 2, 3, 4].map(i => (
+                         <div key={i} className="h-16 bg-gray-200 rounded-lg animate-pulse" />
+                       ))}
+                     </div>
+                   ) : !allUsers || allUsers.length === 0 ? (
+                     <div className="text-center py-12 text-gray-500">
+                       <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                       <p className="text-sm">Nenhum utilizador disponível</p>
+                     </div>
+                   ) : (
+                     allUsers
+                       .filter(u => !grantBadgeSearchTerm || 
+                         u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
+                         u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
+                       )
+                       .map(u => (
                           <div key={u.id} className="flex items-start gap-3 p-3 hover:bg-white bg-white rounded-lg cursor-pointer border-2 border-gray-200 hover:border-purple-400 transition-all active:scale-[0.98] shadow-sm hover:shadow-md"
                                onClick={() => {
                                  if (usersToGrantBadge.includes(u.email)) {
@@ -3047,11 +3058,6 @@ export default function AdminDashboard() {
                             )}
                           </div>
                         ))
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                        <p>Nenhum usuário disponível</p>
-                      </div>
                     )}
                   </div>
                   <div className="flex justify-between items-center mt-3 text-sm text-gray-700 font-medium">
@@ -3295,7 +3301,7 @@ export default function AdminDashboard() {
                       value={customBadgeForm.criteria?.type || "manual"} 
                       onValueChange={(value) => setCustomBadgeForm({
                         ...customBadgeForm, 
-                        criteria: { ...customBadgeForm.criteria, type: value }
+                        criteria: { ...customBadgeForm.criteria, type: value, count: '' }
                       })}
                     >
                       <SelectTrigger>
@@ -3336,13 +3342,18 @@ export default function AdminDashboard() {
                       )}
                       <div className="md:col-span-1">
                         <Input 
-                          type="number" 
-                          placeholder={customBadgeForm.criteria?.type === 'streak' ? "Dias" : "Quantidade"}
-                          value={customBadgeForm.criteria?.count || 0}
-                          onChange={(e) => setCustomBadgeForm({
-                            ...customBadgeForm, 
-                            criteria: { ...customBadgeForm.criteria, count: parseInt(e.target.value) }
-                          })}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder={customBadgeForm.criteria?.type === 'streak' ? "Dias" : customBadgeForm.criteria?.type === 'xp_milestone' ? "XP Total" : "Quantidade"}
+                          value={customBadgeForm.criteria?.count || ''}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setCustomBadgeForm({
+                              ...customBadgeForm, 
+                              criteria: { ...customBadgeForm.criteria, count: value ? parseInt(value) : '' }
+                            });
+                          }}
+                          className="text-base"
                         />
                       </div>
                     </>
