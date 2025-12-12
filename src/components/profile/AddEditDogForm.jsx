@@ -195,18 +195,18 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
   return (
     <Card className="border-0 shadow-2xl">
-      <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
-        <CardTitle className="text-xl flex items-center gap-2">
-          <Dog className="w-6 h-6" />
+      <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 md:p-6">
+        <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+          <Dog className="w-5 h-5 md:w-6 md:h-6" />
           {dog ? 'Editar Pet' : 'Adicionar Novo Pet'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-4 md:p-6">
         <form onSubmit={handleSubmit} className="space-y-6"> {/* Added form tag here */}
           {/* Photo Principal */}
           <div>
-            <Label className="mb-3 block text-base font-semibold">Foto Principal *</Label>
-            <div className="flex items-start gap-4">
+            <Label className="mb-3 block text-sm md:text-base font-semibold">Foto Principal *</Label>
+            <div className="flex flex-col md:flex-row items-start gap-4">
               {formData.photo_url ? (
                 <div className="relative">
                   <img
@@ -244,10 +244,10 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </label>
               )}
               <div className="flex-1">
-                <p className="text-sm text-gray-600">
+                <p className="text-xs md:text-sm text-gray-600">
                   Foto principal do seu pet que aparecerá no perfil
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-[10px] md:text-xs text-gray-500 mt-1">
                   💡 Otimizada automaticamente para &lt;500KB
                 </p>
               </div>
@@ -258,9 +258,9 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
           {/* Gallery Photos - Using Optimized Component */}
           <div>
-            <Label className="mb-3 block text-base font-semibold flex items-center gap-2">
+            <Label className="mb-3 block text-sm md:text-base font-semibold flex items-center gap-2">
               🖼️ Galeria de Fotos
-              <span className="text-sm font-normal text-gray-500">(opcional)</span>
+              <span className="text-xs md:text-sm font-normal text-gray-500">(opcional)</span>
             </Label>
             <OptimizedImageUpload
               onImagesChange={(urls) => setFormData({ ...formData, gallery_photos: urls })}
@@ -274,19 +274,19 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
           <Separator />
 
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
-              <TabsTrigger value="basic">Básico</TabsTrigger>
-              <TabsTrigger value="health">Saúde</TabsTrigger>
-              <TabsTrigger value="behavior">Comportamento</TabsTrigger>
-              <TabsTrigger value="emergency">Emergência</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto gap-1 p-1">
+              <TabsTrigger value="basic" className="text-xs md:text-sm py-2">Básico</TabsTrigger>
+              <TabsTrigger value="health" className="text-xs md:text-sm py-2">Saúde</TabsTrigger>
+              <TabsTrigger value="behavior" className="text-xs md:text-sm py-2">Comportamento</TabsTrigger>
+              <TabsTrigger value="emergency" className="text-xs md:text-sm py-2">Emergência</TabsTrigger>
             </TabsList>
 
             {/* BASIC INFO TAB */}
             <TabsContent value="basic" className="space-y-4">
-              <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dog_name">Nome do Pet *</Label>
+              <div className="space-y-4 md:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="dog_name" className="text-sm">Nome do Pet *</Label>
                     <Input
                       id="dog_name"
                       value={formData.dog_name}
@@ -296,8 +296,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="pet_type">Tipo de Animal *</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="pet_type" className="text-sm">Tipo de Animal *</Label>
                     <Select
                       value={formData.pet_type}
                       onValueChange={(value) => setFormData({ ...formData, pet_type: value })}
@@ -315,8 +315,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="breed">Raça</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="breed" className="text-sm">Raça</Label>
                     <Input
                       id="breed"
                       value={formData.breed}
@@ -325,8 +325,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Idade (anos)</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="age" className="text-sm">Idade (anos)</Label>
                     <Input
                       id="age"
                       type="number"
@@ -336,8 +336,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="date_of_birth">Data de Nascimento</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="date_of_birth" className="text-sm">Data de Nascimento</Label>
                     <Input
                       id="date_of_birth"
                       type="date"
@@ -346,8 +346,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Peso (kg)</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="weight" className="text-sm">Peso (kg)</Label>
                     <Input
                       id="weight"
                       type="number"
@@ -357,8 +357,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="size">Tamanho *</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="size" className="text-sm">Tamanho *</Label>
                     <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
                       <SelectTrigger>
                         <SelectValue />
@@ -372,8 +372,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="gender">Sexo</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="gender" className="text-sm">Sexo</Label>
                     <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
                       <SelectTrigger>
                         <SelectValue />
@@ -385,8 +385,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="color">Cor</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="color" className="text-sm">Cor</Label>
                     <Input
                       id="color"
                       value={formData.color}
@@ -395,8 +395,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="microchip_number">Número do Microchip</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="microchip_number" className="text-sm">Número do Microchip</Label>
                     <Input
                       id="microchip_number"
                       value={formData.microchip_number}
@@ -407,8 +407,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 {/* Pickup Address */}
-                <div className="border-2 border-purple-200 rounded-xl p-4 bg-purple-50">
-                  <Label htmlFor="default_pickup_address" className="font-semibold text-purple-900 mb-2 block">
+                <div className="border-2 border-purple-200 rounded-xl p-3 md:p-4 bg-purple-50">
+                  <Label htmlFor="default_pickup_address" className="text-sm md:text-base font-semibold text-purple-900 mb-2 block">
                     📍 Local de Recolha Padrão
                   </Label>
                   <div className="space-y-3">
@@ -438,8 +438,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 {/* Adoption Section */}
-                <div className="border-2 border-pink-200 rounded-xl p-4 bg-pink-50">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="border-2 border-pink-200 rounded-xl p-3 md:p-4 bg-pink-50">
+                  <div className="flex items-center gap-2 mb-3 md:mb-4">
                     <input
                       type="checkbox"
                       id="is_adopted"
@@ -482,7 +482,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
                 {/* Bio Section */}
                 <div>
-                  <Label htmlFor="bio">Bio do Pet</Label>
+                  <Label htmlFor="bio" className="text-sm">Bio do Pet</Label>
                   <Textarea
                     id="bio"
                     value={formData.bio}
@@ -498,9 +498,9 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
             </TabsContent>
 
             {/* HEALTH TAB */}
-            <TabsContent value="health" className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-4 border rounded-lg">
+            <TabsContent value="health" className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div className="flex items-center gap-3 p-3 md:p-4 border rounded-lg">
                   <input
                     type="checkbox"
                     id="is_vaccinated"
@@ -508,12 +508,12 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     onChange={(e) => setFormData({ ...formData, is_vaccinated: e.target.checked })}
                     className="w-5 h-5"
                   />
-                  <Label htmlFor="is_vaccinated" className="cursor-pointer">
+                  <Label htmlFor="is_vaccinated" className="cursor-pointer text-sm">
                     Vacinação em dia
                   </Label>
                 </div>
 
-                <div className="flex items-center gap-3 p-4 border rounded-lg">
+                <div className="flex items-center gap-3 p-3 md:p-4 border rounded-lg">
                   <input
                     type="checkbox"
                     id="is_neutered"
@@ -521,7 +521,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     onChange={(e) => setFormData({ ...formData, is_neutered: e.target.checked })}
                     className="w-5 h-5"
                   />
-                  <Label htmlFor="is_neutered" className="cursor-pointer">
+                  <Label htmlFor="is_neutered" className="cursor-pointer text-sm">
                     Castrado/Esterilizado
                   </Label>
                 </div>
@@ -529,7 +529,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
               {formData.is_vaccinated && ( // Show vaccination date if vaccinated
                 <div>
-                  <Label htmlFor="vaccination_date">Data da Última Vacinação</Label>
+                  <Label htmlFor="vaccination_date" className="text-sm">Data da Última Vacinação</Label>
                   <Input
                     id="vaccination_date"
                     type="date"
@@ -540,9 +540,9 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
               )}
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <Label htmlFor="vet_name">Nome do Veterinário</Label>
+                  <Label htmlFor="vet_name" className="text-sm">Nome do Veterinário</Label>
                   <Input
                     id="vet_name"
                     value={formData.vet_name}
@@ -552,7 +552,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="vet_phone">Telefone do Veterinário</Label>
+                  <Label htmlFor="vet_phone" className="text-sm">Telefone do Veterinário</Label>
                   <Input
                     id="vet_phone"
                     value={formData.vet_phone}
@@ -562,7 +562,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="vet_clinic_name">Nome da Clínica</Label>
+                  <Label htmlFor="vet_clinic_name" className="text-sm">Nome da Clínica</Label>
                   <Input
                     id="vet_clinic_name"
                     value={formData.vet_clinic_name}
@@ -572,7 +572,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="vet_address">Morada da Clínica</Label>
+                  <Label htmlFor="vet_address" className="text-sm">Morada da Clínica</Label>
                   <Input
                     id="vet_address"
                     value={formData.vet_address}
@@ -585,7 +585,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               {/* "Carregar Registos Veterinários" section removed */}
 
               <div>
-                <Label htmlFor="medical_conditions">Condições Médicas</Label>
+                <Label htmlFor="medical_conditions" className="text-sm">Condições Médicas</Label>
                 <Textarea
                   id="medical_conditions"
                   value={formData.medical_conditions}
@@ -596,7 +596,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </div>
 
               <div>
-                <Label htmlFor="allergies">Alergias</Label>
+                <Label htmlFor="allergies" className="text-sm">Alergias</Label>
                 <Textarea
                   id="allergies"
                   value={formData.allergies}
@@ -608,10 +608,10 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
             </TabsContent>
 
             {/* BEHAVIOR TAB */}
-            <TabsContent value="behavior" className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+            <TabsContent value="behavior" className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <Label htmlFor="energy_level">Nível de Energia</Label>
+                  <Label htmlFor="energy_level" className="text-sm">Nível de Energia</Label>
                   <Select value={formData.energy_level} onValueChange={(value) => setFormData({ ...formData, energy_level: value })}>
                     <SelectTrigger>
                       <SelectValue />
@@ -626,7 +626,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="socialization">Socialização</Label>
+                  <Label htmlFor="socialization" className="text-sm">Socialização</Label>
                   <Select value={formData.socialization} onValueChange={(value) => setFormData({ ...formData, socialization: value })}>
                     <SelectTrigger>
                       <SelectValue />
@@ -642,10 +642,10 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </div>
 
               <div>
-                <Label>Dá-se bem com:</Label>
-                <div className="grid grid-cols-2 gap-3 mt-2">
+                <Label className="text-sm">Dá-se bem com:</Label>
+                <div className="grid grid-cols-2 gap-2 md:gap-3 mt-2">
                   {['dogs', 'cats', 'children', 'strangers'].map((key) => (
-                    <div key={key} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div key={key} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 border rounded-lg">
                       <input
                         type="checkbox"
                         id={`gets_along_${key}`}
@@ -659,7 +659,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                         })}
                         className="w-4 h-4"
                       />
-                      <Label htmlFor={`gets_along_${key}`} className="cursor-pointer capitalize">
+                      <Label htmlFor={`gets_along_${key}`} className="cursor-pointer capitalize text-xs md:text-sm">
                         {key === 'dogs' ? 'Cães' : key === 'cats' ? 'Gatos' : key === 'children' ? 'Crianças' : 'Estranhos'}
                       </Label>
                     </div>
@@ -668,7 +668,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </div>
 
               <div>
-                <Label htmlFor="behavioral_notes">Notas de Comportamento</Label>
+                <Label htmlFor="behavioral_notes" className="text-sm">Notas de Comportamento</Label>
                 <Textarea
                   id="behavioral_notes"
                   value={formData.behavioral_notes}
@@ -679,7 +679,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </div>
 
               <div>
-                <Label htmlFor="favorite_toys">Brinquedos Favoritos</Label>
+                <Label htmlFor="favorite_toys" className="text-sm">Brinquedos Favoritos</Label>
                 <Input
                   id="favorite_toys"
                   value={formData.favorite_toys}
@@ -689,7 +689,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </div>
 
               <div>
-                <Label htmlFor="favorite_treats">Petiscos Favoritos</Label>
+                <Label htmlFor="favorite_treats" className="text-sm">Petiscos Favoritos</Label>
                 <Input
                   id="favorite_treats"
                   value={formData.favorite_treats}
@@ -699,10 +699,10 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </div>
 
               {/* Emergency Walk Button */}
-              <div className="border-2 border-red-200 rounded-xl p-4 bg-red-50 mt-4">
+              <div className="border-2 border-red-200 rounded-xl p-3 md:p-4 bg-red-50 mt-4">
                 <Button
                   type="button"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 md:py-3 text-sm md:text-base"
                   onClick={() => {
                     if (!formData.dog_name) {
                       toast.error("Salve o perfil do cão primeiro!");
@@ -720,16 +720,16 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               </TabsContent>
 
             {/* EMERGENCY TAB */}
-            <TabsContent value="emergency" className="space-y-4">
-              <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 mb-4">
+            <TabsContent value="emergency" className="space-y-3 md:space-y-4">
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-3 md:p-4 mb-3 md:mb-4">
                 <p className="text-sm text-orange-800 font-medium">
                   ⚠️ Estas informações serão usadas em caso de emergência
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <Label htmlFor="emergency_contact_name">Contato de Emergência</Label>
+                  <Label htmlFor="emergency_contact_name" className="text-sm">Contato de Emergência</Label>
                   <Input
                     id="emergency_contact_name"
                     value={formData.emergency_contact_name}
@@ -739,7 +739,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="emergency_contact_phone">Telefone de Emergência</Label>
+                  <Label htmlFor="emergency_contact_phone" className="text-sm">Telefone de Emergência</Label>
                   <Input
                     id="emergency_contact_phone"
                     value={formData.emergency_contact_phone}
@@ -749,7 +749,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
 
                 <div className="md:col-span-2">
-                  <Label htmlFor="emergency_contact_relationship">Relação</Label>
+                  <Label htmlFor="emergency_contact_relationship" className="text-sm">Relação</Label>
                   <Input
                     id="emergency_contact_relationship"
                     value={formData.emergency_contact_relationship}
@@ -759,11 +759,11 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 </div>
               </div>
 
-              <div className="border-t pt-4 mt-4">
-                <h4 className="font-semibold mb-3">Seguro de Pet</h4>
-                <div className="grid md:grid-cols-2 gap-4">
+              <div className="border-t pt-3 md:pt-4 mt-3 md:mt-4">
+                <h4 className="text-sm md:text-base font-semibold mb-3">Seguro de Pet</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   <div>
-                    <Label htmlFor="insurance_provider">Seguradora</Label>
+                    <Label htmlFor="insurance_provider" className="text-sm">Seguradora</Label>
                     <Input
                       id="insurance_provider"
                       value={formData.insurance_provider}
@@ -773,7 +773,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   </div>
 
                   <div>
-                    <Label htmlFor="insurance_policy_number">Número da Apólice</Label>
+                    <Label htmlFor="insurance_policy_number" className="text-sm">Número da Apólice</Label>
                     <Input
                       id="insurance_policy_number"
                       value={formData.insurance_policy_number}
@@ -787,19 +787,19 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 mt-6 pt-6 border-t">
+          <div className="flex flex-col md:flex-row gap-2 md:gap-3 mt-4 md:mt-6 pt-4 md:pt-6 border-t">
             <Button
               type="button"
               variant="outline"
-              onClick={onClose} // Changed from onCancel to onClose
-              className="flex-1"
+              onClick={onClose}
+              className="w-full md:flex-1 h-11 md:h-10 text-sm md:text-base"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={saveDogMutation.isPending}
-              className="flex-1 bg-gradient-to-r from-green-600 to-blue-600"
+              className="w-full md:flex-1 bg-gradient-to-r from-green-600 to-blue-600 h-11 md:h-10 text-sm md:text-base"
             >
               <Save className="w-4 h-4 mr-2" />
               {saveDogMutation.isPending ? "Salvando..." : dog ? "Salvar Alterações" : "Adicionar Pet"}
