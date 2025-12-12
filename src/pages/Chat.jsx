@@ -322,48 +322,61 @@ export default function Chat() {
   // Submit behavior update
   const submitBehaviorMutation = useMutation({
     mutationFn: async () => {
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
+      try {
+        // Try to get location, but don't block if it fails
+        let latitude = null;
+        let longitude = null;
 
-            try {
-              await base44.entities.WalkCheckpoint.create({
-                booking_id: bookingId,
-                walker_email: user.email,
-                checkpoint_type: "behavior_note",
-                latitude,
-                longitude,
-                dog_behavior: behaviorData,
-                notes: behaviorData.special_notes || "Atualização de comportamento",
-                timestamp: new Date().toISOString(),
-              });
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 30000
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (geoError) {
+          console.warn("Location not available:", geoError);
+        }
 
-              // Send in chat
-              await sendMessageMutation.mutateAsync({
-                text: `🐕 Atualização: ${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
-                type: "text",
-              });
+        // Create checkpoint (with or without location)
+        await base44.entities.WalkCheckpoint.create({
+          booking_id: bookingId,
+          walker_email: user.email,
+          checkpoint_type: "behavior_note",
+          latitude,
+          longitude,
+          dog_behavior: behaviorData,
+          notes: behaviorData.special_notes || "Atualização de comportamento",
+          timestamp: new Date().toISOString(),
+        });
 
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          },
-          (error) => {
-            toast.error("Erro ao obter localização");
-            reject(error);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-          }
-        );
-      });
+        // Notify owner
+        await base44.entities.Notification.create({
+          recipient_email: booking.created_by || booking.owner_email,
+          title: "🐕 Atualização de Comportamento",
+          message: `${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
+          type: "check_in",
+          related_id: bookingId,
+          priority: "normal",
+        });
+
+        // Send in chat
+        await sendMessageMutation.mutateAsync({
+          text: `🐕 Atualização: ${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
+          type: "text",
+        });
+
+        return true;
+      } catch (error) {
+        console.error("Behavior submission error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      toast.success("Comportamento registrado!");
+      toast.success("✅ Comportamento registrado e dono notificado!");
       setShowBehaviorForm(false);
       setBehaviorData({
         mood: "happy",
@@ -374,10 +387,11 @@ export default function Chat() {
         special_notes: ""
       });
       queryClient.invalidateQueries(["checkpoints", bookingId]);
+      queryClient.invalidateQueries(["messages", conversation?.id]);
     },
     onError: (error) => {
       console.error("Behavior error:", error);
-      toast.error("Erro ao registrar comportamento");
+      toast.error("❌ Erro ao registrar: " + (error.message || "Tente novamente"));
     },
   });
 
