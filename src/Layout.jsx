@@ -552,20 +552,22 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         `}</style>
-      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden relative">
+      <div className="flex w-full h-screen overflow-hidden relative">
         {/* Aurora Background - Reactive to Tier */}
         <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
           <div className={`absolute top-20 -left-32 w-96 h-96 ${colors?.orb1 || 'bg-blue-400'} rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob`}></div>
           <div className={`absolute top-40 -right-32 w-96 h-96 ${colors?.orb2 || 'bg-indigo-400'} rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000`}></div>
           <div className={`absolute -bottom-32 left-1/3 w-96 h-96 ${colors?.orb1 || 'bg-blue-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000`}></div>
         </div>
+
+        <div className="flex w-full h-full p-4 gap-4 relative z-10">
         {authUser && (
         <Sidebar 
-          className={`backdrop-blur-xl border-r transition-all duration-500 ease-in-out m-4 rounded-[3rem] h-[calc(100vh-2rem)] shadow-xl ${
+          className={`backdrop-blur-xl border transition-all duration-500 ease-in-out rounded-[3rem] shadow-xl flex-shrink-0 ${
             collapsed ? 'w-24' : 'w-80'
           } ${
             colors?.isDarkMode 
-              ? 'bg-slate-900/60 border-purple-400/30' 
+              ? 'bg-slate-900/60' 
               : 'bg-white/60'
           }`}
           style={{
@@ -579,8 +581,10 @@ function LayoutContent({ children, currentPageName }) {
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
             <button 
-              onClick={() => setCollapsed(!collapsed)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 text-slate-700 transition-all hover:scale-110 z-50"
+              onClick={() => setCollapsed(prev => !prev)}
+              className={`absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-all hover:scale-110 z-50 cursor-pointer ${
+                colors?.isDarkMode ? 'text-violet-300' : 'text-slate-700'
+              }`}
               aria-label="Toggle sidebar"
             >
               {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -904,15 +908,29 @@ function LayoutContent({ children, currentPageName }) {
             </Sidebar>
             )}
 
+            <main className={`flex-1 flex flex-col min-w-0 rounded-[3rem] shadow-xl overflow-hidden transition-all duration-300 ${
+              colors?.isDarkMode 
+                ? 'bg-slate-900/60' 
+                : 'bg-white/60'
+            }`}
+            style={{
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderColor: colors?.isDarkMode ? 'rgba(167, 139, 250, 0.3)' : 'rgba(255, 255, 255, 0.4)',
+              border: '1px solid',
+              boxShadow: colors?.isDarkMode 
+                ? '0 20px 60px rgba(139, 92, 246, 0.15)' 
+                : '0 20px 60px rgba(0, 0, 0, 0.08)'
+            }}
+            >
             {/* Push Notification Manager */}
             <PushNotificationManager user={authUser} />
 
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
-            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
-              colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
+            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 backdrop-blur-xl border-b ${
+              colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/40 border-white/30'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
@@ -1010,13 +1028,13 @@ function LayoutContent({ children, currentPageName }) {
               </header>
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto pb-24 md:pb-0">
             <div className="md:hidden">
               <PullToRefresh>
                 {children}
               </PullToRefresh>
             </div>
-            <div className="hidden md:block h-full">
+            <div className="hidden md:block">
               {children}
             </div>
           </div>
@@ -1060,8 +1078,8 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
-            colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
+          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 ${
+            colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/40 border-white/30'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
@@ -1125,6 +1143,7 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </footer>
         </main>
+        </div>
       </div>
     </SidebarProvider>
   );
