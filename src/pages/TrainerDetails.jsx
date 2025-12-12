@@ -188,7 +188,10 @@ export default function TrainerDetails() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Trainer not found</h2>
           <Button 
             onClick={() => navigate(createPageUrl('Home'))}
-            className={`bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white`}
+            className="text-white hover:opacity-90"
+            style={{
+              background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+            }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -281,9 +284,14 @@ export default function TrainerDetails() {
                           {getMethodologyLabel(method.methodology_name)}
                         </h4>
                         {method.primary && (
-                          <Badge className={`bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white text-sm border-0`}>
-                            ★ Primary Method
-                          </Badge>
+                         <Badge 
+                           className="text-white text-sm border-0"
+                           style={{
+                             background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                           }}
+                         >
+                           ★ Primary Method
+                         </Badge>
                         )}
                       </div>
                       <p className="text-sm text-gray-700 leading-relaxed">{method.description}</p>
@@ -352,7 +360,10 @@ export default function TrainerDetails() {
 
             <div className="flex gap-3">
               <Button
-                className={`flex-1 bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-500'} hover:opacity-90 text-white shadow-lg h-14 px-8 text-lg font-semibold`}
+                className="flex-1 text-white shadow-lg h-14 px-8 text-lg font-semibold hover:opacity-90"
+                style={{
+                  background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                }}
                 onClick={() => setShowBookingForm(true)}
                 disabled={trainer.verification_status !== "verified"}
               >
