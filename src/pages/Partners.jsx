@@ -76,29 +76,27 @@ export default function Partners() {
   const regularAnnouncements = announcements.filter(a => !a.is_featured || !a.featured_tier || a.featured_tier === 'none');
 
   return (
-    <div className="min-h-screen pb-8">
-      {/* Hero Header */}
-      <div className="glass-panel border-0 rounded-none mb-8">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
+    <div className="min-h-screen relative w-full overflow-hidden bg-slate-50">
+      {/* Aurora Background */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+
+      <div className="relative z-10">
+        {/* Hero Header */}
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 bg-white/50 backdrop-blur-lg rounded-full px-6 py-2 mb-6 shadow-lg">
-              <Sparkles className="w-5 h-5 text-yellow-500" />
-              <span className="text-sm font-semibold text-gray-700">
-                {language === 'pt' ? 'Promoções Exclusivas' : 'Exclusive Deals'}
-              </span>
-            </div>
-            
-            <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-4">
               🛍️ {language === 'pt' ? 'Loja PawCão' : 'PawCão Shop'}
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto font-medium">
               {language === 'pt' 
-                ? 'Descubra ofertas incríveis de parceiros verificados' 
-                : 'Discover amazing deals from verified partners'}
+                ? 'Descubra promoções exclusivas e serviços dos nossos parceiros de confiança' 
+                : 'Discover exclusive deals from our trusted partners'}
             </p>
           </motion.div>
           
@@ -108,208 +106,220 @@ export default function Partners() {
               placeholder={language === 'pt' ? "Pesquisar produtos, serviços..." : "Search products, services..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-14 bg-white/70 backdrop-blur-lg border-2 border-white/50 shadow-xl text-lg rounded-2xl"
+              className="pl-12 h-14 bg-white/90 backdrop-blur-lg border-2 border-white shadow-xl text-lg rounded-2xl focus:border-purple-400 transition-all"
             />
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Featured Announcements */}
-        {featuredAnnouncements.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Star className="w-6 h-6 text-white fill-white" />
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          {/* Featured Announcements */}
+          {featuredAnnouncements.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-12"
+            >
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl">
+                  <Star className="w-7 h-7 text-white fill-white" />
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900">
+                  {language === 'pt' ? 'Promoções em Destaque' : 'Featured Deals'}
+                </h2>
               </div>
-              <h2 className="text-3xl font-black text-gray-900">
-                {language === 'pt' ? 'Promoções em Destaque' : 'Featured Promotions'}
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredAnnouncements.map((announcement, idx) => (
-                <motion.div
-                  key={announcement.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                >
-                  <Card className="glass-panel border-2 border-yellow-400 shadow-2xl hover:shadow-3xl transition-all overflow-hidden group cursor-pointer">
-                    {announcement.image_url && (
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={announcement.image_url}
-                          alt={announcement.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <Badge className="absolute top-4 right-4 bg-yellow-500 text-white shadow-xl border-2 border-white">
-                          ⭐ {announcement.featured_tier?.toUpperCase()}
-                        </Badge>
-                      </div>
-                    )}
-                    <CardContent className="p-6">
-                      <h3 className="font-black text-xl mb-3">{announcement.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{announcement.message}</p>
-                      
-                      {announcement.discount_percentage > 0 && (
-                        <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 mb-4 shadow-lg">
-                          <p className="text-4xl font-black text-white text-center">
-                            -{announcement.discount_percentage}%
-                          </p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredAnnouncements.map((announcement, idx) => (
+                  <motion.div
+                    key={announcement.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <Card className="glass-panel border-2 border-yellow-400 shadow-2xl hover:shadow-3xl transition-all overflow-hidden group cursor-pointer">
+                      {announcement.image_url && (
+                        <div className="relative h-56 overflow-hidden">
+                          <img
+                            src={announcement.image_url}
+                            alt={announcement.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                          <Badge className="absolute top-4 right-4 bg-yellow-500 text-white shadow-xl border-2 border-white font-black px-3 py-1">
+                            ⭐ {announcement.featured_tier?.toUpperCase()}
+                          </Badge>
                         </div>
                       )}
-                      
-                      {announcement.end_date && (
-                        <p className="text-xs text-gray-500 mb-4 flex items-center gap-2">
-                          <Tag className="w-3 h-3" />
-                          {language === 'pt' ? 'Válido até:' : 'Valid until:'} {format(new Date(announcement.end_date), 'dd/MM/yyyy')}
-                        </p>
-                      )}
-                      
-                      <Button
-                        onClick={() => {
-                          base44.entities.CompanyAnnouncement.update(announcement.id, {
-                            views_count: (announcement.views_count || 0) + 1
-                          });
-                          
-                          const partner = partners.find(p => p.id === announcement.company_id);
-                          if (partner) {
-                            navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
-                          }
-                        }}
-                        className="w-full h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg text-white font-bold"
-                      >
-                        {language === 'pt' ? 'Ver Oferta' : 'View Offer'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+                      <CardContent className="p-6">
+                        <h3 className="font-black text-xl mb-3">{announcement.title}</h3>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">{announcement.message}</p>
+                        
+                        {announcement.discount_percentage > 0 && (
+                          <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 mb-4 shadow-lg">
+                            <p className="text-4xl font-black text-white text-center">
+                              -{announcement.discount_percentage}%
+                            </p>
+                          </div>
+                        )}
+                        
+                        {announcement.end_date && (
+                          <p className="text-xs text-gray-500 mb-4 flex items-center gap-2">
+                            <Tag className="w-3 h-3" />
+                            {language === 'pt' ? 'Válido até:' : 'Valid until:'} {format(new Date(announcement.end_date), 'dd/MM/yyyy')}
+                          </p>
+                        )}
+                        
+                        <Button
+                          onClick={() => {
+                            base44.entities.CompanyAnnouncement.update(announcement.id, {
+                              views_count: (announcement.views_count || 0) + 1
+                            });
+                            
+                            const partner = partners.find(p => p.id === announcement.company_id);
+                            if (partner) {
+                              navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
+                            }
+                          }}
+                          className="w-full h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg text-white font-bold rounded-xl"
+                        >
+                          {language === 'pt' ? 'Ver Oferta' : 'View Deal'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-        {/* Regular Announcements */}
-        {regularAnnouncements.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {language === 'pt' ? 'Últimas Promoções' : 'Latest Promotions'}
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {regularAnnouncements.slice(0, 8).map((announcement, idx) => (
-                <motion.div
-                  key={announcement.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card 
-                    className="glass-panel hover:shadow-xl transition-all cursor-pointer border-0" 
-                    onClick={() => {
-                      base44.entities.CompanyAnnouncement.update(announcement.id, {
-                        views_count: (announcement.views_count || 0) + 1
-                      });
-                      const partner = partners.find(p => p.id === announcement.company_id);
-                      if (partner) {
-                        navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
-                      }
-                    }}
+          {/* Regular Announcements */}
+          {regularAnnouncements.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                {language === 'pt' ? 'Últimas Promoções' : 'Latest Promotions'}
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {regularAnnouncements.slice(0, 12).map((announcement, idx) => (
+                  <motion.div
+                    key={announcement.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
                   >
-                    <CardContent className="p-4">
-                      {announcement.image_url && (
-                        <img
-                          src={announcement.image_url}
-                          alt={announcement.title}
-                          className="w-full h-28 object-cover rounded-lg mb-3"
-                        />
-                      )}
-                      <h4 className="font-bold text-sm mb-1 line-clamp-1">{announcement.title}</h4>
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-2">{announcement.message}</p>
-                      {announcement.discount_percentage > 0 && (
-                        <Badge className="bg-red-500 text-white">
-                          -{announcement.discount_percentage}%
-                        </Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                    <Card 
+                      className="glass-panel hover:shadow-2xl transition-all cursor-pointer border-0 overflow-hidden group" 
+                      onClick={() => {
+                        base44.entities.CompanyAnnouncement.update(announcement.id, {
+                          views_count: (announcement.views_count || 0) + 1
+                        });
+                        const partner = partners.find(p => p.id === announcement.company_id);
+                        if (partner) {
+                          navigate(createPageUrl(`PartnerDetails?id=${partner.id}`));
+                        }
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        {announcement.image_url && (
+                          <div className="relative mb-3 rounded-xl overflow-hidden">
+                            <img
+                              src={announcement.image_url}
+                              alt={announcement.title}
+                              className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            {announcement.discount_percentage > 0 && (
+                              <Badge className="absolute top-2 right-2 bg-red-500 text-white shadow-lg font-bold">
+                                -{announcement.discount_percentage}%
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        <h4 className="font-bold text-sm mb-1 line-clamp-2">{announcement.title}</h4>
+                        <p className="text-xs text-gray-600 line-clamp-2 mb-2">{announcement.message}</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Categories */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 glass-panel rounded-2xl p-3 shadow-xl">
+              {categories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={categoryFilter === cat.id ? "default" : "ghost"}
+                  onClick={() => setCategoryFilter(cat.id)}
+                  className={`rounded-xl transition-all ${categoryFilter === cat.id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg scale-105' : 'hover:bg-white/80'}`}
+                  size="sm"
+                >
+                  {cat.name}
+                </Button>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Categories */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex items-center gap-2 glass-panel rounded-2xl p-2 shadow-lg">
-            {categories.map((cat) => (
-              <Button
-                key={cat.id}
-                variant={categoryFilter === cat.id ? "default" : "ghost"}
-                onClick={() => setCategoryFilter(cat.id)}
-                className={`rounded-xl ${categoryFilter === cat.id ? 'bg-green-600 text-white shadow-lg' : ''}`}
-                size="sm"
-              >
-                {cat.name}
-              </Button>
-            ))}
+          {/* Partners Grid */}
+          <div className="mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+              {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
+            </h2>
+            {loadingPartners ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                  <Skeleton key={i} className="h-56 rounded-2xl" />
+                ))}
+              </div>
+            ) : filteredPartners.length === 0 ? (
+              <Card className="glass-panel border-0 shadow-xl">
+                <CardContent className="p-12 text-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Store className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {language === 'pt' ? 'Nenhum parceiro encontrado' : 'No partners found'}
+                  </h3>
+                  <p className="text-gray-600">{language === 'pt' ? 'Tente ajustar os filtros' : 'Try adjusting filters'}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {filteredPartners.map((partner, idx) => (
+                  <motion.div
+                    key={partner.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.03 }}
+                    onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
+                    className="cursor-pointer"
+                  >
+                    <Card className="glass-panel h-full hover:shadow-2xl transition-all border-0 overflow-hidden group">
+                      <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6">
+                        {partner.logo_url ? (
+                          <img
+                            src={partner.logo_url}
+                            alt={partner.company_name}
+                            className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
+                          />
+                        ) : (
+                          <Store className="w-16 h-16 text-gray-300" />
+                        )}
+                      </div>
+                      <CardContent className="p-5">
+                        <h3 className="font-bold text-base text-gray-900 mb-2 line-clamp-2">
+                          {partner.company_name}
+                        </h3>
+                        <Badge variant="outline" className="text-xs">
+                          {partner.company_type?.replace('_', ' ')}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Partners Grid */}
-        {loadingPartners ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <Skeleton key={i} className="h-64 rounded-2xl" />
-            ))}
-          </div>
-        ) : filteredPartners.length === 0 ? (
-          <Card className="glass-panel border-0">
-            <CardContent className="p-12 text-center">
-              <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">{language === 'pt' ? 'Nenhuma marca encontrada' : 'No brands found'}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {filteredPartners.map((partner, idx) => (
-              <motion.div
-                key={partner.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.03 }}
-                onClick={() => navigate(createPageUrl(`PartnerDetails?id=${partner.id}`))}
-                className="cursor-pointer"
-              >
-                <Card className="glass-panel h-full hover:shadow-xl transition-all border-0 overflow-hidden group">
-                  <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-                    {partner.logo_url ? (
-                      <img
-                        src={partner.logo_url}
-                        alt={partner.company_name}
-                        className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
-                      />
-                    ) : (
-                      <Store className="w-12 h-12 text-gray-300" />
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-sm text-gray-900 mb-2 line-clamp-1">
-                      {partner.company_name}
-                    </h3>
-                    <Badge variant="outline" className="text-xs">
-                      {partner.company_type?.replace('_', ' ')}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
