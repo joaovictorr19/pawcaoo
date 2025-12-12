@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Store, Package, Megaphone, CheckCircle, Clock,
-  Plus, Trash, Eye, Calendar, AlertCircle, X, Upload
+  Plus, Trash, Eye, Calendar, AlertCircle, X, Upload, ShoppingBag
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -25,12 +25,13 @@ export default function PartnerDashboard() {
   const navigate = useNavigate();
   
   const [showCreateService, setShowCreateService] = useState(false);
-  const [showCreateProduct, setShowCreateProduct] = useState(false); // Added
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
   const [showMyServices, setShowMyServices] = useState(false);
+  const [showMyProducts, setShowMyProducts] = useState(false);
   const [showMyAnnouncements, setShowMyAnnouncements] = useState(false);
   
-  const [productForm, setProductForm] = useState({ // Added
+  const [productForm, setProductForm] = useState({
     product_name: "",
     category: "food",
     description: "",
@@ -102,7 +103,7 @@ export default function PartnerDashboard() {
     }
   });
 
-  const { data: myProducts = [] } = useQuery({ // Added
+  const { data: myProducts = [] } = useQuery({
     queryKey: ['myProducts', user?.email],
     queryFn: async () => {
       if (!user?.email || !company?.id) return [];
@@ -171,7 +172,7 @@ export default function PartnerDashboard() {
     refetchOnMount: 'always',
   });
 
-  const createProductMutation = useMutation({ // Added
+  const createProductMutation = useMutation({
     mutationFn: async (data) => {
       const payload = {
         ...data,
@@ -182,14 +183,15 @@ export default function PartnerDashboard() {
         partner_id: company.id,
         partner_name: company.company_name,
         partner_company_email: user.email,
-        is_available: true
+        is_available: false, // Products start as not available until approved
+        moderation_status: 'pending' // Products start as pending moderation
       };
       return await base44.entities.PartnerProduct.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myProducts']);
       queryClient.invalidateQueries(['shopProducts']);
-      toast.success('✅ Produto criado!');
+      toast.success('✅ Produto enviado para aprovação!');
       setShowCreateProduct(false);
       setProductForm({
         product_name: "",
@@ -357,7 +359,7 @@ export default function PartnerDashboard() {
         </div>
 
         {/* BOTÕES RÁPIDOS */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"> {/* Changed md:grid-cols-4 to md:grid-cols-5 */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
           <Button
             onClick={() => setShowCreateService(true)}
             className="bg-blue-600 hover:bg-blue-700 h-16"
@@ -365,7 +367,7 @@ export default function PartnerDashboard() {
             <Plus className="w-5 h-5 mr-2" />
             Criar Serviço
           </Button>
-          <Button // Added this button
+          <Button
             onClick={() => setShowCreateProduct(true)}
             className="bg-green-600 hover:bg-green-700 h-16"
           >
@@ -394,6 +396,14 @@ export default function PartnerDashboard() {
           >
             <Megaphone className="w-5 h-5 mr-2" />
             Meus Anúncios ({myAnnouncements.length})
+          </Button>
+          <Button
+            onClick={() => setShowMyProducts(true)}
+            variant="outline"
+            className="h-16 border-green-300"
+          >
+            <ShoppingBag className="w-5 h-5 mr-2" />
+            Meus Produtos ({myProducts.length})
           </Button>
         </div>
       </div>
@@ -794,6 +804,12 @@ export default function PartnerDashboard() {
               />
             </div>
 
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-4">
+              <p className="text-sm text-yellow-800">
+                <strong>⚠️ Aprovação Necessária:</strong> Produtos são revisados por admins antes de aparecerem na loja.
+              </p>
+            </div>
+
             <Button
               onClick={() => {
                 if (!productForm.product_name || !productForm.price_euro || !productForm.image_url) {
@@ -805,7 +821,7 @@ export default function PartnerDashboard() {
               disabled={createProductMutation.isPending}
               className="w-full bg-green-600 hover:bg-green-700 h-12"
             >
-              {createProductMutation.isPending ? 'Criando...' : 'Criar Produto'}
+              {createProductMutation.isPending ? 'Enviando...' : 'Enviar para Aprovação'}
             </Button>
           </div>
         </DialogContent>
@@ -926,6 +942,74 @@ export default function PartnerDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* MEUS PRODUTOS */}
+      <Dialog open={showMyProducts} onOpenChange={setShowMyProducts}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Meus Produtos ({myProducts.length})</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {myProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">Nenhum produto criado</p>
+              </div>
+            ) : (
+              myProducts.map(product => (
+                <Card key={product.id} className={`border-2 ${
+                  product.moderation_status === 'pending' ? 'border-orange-200 bg-orange-50' :
+                  product.moderation_status === 'approved' ? 'border-green-200 bg-green-50' :
+                  'border-red-200 bg-red-50'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {product.image_url && (
+                        <img 
+                          src={product.image_url} 
+                          className="w-24 h-24 object-cover rounded-lg" 
+                          alt={product.product_name}
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg">{product.product_name}</h3>
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{product.description}</p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          <Badge className={
+                            product.moderation_status === 'pending' ? 'bg-orange-500' :
+                            product.moderation_status === 'approved' ? 'bg-green-600' :
+                            'bg-red-600'
+                          }>
+                            {product.moderation_status === 'pending' ? '⏳ Em Análise' :
+                             product.moderation_status === 'approved' ? '✅ Aprovado' :
+                             '❌ Rejeitado'}
+                          </Badge>
+                          <Badge variant="outline">
+                            {product.is_available ? '🟢 Visível' : '🔴 Oculto'}
+                          </Badge>
+                          <Badge className="bg-indigo-600 text-white">€{product.price_euro}</Badge>
+                          {product.points_cost > 0 && (
+                            <Badge variant="outline">{product.points_cost} pts</Badge>
+                          )}
+                          <Badge variant="outline" className="capitalize">{product.category}</Badge>
+                        </div>
+                        {product.rejection_reason && (
+                          <p className="text-xs text-red-600 mt-2">
+                            <strong>Motivo:</strong> {product.rejection_reason}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Stock: {product.stock_quantity || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* MEUS ANÚNCIOS */}
       <Dialog open={showMyAnnouncements} onOpenChange={setShowMyAnnouncements}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -947,6 +1031,7 @@ export default function PartnerDashboard() {
                         <img 
                           src={announcement.image_url} 
                           className="w-24 h-24 object-cover rounded-lg" 
+                          alt="Announcement"
                         />
                       )}
                       <div className="flex-1">
