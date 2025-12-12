@@ -356,7 +356,23 @@ export default function Home() {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        return await base44.auth.me();
+        const userData = await base44.auth.me();
+
+        // Sync XP from UserProfile if available
+        if (userData?.email) {
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
+            if (profiles.length > 0 && profiles[0].gamification_xp !== userData.gamification_xp) {
+              // UserProfile is source of truth, sync back to User
+              userData.gamification_xp = profiles[0].gamification_xp;
+            }
+          } catch (e) {
+            // Fallback to User XP if UserProfile doesn't exist
+            console.log('Using User XP as fallback');
+          }
+        }
+
+        return userData;
       } catch (err) {
         // console.error("Home auth error:", err);
         return null;

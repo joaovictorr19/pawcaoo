@@ -27,13 +27,13 @@ export default function Gamification() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch all users for Global Ranking
+  // Fetch all users for Global Ranking - FROM UserProfile (public data)
   const { data: allUsers = [] } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const users = await base44.entities.User.list();
-      return users
-        .filter(u => u.gamification_xp > 0)
+      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 100);
+      return profiles
+        .filter(u => (u.gamification_xp || 0) > 0)
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
     enabled: activeRanking === 'global',
