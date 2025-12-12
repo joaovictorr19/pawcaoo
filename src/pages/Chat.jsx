@@ -509,6 +509,10 @@ export default function Chat() {
     sendMessageMutation.mutate({ text: message, type: "text" });
   };
 
+  // Determine user role
+  const isProfessional = user?.email === booking?.walker_email || user?.email === booking?.trainer_email;
+  const isOwner = user?.email === booking?.created_by || user?.email === booking?.owner_email;
+
   // Auto scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -518,7 +522,7 @@ export default function Chat() {
 
   // Continuous GPS tracking when service is in progress
   useEffect(() => {
-    if (!isProfessional || booking?.status !== "in_progress" || !bookingId) {
+    if (!isProfessional || booking?.status !== "in_progress" || !bookingId || !user?.email) {
       // Stop tracking if conditions not met
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -627,10 +631,6 @@ export default function Chat() {
       }
     };
   }, [isProfessional, booking?.status, bookingId, checkpoints, user?.email, queryClient]);
-
-  // Determine user role
-  const isProfessional = user?.email === booking?.walker_email || user?.email === booking?.trainer_email;
-  const isOwner = user?.email === booking?.created_by || user?.email === booking?.owner_email;
 
   if (loadingBooking || loadingConvo) {
     return (
