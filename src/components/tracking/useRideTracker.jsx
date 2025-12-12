@@ -23,7 +23,7 @@ const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-export function useRideTracker(rideId) {
+function useRideTracker(rideId) {
   const [location, setLocation] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState(null);
