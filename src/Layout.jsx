@@ -562,6 +562,16 @@ function LayoutContent({ children, currentPageName }) {
   border: none !important;
 }
 
+/* Hide floating button when sidebar is open */
+.floating-sidebar-trigger {
+  display: none;
+}
+
+/* Show floating button only when sidebar is collapsed */
+[data-sidebar="sidebar"][data-state="collapsed"] ~ * .floating-sidebar-trigger {
+  display: flex !important;
+}
+
 /* Remove trigger from sidebar header when collapsed */
 [data-sidebar="sidebar"][data-state="collapsed"] button[data-sidebar="trigger"] {
   display: none !important;
