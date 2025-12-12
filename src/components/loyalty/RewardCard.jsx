@@ -23,8 +23,14 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
         )}
         <CardHeader className="text-center pb-3 md:pb-4 p-3 md:p-6">
           <div className="text-3xl md:text-5xl lg:text-6xl mb-2 md:mb-3">{reward.icon}</div>
-          <CardTitle className={`text-base md:text-xl lg:text-2xl font-bold leading-tight`} style={{ color: colors?.primary || '#3b82f6' }}>
-            {reward.discount}
+          <CardTitle className={`text-base md:text-xl lg:text-2xl font-bold leading-tight overflow-hidden`} style={{ color: colors?.primary || '#3b82f6' }}>
+            {reward.discount.length > 30 ? (
+              <span className="animate-marquee inline-block whitespace-nowrap">
+                {reward.discount}
+              </span>
+            ) : (
+              reward.discount
+            )}
           </CardTitle>
           <p className="text-xs md:text-sm lg:text-base text-gray-600 mt-1.5 md:mt-2 leading-snug">{reward.description}</p>
         </CardHeader>

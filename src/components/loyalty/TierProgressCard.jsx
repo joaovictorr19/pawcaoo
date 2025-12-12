@@ -13,7 +13,7 @@ export default function TierProgressCard({ currentTier, nextTier, loyaltyPoints,
       <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-white/10 rounded-full -mr-24 md:-mr-32 -mt-24 md:-mt-32" />
       <div className="absolute bottom-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-white/10 rounded-full -ml-16 md:-ml-24 -mb-16 md:-mb-24" />
       
-      <CardContent className="p-6 md:p-8 relative z-10">
+      <CardContent className="p-7 md:p-9 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <p className="text-white/80 text-base md:text-lg mb-2">Your Points Balance</p>
