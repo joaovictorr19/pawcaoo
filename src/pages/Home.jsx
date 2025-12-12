@@ -1403,8 +1403,6 @@ export default function Home() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-
               <TabsContent value="walkers">
                 <div>
                   {/* Compact Filters */}
