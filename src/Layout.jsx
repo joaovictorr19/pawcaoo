@@ -553,8 +553,14 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className="glass-panel-dark border-r border-white/50">
-          <SidebarHeader className="border-b border-white/20 p-4 md:p-6">
+        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 ${
+          colors?.isDarkMode 
+            ? 'bg-slate-900/80 border-slate-700/60' 
+            : 'bg-white/70 border-white/40'
+        }`}>
+          <SidebarHeader className={`border-b p-4 md:p-6 ${
+            colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
+          }`}>
             <Link 
               to={createPageUrl("Home")} 
               className="block hover:opacity-80 transition-opacity"
@@ -605,12 +611,18 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton 
                   asChild 
-                  className={`mb-1.5 rounded-lg transition-colors ${
+                  className={`mb-1.5 rounded-lg transition-all relative ${
                     isRouteActive(item.url)
-                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90` 
-                      : (item.className || 'hover:bg-gray-100 text-gray-700')
+                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90 shadow-md` 
+                      : (item.className || (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
                   }`}
                 >
+                  {isRouteActive(item.url) && (
+                    <div 
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full"
+                      style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                    />
+                  )}
                   <Link 
                     // Remove ID here to avoid duplicate/hidden target on desktop
                     to={item.url} 
@@ -643,10 +655,18 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-gray-100 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white` : 'text-gray-700'
-                          } ${item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : ''}`}
+                          className={`transition-all duration-200 rounded-lg mb-1 relative ${
+                            isRouteActive(item.url) 
+                              ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
+                              : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
+                          }`}
                         >
+                          {isRouteActive(item.url) && (
+                            <div 
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
+                              style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                            />
+                          )}
                           <Link to={item.url} id={item.id} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
                             <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
@@ -736,10 +756,15 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-red-50 transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) ? 'bg-red-600 text-white' : 'text-gray-700'
+                          className={`transition-all duration-200 rounded-lg mb-1 relative ${
+                            isRouteActive(item.url) 
+                              ? 'bg-red-600 text-white shadow-md' 
+                              : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-red-50 text-gray-700')
                           }`}
                         >
+                          {isRouteActive(item.url) && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-red-400" />
+                          )}
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
                             <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                             <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
@@ -753,13 +778,17 @@ function LayoutContent({ children, currentPageName }) {
             )}
 
             {/* BOTÃO DE LOGOUT - NOVO */}
-            <SidebarGroup className="mt-auto border-t border-gray-200 pt-3">
+            <SidebarGroup className={`mt-auto border-t pt-3 ${
+              colors?.isDarkMode ? 'border-slate-700/60' : 'border-gray-200'
+            }`}>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={handleLogout}
-                      className="hover:bg-red-50 text-red-600 rounded-lg transition-colors w-full"
+                      className={`text-red-600 rounded-lg transition-colors w-full ${
+                        colors?.isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-red-50'
+                      }`}
                     >
                       <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3">
                         <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
@@ -783,7 +812,9 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
             <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
-            <header className="glass-panel-dark px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg">
+            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
+              colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
+            }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
                 <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
@@ -806,9 +837,9 @@ function LayoutContent({ children, currentPageName }) {
                       className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                         isRouteActive(item.url)
                           ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                          : "text-gray-600 hover:bg-gray-100"
-                      } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', 'text-gray-600') : ""}`}
-                    >
+                          : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
+                      } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
+                      >
                       <item.icon className={`w-4 h-4 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
                       <span>{item.title}</span>
                     </Link>
@@ -819,9 +850,9 @@ function LayoutContent({ children, currentPageName }) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                       location.pathname.includes('UserProfile')
                         ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                        : "text-gray-600 hover:bg-gray-100"
+                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
                     }`}
-                  >
+                    >
                     <User className={`w-4 h-4 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
                     <span>{t('myProfile', language)}</span>
 

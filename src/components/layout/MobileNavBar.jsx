@@ -4,9 +4,11 @@ import { createPageUrl } from "@/utils";
 import { Home, Calendar, Trophy, Bell, User, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTheme } from "../ThemeContext";
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
+  const { colors, isDarkMode } = useTheme();
 
   const isActive = (path) => {
     if (path === createPageUrl("Home") && location.pathname === path) return true;
@@ -54,7 +56,9 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-white/40 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+    <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] backdrop-blur-xl ${
+      isDarkMode ? 'bg-slate-900/80 border-t border-slate-700/60' : 'bg-white/70 border-t border-white/40'
+    }`}>
       <nav className="flex justify-around items-center h-16 px-2">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
@@ -72,25 +76,32 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                 }
               }}
               className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group ${
-                active ? "transform -translate-y-1" : "text-gray-500 hover:text-gray-700"
+                active ? "transform -translate-y-1" : (isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700")
               }`}
             >
-              {/* Glow Effect for Active */}
+              {/* Glow Effect for Active - Dynamic Color */}
               {active && (
-                <div className={`absolute -top-2 w-8 h-1 rounded-full bg-current opacity-50 blur-sm ${item.activeColor}`} />
+                <div 
+                  className="absolute -top-2 w-8 h-1 rounded-full opacity-60 blur-sm"
+                  style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                />
               )}
 
               <div className="relative">
                 {item.isProfile && user ? (
-                  <Avatar className={`w-6 h-6 ${active ? "ring-2 ring-offset-1 " + item.activeColor.replace('text-', 'ring-') : ""}`}>
+                  <Avatar 
+                    className={`w-6 h-6 ${active ? "ring-2 ring-offset-1" : ""}`}
+                    style={active ? { '--tw-ring-color': colors?.primary || '#3b82f6' } : {}}
+                  >
                     <AvatarImage src={user.profile_photo_url} />
-                    <AvatarFallback className="text-[9px] bg-gray-200">
+                    <AvatarFallback className={`text-[9px] ${isDarkMode ? 'bg-slate-700 text-white' : 'bg-gray-200'}`}>
                       {user.full_name?.[0] || "EU"}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
                   <Icon 
-                    className={`w-6 h-6 ${active ? item.activeColor : ""} ${item.isSpecial && active ? "fill-current" : ""}`} 
+                    className={`w-6 h-6 ${item.isSpecial && active ? "fill-current" : ""}`}
+                    style={active ? { color: colors?.primary || '#3b82f6' } : {}}
                     strokeWidth={active ? 2.5 : 2}
                   />
                 )}
@@ -102,7 +113,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                 )}
               </div>
 
-              <span className={`text-[10px] mt-1 font-medium ${active ? item.activeColor : "text-gray-500"}`}>
+              <span 
+                className={`text-[10px] mt-1 font-medium ${!active && (isDarkMode ? "text-gray-400" : "text-gray-500")}`}
+                style={active ? { color: colors?.primary || '#3b82f6' } : {}}
+              >
                 {item.label}
               </span>
             </Link>
