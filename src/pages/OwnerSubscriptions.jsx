@@ -240,26 +240,39 @@ export default function OwnerSubscriptions() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Compact Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Planos para Proprietários
-          </h1>
-          <p className="text-base md:text-lg text-gray-600">
+    <div className="min-h-screen p-4 md:p-6 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 relative overflow-hidden">
+      {/* Aurora Background Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Modern Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-lg border border-white/40 rounded-2xl px-6 py-3 shadow-xl mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Crown className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Planos Premium
+            </h1>
+          </div>
+          <p className="text-lg md:text-xl text-gray-700 font-medium max-w-2xl mx-auto">
             Economize em passeios e ganhe benefícios exclusivos
           </p>
           {subscription && (
-            <Badge className="mt-2 px-4 py-1 bg-green-500">
-              {subscription.plan_type.toUpperCase()}
+            <Badge className="mt-3 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg text-sm">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Plano Ativo: {subscription.plan_type.toUpperCase()}
             </Badge>
           )}
         </div>
 
         {/* Billing Toggle - Modern */}
         <div className="flex justify-center mb-8">
-          <div className="backdrop-blur-xl bg-white/80 border border-white/40 rounded-2xl shadow-xl p-1.5">
+          <div className="glass-panel shadow-2xl p-1.5">
             <Tabs value={billingCycle} onValueChange={setBillingCycle} className="w-auto">
               <TabsList className="bg-transparent p-0 gap-2">
                 <TabsTrigger 
@@ -374,7 +387,7 @@ export default function OwnerSubscriptions() {
         </div>
 
         {/* Collapsible Comparison Table */}
-        <Card className="glass-panel border-2 border-white/40 shadow-xl mb-6">
+        <Card className="glass-panel border-0 shadow-2xl mb-6">
           <CardHeader 
             className="cursor-pointer hover:bg-gray-50 transition-colors p-4"
             onClick={() => setShowComparison(!showComparison)}
@@ -456,7 +469,7 @@ export default function OwnerSubscriptions() {
         </Card>
 
         {/* Benefits - Glass Design */}
-        <Card className="glass-panel border-2 border-green-300/40 shadow-xl mb-8">
+        <Card className="glass-panel border-0 shadow-2xl mb-8">
           <CardContent className="p-6 md:p-8">
             <h3 className="text-2xl font-black text-gray-900 mb-6 text-center">
               ✨ Porquê Ser Membro PawCão?
@@ -485,7 +498,7 @@ export default function OwnerSubscriptions() {
         </Card>
 
         {/* Elite Partner for Companies */}
-        <Card className="glass-panel relative overflow-hidden border-2 border-purple-300/40 shadow-2xl">
+        <Card className="glass-panel relative overflow-hidden border-0 shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-100" />
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
           
