@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function TierProgressCard({ currentTier, nextTier, loyaltyPoints, progressToNext }) {
   return (
-    <Card className={`border-0 shadow-2xl mb-6 md:mb-8 bg-gradient-to-r ${currentTier.color} text-white overflow-hidden relative`}>
+    <Card className={`glass-panel border-0 shadow-2xl mb-6 md:mb-8 bg-gradient-to-r ${currentTier.color} text-white overflow-hidden relative`}>
       <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-white/10 rounded-full -mr-24 md:-mr-32 -mt-24 md:-mt-32" />
       <div className="absolute bottom-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-white/10 rounded-full -ml-16 md:-ml-24 -mb-16 md:-mb-24" />
       

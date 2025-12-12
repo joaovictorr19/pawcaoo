@@ -13,7 +13,7 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className="border-0 shadow-xl hover:shadow-2xl transition-all h-full relative overflow-hidden">
+      <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all h-full relative overflow-hidden">
         {reward.isNew && (
           <Badge className="absolute top-2 md:top-3 right-2 md:right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white z-10 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
             NEW
