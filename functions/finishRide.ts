@@ -1,0 +1,125 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    
+    // ✅ Autenticar Walker
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ Receber dados
+    const { rideId, photoUrl, forcedFinishReason, actualDistance } = await req.json();
+
+    if (!rideId || !photoUrl) {
+      return Response.json({ 
+        error: 'rideId e photoUrl são obrigatórios' 
+      }, { status: 400 });
+    }
+
+    console.log('🏁 Finalizando passeio:', rideId, 'Walker:', user.email);
+
+    // ✅ 1. Buscar booking COM WHERE id = rideId
+    const bookings = await base44.entities.Booking.filter({ id: rideId });
+    if (!bookings || bookings.length === 0) {
+      return Response.json({ error: 'Booking não encontrado' }, { status: 404 });
+    }
+    const booking = bookings[0];
+
+    // ✅ 2. Verificar se é o walker correto
+    if (booking.walker_email !== user.email) {
+      return Response.json({ 
+        error: 'Você não tem permissão para finalizar este passeio' 
+      }, { status: 403 });
+    }
+
+    // ✅ 3. Atualizar Booking para 'service_completed'
+    await base44.asServiceRole.entities.Booking.update(rideId, {
+      status: 'service_completed',
+      completed_date: new Date().toISOString(),
+      drop_off_photo: photoUrl,
+      forced_finish_reason: forcedFinishReason || null,
+      actual_delivery_distance: actualDistance || null
+    });
+
+    console.log('✅ Booking atualizado para service_completed');
+
+    // ✅ 4. Gamification: Adicionar XP ao Walker
+    try {
+      const currentXP = user.gamification_xp || 0;
+      const currentLevel = user.gamification_level || 1;
+      const xpReward = 100; // XP por passeio concluído
+      const newXP = currentXP + xpReward;
+      
+      // Cálculo simplificado de nível (cada 1000 XP = 1 nível)
+      const newLevel = Math.floor(newXP / 1000) + 1;
+
+      await base44.asServiceRole.auth.updateUser(user.id, {
+        gamification_xp: newXP,
+        gamification_level: newLevel
+      });
+
+      console.log(`🎮 Gamification: +${xpReward} XP. Total: ${newXP} XP, Level: ${newLevel}`);
+    } catch (err) {
+      console.error('Erro ao atualizar gamification:', err);
+    }
+
+    // ✅ 5. Notificar Cliente
+    try {
+      await base44.asServiceRole.entities.Notification.create({
+        recipient_email: booking.owner_email || booking.created_by,
+        title: '✅ Passeio Concluído!',
+        message: `${user.full_name} concluiu o passeio com ${booking.dog_name}. Por favor, confirme o pagamento de €${booking.service_amount}.`,
+        type: 'booking',
+        related_id: rideId,
+        priority: 'high',
+        action_url: '/MyBookings'
+      });
+      console.log('📧 Cliente notificado');
+    } catch (err) {
+      console.error('Erro ao notificar cliente:', err);
+    }
+
+    // ✅ 6. TODO: Integração Stripe (Captura de Pagamento)
+    // Nota: Implementar quando Stripe Connect estiver configurado
+    /*
+    try {
+      if (booking.payment_id && booking.payment_status === 'held') {
+        // Capturar pagamento autorizado
+        const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+        
+        const paymentIntent = await stripe.paymentIntents.capture(booking.payment_id);
+        
+        // Atualizar status do pagamento
+        await base44.asServiceRole.entities.Payment.update(booking.payment_id, {
+          payment_status: 'released',
+          released_date: new Date().toISOString()
+        });
+        
+        console.log('💳 Pagamento capturado:', paymentIntent.id);
+      }
+    } catch (err) {
+      console.error('Erro ao processar pagamento Stripe:', err);
+    }
+    */
+
+    return Response.json({
+      success: true,
+      message: 'Passeio finalizado com sucesso!',
+      booking: {
+        id: rideId,
+        status: 'service_completed',
+        drop_off_photo: photoUrl
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao finalizar passeio:', error);
+    return Response.json({ 
+      error: 'Erro ao finalizar passeio', 
+      details: error.message 
+    }, { status: 500 });
+  }
+});

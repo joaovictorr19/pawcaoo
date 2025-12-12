@@ -85,8 +85,9 @@ const MapCenterController = ({ center }) => {
 export default function ActiveRide() {
   const { id: rideId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [duration, setDuration] = useState(0);
-  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [showFinishModal, setShowFinishModal] = useState(false);
   const [distanceToDestination, setDistanceToDestination] = useState(null);
 
   // ✅ PROTEÇÃO 1: ID obrigatório na URL
