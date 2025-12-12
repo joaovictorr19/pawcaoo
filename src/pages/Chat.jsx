@@ -900,7 +900,7 @@ export default function Chat() {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Professional Actions Bar - Start Service */}
       {isProfessional && booking.status === "confirmed" && (
