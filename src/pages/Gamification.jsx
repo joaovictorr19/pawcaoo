@@ -262,17 +262,17 @@ export default function Gamification() {
     {/* 1. HERO SECTION - Minimalista */}
     <div className="relative overflow-hidden bg-white">
         <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 relative z-10">
-          {/* Header Title - Premium */}
+          {/* Header Title - Minimalista */}
           <motion.div 
-            className="text-center mb-12"
+            className="text-center mb-8"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-5xl md:text-7xl font-black mb-4 text-white drop-shadow-2xl">
-              🏆 Hall da Fama
+            <h1 className="text-4xl md:text-5xl font-black mb-2" style={{ color: colors?.primary || '#3b82f6' }}>
+              Hall da Fama
             </h1>
-            <p className="text-lg md:text-xl text-white/90 font-medium">
-              Os melhores da comunidade PawCão
+            <p className="text-sm md:text-base text-gray-600">
+              Conquistas e rankings
             </p>
           </motion.div>
 
