@@ -190,10 +190,10 @@ export default function OwnerSubscriptions() {
         {/* Compact Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Membros PawCão
+            Planos para Proprietários
           </h1>
           <p className="text-base md:text-lg text-gray-600">
-            Poupe dinheiro e ganhe benefícios exclusivos
+            Economize em passeios e ganhe benefícios exclusivos
           </p>
           {subscription && (
             <Badge className="mt-2 px-4 py-1 bg-green-500">
@@ -386,14 +386,14 @@ export default function OwnerSubscriptions() {
               <Award className="w-12 h-12 mx-auto mb-3" />
               <h2 className="text-2xl md:text-3xl font-bold mb-2">Elite Partner — €149/mês</h2>
               <p className="text-sm md:text-base text-white/90 mb-4">
-                Para empresas que querem fazer parte do PawCão Universe
+                Para empresas que querem vender produtos e serviços no PawCão
               </p>
               <Button
                 size="sm"
                 className="bg-white text-indigo-700 hover:bg-gray-100"
-                onClick={() => navigate(createPageUrl('PartnerDashboard'))}
+                onClick={() => navigate(createPageUrl(user?.account_type === 'company' ? 'PartnerDashboard' : 'RegisterCompany'))}
               >
-                Saber Mais
+                {user?.account_type === 'company' ? 'Ir para o Painel' : 'Registrar Empresa'}
               </Button>
             </div>
           </CardContent>

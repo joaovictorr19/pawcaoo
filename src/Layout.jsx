@@ -749,8 +749,8 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             )}
 
-            {/* COMPANY */}
-            {companyMenu.length > 0 && (
+            {/* COMPANY - Only show if user is company OR allow registration */}
+            {(authUser?.account_type === 'company' || companyMenu.length > 0) && (
               <SidebarGroup>
                 <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 font-semibold uppercase ${
                   colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'
@@ -759,29 +759,43 @@ function LayoutContent({ children, currentPageName }) {
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {companyMenu.map((item) => ( 
-                      <SidebarMenuItem key={item.title}>
+                    {authUser?.account_type === 'company' ? (
+                      companyMenu.map((item) => ( 
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton 
+                            asChild 
+                            className={`transition-all duration-200 rounded-lg mb-1 ${
+                              isRouteActive(item.url) 
+                                ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
+                                : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
+                            }`}
+                          >
+                            <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
+                              {isRouteActive(item.url) && (
+                                <div 
+                                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
+                                  style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                                />
+                              )}
+                              <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                              <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))
+                    ) : (
+                      <SidebarMenuItem>
                         <SidebarMenuButton 
                           asChild 
-                          className={`transition-all duration-200 rounded-lg mb-1 ${
-                            isRouteActive(item.url) 
-                              ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
-                              : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
-                          }`}
+                          className="transition-all duration-200 rounded-lg mb-1 hover:bg-green-100 text-gray-700"
                         >
-                          <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
-                            {isRouteActive(item.url) && (
-                              <div 
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
-                                style={{ backgroundColor: colors?.primary || '#3b82f6' }}
-                              />
-                            )}
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                          <Link to={createPageUrl("RegisterCompany")} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5">
+                            <Store className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                            <span className="font-medium text-xs md:text-sm truncate">Registrar Empresa</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))}
+                    )}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>

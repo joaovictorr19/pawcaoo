@@ -67,6 +67,7 @@ import WalkerTrack from './pages/WalkerTrack';
 import BecomeProfessional from './pages/BecomeProfessional';
 import ActiveRide from './pages/ActiveRide';
 import Chat from './pages/Chat';
+import RegisterCompany from './pages/RegisterCompany';
 import __Layout from './Layout.jsx';
 
 
@@ -140,6 +141,7 @@ export const PAGES = {
     "BecomeProfessional": BecomeProfessional,
     "ActiveRide": ActiveRide,
     "Chat": Chat,
+    "RegisterCompany": RegisterCompany,
 }
 
 export const pagesConfig = {
