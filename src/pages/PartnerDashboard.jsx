@@ -1097,8 +1097,23 @@ export default function PartnerDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-              ))
+              ))}
+            
+            {myProducts.length > 0 && (
+              <Pagination
+                currentPage={productsPage}
+                totalPages={totalProductPages}
+                onPageChange={setProductsPage}
+                itemsPerPage={productsPerPage}
+                totalItems={myProducts.length}
+                onItemsPerPageChange={(value) => {
+                  setProductsPerPage(value);
+                  setProductsPage(1);
+                }}
+              />
             )}
+            </>
+          )}
           </div>
         </DialogContent>
       </Dialog>
