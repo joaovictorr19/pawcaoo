@@ -123,13 +123,17 @@ async function handlePaymentSuccess(base44, paymentIntent) {
     if (bookingId) {
         const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
         if (bookings.length > 0) {
+            const booking = bookings[0];
             await base44.asServiceRole.entities.Booking.update(bookingId, {
                 payment_status: 'held',
                 status: 'confirmed'
             });
 
+            // 🎯 AWARD LOYALTY POINTS (10 pontos base por €1)
+            const ownerEmail = booking.owner_email || booking.created_by;
+            await awardLoyaltyPoints(base44, ownerEmail, booking.total_amount, bookingId, 'reserva');
+
             // Send notification to walker
-            const booking = bookings[0];
             await base44.asServiceRole.entities.Notification.create({
                 recipient_email: booking.walker_email,
                 title: 'Nova Reserva Confirmada',
@@ -148,6 +152,85 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             status: 'accepted'
         });
     }
+}
+
+async function awardLoyaltyPoints(base44, userEmail, amountEuro, relatedId, activityType) {
+    if (!userEmail || !amountEuro) return;
+
+    // Buscar pontos do usuário
+    const loyaltyRecords = await base44.asServiceRole.entities.LoyaltyPoints.filter({
+        user_email: userEmail
+    });
+
+    let loyaltyRecord = loyaltyRecords[0];
+
+    // Criar se não existir
+    if (!loyaltyRecord) {
+        loyaltyRecord = await base44.asServiceRole.entities.LoyaltyPoints.create({
+            user_email: userEmail,
+            points_balance: 0,
+            total_earned: 0,
+            total_redeemed: 0,
+            tier: 'bronze',
+            achievements: [],
+            lifetime_bookings: 0,
+            lifetime_redemptions: 0
+        });
+    }
+
+    // Calcular tier e multiplicador
+    const tiers = [
+        { name: "bronze", min: 0, max: 499, multiplier: 1 },
+        { name: "silver", min: 500, max: 999, multiplier: 1.2 },
+        { name: "gold", min: 1000, max: 2499, multiplier: 1.5 },
+        { name: "platinum", min: 2500, max: 99999, multiplier: 2 }
+    ];
+
+    const currentTier = tiers.find(t => 
+        loyaltyRecord.total_earned >= t.min && 
+        loyaltyRecord.total_earned <= t.max
+    ) || tiers[0];
+
+    // 10 pontos por €1, com multiplicador tier
+    const basePoints = Math.floor(amountEuro * 10);
+    const pointsEarned = Math.floor(basePoints * currentTier.multiplier);
+
+    // Atualizar pontos
+    const newBalance = (loyaltyRecord.points_balance || 0) + pointsEarned;
+    const newTotalEarned = (loyaltyRecord.total_earned || 0) + pointsEarned;
+    const newLifetimeBookings = (loyaltyRecord.lifetime_bookings || 0) + 1;
+
+    // Calcular novo tier
+    const newTier = tiers.find(t => 
+        newTotalEarned >= t.min && 
+        newTotalEarned <= t.max
+    )?.name || 'bronze';
+
+    await base44.asServiceRole.entities.LoyaltyPoints.update(loyaltyRecord.id, {
+        points_balance: newBalance,
+        total_earned: newTotalEarned,
+        tier: newTier,
+        lifetime_bookings: newLifetimeBookings
+    });
+
+    // Registar transação
+    await base44.asServiceRole.entities.PointsTransaction.create({
+        user_email: userEmail,
+        transaction_type: 'earned',
+        points_amount: pointsEarned,
+        description: `Ganhou ${pointsEarned} pontos por ${activityType} (€${amountEuro}) - ${currentTier.multiplier}x multiplier`,
+        balance_after: newBalance,
+        related_booking_id: relatedId
+    });
+
+    // Notificar sobre pontos ganhos
+    await base44.asServiceRole.entities.Notification.create({
+        recipient_email: userEmail,
+        title: '🎉 PawPoints Ganhos!',
+        message: `Ganhou ${pointsEarned} pontos! (${currentTier.multiplier}x multiplier tier ${currentTier.name})`,
+        type: 'system',
+        priority: 'normal'
+    });
 }
 
 async function handlePaymentFailed(base44, paymentIntent) {

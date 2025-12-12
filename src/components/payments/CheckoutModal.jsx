@@ -9,6 +9,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useTheme } from "@/components/ThemeContext";
+import VoucherApplicator from "@/components/loyalty/VoucherApplicator";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CheckoutModal({ 
   booking, 
@@ -20,13 +22,43 @@ export default function CheckoutModal({
   const navigate = useNavigate();
   const { user } = booking;
   const [processing, setProcessing] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+
+  const { data: loyaltyPoints } = useQuery({
+    queryKey: ['loyaltyPoints', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const points = await base44.entities.LoyaltyPoints.filter({
+        user_email: user.email
+      });
+      return points[0] || null;
+    },
+    enabled: !!user?.email,
+  });
+
+  const finalAmount = appliedVoucher 
+    ? Math.max(0, booking.total_amount - appliedVoucher.euro_value)
+    : booking.total_amount;
+
+  const pointsToEarn = loyaltyPoints
+    ? Math.floor(finalAmount * 10 * (loyaltyPoints.tier === 'silver' ? 1.2 : loyaltyPoints.tier === 'gold' ? 1.5 : loyaltyPoints.tier === 'platinum' ? 2 : 1))
+    : Math.floor(finalAmount * 10);
 
   const handleStripeCheckout = async () => {
     setProcessing(true);
 
     try {
+      // Se houver voucher aplicado, marcar como usado
+      if (appliedVoucher) {
+        await base44.entities.Redemption.update(appliedVoucher.id, {
+          status: 'pending'
+        });
+      }
+
       const { data } = await base44.functions.invoke('createStripeCheckout', {
         bookingId: booking.id,
+        voucherCode: appliedVoucher?.redemption_code,
+        discountAmount: appliedVoucher?.euro_value || 0,
         successUrl: `${window.location.origin}${createPageUrl('CheckoutSuccess')}?booking_id=${booking.id}`,
         cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`,
       });
@@ -79,12 +111,37 @@ export default function CheckoutModal({
                 <span className="font-medium">{booking.walk_date} ({booking.walk_time})</span>
               </div>
               <Separator className="my-2" />
+              {appliedVoucher && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Desconto PawPoints:</span>
+                  <span>-€{appliedVoucher.euro_value.toFixed(2)}</span>
+                </div>
+              )}
+              <Separator className="my-2" />
               <div className="flex justify-between text-lg">
                 <span className="font-bold text-gray-900">Total:</span>
-                <span className="font-bold text-green-600">€{booking.total_amount?.toFixed(2)}</span>
+                <span className="font-bold text-green-600">€{finalAmount.toFixed(2)}</span>
               </div>
+              {appliedVoucher && booking.total_amount !== finalAmount && (
+                <p className="text-xs text-gray-500 line-through">€{booking.total_amount.toFixed(2)}</p>
+              )}
             </div>
           </div>
+
+          {/* Voucher Section */}
+          <VoucherApplicator 
+            userEmail={user?.email} 
+            onVoucherApplied={setAppliedVoucher}
+          />
+
+          {/* Points Preview */}
+          {pointsToEarn > 0 && (
+            <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+              <p className="text-sm text-center text-purple-800">
+                <span className="font-bold text-lg">+{pointsToEarn}</span> PawPoints após conclusão
+              </p>
+            </div>
+          )}
 
           {/* Payment Instructions */}
           <div className="bg-green-50 border-2 border-green-100 rounded-xl p-5">

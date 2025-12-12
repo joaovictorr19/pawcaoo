@@ -68,6 +68,7 @@ import BecomeProfessional from './pages/BecomeProfessional';
 import ActiveRide from './pages/ActiveRide';
 import Chat from './pages/Chat';
 import RegisterCompany from './pages/RegisterCompany';
+import MyRedemptions from './pages/MyRedemptions';
 import __Layout from './Layout.jsx';
 
 
@@ -142,6 +143,7 @@ export const PAGES = {
     "ActiveRide": ActiveRide,
     "Chat": Chat,
     "RegisterCompany": RegisterCompany,
+    "MyRedemptions": MyRedemptions,
 }
 
 export const pagesConfig = {
