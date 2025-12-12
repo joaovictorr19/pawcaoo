@@ -220,9 +220,10 @@ export default function BecomeTrainer() {
       success_rate: formData.success_rate !== null ? parseFloat(formData.success_rate) : null,
       services_offered: formData.services_offered.map(service => ({
         ...service,
-        price: service.price !== null ? parseFloat(service.price) : null // Ensure price is number or null
+        price: service.price !== null ? parseFloat(service.price) : null
       })),
-      verification_status: "pending"
+      verification_status: "requires_documents",
+      is_active: false
     };
 
     try {

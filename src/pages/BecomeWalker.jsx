@@ -197,8 +197,9 @@ export default function BecomeWalker() {
         hourly_rate: rate,
         experience_years: isNaN(exp) ? 0 : exp,
         age: isNaN(ageNum) ? 0 : ageNum,
-        verification_status: "pending",
-        created_by: user?.email // Explicitly associating with user, though RLS handles it typically
+        verification_status: "requires_documents",
+        is_active: false,
+        created_by: user?.email
       });
     } catch (error) {
       // Error is handled in onError of mutation
