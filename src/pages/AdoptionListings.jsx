@@ -317,7 +317,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card 
-                  className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden h-full bg-white rounded-2xl"
+                  className="glass-panel group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden h-full rounded-2xl"
                   onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
                 >
                   {/* Image */}
