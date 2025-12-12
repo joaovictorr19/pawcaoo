@@ -68,11 +68,15 @@ function FavoriteButton({ walker, user }) {
   return (
       <Button
         variant="outline"
-        className="h-11 w-11 p-0 border-gray-200 text-gray-700 hover:bg-gray-50"
+        className="h-11 w-11 p-0 hover:opacity-80"
+        style={{
+          borderColor: isFavorite ? '#ef4444' : `${colors?.primary || '#3b82f6'}40`,
+          color: isFavorite ? '#ef4444' : colors?.primary || '#3b82f6'
+        }}
         onClick={() => toggleFavoriteMutation.mutate()}
         title={isFavorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
       >
-         <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}`} />
+         <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
       </Button>
   );
 }
@@ -325,7 +329,11 @@ export default function WalkerDetails() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Button
           variant="outline"
-          className="mb-6 border-green-200 hover:bg-green-50"
+          className="mb-6 hover:opacity-80"
+          style={{
+            borderColor: `${colors?.primary || '#3b82f6'}40`,
+            color: colors?.primary || '#3b82f6'
+          }}
           onClick={() => navigate(createPageUrl('Home'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
