@@ -560,11 +560,11 @@ function LayoutContent({ children, currentPageName }) {
           <div className={`absolute -bottom-32 left-1/3 w-96 h-96 ${colors?.orb1 || 'bg-blue-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000`}></div>
         </div>
 
-        <div className="flex w-full h-full p-4 gap-4 relative z-10">
+        <div className="flex w-full h-full p-2 gap-2 relative z-10">
         {authUser && (
-        <Sidebar 
-          className={`backdrop-blur-xl border transition-all duration-500 ease-in-out rounded-[3rem] shadow-xl flex-shrink-0 ${
-            collapsed ? 'w-24' : 'w-80'
+        <aside 
+          className={`backdrop-blur-xl border transition-all duration-500 ease-in-out rounded-2xl shadow-xl flex-shrink-0 flex flex-col overflow-hidden relative ${
+            collapsed ? 'w-20' : 'w-80'
           } ${
             colors?.isDarkMode 
               ? 'bg-slate-900/60' 
@@ -577,18 +577,26 @@ function LayoutContent({ children, currentPageName }) {
               : '0 20px 60px rgba(0, 0, 0, 0.08)'
           }}
         >
-          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[3rem] relative ${
+          <button 
+            onClick={() => setCollapsed(prev => !prev)}
+            className={`absolute top-8 -right-3 p-2 rounded-full shadow-lg z-50 cursor-pointer transition-all hover:scale-110 ${
+              colors?.isDarkMode 
+                ? 'bg-violet-600 text-white hover:bg-violet-500' 
+                : `bg-${colors?.primary || 'blue-600'} text-white hover:opacity-90`
+            }`}
+            style={{
+              backgroundColor: colors?.isDarkMode ? '#8b5cf6' : 'var(--tier-primary, #2563eb)'
+            }}
+            aria-label="Toggle sidebar"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        <Sidebar 
+          className="flex-1 flex flex-col h-full"
+        >
+          <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-2xl ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
-            <button 
-              onClick={() => setCollapsed(prev => !prev)}
-              className={`absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-all hover:scale-110 z-50 cursor-pointer ${
-                colors?.isDarkMode ? 'text-violet-300' : 'text-slate-700'
-              }`}
-              aria-label="Toggle sidebar"
-            >
-              {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-            </button>
 
             {collapsed ? (
               <div className="flex justify-center">
@@ -906,9 +914,10 @@ function LayoutContent({ children, currentPageName }) {
             </SidebarGroup>
             </SidebarContent>
             </Sidebar>
+        </aside>
             )}
 
-            <main className={`flex-1 flex flex-col min-w-0 rounded-[3rem] shadow-xl overflow-hidden transition-all duration-300 ${
+            <main className={`flex-1 flex flex-col min-w-0 rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${
               colors?.isDarkMode 
                 ? 'bg-slate-900/60' 
                 : 'bg-white/60'
