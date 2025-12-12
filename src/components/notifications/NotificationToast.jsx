@@ -56,8 +56,8 @@ export function ToastProvider({ children }) {
 function ToastContainer({ toasts, onRemove }) {
   return (
     <div className="fixed z-[9999] pointer-events-none">
-      {/* Desktop: top-right */}
-      <div className="hidden md:block fixed top-4 right-4 w-[400px] max-w-[calc(100vw-2rem)]">
+      {/* Desktop: bottom-right */}
+      <div className="hidden md:block fixed bottom-4 right-4 w-[400px] max-w-[calc(100vw-2rem)]">
         <AnimatePresence mode="popLayout">
           {toasts.map((toast, index) => (
             <ToastItem
@@ -71,8 +71,8 @@ function ToastContainer({ toasts, onRemove }) {
         </AnimatePresence>
       </div>
 
-      {/* Mobile: bottom-center (acima do MobileNavBar) */}
-      <div className="md:hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-md">
+      {/* Mobile: top-center (estilo iPhone, abaixo do header) */}
+      <div className="md:hidden fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-md">
         <AnimatePresence mode="popLayout">
           {toasts.map((toast, index) => (
             <ToastItem
@@ -103,11 +103,11 @@ function ToastItem({ toast, index, onRemove, position }) {
 
   const getBorderColor = () => {
     switch (toast.type) {
-      case 'success': return 'border-green-300/50';
-      case 'error': return 'border-red-300/50';
-      case 'warning': return 'border-orange-300/50';
-      case 'info': return 'border-blue-300/50';
-      default: return 'border-gray-300/50';
+      case 'success': return 'border-green-500';
+      case 'error': return 'border-red-500';
+      case 'warning': return 'border-orange-500';
+      case 'info': return 'border-blue-500';
+      default: return 'border-gray-400';
     }
   };
 
@@ -118,9 +118,9 @@ function ToastItem({ toast, index, onRemove, position }) {
         exit: { opacity: 0, x: 100, scale: 0.9 }
       }
     : {
-        initial: { opacity: 0, y: 50, scale: 0.9 },
+        initial: { opacity: 0, y: -50, scale: 0.9 },
         animate: { opacity: 1, y: 0, scale: 1 },
-        exit: { opacity: 0, y: 50, scale: 0.9 }
+        exit: { opacity: 0, y: -50, scale: 0.9 }
       };
 
   return (
