@@ -931,7 +931,7 @@ button[data-sidebar="trigger"] {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 w-full relative z-10">
+            <main className="flex flex-col min-w-0 pb-24 md:pb-0 w-full relative z-10">
             <header className={`px-3 md:px-6 py-3 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
               colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
             }`}>
@@ -1081,7 +1081,7 @@ button[data-sidebar="trigger"] {
             />
           )}
 
-          <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
+          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 ${
             colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
