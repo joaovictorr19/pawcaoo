@@ -65,6 +65,25 @@ export const ThemeProvider = ({ children }) => {
         progress: tier.progress
       });
 
+      // Define tier-specific orb colors
+      const tierColors = {
+        Bronze:   { orb1: '#fb923c', orb2: '#fdba74', primary: '#f97316' },
+        Prata:    { orb1: '#94a3b8', orb2: '#cbd5e1', primary: '#64748b' },
+        Ouro:     { orb1: '#facc15', orb2: '#fef08a', primary: '#eab308' },
+        Safira:   { orb1: '#3b82f6', orb2: '#8b5cf6', primary: '#2563eb' },
+        Rubi:     { orb1: '#f43f5e', orb2: '#fb7185', primary: '#e11d48' },
+        Esmeralda: { orb1: '#34d399', orb2: '#a7f3d0', primary: '#10b981' },
+        Diamante: { orb1: '#22d3ee', orb2: '#e0f2fe', primary: '#06b6d4' },
+        Cosmos:   { orb1: '#4c1d95', orb2: '#2e1065', primary: '#8b5cf6' }
+      };
+
+      const colors = tierColors[tier.name] || tierColors.Bronze;
+      
+      // Set CSS variables for orbs
+      document.documentElement.style.setProperty('--orb-1', colors.orb1);
+      document.documentElement.style.setProperty('--orb-2', colors.orb2);
+      document.documentElement.style.setProperty('--orb-primary', colors.primary);
+
       // Apply Cosmos dark mode
       if (tier.name === 'Cosmos') {
         document.documentElement.classList.add('dark-cosmos');

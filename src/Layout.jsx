@@ -476,6 +476,9 @@ function LayoutContent({ children, currentPageName }) {
         --primary-foreground: 0 0% 100%;
         --accent: 142 76% 92%;
         --accent-foreground: 142 76% 20%;
+        --orb-1: #3b82f6;
+        --orb-2: #8b5cf6;
+        --orb-primary: #2563eb;
       }
 
       .glass-panel-dark {
