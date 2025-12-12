@@ -151,4 +151,13 @@
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
   }
