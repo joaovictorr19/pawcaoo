@@ -547,6 +547,10 @@ function LayoutContent({ children, currentPageName }) {
             gap: 1rem;
           }
         }
+
+        [data-sidebar="sidebar"][data-state="collapsed"] {
+          width: 96px !important;
+        }
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
