@@ -54,7 +54,7 @@ export default function Favorites() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
@@ -96,7 +96,7 @@ export default function Favorites() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-red-100">
+                    <Card className="glass-panel overflow-hidden hover:shadow-2xl transition-all duration-300 border-0">
                       <div className="relative h-48 bg-gradient-to-br from-red-100 to-pink-100">
                         {favorite.walker_photo_url ? (
                           <img src={favorite.walker_photo_url} alt={favorite.walker_name} className="w-full h-full object-cover" />
@@ -153,7 +153,7 @@ export default function Favorites() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-pink-100">
+                    <Card className="glass-panel overflow-hidden hover:shadow-2xl transition-all duration-300 border-0">
                       <div className="relative h-48 bg-gray-200">
                         {favorite.pet_photo_url ? (
                           <img src={favorite.pet_photo_url} alt={favorite.pet_name} className="w-full h-full object-cover" />
@@ -197,7 +197,7 @@ export default function Favorites() {
 
 function EmptyState({ message, action, buttonText }) {
   return (
-    <Card className="border-0 shadow-xl">
+    <Card className="glass-panel border-0 shadow-xl">
       <CardContent className="p-12 text-center">
         <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Heart className="w-12 h-12 text-gray-400" />
