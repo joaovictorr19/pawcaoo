@@ -553,10 +553,10 @@ function LayoutContent({ children, currentPageName }) {
         `}</style>
       <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden">
         {authUser && (
-        <Sidebar className={`backdrop-blur-xl border-r transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 ${
+        <Sidebar className={`fixed top-4 left-4 bottom-4 w-64 backdrop-blur-xl transition-colors duration-300 rounded-[2rem] shadow-2xl z-50 ${
           colors?.isDarkMode 
-            ? 'bg-slate-900/60 border-slate-700/40' 
-            : 'bg-white/60 border-white/40'
+            ? 'bg-slate-900/60 border border-slate-700/30' 
+            : 'bg-white/60 border border-white/30'
         }`}>
           <SidebarHeader className={`border-b p-4 md:p-6 rounded-t-[2rem] ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
@@ -840,9 +840,9 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4">
-            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-50 transition-all duration-300 shadow-lg backdrop-blur-xl ${
-              colors?.isDarkMode ? 'bg-slate-900/80 border-b border-slate-700/60' : 'bg-white/70 border-b border-white/40'
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-72">
+            <header className={`px-3 md:px-6 py-2.5 md:py-4 sticky top-0 z-40 transition-all duration-300 shadow-lg backdrop-blur-xl ${
+              colors?.isDarkMode ? 'bg-slate-900/50 border-b border-slate-700/30' : 'bg-white/50 border-b border-white/30'
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
@@ -991,7 +991,7 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <footer className={`mt-auto backdrop-blur-xl border-t transition-colors duration-300 ${
-            colors?.isDarkMode ? 'bg-slate-900/80 border-slate-700/60' : 'bg-white/70 border-white/40'
+            colors?.isDarkMode ? 'bg-slate-900/50 border-slate-700/30' : 'bg-white/50 border-white/30'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
               <div className="grid md:grid-cols-4 gap-8 mb-8">
