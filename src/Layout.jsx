@@ -120,7 +120,7 @@ function LayoutContent({ children, currentPageName }) {
   const { language, setLanguage } = useLanguage();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
-  const [collapsed, setCollapsed] = React.useState(true);
+  const [collapsed, setCollapsed] = React.useState(false);
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
@@ -1087,7 +1087,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 ${
+          <footer className={`backdrop-blur-xl border-t transition-colors duration-300 relative z-10 ${
             colors?.isDarkMode ? 'bg-slate-900/60 border-slate-700/40' : 'bg-white/40 border-white/30'
           }`}>
             <div className="max-w-7xl mx-auto px-6 py-8">
