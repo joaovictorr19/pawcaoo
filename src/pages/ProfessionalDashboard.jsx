@@ -788,7 +788,7 @@ export default function ProfessionalDashboard() {
                 transition={{ delay: idx * 0.08, type: "spring" }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
               >
-                <Card className="border-0 shadow-xl hover:shadow-2xl overflow-hidden transition-all duration-300 h-full">
+                <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl overflow-hidden transition-all duration-300 h-full">
                   <div className={`bg-gradient-to-br ${stat.color} p-5 text-white h-full min-h-[160px] flex flex-col justify-between relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10"></div>
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>

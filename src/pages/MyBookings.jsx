@@ -507,7 +507,7 @@ export default function MyBookings() {
     });
 
     return (
-      <Card className="border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
+      <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col">
         <div className="p-4 flex flex-col gap-3">
           {/* Header Compacto */}
           <div className="flex justify-between items-start">

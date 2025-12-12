@@ -143,7 +143,7 @@ export default function RideChat({ booking, user }) {
             transition={{ type: 'spring', damping: 25 }}
             className="fixed bottom-0 right-0 left-0 md:left-auto md:right-6 md:bottom-6 z-40 md:w-96"
           >
-            <Card className="border-0 shadow-2xl rounded-t-3xl md:rounded-3xl overflow-hidden h-[70vh] md:h-[600px] flex flex-col">
+            <Card className="glass-panel border-0 shadow-2xl rounded-t-3xl md:rounded-3xl overflow-hidden h-[70vh] md:h-[600px] flex flex-col">
               {/* Header */}
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ export default function RideChat({ booking, user }) {
                   <Button
                     type="submit"
                     disabled={!message.trim() || sendMessageMutation.isPending}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="btn-sapphire"
                   >
                     {sendMessageMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
