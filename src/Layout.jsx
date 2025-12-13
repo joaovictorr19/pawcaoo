@@ -1026,18 +1026,6 @@ function LayoutContent({ children, currentPageName }) {
                 <div className="flex-1"></div>
               )}
 
-              {/* Notification Trigger */}
-              <div className="relative flex-shrink-0 cursor-pointer mr-2 group" onClick={() => setIsNotificationPanelOpen(true)}>
-                <div className="p-2.5 rounded-full hover:bg-red-50 transition-all duration-200 active:scale-95">
-                  <Bell className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${unreadCount > 0 ? 'text-red-500 fill-red-100/50' : 'text-gray-500 group-hover:text-red-500'}`} />
-                </div>
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 border-[2px] border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-in zoom-in duration-300">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-
               {!authUser && (
                 <Button 
                   onClick={() => base44.auth.redirectToLogin(window.location.href)}
@@ -1048,9 +1036,23 @@ function LayoutContent({ children, currentPageName }) {
                 </Button>
               )}
 
+              {/* Notification Trigger - Only for authenticated users */}
+              {authUser && (
+                <div className="relative flex-shrink-0 cursor-pointer mr-2 group" onClick={() => setIsNotificationPanelOpen(true)}>
+                  <div className="p-2.5 rounded-full hover:bg-red-50 transition-all duration-200 active:scale-95">
+                    <Bell className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${unreadCount > 0 ? 'text-red-500 fill-red-100/50' : 'text-gray-500 group-hover:text-red-500'}`} />
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 border-[2px] border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-in zoom-in duration-300">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`${authUser ? "md:hidden" : ""} h-8 w-8 flex-shrink-0 ml-2`} aria-label="Change language">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
                     <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>

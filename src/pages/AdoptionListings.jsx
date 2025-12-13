@@ -229,11 +229,11 @@ export default function AdoptionListings({ isEmbedded = false }) {
               
              <Button
                 onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg h-10 rounded-full"
+                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg h-10 rounded-full whitespace-nowrap"
                 size="default"
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
-                {t('postForAdoption', language)}
+                <span>{t('postForAdoption', language)}</span>
               </Button>
           </div>
         )}
