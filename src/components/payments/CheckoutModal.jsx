@@ -187,20 +187,31 @@ export default function CheckoutModal({
             </div>
           )}
 
-          {/* Payment Instructions */}
-          <div className="bg-green-50 border-2 border-green-100 rounded-xl p-5">
-            <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">
-              <Check className="w-5 h-5" />
-              {language === 'pt' ? 'Pagamento Seguro' : 'Secure Payment'}
-            </h4>
-            <p className="text-sm text-green-700 mb-3 leading-relaxed">
-              {language === 'pt' 
-                ? 'Pagamento processado de forma segura pelo Stripe. O valor ficará retido até a conclusão do serviço.'
-                : 'Payment securely processed by Stripe. Amount will be held until service completion.'}
-            </p>
-            <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-white/50 p-2 rounded-lg">
-              <Check className="w-4 h-4" />
-              {language === 'pt' ? '🔒 Pagamento protegido' : '🔒 Protected payment'}
+          {/* Payment Instructions + Refund Policy */}
+          <div className="space-y-3">
+            <div className="bg-green-50 border-2 border-green-100 rounded-xl p-5">
+              <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">
+                <Check className="w-5 h-5" />
+                {language === 'pt' ? 'Pagamento Seguro' : 'Secure Payment'}
+              </h4>
+              <p className="text-sm text-green-700 mb-3 leading-relaxed">
+                {language === 'pt' 
+                  ? 'Pagamento processado de forma segura pelo Stripe. O valor ficará retido até a conclusão do serviço.'
+                  : 'Payment securely processed by Stripe. Amount will be held until service completion.'}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-white/50 p-2 rounded-lg">
+                <Check className="w-4 h-4" />
+                {language === 'pt' ? '🔒 Pagamento protegido' : '🔒 Protected payment'}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <p className="text-xs font-bold text-blue-800 mb-2">💙 Política de Cancelamento</p>
+              <div className="space-y-1 text-xs text-blue-700">
+                <p>✅ <strong>Status Pendente:</strong> 100% reembolso</p>
+                <p>✅ <strong>Confirmado (Premium):</strong> 100% reembolso</p>
+                <p>⚠️ <strong>Confirmado (Free):</strong> 80% reembolso</p>
+              </div>
             </div>
           </div>
 

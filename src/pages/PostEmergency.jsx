@@ -522,12 +522,21 @@ export default function PostEmergency() {
                 />
               </div>
 
-              {/* Info Alert */}
-              <div className="bg-blue-50 border border-blue-300 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-blue-900">
-                    {t('emergencyWalkDisclaimer', language)}
+              {/* Info Alert + Refund Policy */}
+              <div className="space-y-2">
+                <div className="bg-blue-50 border border-blue-300 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-900">
+                      {t('emergencyWalkDisclaimer', language)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 border border-green-300 rounded-lg p-3">
+                  <p className="text-xs text-green-800 font-semibold mb-1">💚 Reembolso Garantido</p>
+                  <p className="text-xs text-green-700">
+                    Cancelamento antes de aceite: <strong>100% reembolso</strong>
                   </p>
                 </div>
               </div>
