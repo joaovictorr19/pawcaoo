@@ -154,23 +154,26 @@ export default function PostEmergency() {
     });
   };
 
-  // ✅ Auto-fill from first selected dog (for single selection scenario)
+  // ✅ Auto-fill ALL data when dogs are selected
   React.useEffect(() => {
-    if (selectedDogs.length === 1 && user) {
-      const dog = selectedDogs[0];
+    if (selectedDogs.length > 0 && user) {
+      const firstDog = selectedDogs[0];
+      console.log('📝 Auto-filling form data for:', firstDog.dog_name);
       setFormData(prev => ({
         ...prev,
-        dog_name: dog.dog_name,
-        dog_size: dog.size,
-        dog_breed: dog.breed || "",
-        dog_photo_url: dog.photo_url || "",
-        location: dog.default_pickup_address || user.address || user.location || user.city || "",
-        owner_name: user.full_name || "",
-        owner_phone: user.phone || user.whatsapp_number || "",
-        special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
+        dog_name: firstDog.dog_name,
+        dog_size: firstDog.size || prev.dog_size,
+        dog_breed: firstDog.breed || "",
+        dog_photo_url: firstDog.photo_url || "",
+        location: firstDog.default_pickup_address || user.address || user.location || user.city || prev.location,
+        owner_name: user.full_name || prev.owner_name,
+        owner_phone: user.phone || user.whatsapp_number || prev.owner_phone,
+        special_notes: selectedDogs.length === 1 
+          ? `${firstDog.dog_name} - ${firstDog.breed || 'SRD'}` 
+          : selectedDogs.map(d => `${d.dog_name} (${d.breed || 'SRD'})`).join(', ')
       }));
     }
-  }, [selectedDogs.length, user?.email]);
+  }, [selectedDogs, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
