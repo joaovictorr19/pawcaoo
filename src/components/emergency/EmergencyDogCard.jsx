@@ -104,11 +104,11 @@ export default function EmergencyDogCard({ walk }) {
           </div>
         </div>
 
-        {/* Owner Info */}
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div>
-            <div className="font-medium text-gray-900">{walk.owner_name}</div>
-            <div>{walk.owner_phone}</div>
+        {/* Owner Info - Hidden for Privacy */}
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <User className="w-4 h-4 text-gray-500" />
+            <span className="font-medium">Informações de contacto disponíveis após aceitar</span>
           </div>
         </div>
 
