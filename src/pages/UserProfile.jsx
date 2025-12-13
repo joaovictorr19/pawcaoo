@@ -54,6 +54,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
                   alt={badge.name} 
                   className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg" 
                   loading="lazy"
+                  decoding="async"
                 />
               ) : badge.image_url ? (
                 <img 
@@ -61,6 +62,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
                   alt={badge.name}
                   className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg rounded-md"
                   loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <span className="text-3xl md:text-4xl z-10 drop-shadow-md">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
@@ -382,11 +384,11 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
-    queryKey: ['userBadges', profileEmail, activeTab],
+    queryKey: ['userBadges', profileEmail],
     queryFn: async () => {
       const badgesMap = new Map();
 
-      // 1. Collect Legacy Badges from Auth User or Profile (combine both fields for safety)
+      // 1. Collect Legacy Badges from Auth User or Profile
       let legacySources = [];
       if (isSelfView && currentUser) {
           legacySources = [
@@ -402,12 +404,12 @@ export default function UserProfile() {
         if (b.badge_id) return b.badge_id;
         if (b.id && !b.id.startsWith('legacy-')) return b.id;
         if (b.name) return b.name.toLowerCase().trim().replace(/\s+/g, '_');
-        return null;
+        return `fallback-${Math.random()}`;
       };
 
       legacySources.forEach(b => {
         const key = getBadgeKey(b);
-        if (key && !badgesMap.has(key)) {
+        if (!badgesMap.has(key)) {
            badgesMap.set(key, { ...b, source: 'legacy' });
         }
       });
@@ -418,19 +420,20 @@ export default function UserProfile() {
           const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
           fromTable.forEach(b => {
             const key = getBadgeKey(b);
-            if (key) {
+            if (!badgesMap.has(key)) {
               badgesMap.set(key, { ...b, source: 'table' });
             }
           });
         } catch (e) {
-          // console.error("Error fetching badges table:", e);
+          console.error("Error fetching badges table:", e);
         }
       }
 
       return Array.from(badgesMap.values());
     },
     enabled: !!profileEmail || !!profileUser,
-    staleTime: 30000,
+    staleTime: 60000,
+    gcTime: 300000,
     refetchOnWindowFocus: false,
     refetchOnMount: false
   });
@@ -469,7 +472,7 @@ export default function UserProfile() {
       const matchName = b.name && definitionNames.has(b.name.toLowerCase().trim());
       
       if (!matchId && !matchName) {
-        const key = b.badge_id || b.name.toLowerCase().trim();
+        const key = b.badge_id || b.name?.toLowerCase().trim() || `unique-${Math.random()}`;
         if (!uniqueLegacyMap.has(key)) {
           uniqueLegacyMap.set(key, {
             ...b,
@@ -492,7 +495,7 @@ export default function UserProfile() {
       if (rA !== rB) return rB - rA;
       return (b.xp || 0) - (a.xp || 0);
     });
-  }, [allBadgeDefinitions, earnedBadges, activeTab]);
+  }, [allBadgeDefinitions, earnedBadges]);
 
   // Optimized Badge Synchronization
   React.useEffect(() => {
@@ -964,7 +967,7 @@ export default function UserProfile() {
         <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
           <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             {profileUser.cover_photo_url && (
-              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" />
+              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
             )}
             {isOwnProfile && (
               <Button
@@ -989,7 +992,7 @@ export default function UserProfile() {
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <div className="relative">
                   <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
-                    <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" loading="lazy" />
+                    <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" loading="lazy" decoding="async" />
                     <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl md:text-4xl">
                       {profileUser.full_name?.[0]?.toUpperCase()}
                     </AvatarFallback>
@@ -1133,17 +1136,37 @@ export default function UserProfile() {
                       {isOwnProfile && <span className="text-[9px] text-blue-500 cursor-pointer hover:underline" onClick={() => handleSlotClick(0)}>Editar</span>}
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 md:gap-2">
-                     {[0, 1, 2, 3].map((slotIdx) => {
-                       const highlightedId = slotIdx === 0 ? profileUser.highlighted_emblem_id : null;
-                       const pinnedId = highlightedId || (
-                         (profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) 
-                           ? profileUser.pinned_badge_ids[slotIdx] 
-                           : null
-                       );
-                       const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
+                    {[0, 1, 2, 3].map((slotIdx) => {
+                      // Priority Logic: highlighted_emblem_id > pinned_badge_ids > fallback (recent/high level)
+                      let badge = null;
+                      let pinnedId = null;
+
+                      // Slot 0: Priority to highlighted_emblem_id
+                      if (slotIdx === 0 && profileUser.highlighted_emblem_id) {
+                        pinnedId = profileUser.highlighted_emblem_id;
+                        badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
+                      }
+
+                      // Fallback to pinned_badge_ids
+                      if (!badge && profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) {
+                        pinnedId = profileUser.pinned_badge_ids[slotIdx];
+                        badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
+                      }
+
+                      // Fallback: Auto-fill with highest rarity/recent badges if empty
+                      if (!badge && slotIdx < earnedBadges.length) {
+                        const sortedBadges = [...earnedBadges].sort((a, b) => {
+                          const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
+                          const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
+                          const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
+                          if (rA !== rB) return rB - rA;
+                          return new Date(b.earned_date || 0) - new Date(a.earned_date || 0);
+                        });
+                        badge = sortedBadges[slotIdx];
+                      }
 
                         return (
-                          <TooltipProvider key={slotIdx} delayDuration={100}>
+                          <TooltipProvider key={`slot-${slotIdx}-${pinnedId || 'empty'}`} delayDuration={100}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div 
@@ -1167,6 +1190,7 @@ export default function UserProfile() {
                                           alt={badge.name} 
                                           className="w-full h-full object-contain p-1 z-10" 
                                           loading="lazy"
+                                          decoding="async"
                                         />
                                       ) : (
                                         <span className="text-xl md:text-2xl z-10 select-none transform group-hover:scale-110 transition-transform">
@@ -1259,7 +1283,7 @@ export default function UserProfile() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="badges" key={`badges-tab-${activeTab}`}>
+          <TabsContent value="badges">
            <Card className="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white border-0 shadow-2xl rounded-2xl">
              <CardHeader className="pb-2 border-b border-white/5">
                <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1268,7 +1292,7 @@ export default function UserProfile() {
                    Galeria de Conquistas
                  </CardTitle>
                  <div className="text-[10px] md:text-xs font-mono text-gray-400 bg-white/5 px-2 md:px-3 py-1 rounded-full border border-white/10">
-                   {earnedBadges.length} / {galleryBadges.length > 0 ? galleryBadges.length : displayBadges.length} Desbloqueados
+                   {earnedBadges.length} Desbloqueados
                  </div>
                </div>
                <p className="text-xs md:text-sm text-gray-400 mt-1">Colecione todos para se tornar uma lenda!</p>
@@ -1277,18 +1301,18 @@ export default function UserProfile() {
                {loadingBadges ? (
                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
                    {[...Array(6)].map((_, i) => (
-                     <div key={i} className="flex flex-col items-center">
+                     <div key={`skeleton-${i}`} className="flex flex-col items-center">
                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gray-800/50 animate-pulse" />
                      </div>
                    ))}
                  </div>
                ) : galleryBadges.length > 0 ? (
                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                   {galleryBadges.map((badge, idx) => (
+                   {galleryBadges.map((badge) => (
                      <BadgeItem 
-                       key={`${badge.id || badge.badge_id}-${idx}`}
+                       key={`gallery-${badge.id || badge.badge_id || badge.name}`}
                        badge={badge} 
-                       idx={idx} 
+                       idx={0}
                        getBadgeImage={getBadgeImage}
                        locked={!badge.isEarned} 
                      />
@@ -1296,11 +1320,11 @@ export default function UserProfile() {
                  </div>
                ) : (
                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                   {displayBadges.map((badge, idx) => (
+                   {displayBadges.map((badge) => (
                      <BadgeItem 
-                       key={`${badge.id || badge.badge_id}-${idx}`}
+                       key={`display-${badge.id || badge.badge_id || badge.name}`}
                        badge={badge} 
-                       idx={idx} 
+                       idx={0}
                        getBadgeImage={getBadgeImage} 
                      />
                    ))}
@@ -1316,7 +1340,7 @@ export default function UserProfile() {
            </Card>
           </TabsContent>
 
-          <TabsContent value="about" key={`about-tab-${activeTab}`}>
+          <TabsContent value="about">
            <Card className="glass-panel border-0 shadow-lg rounded-2xl">
              <CardContent className="pt-4 md:pt-6">
                {profileUser.about_me || profileUser.bio ? (
@@ -1328,7 +1352,7 @@ export default function UserProfile() {
            </Card>
           </TabsContent>
 
-          <TabsContent value="gamification" key={`gamification-tab-${activeTab}`}>
+          <TabsContent value="gamification">
            <Card className={`bg-gradient-to-br ${getTierColor(profileUser.gamification_level || 1)} text-white border-0 shadow-2xl rounded-2xl`}>
              <CardHeader className="pb-3 md:pb-4">
                <CardTitle className="text-2xl md:text-3xl flex items-center gap-2">
@@ -1367,7 +1391,7 @@ export default function UserProfile() {
            </Card>
           </TabsContent>
 
-          <TabsContent value="activity" key={`activity-tab-${activeTab}`}>
+          <TabsContent value="activity">
            <Card className="glass-panel border-0 shadow-lg rounded-2xl">
              <CardHeader><CardTitle className="text-lg md:text-xl">Estatísticas</CardTitle></CardHeader>
              <CardContent>
@@ -1392,19 +1416,19 @@ export default function UserProfile() {
             <ScrollArea className="h-[300px]">
               {followersList.map(f => (
                 <div 
-                  key={f.id} 
-                  className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center gap-3 transition-colors"
-                  onClick={() => {
-                    setShowFollowers(false);
-                    navigate(createPageUrl(`UserProfile?email=${f.follower_email}`));
-                  }}
+                 key={f.id} 
+                 className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                 onClick={() => {
+                   setShowFollowers(false);
+                   navigate(createPageUrl(`UserProfile?email=${f.follower_email}`));
+                 }}
                 >
-                  <Avatar className="w-8 h-8 border border-gray-200">
-                    <AvatarImage src={f.follower_photo_url} />
-                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
-                      {f.follower_name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                 <Avatar className="w-8 h-8 border border-gray-200">
+                   <AvatarImage src={f.follower_photo_url} loading="lazy" decoding="async" />
+                   <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                     {f.follower_name?.charAt(0).toUpperCase()}
+                   </AvatarFallback>
+                 </Avatar>
                   <span className="font-medium text-sm text-gray-700 flex-1 truncate">{f.follower_name}</span>
                   {currentUser && f.follower_email !== currentUser.email && (
                     <Button
@@ -1432,19 +1456,19 @@ export default function UserProfile() {
             <ScrollArea className="h-[300px]">
               {followingList.map(f => (
                 <div 
-                  key={f.id} 
-                  className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center gap-3 transition-colors"
-                  onClick={() => {
-                    setShowFollowing(false);
-                    navigate(createPageUrl(`UserProfile?email=${f.following_email}`));
-                  }}
+                 key={f.id} 
+                 className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                 onClick={() => {
+                   setShowFollowing(false);
+                   navigate(createPageUrl(`UserProfile?email=${f.following_email}`));
+                 }}
                 >
-                  <Avatar className="w-8 h-8 border border-gray-200">
-                    <AvatarImage src={f.following_photo_url} />
-                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
-                      {f.following_name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                 <Avatar className="w-8 h-8 border border-gray-200">
+                   <AvatarImage src={f.following_photo_url} loading="lazy" decoding="async" />
+                   <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                     {f.following_name?.charAt(0).toUpperCase()}
+                   </AvatarFallback>
+                 </Avatar>
                   <span className="font-medium text-sm text-gray-700 flex-1 truncate">{f.following_name}</span>
                   {currentUser && f.following_email !== currentUser.email && (
                     <Button
