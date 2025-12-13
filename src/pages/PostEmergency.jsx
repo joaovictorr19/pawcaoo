@@ -171,7 +171,7 @@ export default function PostEmergency() {
         dog_photo_url: firstDog.photo_url || "",
         location: firstDog.default_pickup_address || user.address || user.location || user.city || prev.location,
         owner_name: user.full_name || prev.owner_name,
-        owner_phone: user.phone || user.whatsapp_number || prev.owner_phone,
+        owner_phone: firstDog.owner_phone || user.phone || user.whatsapp_number || prev.owner_phone,
         special_notes: selectedDogs.length === 1 
           ? `${firstDog.dog_name} - ${firstDog.breed || 'SRD'}` 
           : selectedDogs.map(d => `${d.dog_name} (${d.breed || 'SRD'})`).join(', ')
