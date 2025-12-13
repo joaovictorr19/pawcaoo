@@ -198,6 +198,7 @@ export default function BecomeWalker() {
         experience_years: isNaN(exp) ? 0 : exp,
         age: isNaN(ageNum) ? 0 : ageNum,
         verification_status: "requires_documents",
+      is_active: false,
         is_active: false,
         created_by: user?.email
       });
