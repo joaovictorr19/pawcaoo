@@ -36,6 +36,11 @@ export default function AdminShopHub() {
   const [badgeForm, setBadgeForm] = useState({});
   const [awardingBadge, setAwardingBadge] = useState(null);
   const [awardForm, setAwardForm] = useState({ userEmail: '', xpReward: 0 });
+  
+  // Company Badges
+  const [companyBadgeForm, setCompanyBadgeForm] = useState({});
+  const [awardingCompanyBadge, setAwardingCompanyBadge] = useState(null);
+  const [companyAwardForm, setCompanyAwardForm] = useState({ companyEmail: '' });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -206,6 +211,56 @@ export default function AdminShopHub() {
     },
   });
 
+  const createCompanyBadgeMutation = useMutation({
+    mutationFn: (data) => base44.asServiceRole.entities.BadgeDefinition.create({
+      ...data,
+      badge_type: 'company'
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['adminBadges']);
+      toast.success('Emblema de empresa criado');
+      setCompanyBadgeForm({});
+    },
+  });
+
+  const awardCompanyBadgeMutation = useMutation({
+    mutationFn: async ({ companyEmail, badge }) => {
+      const companies = await base44.asServiceRole.entities.PartnerCompany.filter({ company_email: companyEmail });
+      if (!companies.length) throw new Error('Empresa não encontrada');
+      
+      const targetCompany = companies[0];
+      const currentBadges = targetCompany.company_badges || [];
+      
+      if (currentBadges.some(b => b.badge_id === badge.id)) {
+        throw new Error('Empresa já tem este emblema');
+      }
+      
+      const newBadge = {
+        badge_id: badge.id,
+        name: badge.name,
+        description: badge.description,
+        icon: badge.icon,
+        image_url: badge.image_url,
+        earned_date: new Date().toISOString()
+      };
+      
+      await base44.asServiceRole.entities.PartnerCompany.update(targetCompany.id, {
+        company_badges: [...currentBadges, newBadge]
+      });
+      
+      return targetCompany;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['adminCompanies']);
+      toast.success('Emblema atribuído à empresa');
+      setAwardingCompanyBadge(null);
+      setCompanyAwardForm({ companyEmail: '' });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   if (user?.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -225,7 +280,7 @@ export default function AdminShopHub() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="companies">
               <Building2 className="w-4 h-4 mr-2" />
               Empresas ({companies.length})
@@ -240,7 +295,11 @@ export default function AdminShopHub() {
             </TabsTrigger>
             <TabsTrigger value="badges">
               <Award className="w-4 h-4 mr-2" />
-              Emblemas ({badges.length})
+              Emblemas Utilizador
+            </TabsTrigger>
+            <TabsTrigger value="companyBadges">
+              <Store className="w-4 h-4 mr-2" />
+              Emblemas Empresa
             </TabsTrigger>
           </TabsList>
 
@@ -927,27 +986,26 @@ export default function AdminShopHub() {
               </Dialog>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              {badges.map((badge) => (
+            <div className="grid md:grid-cols-4 gap-3">
+              {badges.filter(b => b.badge_type !== 'company').map((badge) => (
                 <Card key={badge.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="text-3xl">{badge.icon}</div>
-                      <div className="flex-1">
-                        <h3 className="font-bold">{badge.name}</h3>
-                        <Badge variant="outline" className="text-xs">{badge.rarity}</Badge>
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-2xl">{badge.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-sm truncate">{badge.name}</h3>
+                        <Badge variant="outline" className="text-[10px]">{badge.rarity}</Badge>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{badge.description}</p>
-                    <div className="flex justify-end gap-2">
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">{badge.description}</p>
+                    <div className="flex justify-end gap-1">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="bg-green-50 hover:bg-green-100" onClick={() => {
+                          <Button variant="outline" size="sm" className="bg-green-50 hover:bg-green-100 h-7 px-2" onClick={() => {
                             setAwardingBadge(badge);
                             setAwardForm({ userEmail: '', xpReward: badge.xp || 0 });
                           }}>
-                            <Award className="w-4 h-4 mr-1" />
-                            Atribuir
+                            <Award className="w-3 h-3" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
@@ -995,11 +1053,11 @@ export default function AdminShopHub() {
                       </Dialog>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" onClick={() => {
+                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => {
                             setEditingBadge(badge);
                             setBadgeForm(badge);
                           }}>
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3 h-3" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
@@ -1040,13 +1098,146 @@ export default function AdminShopHub() {
                       <Button 
                         variant="destructive" 
                         size="sm"
+                        className="h-7 px-2"
                         onClick={() => {
                           if (confirm('Eliminar este emblema?')) {
                             deleteBadgeMutation.mutate(badge.id);
                           }
                         }}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="companyBadges">
+            <div className="mb-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Emblema de Empresa
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Novo Emblema de Empresa</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Nome</Label>
+                      <Input 
+                        placeholder="Ex: Parceiro Premium"
+                        value={companyBadgeForm.name || ''} 
+                        onChange={(e) => setCompanyBadgeForm({...companyBadgeForm, name: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>Descrição</Label>
+                      <Textarea 
+                        placeholder="Ex: Parceiro verificado de elite"
+                        value={companyBadgeForm.description || ''} 
+                        onChange={(e) => setCompanyBadgeForm({...companyBadgeForm, description: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>Ícone (emoji)</Label>
+                      <Input 
+                        placeholder="Ex: ⭐"
+                        value={companyBadgeForm.icon || ''} 
+                        onChange={(e) => setCompanyBadgeForm({...companyBadgeForm, icon: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>URL da Imagem (opcional)</Label>
+                      <Input 
+                        placeholder="https://..."
+                        value={companyBadgeForm.image_url || ''} 
+                        onChange={(e) => setCompanyBadgeForm({...companyBadgeForm, image_url: e.target.value})}
+                      />
+                    </div>
+                    <Button 
+                      onClick={() => createCompanyBadgeMutation.mutate(companyBadgeForm)}
+                      className="w-full"
+                    >
+                      Criar Emblema
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid md:grid-cols-4 gap-3">
+              {badges.filter(b => b.badge_type === 'company').map((badge) => (
+                <Card key={badge.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-2xl">{badge.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-sm truncate">{badge.name}</h3>
+                        <Badge variant="outline" className="text-[10px]">Empresa</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">{badge.description}</p>
+                    <div className="flex justify-end gap-1">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="bg-green-50 hover:bg-green-100 h-7 px-2" onClick={() => {
+                            setAwardingCompanyBadge(badge);
+                            setCompanyAwardForm({ companyEmail: '' });
+                          }}>
+                            <Award className="w-3 h-3" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Atribuir a Empresa: {badge.name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                              <div className="text-3xl">{badge.icon}</div>
+                              <div>
+                                <p className="font-bold">{badge.name}</p>
+                                <p className="text-xs text-gray-600">{badge.description}</p>
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Email da Empresa</Label>
+                              <Input 
+                                type="email"
+                                placeholder="empresa@example.com"
+                                value={companyAwardForm.companyEmail} 
+                                onChange={(e) => setCompanyAwardForm({...companyAwardForm, companyEmail: e.target.value})}
+                              />
+                            </div>
+                            <Button 
+                              onClick={() => awardCompanyBadgeMutation.mutate({ 
+                                companyEmail: companyAwardForm.companyEmail, 
+                                badge
+                              })}
+                              className="w-full"
+                              disabled={!companyAwardForm.companyEmail || awardCompanyBadgeMutation.isPending}
+                            >
+                              {awardCompanyBadgeMutation.isPending ? 'A atribuir...' : 'Atribuir Emblema'}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        className="h-7 px-2"
+                        onClick={() => {
+                          if (confirm('Eliminar este emblema?')) {
+                            deleteBadgeMutation.mutate(badge.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </CardContent>
