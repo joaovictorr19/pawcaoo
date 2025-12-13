@@ -3,9 +3,41 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Shield, Users, Award, Target, Zap, TrendingUp, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AboutUs() {
   const { language } = useLanguage();
+
+  // Fetch real-time stats
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ['aboutUsStats'],
+    queryFn: async () => {
+      const [walkers, trainers, bookings, reviews, adoptions] = await Promise.all([
+        base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }),
+        base44.entities.TrainerProfile.filter({ is_active: true, verification_status: 'verified' }),
+        base44.entities.Booking.filter({ status: 'completed' }),
+        base44.entities.Review.list(),
+        base44.entities.AdoptionApplication.filter({ status: 'approved' })
+      ]);
+
+      const totalProfessionals = walkers.length + trainers.length;
+      const totalWalks = bookings.length;
+      const avgRating = reviews.length > 0 
+        ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+        : 5.0;
+      
+      return {
+        totalProfessionals,
+        totalWalks,
+        avgRating,
+        adoptedDogs: adoptions.length,
+        happyDogs: totalWalks + adoptions.length
+      };
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const content = {
     pt: {
@@ -42,12 +74,6 @@ export default function AboutUs() {
       ],
 
       statsTitle: "PawCão em Números",
-      stats: [
-        { value: "10,000+", label: "Cães Felizes" },
-        { value: "500+", label: "Profissionais Verificados" },
-        { value: "50,000+", label: "Passeios Realizados" },
-        { value: "4.9/5", label: "Avaliação Média" }
-      ],
 
       whyTitle: "Por Que Escolher o PawCão?",
       whyItems: [
@@ -113,12 +139,6 @@ export default function AboutUs() {
       ],
 
       statsTitle: "PawCão in Numbers",
-      stats: [
-        { value: "10,000+", label: "Happy Dogs" },
-        { value: "500+", label: "Verified Professionals" },
-        { value: "50,000+", label: "Walks Completed" },
-        { value: "4.9/5", label: "Average Rating" }
-      ],
 
       whyTitle: "Why Choose PawCão?",
       whyItems: [
@@ -184,12 +204,6 @@ export default function AboutUs() {
       ],
 
       statsTitle: "PawCão en Números",
-      stats: [
-        { value: "10,000+", label: "Perros Felices" },
-        { value: "500+", label: "Profesionales Verificados" },
-        { value: "50,000+", label: "Paseos Realizados" },
-        { value: "4.9/5", label: "Calificación Promedio" }
-      ],
 
       whyTitle: "¿Por Qué Elegir PawCão?",
       whyItems: [
@@ -323,7 +337,7 @@ export default function AboutUs() {
           </div>
         </motion.div>
 
-        {/* Stats */}
+        {/* Real-Time Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -333,27 +347,87 @@ export default function AboutUs() {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
             {t.statsTitle}
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {t.stats.map((stat, index) => (
+          {loadingStats ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-32 rounded-2xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               <motion.div
-                key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
+                transition={{ duration: 0.4, delay: 0.6 }}
               >
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-blue-600 text-white">
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-blue-600 text-white hover:scale-105 transition-transform">
                   <CardContent className="p-6 text-center">
+                    <TrendingUp className="w-8 h-8 mx-auto mb-3 opacity-80" />
                     <div className="text-3xl md:text-4xl font-extrabold mb-2">
-                      {stat.value}
+                      {stats?.happyDogs?.toLocaleString('pt-PT') || 0}+
                     </div>
                     <div className="text-sm md:text-base text-white/90">
-                      {stat.label}
+                      {language === 'pt' ? 'Cães Felizes' : language === 'es' ? 'Perros Felices' : 'Happy Dogs'}
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
-          </div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+              >
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:scale-105 transition-transform">
+                  <CardContent className="p-6 text-center">
+                    <Users className="w-8 h-8 mx-auto mb-3 opacity-80" />
+                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
+                      {stats?.totalProfessionals?.toLocaleString('pt-PT') || 0}+
+                    </div>
+                    <div className="text-sm md:text-base text-white/90">
+                      {language === 'pt' ? 'Profissionais Verificados' : language === 'es' ? 'Profesionales Verificados' : 'Verified Professionals'}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
+              >
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white hover:scale-105 transition-transform">
+                  <CardContent className="p-6 text-center">
+                    <Heart className="w-8 h-8 mx-auto mb-3 opacity-80" />
+                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
+                      {stats?.totalWalks?.toLocaleString('pt-PT') || 0}+
+                    </div>
+                    <div className="text-sm md:text-base text-white/90">
+                      {language === 'pt' ? 'Passeios Realizados' : language === 'es' ? 'Paseos Realizados' : 'Walks Completed'}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.9 }}
+              >
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-500 to-orange-600 text-white hover:scale-105 transition-transform">
+                  <CardContent className="p-6 text-center">
+                    <Star className="w-8 h-8 mx-auto mb-3 opacity-80 fill-white" />
+                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
+                      {stats?.avgRating || '5.0'}/5
+                    </div>
+                    <div className="text-sm md:text-base text-white/90">
+                      {language === 'pt' ? 'Avaliação Média' : language === 'es' ? 'Calificación Promedio' : 'Average Rating'}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          )}
         </motion.div>
 
         {/* Why Choose */}
