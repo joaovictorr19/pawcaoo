@@ -215,24 +215,25 @@ export default function AdoptionListings({ isEmbedded = false }) {
         )}
 
         {isEmbedded && (
-          <div className="flex justify-between items-center mb-4">
-             <div>
-                <h2 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent mb-1 flex items-center gap-2">
-                  <Home className="w-6 h-6 text-green-600" />
-                  {t('adoptAPet', language)}
-                </h2>
-                <p className="text-sm text-gray-600 font-medium">
-                  <span className="text-green-600 font-bold">{filteredListings.length}</span> {t('petsWaiting', language)}
-                </p>
-             </div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
              <Button
                 onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
-                size="sm"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg order-1 md:order-2"
+                size="default"
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 {t('postForAdoption', language)}
               </Button>
+              
+              <div className="flex-1 order-2 md:order-1 w-full md:w-auto">
+                <Input
+                  type="text"
+                  placeholder={language === 'pt' ? '📍 Cidade...' : '📍 City...'}
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  className="bg-white/95 border-2 border-gray-200 shadow-sm"
+                />
+              </div>
           </div>
         )}
 
