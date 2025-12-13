@@ -110,6 +110,15 @@ export default function AdminShopHub() {
   });
 
   // Announcement Mutations
+  const createAnnouncementMutation = useMutation({
+    mutationFn: (data) => base44.asServiceRole.entities.CompanyAnnouncement.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['adminAnnouncements']);
+      toast.success('Anúncio criado');
+      setAnnouncementForm({});
+    },
+  });
+
   const updateAnnouncementMutation = useMutation({
     mutationFn: ({ id, data }) => base44.asServiceRole.entities.CompanyAnnouncement.update(id, data),
     onSuccess: () => {
@@ -554,6 +563,133 @@ export default function AdminShopHub() {
           </TabsContent>
 
           <TabsContent value="announcements">
+            <div className="mb-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Anúncio
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Novo Anúncio da Plataforma</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Título</Label>
+                      <Input 
+                        value={announcementForm.title || ''} 
+                        onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>Mensagem</Label>
+                      <Textarea 
+                        value={announcementForm.message || ''} 
+                        onChange={(e) => setAnnouncementForm({...announcementForm, message: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>URL da Imagem</Label>
+                      <Input 
+                        value={announcementForm.image_url || ''} 
+                        onChange={(e) => setAnnouncementForm({...announcementForm, image_url: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>Tipo de Promoção</Label>
+                      <Select value={announcementForm.promotion_type} onValueChange={(val) => setAnnouncementForm({...announcementForm, promotion_type: val})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="flash_sale">Flash Sale</SelectItem>
+                          <SelectItem value="new_product">New Product</SelectItem>
+                          <SelectItem value="discount">Discount</SelectItem>
+                          <SelectItem value="points_bonus">Points Bonus</SelectItem>
+                          <SelectItem value="free_gift">Free Gift</SelectItem>
+                          <SelectItem value="seasonal">Seasonal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Desconto (%)</Label>
+                        <Input 
+                          type="number" 
+                          value={announcementForm.discount_percentage || ''} 
+                          onChange={(e) => setAnnouncementForm({...announcementForm, discount_percentage: parseInt(e.target.value)})}
+                        />
+                      </div>
+                      <div>
+                        <Label>Tier de Destaque</Label>
+                        <Select value={announcementForm.featured_tier} onValueChange={(val) => setAnnouncementForm({...announcementForm, featured_tier: val})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="basic">Basic</SelectItem>
+                            <SelectItem value="premium">Premium</SelectItem>
+                            <SelectItem value="exclusive">Exclusive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Data Início</Label>
+                        <Input 
+                          type="date" 
+                          value={announcementForm.start_date || ''} 
+                          onChange={(e) => setAnnouncementForm({...announcementForm, start_date: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label>Data Fim</Label>
+                        <Input 
+                          type="date" 
+                          value={announcementForm.end_date || ''} 
+                          onChange={(e) => setAnnouncementForm({...announcementForm, end_date: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={announcementForm.is_active !== false}
+                          onChange={(e) => setAnnouncementForm({...announcementForm, is_active: e.target.checked})}
+                        />
+                        Ativo
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={announcementForm.is_featured || false}
+                          onChange={(e) => setAnnouncementForm({...announcementForm, is_featured: e.target.checked})}
+                        />
+                        Featured
+                      </label>
+                    </div>
+                    <Button 
+                      onClick={() => createAnnouncementMutation.mutate({
+                        ...announcementForm,
+                        company_id: 'platform',
+                        company_name: 'PawCão',
+                        company_email: 'admin@pawcao.net',
+                        moderation_status: 'approved'
+                      })}
+                      className="w-full"
+                    >
+                      Criar Anúncio
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
             <div className="grid gap-4">
               {announcements.map((announcement) => (
                 <Card key={announcement.id} className="hover:shadow-lg transition-shadow">
