@@ -89,35 +89,12 @@ function ShopTab({ language }) {
 
   return (
     <div className="space-y-8">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <h2 className="text-3xl md:text-4xl font-black text-gray-700 mb-3">
-          {language === 'pt' ? '🛍️ Loja PawCão' : language === 'es' ? '🛍️ Tienda PawCão' : '🛍️ PawCão Shop'}
-        </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          {language === 'pt' 
-            ? 'Descubra promoções exclusivas e serviços dos nossos parceiros de confiança' 
-            : 'Discover exclusive deals from our trusted partners'}
-        </p>
-      </motion.div>
-
       {loadingAnnouncements ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-80 rounded-2xl" />)}
         </div>
       ) : featuredAnnouncements.length > 0 ? (
         <div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Star className="w-6 h-6 text-white fill-white" />
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {language === 'pt' ? 'Promoções em Destaque' : 'Featured Deals'}
-            </h3>
-          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredAnnouncements.map((announcement, idx) => (
               <motion.div
@@ -172,9 +149,6 @@ function ShopTab({ language }) {
         </div>
       ) : products.length > 0 ? (
         <div>
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-6">
-            {language === 'pt' ? 'Produtos em Destaque' : 'Featured Products'}
-          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {products.map((product, idx) => (
               <motion.div
@@ -227,9 +201,6 @@ function ShopTab({ language }) {
         </div>
       ) : partners.length > 0 ? (
         <div>
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-6">
-            {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
-          </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {partners.map((partner, idx) => (
               <motion.div
