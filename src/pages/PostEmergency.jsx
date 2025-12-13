@@ -102,7 +102,7 @@ export default function PostEmergency() {
         }));
       }
     }
-  }, [dogId, myDogs.length, user?.email]);
+  }, [myDogs.length, user?.email]);
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
