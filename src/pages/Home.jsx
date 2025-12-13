@@ -1095,7 +1095,7 @@ export default function Home() {
                         </div>
                       ))}
                       <div
-                        onClick={() => navigate(createPageUrl('AccountSettings'))}
+                        onClick={() => navigate(createPageUrl('AccountSettings?tab=dogs'))}
                         className="flex-shrink-0 w-16 cursor-pointer"
                       >
                         <motion.div
