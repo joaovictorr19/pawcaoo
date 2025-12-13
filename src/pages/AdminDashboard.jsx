@@ -3395,8 +3395,11 @@ export default function AdminDashboard() {
                   </Select>
                 </div>
 
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">Badges Públicos Atuais:</h4>
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Award className="w-4 h-4 text-purple-600" />
+                    Badges Públicos ({selectedUserForBadges.public_badges?.length || 0})
+                  </h4>
                   {selectedUserForBadges.public_badges?.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {selectedUserForBadges.public_badges.map((badge, idx) => (
@@ -3423,8 +3426,64 @@ export default function AdminDashboard() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600">Nenhum badge customizado</p>
+                    <p className="text-sm text-gray-600">Nenhum badge atribuído</p>
                   )}
+                </div>
+
+                {/* XP Management */}
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-yellow-600" />
+                    Gestão de XP
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm">XP Atual</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="number"
+                          value={selectedUserForBadges.gamification_xp || 0}
+                          onChange={(e) => {
+                            const newXP = parseInt(e.target.value) || 0;
+                            setSelectedUserForBadges({
+                              ...selectedUserForBadges,
+                              gamification_xp: newXP
+                            });
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await base44.entities.User.update(selectedUserForBadges.id, {
+                                gamification_xp: selectedUserForBadges.gamification_xp || 0
+                              });
+
+                              // Sync to UserProfile
+                              const profiles = await base44.entities.UserProfile.filter({ user_email: selectedUserForBadges.email });
+                              if (profiles.length > 0) {
+                                await base44.entities.UserProfile.update(profiles[0].id, {
+                                  gamification_xp: selectedUserForBadges.gamification_xp || 0
+                                });
+                              }
+
+                              queryClient.invalidateQueries(['allUsers']);
+                              toast.success("XP atualizado!");
+                            } catch (error) {
+                              toast.error("Erro ao atualizar XP");
+                            }
+                          }}
+                          className="bg-yellow-600 hover:bg-yellow-700"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 bg-white p-2 rounded border">
+                      💡 Dica: Use +/- para ajustar ou digite o valor exato. Clique no botão de check para salvar.
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
