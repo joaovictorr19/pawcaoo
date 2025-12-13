@@ -148,8 +148,9 @@ export default function OwnerSubscriptions() {
       exclusiveWalkers: false,
       features: [
         "Perfil completo",
-        "1 ponto por cada €1 gasto na loja",
+        "1 ponto por cada €1 na loja",
         "Sem cashback",
+        "80% reembolso (confirmados)",
         "Suporte email"
       ]
     },
@@ -175,6 +176,7 @@ export default function OwnerSubscriptions() {
         "5% cashback em compras",
         "1 passeio grátis/mês (até €15)",
         "2 cancelamentos grátis/mês",
+        "80% reembolso (confirmados)",
         "Suporte rápido"
       ]
     },
@@ -199,6 +201,7 @@ export default function OwnerSubscriptions() {
         "10% cashback em compras",
         "2 passeios grátis/mês (até €15)",
         "5 cancelamentos/mês",
+        "💯 Reembolso 100% sempre",
         "Prioridade agenda",
         "Seguro incluído",
         "Suporte 24/7"
@@ -224,7 +227,8 @@ export default function OwnerSubscriptions() {
         "3 pontos por cada €1 na loja",
         "15% cashback em compras",
         "3 passeios grátis/mês (até €15)",
-        "Cancelamentos ilimitados",
+        "♾️ Cancelamentos ilimitados",
+        "💯 Reembolso 100% sempre",
         "1 banho grátis/mês",
         "Prioridade máxima",
         "Suporte dedicado",
@@ -357,9 +361,25 @@ export default function OwnerSubscriptions() {
                     </div>
 
                     {plan.cashbackRate > 0 && (
-                      <div className="mb-4 p-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg">
+                      <div className="mb-2 p-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg">
                         <p className="text-sm font-bold text-green-700 text-center">
                           💰 {plan.cashbackRate}% Cashback em Compras
+                        </p>
+                      </div>
+                    )}
+
+                    {plan.type === 'premium' && (
+                      <div className="mb-2 p-2 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-300 rounded-lg">
+                        <p className="text-xs font-bold text-purple-700 text-center">
+                          💯 Reembolso Total em Cancelamentos
+                        </p>
+                      </div>
+                    )}
+
+                    {plan.type === 'vip' && (
+                      <div className="mb-2 p-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-400 rounded-lg">
+                        <p className="text-xs font-bold text-yellow-700 text-center">
+                          ♾️ Cancelamentos Ilimitados + Reembolso 100%
                         </p>
                       </div>
                     )}
@@ -451,11 +471,25 @@ export default function OwnerSubscriptions() {
                           <td className="text-center py-2 px-2 font-bold">3x</td>
                         </tr>
                         <tr className="border-b border-gray-100">
-                          <td className="py-2 px-2">Cancelamentos</td>
+                          <td className="py-2 px-2">Cancelamentos Grátis</td>
                           <td className="text-center py-2 px-2">0</td>
                           <td className="text-center py-2 px-2 bg-blue-50">2/mês</td>
                           <td className="text-center py-2 px-2">5/mês</td>
                           <td className="text-center py-2 px-2 text-green-600 font-bold">∞</td>
+                        </tr>
+                        <tr className="border-b border-gray-100">
+                          <td className="py-2 px-2">Reembolso (Confirmados)</td>
+                          <td className="text-center py-2 px-2">80%</td>
+                          <td className="text-center py-2 px-2 bg-blue-50">80%</td>
+                          <td className="text-center py-2 px-2 font-bold text-green-600">100%</td>
+                          <td className="text-center py-2 px-2 font-bold text-green-600">100%</td>
+                        </tr>
+                        <tr className="border-b border-gray-100">
+                          <td className="py-2 px-2">Reembolso (Pendentes)</td>
+                          <td className="text-center py-2 px-2 font-bold text-green-600">100%</td>
+                          <td className="text-center py-2 px-2 bg-blue-50 font-bold text-green-600">100%</td>
+                          <td className="text-center py-2 px-2 font-bold text-green-600">100%</td>
+                          <td className="text-center py-2 px-2 font-bold text-green-600">100%</td>
                         </tr>
                         <tr className="border-b border-gray-100">
                           <td className="py-2 px-2">Seguro</td>
