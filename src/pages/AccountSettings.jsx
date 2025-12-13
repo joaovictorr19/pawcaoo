@@ -29,6 +29,7 @@ export default function AccountSettings() {
   
   const [activeSection, setActiveSection] = useState(tabFromUrl || "profile");
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showDogModal, setShowDogModal] = useState(false);
   const coverInputRef = React.useRef(null);
 
