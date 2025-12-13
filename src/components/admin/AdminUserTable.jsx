@@ -220,7 +220,7 @@ export default function AdminUserTable({
             </div>
 
             {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto table-container">
               <Table>
                 <TableHeader className="bg-gray-50/80 sticky top-0">
                   <TableRow className="hover:bg-transparent">

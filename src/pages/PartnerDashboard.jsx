@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Store, Package, Megaphone, CheckCircle, Clock,
-  Plus, Trash, Eye, Calendar, AlertCircle, X, Upload, ShoppingBag, BarChart3
+  Plus, Trash, Eye, Calendar, AlertCircle, X, Upload, ShoppingBag, BarChart3, Users
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
