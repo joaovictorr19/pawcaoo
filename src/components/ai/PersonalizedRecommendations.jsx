@@ -177,8 +177,8 @@ export default function PersonalizedRecommendations({ user }) {
                 </div>
               </div>
               
-              <div className="bg-purple-50 p-2 rounded-lg mb-2">
-                <p className="text-xs text-purple-800 flex gap-1.5 items-start leading-tight">
+              <div className="bg-blue-50 p-2 rounded-lg mb-2">
+                <p className="text-xs text-blue-800 flex gap-1.5 items-start leading-tight">
                   <ThumbsUp className="w-3 h-3 flex-shrink-0 mt-0.5" />
                   <span className="italic">"{rec.ai_reason}"</span>
                 </p>
