@@ -497,10 +497,17 @@ export default function Home() {
       try {
         const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20);
         if (!Array.isArray(res)) return [];
-        // Remove duplicates by ID
-        const uniqueWalks = Array.from(
-          new Map(res.map(walk => [walk.id, walk])).values()
-        );
+        
+        const uniqueWalks = [];
+        const seenIds = new Set();
+        
+        for (const walk of res) {
+          if (!seenIds.has(walk.id)) {
+            uniqueWalks.push(walk);
+            seenIds.add(walk.id);
+          }
+        }
+        
         return uniqueWalks;
       } catch (error) {
         console.error("Emergency walks fetch error:", error);
@@ -803,13 +810,23 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
     
-    return emergencyWalks.filter(walk => {
-      const matchesLocation = !searchLocation || 
-        walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
-      const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
-      
-      return matchesLocation && matchesSize;
-    });
+    const uniqueWalks = [];
+    const seenIds = new Set();
+    
+    for (const walk of emergencyWalks) {
+      if (!seenIds.has(walk.id)) {
+        const matchesLocation = !searchLocation || 
+          walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
+        const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
+        
+        if (matchesLocation && matchesSize) {
+          uniqueWalks.push(walk);
+          seenIds.add(walk.id);
+        }
+      }
+    }
+    
+    return uniqueWalks;
   }, [emergencyWalks, searchLocation, filterSize]);
 
   // Pagination Logic
@@ -1857,8 +1874,8 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {filteredEmergencyWalks.map((walk, idx) => (
-                        <EmergencyDogCard key={`${walk.id}-${idx}`} walk={walk} />
+                      {filteredEmergencyWalks.map((walk) => (
+                        <EmergencyDogCard key={walk.id} walk={walk} />
                       ))}
                     </div>
                   )}
