@@ -2,10 +2,13 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, DollarSign, Zap, AlertCircle } from "lucide-react";
+import { MapPin, Clock, DollarSign, Zap, AlertCircle, User, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useTheme } from "@/components/ThemeContext";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function EmergencyDogCard({ walk }) {
   const navigate = useNavigate();
@@ -139,13 +142,32 @@ export default function EmergencyDogCard({ walk }) {
           </div>
         )}
 
-        <Button 
-          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-12 text-base font-semibold"
-          onClick={() => navigate(createPageUrl(`EmergencyWalkDetails?id=${walk.id}`))}
-        >
-          <Zap className="w-5 h-5 mr-2" />
-          Accept This Walk
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-12 text-base font-semibold"
+            onClick={() => navigate(createPageUrl(`EmergencyWalkDetails?id=${walk.id}`))}
+          >
+            <Zap className="w-5 h-5 mr-2" />
+            Accept This Walk
+          </Button>
+          
+          {(user?.role === 'admin' || walk.created_by === user?.email) && (
+            <Button 
+              variant="destructive"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm('Tem certeza que deseja apagar este pedido?')) {
+                  deleteWalkMutation.mutate(walk.id);
+                }
+              }}
+              disabled={deleteWalkMutation.isPending}
+              className="shadow-lg h-12 w-12"
+            >
+              <Trash2 className="w-5 h-5" />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
