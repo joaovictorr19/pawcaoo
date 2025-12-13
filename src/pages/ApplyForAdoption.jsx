@@ -38,6 +38,7 @@ export default function ApplyForAdoption() {
       return listings.find(l => l.id === listingId);
     },
     enabled: !!listingId,
+    retry: false,
   });
 
   const [formData, setFormData] = useState({
