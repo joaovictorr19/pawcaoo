@@ -306,26 +306,34 @@ export default function Gamification() {
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
                    style={{ background: colors?.primary }}></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="relative">
-                    <div className="absolute inset-0 blur-lg opacity-50" 
-                         style={{ background: colors?.primary }}></div>
-                    <div className="relative text-5xl filter drop-shadow-lg">{currentTier.icon}</div>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
-                      {currentTier.name}
-                    </h2>
-                    <p className="text-sm text-gray-600 font-medium">Nível {currentLevel}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-16 h-16">
+                      <div className="absolute inset-0 blur-lg opacity-50" 
+                           style={{ background: colors?.primary }}></div>
+                      <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-4xl font-black text-white shadow-xl"
+                           style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}>
+                        {currentTier.icon}
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
+                        {currentTier.name}
+                      </h2>
+                      <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
+                        <Star className="w-3 h-3" />
+                        Nível {currentLevel}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="relative mt-4 text-center rounded-2xl p-4 overflow-hidden">
+                <div className="relative mt-4 text-center rounded-2xl p-4 overflow-hidden border border-gray-200">
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
                   <div className="relative z-10">
                     <div className="text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
                       {currentXP.toLocaleString('pt-PT')}
                     </div>
-                    <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">Total XP</div>
+                    <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">Experiência Total</div>
                   </div>
                 </div>
               </div>
