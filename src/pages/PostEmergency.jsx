@@ -106,24 +106,28 @@ export default function PostEmergency() {
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
+      console.log('🚀 Creating single emergency walk...');
       const walk = await base44.entities.EmergencyWalk.create({
         ...walkData,
         status: 'available',
         payment_status: 'pending'
       });
 
+      console.log('✅ Emergency walk created with ID:', walk.id);
+
       // Notify all active walkers about emergency
       await NotificationService.emergencyWalkPosted({ walk });
 
       return walk;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Success - Walk ID:', data.id);
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
       toast.success('Passeio de emergência publicado! Walkers próximos foram notificados. 🚀');
       navigate(createPageUrl('Home'));
     },
     onError: (error) => {
-      console.error("Error posting emergency walk:", error);
+      console.error("❌ Error posting emergency walk:", error);
       toast.error(t('emergencyPostFailed', language));
     }
   });
@@ -177,7 +181,14 @@ export default function PostEmergency() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🚀 Emergency walk submit initiated');
+    
+    // Prevent duplicate submissions
+    if (createEmergencyWalkMutation.isPending) {
+      console.log('⚠️ Submission already in progress, blocking duplicate');
+      return;
+    }
+    
+    console.log('🚀 Emergency walk submit initiated - SINGLE REQUEST');
     
     // Validações
     if (selectedDogs.length === 0 && !formData.dog_name) {
@@ -219,30 +230,25 @@ export default function PostEmergency() {
           dog_breed: formData.dog_breed
         }];
     
-    console.log('📋 Submitting emergency walk data:', { ...formData, dogs, total_dogs: dogs.length });
+    const walkData = {
+      owner_name: formData.owner_name,
+      owner_phone: formData.owner_phone,
+      location: formData.location,
+      needed_time: formData.needed_time,
+      duration_hours: parseFloat(formData.duration_hours),
+      offered_amount: parseFloat(formData.offered_amount),
+      special_notes: formData.special_notes,
+      urgency_level: formData.urgency_level,
+      dogs: dogs,
+      total_dogs: dogs.length,
+      dog_name: dogs[0].dog_name,
+      dog_photo_url: dogs[0].dog_photo_url,
+      dog_size: dogs[0].dog_size,
+      dog_breed: dogs[0].dog_breed
+    };
     
-    try {
-      await createEmergencyWalkMutation.mutateAsync({
-        owner_name: formData.owner_name,
-        owner_phone: formData.owner_phone,
-        location: formData.location,
-        needed_time: formData.needed_time,
-        duration_hours: parseFloat(formData.duration_hours),
-        offered_amount: parseFloat(formData.offered_amount),
-        special_notes: formData.special_notes,
-        urgency_level: formData.urgency_level,
-        dogs: dogs,
-        total_dogs: dogs.length,
-        // Legacy fields for compatibility
-        dog_name: dogs[0].dog_name,
-        dog_photo_url: dogs[0].dog_photo_url,
-        dog_size: dogs[0].dog_size,
-        dog_breed: dogs[0].dog_breed
-      });
-    } catch (error) {
-      console.error('❌ Error submitting emergency walk:', error);
-      toast.error("Erro ao publicar passeio de emergência. Tente novamente.");
-    }
+    console.log('📋 Submitting SINGLE emergency walk:', walkData);
+    createEmergencyWalkMutation.mutate(walkData);
   };
 
   return (
