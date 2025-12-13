@@ -9,6 +9,22 @@ import { useTheme } from "@/components/ThemeContext";
 
 export default function EmergencyDogCard({ walk }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const deleteWalkMutation = useMutation({
+    mutationFn: async (id) => {
+      await base44.entities.EmergencyWalk.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
+      toast.success("Pedido de emergência apagado com sucesso.");
+    },
+  });
   const { colors } = useTheme();
 
   const getSizeLabel = (size) => {
