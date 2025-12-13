@@ -412,6 +412,7 @@ export default function PostEmergency() {
               {/* Owner Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4 space-y-3">
                 <Label className="text-sm font-semibold block text-blue-900">👤 Seus Dados</Label>
+                <div className="grid md:grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="owner_name" className="text-xs">Seu Nome *</Label>
                     <Input
@@ -439,6 +440,7 @@ export default function PostEmergency() {
               {/* Walk Details */}
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 md:p-4 space-y-3">
                 <Label className="text-sm font-semibold block text-orange-900">📍 Detalhes do Passeio</Label>
+                <div className="grid md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
                     <Label htmlFor="location" className="text-xs">Local de Recolha *</Label>
                     <Input
