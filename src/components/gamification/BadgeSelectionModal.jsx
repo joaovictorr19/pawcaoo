@@ -14,8 +14,8 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[80vh] bg-white border-0 shadow-2xl overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <Trophy className="w-5 h-5 text-yellow-500" />
             Escolher Emblema
@@ -25,7 +25,7 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="h-[400px] pr-4 mt-2">
+        <ScrollArea className="flex-1 overflow-y-auto pr-4 mt-2">
           {earnedBadges.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center text-gray-500 space-y-3">
               <div className="bg-gray-100 p-4 rounded-full">
@@ -45,17 +45,17 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
                     key={`${badgeId}-${idx}`}
                     onClick={() => handleBadgeClick(badge)}
                     className={`
-                      relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200
+                      relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 min-h-[44px] touch-manipulation
                       ${isEquipped 
                         ? 'border-green-500 bg-green-50 cursor-default' 
-                        : 'border-gray-100 hover:border-blue-300 hover:bg-blue-50 cursor-pointer hover:shadow-md'
+                        : 'border-gray-100 hover:border-blue-300 hover:bg-blue-50 cursor-pointer hover:shadow-md active:scale-95'
                       }
                     `}
                   >
                     {/* Equipped Indicator */}
                     {isEquipped && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-0.5 shadow-sm z-10">
-                        <Check className="w-3 h-3" />
+                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5 shadow-sm z-50 min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
+                        <Check className="w-4 h-4" />
                       </div>
                     )}
 

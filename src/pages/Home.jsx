@@ -1921,23 +1921,14 @@ export default function Home() {
                   : 'Earn money doing what you love. Become a certified walker or trainer.'}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex justify-center">
                 <Button
                   size="default"
-                  onClick={() => navigate(createPageUrl('BecomeWalker'))}
+                  onClick={() => navigate(createPageUrl('BecomeProfessional'))}
                   className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
                 >
-                  <Dog className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Tornar-me Passeador' : 'Become a Walker'}
-                </Button>
-                
-                <Button
-                  size="default"
-                  onClick={() => navigate(createPageUrl('BecomeTrainer'))}
-                  className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
-                >
-                  <Award className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Tornar-me Treinador' : 'Become a Trainer'}
+                  <Users className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
                 </Button>
               </div>
             </div>

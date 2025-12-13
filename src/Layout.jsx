@@ -260,7 +260,9 @@ function LayoutContent({ children, currentPageName }) {
     ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
       { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
       { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock }
-    ] : [])
+    ] : [
+      { title: getMenuText('becomeProfessional'), url: createPageUrl("BecomeProfessional"), icon: PlusCircle }
+    ])
   ];
 
   const myActivityMenu = [
@@ -273,7 +275,6 @@ function LayoutContent({ children, currentPageName }) {
   ];
 
   const professionalMenu = [
-    { title: language === 'pt' ? 'Tornar-me Profissional' : language === 'es' ? 'Ser Profesional' : 'Become Professional', url: createPageUrl("BecomeProfessional"), icon: PlusCircle },
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown }
   ];
 
@@ -814,8 +815,8 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </SidebarGroup>
 
-            {/* PROFISSIONAL - Only show if user is walker/trainer/both */}
-            {authUser && (authUser.account_type === 'walker' || authUser.account_type === 'trainer' || authUser.account_type === 'both' || authUser.role === 'admin') && (
+            {/* PROFISSIONAL */}
+            {authUser && (
             <SidebarGroup>
               <SidebarGroupLabel 
                 className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
@@ -823,7 +824,7 @@ function LayoutContent({ children, currentPageName }) {
                 }`}
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
-                <span>{getMenuText('becomeProfessional')}</span>
+                <span>{language === 'pt' ? 'Serviços' : 'Services'}</span>
                 <span className={`transition-transform duration-300 ${professionalServicesExpanded ? 'rotate-90' : ''}`}>▶</span>
               </SidebarGroupLabel>
               {professionalServicesExpanded && (
