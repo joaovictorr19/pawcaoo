@@ -496,27 +496,34 @@ export default function Home() {
     queryFn: async () => {
       try {
         const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20);
-        if (!Array.isArray(res)) return [];
+        if (!Array.isArray(res)) {
+          console.log('⚠️ EmergencyWalks: não é array');
+          return [];
+        }
         
-        const uniqueWalks = [];
-        const seenIds = new Set();
+        console.log('📊 EmergencyWalks RAW count:', res.length);
         
+        // Deduplicação robusta usando Map
+        const uniqueMap = new Map();
         for (const walk of res) {
-          if (!seenIds.has(walk.id)) {
-            uniqueWalks.push(walk);
-            seenIds.add(walk.id);
+          if (walk.id && !uniqueMap.has(walk.id)) {
+            uniqueMap.set(walk.id, walk);
           }
         }
         
+        const uniqueWalks = Array.from(uniqueMap.values());
+        console.log('✅ EmergencyWalks UNIQUE count:', uniqueWalks.length);
+        
         return uniqueWalks;
       } catch (error) {
-        console.error("Emergency walks fetch error:", error);
+        console.error("❌ Emergency walks fetch error:", error);
         return [];
       }
     },
     initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 30 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // Stats em tempo real
@@ -810,23 +817,18 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
     
-    const uniqueWalks = [];
-    const seenIds = new Set();
+    // Aplicar apenas filtros - deduplicação já foi feita na query
+    const filtered = emergencyWalks.filter(walk => {
+      const matchesLocation = !searchLocation || 
+        walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
+      const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
+      
+      return matchesLocation && matchesSize;
+    });
     
-    for (const walk of emergencyWalks) {
-      if (!seenIds.has(walk.id)) {
-        const matchesLocation = !searchLocation || 
-          walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
-        const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
-        
-        if (matchesLocation && matchesSize) {
-          uniqueWalks.push(walk);
-          seenIds.add(walk.id);
-        }
-      }
-    }
+    console.log('🔍 Filtered EmergencyWalks:', filtered.length);
     
-    return uniqueWalks;
+    return filtered;
   }, [emergencyWalks, searchLocation, filterSize]);
 
   // Pagination Logic
