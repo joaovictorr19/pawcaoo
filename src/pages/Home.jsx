@@ -506,6 +506,20 @@ export default function Home() {
     staleTime: 30000,
   });
 
+  const { data: adoptionListings, isLoading: loadingAdoptions } = useQuery({
+    queryKey: ['adoptionListingsHome'],
+    queryFn: async () => {
+      try {
+        const res = await base44.entities.AdoptionListing.filter({ status: 'available' }, '-created_date', 12);
+        return Array.isArray(res) ? res : [];
+      } catch (error) {
+        console.error("Adoption listings fetch error:", error);
+        return [];
+      }
+    },
+    initialData: [],
+  });
+
   // Stats em tempo real
   // Featured items for floating elements
   const { data: featuredWalkers = [] } = useQuery({
@@ -1660,25 +1674,103 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="adoption">
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Heart className="w-10 h-10 text-pink-500" />
+                <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                        {language === 'pt' ? 'Pets Disponíveis para Adoção' : 'Pets Available for Adoption'}
+                      </h2>
+                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1 flex items-center gap-1">
+                        <Heart className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                        {adoptionListings.length} {language === 'pt' ? 'pets precisando de um lar' : 'pets needing a home'}
+                      </p>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      {language === 'pt' ? 'Encontre o seu novo melhor amigo' : 'Find your new best friend'}
-                    </p>
                     <Button
-                      size="lg"
+                      size="sm"
                       onClick={() => navigate(createPageUrl('AdoptionListings'))}
-                      className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
+                      className="bg-pink-600 hover:bg-pink-700 text-white"
                     >
-                      <Heart className="w-5 h-5 mr-2" />
-                      {language === 'pt' ? 'Ver Pets Disponíveis' : 'View Available Pets'}
+                      {language === 'pt' ? 'Ver Todos' : 'View All'}
                     </Button>
                   </div>
+
+                  {loadingAdoptions ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div key={`adoption-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : adoptionListings.length === 0 ? (
+                    <div className="text-center py-12 md:py-16">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <Heart className="w-8 h-8 md:w-10 md:h-10 text-pink-500" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                        {language === 'pt' ? 'Nenhum pet disponível no momento' : 'No pets available at the moment'}
+                      </h3>
+                      <p className="text-sm md:text-base text-gray-600">
+                        {language === 'pt' ? 'Volte em breve para ver novos pets!' : 'Check back soon for new pets!'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {adoptionListings.map((listing, idx) => (
+                        <motion.div
+                          key={listing.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <Card 
+                            className="border-0 shadow-xl hover:shadow-2xl transition-all cursor-pointer group"
+                            onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
+                          >
+                            <div className="relative h-48 bg-gray-200 overflow-hidden">
+                              {listing.primary_photo_url || (listing.photos && listing.photos[0]) ? (
+                                <img
+                                  src={listing.primary_photo_url || listing.photos[0]}
+                                  alt={listing.pet_name}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-6xl">
+                                  {listing.pet_type === 'dog' ? '🐕' : listing.pet_type === 'cat' ? '🐱' : '🐾'}
+                                </div>
+                              )}
+                              {listing.urgency_level === 'critical' && (
+                                <Badge className="absolute top-3 left-3 bg-red-600 text-white shadow-lg">
+                                  🚨 Urgente
+                                </Badge>
+                              )}
+                            </div>
+
+                            <CardContent className="p-4">
+                              <h3 className="text-lg font-bold mb-1">{listing.pet_name || 'Pet'}</h3>
+                              <p className="text-sm text-gray-600 mb-2">
+                                {listing.breed} • {listing.gender === 'male' ? '♂️' : '♀️'}
+                              </p>
+                              {listing.age_years !== undefined && (
+                                <p className="text-xs text-gray-500 mb-2">
+                                  {listing.age_years} {listing.age_years === 1 ? 'ano' : 'anos'}
+                                  {listing.age_months > 0 && ` e ${listing.age_months} ${listing.age_months === 1 ? 'mês' : 'meses'}`}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-500 mb-3">📍 {listing.location_city}</p>
+
+                              {listing.adoption_fee > 0 && (
+                                <p className="text-sm font-bold text-pink-600">Taxa: €{listing.adoption_fee}</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="emergency">
