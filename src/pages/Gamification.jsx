@@ -687,13 +687,13 @@ export default function Gamification() {
                   variant={activeCategory === cat ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveCategory(cat)}
-                  className={activeCategory === cat ? `bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white border-0` : ""}
+                  className={activeCategory === cat ? `bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white border-0 shadow-lg font-bold` : "font-semibold"}
                 >
-                  {cat === 'all' && '🌟 Todos'}
-                  {cat === 'social' && '💬 Social'}
-                  {cat === 'activity' && '🎯 Atividade'}
-                  {cat === 'milestone' && '🏆 Marcos'}
-                  {cat === 'special' && '✨ Especial'}
+                  {cat === 'all' && 'Todos'}
+                  {cat === 'social' && 'Social'}
+                  {cat === 'activity' && 'Atividade'}
+                  {cat === 'milestone' && 'Marcos'}
+                  {cat === 'special' && 'Especial'}
                 </Button>
               ))}
             </div>
