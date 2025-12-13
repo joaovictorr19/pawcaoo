@@ -803,12 +803,7 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
     
-    // Remove duplicates by ID
-    const uniqueWalks = Array.from(
-      new Map(emergencyWalks.map(walk => [walk.id, walk])).values()
-    );
-    
-    return uniqueWalks.filter(walk => {
+    return emergencyWalks.filter(walk => {
       const matchesLocation = !searchLocation || 
         walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
       const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
@@ -1862,8 +1857,8 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {filteredEmergencyWalks.map((walk) => (
-                        <EmergencyDogCard key={walk.id} walk={walk} />
+                      {filteredEmergencyWalks.map((walk, idx) => (
+                        <EmergencyDogCard key={`${walk.id}-${idx}`} walk={walk} />
                       ))}
                     </div>
                   )}
