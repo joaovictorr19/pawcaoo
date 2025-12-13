@@ -1022,30 +1022,32 @@ function LayoutContent({ children, currentPageName }) {
                 </div>
               )}
 
-              <div className="flex-1 md:hidden"></div>
+              <div className="flex-1"></div>
 
-              {!authUser && (
-                <Button 
-                  onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm"
-                  size="sm"
-                >
-                  {getMenuText('login')}
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
+                      <Globe className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
-                    <Globe className="w-4 h-4" />
+                {!authUser && (
+                  <Button 
+                    onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm"
+                    size="sm"
+                  >
+                    {getMenuText('login')}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+              </div>
               </div>
               </header>
 
