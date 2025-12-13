@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Clock, DollarSign, Phone, AlertCircle, Zap, User } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, DollarSign, Phone, AlertCircle, Zap, User, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +46,17 @@ export default function EmergencyWalkDetails() {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
       toast.success("Walk accepted! The owner will contact you shortly.");
       navigate(createPageUrl('MyBookings'));
+    },
+  });
+
+  const deleteWalkMutation = useMutation({
+    mutationFn: async (id) => {
+      await base44.entities.EmergencyWalk.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
+      toast.success("Emergency walk deleted successfully.");
+      navigate(createPageUrl('Home'));
     },
   });
 
@@ -243,20 +253,38 @@ export default function EmergencyWalkDetails() {
               </div>
             )}
 
-            <Button 
-              className="w-full md:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-16 px-12 text-xl font-semibold"
-              onClick={handleAcceptWalk}
-              disabled={isAccepting}
-            >
-              {isAccepting ? (
-                "Accepting Walk..."
-              ) : (
-                <>
-                  <Zap className="w-6 h-6 mr-3" />
-                  Accept This Emergency Walk
-                </>
+            <div className="flex flex-col md:flex-row gap-3">
+              <Button 
+                className="flex-1 md:flex-none bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-16 px-12 text-xl font-semibold"
+                onClick={handleAcceptWalk}
+                disabled={isAccepting}
+              >
+                {isAccepting ? (
+                  "Accepting Walk..."
+                ) : (
+                  <>
+                    <Zap className="w-6 h-6 mr-3" />
+                    Accept This Emergency Walk
+                  </>
+                )}
+              </Button>
+
+              {user?.role === 'admin' && (
+                <Button 
+                  variant="destructive"
+                  className="h-16 px-8 text-lg font-semibold"
+                  onClick={() => {
+                    if (confirm('Tem certeza que deseja apagar este pedido de emergência?')) {
+                      deleteWalkMutation.mutate(walk.id);
+                    }
+                  }}
+                  disabled={deleteWalkMutation.isPending}
+                >
+                  <Trash2 className="w-5 h-5 mr-2" />
+                  {deleteWalkMutation.isPending ? 'Apagando...' : 'Apagar'}
+                </Button>
               )}
-            </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
