@@ -1287,8 +1287,7 @@ export default function Home() {
                   </div>
 
                   <div className="relative inline-block">
-                    <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-3xl -z-10 shadow-xl"></div>
-                    <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-br from-amber-400 via-green-500 to-emerald-600 bg-clip-text text-transparent mb-4 leading-tight relative px-6 py-3">
+                    <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-br from-blue-900 via-indigo-600 to-blue-800 bg-clip-text text-transparent mb-4 leading-tight relative px-6 py-3">
                       {t('homeTitle', language)}
                     </h1>
                   </div>
