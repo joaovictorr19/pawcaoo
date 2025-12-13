@@ -40,7 +40,6 @@ export default function PostEmergency() {
     urgency_level: "urgent",
   });
 
-  // ✅ Buscar usuário e cães para preenchimento automático
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -52,7 +51,6 @@ export default function PostEmergency() {
     },
   });
 
-  // ✅ Redirecionar para login se não estiver autenticado
   React.useEffect(() => {
     if (user === null) {
       base44.auth.redirectToLogin(window.location.href);
@@ -66,7 +64,6 @@ export default function PostEmergency() {
     initialData: []
   });
 
-  // ✅ Preencher dados do usuário automaticamente
   React.useEffect(() => {
     if (user) {
       setFormData(prev => ({
@@ -78,7 +75,6 @@ export default function PostEmergency() {
     }
   }, [user]);
 
-  // ✅ Auto-select dog from URL param
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const dogId = urlParams.get('dogId');
@@ -88,7 +84,6 @@ export default function PostEmergency() {
       if (dog && !selectedDogs.find(d => d.id === dogId)) {
         console.log('🐕 Auto-selecting dog from URL:', dog.dog_name);
         setSelectedDogs([dog]);
-        // Populate ALL form data including phone and address
         setFormData(prev => ({
           ...prev,
           dog_name: dog.dog_name,
@@ -103,6 +98,27 @@ export default function PostEmergency() {
       }
     }
   }, [myDogs.length, user?.email]);
+
+  React.useEffect(() => {
+    if (selectedDogs.length > 0 && user) {
+      const firstDog = selectedDogs[0];
+      const phoneNumber = firstDog.owner_phone || user.phone || user.whatsapp_number || "";
+      
+      setFormData(prev => ({
+        ...prev,
+        dog_name: firstDog.dog_name,
+        dog_size: firstDog.size || prev.dog_size,
+        dog_breed: firstDog.breed || "",
+        dog_photo_url: firstDog.photo_url || "",
+        location: firstDog.default_pickup_address || user.address || user.location || user.city || prev.location,
+        owner_name: user.full_name || prev.owner_name,
+        owner_phone: phoneNumber,
+        special_notes: selectedDogs.length === 1 
+          ? `${firstDog.dog_name} - ${firstDog.breed || 'SRD'}` 
+          : selectedDogs.map(d => `${d.dog_name} (${d.breed || 'SRD'})`).join(', ')
+      }));
+    }
+  }, [selectedDogs, user]);
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
@@ -153,35 +169,9 @@ export default function PostEmergency() {
     });
   };
 
-  // ✅ Auto-fill ALL data when dogs are selected (including phone from DogProfile)
-  React.useEffect(() => {
-    if (selectedDogs.length > 0 && user) {
-      const firstDog = selectedDogs[0];
-      console.log('📝 Auto-filling form data for:', firstDog.dog_name);
-      
-      // Priority: dog's owner_phone > user's phone > user's whatsapp
-      const phoneNumber = firstDog.owner_phone || user.phone || user.whatsapp_number || "";
-      
-      setFormData(prev => ({
-        ...prev,
-        dog_name: firstDog.dog_name,
-        dog_size: firstDog.size || prev.dog_size,
-        dog_breed: firstDog.breed || "",
-        dog_photo_url: firstDog.photo_url || "",
-        location: firstDog.default_pickup_address || user.address || user.location || user.city || prev.location,
-        owner_name: user.full_name || prev.owner_name,
-        owner_phone: phoneNumber,
-        special_notes: selectedDogs.length === 1 
-          ? `${firstDog.dog_name} - ${firstDog.breed || 'SRD'}` 
-          : selectedDogs.map(d => `${d.dog_name} (${d.breed || 'SRD'})`).join(', ')
-      }));
-    }
-  }, [selectedDogs, user]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Prevent duplicate submissions
     if (createEmergencyWalkMutation.isPending) {
       console.log('⚠️ Submission already in progress, blocking duplicate');
       return;
@@ -189,7 +179,6 @@ export default function PostEmergency() {
     
     console.log('🚀 Emergency walk submit initiated - SINGLE REQUEST');
     
-    // Validações
     if (selectedDogs.length === 0 && !formData.dog_name) {
       toast.error("Selecione um cão ou preencha os dados manualmente");
       return;
@@ -319,7 +308,7 @@ export default function PostEmergency() {
                 </div>
               )}
 
-              {/* Urgency Level - Moved to top for better UX */}
+              {/* Urgency Level */}
               <div>
                 <Label htmlFor="urgency_level" className="text-sm font-semibold mb-1.5 block">{t('urgencyLevel', language)} *</Label>
                 <Select 
@@ -338,7 +327,7 @@ export default function PostEmergency() {
                 </Select>
               </div>
 
-              {/* Dog Photo Upload & Info - Only if manual entry */}
+              {/* Dog Info - Only if manual entry */}
               {selectedDogs.length === 0 && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
                   <Label className="text-sm font-semibold block text-gray-700">📸 Informações do Cão</Label>
@@ -366,6 +355,7 @@ export default function PostEmergency() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label htmlFor="dog_name" className="text-xs">Nome *</Label>
                       <Input
