@@ -363,14 +363,6 @@ ${data.message}
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-green-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">Lisboa, Portugal</div>
-                      <p className="text-sm text-gray-600">Avenida da Liberdade, 123</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
                     <Clock className="w-5 h-5 text-green-600 mt-0.5" />
                     <div>
                       <div className="font-semibold text-gray-900">{t.officeHours}</div>
