@@ -692,13 +692,18 @@ export default function Gamification() {
 
         {/* 3. GALERIA DE EMBLEMAS */}
         <Card className="glass-panel border-0 shadow-2xl">
-          <CardHeader className="border-b">
+          <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Sparkles className="w-7 h-7 text-purple-600" />
-                Galeria de Emblemas
+              <CardTitle className="flex items-center gap-3 text-2xl">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                  <Award className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight text-gray-900">Galeria de Emblemas</h2>
+                  <p className="text-xs text-gray-600 font-medium">Desbloqueie conquistas através das suas atividades</p>
+                </div>
               </CardTitle>
-              <Badge className="bg-purple-600 text-white">
+              <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg px-4 py-2 text-sm font-bold">
                 {allEarnedBadges.length}/{allPossibleBadges.length}
               </Badge>
             </div>
