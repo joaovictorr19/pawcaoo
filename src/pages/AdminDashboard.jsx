@@ -1320,14 +1320,14 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">{t('accounts', language)}</TabsTrigger>
             <TabsTrigger value="applications">{t('verifications', language)}</TabsTrigger>
             <TabsTrigger value="profile_edits">✏️ Edições</TabsTrigger>
-            <TabsTrigger value="communication">📢 Comunicação</TabsTrigger>
+            <TabsTrigger value="communication">Comunicação</TabsTrigger>
             <TabsTrigger value="active_walkers">{t('activeWalkers', language)}</TabsTrigger>
             <TabsTrigger value="adoptions">{t('adoptions', language)}</TabsTrigger>
             <TabsTrigger value="badges">{t('badges', language)}</TabsTrigger>
             <TabsTrigger value="companies">{t('companies', language)}</TabsTrigger>
             <TabsTrigger value="announcements">{t('announcements', language)}</TabsTrigger>
             <TabsTrigger value="services">{t('services', language)}</TabsTrigger>
-            <TabsTrigger value="products">🛍️ Produtos</TabsTrigger>
+            <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="bookings">{t('bookings', language)}</TabsTrigger>
             <TabsTrigger value="payments">{t('payments', language)}</TabsTrigger>
             <TabsTrigger value="reviews">{t('reviews', language)}</TabsTrigger>
@@ -1685,7 +1685,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Megaphone className="w-6 h-6 text-blue-600" />
-                  Sistema de Comunicação & Broadcasts
+                  Sistema de Comunicação e Broadcasts
                 </CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
                   Envie mensagens em massa ou agendadas para grupos específicos de utilizadores
