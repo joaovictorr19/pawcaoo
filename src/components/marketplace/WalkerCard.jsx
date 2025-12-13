@@ -179,15 +179,22 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
         <CardContent className="p-4 md:p-5">
           <div className="flex items-start justify-between mb-1.5 md:mb-2 gap-2">
             <div className="flex-1 overflow-hidden">
-              <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
-                {walker.walker_name.length > 20 ? (
-                  <span className="animate-marquee inline-block">
-                    {walker.walker_name}
-                  </span>
-                ) : (
-                  walker.walker_name
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors break-words">
+                  {walker.walker_name.length > 20 ? (
+                    <span className="animate-marquee inline-block">
+                      {walker.walker_name}
+                    </span>
+                  ) : (
+                    walker.walker_name
+                  )}
+                </h3>
+                {(walker.is_verified || walker.verification_status === 'verified') && (
+                  <div className="flex-shrink-0">
+                    <VerifiedBadge type="walker" size="sm" />
+                  </div>
                 )}
-              </h3>
+              </div>
             </div>
             {(walker.rating > 0 && walker.total_walks > 0) ? (
               <div className="flex items-center gap-0.5 md:gap-1 bg-yellow-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-lg flex-shrink-0">
