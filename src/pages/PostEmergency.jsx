@@ -72,7 +72,7 @@ export default function PostEmergency() {
       setFormData(prev => ({
         ...prev,
         owner_name: user.full_name || prev.owner_name,
-        owner_phone: user.phone || prev.owner_phone,
+        owner_phone: user.phone || user.whatsapp_number || prev.owner_phone,
         location: user.address || user.location || user.city || prev.location
       }));
     }
@@ -88,7 +88,7 @@ export default function PostEmergency() {
       if (dog && !selectedDogs.find(d => d.id === dogId)) {
         console.log('🐕 Auto-selecting dog from URL:', dog.dog_name);
         setSelectedDogs([dog]);
-        // Also populate form data
+        // Populate ALL form data including phone
         setFormData(prev => ({
           ...prev,
           dog_name: dog.dog_name,
@@ -96,6 +96,8 @@ export default function PostEmergency() {
           dog_breed: dog.breed || "",
           dog_photo_url: dog.photo_url || "",
           location: dog.default_pickup_address || prev.location || user?.address || user?.location || user?.city || "",
+          owner_name: user?.full_name || prev.owner_name,
+          owner_phone: user?.phone || user?.whatsapp_number || prev.owner_phone,
           special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
         }));
       }
@@ -162,11 +164,13 @@ export default function PostEmergency() {
         dog_size: dog.size,
         dog_breed: dog.breed || "",
         dog_photo_url: dog.photo_url || "",
-        location: dog.default_pickup_address || prev.location,
+        location: dog.default_pickup_address || prev.location || user?.address || user?.location || user?.city || "",
+        owner_name: user?.full_name || prev.owner_name,
+        owner_phone: user?.phone || user?.whatsapp_number || prev.owner_phone,
         special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
       }));
     }
-  }, [selectedDogs]);
+  }, [selectedDogs, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -175,6 +179,11 @@ export default function PostEmergency() {
     // Validações
     if (selectedDogs.length === 0 && !formData.dog_name) {
       toast.error("Selecione um cão ou preencha os dados manualmente");
+      return;
+    }
+    
+    if (!formData.owner_name || !formData.owner_phone) {
+      toast.error("Preencha o seu nome e telefone");
       return;
     }
     
@@ -189,7 +198,7 @@ export default function PostEmergency() {
     }
     
     if (!formData.offered_amount || parseFloat(formData.offered_amount) <= 0) {
-      toast.error("Indique o valor oferecido");
+      toast.error("Indique o valor oferecido (mínimo €1)");
       return;
     }
     
@@ -211,11 +220,21 @@ export default function PostEmergency() {
     
     try {
       await createEmergencyWalkMutation.mutateAsync({
-        ...formData,
-        dogs: dogs,
-        total_dogs: dogs.length,
+        owner_name: formData.owner_name,
+        owner_phone: formData.owner_phone,
+        location: formData.location,
+        needed_time: formData.needed_time,
         duration_hours: parseFloat(formData.duration_hours),
         offered_amount: parseFloat(formData.offered_amount),
+        special_notes: formData.special_notes,
+        urgency_level: formData.urgency_level,
+        dogs: dogs,
+        total_dogs: dogs.length,
+        // Legacy fields for compatibility
+        dog_name: dogs[0].dog_name,
+        dog_photo_url: dogs[0].dog_photo_url,
+        dog_size: dogs[0].dog_size,
+        dog_breed: dogs[0].dog_breed
       });
     } catch (error) {
       console.error('❌ Error submitting emergency walk:', error);
