@@ -132,7 +132,7 @@ export default function CheckoutModal({
         </div>
 
         <div className="space-y-6">
-          {/* Booking Summary */}
+          {/* Booking Summary - TRANSPARÊNCIA */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-3">
               {language === 'pt' ? 'Resumo da Reserva' : 'Booking Summary'}
@@ -147,6 +147,14 @@ export default function CheckoutModal({
                 <span className="font-medium">{booking.walk_date} ({booking.walk_time})</span>
               </div>
               <Separator className="my-2" />
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Serviço do Profissional:</span>
+                <span className="font-medium">€{(booking.service_amount || 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Taxa da Plataforma:</span>
+                <span>€{(booking.platform_fee || 0).toFixed(2)}</span>
+              </div>
               {appliedVoucher && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>Desconto PawPoints:</span>

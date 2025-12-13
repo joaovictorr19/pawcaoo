@@ -176,20 +176,19 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     return slots;
   };
 
-  // Calcular valores
+  // Calcular valores - NOVO MODELO: Cliente paga taxa ADICIONAL
   const calculateAmounts = () => {
-    const baseAmount = (pro?.hourly_rate || 0) * formData.duration_hours;
+    const walkerRate = (pro?.hourly_rate || 0) * formData.duration_hours;
     const discount = ownerSubscription?.booking_discount_percentage || 0;
-    const discountAmount = baseAmount * (discount / 100);
-    const afterDiscount = baseAmount - discountAmount;
+    const discountAmount = walkerRate * (discount / 100);
+    const walkerReceives = walkerRate - discountAmount; // Walker recebe valor integral
     
     const commissionRate = proSubscription?.commission_rate || 15;
-    const platformFee = afterDiscount * (commissionRate / 100);
-    const walkerReceives = afterDiscount - platformFee;
-    const totalAmount = afterDiscount;
+    const platformFee = walkerReceives * (commissionRate / 100);
+    const totalAmount = walkerReceives + platformFee; // Cliente paga walker + taxa
 
     return {
-      baseAmount,
+      baseAmount: walkerRate,
       discount,
       discountAmount,
       walkerReceives,
@@ -589,18 +588,13 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             />
           </div>
 
-          {/* Resumo de Valores */}
+          {/* Resumo de Valores - TRANSPARÊNCIA TOTAL */}
           <div className="bg-white/50 backdrop-blur-sm rounded-lg p-3 md:p-4 space-y-2 md:space-y-3 border border-white/30 shadow-sm">
-            <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">Resumo do Valor Estimado</h4>
+            <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">Resumo do Valor</h4>
 
             <div className="flex justify-between text-xs md:text-sm">
-              <span>Taxa horária</span>
-              <span>€{pro?.hourly_rate}/hora</span>
-            </div>
-
-            <div className="flex justify-between text-xs md:text-sm">
-              <span>Duração</span>
-              <span>{formData.duration_hours}h</span>
+              <span>Serviço ({formData.duration_hours}h × €{pro?.hourly_rate})</span>
+              <span>€{amounts.baseAmount.toFixed(2)}</span>
             </div>
               
             {amounts.discount > 0 && (
@@ -609,14 +603,24 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 <span>-€{amounts.discountAmount.toFixed(2)}</span>
               </div>
             )}
+
+            <div className="flex justify-between text-xs md:text-sm font-medium text-blue-700">
+              <span>Profissional recebe</span>
+              <span>€{amounts.walkerReceives.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between text-xs md:text-sm text-gray-600">
+              <span>Taxa da Plataforma ({proSubscription?.commission_rate || 15}%)</span>
+              <span>+€{amounts.platformFee.toFixed(2)}</span>
+            </div>
               
             <div className="border-t border-gray-200 pt-2 md:pt-3 flex justify-between font-bold text-base md:text-lg">
-              <span>Valor a Combinar</span>
-              <span className="text-gray-900">€{amounts.totalAmount.toFixed(2)}</span>
+              <span>Total a Pagar</span>
+              <span className="text-green-600">€{amounts.totalAmount.toFixed(2)}</span>
             </div>
             
             <p className="text-xs text-gray-500 text-center mt-2 italic">
-              * Valor indicativo. O pagamento final será combinado diretamente com o passeador.
+              ✓ Pagamento seguro após confirmação do profissional
             </p>
           </div>
 
