@@ -578,6 +578,14 @@ function LayoutContent({ children, currentPageName }) {
           transform: translateY(1px) !important;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
           filter: brightness(0.95);
+          background-color: inherit !important;
+          opacity: 1 !important;
+        }
+
+        /* Estado Disabled: Mantém visibilidade */
+        button:disabled {
+          cursor: not-allowed !important;
+          opacity: 0.7 !important;
         }
 
         /* Força renderização de SVGs em Windows/todos dispositivos */
