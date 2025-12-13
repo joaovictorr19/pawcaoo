@@ -235,6 +235,8 @@ export default function AdminDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
+  const isAdmin = user?.role === 'admin';
+
   // STATS QUERY - Dedicated for dashboard overview
   const { data: adminStats, isLoading: loadingStats } = useQuery({
     queryKey: ['adminDashboardStats'],
@@ -276,7 +278,7 @@ export default function AdminDashboard() {
         };
       }
     },
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     refetchInterval: 30000,
     staleTime: 10000,
     refetchOnMount: 'always',
@@ -286,7 +288,7 @@ export default function AdminDashboard() {
     queryKey: ['allUsers'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.User.list('-created_date', 5000),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 30 * 1000,
     cacheTime: 15 * 60 * 1000,
@@ -301,7 +303,7 @@ export default function AdminDashboard() {
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -310,7 +312,7 @@ export default function AdminDashboard() {
     queryKey: ['allTrainersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.TrainerProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -319,7 +321,7 @@ export default function AdminDashboard() {
     queryKey: ['allSheltersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.ShelterProfile.list('-created_date', 1000),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -335,7 +337,7 @@ export default function AdminDashboard() {
     queryKey: ['allAdoptionApplications'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.AdoptionApplication.list('-created_date', 100),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -344,7 +346,7 @@ export default function AdminDashboard() {
     queryKey: ['allPartnerServices'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 3 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -356,7 +358,7 @@ export default function AdminDashboard() {
     queryKey: ['allPartnerProducts'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -377,7 +379,7 @@ export default function AdminDashboard() {
       const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 200)).map(b => ({...b, entityType: 'training'}));
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -425,7 +427,7 @@ export default function AdminDashboard() {
     queryKey: ['allPayments'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.Payment.list('-held_date', 200),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
@@ -435,7 +437,7 @@ export default function AdminDashboard() {
   const { data: supportTickets = [] } = useQuery({
     queryKey: ['supportTickets'],
     queryFn: () => base44.entities.ChatConversation.filter({ tags: 'emergency' }),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -447,7 +449,7 @@ export default function AdminDashboard() {
       const announcements = await base44.entities.CompanyAnnouncement.list('-created_date');
       return announcements;
     },
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 3 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
@@ -458,45 +460,10 @@ export default function AdminDashboard() {
     queryKey: ['allCompanies'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const allCompanies = await base44.entities.PartnerCompany.list();
-      const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
-      const allServices = await base44.entities.PartnerService.list();
-
-      const companiesWithStats = allCompanies.map((company) => {
-          const companyAnnouncements = allAnnouncements.filter(a => 
-            a.company_email === company.company_email || a.company_id === company.id
-          );
-          
-          const companyServices = allServices.filter(s => 
-            s.partner_company_email === company.company_email || s.partner_id === company.id
-          );
-
-          const now = new Date();
-          const approvedAnnouncements = companyAnnouncements.filter(a => a.moderation_status === 'approved');
-          const activeAnnouncements = approvedAnnouncements.filter(a => {
-            if (!a.start_date || !a.end_date) return false;
-            const start = new Date(a.start_date);
-            const end = new Date(a.end_date);
-            return now >= start && now <= end && a.is_active;
-          });
-
-          const approvedServices = companyServices.filter(s => s.moderation_status === 'approved');
-          const activeServices = approvedServices.filter(s => s.is_active);
-
-          return {
-            ...company,
-            stats: {
-              total_announcements: companyAnnouncements.length,
-              active_announcements: activeAnnouncements.length,
-              total_services: companyServices.length,
-              active_services: activeServices.length,
-            }
-          };
-      });
-
+...
       return companiesWithStats;
     },
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -507,7 +474,7 @@ export default function AdminDashboard() {
     queryKey: ['allReviews'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.Review.list('-created_date', 100),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -516,7 +483,7 @@ export default function AdminDashboard() {
   const { data: adoptionListings = [] } = useQuery({
     queryKey: ['allAdoptionListings'],
     queryFn: () => base44.entities.AdoptionListing.list('-created_date', 100),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
@@ -525,7 +492,7 @@ export default function AdminDashboard() {
     queryKey: ['badgeDefinitions'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date', 1000),
-    enabled: user?.role === 'admin',
+    enabled: isAdmin,
     initialData: [],
     staleTime: 30 * 1000,
     refetchOnMount: 'always',
