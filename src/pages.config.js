@@ -72,6 +72,7 @@ import AffiliateDashboard from './pages/AffiliateDashboard';
 import AIMatches from './pages/AIMatches';
 import AdoptionListings from './pages/AdoptionListings';
 import AdminShopHub from './pages/AdminShopHub';
+import TestPayments from './pages/TestPayments';
 import __Layout from './Layout.jsx';
 
 
@@ -150,6 +151,7 @@ export const PAGES = {
     "AIMatches": AIMatches,
     "AdoptionListings": AdoptionListings,
     "AdminShopHub": AdminShopHub,
+    "TestPayments": TestPayments,
 }
 
 export const pagesConfig = {
