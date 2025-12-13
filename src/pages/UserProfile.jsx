@@ -28,20 +28,17 @@ import { getLevelFromXP, getTierName, getTierColor, getXPForLevel } from "@/comp
 import DogCollar from "@/components/ui/DogCollar";
 import DogManagerModal from "@/components/profile/DogManagerModal";
 
-function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
+const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.div
-            key={badge.id || badge.badge_id || idx}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={false}
             whileHover={{ scale: 1.05 }}
-            transition={{ delay: idx * 0.03 }}
             className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all ${locked ? 'opacity-60 grayscale' : ''}`}
           >
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-3 border-2 shadow-lg relative overflow-hidden ${
+            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-2 md:mb-3 border-2 shadow-lg relative overflow-hidden ${
               locked 
                 ? 'border-gray-700 bg-gray-800/50 border-dashed' 
                 : badge.rarity === 'legendary' ? 'border-yellow-400/50 bg-gradient-to-br from-yellow-900/40 to-orange-900/40' 
@@ -49,22 +46,26 @@ function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
                 : badge.rarity === 'rare' ? 'border-blue-400/50 bg-gradient-to-br from-blue-900/40 to-cyan-900/40'
                 : 'border-white/20 bg-white/5'
             }`}>
-              {/* Glow Effect */}
               {!locked && <div className="absolute inset-0 bg-white/5 blur-xl rounded-full transform scale-75" />}
               
               {badge.image_png_file ? (
-                <img src={badge.image_png_file} alt={badge.name} className="w-14 h-14 object-contain z-10 drop-shadow-lg" />
+                <img 
+                  src={badge.image_png_file} 
+                  alt={badge.name} 
+                  className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg" 
+                  loading="lazy"
+                />
               ) : badge.image_url ? (
                 <img 
                   src={badge.image_url} 
                   alt={badge.name}
-                  className="w-14 h-14 object-contain z-10 drop-shadow-lg rounded-md"
+                  className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg rounded-md"
+                  loading="lazy"
                 />
               ) : (
-                <span className="text-4xl z-10 drop-shadow-md filter">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
+                <span className="text-3xl md:text-4xl z-10 drop-shadow-md">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
               )}
 
-              {/* Locked Overlay */}
               {locked && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20">
                   <div className="w-6 h-6 rounded-full border-2 border-white/30 flex items-center justify-center">
@@ -75,11 +76,10 @@ function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
             </div>
 
             <div className="text-center w-full">
-              <p className={`text-xs font-bold leading-tight line-clamp-2 ${locked ? 'text-gray-500' : 'text-gray-100'}`}>
+              <p className={`text-[10px] md:text-xs font-bold leading-tight line-clamp-2 ${locked ? 'text-gray-500' : 'text-gray-100'}`}>
                 {badge.name}
               </p>
               
-              {/* XP Pill */}
               {badge.xp > 0 && (
                 <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-black/30 border border-white/10">
                   <Zap className="w-2 h-2 text-yellow-400 mr-1" />
@@ -108,7 +108,7 @@ function BadgeItem({ badge, idx, getBadgeImage, locked = false }) {
       </Tooltip>
     </TooltipProvider>
   );
-}
+});
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -381,14 +381,12 @@ export default function UserProfile() {
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
-  const { data: earnedBadges = [] } = useQuery({
-    queryKey: ['userBadges', profileEmail, profileUser?.public_badges, currentUser?.achievements_badges],
+  const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
+    queryKey: ['userBadges', profileEmail, activeTab],
     queryFn: async () => {
       const badgesMap = new Map();
 
       // 1. Collect Legacy Badges from Auth User or Profile (combine both fields for safety)
-      // currentUser.achievements_badges is the main auth field
-      // profileUser.public_badges is the profile legacy field
       let legacySources = [];
       if (isSelfView && currentUser) {
           legacySources = [
@@ -402,7 +400,7 @@ export default function UserProfile() {
       // Helper to generate a unique key for deduplication
       const getBadgeKey = (b) => {
         if (b.badge_id) return b.badge_id;
-        if (b.id && !b.id.startsWith('legacy-')) return b.id; // definitions have 'id'
+        if (b.id && !b.id.startsWith('legacy-')) return b.id;
         if (b.name) return b.name.toLowerCase().trim().replace(/\s+/g, '_');
         return null;
       };
@@ -421,7 +419,6 @@ export default function UserProfile() {
           fromTable.forEach(b => {
             const key = getBadgeKey(b);
             if (key) {
-              // Always overwrite legacy with table data
               badgesMap.set(key, { ...b, source: 'table' });
             }
           });
@@ -433,8 +430,9 @@ export default function UserProfile() {
       return Array.from(badgesMap.values());
     },
     enabled: !!profileEmail || !!profileUser,
-    staleTime: 0,
-    refetchOnWindowFocus: true
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
   // Fetch ALL Badge Definitions
@@ -446,9 +444,10 @@ export default function UserProfile() {
 
   const displayBadges = earnedBadges;
 
-  // Merge earned with definitions
+  // Merge earned with definitions - Memoized with proper dependencies
   const galleryBadges = React.useMemo(() => {
-    // 1. Process definitions (New System)
+    if (!earnedBadges || earnedBadges.length === 0) return [];
+    
     const processedDefinitions = allBadgeDefinitions.map(def => {
       const earnedMatch = earnedBadges.find(b => 
         (b.badge_id && b.badge_id === def.id) || 
@@ -461,9 +460,7 @@ export default function UserProfile() {
       };
     }).filter(b => b.isEarned);
 
-    // 2. Find Earned Badges not in Definitions (Legacy)
     const definitionIds = new Set(allBadgeDefinitions.map(d => d.id));
-    // Normalize definition names for comparison
     const definitionNames = new Set(allBadgeDefinitions.map(d => d.name.toLowerCase().trim()));
     const uniqueLegacyMap = new Map();
 
@@ -471,7 +468,6 @@ export default function UserProfile() {
       const matchId = b.badge_id && definitionIds.has(b.badge_id);
       const matchName = b.name && definitionNames.has(b.name.toLowerCase().trim());
       
-      // Only add if it DOESN'T match a known definition ID or Name
       if (!matchId && !matchName) {
         const key = b.badge_id || b.name.toLowerCase().trim();
         if (!uniqueLegacyMap.has(key)) {
@@ -496,7 +492,7 @@ export default function UserProfile() {
       if (rA !== rB) return rB - rA;
       return (b.xp || 0) - (a.xp || 0);
     });
-  }, [allBadgeDefinitions, earnedBadges]);
+  }, [allBadgeDefinitions, earnedBadges, activeTab]);
 
   // Optimized Badge Synchronization
   React.useEffect(() => {
@@ -965,10 +961,10 @@ export default function UserProfile() {
           Voltar
         </Button>
 
-        <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden">
+        <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
           <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             {profileUser.cover_photo_url && (
-              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" />
+              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" />
             )}
             {isOwnProfile && (
               <Button
@@ -992,9 +988,9 @@ export default function UserProfile() {
               {/* Avatar Column - Pulled up to overlap cover */}
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <div className="relative">
-                  <Avatar className="w-32 h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
-                    <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl">
+                  <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
+                    <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" loading="lazy" />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl md:text-4xl">
                       {profileUser.full_name?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -1016,31 +1012,30 @@ export default function UserProfile() {
                 {/* User Details (Left) */}
                 <div className="text-center md:text-left w-full md:w-auto">
                   <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                      {profileUser.full_name}
-                    </h1>
-                    
-                    {/* Lógica de verificação e Badges */}
-                    {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
-                      <div className="ml-1">
-                        <VerifiedBadge />
-                      </div>
-                    )}
+                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 break-words">
+                     {profileUser.full_name}
+                   </h1>
+
+                   {/* Lógica de verificação e Badges */}
+                   {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
+                     <div className="flex-shrink-0">
+                       <VerifiedBadge size="md" />
+                     </div>
+                   )}
                     {(profileUser.role === 'admin' || (isSelfView && currentUser?.role === 'admin')) && (
-                      <div className="ml-1">
+                      <div className="flex-shrink-0">
                         <AdminBadgeGlass />
                       </div>
                     )}
                     {(profileUser.is_adoption_advocate || (isSelfView && currentUser?.is_adoption_advocate) || earnedBadges.some(b => b.badge_id === 'adoption_advocate' || b.id === 'adoption_advocate')) && (
-                      <div className="ml-1">
+                      <div className="flex-shrink-0">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              {/* Styled to match VerifiedBadge/AdminBadgeGlass dimensions (w-6 h-6 with shadows) */}
                               <div 
-                                className="w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden shadow-sm border border-pink-400/30 cursor-help"
+                                className="w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden shadow-sm border border-pink-400/30 cursor-help flex-shrink-0"
                                 style={{
-                                  background: 'linear-gradient(135deg, #f472b6 0%, #e11d48 100%)', // Pink to Rose
+                                  background: 'linear-gradient(135deg, #f472b6 0%, #e11d48 100%)',
                                   boxShadow: '0 4px 6px -1px rgba(225, 29, 72, 0.3), 0 2px 4px -1px rgba(225, 29, 72, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.4)'
                                 }}
                               >
@@ -1057,7 +1052,7 @@ export default function UserProfile() {
                     )}
                     {walkerProfile && (
                       <Badge 
-                        className="bg-green-600 text-white cursor-pointer hover:bg-green-700 ml-1" 
+                        className="bg-green-600 text-white cursor-pointer hover:bg-green-700 flex-shrink-0 text-xs" 
                         onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walkerProfile.id}`))}
                       >
                         <Dog className="w-3 h-3 mr-1" />
@@ -1066,7 +1061,7 @@ export default function UserProfile() {
                     )}
                     {trainerProfile && (
                       <Badge 
-                        className="bg-blue-600 text-white cursor-pointer hover:bg-blue-700 ml-1" 
+                        className="bg-blue-600 text-white cursor-pointer hover:bg-blue-700 flex-shrink-0 text-xs" 
                         onClick={() => navigate(createPageUrl(`TrainerDetails?id=${trainerProfile.id}`))}
                       >
                         <Award className="w-3 h-3 mr-1" />
@@ -1137,22 +1132,25 @@ export default function UserProfile() {
                       <span>Destaques</span>
                       {isOwnProfile && <span className="text-[9px] text-blue-500 cursor-pointer hover:underline" onClick={() => handleSlotClick(0)}>Editar</span>}
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[0, 1, 2, 3].map((slotIdx) => {
-                        const pinnedId = (profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) 
-                          ? profileUser.pinned_badge_ids[slotIdx] 
-                          : null;
-                        const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
+                    <div className="grid grid-cols-4 gap-1.5 md:gap-2">
+                     {[0, 1, 2, 3].map((slotIdx) => {
+                       const highlightedId = slotIdx === 0 ? profileUser.highlighted_emblem_id : null;
+                       const pinnedId = highlightedId || (
+                         (profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) 
+                           ? profileUser.pinned_badge_ids[slotIdx] 
+                           : null
+                       );
+                       const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
 
                         return (
                           <TooltipProvider key={slotIdx} delayDuration={100}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div 
-                                  onClick={() => isOwnProfile && handleSlotClick(slotIdx)}
-                                  className={`w-12 h-12 rounded-lg flex items-center justify-center relative transition-all overflow-hidden group ${
-                                    isOwnProfile ? 'cursor-pointer hover:scale-105 hover:border-blue-300' : ''
-                                  } ${!badge ? 'bg-white/40 border-2 border-dashed border-gray-200' : 'bg-white shadow-sm border border-gray-200'}`}
+                                 onClick={() => isOwnProfile && handleSlotClick(slotIdx)}
+                                 className={`w-11 h-11 md:w-12 md:h-12 rounded-lg flex items-center justify-center relative transition-all overflow-hidden group ${
+                                   isOwnProfile ? 'cursor-pointer hover:scale-105 hover:border-blue-300' : ''
+                                 } ${!badge ? 'bg-white/40 border-2 border-dashed border-gray-200' : 'bg-white shadow-sm border border-gray-200'}`}
                                 >
                                   {badge ? (
                                     <>
@@ -1168,9 +1166,10 @@ export default function UserProfile() {
                                           src={badge.image_png_file || badge.image_url} 
                                           alt={badge.name} 
                                           className="w-full h-full object-contain p-1 z-10" 
+                                          loading="lazy"
                                         />
                                       ) : (
-                                        <span className="text-2xl z-10 select-none transform group-hover:scale-110 transition-transform">
+                                        <span className="text-xl md:text-2xl z-10 select-none transform group-hover:scale-110 transition-transform">
                                           {badge.icon || "🛡️"}
                                         </span>
                                       )}
@@ -1223,146 +1222,167 @@ export default function UserProfile() {
 
             {/* Pinned Badges Showcase (Removed duplicate as requested) */}
 
-            <div className="flex justify-between items-center py-4 border-t border-b border-gray-200 mt-6 px-2 md:px-8">
-              <div className="flex-1 text-center border-r border-gray-100 last:border-0">
-                <div className="text-xl md:text-3xl font-bold text-gray-900">{totalBadges}</div>
-                <div className="text-xs md:text-sm text-gray-600 truncate">Emblemas</div>
+            <div className="flex justify-between items-center py-3 md:py-4 border-t border-b border-gray-200 mt-4 md:mt-6 px-2 md:px-8 gap-2">
+              <div className="flex-1 text-center border-r border-gray-100 last:border-0 px-2">
+                <div className="text-lg md:text-3xl font-bold text-gray-900">{totalBadges}</div>
+                <div className="text-[10px] md:text-sm text-gray-600">Emblemas</div>
               </div>
-              <div className="flex-1 text-center border-r border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition-colors" onClick={() => setShowFollowers(true)}>
-                <div className="text-xl md:text-3xl font-bold text-gray-900">{followersCount}</div>
-                <div className="text-xs md:text-sm text-gray-600 truncate">Seguidores</div>
+              <div className="flex-1 text-center border-r border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition-colors px-2" onClick={() => setShowFollowers(true)}>
+                <div className="text-lg md:text-3xl font-bold text-gray-900">{followersCount}</div>
+                <div className="text-[10px] md:text-sm text-gray-600">Seguidores</div>
               </div>
-              <div className="flex-1 text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition-colors" onClick={() => setShowFollowing(true)}>
-                <div className="text-xl md:text-3xl font-bold text-gray-900">{followingCount}</div>
-                <div className="text-xs md:text-sm text-gray-600 truncate">Seguindo</div>
+              <div className="flex-1 text-center cursor-pointer hover:bg-gray-50 rounded-lg py-2 transition-colors px-2" onClick={() => setShowFollowing(true)}>
+                <div className="text-lg md:text-3xl font-bold text-gray-900">{followingCount}</div>
+                <div className="text-[10px] md:text-sm text-gray-600">Seguindo</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="badges">
-          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-1 h-12 mb-4">
-            <TabsTrigger value="badges"><Award className="w-4 h-4 mr-1" />Emblemas</TabsTrigger>
-            <TabsTrigger value="about"><User className="w-4 h-4 mr-1" />Sobre</TabsTrigger>
-            <TabsTrigger value="gamification"><Zap className="w-4 h-4 mr-1" />XP</TabsTrigger>
-            <TabsTrigger value="activity"><TrendingUp className="w-4 h-4 mr-1" />Stats</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-1 h-11 md:h-12 mb-4">
+            <TabsTrigger value="badges" className="text-xs md:text-sm">
+              <Award className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Emblemas</span>
+            </TabsTrigger>
+            <TabsTrigger value="about" className="text-xs md:text-sm">
+              <User className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Sobre</span>
+            </TabsTrigger>
+            <TabsTrigger value="gamification" className="text-xs md:text-sm">
+              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">XP</span>
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="text-xs md:text-sm">
+              <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Stats</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="badges">
-            <Card className="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white border-0 shadow-2xl">
-              <CardHeader className="pb-2 border-b border-white/5">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Award className="w-6 h-6 text-yellow-400" />
-                    Galeria de Conquistas
-                  </CardTitle>
-                  <div className="text-xs font-mono text-gray-400 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-                    {earnedBadges.length} / {galleryBadges.length > 0 ? galleryBadges.length : displayBadges.length} Desbloqueados
-                  </div>
-                </div>
-                <p className="text-sm text-gray-400 mt-1">Colecione todos para se tornar uma lenda!</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {galleryBadges.length > 0 ? (
-                  <div>
-                    {/* Group by Rarity if needed, or just grid */}
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
-                      {galleryBadges.map((badge, idx) => (
-                        <BadgeItem 
-                          key={badge.id || idx} 
-                          badge={badge} 
-                          idx={idx} 
-                          getBadgeImage={getBadgeImage}
-                          locked={!badge.isEarned} 
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  /* Fallback for legacy view if definitions not loaded */
-                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {displayBadges.map((badge, idx) => (
-                      <BadgeItem key={badge.id || badge.badge_id || idx} badge={badge} idx={idx} getBadgeImage={getBadgeImage} />
-                    ))}
-                    {displayBadges.length === 0 && (
-                      <div className="col-span-full text-center py-12">
-                        <Award className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
-                        <p className="text-gray-500">Nenhum emblema conquistado ainda.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="badges" key={`badges-tab-${activeTab}`}>
+           <Card className="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white border-0 shadow-2xl rounded-2xl">
+             <CardHeader className="pb-2 border-b border-white/5">
+               <div className="flex items-center justify-between flex-wrap gap-2">
+                 <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                   <Award className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />
+                   Galeria de Conquistas
+                 </CardTitle>
+                 <div className="text-[10px] md:text-xs font-mono text-gray-400 bg-white/5 px-2 md:px-3 py-1 rounded-full border border-white/10">
+                   {earnedBadges.length} / {galleryBadges.length > 0 ? galleryBadges.length : displayBadges.length} Desbloqueados
+                 </div>
+               </div>
+               <p className="text-xs md:text-sm text-gray-400 mt-1">Colecione todos para se tornar uma lenda!</p>
+             </CardHeader>
+             <CardContent className="pt-4 md:pt-6">
+               {loadingBadges ? (
+                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
+                   {[...Array(6)].map((_, i) => (
+                     <div key={i} className="flex flex-col items-center">
+                       <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gray-800/50 animate-pulse" />
+                     </div>
+                   ))}
+                 </div>
+               ) : galleryBadges.length > 0 ? (
+                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
+                   {galleryBadges.map((badge, idx) => (
+                     <BadgeItem 
+                       key={`${badge.id || badge.badge_id}-${idx}`}
+                       badge={badge} 
+                       idx={idx} 
+                       getBadgeImage={getBadgeImage}
+                       locked={!badge.isEarned} 
+                     />
+                   ))}
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
+                   {displayBadges.map((badge, idx) => (
+                     <BadgeItem 
+                       key={`${badge.id || badge.badge_id}-${idx}`}
+                       badge={badge} 
+                       idx={idx} 
+                       getBadgeImage={getBadgeImage} 
+                     />
+                   ))}
+                   {displayBadges.length === 0 && (
+                     <div className="col-span-full text-center py-12">
+                       <Award className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
+                       <p className="text-gray-500">Nenhum emblema conquistado ainda.</p>
+                     </div>
+                   )}
+                 </div>
+               )}
+             </CardContent>
+           </Card>
           </TabsContent>
 
-          <TabsContent value="about">
-            <Card className="glass-panel border-0 shadow-lg">
-              <CardContent className="pt-6">
-                {profileUser.about_me || profileUser.bio ? (
-                  <p className="text-gray-700">{profileUser.about_me || profileUser.bio}</p>
-                ) : (
-                  <p className="text-gray-500 text-center italic">Nenhuma informação adicional.</p>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="about" key={`about-tab-${activeTab}`}>
+           <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+             <CardContent className="pt-4 md:pt-6">
+               {profileUser.about_me || profileUser.bio ? (
+                 <p className="text-sm md:text-base text-gray-700">{profileUser.about_me || profileUser.bio}</p>
+               ) : (
+                 <p className="text-sm text-gray-500 text-center italic">Nenhuma informação adicional.</p>
+               )}
+             </CardContent>
+           </Card>
           </TabsContent>
 
-          <TabsContent value="gamification">
-            <Card className={`bg-gradient-to-br ${getTierColor(profileUser.gamification_level || 1)} text-white border-0 shadow-2xl`}>
-              <CardHeader>
-                <CardTitle className="text-3xl flex items-center gap-2">
-                  <Zap className="w-8 h-8 text-yellow-300" />
-                  Nível {profileUser.gamification_level || 1}
-                </CardTitle>
-                <p className="text-white/80 text-lg font-semibold">
-                  Tier: {getTierName(profileUser.gamification_level || 1)}
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2 text-sm">
-                      <span>XP Atual: {profileUser.gamification_xp || 0}</span>
-                      <span>Próximo: {getXPForLevel((profileUser.gamification_level || 1) + 1)}</span>
-                    </div>
-                    <div className="w-full bg-white/20 rounded-full h-3">
-                      <div 
-                        className="bg-gradient-to-r from-yellow-400 to-orange-500 h-3 rounded-full transition-all duration-500"
-                        style={{ 
-                          width: `${Math.min(
-                            ((profileUser.gamification_xp || 0) - getXPForLevel(profileUser.gamification_level || 1)) / 
-                            (getXPForLevel((profileUser.gamification_level || 1) + 1) - getXPForLevel(profileUser.gamification_level || 1)) * 100, 
-                            100
-                          )}%` 
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-white/70 mt-2">
-                      {getXPForLevel((profileUser.gamification_level || 1) + 1) - (profileUser.gamification_xp || 0)} XP para o próximo nível
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="gamification" key={`gamification-tab-${activeTab}`}>
+           <Card className={`bg-gradient-to-br ${getTierColor(profileUser.gamification_level || 1)} text-white border-0 shadow-2xl rounded-2xl`}>
+             <CardHeader className="pb-3 md:pb-4">
+               <CardTitle className="text-2xl md:text-3xl flex items-center gap-2">
+                 <Zap className="w-6 h-6 md:w-8 md:h-8 text-yellow-300" />
+                 Nível {profileUser.gamification_level || 1}
+               </CardTitle>
+               <p className="text-white/80 text-base md:text-lg font-semibold">
+                 Tier: {getTierName(profileUser.gamification_level || 1)}
+               </p>
+             </CardHeader>
+             <CardContent>
+               <div className="space-y-4 md:space-y-6">
+                 <div>
+                   <div className="flex justify-between mb-2 text-xs md:text-sm">
+                     <span>XP Atual: {profileUser.gamification_xp || 0}</span>
+                     <span>Próximo: {getXPForLevel((profileUser.gamification_level || 1) + 1)}</span>
+                   </div>
+                   <div className="w-full bg-white/20 rounded-full h-2.5 md:h-3">
+                     <div 
+                       className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2.5 md:h-3 rounded-full transition-all duration-500"
+                       style={{ 
+                         width: `${Math.min(
+                           ((profileUser.gamification_xp || 0) - getXPForLevel(profileUser.gamification_level || 1)) / 
+                           (getXPForLevel((profileUser.gamification_level || 1) + 1) - getXPForLevel(profileUser.gamification_level || 1)) * 100, 
+                           100
+                         )}%` 
+                       }}
+                     />
+                   </div>
+                   <p className="text-[10px] md:text-xs text-white/70 mt-2">
+                     {getXPForLevel((profileUser.gamification_level || 1) + 1) - (profileUser.gamification_xp || 0)} XP para o próximo nível
+                   </p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
           </TabsContent>
 
-          <TabsContent value="activity">
-            <Card className="glass-panel border-0 shadow-lg">
-              <CardHeader><CardTitle>Estatísticas</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{profileUser.profile_stats?.total_posts || 0}</div>
-                    <div className="text-sm text-gray-600">Posts</div>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{profileUser.profile_stats?.total_bookings || 0}</div>
-                    <div className="text-sm text-gray-600">Reservas</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="activity" key={`activity-tab-${activeTab}`}>
+           <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+             <CardHeader><CardTitle className="text-lg md:text-xl">Estatísticas</CardTitle></CardHeader>
+             <CardContent>
+               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                 <div className="bg-blue-50 p-3 md:p-4 rounded-lg">
+                   <div className="text-xl md:text-2xl font-bold text-blue-600">{profileUser.profile_stats?.total_posts || 0}</div>
+                   <div className="text-xs md:text-sm text-gray-600">Posts</div>
+                 </div>
+                 <div className="bg-green-50 p-3 md:p-4 rounded-lg">
+                   <div className="text-xl md:text-2xl font-bold text-green-600">{profileUser.profile_stats?.total_bookings || 0}</div>
+                   <div className="text-xs md:text-sm text-gray-600">Reservas</div>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
           </TabsContent>
         </Tabs>
 

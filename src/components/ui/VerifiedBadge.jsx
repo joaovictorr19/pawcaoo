@@ -58,7 +58,7 @@ const VerifiedBadge = ({ className = "", type = "walker", size = "md" }) => {
   const uniqueId = `verified-${type}-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div className={`verified-badge-premium relative inline-flex items-center justify-center ${sizeClasses[size]} ${className}`} title={config.title}>
+    <div className={`verified-badge-premium relative inline-flex items-center justify-center flex-shrink-0 ${sizeClasses[size]} ${className}`} title={config.title}>
       <style>
         {`
           .verified-badge-${uniqueId} {
@@ -71,6 +71,15 @@ const VerifiedBadge = ({ className = "", type = "walker", size = "md" }) => {
               0 4px 12px ${config.colors.glow},
               inset 0 2px 4px rgba(255, 255, 255, 0.3),
               inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            will-change: transform;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .verified-badge-${uniqueId}::before,
+            .verified-icon-${uniqueId},
+            .verified-sparkle-${uniqueId} {
+              animation: none !important;
+            }
           }
 
           .verified-badge-${uniqueId}::before {
@@ -115,54 +124,23 @@ const VerifiedBadge = ({ className = "", type = "walker", size = "md" }) => {
             position: relative;
             z-index: 10;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-            animation: verified-pulse-${uniqueId} 2s ease-in-out infinite;
+          }
+
+          @media (hover: hover) {
+            .verified-badge-premium:hover .verified-icon-${uniqueId} {
+              animation: verified-pulse-${uniqueId} 0.5s ease-in-out;
+            }
           }
 
           @keyframes verified-pulse-${uniqueId} {
-            0%, 100% {
-              transform: scale(1);
-            }
-            50% {
-              transform: scale(1.1);
-            }
-          }
-
-          .verified-sparkle-${uniqueId} {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: white;
-            border-radius: 50%;
-            opacity: 0;
-            animation: verified-sparkle-${uniqueId} 2s ease-in-out infinite;
-          }
-
-          .verified-sparkle-${uniqueId}:nth-child(1) { top: 10%; left: 50%; animation-delay: 0s; }
-          .verified-sparkle-${uniqueId}:nth-child(2) { top: 50%; right: 10%; animation-delay: 0.4s; }
-          .verified-sparkle-${uniqueId}:nth-child(3) { bottom: 10%; left: 50%; animation-delay: 0.8s; }
-          .verified-sparkle-${uniqueId}:nth-child(4) { top: 50%; left: 10%; animation-delay: 1.2s; }
-
-          @keyframes verified-sparkle-${uniqueId} {
-            0%, 100% {
-              opacity: 0;
-              transform: scale(0);
-            }
-            50% {
-              opacity: 1;
-              transform: scale(1);
-            }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
           }
         `}
       </style>
       
       <div className={`verified-badge-${uniqueId} ${sizeClasses[size]} flex items-center justify-center`}>
         <Icon className={`verified-icon-${uniqueId} ${iconSizes[size]} text-white stroke-[2.5px]`} />
-        
-        {/* Sparkle effects */}
-        <div className={`verified-sparkle-${uniqueId}`} />
-        <div className={`verified-sparkle-${uniqueId}`} />
-        <div className={`verified-sparkle-${uniqueId}`} />
-        <div className={`verified-sparkle-${uniqueId}`} />
       </div>
     </div>
   );
