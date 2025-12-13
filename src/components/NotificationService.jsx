@@ -219,6 +219,55 @@ export default function NotificationService() {
   return null;
 }
 
+// ✅ Função estática para notificar walkers sobre emergência
+NotificationService.emergencyWalkPosted = async ({ walk }) => {
+  try {
+    console.log('🚨 Notifying walkers about emergency walk:', walk.id);
+    
+    // Buscar todos os walkers ativos e verificados
+    const walkers = await base44.entities.WalkerProfile.filter({ 
+      is_active: true,
+      verification_status: 'verified'
+    });
+    
+    // Filtrar walkers que podem atender esse tamanho de cão
+    const suitableWalkers = walkers.filter(walker => {
+      // Se não tiver dogs array, usa o campo legacy
+      const dogSize = walk.dogs?.[0]?.dog_size || walk.dog_size;
+      const dogName = walk.dogs?.[0]?.dog_name || walk.dog_name;
+      
+      if (!dogSize || !walker.dog_sizes) return true;
+      return walker.dog_sizes.includes(dogSize);
+    });
+    
+    console.log(`📢 Sending notification to ${suitableWalkers.length} suitable walkers`);
+    
+    // Criar notificação para cada walker
+    const notificationPromises = suitableWalkers.map(walker => 
+      base44.entities.Notification.create({
+        recipient_email: walker.created_by,
+        title: '🚨 Passeio de Emergência Disponível!',
+        message: `${walk.dog_name || walk.dogs?.[0]?.dog_name} precisa de um passeio urgente em ${walk.location}. Pagamento: €${walk.offered_amount}`,
+        type: 'emergency',
+        related_id: walk.id,
+        action_url: '/Home?tab=emergency',
+        priority: 'urgent'
+      }).catch(err => {
+        console.error(`Failed to notify walker ${walker.id}:`, err);
+        return null;
+      })
+    );
+    
+    await Promise.all(notificationPromises);
+    
+    console.log('✅ Emergency notifications sent successfully');
+    return { success: true, notified: suitableWalkers.length };
+  } catch (error) {
+    console.error('❌ Error notifying walkers about emergency:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 // Hook personalizado para criar notificações
 export function useCreateNotification() {
   const queryClient = useQueryClient();
