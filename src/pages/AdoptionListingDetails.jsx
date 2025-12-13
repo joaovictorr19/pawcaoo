@@ -205,8 +205,8 @@ export default function AdoptionListingDetails() {
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">
                 Listing not found
               </h3>
-              <Button onClick={() => navigate(createPageUrl('AdoptionListings'))}>
-                View All Listings
+              <Button onClick={() => navigate(createPageUrl('Home'))}>
+                {language === 'pt' ? 'Ver Todos' : language === 'es' ? 'Ver Todos' : 'View All'}
               </Button>
             </CardContent>
           </Card>
@@ -255,10 +255,10 @@ export default function AdoptionListingDetails() {
         <Button
           variant="outline"
           className="mb-6"
-          onClick={() => navigate(createPageUrl('AdoptionListings'))}
+          onClick={() => navigate(createPageUrl('Home'))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {t('backToListings', language)}
+          {language === 'pt' ? 'Voltar' : language === 'es' ? 'Volver' : 'Back'}
         </Button>
 
         <div className="grid lg:grid-cols-3 gap-6">
