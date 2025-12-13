@@ -129,8 +129,10 @@ export default function PersonalizedRecommendations({ user }) {
     return (
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-purple-600" />
-          <h3 className="font-semibold text-sm text-gray-700">A criar recomendações...</h3>
+          <div className="bg-blue-900 p-1.5 rounded-lg">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="font-semibold text-sm text-white drop-shadow-md">A criar recomendações...</h3>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
           {[1, 2, 3].map(i => (
@@ -146,12 +148,12 @@ export default function PersonalizedRecommendations({ user }) {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
-        <div className="bg-purple-100 p-1.5 rounded-lg">
-          <Sparkles className="w-4 h-4 text-purple-600" />
+        <div className="bg-blue-900 p-1.5 rounded-lg">
+          <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div>
-          <h3 className="font-semibold text-sm text-gray-900">Recomendado para {user.full_name?.split(' ')[0]}</h3>
-          <p className="text-xs text-gray-500">IA sugeriu com base no seu perfil</p>
+          <h3 className="font-semibold text-sm text-white drop-shadow-md">Recomendado para {user.full_name?.split(' ')[0]}</h3>
+          <p className="text-xs text-white/80 drop-shadow-sm">IA sugeriu com base no seu perfil</p>
         </div>
       </div>
 
