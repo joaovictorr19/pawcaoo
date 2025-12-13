@@ -36,6 +36,7 @@ export default function AccountSettings() {
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    retry: false,
   });
 
   const { data: walkerProfile } = useQuery({
