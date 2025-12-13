@@ -101,9 +101,13 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
       // Clean payload: remove undefined values and empty strings for optional fields
       const cleanPayload = Object.entries(data).reduce((acc, [key, value]) => {
         // Keep required fields even if empty
-        if (['dog_name', 'size', 'owner_email', 'pet_type', 'owner_phone', 'default_pickup_address'].includes(key)) {
+        if (['dog_name', 'size', 'owner_email', 'pet_type'].includes(key)) {
           acc[key] = value || (key === 'pet_type' ? 'dog' : key === 'size' ? 'medium' : '');
-        } 
+        }
+        // For owner_phone and default_pickup_address, include even if empty string
+        else if (['owner_phone', 'default_pickup_address'].includes(key)) {
+          acc[key] = value || '';
+        }
         // For numbers, convert empty strings to undefined
         else if (['age', 'weight'].includes(key)) {
           acc[key] = value === '' || value === null ? undefined : value;
