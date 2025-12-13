@@ -11,22 +11,19 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Settings, User, Mail, Phone, MapPin, LogOut, Upload, Save,
-  Lock, Bell, Globe, Shield, ChevronRight, CreditCard
+  Lock, Bell, Globe, Shield, ChevronRight, CreditCard, Dog
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-// ImageCropModal removed
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 import SubscriptionManager from "../components/subscriptions/SubscriptionManager";
 import DogManagerModal from "../components/profile/DogManagerModal";
-import { Dog } from "lucide-react";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
-  // Check URL params for tab
   const urlParams = new URLSearchParams(window.location.search);
   const tabFromUrl = urlParams.get('tab');
   
@@ -40,7 +37,6 @@ export default function AccountSettings() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch Walker/Trainer profiles to sync photo updates
   const { data: walkerProfile } = useQuery({
     queryKey: ['myWalkerProfileForSync', user?.email],
     queryFn: async () => {
@@ -111,7 +107,6 @@ export default function AccountSettings() {
 
   useEffect(() => {
     if (user) {
-      // Prioritize UserProfile entity data for editable fields
       const source = userProfileEntity || user;
       
       setProfileData({
@@ -134,7 +129,6 @@ export default function AccountSettings() {
         username: source.username || user.username || "",
       });
       
-      // Initialize preferences safely with defaults
       setPreferences({
         language: user.preferences?.language || "pt",
         notifications_enabled: user.preferences?.notifications_enabled ?? true,
@@ -148,9 +142,7 @@ export default function AccountSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
-      // Logic to handle username change restriction
       if (data.username && data.username !== user.username) {
-        // Check last change date
         if (user.last_username_change_date) {
           const lastChange = new Date(user.last_username_change_date);
           const now = new Date();
@@ -161,23 +153,18 @@ export default function AccountSettings() {
           }
         }
 
-        // Check if username is taken (basic check via UserProfile entity)
-        // Note: This check relies on UserProfile entity being up to date
         const existingUsers = await base44.entities.UserProfile.filter({ username: data.username });
         if (existingUsers && existingUsers.length > 0) {
-           // Double check it's not the current user's profile
            if (existingUsers[0].user_email !== user.email) {
              throw new Error("Este nome de usuário já está em uso.");
            }
         }
 
-        // Add last change date to update
         data.last_username_change_date = new Date().toISOString();
       }
 
       await base44.auth.updateMe(data);
 
-      // Sync with UserProfile entity
       try {
         const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (userProfiles && userProfiles.length > 0) {
@@ -194,7 +181,6 @@ export default function AccountSettings() {
             await base44.entities.UserProfile.update(profileId, updateData);
           }
         } else {
-            // Create UserProfile if it doesn't exist
              await base44.entities.UserProfile.create({
                 user_email: user.email,
                 user_id: user.id,
@@ -224,20 +210,16 @@ export default function AccountSettings() {
     mutationFn: async (file) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      // Update User Auth
       await base44.auth.updateMe({ profile_photo_url: file_url });
       
-      // Sync with UserProfile entity
       if (userProfileEntity) {
         await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: file_url });
       }
 
-      // Sync with WalkerProfile
       if (walkerProfile) {
         await base44.entities.WalkerProfile.update(walkerProfile.id, { photo_url: file_url });
       }
 
-      // Sync with TrainerProfile
       if (trainerProfile) {
         await base44.entities.TrainerProfile.update(trainerProfile.id, { photo_url: file_url });
       }
@@ -279,13 +261,10 @@ export default function AccountSettings() {
         setUploadingCover(true);
         uploadCoverMutation.mutate(file);
       }
-      // Photo is handled by CenteredAvatarUpload
     }
   };
 
   const handleSaveProfile = () => {
-    // Ensure username follows handle rules (no spaces) on save
-    // If username is empty or just spaces, use the existing one to avoid errors or clearing it unintentionally
     const currentUsername = profileData.username || "";
     const formattedUsername = currentUsername.trim().replace(/\s+/g, '-');
     
@@ -301,36 +280,29 @@ export default function AccountSettings() {
     updateProfileMutation.mutate({ preferences });
   };
 
-  // Função auxiliar para atualizar a foto em todo o lado quando a URL muda
   const handleAvatarUpdate = async (newUrl) => {
     try {
-        // 1. Atualiza Auth/User
         await base44.auth.updateMe({ profile_photo_url: newUrl });
         
-        // 2. Atualiza UserProfile Entity (ou cria se não existir)
         if (userProfileEntity) {
             await base44.entities.UserProfile.update(userProfileEntity.id, { profile_photo_url: newUrl });
         } else {
-            // Tenta encontrar de novo
             const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
             if (profiles.length > 0) {
                 await base44.entities.UserProfile.update(profiles[0].id, { profile_photo_url: newUrl });
             }
         }
 
-        // 3. Sincroniza Walker
         const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
         if (walkers.length > 0) {
             await Promise.all(walkers.map(w => base44.entities.WalkerProfile.update(w.id, { photo_url: newUrl })));
         }
 
-        // 4. Sincroniza Trainer
         const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
         if (trainers.length > 0) {
             await Promise.all(trainers.map(t => base44.entities.TrainerProfile.update(t.id, { photo_url: newUrl })));
         }
 
-        // 5. Refresh na tela
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         queryClient.invalidateQueries({ queryKey: ['userProfileEntity'] });
         queryClient.invalidateQueries({ queryKey: ['walkerProfile'] });
@@ -357,7 +329,6 @@ export default function AccountSettings() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto p-4 md:p-8">
-        {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
@@ -375,7 +346,8 @@ export default function AccountSettings() {
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-          {/* Mobile Navigation (Tabs) */}
+
+        <div className="flex flex-col gap-6">
           <div className="lg:hidden overflow-x-auto pb-2">
             <div className="flex gap-2 min-w-max">
               <Button
@@ -436,7 +408,6 @@ export default function AccountSettings() {
           </div>
 
           <div className="grid lg:grid-cols-4 gap-6">
-            {/* Desktop Sidebar */}
             <Card className="hidden lg:block lg:col-span-1 h-fit border-gray-200 shadow-sm">
               <CardContent className="p-4">
                 <nav className="space-y-1">
@@ -498,421 +469,412 @@ export default function AccountSettings() {
               </CardContent>
             </Card>
 
-            {/* Content */}
             <div className="lg:col-span-3">
-            {/* Profile Section */}
-            {activeSection === "profile" && (
-              <Card className="border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Perfil Público</CardTitle>
-                  <p className="text-sm text-gray-600">Informações visíveis para todos</p>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Photos - Replaced with CenteredAvatarUpload */}
-                  <div>
-                    <Label className="mb-3 block text-center font-medium">Foto de Perfil</Label>
-                    <CenteredAvatarUpload 
-                        currentImageUrl={user?.profile_photo_url}
-                        onImageChange={handleAvatarUpdate} 
-                        size="large"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="mb-3 block">Foto de Capa</Label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-40 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                        {user?.cover_photo_url && (
-                          <img src={user.cover_photo_url} className="w-full h-full object-cover" alt="Cover" />
-                        )}
-                      </div>
-                      <div>
-                        <input
-                          ref={coverInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handlePhotoSelect(e, 'cover')}
-                          disabled={uploadingCover}
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => coverInputRef.current?.click()}
-                          disabled={uploadingCover}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploadingCover ? 'Enviando...' : 'Alterar Capa'}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <Label>Nome Completo</Label>
-                    <Input
-                      value={profileData.full_name}
-                      onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
-                      placeholder="Ex: João da Silva (Pode conter espaços)"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Seu nome de exibição no perfil.
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>Nome de Usuário (@)</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
-                      <Input
-                        value={profileData.username}
-                        onChange={(e) => {
-                          // Allow spaces while typing, will be formatted on save
-                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9._\s-]/g, "");
-                          setProfileData({...profileData, username: val});
-                        }}
-                        placeholder="username"
-                        className="pl-7"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Identificador único (sem espaços). É assim que outros usuários encontrarão você. 
-                      <span className="text-orange-600 block mt-1 font-medium">
-                        Nota: O nome de usuário (@) só pode ser alterado uma vez a cada 30 dias.
-                      </span>
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>Bio</Label>
-                    <Textarea
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
-                      placeholder="Conte um pouco sobre você..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>About Me (Professional)</Label>
-                    <Textarea
-                      value={profileData.about_me}
-                      onChange={(e) => setProfileData({...profileData, about_me: e.target.value})}
-                      placeholder="Detailed introduction about your professional services and philosophy..."
-                      rows={6}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Skills (comma separated)</Label>
-                    <Input
-                      value={profileData.skills}
-                      onChange={(e) => setProfileData({...profileData, skills: e.target.value})}
-                      placeholder="Dog Walking, Training, First Aid, Grooming..."
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Pet Preferences</Label>
-                    <Input
-                      value={profileData.pet_preferences}
-                      onChange={(e) => setProfileData({...profileData, pet_preferences: e.target.value})}
-                      placeholder="E.g., Large dogs, energetic breeds..."
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Past Experiences</Label>
-                    <Textarea
-                      value={profileData.past_experiences}
-                      onChange={(e) => setProfileData({...profileData, past_experiences: e.target.value})}
-                      placeholder="Share your past experiences with pets..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Website</Label>
-                    <Input
-                      value={profileData.website}
-                      onChange={(e) => setProfileData({...profileData, website: e.target.value})}
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input
-                      value={profileData.instagram_handle}
-                      onChange={(e) => setProfileData({...profileData, instagram_handle: e.target.value})}
-                      placeholder="@seu_instagram"
-                    />
-                  </div>
-
-                  <Button onClick={handleSaveProfile} className="w-full bg-green-600 hover:bg-green-700">
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Perfil Público
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Private Data Section */}
-            {activeSection === "private" && (
-              <Card className="border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Dados Privados</CardTitle>
-                  <p className="text-sm text-gray-600">Informações confidenciais</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Email</Label>
-                    <Input value={user?.email} disabled className="bg-gray-100" />
-                  </div>
-
-                  <div className="border p-4 rounded-md bg-gray-50 space-y-3">
-                    <h4 className="font-medium text-sm">Emergency Contact</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div>
-                        <Label className="text-xs">Name</Label>
-                        <Input
-                          value={profileData.emergency_contact.name}
-                          onChange={(e) => setProfileData({
-                            ...profileData, 
-                            emergency_contact: {...profileData.emergency_contact, name: e.target.value}
-                          })}
-                          placeholder="Contact Name"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Phone</Label>
-                        <Input
-                          value={profileData.emergency_contact.phone}
-                          onChange={(e) => setProfileData({
-                            ...profileData, 
-                            emergency_contact: {...profileData.emergency_contact, phone: e.target.value}
-                          })}
-                          placeholder="Phone Number"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Relation</Label>
-                        <Input
-                          value={profileData.emergency_contact.relation}
-                          onChange={(e) => setProfileData({
-                            ...profileData, 
-                            emergency_contact: {...profileData.emergency_contact, relation: e.target.value}
-                          })}
-                          placeholder="Relation"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Health Information (Private)</Label>
-                    <Textarea
-                      value={profileData.health_info}
-                      onChange={(e) => setProfileData({...profileData, health_info: e.target.value})}
-                      placeholder="Relevant health info (e.g., allergies, physical limitations)..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Telefone</Label>
-                    <Input
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                      placeholder="+351 123 456 789"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Morada</Label>
-                    <Input
-                      value={profileData.address}
-                      onChange={(e) => setProfileData({...profileData, address: e.target.value})}
-                      placeholder="Rua, número, andar"
-                    />
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
+              {activeSection === "profile" && (
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Perfil Público</CardTitle>
+                    <p className="text-sm text-gray-600">Informações visíveis para todos</p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
                     <div>
-                      <Label>Cidade</Label>
-                      <Input
-                        value={profileData.city}
-                        onChange={(e) => setProfileData({...profileData, city: e.target.value})}
-                        placeholder="Lisboa"
+                      <Label className="mb-3 block text-center font-medium">Foto de Perfil</Label>
+                      <CenteredAvatarUpload 
+                          currentImageUrl={user?.profile_photo_url}
+                          onImageChange={handleAvatarUpdate} 
+                          size="large"
                       />
                     </div>
+
                     <div>
-                      <Label>Código Postal</Label>
-                      <Input
-                        value={profileData.postal_code}
-                        onChange={(e) => setProfileData({...profileData, postal_code: e.target.value})}
-                        placeholder="0000-000"
-                      />
-                    </div>
-                  </div>
-
-                  <Button onClick={handleSaveProfile} className="w-full bg-green-600 hover:bg-green-700">
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Dados Privados
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Preferences Section */}
-            {activeSection === "preferences" && (
-              <Card className="border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Preferências</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <Label>Notificações</Label>
-                    
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Notificações Push</p>
-                        <p className="text-xs text-gray-600">Receba notificações no app</p>
+                      <Label className="mb-3 block">Foto de Capa</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-40 h-20 bg-gray-100 rounded-lg overflow-hidden">
+                          {user?.cover_photo_url && (
+                            <img src={user.cover_photo_url} className="w-full h-full object-cover" alt="Cover" />
+                          )}
+                        </div>
+                        <div>
+                          <input
+                            ref={coverInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handlePhotoSelect(e, 'cover')}
+                            disabled={uploadingCover}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => coverInputRef.current?.click()}
+                            disabled={uploadingCover}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadingCover ? 'Enviando...' : 'Alterar Capa'}
+                          </Button>
+                        </div>
                       </div>
-                      <Switch
-                        checked={preferences.notifications_enabled}
-                        onCheckedChange={(checked) => setPreferences({...preferences, notifications_enabled: checked})}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Email</p>
-                        <p className="text-xs text-gray-600">Receba atualizações por email</p>
-                      </div>
-                      <Switch
-                        checked={preferences.email_notifications}
-                        onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
-                      />
                     </div>
 
                     <Separator />
-                    
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold text-gray-700">Tipos de Notificação</h4>
-                      
-                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">Reservas & Agendamentos</p>
-                          <p className="text-xs text-gray-500">Atualizações sobre seus passeios e treinos</p>
-                        </div>
-                        <Switch
-                          checked={preferences.push_booking_updates}
-                          onCheckedChange={(checked) => setPreferences({...preferences, push_booking_updates: checked})}
-                          disabled={!preferences.notifications_enabled}
+
+                    <div>
+                      <Label>Nome Completo</Label>
+                      <Input
+                        value={profileData.full_name}
+                        onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
+                        placeholder="Ex: João da Silva (Pode conter espaços)"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Seu nome de exibição no perfil.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label>Nome de Usuário (@)</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                        <Input
+                          value={profileData.username}
+                          onChange={(e) => {
+                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9._\s-]/g, "");
+                            setProfileData({...profileData, username: val});
+                          }}
+                          placeholder="username"
+                          className="pl-7"
                         />
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Identificador único (sem espaços). É assim que outros usuários encontrarão você. 
+                        <span className="text-orange-600 block mt-1 font-medium">
+                          Nota: O nome de usuário (@) só pode ser alterado uma vez a cada 30 dias.
+                        </span>
+                      </p>
+                    </div>
 
-                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                    <div>
+                      <Label>Bio</Label>
+                      <Textarea
+                        value={profileData.bio}
+                        onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                        placeholder="Conte um pouco sobre você..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>About Me (Professional)</Label>
+                      <Textarea
+                        value={profileData.about_me}
+                        onChange={(e) => setProfileData({...profileData, about_me: e.target.value})}
+                        placeholder="Detailed introduction about your professional services and philosophy..."
+                        rows={6}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Skills (comma separated)</Label>
+                      <Input
+                        value={profileData.skills}
+                        onChange={(e) => setProfileData({...profileData, skills: e.target.value})}
+                        placeholder="Dog Walking, Training, First Aid, Grooming..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Pet Preferences</Label>
+                      <Input
+                        value={profileData.pet_preferences}
+                        onChange={(e) => setProfileData({...profileData, pet_preferences: e.target.value})}
+                        placeholder="E.g., Large dogs, energetic breeds..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Past Experiences</Label>
+                      <Textarea
+                        value={profileData.past_experiences}
+                        onChange={(e) => setProfileData({...profileData, past_experiences: e.target.value})}
+                        placeholder="Share your past experiences with pets..."
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Website</Label>
+                      <Input
+                        value={profileData.website}
+                        onChange={(e) => setProfileData({...profileData, website: e.target.value})}
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Instagram</Label>
+                      <Input
+                        value={profileData.instagram_handle}
+                        onChange={(e) => setProfileData({...profileData, instagram_handle: e.target.value})}
+                        placeholder="@seu_instagram"
+                      />
+                    </div>
+
+                    <Button onClick={handleSaveProfile} className="w-full bg-green-600 hover:bg-green-700">
+                      <Save className="w-4 h-4 mr-2" />
+                      Salvar Perfil Público
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeSection === "private" && (
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Dados Privados</CardTitle>
+                    <p className="text-sm text-gray-600">Informações confidenciais</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Email</Label>
+                      <Input value={user?.email} disabled className="bg-gray-100" />
+                    </div>
+
+                    <div className="border p-4 rounded-md bg-gray-50 space-y-3">
+                      <h4 className="font-medium text-sm">Emergency Contact</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                          <p className="font-medium text-sm">Mensagens</p>
-                          <p className="text-xs text-gray-500">Novas mensagens de chat</p>
+                          <Label className="text-xs">Name</Label>
+                          <Input
+                            value={profileData.emergency_contact.name}
+                            onChange={(e) => setProfileData({
+                              ...profileData, 
+                              emergency_contact: {...profileData.emergency_contact, name: e.target.value}
+                            })}
+                            placeholder="Contact Name"
+                          />
                         </div>
-                        <Switch
-                          checked={preferences.push_messages}
-                          onCheckedChange={(checked) => setPreferences({...preferences, push_messages: checked})}
-                          disabled={!preferences.notifications_enabled}
+                        <div>
+                          <Label className="text-xs">Phone</Label>
+                          <Input
+                            value={profileData.emergency_contact.phone}
+                            onChange={(e) => setProfileData({
+                              ...profileData, 
+                              emergency_contact: {...profileData.emergency_contact, phone: e.target.value}
+                            })}
+                            placeholder="Phone Number"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Relation</Label>
+                          <Input
+                            value={profileData.emergency_contact.relation}
+                            onChange={(e) => setProfileData({
+                              ...profileData, 
+                              emergency_contact: {...profileData.emergency_contact, relation: e.target.value}
+                            })}
+                            placeholder="Relation"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>Health Information (Private)</Label>
+                      <Textarea
+                        value={profileData.health_info}
+                        onChange={(e) => setProfileData({...profileData, health_info: e.target.value})}
+                        placeholder="Relevant health info (e.g., allergies, physical limitations)..."
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Telefone</Label>
+                      <Input
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                        placeholder="+351 123 456 789"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Morada</Label>
+                      <Input
+                        value={profileData.address}
+                        onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                        placeholder="Rua, número, andar"
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Cidade</Label>
+                        <Input
+                          value={profileData.city}
+                          onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                          placeholder="Lisboa"
                         />
                       </div>
-
-                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">Marketing & Novidades</p>
-                          <p className="text-xs text-gray-500">Promoções e atualizações do app</p>
-                        </div>
-                        <Switch
-                          checked={preferences.push_marketing}
-                          onCheckedChange={(checked) => setPreferences({...preferences, push_marketing: checked})}
-                          disabled={!preferences.notifications_enabled}
+                      <div>
+                        <Label>Código Postal</Label>
+                        <Input
+                          value={profileData.postal_code}
+                          onChange={(e) => setProfileData({...profileData, postal_code: e.target.value})}
+                          placeholder="0000-000"
                         />
                       </div>
                     </div>
-                  </div>
 
-                  <Button onClick={handleSavePreferences} className="w-full bg-green-600 hover:bg-green-700">
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Preferências
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Security Section */}
-            {activeSection === "security" && (
-              <Card className="border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Segurança</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-900">
-                      ✓ Sua conta está protegida pela autenticação Base44
-                    </p>
-                  </div>
-
-                  <Separator />
-
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
-                    <p className="text-sm text-red-700 mb-4">
-                      Ações irreversíveis
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="w-full border-red-300 text-red-600 hover:bg-red-50"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sair
+                    <Button onClick={handleSaveProfile} className="w-full bg-green-600 hover:bg-green-700">
+                      <Save className="w-4 h-4 mr-2" />
+                      Salvar Dados Privados
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Subscription Section */}
-            {activeSection === "subscription" && (
-              <SubscriptionManager subscriptionType="owner" />
-            )}
+              {activeSection === "preferences" && (
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Preferências</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <Label>Notificações</Label>
+                      
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">Notificações Push</p>
+                          <p className="text-xs text-gray-600">Receba notificações no app</p>
+                        </div>
+                        <Switch
+                          checked={preferences.notifications_enabled}
+                          onCheckedChange={(checked) => setPreferences({...preferences, notifications_enabled: checked})}
+                        />
+                      </div>
 
-            {/* Dogs Section */}
-            {activeSection === "dogs" && (
-              <Card className="border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Dog className="w-6 h-6 text-orange-600" />
-                    Meus Cães
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">Gerencie os perfis dos seus cães</p>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => setShowDogModal(true)}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white h-14 text-lg"
-                  >
-                    <Dog className="w-5 h-5 mr-2" />
-                    Gerir Meus Cães
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">Email</p>
+                          <p className="text-xs text-gray-600">Receba atualizações por email</p>
+                        </div>
+                        <Switch
+                          checked={preferences.email_notifications}
+                          onCheckedChange={(checked) => setPreferences({...preferences, email_notifications: checked})}
+                        />
+                      </div>
+
+                      <Separator />
+                      
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-gray-700">Tipos de Notificação</h4>
+                        
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <div>
+                            <p className="font-medium text-sm">Reservas & Agendamentos</p>
+                            <p className="text-xs text-gray-500">Atualizações sobre seus passeios e treinos</p>
+                          </div>
+                          <Switch
+                            checked={preferences.push_booking_updates}
+                            onCheckedChange={(checked) => setPreferences({...preferences, push_booking_updates: checked})}
+                            disabled={!preferences.notifications_enabled}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <div>
+                            <p className="font-medium text-sm">Mensagens</p>
+                            <p className="text-xs text-gray-500">Novas mensagens de chat</p>
+                          </div>
+                          <Switch
+                            checked={preferences.push_messages}
+                            onCheckedChange={(checked) => setPreferences({...preferences, push_messages: checked})}
+                            disabled={!preferences.notifications_enabled}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <div>
+                            <p className="font-medium text-sm">Marketing & Novidades</p>
+                            <p className="text-xs text-gray-500">Promoções e atualizações do app</p>
+                          </div>
+                          <Switch
+                            checked={preferences.push_marketing}
+                            onCheckedChange={(checked) => setPreferences({...preferences, push_marketing: checked})}
+                            disabled={!preferences.notifications_enabled}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleSavePreferences} className="w-full bg-green-600 hover:bg-green-700">
+                      <Save className="w-4 h-4 mr-2" />
+                      Salvar Preferências
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeSection === "security" && (
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Segurança</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-900">
+                        ✓ Sua conta está protegida pela autenticação Base44
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
+                      <p className="text-sm text-red-700 mb-4">
+                        Ações irreversíveis
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sair
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeSection === "subscription" && (
+                <SubscriptionManager subscriptionType="owner" />
+              )}
+
+              {activeSection === "dogs" && (
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Dog className="w-6 h-6 text-orange-600" />
+                      Meus Cães
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Gerencie os perfis dos seus cães</p>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      onClick={() => setShowDogModal(true)}
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white h-14 text-lg"
+                    >
+                      <Dog className="w-5 h-5 mr-2" />
+                      Gerir Meus Cães
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Dog Manager Modal */}
       {showDogModal && (
         <DogManagerModal
           isOpen={showDogModal}
