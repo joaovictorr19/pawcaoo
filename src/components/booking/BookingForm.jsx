@@ -624,12 +624,26 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             </p>
           </div>
 
-          {/* Aviso Pagamento */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 md:gap-3">
-            <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-xs md:text-sm text-blue-800">
-              <p className="font-semibold mb-1">Pagamento após Confirmação</p>
-              <p className="text-xs md:text-sm">O contacto para pagamento (MBWay) será disponibilizado aqui na plataforma assim que o profissional aceitar o seu pedido.</p>
+          {/* Aviso Pagamento + Política de Reembolso */}
+          <div className="space-y-2">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 md:gap-3">
+              <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs md:text-sm text-blue-800">
+                <p className="font-semibold mb-1">Pagamento após Confirmação</p>
+                <p className="text-xs md:text-sm">O contacto para pagamento (MBWay) será disponibilizado aqui na plataforma assim que o profissional aceitar o seu pedido.</p>
+              </div>
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex gap-2 md:gap-3">
+              <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs md:text-sm text-green-800">
+                <p className="font-semibold mb-1">✅ Reembolso Garantido</p>
+                <p className="text-xs md:text-sm">
+                  • Cancelamento com status <strong>Pendente</strong>: 100% reembolso<br/>
+                  • Cancelamento <strong>Confirmado</strong> (Premium): 100% reembolso<br/>
+                  • Cancelamento <strong>Confirmado</strong> (Free): 80% reembolso
+                </p>
+              </div>
             </div>
           </div>
 
