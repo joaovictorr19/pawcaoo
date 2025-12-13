@@ -1330,11 +1330,12 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-        {/* AI Recommendations Section */}
+        {/* AI Recommendations Section - Only for logged in users */}
         {user && (
           <PersonalizedRecommendations user={user} />
         )}
 
+        {/* Tabs Section - Show for everyone */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
             {showAdvancedFilters && (
