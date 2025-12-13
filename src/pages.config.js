@@ -1,6 +1,5 @@
 import WalkerDetails from './pages/WalkerDetails';
 import MyBookings from './pages/MyBookings';
-import BecomeWalker from './pages/BecomeWalker';
 import MyProfile from './pages/MyProfile';
 import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
 import PostEmergency from './pages/PostEmergency';
@@ -15,7 +14,6 @@ import Partners from './pages/Partners';
 import PartnerDetails from './pages/PartnerDetails';
 import Trainers from './pages/Trainers';
 import TrainerDetails from './pages/TrainerDetails';
-import BecomeTrainer from './pages/BecomeTrainer';
 import ManageAvailability from './pages/ManageAvailability';
 import OwnerSubscriptions from './pages/OwnerSubscriptions';
 import PartnerDashboard from './pages/PartnerDashboard';
@@ -79,7 +77,6 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "MyBookings": MyBookings,
-    "BecomeWalker": BecomeWalker,
     "MyProfile": MyProfile,
     "EmergencyWalkDetails": EmergencyWalkDetails,
     "PostEmergency": PostEmergency,
@@ -94,7 +91,6 @@ export const PAGES = {
     "PartnerDetails": PartnerDetails,
     "Trainers": Trainers,
     "TrainerDetails": TrainerDetails,
-    "BecomeTrainer": BecomeTrainer,
     "ManageAvailability": ManageAvailability,
     "OwnerSubscriptions": OwnerSubscriptions,
     "PartnerDashboard": PartnerDashboard,
