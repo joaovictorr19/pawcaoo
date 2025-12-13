@@ -460,7 +460,42 @@ export default function AdminDashboard() {
     queryKey: ['allCompanies'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-...
+      const allCompanies = await base44.entities.PartnerCompany.list();
+      const allAnnouncements = await base44.entities.CompanyAnnouncement.list();
+      const allServices = await base44.entities.PartnerService.list();
+
+      const companiesWithStats = allCompanies.map((company) => {
+          const companyAnnouncements = allAnnouncements.filter(a => 
+            a.company_email === company.company_email || a.company_id === company.id
+          );
+          
+          const companyServices = allServices.filter(s => 
+            s.partner_company_email === company.company_email || s.partner_id === company.id
+          );
+
+          const now = new Date();
+          const approvedAnnouncements = companyAnnouncements.filter(a => a.moderation_status === 'approved');
+          const activeAnnouncements = approvedAnnouncements.filter(a => {
+            if (!a.start_date || !a.end_date) return false;
+            const start = new Date(a.start_date);
+            const end = new Date(a.end_date);
+            return now >= start && now <= end && a.is_active;
+          });
+
+          const approvedServices = companyServices.filter(s => s.moderation_status === 'approved');
+          const activeServices = approvedServices.filter(s => s.is_active);
+
+          return {
+            ...company,
+            stats: {
+              total_announcements: companyAnnouncements.length,
+              active_announcements: activeAnnouncements.length,
+              total_services: companyServices.length,
+              active_services: activeServices.length,
+            }
+          };
+      });
+
       return companiesWithStats;
     },
     enabled: isAdmin,
