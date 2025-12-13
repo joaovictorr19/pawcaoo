@@ -1110,8 +1110,33 @@ export default function AdminDashboard() {
       console.error("Error syncing to UserProfile:", e);
     }
 
+    // Sync to WalkerProfile if exists
+    try {
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: selectedUserForBadges.email });
+      if (walkers.length > 0 && badgesFormData.is_verified !== undefined) {
+        await base44.entities.WalkerProfile.update(walkers[0].id, {
+          is_verified: badgesFormData.is_verified
+        });
+      }
+    } catch (e) {
+      console.error("Error syncing to WalkerProfile:", e);
+    }
+
+    // Sync to TrainerProfile if exists
+    try {
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: selectedUserForBadges.email });
+      if (trainers.length > 0 && badgesFormData.is_verified !== undefined) {
+        await base44.entities.TrainerProfile.update(trainers[0].id, {
+          is_verified: badgesFormData.is_verified
+        });
+      }
+    } catch (e) {
+      console.error("Error syncing to TrainerProfile:", e);
+    }
+
     setShowBadgesDialog(false);
     setSelectedUserForBadges(null);
+    toast.success("Status de verificação atualizado em todos os perfis!");
   };
 
   const handleSaveBadgeDefinition = () => {
@@ -3380,15 +3405,21 @@ export default function AdminDashboard() {
             </DialogHeader>
             {selectedUserForBadges && (
               <div className="space-y-4 py-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={badgesFormData.is_verified || false}
-                    onChange={(e) => setBadgesFormData({...badgesFormData, is_verified: e.target.checked})}
-                    className="w-4 h-4 accent-blue-600"
-                  />
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                  <Label>Verificado (selo azul)</Label>
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold mb-3 text-blue-900">Status de Verificação</h4>
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors cursor-pointer" onClick={() => setBadgesFormData({...badgesFormData, is_verified: !badgesFormData.is_verified})}>
+                    <input
+                      type="checkbox"
+                      checked={badgesFormData.is_verified || false}
+                      onChange={(e) => setBadgesFormData({...badgesFormData, is_verified: e.target.checked})}
+                      className="w-5 h-5 accent-blue-600 cursor-pointer"
+                    />
+                    <ShieldCheck className="w-5 h-5 text-blue-600" />
+                    <div className="flex-1">
+                      <Label className="font-semibold text-gray-900 cursor-pointer">Marcar como Parceiro Verificado</Label>
+                      <p className="text-xs text-gray-600 mt-0.5">Selo azul visível no perfil e cards do utilizador</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -3422,18 +3453,18 @@ export default function AdminDashboard() {
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Award className="w-4 h-4 text-purple-600" />
-                    Badges Públicos ({selectedUserForBadges.public_badges?.length || 0})
+                    Badges Públicos Atuais ({selectedUserForBadges.public_badges?.length || 0})
                   </h4>
                   {selectedUserForBadges.public_badges?.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {selectedUserForBadges.public_badges.map((badge, idx) => (
-                        <div key={idx} className="relative group">
-                          <Badge className="bg-purple-500 pr-6">
+                        <div key={`badge-${badge.badge_id || idx}`} className="relative group">
+                          <Badge className="bg-purple-500 pr-6 text-white">
                             {badge.icon} {badge.name}
                           </Badge>
                           <button
                             onClick={() => {
-                              if (confirm(`Remover emblema "${badge.name}" de ${selectedUserForBadges.full_name}?`)) {
+                              if (confirm(`Remover emblema "${badge.name}" de ${selectedUserForBadges.full_name}?\n\nEsta ação irá deduzir ${badge.xp || 0} XP.`)) {
                                 removeBadgeFromUserMutation.mutate({
                                   userId: selectedUserForBadges.id,
                                   badgeId: badge.badge_id,
@@ -3441,7 +3472,7 @@ export default function AdminDashboard() {
                                 });
                               }
                             }}
-                            className="absolute top-0 right-0 bottom-0 px-1.5 flex items-center justify-center bg-red-500 text-white text-xs rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-0 right-0 bottom-0 px-1.5 flex items-center justify-center bg-red-500 text-white text-xs rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                             title="Remover Emblema"
                           >
                             <X className="w-3 h-3" />
@@ -3452,6 +3483,20 @@ export default function AdminDashboard() {
                   ) : (
                     <p className="text-sm text-gray-600">Nenhum badge atribuído</p>
                   )}
+                  <div className="mt-3 pt-3 border-t border-blue-300">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setShowBadgesDialog(false);
+                        openGrantBadgeDialog(selectedUserForBadges.email);
+                      }}
+                      className="w-full border-purple-500 text-purple-600 hover:bg-purple-50"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Novo Emblema
+                    </Button>
+                  </div>
                 </div>
 
                 {/* XP Management */}

@@ -34,6 +34,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.div
+            key={`badge-${badge.badge_id || badge.id}-${idx}`}
             initial={false}
             whileHover={{ scale: 1.05 }}
             className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all ${locked ? 'opacity-60 grayscale' : ''}`}
@@ -384,7 +385,7 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
-    queryKey: ['userBadges', profileEmail],
+    queryKey: ['userBadges', profileEmail, activeTab],
     queryFn: async () => {
       const badgesMap = new Map();
 
@@ -401,16 +402,16 @@ export default function UserProfile() {
 
       // Helper to generate a unique key for deduplication
       const getBadgeKey = (b) => {
-        if (b.badge_id) return b.badge_id;
-        if (b.id && !b.id.startsWith('legacy-')) return b.id;
-        if (b.name) return b.name.toLowerCase().trim().replace(/\s+/g, '_');
-        return `fallback-${Math.random()}`;
+        if (b.badge_id) return `id-${b.badge_id}`;
+        if (b.id && !b.id.startsWith('legacy-')) return `eid-${b.id}`;
+        if (b.name) return `name-${b.name.toLowerCase().trim().replace(/\s+/g, '_')}`;
+        return `fb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       };
 
-      legacySources.forEach(b => {
+      legacySources.forEach((b, idx) => {
         const key = getBadgeKey(b);
         if (!badgesMap.has(key)) {
-           badgesMap.set(key, { ...b, source: 'legacy' });
+           badgesMap.set(key, { ...b, source: 'legacy', _idx: idx });
         }
       });
 
@@ -418,10 +419,10 @@ export default function UserProfile() {
       if (profileEmail) {
         try {
           const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
-          fromTable.forEach(b => {
+          fromTable.forEach((b, idx) => {
             const key = getBadgeKey(b);
             if (!badgesMap.has(key)) {
-              badgesMap.set(key, { ...b, source: 'table' });
+              badgesMap.set(key, { ...b, source: 'table', _idx: idx });
             }
           });
         } catch (e) {
@@ -429,6 +430,7 @@ export default function UserProfile() {
         }
       }
 
+      // Clear previous results before returning new ones (Safari Memory Leak Fix)
       return Array.from(badgesMap.values());
     },
     enabled: !!profileEmail || !!profileUser,
@@ -447,17 +449,18 @@ export default function UserProfile() {
 
   const displayBadges = earnedBadges;
 
-  // Merge earned with definitions - Memoized with proper dependencies
+  // Merge earned with definitions - Memoized with proper dependencies + Memory Cleanup
   const galleryBadges = React.useMemo(() => {
     if (!earnedBadges || earnedBadges.length === 0) return [];
     
-    const processedDefinitions = allBadgeDefinitions.map(def => {
+    const processedDefinitions = allBadgeDefinitions.map((def, idx) => {
       const earnedMatch = earnedBadges.find(b => 
         (b.badge_id && b.badge_id === def.id) || 
         (b.name && b.name === def.name)
       );
       return {
         ...def,
+        _uniqueKey: `def-${def.id}-${idx}`,
         isEarned: !!earnedMatch,
         earnedDate: earnedMatch?.earned_date || null
       };
@@ -467,16 +470,17 @@ export default function UserProfile() {
     const definitionNames = new Set(allBadgeDefinitions.map(d => d.name.toLowerCase().trim()));
     const uniqueLegacyMap = new Map();
 
-    earnedBadges.forEach(b => {
+    earnedBadges.forEach((b, idx) => {
       const matchId = b.badge_id && definitionIds.has(b.badge_id);
       const matchName = b.name && definitionNames.has(b.name.toLowerCase().trim());
       
       if (!matchId && !matchName) {
-        const key = b.badge_id || b.name?.toLowerCase().trim() || `unique-${Math.random()}`;
+        const key = b.badge_id || b.name?.toLowerCase().trim() || `unique-${idx}-${Date.now()}`;
         if (!uniqueLegacyMap.has(key)) {
           uniqueLegacyMap.set(key, {
             ...b,
-            id: b.badge_id || `legacy-${key.replace(/\s+/g, '-')}`,
+            id: b.badge_id || `legacy-${idx}-${key.replace(/\s+/g, '-')}`,
+            _uniqueKey: `legacy-${key}-${idx}`,
             isEarned: true,
             rarity: b.rarity || 'common',
             description: b.description || 'Emblema Especial',
@@ -495,7 +499,7 @@ export default function UserProfile() {
       if (rA !== rB) return rB - rA;
       return (b.xp || 0) - (a.xp || 0);
     });
-  }, [allBadgeDefinitions, earnedBadges]);
+  }, [allBadgeDefinitions, earnedBadges, activeTab]);
 
   // Optimized Badge Synchronization
   React.useEffect(() => {
@@ -1137,36 +1141,36 @@ export default function UserProfile() {
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 md:gap-2">
                     {[0, 1, 2, 3].map((slotIdx) => {
-                      // Priority Logic: highlighted_emblem_id > pinned_badge_ids > fallback (recent/high level)
-                      let badge = null;
-                      let pinnedId = null;
+                     // Priority Logic: highlighted_emblem_id ONLY for slot 0 > pinned_badge_ids > fallback ONLY if no highlighted
+                     let badge = null;
+                     let pinnedId = null;
 
-                      // Slot 0: Priority to highlighted_emblem_id
-                      if (slotIdx === 0 && profileUser.highlighted_emblem_id) {
-                        pinnedId = profileUser.highlighted_emblem_id;
-                        badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
-                      }
+                     // Slot 0: PRIORITY to highlighted_emblem_id
+                     if (slotIdx === 0 && profileUser.highlighted_emblem_id) {
+                       pinnedId = profileUser.highlighted_emblem_id;
+                       badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
+                     }
 
-                      // Fallback to pinned_badge_ids
-                      if (!badge && profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) {
-                        pinnedId = profileUser.pinned_badge_ids[slotIdx];
-                        badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
-                      }
+                     // Other slots OR if slot 0 has no highlighted: use pinned_badge_ids
+                     if (!badge && profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) {
+                       pinnedId = profileUser.pinned_badge_ids[slotIdx];
+                       badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
+                     }
 
-                      // Fallback: Auto-fill with highest rarity/recent badges if empty
-                      if (!badge && slotIdx < earnedBadges.length) {
-                        const sortedBadges = [...earnedBadges].sort((a, b) => {
-                          const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
-                          const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
-                          const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
-                          if (rA !== rB) return rB - rA;
-                          return new Date(b.earned_date || 0) - new Date(a.earned_date || 0);
-                        });
-                        badge = sortedBadges[slotIdx];
-                      }
+                     // Fallback: ONLY show recent/high rarity if NO highlighted_emblem_id exists at all
+                     if (!badge && !profileUser.highlighted_emblem_id && slotIdx < earnedBadges.length) {
+                       const sortedBadges = [...earnedBadges].sort((a, b) => {
+                         const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
+                         const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
+                         const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
+                         if (rA !== rB) return rB - rA;
+                         return new Date(b.earned_date || 0) - new Date(a.earned_date || 0);
+                       });
+                       badge = sortedBadges[slotIdx];
+                     }
 
                         return (
-                          <TooltipProvider key={`slot-${slotIdx}-${pinnedId || 'empty'}`} delayDuration={100}>
+                          <TooltipProvider key={`slot-${slotIdx}-${pinnedId || 'empty'}-${badge?.badge_id || 'none'}`} delayDuration={100}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div 
@@ -1307,27 +1311,27 @@ export default function UserProfile() {
                    ))}
                  </div>
                ) : galleryBadges.length > 0 ? (
-                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                   {galleryBadges.map((badge) => (
-                     <BadgeItem 
-                       key={`gallery-${badge.id || badge.badge_id || badge.name}`}
-                       badge={badge} 
-                       idx={0}
-                       getBadgeImage={getBadgeImage}
-                       locked={!badge.isEarned} 
-                     />
-                   ))}
-                 </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
+                  {galleryBadges.map((badge, idx) => (
+                    <BadgeItem 
+                      key={badge._uniqueKey || `gallery-${badge.id || badge.badge_id}-${idx}`}
+                      badge={badge} 
+                      idx={idx}
+                      getBadgeImage={getBadgeImage}
+                      locked={!badge.isEarned} 
+                    />
+                  ))}
+                </div>
                ) : (
-                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                   {displayBadges.map((badge) => (
-                     <BadgeItem 
-                       key={`display-${badge.id || badge.badge_id || badge.name}`}
-                       badge={badge} 
-                       idx={0}
-                       getBadgeImage={getBadgeImage} 
-                     />
-                   ))}
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
+                  {displayBadges.map((badge, idx) => (
+                    <BadgeItem 
+                      key={`display-${badge.badge_id || badge.id}-${idx}-${badge.name}`}
+                      badge={badge} 
+                      idx={idx}
+                      getBadgeImage={getBadgeImage} 
+                    />
+                  ))}
                    {displayBadges.length === 0 && (
                      <div className="col-span-full text-center py-12">
                        <Award className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
