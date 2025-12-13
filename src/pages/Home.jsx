@@ -13,7 +13,6 @@ import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
-const AdoptionListings = React.lazy(() => import("./AdoptionListings"));
 import AISearchAssistant from "../components/ai/AISearchAssistant";
 import PersonalizedRecommendations from "../components/ai/PersonalizedRecommendations";
 import TestimonialsSection from "../components/home/TestimonialsSection";
