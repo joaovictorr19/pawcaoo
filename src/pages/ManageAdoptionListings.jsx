@@ -100,8 +100,13 @@ export default function ManageAdoptionListings() {
   });
 
   const updateListingMutation = useMutation({
-    mutationFn: ({ listingId, updates }) => 
-      base44.entities.AdoptionListing.update(listingId, updates),
+    mutationFn: ({ listingId, updates }) => {
+      // If status changed to adopted, set adopted_date
+      if (updates.status === 'adopted') {
+        updates.adopted_date = new Date().toISOString();
+      }
+      return base44.entities.AdoptionListing.update(listingId, updates);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAdoptionListings'] });
       toast.success(t('listingUpdatedSuccess', language));
@@ -748,7 +753,12 @@ export default function ManageAdoptionListings() {
                       <Select
                         name="status"
                         value={editingListing?.status || 'available'}
-                        onValueChange={(value) => handleSelectChange('status', value)}
+                        onValueChange={(value) => {
+                          handleSelectChange('status', value);
+                          if (value === 'adopted') {
+                            toast.success('✅ Pet marcado como adotado! Será arquivado em 2 dias.');
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={t('selectStatus', language)} />
@@ -756,11 +766,16 @@ export default function ManageAdoptionListings() {
                         <SelectContent>
                           <SelectItem value="available">{t('available', language)}</SelectItem>
                           <SelectItem value="pending">{t('pending', language)}</SelectItem>
-                          <SelectItem value="adopted">{t('adopted', language)}</SelectItem>
+                          <SelectItem value="adopted">✅ {t('adopted', language)}</SelectItem>
                           <SelectItem value="on_hold">{t('onHold', language)}</SelectItem>
                           <SelectItem value="removed">{t('removed', language)}</SelectItem>
                         </SelectContent>
                       </Select>
+                      {editingListing?.status === 'adopted' && editingListing?.adopted_date && (
+                        <p className="text-xs text-green-600 mt-1">
+                          Adotado em {format(new Date(editingListing.adopted_date), 'dd/MM/yyyy')}
+                        </p>
+                      )}
                     </div>
                   </div>
 
