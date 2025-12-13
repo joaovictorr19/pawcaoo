@@ -375,8 +375,6 @@ export default function AccountSettings() {
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-
-        <div className="flex flex-col gap-6">
           {/* Mobile Navigation (Tabs) */}
           <div className="lg:hidden overflow-x-auto pb-2">
             <div className="flex gap-2 min-w-max">
