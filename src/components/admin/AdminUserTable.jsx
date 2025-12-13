@@ -31,55 +31,56 @@ export default function AdminUserTable({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Lógica de Filtragem (Extraída do Dashboard)
+  // Lógica de Filtragem (Extraída do Dashboard) - OTIMIZADA
   const filteredUsers = useMemo(() => {
-    if (!users) return [];
+    if (!Array.isArray(users) || users.length === 0) return [];
+    
+    const { searchTerm, filters } = userSearchState;
+    const searchLower = searchTerm?.toLowerCase().trim() || "";
+    
+    // Fast path: sem filtros
+    if (!searchLower && (!filters || Object.keys(filters).length === 0)) {
+      return users;
+    }
     
     return users.filter(u => {
-      const { searchTerm, filters } = userSearchState;
-      const searchLower = searchTerm?.toLowerCase() || "";
-      
-      // Filtro de Busca
-      const matchesSearch = !searchLower || 
-        u.email?.toLowerCase().includes(searchLower) ||
-        u.full_name?.toLowerCase().includes(searchLower);
-      
-      if (!matchesSearch) return false;
+      // Filtro de Busca (otimizado)
+      if (searchLower) {
+        const email = u.email?.toLowerCase() || "";
+        const name = u.full_name?.toLowerCase() || "";
+        if (!email.includes(searchLower) && !name.includes(searchLower)) {
+          return false;
+        }
+      }
 
-      // Filtros Avançados
+      // Filtros Avançados (apenas se existirem)
       if (filters) {
-        if (filters.accountType && filters.accountType !== 'all') {
-          if (u.account_type !== filters.accountType) return false;
+        if (filters.accountType && filters.accountType !== 'all' && u.account_type !== filters.accountType) {
+          return false;
         }
 
         if (filters.verification && filters.verification !== 'all') {
-          const isVerified = u.is_verified;
-          if (filters.verification === 'verified' && !isVerified) return false;
-          if (filters.verification === 'unverified' && isVerified) return false;
+          if (filters.verification === 'verified' && !u.is_verified) return false;
+          if (filters.verification === 'unverified' && u.is_verified) return false;
         }
 
-        if (filters.status && filters.status !== 'all') {
-          const hasBadges = u.public_badges?.length > 0;
-          if (filters.status === 'active' && !hasBadges) return false; 
+        if (filters.status === 'active' && (!u.public_badges || u.public_badges.length === 0)) {
+          return false;
         }
 
-        if (filters.dateRange && filters.dateRange !== 'all') {
-          const createdDate = new Date(u.created_date);
-          const now = new Date();
-          const diffTime = Math.abs(now - createdDate);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+        if (filters.dateRange && filters.dateRange !== 'all' && u.created_date) {
+          const diffDays = Math.ceil((Date.now() - new Date(u.created_date)) / (1000 * 60 * 60 * 24));
           if (filters.dateRange === 'today' && diffDays > 1) return false;
           if (filters.dateRange === 'week' && diffDays > 7) return false;
           if (filters.dateRange === 'month' && diffDays > 30) return false;
         }
 
         if (filters.skills) {
-          const skillSearch = filters.skills.toLowerCase();
           const userSkills = u.skills || [];
-          const skillsArray = Array.isArray(userSkills) ? userSkills : (typeof userSkills === 'string' ? userSkills.split(',') : []);
-          const hasSkill = skillsArray.some(s => s.toLowerCase().includes(skillSearch));
-          if (!hasSkill) return false;
+          const skillsArray = Array.isArray(userSkills) ? userSkills : [];
+          if (!skillsArray.some(s => s.toLowerCase().includes(filters.skills.toLowerCase()))) {
+            return false;
+          }
         }
       }
 
@@ -92,12 +93,12 @@ export default function AdminUserTable({
     setCurrentPage(1);
   }, [userSearchState]);
 
-  // Paginação
+  // Paginação (otimizada com useMemo)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
 
   const handleSearch = (newState) => {
     setUserSearchState(newState);
