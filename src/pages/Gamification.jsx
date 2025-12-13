@@ -264,17 +264,17 @@ export default function Gamification() {
 
   return (
     <div className="min-h-screen pb-8 relative">
-    {/* 1. HERO SECTION - Minimalista */}
+    {/* 1. HERO SECTION - Moderno */}
     <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 relative z-10">
-          {/* Header Title - Minimalista */}
+          {/* Header Title - Moderno */}
           <motion.div 
             className="text-center mb-8 bg-white/90 backdrop-blur-lg p-6 rounded-3xl max-w-2xl mx-auto shadow-lg border border-gray-200"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-4xl md:text-5xl font-black mb-3 text-gray-900">
-              🏆 Hall da Fama
+            <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+              Hall da Fama
             </h1>
             <p className="text-base md:text-lg font-semibold text-gray-600">
               Conquistas e rankings da comunidade
@@ -282,68 +282,111 @@ export default function Gamification() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-4 items-stretch mb-8">
-            {/* Card 1: Tier Simples */}
-            <div className="glass-panel p-6 rounded-2xl border-l-4" style={{ borderColor: colors?.primary }}>
-              <div className="flex items-center gap-4">
-                <div className="text-5xl">{currentTier.icon}</div>
-                <div>
-                  <h2 className="text-2xl font-bold" style={{ color: colors?.primary }}>{currentTier.name}</h2>
-                  <p className="text-sm text-gray-600">Nível {currentLevel}</p>
-                </div>
-              </div>
-              <div className="mt-4 text-center bg-gray-50 rounded-xl p-3">
-                <div className="text-3xl font-black" style={{ color: colors?.primary }}>
-                  {currentXP.toLocaleString('pt-PT')}
-                </div>
-                <div className="text-xs text-gray-600">Total XP</div>
-              </div>
-            </div>
-
-            {/* Card 2: Progresso Limpo */}
-            <div className="glass-panel p-6 rounded-2xl">
-              <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" style={{ color: colors?.primary }} />
-                Próximo Tier
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Progresso</span>
-                  <span className="font-bold">{Math.round(tierProgressPercentage)}%</span>
-                </div>
-                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full rounded-full"
-                    style={{ background: `linear-gradient(90deg, ${colors?.orb2 || colors?.primary}, ${colors?.primary})` }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${tierProgressPercentage}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
-                </div>
-                
-                {xpRemainingForNextTier > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-3 mt-3">
-                    <div className="text-xl font-black" style={{ color: colors?.primary }}>
-                      {xpRemainingForNextTier.toLocaleString('pt-PT')}
-                    </div>
-                    <div className="text-xs text-gray-600">XP restantes</div>
+            {/* Card 1: Tier com profundidade */}
+            <motion.div 
+              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
+                   style={{ background: colors?.primary }}></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 blur-lg opacity-50" 
+                         style={{ background: colors?.primary }}></div>
+                    <div className="relative text-5xl filter drop-shadow-lg">{currentTier.icon}</div>
                   </div>
-                )}
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
+                      {currentTier.name}
+                    </h2>
+                    <p className="text-sm text-gray-600 font-medium">Nível {currentLevel}</p>
+                  </div>
+                </div>
+                <div className="relative mt-4 text-center rounded-2xl p-4 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
+                  <div className="relative z-10">
+                    <div className="text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
+                      {currentXP.toLocaleString('pt-PT')}
+                    </div>
+                    <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">Total XP</div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Card 3: Badges Simples */}
-            <div className="glass-panel p-6 rounded-2xl text-center">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                   style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}>
-                <Award className="w-8 h-8 text-white" />
+            {/* Card 2: Progresso com efeitos */}
+            <motion.div 
+              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 bg-blue-500"></div>
+              <div className="relative z-10">
+                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                  <TrendingUp className="w-4 h-4" style={{ color: colors?.primary }} />
+                  Próximo Tier
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="relative">
+                    <div className="flex justify-between text-xs text-gray-600 mb-2 font-medium">
+                      <span>Progresso</span>
+                      <span className="font-black">{Math.round(tierProgressPercentage)}%</span>
+                    </div>
+                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner relative">
+                      <motion.div 
+                        className="h-full rounded-full relative overflow-hidden"
+                        style={{ background: `linear-gradient(90deg, ${colors?.orb2 || colors?.primary}, ${colors?.primary})` }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${tierProgressPercentage}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                      >
+                        <div className="absolute inset-0 bg-white opacity-30 animate-pulse"></div>
+                      </motion.div>
+                    </div>
+                  </div>
+                  
+                  {xpRemainingForNextTier > 0 && (
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mt-3 shadow-sm">
+                      <div className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
+                        {xpRemainingForNextTier.toLocaleString('pt-PT')}
+                      </div>
+                      <div className="text-xs text-gray-600 font-bold uppercase tracking-wide">XP restantes</div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="text-4xl font-black" style={{ color: colors?.primary }}>
-                {allEarnedBadges.length}
+            </motion.div>
+
+            {/* Card 3: Badges com profundidade */}
+            <motion.div 
+              className="glass-panel p-6 rounded-2xl text-center relative overflow-hidden shadow-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20 bg-purple-500"></div>
+              <div className="relative z-10">
+                <motion.div 
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative shadow-2xl"
+                  style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="absolute inset-0 bg-white opacity-20 rounded-2xl"></div>
+                  <Award className="w-10 h-10 text-white relative z-10 filter drop-shadow-lg" />
+                </motion.div>
+                <div className="text-5xl font-black tracking-tighter mb-1" style={{ color: colors?.primary }}>
+                  {allEarnedBadges.length}
+                </div>
+                <p className="text-sm text-gray-700 font-bold uppercase tracking-wide">Emblemas</p>
+                <p className="text-xs text-gray-500 mt-1 font-medium">de {allPossibleBadges.length} disponíveis</p>
               </div>
-              <p className="text-sm text-gray-600">Emblemas</p>
-              <p className="text-xs text-gray-500 mt-1">de {allPossibleBadges.length}</p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
