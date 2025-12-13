@@ -1443,7 +1443,7 @@ export default function Home() {
 
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-700">
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -1689,7 +1689,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-700 flex items-center gap-2">
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
                         <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
