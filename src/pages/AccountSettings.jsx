@@ -19,12 +19,20 @@ import { createPageUrl } from "@/utils";
 // ImageCropModal removed
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 import SubscriptionManager from "../components/subscriptions/SubscriptionManager";
+import DogManagerModal from "../components/profile/DogManagerModal";
+import { Dog } from "lucide-react";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState("profile");
+  
+  // Check URL params for tab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabFromUrl = urlParams.get('tab');
+  
+  const [activeSection, setActiveSection] = useState(tabFromUrl || "profile");
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [showDogModal, setShowDogModal] = useState(false);
   const coverInputRef = React.useRef(null);
 
   const { data: user, isLoading } = useQuery({
@@ -417,6 +425,15 @@ export default function AccountSettings() {
                 <CreditCard className="w-4 h-4 mr-2" />
                 Subscrição
               </Button>
+              <Button
+                variant={activeSection === "dogs" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection("dogs")}
+                className="rounded-full"
+              >
+                <Dog className="w-4 h-4 mr-2" />
+                Meus Cães
+              </Button>
             </div>
           </div>
 
@@ -469,6 +486,15 @@ export default function AccountSettings() {
                   >
                     <CreditCard className="w-4 h-4 mr-2" />
                     Subscrição
+                  </Button>
+                  <Button
+                    variant={activeSection === "dogs" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    size="sm"
+                    onClick={() => setActiveSection("dogs")}
+                  >
+                    <Dog className="w-4 h-4 mr-2" />
+                    Meus Cães
                   </Button>
                 </nav>
               </CardContent>
@@ -862,11 +888,40 @@ export default function AccountSettings() {
             {activeSection === "subscription" && (
               <SubscriptionManager subscriptionType="owner" />
             )}
+
+            {/* Dogs Section */}
+            {activeSection === "dogs" && (
+              <Card className="border-gray-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Dog className="w-6 h-6 text-orange-600" />
+                    Meus Cães
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">Gerencie os perfis dos seus cães</p>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => setShowDogModal(true)}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white h-14 text-lg"
+                  >
+                    <Dog className="w-5 h-5 mr-2" />
+                    Gerir Meus Cães
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
-        {/* ImageCropModal removed */}
-      </div>
+
+      {/* Dog Manager Modal */}
+      {showDogModal && (
+        <DogManagerModal
+          isOpen={showDogModal}
+          onClose={() => setShowDogModal(false)}
+          userEmail={user?.email}
+        />
+      )}
     </div>
   );
 }
