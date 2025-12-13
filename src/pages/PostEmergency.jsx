@@ -153,11 +153,15 @@ export default function PostEmergency() {
     });
   };
 
-  // ✅ Auto-fill ALL data when dogs are selected
+  // ✅ Auto-fill ALL data when dogs are selected (including phone from DogProfile)
   React.useEffect(() => {
     if (selectedDogs.length > 0 && user) {
       const firstDog = selectedDogs[0];
       console.log('📝 Auto-filling form data for:', firstDog.dog_name);
+      
+      // Priority: dog's owner_phone > user's phone > user's whatsapp
+      const phoneNumber = firstDog.owner_phone || user.phone || user.whatsapp_number || "";
+      
       setFormData(prev => ({
         ...prev,
         dog_name: firstDog.dog_name,
@@ -166,7 +170,7 @@ export default function PostEmergency() {
         dog_photo_url: firstDog.photo_url || "",
         location: firstDog.default_pickup_address || user.address || user.location || user.city || prev.location,
         owner_name: user.full_name || prev.owner_name,
-        owner_phone: firstDog.owner_phone || user.phone || user.whatsapp_number || prev.owner_phone,
+        owner_phone: phoneNumber,
         special_notes: selectedDogs.length === 1 
           ? `${firstDog.dog_name} - ${firstDog.breed || 'SRD'}` 
           : selectedDogs.map(d => `${d.dog_name} (${d.breed || 'SRD'})`).join(', ')
@@ -247,50 +251,52 @@ export default function PostEmergency() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <Zap className="w-10 h-10 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 p-3 md:p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+            <Zap className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('emergencyWalkRequest', language)}</h1>
-          <p className="text-gray-600 text-lg">{t('findWalkerNow', language)}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{t('emergencyWalkRequest', language)}</h1>
+          <p className="text-gray-600 text-sm md:text-base">{t('findWalkerNow', language)}</p>
         </div>
 
-        <Card className="border-2 border-orange-300 shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <Zap className="w-6 h-6" />
+        <Card className="border border-orange-200 shadow-xl rounded-2xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <Zap className="w-5 h-5" />
               {t('postEmergency', language)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="p-4 md:p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Multi-Dog Selection */}
               {myDogs?.length > 0 && (
-                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                  <Label className="font-semibold text-green-900 mb-3 block">🐕 Selecionar Meus Cães ({selectedDogs.length} selecionados)</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="bg-green-50 border border-green-300 rounded-xl p-3 md:p-4">
+                  <Label className="font-semibold text-green-900 text-sm mb-2 block flex items-center gap-2">
+                    🐕 Meus Cães {selectedDogs.length > 0 && <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">{selectedDogs.length}</span>}
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {myDogs.map((dog) => {
                       const isSelected = selectedDogs.find(d => d.id === dog.id);
                       return (
                         <div
                           key={dog.id}
                           onClick={() => toggleDog(dog)}
-                          className={`cursor-pointer transition-all rounded-xl p-3 border-2 ${
+                          className={`cursor-pointer transition-all rounded-lg p-2 border ${
                             isSelected 
-                              ? 'bg-green-600 border-green-700 shadow-lg' 
-                              : 'bg-white border-green-300 hover:border-green-500'
+                              ? 'bg-green-600 border-green-700 shadow-md scale-105' 
+                              : 'bg-white border-green-300 hover:border-green-500 hover:shadow-sm'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 ${
+                          <div className="flex items-center gap-2">
+                            <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border ${
                               isSelected ? 'border-white' : 'border-green-200'
                             }`}>
                               {dog.photo_url ? (
                                 <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
                               ) : (
-                                <div className={`w-full h-full flex items-center justify-center text-lg font-bold ${
+                                <div className={`w-full h-full flex items-center justify-center text-sm font-bold ${
                                   isSelected ? 'bg-white text-green-600' : 'bg-green-200 text-green-700'
                                 }`}>
                                   {dog.dog_name?.charAt(0)}
@@ -298,11 +304,11 @@ export default function PostEmergency() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`font-bold text-sm truncate ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                              <p className={`font-bold text-xs truncate ${isSelected ? 'text-white' : 'text-gray-900'}`}>
                                 {dog.dog_name}
                               </p>
-                              <p className={`text-xs truncate ${isSelected ? 'text-green-100' : 'text-gray-600'}`}>
-                                {dog.breed || 'SRD'} • {dog.size}
+                              <p className={`text-[10px] truncate ${isSelected ? 'text-green-100' : 'text-gray-600'}`}>
+                                {dog.breed || 'SRD'}
                               </p>
                             </div>
                           </div>
@@ -310,224 +316,226 @@ export default function PostEmergency() {
                       );
                     })}
                   </div>
-                  {selectedDogs.length > 0 && (
-                    <p className="text-sm text-green-800 mt-3 font-semibold">
-                      ✅ {selectedDogs.length} {selectedDogs.length === 1 ? 'cão selecionado' : 'cães selecionados'}
-                    </p>
-                  )}
                 </div>
               )}
 
-              {/* Dog Photo Upload - Only if manual entry */}
-              {selectedDogs.length === 0 && (
-                <div className="space-y-2">
-                  <Label htmlFor="photo">{t('dogPhoto', language)}</Label>
-                  <div className="flex items-center gap-4">
-                    {formData.dog_photo_url ? (
-                      <img
-                        src={formData.dog_photo_url}
-                        alt="Dog preview"
-                        className="w-32 h-32 rounded-xl object-cover border-4 border-orange-200"
-                      />
-                    ) : (
-                      <div className="w-32 h-32 bg-orange-100 rounded-xl flex items-center justify-center border-4 border-orange-200">
-                        <Upload className="w-8 h-8 text-orange-400" />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <Input
-                        id="photo"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        disabled={uploading}
-                        className="cursor-pointer"
-                      />
-                      <p className="text-sm text-gray-500 mt-2">
-                        {uploading ? t('uploading', language) : t('uploadClearPhoto', language)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Dog Info - Manual entry if no dogs selected */}
-              {selectedDogs.length === 0 && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="dog_name">{t('dogName', language)} *</Label>
-                    <Input
-                      id="dog_name"
-                      value={formData.dog_name}
-                      onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
-                      placeholder="Max"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dog_breed">{t('breed', language)}</Label>
-                    <Input
-                      id="dog_breed"
-                      value={formData.dog_breed}
-                      onChange={(e) => setFormData({...formData, dog_breed: e.target.value})}
-                      placeholder="Golden Retriever"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dog_size">{t('dogSize', language)} *</Label>
-                    <Select 
-                      value={formData.dog_size}
-                      onValueChange={(value) => setFormData({...formData, dog_size: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('selectSize', language)} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">{t('small', language)}</SelectItem>
-                        <SelectItem value="medium">{t('medium', language)}</SelectItem>
-                        <SelectItem value="large">{t('large', language)}</SelectItem>
-                        <SelectItem value="extra_large">{t('extraLarge', language)}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="urgency_level">{t('urgencyLevel', language)} *</Label>
+              {/* Urgency Level - Moved to top for better UX */}
+              <div>
+                <Label htmlFor="urgency_level" className="text-sm font-semibold mb-1.5 block">{t('urgencyLevel', language)} *</Label>
                 <Select 
                   required
                   value={formData.urgency_level}
                   onValueChange={(value) => setFormData({...formData, urgency_level: value})}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="urgent">{t('urgentTime', language)}</SelectItem>
-                    <SelectItem value="very_urgent">{t('veryUrgentTime', language)}</SelectItem>
-                    <SelectItem value="immediate">{t('immediateTime', language)}</SelectItem>
+                    <SelectItem value="urgent">⚠️ {t('urgentTime', language)}</SelectItem>
+                    <SelectItem value="very_urgent">🔥 {t('veryUrgentTime', language)}</SelectItem>
+                    <SelectItem value="immediate">🚨 {t('immediateTime', language)}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Owner Info */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="owner_name">{t('yourName', language)} *</Label>
-                  <Input
-                    id="owner_name"
-                    value={formData.owner_name}
-                    onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
-                    placeholder="John Doe"
-                  />
-                </div>
+              {/* Dog Photo Upload & Info - Only if manual entry */}
+              {selectedDogs.length === 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
+                  <Label className="text-sm font-semibold block text-gray-700">📸 Informações do Cão</Label>
+                  
+                  <div className="flex items-center gap-3">
+                    {formData.dog_photo_url ? (
+                      <img
+                        src={formData.dog_photo_url}
+                        alt="Dog preview"
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-orange-300"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center border-2 border-orange-300">
+                        <Upload className="w-6 h-6 text-orange-400" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                        className="text-xs h-9"
+                      />
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="owner_phone">{t('phoneNumber', language)} *</Label>
-                  <Input
-                    id="owner_phone"
-                    value={formData.owner_phone}
-                    onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
-                    placeholder="+351 912 345 678"
-                  />
+                    <div>
+                      <Label htmlFor="dog_name" className="text-xs">Nome *</Label>
+                      <Input
+                        id="dog_name"
+                        value={formData.dog_name}
+                        onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
+                        placeholder="Max"
+                        className="h-9 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="dog_size" className="text-xs">Tamanho *</Label>
+                      <Select 
+                        value={formData.dog_size}
+                        onValueChange={(value) => setFormData({...formData, dog_size: value})}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Pequeno</SelectItem>
+                          <SelectItem value="medium">Médio</SelectItem>
+                          <SelectItem value="large">Grande</SelectItem>
+                          <SelectItem value="extra_large">XL</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="col-span-2">
+                      <Label htmlFor="dog_breed" className="text-xs">Raça</Label>
+                      <Input
+                        id="dog_breed"
+                        value={formData.dog_breed}
+                        onChange={(e) => setFormData({...formData, dog_breed: e.target.value})}
+                        placeholder="Golden Retriever, SRD..."
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Owner Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4 space-y-3">
+                <Label className="text-sm font-semibold block text-blue-900">👤 Seus Dados</Label>
+                  <div>
+                    <Label htmlFor="owner_name" className="text-xs">Seu Nome *</Label>
+                    <Input
+                      id="owner_name"
+                      value={formData.owner_name}
+                      onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
+                      placeholder="João Silva"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="owner_phone" className="text-xs">Telefone *</Label>
+                    <Input
+                      id="owner_phone"
+                      value={formData.owner_phone}
+                      onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
+                      placeholder="+351 912 345 678"
+                      className="h-9 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Walk Details */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="location">{t('pickupLocation', language)} *</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    placeholder="Lisboa, Porto..."
-                  />
-                </div>
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 md:p-4 space-y-3">
+                <Label className="text-sm font-semibold block text-orange-900">📍 Detalhes do Passeio</Label>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="location" className="text-xs">Local de Recolha *</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      placeholder="Morada completa..."
+                      className="h-9 text-sm"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="needed_time">{t('whenNeeded', language)} *</Label>
-                  <Input
-                    id="needed_time"
-                    value={formData.needed_time}
-                    onChange={(e) => setFormData({...formData, needed_time: e.target.value})}
-                    placeholder="Agora, Em 30 mins, etc."
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="needed_time" className="text-xs">Quando *</Label>
+                    <Input
+                      id="needed_time"
+                      value={formData.needed_time}
+                      onChange={(e) => setFormData({...formData, needed_time: e.target.value})}
+                      placeholder="Agora, 30min..."
+                      className="h-9 text-sm"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="duration_hours">{t('durationHours', language)} *</Label>
-                  <Input
-                    id="duration_hours"
-                    type="number"
-                    min="0.5"
-                    step="0.5"
-                    value={formData.duration_hours}
-                    onChange={(e) => setFormData({...formData, duration_hours: e.target.value})}
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="duration_hours" className="text-xs">Duração (h) *</Label>
+                    <Input
+                      id="duration_hours"
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      value={formData.duration_hours}
+                      onChange={(e) => setFormData({...formData, duration_hours: e.target.value})}
+                      className="h-9 text-sm"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="offered_amount">{t('offeredPayment', language)} (€) *</Label>
-                  <Input
-                    id="offered_amount"
-                    type="number"
-                    step="0.01"
-                    min="1"
-                    value={formData.offered_amount}
-                    onChange={(e) => setFormData({...formData, offered_amount: e.target.value})}
-                    placeholder="50"
-                  />
+                  <div className="md:col-span-2">
+                    <Label htmlFor="offered_amount" className="text-xs">Valor Oferecido (€) *</Label>
+                    <Input
+                      id="offered_amount"
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      value={formData.offered_amount}
+                      onChange={(e) => setFormData({...formData, offered_amount: e.target.value})}
+                      placeholder="50"
+                      className="h-10 text-sm font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Special Notes */}
-              <div className="space-y-2">
-                <Label htmlFor="special_notes">{t('specialNotesOptional', language)}</Label>
+              <div>
+                <Label htmlFor="special_notes" className="text-sm font-semibold mb-1.5 block">💬 Notas Especiais <span className="text-xs text-gray-500 font-normal">(opcional)</span></Label>
                 <Textarea
                   id="special_notes"
                   value={formData.special_notes}
                   onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
-                  placeholder={t('specialNotesPlaceholder', language)}
-                  rows={4}
+                  placeholder="Temperamento, cuidados especiais, medicamentos..."
+                  rows={3}
+                  className="text-sm"
                 />
               </div>
 
               {/* Info Alert */}
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-blue-900">
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-900">
                     {t('emergencyWalkDisclaimer', language)}
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-3 pt-6">
+              <div className="flex flex-col md:flex-row gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate(createPageUrl('Home'))}
-                  className="w-full md:flex-1 h-12"
+                  className="w-full md:w-auto h-10 text-sm"
                 >
-                  {t('cancel', language)}
+                  Cancelar
                 </Button>
                 <Button
                   type="submit"
                   disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
-                  className="w-full md:flex-1 text-white h-12 text-base font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-orange-500 to-orange-600"
+                  className="flex-1 text-white h-10 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-orange-500 to-orange-600"
                 >
                   {createEmergencyWalkMutation.isPending ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                      A Publicar...
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      Publicando...
                     </>
                   ) : (
                     <>
-                      <Zap className="w-5 h-5 mr-2" />
-                      Publicar Passeio de Emergência
+                      <Zap className="w-4 h-4 mr-2" />
+                      Publicar Emergência
                     </>
                   )}
                 </Button>
