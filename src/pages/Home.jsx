@@ -795,13 +795,22 @@ export default function Home() {
   }, [walkers, searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, 
       selectedServiceTypes, selectedSpecializations, advancedFilters, userLocation]);
 
-  const filteredEmergencyWalks = emergencyWalks.filter(walk => {
-    const matchesLocation = !searchLocation || 
-      walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
-    const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
+  const filteredEmergencyWalks = React.useMemo(() => {
+    if (!Array.isArray(emergencyWalks)) return [];
     
-    return matchesLocation && matchesSize;
-  });
+    // Remove duplicates by ID
+    const uniqueWalks = Array.from(
+      new Map(emergencyWalks.map(walk => [walk.id, walk])).values()
+    );
+    
+    return uniqueWalks.filter(walk => {
+      const matchesLocation = !searchLocation || 
+        walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
+      const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
+      
+      return matchesLocation && matchesSize;
+    });
+  }, [emergencyWalks, searchLocation, filterSize]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredWalkers.length / itemsPerPage);
