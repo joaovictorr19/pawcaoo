@@ -210,8 +210,8 @@ export default function AdminUserTable({
                 <TableHeader className="bg-gray-50/80 sticky top-0">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">ID</TableHead>
-                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap min-w-[200px]">{t('email', language)}</TableHead>
-                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap min-w-[150px]">{t('fullName', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap w-[300px]">{t('email', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap w-[200px]">{t('fullName', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('accountType', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('status', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">Data</TableHead>
@@ -231,8 +231,8 @@ export default function AdminUserTable({
                     paginatedUsers.map(user => (
                     <TableRow key={user.id} className="hover:bg-purple-50/40 transition-colors border-b border-gray-100">
                       <TableCell className="font-mono text-[10px] text-gray-500">{user.id.substring(0, 8)}...</TableCell>
-                      <TableCell className="font-medium text-xs text-gray-800 max-w-[200px] truncate" title={user.email}>{user.email}</TableCell>
-                      <TableCell className="text-xs text-gray-600 max-w-[150px] truncate" title={user.full_name}>{user.full_name || 'N/A'}</TableCell>
+                      <TableCell className="font-medium text-xs text-gray-800 break-all" title={user.email}>{user.email}</TableCell>
+                      <TableCell className="text-xs text-gray-600 break-all" title={user.full_name}>{user.full_name || 'N/A'}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="capitalize bg-white/50 text-[10px] h-5 whitespace-nowrap">
                           {user.account_type || 'owner'}
