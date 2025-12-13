@@ -70,6 +70,7 @@ import RegisterCompany from './pages/RegisterCompany';
 import MyRedemptions from './pages/MyRedemptions';
 import AffiliateDashboard from './pages/AffiliateDashboard';
 import AIMatches from './pages/AIMatches';
+import AdoptionListings from './pages/AdoptionListings';
 import __Layout from './Layout.jsx';
 
 
@@ -146,6 +147,7 @@ export const PAGES = {
     "MyRedemptions": MyRedemptions,
     "AffiliateDashboard": AffiliateDashboard,
     "AIMatches": AIMatches,
+    "AdoptionListings": AdoptionListings,
 }
 
 export const pagesConfig = {
