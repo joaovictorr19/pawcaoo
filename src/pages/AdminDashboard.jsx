@@ -210,12 +210,15 @@ export default function AdminDashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(null);
+  
+  // Pagination states
+  const [companiesPage, setCompaniesPage] = useState(1);
   const [companiesPerPage, setCompaniesPerPage] = useState(10);
   const [productsPage, setProductsPage] = useState(1);
   const [productsPerPage, setProductsPerPage] = useState(10);
   const [servicesPage, setServicesPage] = useState(1);
   const [servicesPerPage, setServicesPerPage] = useState(10);
-  const [bookingsPage, setBookingsPage] = useState(1);
+  const [bookingsPage2, setBookingsPage2] = useState(1);
   const [bookingsPerPage, setBookingsPerPage] = useState(20);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [paymentsPerPage, setPaymentsPerPage] = useState(20);
