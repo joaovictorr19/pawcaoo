@@ -1264,10 +1264,12 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative px-4">
-                    <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 opacity-30 -z-10"></span>
-                    {t('homeTitle', language)}
-                  </h1>
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-3xl -z-10 shadow-xl"></div>
+                    <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-orange-500 via-green-500 to-emerald-600 bg-clip-text text-transparent mb-4 leading-tight relative px-6 py-3">
+                      {t('homeTitle', language)}
+                    </h1>
+                  </div>
                 </motion.div>
               </div>
 
