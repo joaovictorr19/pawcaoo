@@ -59,17 +59,17 @@ export default function EmergencyDogCard({ walk }) {
   };
 
   return (
-    <Card className="glass-panel overflow-hidden hover:shadow-2xl transition-all duration-300 group border-2 border-orange-200 relative rounded-3xl">
+    <Card className="glass-panel overflow-hidden hover:shadow-xl transition-all duration-300 group border border-orange-200 relative rounded-2xl">
       {/* Urgency Badge Overlay */}
-      <div className="absolute top-4 left-4 z-10">
-        <Badge className={`${getUrgencyColor(walk.urgency_level)} border-2 font-bold text-base px-3 py-1 shadow-lg`}>
-          <Zap className="w-4 h-4 mr-1" />
+      <div className="absolute top-2 left-2 z-10">
+        <Badge className={`${getUrgencyColor(walk.urgency_level)} border font-semibold text-xs px-2 py-0.5 shadow-md`}>
+          <Zap className="w-3 h-3 mr-1" />
           {getUrgencyLabel(walk.urgency_level)}
         </Badge>
       </div>
 
       {/* Dog Photo */}
-      <div className="relative h-64 overflow-hidden bg-gradient-to-br from-orange-100 to-yellow-100">
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-orange-100 to-yellow-100">
         {walk.dog_photo_url ? (
           <img
             src={walk.dog_photo_url}
@@ -88,67 +88,57 @@ export default function EmergencyDogCard({ walk }) {
         )}
         
         {/* Payment Badge */}
-        <div className="absolute bottom-4 right-4">
-          <Badge className="bg-green-500 text-white border-0 shadow-lg text-lg px-4 py-2">
-            <DollarSign className="w-5 h-5 mr-1" />
+        <div className="absolute bottom-2 right-2">
+          <Badge className="bg-green-500 text-white border-0 shadow-md text-sm px-3 py-1">
+            <DollarSign className="w-4 h-4 mr-1" />
             ${walk.offered_amount}
           </Badge>
         </div>
       </div>
       
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-4 space-y-3">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">
+          <h3 className="text-lg font-bold text-gray-900 mb-1">
             {walk.dog_name}
           </h3>
-          <div className="flex items-center text-gray-600 text-sm mb-2">
-            <MapPin className="w-4 h-4 mr-1" />
+          <div className="flex items-center text-gray-600 text-xs mb-1">
+            <MapPin className="w-3 h-3 mr-1" />
             {walk.location}
           </div>
           {walk.dog_breed && (
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-xs">
               {walk.dog_breed} • {getSizeLabel(walk.dog_size)}
             </p>
           )}
         </div>
 
         {/* Time Needed */}
-        <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+        <div className="bg-orange-50 rounded-lg p-2 border border-orange-200">
           <div className="flex items-center gap-2 text-orange-700">
-            <Clock className="w-5 h-5" />
-            <div>
-              <div className="font-semibold">Needed: {walk.needed_time}</div>
-              <div className="text-sm">Duration: {walk.duration_hours}h</div>
+            <Clock className="w-4 h-4" />
+            <div className="text-xs">
+              <span className="font-semibold">{walk.needed_time}</span>
+              <span className="mx-1">•</span>
+              <span>{walk.duration_hours}h</span>
             </div>
-          </div>
-        </div>
-
-        {/* Owner Info - Hidden for Privacy */}
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <User className="w-4 h-4 text-gray-500" />
-            <span className="font-medium">Informações de contacto disponíveis após aceitar</span>
           </div>
         </div>
 
         {walk.special_notes && (
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-900 line-clamp-2">
-                {walk.special_notes}
-              </p>
-            </div>
+          <div className="bg-blue-50 rounded-lg p-2 border border-blue-200">
+            <p className="text-xs text-blue-900 line-clamp-2">
+              {walk.special_notes}
+            </p>
           </div>
         )}
 
         <div className="flex gap-2">
           <Button 
-            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-12 text-base font-semibold"
+            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md h-10 text-sm font-semibold"
             onClick={() => navigate(createPageUrl(`EmergencyWalkDetails?id=${walk.id}`))}
           >
-            <Zap className="w-5 h-5 mr-2" />
-            Accept This Walk
+            <Zap className="w-4 h-4 mr-1.5" />
+            Ver Detalhes
           </Button>
           
           {(user?.role === 'admin' || walk.created_by === user?.email) && (
@@ -162,9 +152,9 @@ export default function EmergencyDogCard({ walk }) {
                 }
               }}
               disabled={deleteWalkMutation.isPending}
-              className="shadow-lg h-12 w-12"
+              className="shadow-md h-10 w-10"
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>
