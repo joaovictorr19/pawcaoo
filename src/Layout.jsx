@@ -253,7 +253,7 @@ function LayoutContent({ children, currentPageName }) {
 
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
-    { title: t('findWalkers', language), url: createPageUrl("Home"), icon: Dog, id: "nav-home" },
+    { title: language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals', url: createPageUrl("Home"), icon: Dog, id: "nav-home" },
     { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap, className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" },
     { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
     { title: getMenuText('shelterArea'), url: createPageUrl("ShelterDashboard"), icon: Building2 },
