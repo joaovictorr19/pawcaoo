@@ -503,7 +503,8 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 30000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Stats em tempo real
