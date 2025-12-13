@@ -34,17 +34,65 @@ export default function EmergencyWalkDetails() {
 
   const acceptWalkMutation = useMutation({
     mutationFn: async ({ id, data }) => {
+      // 1. Update emergency walk status
       await base44.entities.EmergencyWalk.update(id, data);
       
-      // Notify owner using NotificationService
-      await NotificationService.emergencyWalkAccepted({
-        walk,
-        walkerName: user?.full_name || user?.email
+      // 2. Create booking record
+      const booking = await base44.entities.Booking.create({
+        walker_email: user.email,
+        walker_name: user.full_name || user.email,
+        owner_name: walk.owner_name,
+        owner_email: walk.created_by,
+        owner_phone: walk.owner_phone,
+        dog_name: walk.dog_name,
+        dog_size: walk.dog_size,
+        walk_date: new Date().toISOString().split('T')[0],
+        walk_time: walk.needed_time,
+        duration_hours: walk.duration_hours || 1,
+        pickup_address: walk.location,
+        service_amount: walk.service_amount || walk.offered_amount,
+        platform_fee: walk.platform_fee || 0,
+        total_amount: walk.offered_amount,
+        status: 'confirmed',
+        payment_status: walk.payment_status || 'pending',
+        special_notes: walk.special_notes,
+        type: 'walk'
       });
+      
+      // 3. Create payment record if needed
+      if (!walk.payment_id) {
+        await base44.entities.Payment.create({
+          booking_id: booking.id,
+          emergency_walk_id: id,
+          payer_email: walk.created_by,
+          payer_name: walk.owner_name,
+          recipient_email: user.email,
+          recipient_name: user.full_name || user.email,
+          service_amount: walk.service_amount || walk.offered_amount,
+          platform_fee: walk.platform_fee || 0,
+          total_amount: walk.offered_amount,
+          status: walk.payment_status || 'pending',
+          payment_method: 'stripe'
+        });
+      }
+      
+      // 4. Notify owner
+      await base44.entities.Notification.create({
+        recipient_email: walk.created_by,
+        title: '✅ Passeador Encontrado!',
+        message: `${user.full_name || user.email} aceitou o passeio de emergência de ${walk.dog_name}. Entre em contacto: ${user.email}`,
+        type: 'emergency',
+        related_id: booking.id,
+        priority: 'urgent',
+        action_url: `/MyBookings?id=${booking.id}`
+      });
+
+      return booking;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
-      toast.success("Walk accepted! The owner will contact you shortly.");
+      queryClient.invalidateQueries({ queryKey: ['activeBookings'] });
+      toast.success("Passeio aceite! A reserva foi criada em 'Minhas Reservas'");
       navigate(createPageUrl('MyBookings'));
     },
   });
