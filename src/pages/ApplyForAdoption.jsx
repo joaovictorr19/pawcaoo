@@ -28,6 +28,7 @@ export default function ApplyForAdoption() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    retry: false,
   });
 
   const { data: listing } = useQuery({
