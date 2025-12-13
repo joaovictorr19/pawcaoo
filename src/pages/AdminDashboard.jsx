@@ -551,9 +551,9 @@ export default function AdminDashboard() {
   }, [allPartnerServices, servicesPage, servicesPerPage]);
 
   const paginatedBookings = React.useMemo(() => {
-    const startIndex = (bookingsPage - 1) * bookingsPerPage;
+    const startIndex = (bookingsPage2 - 1) * bookingsPerPage;
     return allBookings.slice(startIndex, startIndex + bookingsPerPage);
-  }, [allBookings, bookingsPage, bookingsPerPage]);
+  }, [allBookings, bookingsPage2, bookingsPerPage]);
 
   const paginatedPayments = React.useMemo(() => {
     const startIndex = (paymentsPage - 1) * paymentsPerPage;
@@ -2525,14 +2525,14 @@ export default function AdminDashboard() {
                 {allBookings.length > 0 && (
                   <div className="mt-6">
                     <Pagination
-                      currentPage={bookingsPage}
+                      currentPage={bookingsPage2}
                       totalPages={Math.ceil(allBookings.length / bookingsPerPage)}
-                      onPageChange={setBookingsPage}
+                      onPageChange={setBookingsPage2}
                       itemsPerPage={bookingsPerPage}
                       totalItems={allBookings.length}
                       onItemsPerPageChange={(value) => {
                         setBookingsPerPage(value);
-                        setBookingsPage(1);
+                        setBookingsPage2(1);
                       }}
                     />
                   </div>
