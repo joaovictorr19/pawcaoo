@@ -34,6 +34,8 @@ export default function AdminShopHub() {
   // Badges
   const [editingBadge, setEditingBadge] = useState(null);
   const [badgeForm, setBadgeForm] = useState({});
+  const [awardingBadge, setAwardingBadge] = useState(null);
+  const [awardForm, setAwardForm] = useState({ userEmail: '', xpReward: 0 });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -160,6 +162,47 @@ export default function AdminShopHub() {
       queryClient.invalidateQueries(['adminBadges']);
       toast.success('Emblema criado');
       setBadgeForm({});
+    },
+  });
+
+  const awardBadgeMutation = useMutation({
+    mutationFn: async ({ userEmail, badge, xpReward }) => {
+      const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+      if (!users.length) throw new Error('Utilizador não encontrado');
+      
+      const targetUser = users[0];
+      const currentBadges = targetUser.achievements_badges || [];
+      
+      if (currentBadges.some(b => b.badge_id === badge.id)) {
+        throw new Error('Utilizador já tem este emblema');
+      }
+      
+      const newBadge = {
+        badge_id: badge.id,
+        name: badge.name,
+        description: badge.description,
+        icon: badge.icon,
+        image_url: badge.image_url,
+        rarity: badge.rarity,
+        category: badge.category,
+        earned_date: new Date().toISOString(),
+        xp_reward: xpReward || badge.xp || 0
+      };
+      
+      await base44.asServiceRole.entities.User.update(targetUser.id, {
+        achievements_badges: [...currentBadges, newBadge],
+        gamification_xp: (targetUser.gamification_xp || 0) + (xpReward || badge.xp || 0)
+      });
+      
+      return targetUser;
+    },
+    onSuccess: () => {
+      toast.success('Emblema atribuído ao utilizador');
+      setAwardingBadge(null);
+      setAwardForm({ userEmail: '', xpReward: 0 });
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
@@ -897,6 +940,59 @@ export default function AdminShopHub() {
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{badge.description}</p>
                     <div className="flex justify-end gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="bg-green-50 hover:bg-green-100" onClick={() => {
+                            setAwardingBadge(badge);
+                            setAwardForm({ userEmail: '', xpReward: badge.xp || 0 });
+                          }}>
+                            <Award className="w-4 h-4 mr-1" />
+                            Atribuir
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Atribuir Emblema: {badge.name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                              <div className="text-3xl">{badge.icon}</div>
+                              <div>
+                                <p className="font-bold">{badge.name}</p>
+                                <p className="text-xs text-gray-600">{badge.description}</p>
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Email do Utilizador</Label>
+                              <Input 
+                                type="email"
+                                placeholder="user@example.com"
+                                value={awardForm.userEmail} 
+                                onChange={(e) => setAwardForm({...awardForm, userEmail: e.target.value})}
+                              />
+                            </div>
+                            <div>
+                              <Label>XP a Conceder</Label>
+                              <Input 
+                                type="number"
+                                value={awardForm.xpReward} 
+                                onChange={(e) => setAwardForm({...awardForm, xpReward: parseInt(e.target.value)})}
+                              />
+                            </div>
+                            <Button 
+                              onClick={() => awardBadgeMutation.mutate({ 
+                                userEmail: awardForm.userEmail, 
+                                badge, 
+                                xpReward: awardForm.xpReward 
+                              })}
+                              className="w-full"
+                              disabled={!awardForm.userEmail || awardBadgeMutation.isPending}
+                            >
+                              {awardBadgeMutation.isPending ? 'A atribuir...' : 'Atribuir Emblema'}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" onClick={() => {
