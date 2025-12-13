@@ -496,7 +496,12 @@ export default function Home() {
     queryFn: async () => {
       try {
         const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20);
-        return Array.isArray(res) ? res : [];
+        if (!Array.isArray(res)) return [];
+        // Remove duplicates by ID
+        const uniqueWalks = Array.from(
+          new Map(res.map(walk => [walk.id, walk])).values()
+        );
+        return uniqueWalks;
       } catch (error) {
         console.error("Emergency walks fetch error:", error);
         return [];

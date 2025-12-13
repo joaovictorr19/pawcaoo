@@ -124,10 +124,7 @@ export default function EmergencyDogCard({ walk }) {
         )}
 
         <Button 
-          className="w-full text-white shadow-lg h-12 text-base font-semibold hover:opacity-90"
-          style={{
-            background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-          }}
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-12 text-base font-semibold"
           onClick={() => navigate(createPageUrl(`EmergencyWalkDetails?id=${walk.id}`))}
         >
           <Zap className="w-5 h-5 mr-2" />
