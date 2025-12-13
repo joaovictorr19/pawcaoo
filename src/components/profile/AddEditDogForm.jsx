@@ -127,7 +127,9 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
         ...cleanPayload,
         owner_email: user.email,
         pet_type: cleanPayload.pet_type || 'dog',
-        size: cleanPayload.size || 'medium'
+        size: cleanPayload.size || 'medium',
+        owner_phone: data.owner_phone || '',
+        default_pickup_address: data.default_pickup_address || ''
       };
 
       console.log('💾 Saving dog payload:', payload);
