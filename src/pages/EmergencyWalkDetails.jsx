@@ -269,7 +269,7 @@ export default function EmergencyWalkDetails() {
                 )}
               </Button>
 
-              {user?.role === 'admin' && (
+              {(user?.role === 'admin' || walk.created_by === user?.email) && (
                 <Button 
                   variant="destructive"
                   className="h-16 px-8 text-lg font-semibold"
