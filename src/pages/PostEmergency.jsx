@@ -119,8 +119,8 @@ export default function PostEmergency() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
-      toast.success(t('emergencyPostedSuccess', language));
-      navigate(createPageUrl('MyBookings'));
+      toast.success('Passeio de emergência publicado! Walkers próximos foram notificados. 🚀');
+      navigate(createPageUrl('Home'));
     },
     onError: (error) => {
       console.error("Error posting emergency walk:", error);
