@@ -107,17 +107,16 @@ export default function AdminUserTable({
   };
 
   return (
-    <div className="glass-panel rounded-xl border border-white/40 shadow-xl bg-white/70 backdrop-blur-md mt-6 overflow-hidden">
+    <div className="glass-panel rounded-xl border border-white/40 shadow-xl bg-white/70 backdrop-blur-md mt-6">
       <div className="p-4 md:p-6 border-b border-white/30">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <CardTitle className="text-xl md:text-2xl">{t('accountManagement', language)}</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              {filteredUsers.length} {language === 'pt' ? 'de' : 'of'} {users.length} {language === 'pt' ? 'contas' : 'accounts'}
-            </p>
-          </div>
-          
-          <div className="flex gap-2 items-center w-full md:w-auto">
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-xl md:text-2xl">{t('accountManagement', language)}</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                {filteredUsers.length} {language === 'pt' ? 'de' : 'of'} {users.length} {language === 'pt' ? 'contas' : 'accounts'}
+              </p>
+            </div>
             <Button 
               variant="outline" 
               onClick={onSyncProfiles} 
@@ -132,12 +131,13 @@ export default function AdminUserTable({
                 <><RefreshCw className="w-4 h-4 mr-2" /> Sync</>
               )}
             </Button>
-            <div className="flex-1 md:min-w-[400px]">
-              <UserSearchAdvanced 
-                onSearch={handleSearch} 
-                usersSource={users}
-              />
-            </div>
+          </div>
+          
+          <div className="w-full">
+            <UserSearchAdvanced 
+              onSearch={handleSearch} 
+              usersSource={users}
+            />
           </div>
         </div>
       </div>
@@ -151,43 +151,56 @@ export default function AdminUserTable({
         ) : (
           <>
             {/* Mobile List View */}
-            <div className="md:hidden p-4 space-y-4 overflow-x-auto">
+            <div className="md:hidden p-4 space-y-3">
               {paginatedUsers.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <p className="text-sm">{filteredUsers.length === 0 && users.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
                 </div>
               ) : (
                 paginatedUsers.map(user => (
-                <Card key={user.id} className="p-4 border border-gray-200 bg-white/80">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1 min-w-0 mr-2">
-                      <div className="font-bold text-sm truncate">{user.full_name || 'Sem Nome'}</div>
-                      <div className="text-xs text-gray-500 truncate">{user.email}</div>
-                      <div className="text-[10px] text-gray-400 mt-0.5">ID: {user.id.substring(0, 12)}...</div>
-                    </div>
-                    <Badge variant="outline" className="capitalize text-xs bg-gray-100 flex-shrink-0">
-                      {user.account_type || 'owner'}
-                    </Badge>
-                  </div>
-                  <div className="flex gap-2 mb-3 flex-wrap">
-                    <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-xs text-white`}>
-                      {user.role === 'admin' ? 'Admin' : 'User'}
-                    </Badge>
-                    {user.is_verified ? (
-                      <Badge variant="outline" className="border-green-500 text-green-600 text-xs bg-green-50">✓ Verificado</Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-gray-300 text-gray-600 text-xs bg-gray-50">○ Não Verificado</Badge>
-                    )}
-                    {user.created_date && (
-                      <Badge variant="outline" className="text-xs">
-                        {new Date(user.created_date).toLocaleDateString('pt-PT')}
+                <Card key={user.id} className="p-3 border border-gray-200 bg-white">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm">{user.full_name || 'Sem Nome'}</div>
+                        <div className="text-xs text-gray-500 break-all">{user.email}</div>
+                      </div>
+                      <Badge variant="outline" className="capitalize text-[10px] bg-gray-100 flex-shrink-0 h-5">
+                        {user.account_type || 'owner'}
                       </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="h-8 w-8 p-0 bg-white" title="Ver Perfil"><Eye className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="h-8 w-8 p-0 bg-white" title="Editar"><Edit className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 w-8 p-0 bg-white" title="Eliminar"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                    
+                    <div className="flex gap-1 flex-wrap">
+                      <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-[10px] text-white h-5`}>
+                        {user.role === 'admin' ? 'Admin' : 'User'}
+                      </Badge>
+                      {user.is_verified ? (
+                        <Badge variant="outline" className="border-green-500 text-green-600 text-[10px] bg-green-50 h-5">✓</Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-gray-300 text-gray-600 text-[10px] bg-gray-50 h-5">○</Badge>
+                      )}
+                      {user.created_date && (
+                        <Badge variant="outline" className="text-[10px] h-5">
+                          {new Date(user.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="text-[10px] text-gray-400 font-mono break-all">
+                      ID: {user.id}
+                    </div>
+                    
+                    <div className="flex gap-1.5 pt-2 border-t border-gray-100">
+                      <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="flex-1 h-8 text-xs" title="Ver Perfil">
+                        <Eye className="w-3 h-3 mr-1" /> Ver
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="flex-1 h-8 text-xs" title="Editar">
+                        <Edit className="w-3 h-3 mr-1" /> Editar
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 px-2" title="Eliminar">
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))
@@ -197,15 +210,15 @@ export default function AdminUserTable({
             {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
               <Table>
-                <TableHeader className="bg-gray-50/80">
+                <TableHeader className="bg-gray-50/80 sticky top-0">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-gray-700 font-bold">ID</TableHead>
-                    <TableHead className="text-gray-700 font-bold">{t('email', language)}</TableHead>
-                    <TableHead className="text-gray-700 font-bold">{t('fullName', language)}</TableHead>
-                    <TableHead className="text-gray-700 font-bold">{t('accountType', language)}</TableHead>
-                    <TableHead className="text-gray-700 font-bold">{t('status', language)}</TableHead>
-                    <TableHead className="text-gray-700 font-bold">Data Criação</TableHead>
-                    <TableHead className="text-gray-700 font-bold text-right pr-6">{t('actions', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">ID</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap min-w-[200px]">{t('email', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap min-w-[150px]">{t('fullName', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('accountType', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('status', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">Data</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs text-right whitespace-nowrap sticky right-0 bg-gray-50/80">{t('actions', language)}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -220,47 +233,40 @@ export default function AdminUserTable({
                   ) : (
                     paginatedUsers.map(user => (
                     <TableRow key={user.id} className="hover:bg-purple-50/40 transition-colors border-b border-gray-100">
-                      <TableCell className="font-mono text-xs text-gray-500">{user.id.substring(0, 8)}...</TableCell>
-                      <TableCell className="font-medium text-gray-800">{user.email}</TableCell>
-                      <TableCell className="text-gray-600">{user.full_name || 'N/A'}</TableCell>
+                      <TableCell className="font-mono text-[10px] text-gray-500">{user.id.substring(0, 8)}...</TableCell>
+                      <TableCell className="font-medium text-xs text-gray-800 max-w-[200px] truncate" title={user.email}>{user.email}</TableCell>
+                      <TableCell className="text-xs text-gray-600 max-w-[150px] truncate" title={user.full_name}>{user.full_name || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="capitalize bg-white/50">
+                        <Badge variant="outline" className="capitalize bg-white/50 text-[10px] h-5 whitespace-nowrap">
                           {user.account_type || 'owner'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'} text-white hover:opacity-90`}>
+                          <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'} text-white text-[10px] h-5`}>
                             {user.role === 'admin' ? 'Admin' : 'User'}
                           </Badge>
-                          {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">✓ Verificado</Badge>}
+                          {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓</Badge>}
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs text-gray-500">
-                        {user.created_date ? new Date(user.created_date).toLocaleDateString('pt-PT') : 'N/A'}
+                      <TableCell className="text-[10px] text-gray-500 whitespace-nowrap">
+                        {user.created_date ? new Date(user.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'N/A'}
                       </TableCell>
-                      <TableCell className="text-right pr-4">
-                        <div className="flex gap-2 justify-end">
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
-                            <Eye className="w-4 h-4 text-gray-500" />
+                      <TableCell className="text-right sticky right-0 bg-white">
+                        <div className="flex gap-1 justify-end">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
+                            <Eye className="w-3.5 h-3.5 text-gray-500" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
-                            <Edit className="w-4 h-4 text-blue-600" />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
+                            <Edit className="w-3.5 h-3.5 text-blue-600" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
-                            <Trash2 className="w-4 h-4 text-red-600" />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
+                            <Trash2 className="w-3.5 h-3.5 text-red-600" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))
-                  )}
-                  {paginatedUsers.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                        {t('noResults', language)}
-                      </TableCell>
-                    </TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -268,29 +274,67 @@ export default function AdminUserTable({
 
             {/* Pagination Footer */}
             {filteredUsers.length > 0 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50/30">
-                <div className="text-sm text-gray-500">
-                  {language === 'pt' ? 'Página' : 'Page'} {currentPage} {language === 'pt' ? 'de' : 'of'} {totalPages} • {filteredUsers.length} {language === 'pt' ? 'resultados' : 'results'}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="h-8 w-8 p-0 bg-white"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="h-8 w-8 p-0 bg-white"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+              <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-10">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-4 md:px-6 py-3">
+                  <div className="text-xs md:text-sm text-gray-600 font-medium order-2 md:order-1">
+                    {language === 'pt' ? 'Página' : 'Page'} <span className="font-bold text-gray-900">{currentPage}</span> {language === 'pt' ? 'de' : 'of'} <span className="font-bold text-gray-900">{totalPages}</span> • {filteredUsers.length} {language === 'pt' ? 'resultados' : 'results'}
+                  </div>
+                  <div className="flex items-center gap-2 order-1 md:order-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="h-9 px-4 bg-white font-medium disabled:opacity-50"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      <span className="text-xs">{language === 'pt' ? 'Anterior' : 'Previous'}</span>
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 7) {
+                          pageNum = i + 1;
+                        } else {
+                          if (i === 0) pageNum = 1;
+                          else if (i === 6) pageNum = totalPages;
+                          else if (currentPage <= 4) pageNum = i + 1;
+                          else if (currentPage >= totalPages - 3) pageNum = totalPages - 6 + i;
+                          else pageNum = currentPage - 3 + i;
+                        }
+                        
+                        if (totalPages > 7 && i > 0 && i < 6 && (pageNum < 1 || pageNum > totalPages)) return null;
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`h-9 w-9 p-0 text-xs font-bold ${
+                              currentPage === pageNum 
+                                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                                : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="h-9 px-4 bg-white font-medium disabled:opacity-50"
+                    >
+                      <span className="text-xs">{language === 'pt' ? 'Próxima' : 'Next'}</span>
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
