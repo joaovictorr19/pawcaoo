@@ -1068,6 +1068,10 @@ export default function Home() {
                         <div
                           key={dog.id}
                           onClick={() => {
+                            if (!user) {
+                              base44.auth.redirectToLogin(window.location.href);
+                              return;
+                            }
                             console.log('🐕 Dog clicked:', dog.id);
                             navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
                           }}
@@ -1146,7 +1150,13 @@ export default function Home() {
                     animate={{ opacity: 1, scale: 1, x: 0 }}
                     transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
                     className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
-                    onClick={() => navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`))}
+                    onClick={() => {
+                      if (!user) {
+                        base44.auth.redirectToLogin(window.location.href);
+                        return;
+                      }
+                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                    }}
                   >
                     <motion.div
                       animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
