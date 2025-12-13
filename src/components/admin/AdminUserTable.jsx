@@ -268,28 +268,52 @@ export default function AdminUserTable({
 
             {/* Pagination Footer */}
             {filteredUsers.length > 0 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50/30">
-                <div className="text-sm text-gray-500">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-4 md:px-6 py-4 border-t border-gray-200 bg-gray-50/30">
+                <div className="text-xs md:text-sm text-gray-500 order-2 md:order-1">
                   {language === 'pt' ? 'Página' : 'Page'} {currentPage} {language === 'pt' ? 'de' : 'of'} {totalPages} • {filteredUsers.length} {language === 'pt' ? 'resultados' : 'results'}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 order-1 md:order-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="h-8 w-8 p-0 bg-white"
+                    className="h-10 md:h-8 px-4 md:px-3 bg-white touch-manipulation"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4 md:mr-1" />
+                    <span className="md:hidden">Anterior</span>
                   </Button>
+                  
+                  {/* Show page numbers on mobile */}
+                  <div className="md:hidden flex items-center gap-1">
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                      const pageNum = i + 1;
+                      if (totalPages > 5 && pageNum > 3 && pageNum < currentPage - 1) return null;
+                      if (totalPages > 5 && pageNum > currentPage + 1 && pageNum < totalPages - 1) return null;
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`h-10 w-10 p-0 touch-manipulation ${currentPage === pageNum ? 'bg-blue-600 text-white' : 'bg-white'}`}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="h-8 w-8 p-0 bg-white"
+                    className="h-10 md:h-8 px-4 md:px-3 bg-white touch-manipulation"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <span className="md:hidden">Próxima</span>
+                    <ChevronRight className="w-4 h-4 md:ml-1" />
                   </Button>
                 </div>
               </div>
