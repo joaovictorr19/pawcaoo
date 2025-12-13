@@ -188,13 +188,42 @@ export default function MyBookings() {
 
   const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
 
-  // Mutation para cancelar booking (Unified)
+  // Mutation para cancelar booking (Unified) - COM LÓGICA DE REEMBOLSO
   const cancelBookingMutation = useMutation({
     mutationFn: async ({ id, type }) => {
       const entity = type === 'walk' ? base44.entities.Booking : base44.entities.TrainingBooking;
       const booking = allBookings.find(b => b.id === id && b.type === type);
       
       if (!booking) throw new Error('Booking not found');
+
+      // LÓGICA DE REEMBOLSO
+      let refundAmount = 0;
+      let refundPercentage = 0;
+      const totalPaid = booking.total_amount || 0;
+      
+      if (booking.status === 'pending') {
+        // Status Pendente: 100% reembolso automático
+        refundAmount = totalPaid;
+        refundPercentage = 100;
+      } else if (booking.status === 'confirmed') {
+        // Verificar se cliente é premium
+        const ownerSubs = await base44.entities.OwnerSubscription.filter({
+          owner_email: user.email,
+          is_active: true
+        });
+        const isPremium = ownerSubs.length > 0 && ownerSubs[0].plan_type !== 'free';
+        
+        if (isPremium) {
+          // Premium: 100% reembolso (benefício)
+          refundAmount = totalPaid;
+          refundPercentage = 100;
+        } else {
+          // Free: Reembolso parcial (deduz taxa de cancelamento de 20%)
+          const cancellationFee = totalPaid * 0.20;
+          refundAmount = totalPaid - cancellationFee;
+          refundPercentage = 80;
+        }
+      }
 
       // WORKFLOW: CANCELAMENTO (Remover do Calendário)
       const professionalEmail = type === 'walk' ? (booking.walker_email) : (booking.trainer_email);
@@ -225,12 +254,20 @@ export default function MyBookings() {
         console.error("Erro ao liberar calendário no cancelamento:", err);
       }
 
-      // Atualizar status
-      await entity.update(id, { status: 'cancelled', calendar_event_id: null });
+      // Atualizar status com valores de reembolso
+      await entity.update(id, { 
+        status: 'cancelled', 
+        calendar_event_id: null,
+        refund_amount: refundAmount,
+        refund_percentage: refundPercentage
+      });
 
       // Atualizar pagamento se existir
       if (booking.payment_id) {
-        await base44.entities.Payment.update(booking.payment_id, { status: 'refunded' });
+        await base44.entities.Payment.update(booking.payment_id, { 
+          status: 'refunded',
+          refund_amount: refundAmount
+        });
       }
 
       // Notificar profissional
@@ -239,16 +276,25 @@ export default function MyBookings() {
       await createNotification.mutateAsync({
         recipient_email: notifyEmail,
         title: '❌ Reserva Cancelada',
-        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.date), 'dd/MM/yyyy', { locale: pt })} foi cancelada pelo cliente.`,
+        message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.date), 'dd/MM/yyyy', { locale: pt })} foi cancelada. Reembolso: €${refundAmount.toFixed(2)} (${refundPercentage}%).`,
         type: 'booking',
         related_id: id,
         priority: 'normal'
       });
 
-      return id;
+      // Notificar cliente sobre reembolso
+      await createNotification.mutateAsync({
+        recipient_email: user.email,
+        title: '💰 Reembolso Processado',
+        message: `Cancelamento confirmado. Você receberá €${refundAmount.toFixed(2)} (${refundPercentage}% do valor pago) de volta.`,
+        type: 'payment',
+        related_id: id
+      });
+
+      return { id, refundAmount, refundPercentage };
     },
-    onSuccess: () => {
-      toast.success('✅ Reserva cancelada com sucesso');
+    onSuccess: (data) => {
+      toast.success(`✅ Reserva cancelada. Reembolso: €${data.refundAmount.toFixed(2)} (${data.refundPercentage}%)`);
       queryClient.invalidateQueries({ queryKey: ['myWalks'] });
       queryClient.invalidateQueries({ queryKey: ['walkerWalks'] });
       queryClient.invalidateQueries({ queryKey: ['myTrainings'] });
@@ -542,12 +588,25 @@ export default function MyBookings() {
 
           {/* Actions Row */}
           <div className="flex items-center gap-2 mt-1">
-            {/* Botão de Chat Universal */}
+          {/* Cancelar Booking */}
+          {(booking.status === 'pending' || booking.status === 'confirmed') && !isProfessional && (
             <Button 
               size="sm" 
-              variant="outline" 
-              className="flex-1 h-8 text-xs"
-              onClick={() => {
+              variant="ghost" 
+              className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+              onClick={() => handleCancelClick(booking)}
+              title="Cancelar Reserva"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+
+          {/* Botão de Chat Universal */}
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="flex-1 h-8 text-xs"
+            onClick={() => {
                 // Robust ID Extraction
                 const professionalId = getProfessionalId(booking);
                 const clientId = booking.created_by || booking.owner_email;
