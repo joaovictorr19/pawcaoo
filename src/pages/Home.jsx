@@ -1320,9 +1320,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      {!user && <TestimonialsSection />}
-
       {/* Modal de Avaliação */}
       {reviewBooking && (
         <ReviewModal 
@@ -1333,8 +1330,6 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-
-
         {/* AI Recommendations Section */}
         {user && (
           <PersonalizedRecommendations user={user} />
