@@ -122,20 +122,47 @@ export default function PostEmergency() {
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
+      // 1. Create emergency walk
       const walk = await base44.entities.EmergencyWalk.create({
         ...walkData,
         status: 'available',
         payment_status: 'pending'
       });
 
+      // 2. Calculate fees (15% platform fee as default)
+      const serviceAmount = parseFloat(walkData.offered_amount) * 0.85;
+      const platformFee = parseFloat(walkData.offered_amount) * 0.15;
+
+      // 3. Create payment record immediately to hold the transaction
+      const payment = await base44.entities.Payment.create({
+        emergency_walk_id: walk.id,
+        payer_email: user.email,
+        payer_name: walkData.owner_name,
+        recipient_email: null, // Will be filled when walker accepts
+        recipient_name: null,
+        service_amount: serviceAmount,
+        platform_fee: platformFee,
+        total_amount: parseFloat(walkData.offered_amount),
+        status: 'pending',
+        payment_method: 'stripe'
+      });
+
+      // 4. Link payment to emergency walk
+      await base44.entities.EmergencyWalk.update(walk.id, {
+        payment_id: payment.id
+      });
+
+      // 5. Notify available walkers
       await NotificationService.emergencyWalkPosted({ walk });
 
-      return walk;
+      return { walk, payment };
     },
-    onSuccess: (data) => {
+    onSuccess: ({ walk }) => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
-      toast.success('Passeio de emergência publicado! Walkers próximos foram notificados. 🚀');
-      navigate(createPageUrl('Home'));
+      toast.success('🚨 Emergência publicada! Agora proceda com o pagamento para ativar.');
+      
+      // Redirect to emergency details where payment can be made
+      navigate(createPageUrl('Home?tab=emergency'));
     },
     onError: (error) => {
       console.error("❌ Error posting emergency walk:", error);
