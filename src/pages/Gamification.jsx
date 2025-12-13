@@ -793,34 +793,34 @@ export default function Gamification() {
           </CardContent>
         </Card>
 
-        {/* Call to Actions */}
+        {/* Call to Actions - Professional */}
         <div className="grid md:grid-cols-2 gap-4">
-          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('SocialFeed'))}>
+          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate(createPageUrl('SocialFeed'))}>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <Users className="w-8 h-8 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg mb-1">Explorar Comunidade</h3>
-                  <p className="text-sm text-gray-600">Ganhe XP publicando e interagindo</p>
+                  <h3 className="font-black text-lg mb-1 text-gray-900">Explorar Comunidade</h3>
+                  <p className="text-sm text-gray-600 font-medium">Interaja e ganhe experiência</p>
                 </div>
-                <ChevronRight className="w-6 h-6 text-gray-400" />
+                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:translate-x-1 transition-transform" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('Home'))}>
+          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate(createPageUrl('Home'))}>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <Star className="w-8 h-8 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg mb-1">Agendar Passeio</h3>
-                  <p className="text-sm text-gray-600">Ganhe +100 XP por passeio completo</p>
+                  <h3 className="font-black text-lg mb-1 text-gray-900">Agendar Passeio</h3>
+                  <p className="text-sm text-gray-600 font-medium">+100 XP por passeio completo</p>
                 </div>
-                <ChevronRight className="w-6 h-6 text-gray-400" />
+                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:translate-x-1 transition-transform" />
               </div>
             </CardContent>
           </Card>
