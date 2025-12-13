@@ -1,92 +1,168 @@
 import React from 'react';
-import { Check, GraduationCap, Dog } from 'lucide-react';
+import { ShieldCheck, Award, Home as HomeIcon, Sparkles } from 'lucide-react';
 
-const VerifiedBadge = ({ className = "", type = "walker" }) => {
-  // type: "walker", "trainer", "shelter", "partner"
+const VerifiedBadge = ({ className = "", type = "walker", size = "md" }) => {
+  const sizeClasses = {
+    sm: 'w-5 h-5',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8'
+  };
+
+  const iconSizes = {
+    sm: 'w-2.5 h-2.5',
+    md: 'w-3.5 h-3.5',
+    lg: 'w-4.5 h-4.5'
+  };
   
   const badgeConfig = {
     walker: {
-      gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-      shadow: 'rgba(37, 99, 235, 0.3)',
-      border: 'border-blue-400/30',
-      icon: Check,
+      colors: {
+        primary: '#3b82f6',
+        secondary: '#1d4ed8',
+        glow: 'rgba(59, 130, 246, 0.5)'
+      },
+      icon: ShieldCheck,
       title: 'Passeador Verificado'
     },
     trainer: {
-      gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-      shadow: 'rgba(139, 92, 246, 0.3)',
-      border: 'border-purple-400/30',
-      icon: GraduationCap,
+      colors: {
+        primary: '#8b5cf6',
+        secondary: '#6d28d9',
+        glow: 'rgba(139, 92, 246, 0.5)'
+      },
+      icon: Award,
       title: 'Treinador Certificado'
     },
     shelter: {
-      gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-      shadow: 'rgba(16, 185, 129, 0.3)',
-      border: 'border-green-400/30',
-      icon: Dog,
+      colors: {
+        primary: '#10b981',
+        secondary: '#047857',
+        glow: 'rgba(16, 185, 129, 0.5)'
+      },
+      icon: HomeIcon,
       title: 'Abrigo Verificado'
     },
     partner: {
-      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-      shadow: 'rgba(245, 158, 11, 0.3)',
-      border: 'border-amber-400/30',
-      icon: Check,
+      colors: {
+        primary: '#f59e0b',
+        secondary: '#d97706',
+        glow: 'rgba(245, 158, 11, 0.5)'
+      },
+      icon: Sparkles,
       title: 'Parceiro Oficial'
     }
   };
 
   const config = badgeConfig[type] || badgeConfig.walker;
   const Icon = config.icon;
+  const uniqueId = `verified-${type}-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div className={`verified-badge-container relative flex items-center justify-center w-6 h-6 ${className}`} title={config.title}>
+    <div className={`verified-badge-premium relative inline-flex items-center justify-center ${sizeClasses[size]} ${className}`} title={config.title}>
       <style>
         {`
-          .verified-badge-3d-${type} {
-            background: ${config.gradient};
+          .verified-badge-${uniqueId} {
+            background: linear-gradient(135deg, ${config.colors.primary} 0%, ${config.colors.secondary} 100%);
+            position: relative;
+            border-radius: 50%;
             box-shadow: 
-              0 4px 6px -1px ${config.shadow},
-              0 2px 4px -1px ${config.shadow.replace('0.3', '0.15')},
-              inset 0 2px 4px rgba(255, 255, 255, 0.4),
-              inset 0 -2px 4px rgba(0, 0, 0, 0.1);
-          }
-          
-          .verified-badge-shine {
-            background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
+              0 0 0 2px rgba(255, 255, 255, 0.9),
+              0 0 0 4px ${config.colors.primary}40,
+              0 4px 12px ${config.colors.glow},
+              inset 0 2px 4px rgba(255, 255, 255, 0.3),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.2);
           }
 
-          .verified-badge-pulse-${type} {
-            animation: badgePulse-${type} 2s ease-in-out infinite;
+          .verified-badge-${uniqueId}::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            background: conic-gradient(
+              from 0deg,
+              ${config.colors.primary}00,
+              ${config.colors.primary}80,
+              ${config.colors.secondary}80,
+              ${config.colors.primary}00
+            );
+            animation: verified-rotate-${uniqueId} 3s linear infinite;
+            z-index: -1;
           }
 
-          @keyframes badgePulse-${type} {
-            0%, 100% { 
-              box-shadow: 
-                0 4px 6px -1px ${config.shadow},
-                0 2px 4px -1px ${config.shadow.replace('0.3', '0.15')},
-                inset 0 2px 4px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+          .verified-badge-${uniqueId}::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(
+              180deg,
+              rgba(255, 255, 255, 0.5) 0%,
+              rgba(255, 255, 255, 0) 50%,
+              rgba(0, 0, 0, 0.1) 100%
+            );
+            pointer-events: none;
+          }
+
+          @keyframes verified-rotate-${uniqueId} {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+
+          .verified-icon-${uniqueId} {
+            position: relative;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            animation: verified-pulse-${uniqueId} 2s ease-in-out infinite;
+          }
+
+          @keyframes verified-pulse-${uniqueId} {
+            0%, 100% {
+              transform: scale(1);
             }
-            50% { 
-              box-shadow: 
-                0 6px 10px -1px ${config.shadow},
-                0 4px 6px -1px ${config.shadow.replace('0.3', '0.25')},
-                inset 0 2px 4px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.1),
-                0 0 20px ${config.shadow};
+            50% {
+              transform: scale(1.1);
+            }
+          }
+
+          .verified-sparkle-${uniqueId} {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: verified-sparkle-${uniqueId} 2s ease-in-out infinite;
+          }
+
+          .verified-sparkle-${uniqueId}:nth-child(1) { top: 10%; left: 50%; animation-delay: 0s; }
+          .verified-sparkle-${uniqueId}:nth-child(2) { top: 50%; right: 10%; animation-delay: 0.4s; }
+          .verified-sparkle-${uniqueId}:nth-child(3) { bottom: 10%; left: 50%; animation-delay: 0.8s; }
+          .verified-sparkle-${uniqueId}:nth-child(4) { top: 50%; left: 10%; animation-delay: 1.2s; }
+
+          @keyframes verified-sparkle-${uniqueId} {
+            0%, 100% {
+              opacity: 0;
+              transform: scale(0);
+            }
+            50% {
+              opacity: 1;
+              transform: scale(1);
             }
           }
         `}
       </style>
       
-      {/* 3D Container */}
-      <div className={`verified-badge-3d-${type} verified-badge-pulse-${type} w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden ${config.border}`}>
+      <div className={`verified-badge-${uniqueId} ${sizeClasses[size]} flex items-center justify-center`}>
+        <Icon className={`verified-icon-${uniqueId} ${iconSizes[size]} text-white stroke-[2.5px]`} />
         
-        {/* Glossy Reflection */}
-        <div className="verified-badge-shine absolute top-0 left-0 right-0 h-1/2 rounded-t-full pointer-events-none" />
-        
-        {/* Icon */}
-        <Icon className="w-3.5 h-3.5 text-white drop-shadow-md z-10 stroke-[3px]" />
+        {/* Sparkle effects */}
+        <div className={`verified-sparkle-${uniqueId}`} />
+        <div className={`verified-sparkle-${uniqueId}`} />
+        <div className={`verified-sparkle-${uniqueId}`} />
+        <div className={`verified-sparkle-${uniqueId}`} />
       </div>
     </div>
   );
