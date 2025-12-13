@@ -264,21 +264,35 @@ export default function Gamification() {
 
   return (
     <div className="min-h-screen pb-8 relative">
-    {/* 1. HERO SECTION - Moderno */}
-    <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 relative z-10">
-          {/* Header Title - Moderno */}
+    {/* 1. HERO SECTION - Professional */}
+    <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-12 md:py-16 relative z-10">
+          {/* Header Title - Professional with Context */}
           <motion.div 
-            className="text-center mb-8 bg-white/90 backdrop-blur-lg p-6 rounded-3xl max-w-2xl mx-auto shadow-lg border border-gray-200"
+            className="text-left mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-              Hall da Fama
-            </h1>
-            <p className="text-base md:text-lg font-semibold text-gray-600">
-              Conquistas e rankings da comunidade
-            </p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                <Trophy className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 bg-clip-text text-transparent">
+                  Hall da Fama
+                </h1>
+                <p className="text-sm md:text-base text-gray-600 font-medium mt-1">
+                  Sistema de Recompensas e Rankings da Comunidade
+                </p>
+              </div>
+            </div>
+            
+            <div className="max-w-3xl">
+              <p className="text-gray-700 leading-relaxed">
+                Acompanhe o seu progresso, desbloqueie conquistas exclusivas e compare-se com outros membros da comunidade. 
+                Cada interação, passeio e atividade contribui para o seu crescimento na plataforma.
+              </p>
+            </div>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-4 items-stretch mb-8">
