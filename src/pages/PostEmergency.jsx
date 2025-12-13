@@ -83,26 +83,26 @@ export default function PostEmergency() {
     const urlParams = new URLSearchParams(window.location.search);
     const dogId = urlParams.get('dogId');
     
-    if (dogId && myDogs.length > 0) {
+    if (dogId && myDogs.length > 0 && user) {
       const dog = myDogs.find(d => d.id === dogId);
       if (dog && !selectedDogs.find(d => d.id === dogId)) {
         console.log('🐕 Auto-selecting dog from URL:', dog.dog_name);
         setSelectedDogs([dog]);
-        // Populate ALL form data including phone
+        // Populate ALL form data including phone and address
         setFormData(prev => ({
           ...prev,
           dog_name: dog.dog_name,
           dog_size: dog.size,
           dog_breed: dog.breed || "",
           dog_photo_url: dog.photo_url || "",
-          location: dog.default_pickup_address || prev.location || user?.address || user?.location || user?.city || "",
-          owner_name: user?.full_name || prev.owner_name,
-          owner_phone: user?.phone || user?.whatsapp_number || prev.owner_phone,
+          location: dog.default_pickup_address || user.address || user.location || user.city || "",
+          owner_name: user.full_name || "",
+          owner_phone: user.phone || user.whatsapp_number || "",
           special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
         }));
       }
     }
-  }, [myDogs, user]);
+  }, [dogId, myDogs.length, user?.email]);
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
@@ -156,7 +156,7 @@ export default function PostEmergency() {
 
   // ✅ Auto-fill from first selected dog (for single selection scenario)
   React.useEffect(() => {
-    if (selectedDogs.length === 1) {
+    if (selectedDogs.length === 1 && user) {
       const dog = selectedDogs[0];
       setFormData(prev => ({
         ...prev,
@@ -164,13 +164,13 @@ export default function PostEmergency() {
         dog_size: dog.size,
         dog_breed: dog.breed || "",
         dog_photo_url: dog.photo_url || "",
-        location: dog.default_pickup_address || prev.location || user?.address || user?.location || user?.city || "",
-        owner_name: user?.full_name || prev.owner_name,
-        owner_phone: user?.phone || user?.whatsapp_number || prev.owner_phone,
+        location: dog.default_pickup_address || user.address || user.location || user.city || "",
+        owner_name: user.full_name || "",
+        owner_phone: user.phone || user.whatsapp_number || "",
         special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
       }));
     }
-  }, [selectedDogs, user]);
+  }, [selectedDogs.length, user?.email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
