@@ -94,7 +94,7 @@ function ShopTab({ language }) {
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">
+        <h2 className="text-3xl md:text-4xl font-black text-gray-700 mb-3">
           {language === 'pt' ? '🛍️ Loja PawCão' : language === 'es' ? '🛍️ Tienda PawCão' : '🛍️ PawCão Shop'}
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
@@ -172,7 +172,7 @@ function ShopTab({ language }) {
         </div>
       ) : products.length > 0 ? (
         <div>
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-6">
             {language === 'pt' ? 'Produtos em Destaque' : 'Featured Products'}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -227,7 +227,7 @@ function ShopTab({ language }) {
         </div>
       ) : partners.length > 0 ? (
         <div>
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-6">
             {language === 'pt' ? 'Parceiros em Destaque' : 'Featured Partners'}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -282,7 +282,7 @@ function ShopTab({ language }) {
           <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Store className="w-10 h-10 text-purple-400" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          <h3 className="text-2xl font-bold text-gray-700 mb-2">
             {language === 'pt' ? 'Loja em Breve' : 'Shop Coming Soon'}
           </h3>
           <p className="text-gray-600">
@@ -1252,8 +1252,8 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-orange-500 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative px-4">
-                    <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-indigo-300 via-purple-300 to-orange-300 opacity-20 -z-10"></span>
+                  <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent mb-4 leading-tight drop-shadow-2xl relative px-4">
+                    <span className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 opacity-30 -z-10"></span>
                     {t('homeTitle', language)}
                   </h1>
                 </motion.div>
@@ -1443,7 +1443,7 @@ export default function Home() {
 
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-700">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -1542,8 +1542,16 @@ export default function Home() {
                           <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                             <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                           </div>
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Não encontrámos nenhum Passeador com os filtros selecionados.</h3>
-                          <p className="text-sm md:text-base text-gray-600 mb-4">Tente alargar o raio de busca ou remover alguns filtros.</p>
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                            {language === 'pt' ? 'Não encontrámos nenhum Profissional com os filtros selecionados.' : 
+                             language === 'es' ? 'No encontramos ningún Profesional con los filtros seleccionados.' : 
+                             'No Professionals found with the selected filters.'}
+                          </h3>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">
+                            {language === 'pt' ? 'Tente alargar o raio de busca ou remover alguns filtros.' :
+                             language === 'es' ? 'Intente ampliar el radio de búsqueda o eliminar algunos filtros.' :
+                             'Try widening the search radius or removing some filters.'}
+                          </p>
 
                           <div className="flex flex-wrap gap-2 justify-center mt-4">
                             <Button
@@ -1681,7 +1689,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-700 flex items-center gap-2">
                         <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
@@ -1706,7 +1714,7 @@ export default function Home() {
                       <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                         <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
                       </div>
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{t('noEmergencies', language)}</h3>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">{t('noEmergencies', language)}</h3>
                       <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
                     </div>
                   ) : (
