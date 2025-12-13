@@ -38,6 +38,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
     color: "",
     photo_url: "",
     gallery_photos: [],
+    owner_phone: "",
     default_pickup_address: "",
     bio: "",
     is_adopted: false,
@@ -77,12 +78,18 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
   const [uploading, setUploading] = useState(false);
   const [useOwnerAddress, setUseOwnerAddress] = useState(false);
 
-  // Auto-fill owner address
+  // Auto-fill owner address and phone
   React.useEffect(() => {
     if (useOwnerAddress && user?.address) {
       setFormData(prev => ({ ...prev, default_pickup_address: user.address }));
     }
   }, [useOwnerAddress, user?.address]);
+
+  React.useEffect(() => {
+    if (user?.phone && !formData.owner_phone) {
+      setFormData(prev => ({ ...prev, owner_phone: user.phone }));
+    }
+  }, [user?.phone]);
   // uploadingVet is removed as its related UI is removed.
 
   const saveDogMutation = useMutation({
@@ -293,6 +300,16 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       onChange={(e) => setFormData({ ...formData, dog_name: e.target.value })}
                       placeholder="Ex: Rex, Luna..."
                       required
+                    />
+                  </div>
+
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="owner_phone" className="text-sm">Celular do Dono *</Label>
+                    <Input
+                      id="owner_phone"
+                      value={formData.owner_phone}
+                      onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
+                      placeholder="+351 XXX XXX XXX"
                     />
                   </div>
 
