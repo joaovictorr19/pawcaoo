@@ -60,7 +60,8 @@ export default function CreateAdoptionListing() {
     shelter_type: "individual",
     contact_email: user?.email || "",
     contact_phone: user?.phone || "",
-    contact_whatsapp: user?.phone || "", // Added WhatsApp field
+    contact_whatsapp: user?.phone || "",
+    external_link: "",
     adoption_fee: 0,
     fee_includes: [],
     requirements: {},
@@ -576,9 +577,8 @@ export default function CreateAdoptionListing() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Contact Phone *</Label>
+                      <Label>Contact Phone</Label>
                       <Input
-                        required
                         value={formData.contact_phone}
                         onChange={(e) => setFormData({...formData, contact_phone: e.target.value})}
                         placeholder="+351 ..."
@@ -600,13 +600,32 @@ export default function CreateAdoptionListing() {
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Contact Email *</Label>
+                      <Label>Contact Email</Label>
                       <Input
-                        required
                         type="email"
                         value={formData.contact_email}
                         onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
+                        placeholder="email@example.com"
                       />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>
+                        {language === 'pt' ? 'Link Externo (para adoções de outros sites)' :
+                         language === 'es' ? 'Enlace Externo (para adopciones de otros sitios)' :
+                         'External Link (for adoptions from other platforms)'}
+                      </Label>
+                      <Input
+                        type="url"
+                        value={formData.external_link}
+                        onChange={(e) => setFormData({...formData, external_link: e.target.value})}
+                        placeholder="https://..."
+                      />
+                      <p className="text-xs text-gray-500">
+                        {language === 'pt' ? 'Se esta adoção estiver listada em outro site, cole o link aqui' :
+                         language === 'es' ? 'Si esta adopción está listada en otro sitio, pega el enlace aquí' :
+                         'If this adoption is listed on another website, paste the link here'}
+                      </p>
                     </div>
                   </div>
 
