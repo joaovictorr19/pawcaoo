@@ -1680,9 +1680,24 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="adoption">
-                <Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-3 gap-4"><Skeleton className="h-64" /><Skeleton className="h-64" /><Skeleton className="h-64" /></div>}>
-                  <AdoptionListings isEmbedded={true} />
-                </Suspense>
+                <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+                        <Heart className="w-6 h-6 md:w-7 md:h-7 text-pink-500 fill-pink-500" />
+                        {language === 'pt' ? 'Cães Disponíveis para Adoção' : language === 'es' ? 'Perros Disponibles para Adopción' : 'Dogs Available for Adoption'}
+                      </h2>
+                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1 flex items-center gap-1">
+                        <HomeIcon className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                        {language === 'pt' ? 'Dê um lar a um amigo de quatro patas' : language === 'es' ? 'Dale un hogar a un amigo de cuatro patas' : 'Give a home to a four-legged friend'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-3 gap-4"><Skeleton className="h-64" /><Skeleton className="h-64" /><Skeleton className="h-64" /></div>}>
+                    <AdoptionListings isEmbedded={true} />
+                  </Suspense>
+                </div>
               </TabsContent>
 
               <TabsContent value="emergency">
@@ -1690,10 +1705,11 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
-                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
+                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500 fill-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
-                      <p className="text-xs md:text-base text-gray-600 mt-1">
+                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-white" />
                         {filteredEmergencyWalks.length} {t('dogsNeedHelpCount', language)}
                       </p>
                     </div>
