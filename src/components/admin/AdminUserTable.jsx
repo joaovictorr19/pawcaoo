@@ -273,25 +273,30 @@ export default function AdminUserTable({
             </div>
 
             {/* Pagination Footer */}
-            {filteredUsers.length > 0 && (
-              <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-10">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-4 md:px-6 py-3">
-                  <div className="text-xs md:text-sm text-gray-600 font-medium order-2 md:order-1">
-                    {language === 'pt' ? 'Página' : 'Page'} <span className="font-bold text-gray-900">{currentPage}</span> {language === 'pt' ? 'de' : 'of'} <span className="font-bold text-gray-900">{totalPages}</span> • {filteredUsers.length} {language === 'pt' ? 'resultados' : 'results'}
+            {filteredUsers.length > 0 && totalPages > 0 && (
+              <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-gray-300 shadow-2xl z-50">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-4 md:px-6 py-4">
+                  <div className="text-xs md:text-sm text-gray-700 font-semibold order-2 md:order-1">
+                    {language === 'pt' ? 'Página' : 'Page'} <span className="text-blue-900 text-lg">{currentPage}</span> {language === 'pt' ? 'de' : 'of'} <span className="text-blue-900 text-lg">{totalPages}</span> <span className="text-gray-500">• {filteredUsers.length} {language === 'pt' ? 'resultados' : 'results'}</span>
                   </div>
                   <div className="flex items-center gap-2 order-1 md:order-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Previous clicked, current page:', currentPage);
+                        setCurrentPage(prev => Math.max(1, prev - 1));
+                      }}
                       disabled={currentPage === 1}
-                      className="h-9 px-4 bg-white font-medium disabled:opacity-50"
+                      className="h-10 px-4 bg-blue-900 text-white hover:bg-blue-800 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0"
                     >
                       <ChevronLeft className="w-4 h-4 mr-1" />
-                      <span className="text-xs">{language === 'pt' ? 'Anterior' : 'Previous'}</span>
+                      <span className="text-sm">{language === 'pt' ? 'Anterior' : 'Previous'}</span>
                     </Button>
                     
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
                       {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                         let pageNum;
                         if (totalPages <= 7) {
@@ -308,14 +313,20 @@ export default function AdminUserTable({
                         
                         return (
                           <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "ghost"}
+                            key={`page-${pageNum}`}
+                            variant="ghost"
                             size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`h-9 w-9 p-0 text-xs font-bold ${
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Page number clicked:', pageNum, 'Current:', currentPage);
+                              setCurrentPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`h-9 w-9 p-0 text-sm font-bold transition-all ${
                               currentPage === pageNum 
-                                ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                                : 'text-gray-600 hover:bg-gray-100'
+                                ? 'bg-blue-900 text-white shadow-md hover:bg-blue-800' 
+                                : 'text-gray-700 hover:bg-white hover:text-blue-900'
                             }`}
                           >
                             {pageNum}
@@ -327,11 +338,16 @@ export default function AdminUserTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Next clicked, current page:', currentPage, 'total:', totalPages);
+                        setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                      }}
                       disabled={currentPage === totalPages}
-                      className="h-9 px-4 bg-white font-medium disabled:opacity-50"
+                      className="h-10 px-4 bg-blue-900 text-white hover:bg-blue-800 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0"
                     >
-                      <span className="text-xs">{language === 'pt' ? 'Próxima' : 'Next'}</span>
+                      <span className="text-sm">{language === 'pt' ? 'Próxima' : 'Next'}</span>
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
