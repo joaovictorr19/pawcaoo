@@ -168,7 +168,7 @@ export default function AdminShopHub() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-black text-gray-900 mb-2">🏪 Admin Shop Hub</h1>
+          <h1 className="text-4xl font-black text-gray-900 mb-2">Admin Shop Hub</h1>
           <p className="text-gray-600">Controlo total da loja, produtos, empresas e emblemas</p>
         </div>
 

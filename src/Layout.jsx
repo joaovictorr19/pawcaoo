@@ -280,7 +280,7 @@ function LayoutContent({ children, currentPageName }) {
   const adminMenu = authUser?.role === 'admin' ? [
     { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
     { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
-    { title: "🏪 Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
+    { title: "Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
     { title: getMenuText('approveAds'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
     { title: getMenuText('paymentSetup'), url: createPageUrl("PaymentSetup"), icon: Shield },
     { title: getMenuText('verifyShelters'), url: createPageUrl("AdminShelterVerification"), icon: Building2 },
