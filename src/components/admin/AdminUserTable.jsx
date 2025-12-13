@@ -90,8 +90,16 @@ export default function AdminUserTable({
 
   // Efeito para resetar página quando filtro muda
   React.useEffect(() => {
+    console.log('Filters changed, resetting to page 1');
     setCurrentPage(1);
   }, [userSearchState]);
+
+  // Debug: Log quando página muda
+  React.useEffect(() => {
+    console.log('Current page changed to:', currentPage);
+    console.log('Total pages:', totalPages);
+    console.log('Showing users:', paginatedUsers.length);
+  }, [currentPage, totalPages, paginatedUsers.length]);
 
   // Paginação (otimizada com useMemo)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -281,10 +289,13 @@ export default function AdminUserTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         const newPage = Math.max(1, currentPage - 1);
-                        console.log('Previous clicked, going to page:', newPage);
+                        console.log('Previous clicked, current:', currentPage, 'going to:', newPage);
                         setCurrentPage(newPage);
+                        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                       }}
                       disabled={currentPage === 1}
                       className="h-10 px-4 bg-slate-800 text-white hover:bg-slate-700 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0 shadow-md"
@@ -313,10 +324,12 @@ export default function AdminUserTable({
                             key={`page-btn-${pageNum}`}
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              console.log('Clicking page:', pageNum);
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Page button clicked:', pageNum, 'current:', currentPage);
                               setCurrentPage(pageNum);
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                              setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                             }}
                             className={`h-9 w-9 p-0 text-sm font-bold transition-all ${
                               currentPage === pageNum 
@@ -333,10 +346,13 @@ export default function AdminUserTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         const newPage = Math.min(totalPages, currentPage + 1);
-                        console.log('Next clicked, going to page:', newPage);
+                        console.log('Next clicked, current:', currentPage, 'going to:', newPage);
                         setCurrentPage(newPage);
+                        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                       }}
                       disabled={currentPage === totalPages}
                       className="h-10 px-4 bg-slate-800 text-white hover:bg-slate-700 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0 shadow-md"
