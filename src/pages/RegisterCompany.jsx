@@ -55,7 +55,8 @@ export default function RegisterCompany() {
         company_email: user.email,
         services_offered: data.services_offered ? data.services_offered.split(',').map(s => s.trim()).filter(Boolean) : [],
         service_areas: data.service_areas ? data.service_areas.split(',').map(s => s.trim()).filter(Boolean) : [],
-        is_active: true,
+        is_active: false,
+        verification_status: 'pending',
         subscription_tier: 'free'
       };
 
