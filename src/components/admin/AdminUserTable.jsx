@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight 
+  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
@@ -24,7 +24,8 @@ export default function AdminUserTable({
   onEdit, 
   onDelete, 
   onSyncProfiles, 
-  isSyncing 
+  isSyncing,
+  onEditBadges
 }) {
   const { language } = useLanguage();
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
@@ -203,6 +204,11 @@ export default function AdminUserTable({
                       <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="flex-1 h-8 text-xs" title="Editar">
                         <Edit className="w-3 h-3 mr-1" /> Editar
                       </Button>
+                      {onEditBadges && (
+                        <Button size="sm" variant="outline" onClick={() => onEditBadges(user)} className="h-8 px-2 text-purple-600 border-purple-200" title="Editar Emblemas">
+                          <Award className="w-3 h-3" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 px-2" title="Eliminar">
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -266,6 +272,11 @@ export default function AdminUserTable({
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
                             <Edit className="w-3.5 h-3.5 text-blue-600" />
                           </Button>
+                          {onEditBadges && (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-purple-100 rounded-full" onClick={() => onEditBadges(user)} title="Editar Emblemas & XP">
+                              <Award className="w-3.5 h-3.5 text-purple-600" />
+                            </Button>
+                          )}
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
                             <Trash2 className="w-3.5 h-3.5 text-red-600" />
                           </Button>
