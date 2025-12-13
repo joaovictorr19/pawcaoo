@@ -601,7 +601,7 @@ export default function Home() {
     if (!walker.latitude || !walker.longitude) {
       return null;
     }
-    
+
     return calculateDistance(
       userLocation.lat,
       userLocation.lng,
@@ -614,12 +614,24 @@ export default function Home() {
     if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
     const trainerLat = trainer.latitude || 38.7223;
     const trainerLng = trainer.longitude || -9.1393;
-    
+
     return calculateDistance(
       userLocation.lat,
       userLocation.lng,
       trainerLat,
       trainerLng
+    );
+  };
+
+  const getEmergencyDistance = (walk) => {
+    if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
+    if (!walk.latitude || !walk.longitude) return null;
+
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      walk.latitude,
+      walk.longitude
     );
   };
 
@@ -812,16 +824,27 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
-    const filtered = emergencyWalks.filter(walk => {
-      const matchesLocation = !searchLocation || 
-        walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
-      const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
+    const filtered = emergencyWalks
+      .map(walk => ({
+        ...walk,
+        distance: getEmergencyDistance(walk)
+      }))
+      .filter(walk => {
+        const matchesLocation = !searchLocation || 
+          walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
+        const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
 
-      return matchesLocation && matchesSize;
-    });
+        return matchesLocation && matchesSize;
+      })
+      .sort((a, b) => {
+        if (userLocation && a.distance !== null && b.distance !== null) {
+          return a.distance - b.distance;
+        }
+        return new Date(b.created_date) - new Date(a.created_date);
+      });
 
     return filtered;
-  }, [emergencyWalks, searchLocation, filterSize]);
+  }, [emergencyWalks, searchLocation, filterSize, userLocation]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredWalkers.length / itemsPerPage);
@@ -1867,7 +1890,7 @@ export default function Home() {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                       {filteredEmergencyWalks.map((walk) => (
-                        <EmergencyDogCard key={walk.id} walk={walk} />
+                        <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
                       ))}
                     </div>
                   )}

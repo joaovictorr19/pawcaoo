@@ -10,7 +10,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export default function EmergencyDogCard({ walk }) {
+export default function EmergencyDogCard({ walk, distance }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -101,10 +101,12 @@ export default function EmergencyDogCard({ walk }) {
           <h3 className="text-lg font-bold text-gray-900 mb-1">
             {walk.dog_name}
           </h3>
-          <div className="flex items-center text-gray-600 text-xs mb-1">
-            <MapPin className="w-3 h-3 mr-1" />
-            {walk.location}
-          </div>
+          {distance !== null && (
+            <div className="flex items-center text-gray-600 text-xs mb-1">
+              <MapPin className="w-3 h-3 mr-1" />
+              {distance.toFixed(1)} km de distância
+            </div>
+          )}
           {walk.dog_breed && (
             <p className="text-gray-600 text-xs">
               {walk.dog_breed} • {getSizeLabel(walk.dog_size)}
