@@ -180,8 +180,8 @@ export default function CreateAdoptionListing() {
                   {/* Photos Upload - Using Optimized Component */}
                   <div>
                     <Label className="text-lg font-semibold mb-3 block flex items-center gap-2">
-                      📸 Fotos do Pet *
-                      <span className="text-sm font-normal text-gray-500">(mínimo 1, máximo 8)</span>
+                      📸 Fotos do Pet
+                      <span className="text-sm font-normal text-gray-500">(máximo 8)</span>
                     </Label>
                     <OptimizedImageUpload
                       onImagesChange={(urls) => setFormData({ ...formData, photos: urls })}
@@ -205,16 +205,15 @@ export default function CreateAdoptionListing() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label>Pet Name *</Label>
+                      <Label>Pet Name</Label>
                       <Input
-                        required
                         value={formData.pet_name}
                         onChange={(e) => setFormData({...formData, pet_name: e.target.value})}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Pet Type *</Label>
+                      <Label>Pet Type</Label>
                       <Select value={formData.pet_type} onValueChange={(v) => setFormData({...formData, pet_type: v})}>
                         <SelectTrigger>
                           <SelectValue />
@@ -230,16 +229,15 @@ export default function CreateAdoptionListing() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Breed *</Label>
+                      <Label>Breed</Label>
                       <Input
-                        required
                         value={formData.breed}
                         onChange={(e) => setFormData({...formData, breed: e.target.value})}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Gender *</Label>
+                      <Label>Gender</Label>
                       <Select value={formData.gender} onValueChange={(v) => setFormData({...formData, gender: v})}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
@@ -296,9 +294,8 @@ export default function CreateAdoptionListing() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Description *</Label>
+                    <Label>Description</Label>
                     <Textarea
-                      required
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                       rows={5}
@@ -310,7 +307,6 @@ export default function CreateAdoptionListing() {
                     <Button
                       type="button"
                       onClick={() => setStep(2)}
-                      disabled={!formData.pet_name || !formData.description || formData.photos.length === 0}
                       className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
                     >
                       Next: Health & Personality →
