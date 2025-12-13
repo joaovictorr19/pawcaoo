@@ -215,54 +215,53 @@ export default function AdoptionListings({ isEmbedded = false }) {
         )}
 
         {isEmbedded && (
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
+              <Input
+                type="text"
+                placeholder={language === 'pt' ? '📍 Localização...' : language === 'es' ? '📍 Ubicación...' : '📍 Location...'}
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+                className="bg-white/95 border-2 border-gray-200 shadow-sm h-10 text-sm flex-1"
+              />
+              
              <Button
                 onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg order-1 md:order-2"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg h-10"
                 size="default"
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 {t('postForAdoption', language)}
               </Button>
-              
-              <div className="flex-1 order-2 md:order-1 w-full md:w-auto">
-                <Input
-                  type="text"
-                  placeholder={language === 'pt' ? '📍 Cidade...' : '📍 City...'}
-                  value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
-                  className="bg-white/95 border-2 border-gray-200 shadow-sm"
-                />
-              </div>
           </div>
         )}
 
-        {/* Modern Compact Filters */}
-        <FilterBar 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          filterPetType={filterPetType}
-          setFilterPetType={setFilterPetType}
-          filterLocation={filterLocation}
-          setFilterLocation={setFilterLocation}
-          filterSize={filterSize}
-          setFilterSize={setFilterSize}
-          filterAge={filterAge}
-          setFilterAge={setFilterAge}
-          filterGender={filterGender}
-          setFilterGender={setFilterGender}
-          filterEnergy={filterEnergy}
-          setFilterEnergy={setFilterEnergy}
-          showUrgentOnly={showUrgentOnly}
-          setShowUrgentOnly={setShowUrgentOnly}
-          showVerifiedOnly={showVerifiedOnly}
-          setShowVerifiedOnly={setShowVerifiedOnly}
-          filterGoodWith={filterGoodWith}
-          setFilterGoodWith={setFilterGoodWith}
-          filterSpecialNeeds={filterSpecialNeeds}
-          setFilterSpecialNeeds={setFilterSpecialNeeds}
-          language={language}
-        />
+        {!isEmbedded && (
+          <FilterBar 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filterPetType={filterPetType}
+            setFilterPetType={setFilterPetType}
+            filterLocation={filterLocation}
+            setFilterLocation={setFilterLocation}
+            filterSize={filterSize}
+            setFilterSize={setFilterSize}
+            filterAge={filterAge}
+            setFilterAge={setFilterAge}
+            filterGender={filterGender}
+            setFilterGender={setFilterGender}
+            filterEnergy={filterEnergy}
+            setFilterEnergy={setFilterEnergy}
+            showUrgentOnly={showUrgentOnly}
+            setShowUrgentOnly={setShowUrgentOnly}
+            showVerifiedOnly={showVerifiedOnly}
+            setShowVerifiedOnly={setShowVerifiedOnly}
+            filterGoodWith={filterGoodWith}
+            setFilterGoodWith={setFilterGoodWith}
+            filterSpecialNeeds={filterSpecialNeeds}
+            setFilterSpecialNeeds={setFilterSpecialNeeds}
+            language={language}
+          />
+        )}
 
         {/* Listings Grid */}
         {isLoading ? (
@@ -387,7 +386,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                   {/* Content */}
                   <CardContent className="p-5">
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2 group-hover:from-green-700 group-hover:to-blue-600 transition-all">
-                      {listing.pet_name}
+                      {listing.pet_name || (language === 'pt' ? 'Filhote' : language === 'es' ? 'Cachorro' : 'Puppy')}
                     </h2>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -452,7 +451,7 @@ export default function AdoptionListings({ isEmbedded = false }) {
                       }}
                     >
                       <Home className="w-4 h-4 mr-2" />
-                      Contactar Abrigo
+                      {language === 'pt' ? 'Contactar Abrigo' : language === 'es' ? 'Contactar Refugio' : 'Contact Shelter'}
                     </Button>
                   </CardContent>
                 </Card>
