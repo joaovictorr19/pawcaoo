@@ -979,7 +979,7 @@ function LayoutContent({ children, currentPageName }) {
             }`}>
             <div className="flex items-center gap-2 md:gap-4">
               {authUser && (
-                <SidebarTrigger className="md:hidden hover:bg-green-100 h-12 w-12 p-3 rounded-xl transition-colors flex-shrink-0 mr-1 touch-manipulation" aria-label="Toggle sidebar" />
+                <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
               )}
 
               <Link 
@@ -1017,14 +1017,11 @@ function LayoutContent({ children, currentPageName }) {
                     >
                     <User className={`w-4 h-4 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
                     <span>{t('myProfile', language)}</span>
-
                   </Link>
                 </div>
               )}
 
-              {!authUser && (
-                <div className="flex-1"></div>
-              )}
+              <div className="flex-1 md:hidden"></div>
 
               {!authUser && (
                 <Button 
@@ -1034,20 +1031,6 @@ function LayoutContent({ children, currentPageName }) {
                 >
                   {getMenuText('login')}
                 </Button>
-              )}
-
-              {/* Notification Trigger - Only for authenticated users */}
-              {authUser && (
-                <div className="relative flex-shrink-0 cursor-pointer mr-2 group" onClick={() => setIsNotificationPanelOpen(true)}>
-                  <div className="p-2.5 rounded-full hover:bg-red-50 transition-all duration-200 active:scale-95">
-                    <Bell className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${unreadCount > 0 ? 'text-red-500 fill-red-100/50' : 'text-gray-500 group-hover:text-red-500'}`} />
-                  </div>
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 border-[2px] border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-in zoom-in duration-300">
-                      {unreadCount}
-                    </span>
-                  )}
-                </div>
               )}
 
               <DropdownMenu>
