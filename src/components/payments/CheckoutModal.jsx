@@ -210,9 +210,12 @@ export default function CheckoutModal({
             <Button
               onClick={handleStripeCheckout}
               disabled={processing}
-              className="flex-1 h-12 font-bold text-white hover:opacity-90 disabled:opacity-50"
+              className="flex-1 h-12 font-bold text-white hover:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95 focus:ring-4 focus:ring-blue-300 transition-all"
               style={{
-                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                background: processing 
+                  ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}cc, ${colors?.primary || '#3b82f6'}99)` 
+                  : `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`,
+                opacity: processing ? 0.8 : 1
               }}
             >
               {processing ? (
