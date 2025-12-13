@@ -35,9 +35,6 @@ export default function AdminUserTable({
   const filteredUsers = useMemo(() => {
     if (!users) return [];
     
-    // Reset para página 1 quando filtro mudar
-    // (Side-effect dentro do useMemo não é ideal, mas funcional aqui ou num useEffect separado)
-    
     return users.filter(u => {
       const { searchTerm, filters } = userSearchState;
       const searchLower = searchTerm?.toLowerCase() || "";
@@ -283,14 +280,13 @@ export default function AdminUserTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Previous clicked, current page:', currentPage);
-                        setCurrentPage(prev => Math.max(1, prev - 1));
+                      onClick={() => {
+                        const newPage = Math.max(1, currentPage - 1);
+                        console.log('Previous clicked, going to page:', newPage);
+                        setCurrentPage(newPage);
                       }}
                       disabled={currentPage === 1}
-                      className="h-10 px-4 bg-blue-900 text-white hover:bg-blue-800 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0"
+                      className="h-10 px-4 bg-slate-800 text-white hover:bg-slate-700 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0 shadow-md"
                     >
                       <ChevronLeft className="w-4 h-4 mr-1" />
                       <span className="text-sm">{language === 'pt' ? 'Anterior' : 'Previous'}</span>
@@ -313,20 +309,18 @@ export default function AdminUserTable({
                         
                         return (
                           <Button
-                            key={`page-${pageNum}`}
+                            key={`page-btn-${pageNum}`}
                             variant="ghost"
                             size="sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              console.log('Page number clicked:', pageNum, 'Current:', currentPage);
+                            onClick={() => {
+                              console.log('Clicking page:', pageNum);
                               setCurrentPage(pageNum);
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             className={`h-9 w-9 p-0 text-sm font-bold transition-all ${
                               currentPage === pageNum 
-                                ? 'bg-blue-900 text-white shadow-md hover:bg-blue-800' 
-                                : 'text-gray-700 hover:bg-white hover:text-blue-900'
+                                ? 'bg-slate-800 text-white shadow-md hover:bg-slate-700' 
+                                : 'text-gray-700 hover:bg-white hover:text-slate-800'
                             }`}
                           >
                             {pageNum}
@@ -338,14 +332,13 @@ export default function AdminUserTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Next clicked, current page:', currentPage, 'total:', totalPages);
-                        setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                      onClick={() => {
+                        const newPage = Math.min(totalPages, currentPage + 1);
+                        console.log('Next clicked, going to page:', newPage);
+                        setCurrentPage(newPage);
                       }}
                       disabled={currentPage === totalPages}
-                      className="h-10 px-4 bg-blue-900 text-white hover:bg-blue-800 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0"
+                      className="h-10 px-4 bg-slate-800 text-white hover:bg-slate-700 font-semibold disabled:opacity-50 disabled:bg-gray-400 border-0 shadow-md"
                     >
                       <span className="text-sm">{language === 'pt' ? 'Próxima' : 'Next'}</span>
                       <ChevronRight className="w-4 h-4 ml-1" />
