@@ -11,6 +11,7 @@ import WalkerCard from "../components/marketplace/WalkerCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
+import AdoptionListings from "./AdoptionListings";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 import AISearchAssistant from "../components/ai/AISearchAssistant";
@@ -1660,25 +1661,7 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="adoption">
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Heart className="w-10 h-10 text-pink-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      {language === 'pt' ? 'Encontre o seu novo melhor amigo' : 'Find your new best friend'}
-                    </p>
-                    <Button
-                      size="lg"
-                      onClick={() => navigate(createPageUrl('AdoptionListings'))}
-                      className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
-                    >
-                      <Heart className="w-5 h-5 mr-2" />
-                      {language === 'pt' ? 'Ver Pets Disponíveis' : 'View Available Pets'}
-                    </Button>
-                  </div>
+                <AdoptionListings isEmbedded={true} />
               </TabsContent>
 
               <TabsContent value="emergency">
