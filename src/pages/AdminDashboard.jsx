@@ -287,7 +287,7 @@ export default function AdminDashboard() {
   const { data: allUsers = [], isLoading: loadingAllUsers } = useQuery({
     queryKey: ['allUsers'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.User.list('-created_date', 5000),
+    queryFn: () => base44.entities.User.list('-created_date', 1000),
     enabled: isAdmin,
     initialData: [],
     staleTime: 30 * 1000,
@@ -375,8 +375,8 @@ export default function AdminDashboard() {
     queryKey: ['allBookings'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const walkerBookings = (await base44.entities.Booking.list('-created_date', 200)).map(b => ({...b, entityType: 'walk'}));
-      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 200)).map(b => ({...b, entityType: 'training'}));
+      const walkerBookings = (await base44.entities.Booking.list('-created_date', 100)).map(b => ({...b, entityType: 'walk'}));
+      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 100)).map(b => ({...b, entityType: 'training'}));
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: isAdmin,

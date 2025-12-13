@@ -21,6 +21,7 @@ import { createPageUrl } from "@/utils";
 import PartnerAnalytics from "../components/partner/PartnerAnalytics";
 import Pagination from "../components/ui/Pagination";
 import LazyImage from "../components/ui/LazyImage";
+import EmployeeManager from "../components/company/EmployeeManager";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
@@ -412,8 +413,12 @@ export default function PartnerDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="team">
+              <Users className="w-4 h-4 mr-2" />
+              Equipa
+            </TabsTrigger>
             <TabsTrigger value="analytics">
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics
@@ -469,6 +474,10 @@ export default function PartnerDashboard() {
                 Meus Produtos ({myProducts.length})
               </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value="team">
+            <EmployeeManager company={company} />
           </TabsContent>
 
           <TabsContent value="analytics">

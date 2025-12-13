@@ -112,6 +112,18 @@
     @apply max-w-full h-auto;
   }
 
+  /* Mobile table optimization */
+  @media (max-width: 768px) {
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      min-width: 100%;
+    }
+  }
+
   /* === TEXT SAFETY & MARQUEE EFFECT === */
   @keyframes scroll-text {
     0% { transform: translateX(0%); }
