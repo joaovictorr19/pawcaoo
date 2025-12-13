@@ -1370,7 +1370,7 @@ export default function Home() {
                   }}
                 >
                   <Search className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {t('findWalkers', language)}
+                  {language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals'}
                 </TabsTrigger>
                 
                 <TabsTrigger 
@@ -1451,7 +1451,9 @@ export default function Home() {
                             {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
                           </>
                         ) : (
-                          t('availableWalkersTitle', language)
+                          language === 'pt' ? 'Profissionais Disponíveis' : 
+                          language === 'es' ? 'Profesionales Disponibles' : 
+                          'Available Professionals'
                         )}
                       </h2>
                       <div className="flex items-center gap-2 flex-wrap mt-2">
@@ -1656,7 +1658,7 @@ export default function Home() {
                           )}
                           
                           <div className="text-center text-xs text-gray-500 mt-4">
-                            {t('showingResults', language)} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWalkers.length)} {t('of', language)} {filteredWalkers.length} {t('findWalkers', language)}
+                            {t('showingResults', language)} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWalkers.length)} {t('of', language)} {filteredWalkers.length} {language === 'pt' ? 'profissionais' : language === 'es' ? 'profesionales' : 'professionals'}
                           </div>
                         </>
                       )}
