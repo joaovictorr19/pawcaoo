@@ -216,17 +216,20 @@ export default function AdoptionListings({ isEmbedded = false }) {
 
         {isEmbedded && (
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
-              <Input
-                type="text"
-                placeholder={language === 'pt' ? '📍 Localização...' : language === 'es' ? '📍 Ubicación...' : '📍 Location...'}
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-                className="bg-white/95 border-2 border-gray-200 shadow-sm h-10 text-sm flex-1"
-              />
+              <div className="relative flex-1">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder={language === 'pt' ? 'Localização...' : language === 'es' ? 'Ubicación...' : 'Location...'}
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  className="bg-white/95 border-2 border-gray-200 shadow-sm h-10 text-sm pl-10 rounded-full"
+                />
+              </div>
               
              <Button
                 onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg h-10"
+                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg h-10 rounded-full"
                 size="default"
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
