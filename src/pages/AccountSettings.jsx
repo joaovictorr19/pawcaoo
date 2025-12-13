@@ -912,16 +912,16 @@ export default function AccountSettings() {
             )}
           </div>
         </div>
-
-        {/* Dog Manager Modal */}
-        {showDogModal && (
-          <DogManagerModal
-            isOpen={showDogModal}
-            onClose={() => setShowDogModal(false)}
-            userEmail={user?.email}
-          />
-        )}
       </div>
+
+      {/* Dog Manager Modal */}
+      {showDogModal && (
+        <DogManagerModal
+          isOpen={showDogModal}
+          onClose={() => setShowDogModal(false)}
+          userEmail={user?.email}
+        />
+      )}
     </div>
   );
 }
