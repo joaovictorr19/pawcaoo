@@ -97,7 +97,7 @@ export default function PostEmergency() {
           dog_photo_url: dog.photo_url || "",
           location: dog.default_pickup_address || user.address || user.location || user.city || "",
           owner_name: user.full_name || "",
-          owner_phone: user.phone || user.whatsapp_number || "",
+          owner_phone: dog.owner_phone || user.phone || user.whatsapp_number || "",
           special_notes: `${dog.dog_name} - ${dog.breed || 'SRD'}`
         }));
       }
@@ -106,22 +106,17 @@ export default function PostEmergency() {
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
-      console.log('🚀 Creating single emergency walk...');
       const walk = await base44.entities.EmergencyWalk.create({
         ...walkData,
         status: 'available',
         payment_status: 'pending'
       });
 
-      console.log('✅ Emergency walk created with ID:', walk.id);
-
-      // Notify all active walkers about emergency
       await NotificationService.emergencyWalkPosted({ walk });
 
       return walk;
     },
     onSuccess: (data) => {
-      console.log('✅ Success - Walk ID:', data.id);
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
       toast.success('Passeio de emergência publicado! Walkers próximos foram notificados. 🚀');
       navigate(createPageUrl('Home'));
