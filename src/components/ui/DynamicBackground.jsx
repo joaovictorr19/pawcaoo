@@ -8,19 +8,19 @@ export default function DynamicBackground() {
         
         {/* Orb 1: COR MAIS CLARA (Brilho) - Use ORB-2 */}
         <div 
-          className="absolute top-[25%] left-[25%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-80 animate-blob-1"
+          className="absolute top-[10%] left-[15%] w-[90vw] h-[90vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-70 animate-blob-1"
           style={{ backgroundColor: 'var(--color-orb-2, #fdba74)', transition: 'background-color 1s ease' }}
         />
 
         {/* Orb 2: COR BASE DA TIER - Use ORB-1 */}
         <div 
-          className="absolute bottom-[25%] right-[25%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-80 animate-blob-2"
+          className="absolute bottom-[15%] right-[10%] w-[85vw] h-[85vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-75 animate-blob-2"
           style={{ backgroundColor: 'var(--color-orb-1, #fb923c)', transition: 'background-color 1s ease' }}
         />
 
         {/* Orb 3: COR DE PROFUNDIDADE (A mais escura) - Use PRIMARY */}
         <div 
-          className="absolute top-[33%] left-[33%] w-[80vw] h-[80vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-blob-3"
+          className="absolute top-[40%] left-[40%] w-[95vw] h-[95vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-65 animate-blob-3"
           style={{ backgroundColor: 'var(--color-primary, #f97316)', transition: 'background-color 1s ease' }}
         />
 
