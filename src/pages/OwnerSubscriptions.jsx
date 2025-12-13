@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Crown, Zap, Star, Sparkles, Shield, Heart, TrendingUp, Gift, Award, ChevronDown, ChevronUp, CheckCircle } from "lucide-react";
+import { Check, Crown, Zap, Star, Sparkles, Shield, Heart, TrendingUp, Gift, Award, ChevronDown, ChevronUp, CheckCircle, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -260,6 +260,23 @@ export default function OwnerSubscriptions() {
       <DynamicBackground />
 
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* Back Button */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-4"
+        >
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="glass-panel border-white/40 hover:opacity-80 h-10 px-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </motion.div>
+
         {/* Modern Header */}
         <motion.div 
           className="text-center mb-8"
@@ -268,25 +285,25 @@ export default function OwnerSubscriptions() {
           transition={{ duration: 0.6 }}
         >
           <motion.div 
-            className="inline-flex items-center gap-3 glass-panel rounded-3xl px-6 py-3 shadow-2xl mb-4"
+            className="inline-flex items-center gap-2 md:gap-3 glass-panel rounded-3xl px-4 md:px-6 py-2 md:py-3 shadow-2xl mb-3 md:mb-4"
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
             <motion.div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{
                 background: `linear-gradient(135deg, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
               }}
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              <Crown className="w-7 h-7 text-white" />
+              <Crown className="w-6 h-6 md:w-7 md:h-7 text-white" />
             </motion.div>
-            <h1 className="text-3xl md:text-5xl font-black text-gray-900">
+            <h1 className={`text-2xl md:text-5xl font-black ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               Planos Premium
             </h1>
           </motion.div>
-          <p className={`text-lg md:text-xl font-medium max-w-2xl mx-auto ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <p className={`text-sm md:text-xl font-medium max-w-2xl mx-auto px-4 ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             Economize em passeios e ganhe benefícios exclusivos
           </p>
           {subscription && (
@@ -310,30 +327,31 @@ export default function OwnerSubscriptions() {
 
         {/* Billing Toggle - Modern */}
         <motion.div 
-          className="flex justify-center mb-8"
+          className="flex justify-center mb-6 md:mb-8 px-4"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="glass-panel shadow-2xl p-1.5 rounded-2xl">
+          <div className="glass-panel shadow-2xl p-1 md:p-1.5 rounded-2xl">
             <Tabs value={billingCycle} onValueChange={setBillingCycle} className="w-auto">
-              <TabsList className="bg-transparent p-0 gap-2">
+              <TabsList className="bg-transparent p-0 gap-1 md:gap-2">
                 <TabsTrigger 
                   value="monthly" 
-                  className={`text-sm px-6 py-2.5 rounded-xl transition-all ${colors?.isDarkMode ? 'text-gray-300' : ''}`}
+                  className={`text-xs md:text-sm px-4 md:px-6 py-2 md:py-2.5 rounded-xl transition-all ${colors?.isDarkMode ? 'text-gray-300' : ''}`}
                   style={{
                     background: billingCycle === 'monthly' 
                       ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` 
-                      : 'transparent'
+                      : 'transparent',
+                    color: billingCycle === 'monthly' ? 'white' : undefined
                   }}
                 >
                   Mensal
                 </TabsTrigger>
                 <TabsTrigger 
                   value="annual" 
-                  className="text-sm px-6 py-2.5 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+                  className="text-xs md:text-sm px-4 md:px-6 py-2 md:py-2.5 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
                 >
-                  Anual <Badge className="ml-2 bg-orange-500 text-white text-xs animate-pulse">-17%</Badge>
+                  Anual <Badge className="ml-1 md:ml-2 bg-orange-500 text-white text-[10px] md:text-xs animate-pulse px-1.5 py-0">-17%</Badge>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -341,7 +359,7 @@ export default function OwnerSubscriptions() {
         </motion.div>
 
         {/* Plans Grid - Modern Glass Design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8 px-2 md:px-0">
           {plans.map((plan, index) => {
             const savings = getSavings(plan);
             const Icon = plan.icon;
@@ -377,24 +395,24 @@ export default function OwnerSubscriptions() {
                   
                   <div className={`h-1 bg-gradient-to-r ${plan.color}`} />
                   
-                  <CardContent className="p-5">
+                  <CardContent className="p-4 md:p-5">
                     <motion.div 
-                      className={`w-14 h-14 bg-gradient-to-br ${plan.color} rounded-2xl flex items-center justify-center mb-3 shadow-lg`}
+                      className={`w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br ${plan.color} rounded-2xl flex items-center justify-center mb-2 md:mb-3 shadow-lg`}
                       whileHover={{ rotate: 360 }}
                       transition={{ duration: 0.6 }}
                     >
-                      <Icon className="w-7 h-7 text-white" />
+                      <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                     </motion.div>
                     
-                    <h3 className={`text-xl font-black mb-2 ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
+                    <h3 className={`text-lg md:text-xl font-black mb-2 ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
                     
-                    <div className="mb-3">
-                      <div className={`text-2xl font-black ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <div className="mb-2 md:mb-3">
+                      <div className={`text-xl md:text-2xl font-black ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {getPrice(plan)}
                       </div>
                       {savings && (
-                        <div className="mt-2">
-                          <Badge className="text-xs bg-green-500 text-white shadow-md">
+                        <div className="mt-1 md:mt-2">
+                          <Badge className="text-[10px] md:text-xs bg-green-500 text-white shadow-md px-2 py-0.5">
                             Poupe €{savings.amount}
                           </Badge>
                         </div>
@@ -402,61 +420,61 @@ export default function OwnerSubscriptions() {
                     </div>
 
                     {plan.cashbackRate > 0 && (
-                      <div className="mb-2 p-2 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-300/50 rounded-lg backdrop-blur">
-                        <p className="text-xs font-bold text-green-700 text-center">
+                      <div className="mb-1.5 md:mb-2 p-1.5 md:p-2 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-300/50 rounded-lg backdrop-blur">
+                        <p className="text-[10px] md:text-xs font-bold text-green-700 text-center">
                           {plan.cashbackRate}% Cashback
                         </p>
                       </div>
                     )}
 
                     {plan.type === 'premium' && (
-                      <div className="mb-2 p-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-300/50 rounded-lg backdrop-blur">
-                        <p className="text-xs font-bold text-purple-700 text-center">
+                      <div className="mb-1.5 md:mb-2 p-1.5 md:p-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-300/50 rounded-lg backdrop-blur">
+                        <p className="text-[10px] md:text-xs font-bold text-purple-700 text-center">
                           Reembolso Total
                         </p>
                       </div>
                     )}
 
                     {plan.type === 'vip' && (
-                      <div className="mb-2 p-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/50 rounded-lg backdrop-blur">
-                        <p className="text-xs font-bold text-yellow-700 text-center">
+                      <div className="mb-1.5 md:mb-2 p-1.5 md:p-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/50 rounded-lg backdrop-blur">
+                        <p className="text-[10px] md:text-xs font-bold text-yellow-700 text-center">
                           Cancelamentos Ilimitados
                         </p>
                       </div>
                     )}
                     
                     {plan.freeWalksPerMonth > 0 && (
-                      <div className="mb-3 p-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-300/50 rounded-lg backdrop-blur">
-                        <p className="text-xs font-bold text-blue-700 text-center">
+                      <div className="mb-2 md:mb-3 p-1.5 md:p-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-300/50 rounded-lg backdrop-blur">
+                        <p className="text-[10px] md:text-xs font-bold text-blue-700 text-center">
                           {plan.freeWalksPerMonth} Passeio{plan.freeWalksPerMonth > 1 ? 's' : ''} Grátis
                         </p>
                       </div>
                     )}
                     
-                    <ul className="space-y-1.5 mb-5 min-h-[120px]">
+                    <ul className="space-y-1 md:space-y-1.5 mb-4 md:mb-5 min-h-[100px] md:min-h-[120px]">
                       {plan.features.map((feature, idx) => (
                         <motion.li 
                           key={idx} 
-                          className={`flex items-start gap-2 text-xs ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                          className={`flex items-start gap-1.5 md:gap-2 text-[11px] md:text-xs ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 + idx * 0.05 }}
                         >
-                          <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
+                          <Check className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="leading-tight">{feature}</span>
                         </motion.li>
                       ))}
                     </ul>
 
                     <Button
-                      className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white shadow-lg h-10 text-sm font-bold rounded-xl transform hover:scale-105 transition-all active:scale-95`}
+                      className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white shadow-lg h-9 md:h-10 text-xs md:text-sm font-bold rounded-xl transform hover:scale-105 transition-all active:scale-95`}
                       onClick={() => {
                         console.log('Botão clicado:', plan.type, billingCycle);
                         subscribeMutation.mutate({ plan, billingCycle });
                       }}
                       disabled={isCurrentPlan || subscribeMutation.isPending}
                     >
-                      {isCurrentPlan ? 'Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
+                      {isCurrentPlan ? 'Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -471,14 +489,14 @@ export default function OwnerSubscriptions() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card className="glass-panel border-0 shadow-2xl mb-6 rounded-3xl overflow-hidden">
+          <Card className="glass-panel border-0 shadow-2xl mb-6 rounded-3xl overflow-hidden mx-2 md:mx-0">
             <CardHeader 
-              className={`cursor-pointer transition-colors p-4 ${colors?.isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-white/50'}`}
+              className={`cursor-pointer transition-colors p-3 md:p-4 ${colors?.isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-white/50'}`}
               onClick={() => setShowComparison(!showComparison)}
             >
               <div className="flex items-center justify-between">
-                <CardTitle className={`text-lg ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>Comparação Detalhada</CardTitle>
-                {showComparison ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                <CardTitle className={`text-base md:text-lg ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>Comparação Detalhada</CardTitle>
+                {showComparison ? <ChevronUp className="w-4 h-4 md:w-5 md:h-5" /> : <ChevronDown className="w-4 h-4 md:w-5 md:h-5" />}
               </div>
             </CardHeader>
           <AnimatePresence>
@@ -488,16 +506,16 @@ export default function OwnerSubscriptions() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
               >
-                <CardContent className="p-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                <CardContent className="p-3 md:p-4">
+                  <div className="overflow-x-auto -mx-3 md:mx-0">
+                    <table className="w-full text-xs md:text-sm min-w-[500px]">
                       <thead>
-                        <tr className="border-b-2 border-gray-200">
-                          <th className="text-left py-2 px-2 font-semibold">Funcionalidade</th>
-                          <th className="text-center py-2 px-2 font-semibold">Free</th>
-                          <th className="text-center py-2 px-2 font-semibold bg-blue-50">Basic</th>
-                          <th className="text-center py-2 px-2 font-semibold">Premium</th>
-                          <th className="text-center py-2 px-2 font-semibold">VIP</th>
+                        <tr className={`border-b-2 ${colors?.isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                          <th className={`text-left py-2 px-2 font-semibold ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Funcionalidade</th>
+                          <th className={`text-center py-2 px-2 font-semibold ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Free</th>
+                          <th className={`text-center py-2 px-2 font-semibold ${colors?.isDarkMode ? 'bg-slate-800/50 text-gray-300' : 'bg-blue-50 text-gray-900'}`}>Basic</th>
+                          <th className={`text-center py-2 px-2 font-semibold ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Premium</th>
+                          <th className={`text-center py-2 px-2 font-semibold ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>VIP</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -573,12 +591,12 @@ export default function OwnerSubscriptions() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card className="glass-panel border-0 shadow-2xl mb-8 rounded-3xl">
-            <CardContent className="p-6 md:p-8">
-              <h3 className={`text-2xl font-black mb-6 text-center ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <Card className="glass-panel border-0 shadow-2xl mb-6 md:mb-8 rounded-3xl mx-2 md:mx-0">
+            <CardContent className="p-5 md:p-8">
+              <h3 className={`text-xl md:text-2xl font-black mb-5 md:mb-6 text-center ${colors?.isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Porquê Ser Membro PawCão?
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {[
                   { icon: Gift, label: "Até 15% Cashback", color: "from-green-500 to-emerald-600" },
                   { icon: Sparkles, label: "3x PawPoints", color: "from-purple-500 to-pink-600" },
@@ -594,13 +612,13 @@ export default function OwnerSubscriptions() {
                     whileHover={{ scale: 1.1, rotate: 5 }}
                   >
                     <motion.div 
-                      className={`w-14 h-14 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg`}
+                      className={`w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg`}
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity, delay: idx * 0.3 }}
                     >
-                      <benefit.icon className="w-7 h-7 text-white" />
+                      <benefit.icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                     </motion.div>
-                    <p className={`text-xs font-bold ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{benefit.label}</p>
+                    <p className={`text-[10px] md:text-xs font-bold leading-tight ${colors?.isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{benefit.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -615,30 +633,30 @@ export default function OwnerSubscriptions() {
           transition={{ delay: 0.9 }}
           whileHover={{ scale: 1.02 }}
         >
-          <Card className="glass-panel relative overflow-hidden border-0 shadow-2xl rounded-3xl">
+          <Card className="glass-panel relative overflow-hidden border-0 shadow-2xl rounded-3xl mx-2 md:mx-0">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-100" />
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
             
-            <CardContent className="relative p-8 text-center text-white">
+            <CardContent className="relative p-6 md:p-8 text-center text-white">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="w-16 h-16 mx-auto mb-3"
+                className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-3"
               >
                 <Award className="w-full h-full drop-shadow-2xl" />
               </motion.div>
               
-              <h2 className="text-2xl md:text-3xl font-black mb-2 drop-shadow-lg">
+              <h2 className="text-xl md:text-3xl font-black mb-2 drop-shadow-lg">
                 Elite Partner
               </h2>
-              <div className="text-4xl font-black mb-2 drop-shadow-lg">
-                €149<span className="text-xl font-normal">/mês</span>
+              <div className="text-3xl md:text-4xl font-black mb-2 drop-shadow-lg">
+                €149<span className="text-lg md:text-xl font-normal">/mês</span>
               </div>
-              <p className="text-sm text-white/95 mb-5 drop-shadow">
+              <p className="text-xs md:text-sm text-white/95 mb-4 md:mb-5 drop-shadow px-4">
                 Para empresas que querem vender produtos no PawCão
               </p>
               
-              <div className="grid grid-cols-2 gap-2 mb-5 text-left">
+              <div className="grid grid-cols-2 gap-2 mb-4 md:mb-5 text-left">
                 {[
                   "Produtos ilimitados",
                   "Loja própria",
@@ -647,20 +665,20 @@ export default function OwnerSubscriptions() {
                 ].map((feat, i) => (
                   <motion.div 
                     key={i} 
-                    className="flex items-center gap-2 text-xs bg-white/20 backdrop-blur px-3 py-1.5 rounded-lg"
+                    className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs bg-white/20 backdrop-blur px-2 md:px-3 py-1.5 rounded-lg"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1 + i * 0.1 }}
                   >
-                    <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="font-medium">{feat}</span>
+                    <Check className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
+                    <span className="font-medium leading-tight">{feat}</span>
                   </motion.div>
                 ))}
               </div>
 
               <Button
                 size="lg"
-                className="bg-white text-indigo-700 hover:bg-gray-100 shadow-2xl font-bold text-sm px-8 h-11 rounded-xl transform hover:scale-105 transition-all active:scale-95"
+                className="bg-white text-indigo-700 hover:bg-gray-100 shadow-2xl font-bold text-xs md:text-sm px-6 md:px-8 h-10 md:h-11 rounded-xl transform hover:scale-105 transition-all active:scale-95 w-full md:w-auto"
                 onClick={() => navigate(createPageUrl(user?.account_type === 'company' ? 'PartnerDashboard' : 'RegisterCompany'))}
               >
                 {user?.account_type === 'company' ? 'Ir para o Painel' : 'Registrar Empresa'}
