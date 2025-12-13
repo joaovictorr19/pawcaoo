@@ -1877,9 +1877,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Testimonials Section */}
-        {!user && <TestimonialsSection />}
-
         {/* Professional Call-to-Action Section */}
         <div className="mt-16 mb-12">
           <motion.div
