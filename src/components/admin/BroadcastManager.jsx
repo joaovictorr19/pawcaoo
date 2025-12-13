@@ -61,6 +61,12 @@ export default function BroadcastManager() {
   // Send broadcast mutation
   const sendBroadcastMutation = useMutation({
     mutationFn: async ({ recipients, immediate = true }) => {
+      if (!recipients || recipients.length === 0) {
+        throw new Error("Nenhum destinatário selecionado");
+      }
+
+      console.log(`📢 Enviando para ${recipients.length} utilizadores:`, recipients);
+
       const notifications = recipients.map(email => ({
         recipient_email: email,
         title,
@@ -72,10 +78,18 @@ export default function BroadcastManager() {
         is_sent: immediate,
       }));
 
-      // Create notifications in bulk
-      await Promise.all(
-        notifications.map(notif => base44.entities.SystemNotification.create(notif))
-      );
+      // Create notifications in batches to avoid overwhelming the API
+      const batchSize = 50;
+      let created = 0;
+      
+      for (let i = 0; i < notifications.length; i += batchSize) {
+        const batch = notifications.slice(i, i + batchSize);
+        await Promise.all(
+          batch.map(notif => base44.entities.SystemNotification.create(notif))
+        );
+        created += batch.length;
+        console.log(`✅ Criadas ${created}/${notifications.length} notificações`);
+      }
 
       return { count: notifications.length, immediate };
     },

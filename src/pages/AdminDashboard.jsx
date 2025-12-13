@@ -204,20 +204,12 @@ export default function AdminDashboard() {
   const [showAllBadges, setShowAllBadges] = useState(false); // State for expanding badge list
   const [badgeSearchTerm, setBadgeSearchTerm] = useState(""); // Search for badges
 
-  // Broadcast state
-  const [broadcastSubject, setBroadcastSubject] = useState("");
-  const [broadcastContent, setBroadcastContent] = useState("");
-  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
-
   // Product management states
   const [productFilter, setProductFilter] = useState('all');
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(null);
-  
-  // Pagination states for all sections
-  const [companiesPage, setCompaniesPage] = useState(1);
   const [companiesPerPage, setCompaniesPerPage] = useState(10);
   const [productsPage, setProductsPage] = useState(1);
   const [productsPerPage, setProductsPerPage] = useState(10);
