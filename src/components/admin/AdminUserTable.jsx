@@ -88,6 +88,13 @@ export default function AdminUserTable({
     });
   }, [users, userSearchState]);
 
+  // Paginação (otimizada com useMemo)
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
   // Efeito para resetar página quando filtro muda
   React.useEffect(() => {
     console.log('Filters changed, resetting to page 1');
@@ -100,13 +107,6 @@ export default function AdminUserTable({
     console.log('Total pages:', totalPages);
     console.log('Showing users:', paginatedUsers.length);
   }, [currentPage, totalPages, paginatedUsers.length]);
-
-  // Paginação (otimizada com useMemo)
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredUsers, currentPage, itemsPerPage]);
 
   const handleSearch = (newState) => {
     setUserSearchState(newState);
