@@ -516,10 +516,7 @@ export default function PostEmergency() {
                 <Button
                   type="submit"
                   disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
-                  className="w-full md:flex-1 text-white h-12 text-base font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: createEmergencyWalkMutation.isPending ? '#94a3b8' : `linear-gradient(135deg, #f97316, #ea580c)`
-                  }}
+                  className="w-full md:flex-1 text-white h-12 text-base font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-orange-500 to-orange-600"
                 >
                   {createEmergencyWalkMutation.isPending ? (
                     <>
