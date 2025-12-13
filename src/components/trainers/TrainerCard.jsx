@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
 
 const TrainerCard = React.memo(({ trainer, distance }) => {
   const navigate = useNavigate();
@@ -128,10 +129,10 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
           )}
           <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
             {trainer.verification_status === "verified" && (
-              <Badge className="bg-purple-500 text-white border-0 shadow-lg">
-                <ShieldCheck className="w-4 h-4 mr-1" />
-                Certified
-              </Badge>
+              <div className="flex items-center gap-1.5 bg-purple-500 text-white border-0 shadow-lg px-3 py-1.5 rounded-full">
+                <VerifiedBadge type="trainer" className="w-5 h-5" />
+                <span className="text-xs font-bold">Certified</span>
+              </div>
             )}
             {/* Removed rating badge from top right, as it's now in CardContent */}
             {/* NEW: Video Badge */}
