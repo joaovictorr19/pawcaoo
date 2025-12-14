@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 
 const TAG_PRESETS = [
   { name: 'VIP', color: 'purple' },
@@ -501,7 +503,6 @@ export default function ClientDetails({ user, onClose }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Walker Gold Badge */}
               {walkerProfile && (
                 <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-yellow-200">
                   <div className="flex items-center gap-3">
@@ -522,45 +523,44 @@ export default function ClientDetails({ user, onClose }) {
                 </div>
               )}
 
-              {/* Trainer Verified & Gold */}
               {trainerProfile && (
-                <>
-                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
-                    <div className="flex items-center gap-3">
-                      <TrainerVerifiedBadge size="md" />
-                      <div>
-                        <p className="font-semibold text-gray-900">Treinador Verificado</p>
-                        <p className="text-xs text-gray-600">Badge roxo (Certificação)</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={trainerVerifiedStatus}
-                        onCheckedChange={setTrainerVerifiedStatus}
-                        id="trainer-verified"
-                      />
-                      <Label htmlFor="trainer-verified" className="cursor-pointer">Ativo</Label>
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <TrainerVerifiedBadge size="md" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Treinador Verificado</p>
+                      <p className="text-xs text-gray-600">Badge roxo (Certificação)</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={trainerVerifiedStatus}
+                      onCheckedChange={setTrainerVerifiedStatus}
+                      id="trainer-verified"
+                    />
+                    <Label htmlFor="trainer-verified" className="cursor-pointer">Ativo</Label>
+                  </div>
+                </div>
+              )}
 
-                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-yellow-200">
-                    <div className="flex items-center gap-3">
-                      <GoldEmployeeBadge size="md" />
-                      <div>
-                        <p className="font-semibold text-gray-900">Gold - Funcionário PawCão</p>
-                        <p className="text-xs text-gray-600">Badge dourado (Trainer)</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={trainerGoldStatus}
-                        onCheckedChange={setTrainerGoldStatus}
-                        id="trainer-gold"
-                      />
-                      <Label htmlFor="trainer-gold" className="cursor-pointer">Ativo</Label>
+              {trainerProfile && (
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-yellow-200">
+                  <div className="flex items-center gap-3">
+                    <GoldEmployeeBadge size="md" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Gold - Funcionário PawCão</p>
+                      <p className="text-xs text-gray-600">Badge dourado (Trainer)</p>
                     </div>
                   </div>
-                </>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={trainerGoldStatus}
+                      onCheckedChange={setTrainerGoldStatus}
+                      id="trainer-gold"
+                    />
+                    <Label htmlFor="trainer-gold" className="cursor-pointer">Ativo</Label>
+                  </div>
+                </div>
               )}
 
               <Button
