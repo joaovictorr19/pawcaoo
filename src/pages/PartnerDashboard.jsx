@@ -35,6 +35,8 @@ export default function PartnerDashboard() {
   const [showMyServices, setShowMyServices] = useState(false);
   const [showMyProducts, setShowMyProducts] = useState(false);
   const [showMyAnnouncements, setShowMyAnnouncements] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   
   // Pagination states
   const [productsPage, setProductsPage] = useState(1);
@@ -74,7 +76,6 @@ export default function PartnerDashboard() {
     image_url: ""
   });
 
-  const [showEditProfile, setShowEditProfile] = useState(false);
   const [companyProfileForm, setCompanyProfileForm] = useState({});
 
   const { data: user } = useQuery({
@@ -381,8 +382,6 @@ export default function PartnerDashboard() {
       </div>
     );
   }
-
-  const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="min-h-screen">
