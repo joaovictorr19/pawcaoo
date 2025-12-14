@@ -356,6 +356,16 @@ export default function WalkerDetails() {
                 type="walker" 
                 reviews={reviews}
                 averageRating={averageRating}
+                customBadges={
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {walker.verification_status === 'verified' && <VerifiedBadge size="lg" />}
+                    {walker.is_pawcao_employee && (
+                      <div className="transform hover:scale-110 transition-transform">
+                        <GoldEmployeeBadge size="md" />
+                      </div>
+                    )}
+                  </div>
+                }
               />
 
               {/* Selo de Verificação em Destaque */}
