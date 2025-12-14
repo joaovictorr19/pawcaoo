@@ -130,14 +130,6 @@ export default function PartnerDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  // Paginated products
-  const paginatedProducts = React.useMemo(() => {
-    const startIndex = (productsPage - 1) * productsPerPage;
-    return myProducts.slice(startIndex, startIndex + productsPerPage);
-  }, [myProducts, productsPage, productsPerPage]);
-
-  const totalProductPages = Math.ceil(myProducts.length / productsPerPage);
-
   const { data: myServices = [] } = useQuery({
     queryKey: ['myServices', user?.email],
     queryFn: async () => {
@@ -155,14 +147,6 @@ export default function PartnerDashboard() {
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
-  // Paginated services
-  const paginatedServices = React.useMemo(() => {
-    const startIndex = (servicesPage - 1) * servicesPerPage;
-    return myServices.slice(startIndex, startIndex + servicesPerPage);
-  }, [myServices, servicesPage, servicesPerPage]);
-
-  const totalServicePages = Math.ceil(myServices.length / servicesPerPage);
 
   const { data: myAnnouncements = [] } = useQuery({
     queryKey: ['myAnnouncements', user?.email],
@@ -278,6 +262,22 @@ export default function PartnerDashboard() {
     refetchInterval: activeTab === 'communication' ? 10000 : false,
   });
 
+  // Paginated products - BEFORE early return
+  const paginatedProducts = React.useMemo(() => {
+    const startIndex = (productsPage - 1) * productsPerPage;
+    return myProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [myProducts, productsPage, productsPerPage]);
+
+  const totalProductPages = Math.ceil(myProducts.length / productsPerPage);
+
+  // Paginated services - BEFORE early return
+  const paginatedServices = React.useMemo(() => {
+    const startIndex = (servicesPage - 1) * servicesPerPage;
+    return myServices.slice(startIndex, startIndex + servicesPerPage);
+  }, [myServices, servicesPage, servicesPerPage]);
+
+  const totalServicePages = Math.ceil(myServices.length / servicesPerPage);
+
   const createProductMutation = useMutation({
     mutationFn: async (data) => {
       const payload = {
@@ -286,9 +286,9 @@ export default function PartnerDashboard() {
         points_cost: parseInt(data.points_cost) || 0,
         stock_quantity: parseInt(data.stock_quantity) || 0,
         discount_percentage: parseInt(data.discount_percentage) || 0,
-        partner_id: company.id,
-        partner_name: company.company_name,
-        partner_company_email: user.email,
+        partner_id: company?.id,
+        partner_name: company?.company_name,
+        partner_company_email: user?.email,
         is_available: false,
         moderation_status: 'pending'
       };
