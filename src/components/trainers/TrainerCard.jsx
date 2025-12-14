@@ -130,21 +130,21 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
               </div>
             </div>
           )}
-          {/* Special Badges - Top Right Corner */}
-          <div className="absolute top-2 right-2 flex gap-1 z-10">
-            {trainer.is_verified_trainer && (
-              <div className="transform hover:scale-110 transition-transform">
-                <TrainerVerifiedBadge size="sm" />
-              </div>
-            )}
-            {trainer.is_pawcao_employee && (
-              <div className="transform hover:scale-110 transition-transform">
-                <GoldEmployeeBadge size="md" />
-              </div>
-            )}
-          </div>
-
-          <div className="absolute top-2 md:top-4 right-2 md:right-4 flex flex-col gap-1 md:gap-2 items-end">
+          <div className="absolute top-2 md:top-4 right-2 md:right-4 flex flex-col gap-1 md:gap-2 items-end z-10">
+            {/* Special Badges Row */}
+            <div className="flex gap-1">
+              {trainer.is_verified_trainer && (
+                <div className="transform hover:scale-110 transition-transform">
+                  <TrainerVerifiedBadge size="sm" />
+                </div>
+              )}
+              {trainer.is_pawcao_employee && (
+                <div className="transform hover:scale-110 transition-transform">
+                  <GoldEmployeeBadge size="md" />
+                </div>
+              )}
+            </div>
+            
             {(trainer.is_verified || trainer.verification_status === "verified") && (
               <div className="flex items-center gap-1 md:gap-1.5 bg-purple-500 text-white border-0 shadow-lg px-2 md:px-3 py-1 md:py-1.5 rounded-full">
                 <VerifiedBadge type="trainer" size="sm" />
