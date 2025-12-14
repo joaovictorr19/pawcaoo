@@ -150,20 +150,30 @@ export default function ClientDetails({ user, onClose }) {
 
   const updateWalkerBadgesMutation = useMutation({
     mutationFn: async () => {
-      if (!walkerProfile?.id) return;
+      if (!walkerProfile?.id) {
+        toast.error("Perfil de passeador não encontrado!");
+        return;
+      }
       await base44.entities.WalkerProfile.update(walkerProfile.id, {
         is_pawcao_employee: walkerGoldStatus
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['userWalkerProfile']);
-      toast.success("Status de passeador atualizado!");
+      queryClient.invalidateQueries(['walkers']);
+      toast.success("✅ Badge Gold (Walker) atualizado!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar passeador: " + error.message);
     }
   });
 
   const updateTrainerBadgesMutation = useMutation({
     mutationFn: async () => {
-      if (!trainerProfile?.id) return;
+      if (!trainerProfile?.id) {
+        toast.error("Perfil de treinador não encontrado!");
+        return;
+      }
       await base44.entities.TrainerProfile.update(trainerProfile.id, {
         is_verified_trainer: trainerVerifiedStatus,
         is_pawcao_employee: trainerGoldStatus
@@ -171,7 +181,11 @@ export default function ClientDetails({ user, onClose }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['userTrainerProfile']);
-      toast.success("Status de treinador atualizado!");
+      queryClient.invalidateQueries(['trainers']);
+      toast.success("✅ Badges de Treinador atualizados!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar treinador: " + error.message);
     }
   });
 
@@ -211,8 +225,8 @@ export default function ClientDetails({ user, onClose }) {
   const avgBookingValue = totalBookings > 0 ? totalSpent / totalBookings : 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto my-auto">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl z-10">
           <div className="flex items-start justify-between">
@@ -563,17 +577,28 @@ export default function ClientDetails({ user, onClose }) {
                 </>
               ) : null}
 
-              <Button
-                onClick={() => {
-                  if (walkerProfile) updateWalkerBadgesMutation.mutate();
-                  if (trainerProfile) updateTrainerBadgesMutation.mutate();
-                }}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90"
-                disabled={updateWalkerBadgesMutation.isPending || updateTrainerBadgesMutation.isPending}
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Salvar Badges Especiais
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                {walkerProfile && (
+                  <Button
+                    onClick={() => updateWalkerBadgesMutation.mutate()}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:opacity-90"
+                    disabled={updateWalkerBadgesMutation.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {updateWalkerBadgesMutation.isPending ? "Salvando..." : "Salvar Walker"}
+                  </Button>
+                )}
+                {trainerProfile && (
+                  <Button
+                    onClick={() => updateTrainerBadgesMutation.mutate()}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:opacity-90"
+                    disabled={updateTrainerBadgesMutation.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {updateTrainerBadgesMutation.isPending ? "Salvando..." : "Salvar Trainer"}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
