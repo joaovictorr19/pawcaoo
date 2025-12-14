@@ -211,20 +211,6 @@ export default function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(null);
   
-  // Pagination states
-  const [companiesPage, setCompaniesPage] = useState(1);
-  const [companiesPerPage, setCompaniesPerPage] = useState(10);
-  const [productsPage, setProductsPage] = useState(1);
-  const [productsPerPage, setProductsPerPage] = useState(10);
-  const [servicesPage, setServicesPage] = useState(1);
-  const [servicesPerPage, setServicesPerPage] = useState(10);
-  const [bookingsPage2, setBookingsPage2] = useState(1);
-  const [bookingsPerPage, setBookingsPerPage] = useState(20);
-  const [paymentsPage, setPaymentsPage] = useState(1);
-  const [paymentsPerPage, setPaymentsPerPage] = useState(20);
-  const [announcementsPage, setAnnouncementsPage] = useState(1);
-  const [announcementsPerPage, setAnnouncementsPerPage] = useState(10);
-
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -528,6 +514,20 @@ export default function AdminDashboard() {
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
+
+  // Pagination states - AFTER queries, BEFORE useMemo
+  const [companiesPage, setCompaniesPage] = useState(1);
+  const [companiesPerPage, setCompaniesPerPage] = useState(10);
+  const [productsPage, setProductsPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(10);
+  const [servicesPage, setServicesPage] = useState(1);
+  const [servicesPerPage, setServicesPerPage] = useState(10);
+  const [bookingsPage2, setBookingsPage2] = useState(1);
+  const [bookingsPerPage, setBookingsPerPage] = useState(20);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsPerPage, setPaymentsPerPage] = useState(20);
+  const [announcementsPage, setAnnouncementsPage] = useState(1);
+  const [announcementsPerPage, setAnnouncementsPerPage] = useState(10);
 
   // Paginated data for all sections - AFTER all queries
   const paginatedCompanies = React.useMemo(() => {
