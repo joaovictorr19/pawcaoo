@@ -207,6 +207,15 @@ export default function PartnerDashboard() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['companyEmployees', company?.id],
+    queryFn: async () => {
+      if (!company?.id) return [];
+      return await base44.entities.CompanyEmployee.filter({ company_id: company.id });
+    },
+    enabled: !!company?.id,
+  });
+
   const { data: myPayments = [] } = useQuery({
     queryKey: ['partnerPayments', user?.email],
     queryFn: async () => {
@@ -218,6 +227,55 @@ export default function PartnerDashboard() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
+  });
+
+  // Fetch data for communication tab - always fetch to avoid hook count changes
+  const { data: companyMessages = [] } = useQuery({
+    queryKey: ['companySentMessages', user?.email],
+    queryFn: async () => {
+      if (!user?.email || !company?.id) return [];
+      return await base44.entities.CompanyMessage.filter({ sender_email: user.email }, '-created_date', 100);
+    },
+    enabled: !!user?.email && !!company?.id,
+    refetchInterval: activeTab === 'communication' ? 10000 : false,
+  });
+
+  const { data: receivedMessages = [] } = useQuery({
+    queryKey: ['companyReceivedMessages', user?.email],
+    queryFn: async () => {
+      if (!user?.email || !company?.id) return [];
+      return await base44.entities.CompanyMessage.filter({ recipient_email: user.email }, '-created_date', 100);
+    },
+    enabled: !!user?.email && !!company?.id,
+    refetchInterval: activeTab === 'communication' ? 10000 : false,
+  });
+
+  const { data: notificationFeed = [] } = useQuery({
+    queryKey: ['companyNotificationFeed', company?.id],
+    queryFn: async () => {
+      if (!company?.id || !user?.email) return [];
+      
+      const statusUpdates = await base44.entities.BookingStatusUpdate.filter(
+        { company_id: company.id },
+        '-created_date',
+        20
+      );
+
+      const messages = await base44.entities.CompanyMessage.filter(
+        { company_email: user.email },
+        '-created_date',
+        10
+      );
+
+      const combined = [
+        ...statusUpdates.map(u => ({ ...u, type: 'status_update' })),
+        ...messages.map(m => ({ ...m, type: 'message' }))
+      ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
+      return combined.slice(0, 15);
+    },
+    enabled: !!company?.id && !!user?.email,
+    refetchInterval: activeTab === 'communication' ? 10000 : false,
   });
 
   const createProductMutation = useMutation({
@@ -487,8 +545,19 @@ export default function PartnerDashboard() {
 
           <TabsContent value="communication">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CompanyNotificationFeed companyId={company.id} companyEmail={company.company_email} />
-              <CompanyMessaging companyId={company.id} companyEmail={company.company_email} />
+              <CompanyNotificationFeed 
+                companyId={company.id} 
+                companyEmail={company.company_email}
+                feedData={notificationFeed}
+              />
+              <CompanyMessaging 
+                companyId={company.id} 
+                companyEmail={company.company_email}
+                sentMessages={companyMessages}
+                receivedMessages={receivedMessages}
+                employees={employees}
+                currentUser={user}
+              />
             </div>
           </TabsContent>
 

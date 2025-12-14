@@ -7,37 +7,9 @@ import { Bell, Calendar, User, CheckCircle, AlertCircle, MapPin } from "lucide-r
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CompanyNotificationFeed({ companyId, companyEmail }) {
-  const { data: recentUpdates = [], isLoading } = useQuery({
-    queryKey: ['companyNotificationFeed', companyId],
-    queryFn: async () => {
-      if (!companyId) return [];
-      
-      // Fetch recent status updates
-      const statusUpdates = await base44.entities.BookingStatusUpdate.filter(
-        { company_id: companyId },
-        '-created_date',
-        20
-      );
-
-      // Fetch recent messages
-      const messages = await base44.entities.CompanyMessage.filter(
-        { company_email: companyEmail },
-        '-created_date',
-        10
-      );
-
-      // Combine and sort by date
-      const combined = [
-        ...statusUpdates.map(u => ({ ...u, type: 'status_update' })),
-        ...messages.map(m => ({ ...m, type: 'message' }))
-      ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-
-      return combined.slice(0, 15);
-    },
-    enabled: !!companyId && !!companyEmail,
-    refetchInterval: 10000, // Refresh every 10s
-  });
+export default function CompanyNotificationFeed({ companyId, companyEmail, feedData = [] }) {
+  const recentUpdates = feedData;
+  const isLoading = false;
 
   if (isLoading) {
     return (

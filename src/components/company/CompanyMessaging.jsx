@@ -15,48 +15,17 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CompanyMessaging({ companyId, companyEmail }) {
+export default function CompanyMessaging({ companyId, companyEmail, sentMessages = [], receivedMessages = [], employees = [], currentUser }) {
   const queryClient = useQueryClient();
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [messageContent, setMessageContent] = useState("");
   const [messageSubject, setMessageSubject] = useState("");
   const [messagePriority, setMessagePriority] = useState("normal");
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: employees = [] } = useQuery({
-    queryKey: ['companyEmployees', companyId],
-    queryFn: async () => {
-      if (!companyId) return [];
-      return await base44.entities.CompanyEmployee.filter({ company_id: companyId });
-    },
-    enabled: !!companyId,
-  });
-
-  const { data: sentMessages = [], isLoading: loadingSent } = useQuery({
-    queryKey: ['companySentMessages', companyEmail],
-    queryFn: async () => {
-      if (!companyEmail) return [];
-      return await base44.entities.CompanyMessage.filter({ sender_email: companyEmail }, '-created_date', 100);
-    },
-    enabled: !!companyEmail,
-    refetchInterval: 10000, // Poll every 10s
-  });
-
-  const { data: receivedMessages = [], isLoading: loadingReceived } = useQuery({
-    queryKey: ['companyReceivedMessages', companyEmail],
-    queryFn: async () => {
-      if (!companyEmail) return [];
-      return await base44.entities.CompanyMessage.filter({ recipient_email: companyEmail }, '-created_date', 100);
-    },
-    enabled: !!companyEmail,
-    refetchInterval: 10000,
-  });
+  const loadingSent = false;
+  const loadingReceived = false;
+  const user = currentUser;
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
