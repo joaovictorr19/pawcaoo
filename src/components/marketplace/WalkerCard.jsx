@@ -94,7 +94,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
       className="cursor-pointer group"
     >
       <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full rounded-3xl">
-        <div className="relative h-40 md:h-56 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden">
+        <div className="relative h-32 md:h-44 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden">
           {walker.photo_url ? (
             <img
               src={walker.photo_url}
@@ -108,8 +108,8 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="w-16 h-16 md:w-24 md:h-24 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-2xl md:text-4xl font-bold text-green-600">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-xl md:text-2xl font-bold text-green-600">
                   {walker.walker_name?.[0]?.toUpperCase()}
                 </span>
               </div>
@@ -129,54 +129,28 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
               )}
               {walker.is_pawcao_employee && (
                 <div className="transform hover:scale-110 transition-transform">
-                  <GoldEmployeeBadge size="md" />
+                  <GoldEmployeeBadge size="sm" />
                 </div>
               )}
             </div>
           )}
 
           {/* Badges */}
-          <div className="absolute top-2 md:top-3 right-2 md:right-3 flex flex-col gap-1 md:gap-2">
-            {/* NOVO: Match Score Badge */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
             {showMatchScore && matchScore !== undefined && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", delay: 0.1 }}
-              >
-                <Badge className={`${
-                  matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                  matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                  matchScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                  'bg-gradient-to-r from-gray-500 to-gray-600'
-                } text-white border-0 shadow-lg text-xs px-2 py-1 font-bold`}>
-                  {matchScore}% Match
-                </Badge>
-              </motion.div>
-            )}
-            
-            {walker.verification_status === "verified" && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-              >
-                <div className="flex items-center gap-1.5 bg-blue-500 text-white border-0 shadow-lg px-2.5 py-1 rounded-full">
-                  <VerifiedBadge type="walker" className="w-4 h-4" />
-                  <span className="text-[10px] font-bold">Verificado</span>
-                </div>
-              </motion.div>
+              <Badge className={`${
+                matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                matchScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                'bg-gradient-to-r from-gray-500 to-gray-600'
+              } text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold`}>
+                {matchScore}%
+              </Badge>
             )}
             {walker.total_walks > 50 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Badge className="bg-purple-500 text-white border-0 shadow-lg text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
-                  ⭐ Top
-                </Badge>
-              </motion.div>
+              <Badge className="bg-purple-500 text-white border-0 shadow-lg text-[10px] px-1.5 py-0.5">
+                ⭐ Top
+              </Badge>
             )}
           </div>
 
@@ -194,11 +168,11 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           </motion.button>
         </div>
 
-        <CardContent className="p-4 md:p-5">
-          <div className="flex items-start justify-between mb-1.5 md:mb-2 gap-2">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex items-start justify-between mb-1 md:mb-1.5 gap-2">
             <div className="flex-1 overflow-hidden">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors break-words">
+                <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors break-words">
                   {walker.walker_name.length > 20 ? (
                     <span className="animate-marquee inline-block">
                       {walker.walker_name}
@@ -215,129 +189,75 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
               </div>
             </div>
             {(walker.rating > 0 && walker.total_walks > 0) ? (
-              <div className="flex items-center gap-0.5 md:gap-1 bg-yellow-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-lg flex-shrink-0">
-                <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-bold text-xs md:text-sm">{walker.rating.toFixed(1)}</span>
+              <div className="flex items-center gap-0.5 bg-yellow-50 px-1.5 py-0.5 rounded-lg flex-shrink-0">
+                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                <span className="font-bold text-xs">{walker.rating.toFixed(1)}</span>
               </div>
             ) : (
-              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0 text-xs px-2 py-0.5">
+              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0 text-[10px] px-1.5 py-0.5">
                 Novo
               </Badge>
             )}
           </div>
 
-          {/* Distance Badge */}
-          {distance !== null && distance !== undefined && (
-            <div className="flex items-center gap-1 text-xs text-blue-600 mb-2 bg-blue-50 px-2 py-1 rounded-lg w-fit">
-              <MapPin className="w-3 h-3" />
-              <span className="font-semibold">{distance.toFixed(1)} km</span>
-            </div>
-          )}
-
-          <div className="flex items-center text-gray-600 text-xs md:text-sm mb-1.5 md:mb-2 overflow-hidden">
-            <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1 text-green-600 flex-shrink-0" />
+          <div className="flex items-center text-gray-600 text-xs mb-1 overflow-hidden">
+            <MapPin className="w-3 h-3 mr-1 text-green-600 flex-shrink-0" />
             <span className="truncate flex-1">{walker.location}</span>
+            {distance !== null && distance !== undefined && (
+              <span className="text-blue-600 font-semibold ml-1">• {distance.toFixed(1)}km</span>
+            )}
           </div>
 
-          <div className="flex items-center justify-between mb-2 md:mb-3">
-            <div className="flex items-center gap-1 text-gray-500 text-xs md:text-sm">
-              <span className="font-semibold text-gray-900">
-                {walker.total_walks || 0} walks
-              </span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-gray-600">
+              <span className="font-semibold text-gray-900">{walker.total_walks || 0}</span> passeios
             </div>
-            <div className="flex items-center gap-0.5 md:gap-1 text-green-600 font-bold text-sm md:text-lg">
-              <DollarSign className="w-4 h-4 md:w-5 md:h-5" />
-              <span>{walker.hourly_rate}/h</span>
+            <div className="flex items-center gap-0.5 text-green-600 font-bold text-base">
+              <span>€{walker.hourly_rate}</span>
+              <span className="text-[10px] text-gray-500">/h</span>
             </div>
           </div>
 
           {walker.bio && (
-            <p className="text-gray-600 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
+            <p className="text-gray-600 text-xs mb-2 line-clamp-2">
               {walker.bio}
             </p>
           )}
 
-          {/* NOVO: Matched Services Display */}
           {showMatchScore && walker.services_offered && walker.services_offered.length > 0 && (
-            <div className="mb-2">
+            <div className="mb-1.5">
               <div className="flex flex-wrap gap-1">
-                {walker.services_offered.slice(0, 3).map((service, idx) => (
-                  <Badge
-                    key={idx}
-                    variant="outline"
-                    className="text-[10px] px-1.5 py-0.5 border-blue-300 text-blue-700 bg-blue-50"
-                  >
+                {walker.services_offered.slice(0, 2).map((service, idx) => (
+                  <Badge key={idx} variant="outline" className="text-[9px] px-1 py-0 border-blue-200 text-blue-600">
                     {service.service_name}
                   </Badge>
                 ))}
-                {walker.services_offered.length > 3 && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                    +{walker.services_offered.length - 3}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* NOVO: Matched Specializations Display */}
-          {showMatchScore && walker.specializations && walker.specializations.length > 0 && (
-            <div className="mb-3">
-              <div className="flex flex-wrap gap-1">
-                {walker.specializations.slice(0, 3).map((spec, idx) => {
-                  const specData = quickSpecializations.find(s => s.id === spec);
-                  return (
-                    <Badge
-                      key={idx}
-                      variant="outline"
-                      className="text-[10px] px-1.5 py-0.5 border-purple-300 text-purple-700 bg-purple-50"
-                    >
-                      {specData?.icon} {specData?.label || spec}
-                    </Badge>
-                  );
-                })}
-                {walker.specializations.length > 3 && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                    +{walker.specializations.length - 3}
-                  </Badge>
+                {walker.services_offered.length > 2 && (
+                  <Badge variant="outline" className="text-[9px] px-1 py-0">+{walker.services_offered.length - 2}</Badge>
                 )}
               </div>
             </div>
           )}
 
           {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3 md:mb-4">
+            <div className="flex flex-wrap gap-1 mb-2">
               {walker.dog_sizes.slice(0, 3).map(size => (
-                <Badge key={size} variant="outline" className="text-[10px] md:text-xs capitalize px-1.5 md:px-2 py-0.5">
+                <Badge key={size} variant="outline" className="text-[9px] capitalize px-1 py-0">
                   {size.replace('_', ' ')}
                 </Badge>
               ))}
               {walker.dog_sizes.length > 3 && (
-                <Badge variant="outline" className="text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
-                  +{walker.dog_sizes.length - 3}
-                </Badge>
+                <Badge variant="outline" className="text-[9px] px-1 py-0">+{walker.dog_sizes.length - 3}</Badge>
               )}
             </div>
           )}
 
-          <div className="flex gap-2">
-            <Button 
-              className="flex-1 text-white shadow-lg text-xs md:text-sm h-9 md:h-10 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
-              onClick={handleViewProfile}
-            >
-              Ver Detalhes
-            </Button>
-            <Button 
-              variant="outline"
-              className="px-2 border-purple-200 text-purple-600 hover:bg-purple-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(createPageUrl(`UserProfile?email=${walker.created_by}`));
-              }}
-              title="Ver Perfil Social e Emblemas"
-            >
-              <User className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button 
+            className="w-full text-white shadow-lg text-xs h-8 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
+            onClick={handleViewProfile}
+          >
+            Ver Perfil
+          </Button>
         </CardContent>
       </Card>
     </motion.div>

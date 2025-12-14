@@ -162,6 +162,7 @@ export default function ClientDetails({ user, onClose }) {
       queryClient.invalidateQueries(['userWalkerProfile']);
       queryClient.invalidateQueries(['walkers']);
       toast.success("✅ Badge Gold (Walker) atualizado!");
+      setTimeout(() => onClose(), 800);
     },
     onError: (error) => {
       toast.error("Erro ao atualizar passeador: " + error.message);
@@ -183,6 +184,7 @@ export default function ClientDetails({ user, onClose }) {
       queryClient.invalidateQueries(['userTrainerProfile']);
       queryClient.invalidateQueries(['trainers']);
       toast.success("✅ Badges de Treinador atualizados!");
+      setTimeout(() => onClose(), 800);
     },
     onError: (error) => {
       toast.error("Erro ao atualizar treinador: " + error.message);
