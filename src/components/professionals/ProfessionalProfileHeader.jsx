@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, Star, MapPin, Video, Clock, Calendar, Phone, Award, User as UserIcon, Target, Maximize2, Minimize2 } from "lucide-react";
 import { format } from "date-fns";
 
-export default function ProfessionalProfileHeader({ professional, type, reviews, averageRating }) {
+export default function ProfessionalProfileHeader({ professional, type, reviews, averageRating, customBadges }) {
   const { language } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
   const isWalker = type === 'walker';
@@ -68,9 +68,12 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
             )}
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-900 mb-1 text-center">
-            {name}
-          </h1>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-3xl font-bold text-gray-900 text-center">
+              {name}
+            </h1>
+            {customBadges}
+          </div>
           
           <div className="flex items-center gap-4 text-gray-600 text-sm mb-4">
             <div className="flex items-center">
