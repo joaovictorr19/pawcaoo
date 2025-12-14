@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { 
   X, Plus, Calendar, DollarSign, Star, FileText, Tag, 
-  TrendingUp, Package, Heart, AlertCircle, Trash2, Pin
+  TrendingUp, Package, Heart, AlertCircle, Trash2, Pin, Crown, GraduationCap, CheckCircle
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +45,9 @@ export default function ClientDetails({ user, onClose }) {
   const [noteType, setNoteType] = useState("general");
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("blue");
+  const [walkerGoldStatus, setWalkerGoldStatus] = useState(false);
+  const [trainerGoldStatus, setTrainerGoldStatus] = useState(false);
+  const [trainerVerifiedStatus, setTrainerVerifiedStatus] = useState(false);
 
   // Fetch client data
   const { data: bookings = [] } = useQuery({
@@ -79,6 +84,33 @@ export default function ClientDetails({ user, onClose }) {
     queryFn: () => base44.entities.Favorite.filter({ created_by: user.email }),
   });
 
+  const { data: walkerProfile } = useQuery({
+    queryKey: ['userWalkerProfile', user.email],
+    queryFn: async () => {
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      return profiles[0] || null;
+    },
+  });
+
+  const { data: trainerProfile } = useQuery({
+    queryKey: ['userTrainerProfile', user.email],
+    queryFn: async () => {
+      const profiles = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+      return profiles[0] || null;
+    },
+  });
+
+  // Initialize status from profiles
+  React.useEffect(() => {
+    if (walkerProfile) {
+      setWalkerGoldStatus(walkerProfile.is_pawcao_employee || false);
+    }
+    if (trainerProfile) {
+      setTrainerGoldStatus(trainerProfile.is_pawcao_employee || false);
+      setTrainerVerifiedStatus(trainerProfile.is_verified_trainer || false);
+    }
+  }, [walkerProfile, trainerProfile]);
+
   // Mutations
   const addNoteMutation = useMutation({
     mutationFn: (data) => base44.entities.UserNote.create(data),
@@ -112,6 +144,33 @@ export default function ClientDetails({ user, onClose }) {
       queryClient.invalidateQueries(['clientTags', user.email]);
       toast.success("Tag removida!");
     },
+  });
+
+  const updateWalkerBadgesMutation = useMutation({
+    mutationFn: async () => {
+      if (!walkerProfile?.id) return;
+      await base44.entities.WalkerProfile.update(walkerProfile.id, {
+        is_pawcao_employee: walkerGoldStatus
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['userWalkerProfile']);
+      toast.success("Status de passeador atualizado!");
+    }
+  });
+
+  const updateTrainerBadgesMutation = useMutation({
+    mutationFn: async () => {
+      if (!trainerProfile?.id) return;
+      await base44.entities.TrainerProfile.update(trainerProfile.id, {
+        is_verified_trainer: trainerVerifiedStatus,
+        is_pawcao_employee: trainerGoldStatus
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['userTrainerProfile']);
+      toast.success("Status de treinador atualizado!");
+    }
   });
 
   const handleAddNote = () => {
@@ -430,6 +489,91 @@ export default function ClientDetails({ user, onClose }) {
                   ))
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Special Badges Control - ADMIN ONLY */}
+          <Card className="border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-600" />
+                Badges Especiais (Admin Only)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Walker Gold Badge */}
+              {walkerProfile && (
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-yellow-200">
+                  <div className="flex items-center gap-3">
+                    <GoldEmployeeBadge size="md" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Gold - Funcionário PawCão</p>
+                      <p className="text-xs text-gray-600">Badge dourado (Walker)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={walkerGoldStatus}
+                      onCheckedChange={setWalkerGoldStatus}
+                      id="walker-gold"
+                    />
+                    <Label htmlFor="walker-gold" className="cursor-pointer">Ativo</Label>
+                  </div>
+                </div>
+              )}
+
+              {/* Trainer Verified & Gold */}
+              {trainerProfile && (
+                <>
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-3">
+                      <TrainerVerifiedBadge size="md" />
+                      <div>
+                        <p className="font-semibold text-gray-900">Treinador Verificado</p>
+                        <p className="text-xs text-gray-600">Badge roxo (Certificação)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={trainerVerifiedStatus}
+                        onCheckedChange={setTrainerVerifiedStatus}
+                        id="trainer-verified"
+                      />
+                      <Label htmlFor="trainer-verified" className="cursor-pointer">Ativo</Label>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-3">
+                      <GoldEmployeeBadge size="md" />
+                      <div>
+                        <p className="font-semibold text-gray-900">Gold - Funcionário PawCão</p>
+                        <p className="text-xs text-gray-600">Badge dourado (Trainer)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={trainerGoldStatus}
+                        onCheckedChange={setTrainerGoldStatus}
+                        id="trainer-gold"
+                      />
+                      <Label htmlFor="trainer-gold" className="cursor-pointer">Ativo</Label>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <Button
+                onClick={() => {
+                  if (walkerProfile) updateWalkerBadgesMutation.mutate();
+                  if (trainerProfile) updateTrainerBadgesMutation.mutate();
+                }}
+                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90"
+                disabled={updateWalkerBadgesMutation.isPending || updateTrainerBadgesMutation.isPending}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Salvar Badges Especiais
+              </Button>
             </CardContent>
           </Card>
 

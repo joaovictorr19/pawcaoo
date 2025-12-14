@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldCheck, MessageCircle, Target } from "lucide-react";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
@@ -220,6 +223,21 @@ export default function TrainerDetails() {
             type="trainer"
             reviews={reviews}
             averageRating={averageRating}
+            customBadges={
+              <div className="flex items-center gap-2 flex-wrap">
+                {trainer.verification_status === 'verified' && <VerifiedBadge size="lg" />}
+                {trainer.is_verified_trainer && (
+                  <div className="transform hover:scale-110 transition-transform">
+                    <TrainerVerifiedBadge size="lg" />
+                  </div>
+                )}
+                {trainer.is_pawcao_employee && (
+                  <div className="transform hover:scale-110 transition-transform">
+                    <GoldEmployeeBadge size="md" />
+                  </div>
+                )}
+              </div>
+            }
           />
           
           <div className="px-8 pb-8">
