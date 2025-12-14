@@ -436,8 +436,13 @@ export default function Home() {
 
   // XP animation effect
   const currentXP = user?.gamification_xp || 0;
+  const [displayedXP, setDisplayedXP] = useState(currentXP);
+  
   useEffect(() => {
-    if (!currentXP) return;
+    if (!currentXP) {
+      setDisplayedXP(0);
+      return;
+    }
     const duration = 1500;
     const steps = 60;
     const increment = currentXP / steps;
