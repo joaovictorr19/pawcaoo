@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 
 // Dummy data for specializations for the purpose of this component
 // In a real application, this would likely be imported from a constants file or fetched from an API.
@@ -117,6 +119,22 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
+          {/* Special Badges - Top Right */}
+          {(walker.is_pawcao_employee || walker.is_verified_trainer) && (
+            <div className="absolute top-2 right-2 flex gap-1">
+              {walker.is_verified_trainer && (
+                <div className="transform hover:scale-110 transition-transform">
+                  <TrainerVerifiedBadge size="sm" />
+                </div>
+              )}
+              {walker.is_pawcao_employee && (
+                <div className="transform hover:scale-110 transition-transform">
+                  <GoldEmployeeBadge size="md" />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Badges */}
           <div className="absolute top-2 md:top-3 right-2 md:right-3 flex flex-col gap-1 md:gap-2">
             {/* NOVO: Match Score Badge */}
