@@ -85,6 +85,8 @@ import { generateServiceSchema, generateBreadcrumbSchema } from "../components/s
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 
 export default function WalkerDetails() {
   const { language } = useLanguage();
