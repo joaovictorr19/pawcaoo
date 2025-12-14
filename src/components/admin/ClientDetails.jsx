@@ -519,7 +519,16 @@ export default function ClientDetails({ user, onClose }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {walkerProfile ? (
+              {!walkerProfile && !trainerProfile && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <AlertCircle className="w-4 h-4 inline mr-2" />
+                    Este utilizador não tem perfil de Walker ou Trainer criado.
+                  </p>
+                </div>
+              )}
+
+              {walkerProfile && (
                 <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-yellow-200">
                   <div className="flex items-center gap-3">
                     <GoldEmployeeBadge size="md" />
@@ -537,9 +546,9 @@ export default function ClientDetails({ user, onClose }) {
                     <Label htmlFor="walker-gold" className="cursor-pointer">Ativo</Label>
                   </div>
                 </div>
-              ) : null}
+              )}
 
-              {trainerProfile ? (
+              {trainerProfile && (
                 <>
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
                     <div className="flex items-center gap-3">
@@ -577,30 +586,32 @@ export default function ClientDetails({ user, onClose }) {
                     </div>
                   </div>
                 </>
-              ) : null}
+              )}
 
-              <div className="grid grid-cols-2 gap-3">
-                {walkerProfile && (
-                  <Button
-                    onClick={() => updateWalkerBadgesMutation.mutate()}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:opacity-90"
-                    disabled={updateWalkerBadgesMutation.isPending}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    {updateWalkerBadgesMutation.isPending ? "Salvando..." : "Salvar Walker"}
-                  </Button>
-                )}
-                {trainerProfile && (
-                  <Button
-                    onClick={() => updateTrainerBadgesMutation.mutate()}
-                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:opacity-90"
-                    disabled={updateTrainerBadgesMutation.isPending}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    {updateTrainerBadgesMutation.isPending ? "Salvando..." : "Salvar Trainer"}
-                  </Button>
-                )}
-              </div>
+              {(walkerProfile || trainerProfile) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {walkerProfile && (
+                    <Button
+                      onClick={() => updateWalkerBadgesMutation.mutate()}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:opacity-90"
+                      disabled={updateWalkerBadgesMutation.isPending}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {updateWalkerBadgesMutation.isPending ? "Salvando..." : "Salvar Walker"}
+                    </Button>
+                  )}
+                  {trainerProfile && (
+                    <Button
+                      onClick={() => updateTrainerBadgesMutation.mutate()}
+                      className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:opacity-90"
+                      disabled={updateTrainerBadgesMutation.isPending}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {updateTrainerBadgesMutation.isPending ? "Salvando..." : "Salvar Trainer"}
+                    </Button>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
