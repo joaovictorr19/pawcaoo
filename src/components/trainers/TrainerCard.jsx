@@ -10,6 +10,8 @@ import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 
 const TrainerCard = React.memo(({ trainer, distance }) => {
   const navigate = useNavigate();
@@ -128,6 +130,20 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
               </div>
             </div>
           )}
+          {/* Special Badges - Top Right Corner */}
+          <div className="absolute top-2 right-2 flex gap-1 z-10">
+            {trainer.is_verified_trainer && (
+              <div className="transform hover:scale-110 transition-transform">
+                <TrainerVerifiedBadge size="sm" />
+              </div>
+            )}
+            {trainer.is_pawcao_employee && (
+              <div className="transform hover:scale-110 transition-transform">
+                <GoldEmployeeBadge size="md" />
+              </div>
+            )}
+          </div>
+
           <div className="absolute top-2 md:top-4 right-2 md:right-4 flex flex-col gap-1 md:gap-2 items-end">
             {(trainer.is_verified || trainer.verification_status === "verified") && (
               <div className="flex items-center gap-1 md:gap-1.5 bg-purple-500 text-white border-0 shadow-lg px-2 md:px-3 py-1 md:py-1.5 rounded-full">
@@ -135,7 +151,6 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
                 <span className="text-[10px] md:text-xs font-bold">Certificado</span>
               </div>
             )}
-            {/* Removed rating badge from top right, as it's now in CardContent */}
             {trainer.video_intro_url && (
               <Badge className="bg-blue-500 text-white border-0 shadow-lg flex items-center gap-1 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
                 <Video className="w-3 h-3" />
