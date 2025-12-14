@@ -319,9 +319,6 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  // Dashboard XP animation states (moved to top level)
-  const [displayedXP, setDisplayedXP] = useState(0);
-
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -1286,10 +1283,21 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <div className="relative inline-block">
-                    <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-br from-blue-900 via-indigo-600 to-blue-800 bg-clip-text text-transparent mb-4 leading-tight relative px-6 py-3">
+                  <div className="relative inline-block mb-6">
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight relative px-6 py-3"
+                        style={{
+                          background: 'linear-gradient(145deg, #1e3a8a 0%, #4f46e5 30%, #6366f1 60%, #1e40af 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                          textShadow: '0 8px 16px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(79, 70, 229, 0.2)',
+                          filter: 'drop-shadow(0 4px 6px rgba(30, 58, 138, 0.15))',
+                          letterSpacing: '-0.02em'
+                        }}>
                       {t('homeTitle', language)}
                     </h1>
+                    {/* Subtle glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-indigo-400/10 to-purple-400/10 blur-2xl -z-10 rounded-full"></div>
                   </div>
                 </motion.div>
               </div>
