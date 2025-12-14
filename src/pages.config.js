@@ -71,6 +71,7 @@ import AIMatches from './pages/AIMatches';
 import AdoptionListings from './pages/AdoptionListings';
 import AdminShopHub from './pages/AdminShopHub';
 import TestPayments from './pages/TestPayments';
+import EmployeeDashboard from './pages/EmployeeDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -148,6 +149,7 @@ export const PAGES = {
     "AdoptionListings": AdoptionListings,
     "AdminShopHub": AdminShopHub,
     "TestPayments": TestPayments,
+    "EmployeeDashboard": EmployeeDashboard,
 }
 
 export const pagesConfig = {

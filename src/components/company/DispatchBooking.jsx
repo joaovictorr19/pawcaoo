@@ -30,13 +30,23 @@ export default function DispatchBooking({ booking, companyId, onSuccess }) {
       if (!employee) throw new Error("Funcionário não encontrado");
 
       // Update booking with assigned walker/trainer
-      return await base44.entities.Booking.update(bookingId, {
+      await base44.entities.Booking.update(bookingId, {
         walker_id: employee.walker_profile_id,
         walker_email: employee.employee_email,
         walker_name: employee.employee_name,
         status: 'confirmed',
         dispatched_by_company: companyId,
         assigned_employee_id: employeeId
+      });
+
+      // Create initial status update
+      await base44.entities.BookingStatusUpdate.create({
+        booking_id: bookingId,
+        company_id: companyId,
+        employee_email: employee.employee_email,
+        employee_name: employee.employee_name,
+        status: 'assigned',
+        update_message: `Pedido despachado para ${employee.employee_name}`
       });
     },
     onSuccess: () => {

@@ -22,6 +22,8 @@ import PartnerAnalytics from "../components/partner/PartnerAnalytics";
 import Pagination from "../components/ui/Pagination";
 import LazyImage from "../components/ui/LazyImage";
 import EmployeeManager from "../components/company/EmployeeManager";
+import CompanyMessaging from "../components/company/CompanyMessaging";
+import CompanyNotificationFeed from "../components/company/CompanyNotificationFeed";
 
 export default function PartnerDashboard() {
   const queryClient = useQueryClient();
@@ -413,11 +415,15 @@ export default function PartnerDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-3xl">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="team">
               <Users className="w-4 h-4 mr-2" />
               Equipa
+            </TabsTrigger>
+            <TabsTrigger value="communication">
+              <Megaphone className="w-4 h-4 mr-2" />
+              Comunicação
             </TabsTrigger>
             <TabsTrigger value="analytics">
               <BarChart3 className="w-4 h-4 mr-2" />
@@ -478,6 +484,13 @@ export default function PartnerDashboard() {
 
           <TabsContent value="team">
             <EmployeeManager company={company} />
+          </TabsContent>
+
+          <TabsContent value="communication">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <CompanyNotificationFeed companyId={company.id} companyEmail={company.company_email} />
+              <CompanyMessaging companyId={company.id} companyEmail={company.company_email} />
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics">
