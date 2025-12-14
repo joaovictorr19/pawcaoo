@@ -15,6 +15,8 @@ import { t } from "@/components/translations";
 import { useLanguage } from "@/components/LanguageContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
+import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -995,22 +997,41 @@ export default function UserProfile() {
               {/* Avatar Column - Pulled up to overlap cover */}
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <div className="relative">
-                  <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
-                    <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" loading="lazy" decoding="async" />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl md:text-4xl">
-                      {profileUser.full_name?.[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {isOwnProfile && (
-                    <button 
-                      onClick={() => navigate(createPageUrl('AccountSettings'))}
-                      className="hidden md:block absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white"
-                      title="Alterar foto de perfil"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
+                        <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white">
+                          <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center" loading="lazy" decoding="async" />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl md:text-4xl">
+                            {profileUser.full_name?.[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Gold & Trainer Badges - Top Right Corner */}
+                        <div className="absolute -top-2 -right-2 flex gap-1">
+                          {(trainerProfile?.is_verified_trainer || walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee) && (
+                            <>
+                              {trainerProfile?.is_verified_trainer && (
+                                <div className="transform hover:scale-110 transition-transform">
+                                  <TrainerVerifiedBadge size="md" />
+                                </div>
+                              )}
+                              {(walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee) && (
+                                <div className="transform hover:scale-110 transition-transform">
+                                  <GoldEmployeeBadge size="lg" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {isOwnProfile && (
+                          <button 
+                            onClick={() => navigate(createPageUrl('AccountSettings'))}
+                            className="hidden md:block absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white"
+                            title="Alterar foto de perfil"
+                          >
+                            <Camera className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
               </div>
 
               {/* Info Column - Starts below cover photo line to prevent overlap */}
