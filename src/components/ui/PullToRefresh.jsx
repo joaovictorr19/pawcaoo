@@ -15,70 +15,82 @@ export default function PullToRefresh({ children, onRefresh }) {
     const container = contentRef.current;
     if (!container) return;
 
-    // Only activate if at the top of the page
+    let touchStartY = 0;
+    let isPulling = false;
+
     const handleTouchStart = (e) => {
-      if (window.scrollY <= 5) { // Allow a small margin
-        setStartY(e.touches[0].clientY);
+      if (window.scrollY <= 5 && !loading) {
+        touchStartY = e.touches[0].clientY;
+        isPulling = true;
+        setStartY(touchStartY);
         setPulling(true);
       }
     };
 
     const handleTouchMove = (e) => {
-      if (!pulling || window.scrollY > 5 || loading) return;
+      if (!isPulling || window.scrollY > 5 || loading) return;
       
       const currentY = e.touches[0].clientY;
-      const diff = currentY - startY;
+      const diff = currentY - touchStartY;
 
-      if (diff > 0) {
-        // If pulling down
-        if (e.cancelable && diff < MAX_PULL) {
-           // Optional: e.preventDefault(); to stop native scroll if implemented at body level, 
-           // but tricky inside components.
-        }
-        
-        // Apply resistance
+      if (diff > 0 && diff < MAX_PULL) {
         const newDist = Math.min(diff * 0.5, MAX_PULL);
         setDistance(newDist);
-      } else {
+      } else if (diff <= 0) {
         setDistance(0);
       }
     };
 
     const handleTouchEnd = async () => {
-      if (!pulling || loading) return;
+      if (!isPulling || loading) {
+        isPulling = false;
+        setPulling(false);
+        setDistance(0);
+        return;
+      }
       
       if (distance > THRESHOLD) {
         setLoading(true);
-        setDistance(THRESHOLD); // Keep spinner visible
+        setDistance(THRESHOLD);
         
         try {
           if (onRefresh) {
             await onRefresh();
           } else {
-            // Simulate network delay then reload for smoothness
             await new Promise(resolve => setTimeout(resolve, 500));
             window.location.reload();
           }
+        } catch (error) {
+          console.error('Refresh error:', error);
         } finally {
           setLoading(false);
           setDistance(0);
+          isPulling = false;
+          setPulling(false);
         }
       } else {
         setDistance(0);
+        isPulling = false;
+        setPulling(false);
       }
-      setPulling(false);
     };
 
     container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: true });
     container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    container.addEventListener('touchcancel', () => {
+      isPulling = false;
+      setPulling(false);
+      setDistance(0);
+    }, { passive: true });
 
     return () => {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [startY, pulling, distance, loading, onRefresh]);
+  }, [distance, loading, onRefresh]);
 
   return (
     <div ref={contentRef} className="min-h-screen relative">

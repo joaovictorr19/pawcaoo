@@ -42,6 +42,7 @@ import PushNotificationManager from "@/components/notifications/PushNotification
 import { useRealtimeNotifications } from "@/components/notifications/useRealtimeNotifications";
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
+import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import "./globals.css";
 
 // Query optimization configs - v1.1
@@ -126,6 +127,9 @@ function LayoutContent({ children, currentPageName }) {
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
   const [newBadge, setNewBadge] = React.useState(null);
+
+  // CRITICAL: Global modal cleanup to prevent frozen UI
+  useModalCleanup();
 
   // Dictionary for menu translations
   const menuTranslations = {
@@ -251,6 +255,11 @@ function LayoutContent({ children, currentPageName }) {
 
   // ✅ Sistema de Notificações em Tempo Real
   useRealtimeNotifications(authUser);
+
+  // CRITICAL: Close notification panel on route change
+  React.useEffect(() => {
+    setIsNotificationPanelOpen(false);
+  }, [location.pathname]);
 
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
@@ -530,7 +539,16 @@ function LayoutContent({ children, currentPageName }) {
       }
 
       body, #root {
-        background: transparent !important;
+      background: transparent !important;
+      }
+
+      /* CRITICAL: Prevent click blocking from overlays */
+      .fixed {
+      pointer-events: auto;
+      }
+
+      .fixed > * {
+      pointer-events: auto;
       }
 
       .glass-panel-dark {
@@ -1077,13 +1095,13 @@ function LayoutContent({ children, currentPageName }) {
           <div className="flex-1 relative pb-24 md:pb-8">
             <div className="md:hidden">
               <PullToRefresh>
-                <div className="relative z-10 mb-24">
+                <div className="relative mb-24" style={{ zIndex: 1 }}>
                   {children}
                 </div>
               </PullToRefresh>
             </div>
             <div className="hidden md:block h-full">
-              <div className="relative z-10 mb-8">
+              <div className="relative mb-8" style={{ zIndex: 1 }}>
                 {children}
               </div>
             </div>

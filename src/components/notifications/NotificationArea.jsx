@@ -20,13 +20,21 @@ export default function NotificationArea({ isOpen, onClose }) {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState("all");
 
-  // Close on Escape key
+  // Close on Escape key - STRICT cleanup
   useEffect(() => {
+    if (!isOpen) return;
+    
     const handleEsc = (e) => {
-      if (e.key === "Escape") handleCloseAll();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleCloseAll();
+      }
     };
-    if (isOpen) window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
+    
+    window.addEventListener("keydown", handleEsc);
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
   }, [isOpen]);
 
   const { data: user } = useQuery({
@@ -164,25 +172,28 @@ export default function NotificationArea({ isOpen, onClose }) {
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
-          {/* BACKDROP: High Z-Index (z-40), handles close on click */}
+          {/* BACKDROP: Handles close on click - ENSURES cleanup */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={handleCloseAll}
-            className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: 40 }}
           />
 
-          {/* PANEL: Higher Z-Index (z-50) */}
+          {/* PANEL: Slide from right */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 w-full md:w-[450px] bg-white shadow-2xl flex flex-col overflow-hidden"
+            className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white shadow-2xl flex flex-col overflow-hidden"
+            style={{ zIndex: 50 }}
           >
             {/* Header */}
             <div className="p-4 border-b flex items-center justify-between bg-white flex-shrink-0">

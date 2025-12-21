@@ -17,6 +17,24 @@ import { useTheme } from "@/components/ThemeContext";
 export default function BookingDetailsModal({ booking, open, onOpenChange, type, currentUser, onReview }) {
   const { colors } = useTheme();
   
+  // CRITICAL: Cleanup to prevent frozen modals
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && open) {
+        e.preventDefault();
+        onOpenChange(false);
+      }
+    };
+    
+    if (open) {
+      window.addEventListener('keydown', handleEscape);
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [open, onOpenChange]);
+  
   if (!booking) return null;
 
   const isTraining = type === 'training';

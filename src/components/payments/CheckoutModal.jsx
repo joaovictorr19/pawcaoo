@@ -109,19 +109,47 @@ export default function CheckoutModal({
     }
   };
 
+  // CRITICAL: Cleanup on unmount to prevent frozen modals
+  React.useEffect(() => {
+    return () => {
+      setProcessing(false);
+    };
+  }, []);
+
+  // Escape key handler
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && !processing) {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [processing, onClose]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4"
+      style={{ zIndex: 60 }}
+      onClick={(e) => {
+        if (!processing && e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="bg-white rounded-2xl max-w-lg w-full p-6"
+        transition={{ duration: 0.2 }}
+        className="bg-white rounded-2xl max-w-lg w-full p-6 relative"
+        style={{ zIndex: 61 }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6">
@@ -229,12 +257,13 @@ export default function CheckoutModal({
             <Button
               onClick={handleStripeCheckout}
               disabled={processing}
-              className="flex-1 h-12 font-bold text-white hover:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95 focus:ring-4 focus:ring-blue-300 transition-all"
+              className="flex-1 h-12 font-bold text-white hover:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
               style={{
                 background: processing 
                   ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}cc, ${colors?.primary || '#3b82f6'}99)` 
                   : `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`,
-                opacity: processing ? 0.8 : 1
+                opacity: processing ? 0.8 : 1,
+                pointerEvents: processing ? 'none' : 'auto'
               }}
             >
               {processing ? (
