@@ -38,6 +38,7 @@ import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
+import useGamification, { formatXP, getLevelTitle } from "@/components/gamification/useGamification";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import { useRealtimeNotifications } from "@/components/notifications/useRealtimeNotifications";
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
@@ -254,6 +255,9 @@ function LayoutContent({ children, currentPageName }) {
   });
 
   const unreadCount = notifications?.length || 0;
+
+  // ========== HOOK CENTRALIZADO DE GAMIFICAÇÃO ==========
+  const gamification = useGamification(authUser);
 
   // ✅ Sistema de Notificações em Tempo Real
   useRealtimeNotifications(authUser);
