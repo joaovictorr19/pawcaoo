@@ -677,6 +677,15 @@ function LayoutContent({ children, currentPageName }) {
             gap: 1rem;
           }
         }
+
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
         `}</style>
       {/* Dynamic Background - Orbs that change color based on user tier */}
       <DynamicBackground />
@@ -986,83 +995,83 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
             <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4 relative z-10 bg-transparent">
-            <header className={`mx-3 md:mx-6 mt-4 mb-2 px-3 md:px-6 py-2.5 md:py-4 sticky top-4 z-50 transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
-              colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
+            <header className={`mx-2 md:mx-6 mt-4 mb-2 px-2 md:px-6 py-2 md:py-4 sticky top-4 z-50 transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
+            colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
             }`}>
-            <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 md:gap-4">
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {authUser && (
-                  <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
-                )}
+            <div className="flex items-center justify-between gap-2 w-full">
+            <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+            {authUser && (
+              <SidebarTrigger className="md:hidden hover:bg-green-100 h-9 w-9 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
+            )}
 
-                <Link 
-                  to={createPageUrl("Home")} 
-                  className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
-                >
-                  <PawCaoLogo size="small" showText={!authUser} />
-                </Link>
-              </div>
+            <Link 
+              to={createPageUrl("Home")} 
+              className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
+            >
+              <PawCaoLogo size="small" showText={!authUser} />
+            </Link>
+            </div>
 
-              {authUser && (
-                <div className="hidden md:flex items-center justify-center gap-2 flex-1 min-w-0 overflow-x-auto">
-                  {mainMenu.map((item) => (
-                    <Link
-                      key={item.url}
-                      id={item.id}
-                      to={item.url}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
-                        isRouteActive(item.url)
-                          ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                          : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
-                      } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
-                      >
-                      <item.icon className={`w-4 h-4 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
-                      <span>{item.title}</span>
-                    </Link>
-                  ))}
-                  <Link 
-                    id="header-profile"
-                    to={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
-                      location.pathname.includes('UserProfile')
+            {authUser && (
+            <div className="hidden md:flex items-center justify-center gap-2 flex-1 min-w-0">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                {mainMenu.map((item) => (
+                  <Link
+                    key={item.url}
+                    id={item.id}
+                    to={item.url}
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
+                      isRouteActive(item.url)
                         ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
                         : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
-                    }`}
+                    } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
                     >
-                    <User className={`w-4 h-4 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
-                    <span>{t('myProfile', language)}</span>
+                    <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
+                    <span className="hidden lg:inline">{item.title}</span>
                   </Link>
-                </div>
-              )}
-
-              <div className="flex-1"></div>
-
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
-                      <Globe className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {!authUser && (
-                  <Button 
-                    onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm"
-                    size="sm"
+                ))}
+                <Link 
+                  id="header-profile"
+                  to={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
+                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
+                    location.pathname.includes('UserProfile')
+                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
+                      : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
+                  }`}
                   >
-                    {getMenuText('login')}
-                  </Button>
-                )}
+                  <User className={`w-3.5 h-3.5 flex-shrink-0 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
+                  <span className="hidden lg:inline">{t('myProfile', language)}</span>
+                </Link>
               </div>
-              </div>
-              </header>
+            </div>
+            )}
+
+            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
+                  <Globe className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {!authUser && (
+              <Button 
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm text-xs px-3 h-8"
+                size="sm"
+              >
+                {getMenuText('login')}
+              </Button>
+            )}
+            </div>
+            </div>
+            </header>
 
           {/* Main Content Area with bottom padding for mobile nav */}
           <div className="flex-1 relative pb-24 md:pb-8">
