@@ -847,12 +847,20 @@ export default function Home() {
           }
         }
 
-        if (userLocation && a.distance !== null && b.distance !== null) {
-          return a.distance - b.distance;
+        if (userLocation) {
+          // If both have distance, sort by distance
+          if (a.distance !== null && b.distance !== null) {
+            return a.distance - b.distance;
+          }
+          // If only a has distance, a comes first
+          if (a.distance !== null) return -1;
+          // If only b has distance, b comes first
+          if (b.distance !== null) return 1;
         }
-        
+
+        // Fallback to rating
         return (b.rating || 0) - (a.rating || 0);
-      });
+        });
   }, [walkers, searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, 
       selectedServiceTypes, selectedSpecializations, advancedFilters, userLocation]);
 
