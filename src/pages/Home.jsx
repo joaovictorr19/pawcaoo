@@ -708,13 +708,28 @@ export default function Home() {
         const matchesDogSitting = filterDogSitting === "all" || (() => {
           const services = walker.services_offered || [];
           if (filterDogSitting === "boarding") {
-            return services.some(s => s.service_name?.toLowerCase().includes('boarding') || s.service_name?.toLowerCase().includes('alojamento'));
+            return services.some(s => 
+              s.service_name?.toLowerCase().includes('boarding') || 
+              s.service_name?.toLowerCase().includes('alojamento') ||
+              s.service_name?.toLowerCase().includes('hospedagem') ||
+              s.service_name?.toLowerCase().includes('hotel')
+            );
           }
           if (filterDogSitting === "house_sitting") {
-            return services.some(s => s.service_name?.toLowerCase().includes('house sitting') || s.service_name?.toLowerCase().includes('casa'));
+            return services.some(s => 
+              s.service_name?.toLowerCase().includes('house sitting') || 
+              s.service_name?.toLowerCase().includes('casa') ||
+              s.service_name?.toLowerCase().includes('domicílio') ||
+              s.service_name?.toLowerCase().includes('sitting')
+            );
           }
           if (filterDogSitting === "drop_in") {
-            return services.some(s => s.service_name?.toLowerCase().includes('drop') || s.service_name?.toLowerCase().includes('visit') || s.service_name?.toLowerCase().includes('alimentação'));
+            return services.some(s => 
+              s.service_name?.toLowerCase().includes('drop') || 
+              s.service_name?.toLowerCase().includes('visit') || 
+              s.service_name?.toLowerCase().includes('alimentação') ||
+              s.service_name?.toLowerCase().includes('feed')
+            );
           }
           return true;
         })();
