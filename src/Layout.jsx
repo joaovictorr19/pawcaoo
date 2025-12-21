@@ -1236,7 +1236,6 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </div>
     </SidebarProvider>
-    </SidebarProvider>
   );
 }
 
