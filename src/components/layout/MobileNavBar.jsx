@@ -48,7 +48,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     {
       label: "Perfil",
       icon: User, // Fallback icon, logic handles Avatar below
-      path: user ? (user.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`)) : createPageUrl("Login"),
+      path: user ? (user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`)) : createPageUrl("Login"),
       activeColor: "text-purple-600",
       isProfile: true,
       id: "header-profile"
