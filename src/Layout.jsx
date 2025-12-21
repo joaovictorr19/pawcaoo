@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, Megaphone, ShoppingBag, Sparkles, Users as UsersIcon, LogOut, Building2, Download, MessageCircle, Users, CreditCard } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, TrendingUp, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, Megaphone, ShoppingBag, Sparkles, LogOut, Building2, Download, MessageCircle, Users, CreditCard } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -1035,7 +1035,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4 relative z-10 bg-transparent">
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-0 relative z-10 bg-transparent">
             <header className={`w-full px-4 py-3 sticky top-0 z-[999] transition-all duration-300 shadow-lg backdrop-blur-xl border-b ${
             colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
             }`}>
