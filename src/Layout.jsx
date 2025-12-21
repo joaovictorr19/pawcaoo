@@ -731,9 +731,76 @@ function LayoutContent({ children, currentPageName }) {
       {/* Dynamic Background - Orbs that change color based on user tier */}
       <DynamicBackground />
 
-      <div className="flex w-full max-w-[100vw] min-h-screen relative z-10 bg-transparent">
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 bg-transparent">
+        {/* Header sempre visível no topo */}
+        <header className={`w-full px-4 py-3 sticky top-0 z-[999] transition-all duration-300 shadow-lg backdrop-blur-xl border-b ${
+          colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
+        }`}>
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 w-full">
+            <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+              {authUser && (
+                <SidebarTrigger className="md:hidden hover:bg-green-100 h-9 w-9 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
+              )}
+
+              <Link 
+                to={createPageUrl("Home")} 
+                className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
+              >
+                <PawCaoLogo size="small" showText={!authUser} />
+              </Link>
+            </div>
+
+            <div className="hidden md:flex items-center justify-center gap-2 flex-1 px-4">
+              <div className="flex items-center gap-2 flex-wrap justify-center w-full pb-1">
+                {mainMenu.map((item) => (
+                  <Link
+                    key={item.url}
+                    id={item.id}
+                    to={item.url}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
+                      isRouteActive(item.url)
+                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
+                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
+                    } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
+                  >
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
+                    <span>{item.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
+                    <Globe className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {!authUser && (
+                <Button 
+                  onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm text-xs px-3 h-8"
+                  size="sm"
+                >
+                  {getMenuText('login')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Container para sidebar e conteúdo */}
+        <div className="flex flex-1 w-full">
         {authUser && (
-        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
+        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-6rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
           colors?.isDarkMode 
             ? 'border-slate-700/40' 
             : 'border-white/40'
@@ -1035,72 +1102,8 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent">
-            <header className={`w-full px-4 py-3 sticky top-0 z-[999] transition-all duration-300 shadow-lg backdrop-blur-xl border-b ${
-            colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
-            }`}>
-              <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 w-full">
-                <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
-                  {authUser && (
-                    <SidebarTrigger className="md:hidden hover:bg-green-100 h-9 w-9 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
-                  )}
-
-                  <Link 
-                    to={createPageUrl("Home")} 
-                    className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
-                  >
-                    <PawCaoLogo size="small" showText={!authUser} />
-                  </Link>
-                </div>
-
-                <div className="hidden md:flex items-center justify-center gap-2 flex-1 px-4">
-                  <div className="flex items-center gap-2 flex-wrap justify-center w-full pb-1">
-                    {mainMenu.map((item) => (
-                      <Link
-                        key={item.url}
-                        id={item.id}
-                        to={item.url}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
-                          isRouteActive(item.url)
-                            ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                            : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
-                        } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
-                      >
-                        <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
-                        <span>{item.title}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
-                        <Globe className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {!authUser && (
-                    <Button 
-                      onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm text-xs px-3 h-8"
-                      size="sm"
-                    >
-                      {getMenuText('login')}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </header>
-
           {/* Main Content Area with bottom padding for mobile nav */}
+          <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent">
           <div className="flex-1 relative pb-24 md:pb-8">
             <div className="md:hidden">
               <PullToRefresh>
@@ -1219,7 +1222,8 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </div>
           </footer>
-        </main>
+          </div>
+        </div>
       </div>
     </SidebarProvider>
   );
