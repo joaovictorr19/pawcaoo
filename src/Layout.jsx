@@ -265,16 +265,35 @@ function LayoutContent({ children, currentPageName }) {
 
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
-    { title: language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals', url: createPageUrl("Home"), icon: Dog, id: "nav-home" },
-    { title: t('postEmergency', language), url: createPageUrl("PostEmergency"), icon: Zap, className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" },
-    { title: t('adoptAPet', language), url: createPageUrl("AdoptionListings"), icon: Home },
-    { title: getMenuText('shelterArea'), url: createPageUrl("ShelterDashboard"), icon: Building2 },
-    ...(authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both' ? [
-      { title: t('professionalDashboard', language), url: createPageUrl("ProfessionalDashboard"), icon: BarChart3 },
-      { title: t('manageAvailability', language), url: createPageUrl("ManageAvailability"), icon: CalendarClock }
-    ] : [
-      { title: getMenuText('becomeProfessional'), url: createPageUrl("BecomeProfessional"), icon: PlusCircle }
-    ])
+    { 
+      title: language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals', 
+      url: createPageUrl("Home"), 
+      icon: Users, 
+      id: "nav-home" 
+    },
+    { 
+      title: language === 'pt' ? 'Passeio de Emergência' : (t('postEmergency', language) || 'Emergency Walk'), 
+      url: createPageUrl("PostEmergency"), 
+      icon: Zap, 
+      className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" 
+    },
+    { 
+      title: language === 'pt' ? 'Adotar um Pet' : (t('adoptAPet', language) || 'Adopt a Pet'), 
+      url: createPageUrl("AdoptionListings"), 
+      icon: Heart 
+    },
+    { 
+      title: language === 'pt' ? 'Área de Abrigo' : (getMenuText('shelterArea') || 'Shelter Area'), 
+      url: createPageUrl("ShelterDashboard"), 
+      icon: Building2 
+    },
+    { 
+      title: language === 'pt' ? 'Painel Profissional' : (t('professionalDashboard', language) || 'Professional Dashboard'), 
+      url: (authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both') 
+        ? createPageUrl("ProfessionalDashboard") 
+        : createPageUrl("BecomeProfessional"), 
+      icon: BarChart3 
+    }
   ];
 
   const myActivityMenu = [
@@ -1017,10 +1036,10 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
             <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4 relative z-10 bg-transparent">
-            <header className={`mx-2 md:mx-6 mt-4 mb-2 px-2 md:px-6 py-2 md:py-4 sticky top-4 z-[999] transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
-            colors?.isDarkMode ? 'bg-slate-900/90 border-slate-700/40' : 'bg-white/90 border-white/40'
+            <header className={`w-full px-4 py-3 sticky top-0 z-[999] transition-all duration-300 shadow-lg backdrop-blur-xl border-b ${
+            colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
             }`}>
-            <div className="flex items-center justify-between gap-2 w-full">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 w-full">
             <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
             {authUser && (
               <SidebarTrigger className="md:hidden hover:bg-green-100 h-9 w-9 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
