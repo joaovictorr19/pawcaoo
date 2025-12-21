@@ -475,7 +475,7 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent flicker
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -491,7 +491,7 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -589,7 +589,7 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 
