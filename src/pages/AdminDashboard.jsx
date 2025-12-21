@@ -415,7 +415,7 @@ export default function AdminDashboard() {
   const walkerApplications = allWalkers.filter(w => w.verification_status === 'pending' || !w.verification_status);
   const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || !s.verification_status);
-  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified');
+  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
   const pendingReviews = allReviews.filter(r => !r.is_verified);
