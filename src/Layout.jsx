@@ -1118,6 +1118,7 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </div>
           </div>
+          </div>
 
           {/* Mobile Navigation Bar */}
           <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
