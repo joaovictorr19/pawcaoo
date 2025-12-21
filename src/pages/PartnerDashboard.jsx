@@ -588,7 +588,7 @@ export default function PartnerDashboard() {
                 <div className="relative w-full h-48 mb-2">
                   <img 
                     src={serviceForm.image_url} 
-                    className="w-full h-full object-cover rounded-lg" 
+                    className="w-full h-full object-cover aspect-square rounded-lg" 
                     alt="Serviço"
                   />
                   <button
@@ -737,7 +737,7 @@ export default function PartnerDashboard() {
                 <div className="relative w-full h-48 mb-2">
                   <img 
                     src={announcementForm.image_url} 
-                    className="w-full h-full object-cover rounded-lg" 
+                    className="w-full h-full object-cover aspect-video rounded-lg" 
                     alt="Anúncio"
                   />
                   <button
@@ -869,7 +869,7 @@ export default function PartnerDashboard() {
               <Label>Imagem do Produto *</Label>
               {productForm.image_url && (
                 <div className="relative w-full h-48 mb-2">
-                  <img src={productForm.image_url} className="w-full h-full object-cover rounded-lg" alt="Produto" />
+                  <img src={productForm.image_url} className="w-full h-full object-cover aspect-square rounded-lg" alt="Produto" />
                   <button
                     type="button"
                     onClick={() => setProductForm({...productForm, image_url: ""})}
@@ -1149,7 +1149,7 @@ export default function PartnerDashboard() {
                       {product.image_url && (
                         <LazyImage
                           src={product.image_url} 
-                          className="w-24 h-24 object-cover rounded-lg" 
+                          className="w-24 h-24 object-cover aspect-square rounded-lg" 
                           alt={product.product_name}
                         />
                       )}
@@ -1228,7 +1228,7 @@ export default function PartnerDashboard() {
                       {announcement.image_url && (
                         <img 
                           src={announcement.image_url} 
-                          className="w-24 h-24 object-cover rounded-lg" 
+                          className="w-24 h-24 object-cover aspect-square rounded-lg" 
                           alt="Announcement"
                         />
                       )}
