@@ -722,8 +722,8 @@ export default function Home() {
         const matchesServiceTypesQuick = selectedServiceTypes.length === 0 ||
           selectedServiceTypes.every(type =>
             walker.services_offered?.some(s =>
-              s.service_name?.toLowerCase().includes(type.toLowerCase().replace('_', ' ')) ||
-              type.toLowerCase().replace('_', ' ').includes(s.service_name?.toLowerCase())
+              (s.service_name || "").toLowerCase().includes(type.toLowerCase().replace('_', ' ')) ||
+              type.toLowerCase().replace('_', ' ').includes((s.service_name || "").toLowerCase())
             )
           );
 
@@ -748,7 +748,7 @@ export default function Home() {
         // Tenta extrair a cidade (primeira parte antes da vírgula) para aumentar a chance de match
         const userCity = userLocation ? (userLocation.label || userLocation.value || "").split(',')[0].trim() : "";
         const matchesLocationText = userLocation && userCity && 
-                                    walker.location?.toLowerCase().includes(userCity.toLowerCase());
+                                    (walker.location || "").toLowerCase().includes(userCity.toLowerCase());
 
         const matchesRadius = !userLocation || isInServiceArea || 
                               (walker.distance !== null && walker.distance <= (advancedFilters.radius || 50)) ||
@@ -812,7 +812,7 @@ export default function Home() {
         if (walker.verification_status === 'rejected') return false;
         
         // Filtros de busca (apenas se definidos)
-        if (searchLocation && !matchesLocation) return false;
+        if (searchLocation && !(walker.location || "").toLowerCase().includes(searchLocation.toLowerCase())) return false;
         if (filterSize !== "all" && !matchesSize) return false;
         if (filterTime !== "all" && !matchesTime) return false;
 
@@ -1556,9 +1556,9 @@ export default function Home() {
                           setFilterSize("all");
                           setFilterTime("all");
                         }}
-                        className="h-9 text-xs bg-white/95 backdrop-blur-sm border-2 border-gray-200 hover:bg-red-50 hover:border-red-400 transition-all"
+                        className="h-9 text-xs bg-white text-gray-700 border-2 border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold"
                       >
-                        Limpar
+                        Limpar Filtros
                       </Button>
                     )}
                   </div>
