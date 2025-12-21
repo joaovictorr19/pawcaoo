@@ -145,7 +145,8 @@ export default function ManageAvailability() {
 
     saveAvailabilityMutation.mutate({
       time_slots: isDayOff ? [] : timeSlots,
-      is_fully_booked: isDayOff
+      is_fully_booked: isDayOff,
+      is_day_off: isDayOff
     });
   };
 
@@ -340,6 +341,10 @@ export default function ManageAvailability() {
                             </div>
                           ))}
                         </div>
+                        
+                        <p className="text-xs text-gray-500 mt-3 bg-yellow-50 border border-yellow-200 rounded p-2">
+                          💡 <strong>Dica:</strong> Desmarque "Disponível" em um horário para bloqueá-lo sem excluir.
+                        </p>
                       </>
                     )}
 

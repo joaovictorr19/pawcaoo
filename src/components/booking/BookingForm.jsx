@@ -474,8 +474,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const dayAvail = availability.find(a => a.date === dateStr);
                     
-                    // If fully booked, disable
-                    if (dayAvail?.is_fully_booked) return true;
+                    // CRITICAL: Disable if day-off or fully booked
+                    if (dayAvail?.is_day_off || dayAvail?.is_fully_booked) return true;
                     
                     return false;
                   }}
@@ -496,7 +496,11 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 <SelectValue placeholder={!formData.walk_date ? "Selecione uma data primeiro" : "Selecione um horário"} />
               </SelectTrigger>
               <SelectContent className="max-h-60">
-                {availableSlots.length > 0 ? (
+                {formData.walk_date && availability.find(a => a.date === format(formData.walk_date, 'yyyy-MM-dd'))?.is_day_off ? (
+                  <SelectItem value={null} disabled>
+                    🚫 Profissional indisponível neste dia
+                  </SelectItem>
+                ) : availableSlots.length > 0 ? (
                   availableSlots.map((slot, idx) => (
                     <SelectItem key={idx} value={`${slot.start_time} - ${slot.end_time}`}>
                       {slot.start_time} - {slot.end_time}
