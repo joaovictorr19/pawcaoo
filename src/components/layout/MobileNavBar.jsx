@@ -5,12 +5,10 @@ import { Home, Calendar, Trophy, Bell, User, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "../ThemeContext";
-import useGamification, { formatXP } from "@/components/gamification/useGamification";
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
   const { colors, isDarkMode } = useTheme();
-  const gamification = useGamification(user);
 
   const isActive = (path) => {
     if (path === createPageUrl("Home") && location.pathname === path) return true;
@@ -61,22 +59,6 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe backdrop-blur-xl mb-4 mx-4 rounded-2xl shadow-2xl ${
       isDarkMode ? 'bg-slate-900/80 border border-slate-700/60' : 'bg-white/70 border border-white/40'
     }`}>
-      {/* XP Badge discreto no topo da barra */}
-      {user && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <Link to={createPageUrl("Gamification")}>
-            <div 
-              className="px-3 py-1 rounded-full text-[10px] font-bold text-white shadow-lg flex items-center gap-1"
-              style={{ background: `linear-gradient(135deg, ${gamification.tierColor}, ${colors?.primary || '#8b5cf6'})` }}
-            >
-              <span>⚡</span>
-              <span>Nv.{gamification.level}</span>
-              <span className="opacity-80">•</span>
-              <span>{formatXP(gamification.xp)}</span>
-            </div>
-          </Link>
-        </div>
-      )}
       <nav className="flex justify-around items-center h-16 px-2">
         {navItems.map((item, index) => {
           const active = isActive(item.path);

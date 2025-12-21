@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useTheme } from "@/components/ThemeContext";
-import useGamification, { TIER_COLORS, getTierForLevel, getLevelFromXP, formatXP, getLevelTitle } from "@/components/gamification/useGamification";
+import { calculateTier } from "@/components/gamification/tierSystem";
 
 export default function Gamification() {
   const navigate = useNavigate();
@@ -169,23 +169,13 @@ export default function Gamification() {
     return [];
   }, [activeRanking, allUsers, walkerProfiles, allBookings]);
 
-  // ========== HOOK CENTRALIZADO DE GAMIFICAÇÃO ==========
-  const gamification = useGamification(user);
-  const currentXP = gamification.xp;
-  const currentLevel = gamification.level;
-  
-  // Tier adaptado do novo sistema
-  const currentTier = {
-    name: gamification.tierName,
-    icon: getLevelTitle(currentLevel).split(' ')[0], // emoji
-    progress: gamification.progressPercent,
-    min: 0,
-    max: gamification.xpNeededForNext
-  };
+  const currentXP = user?.gamification_xp || 0;
+  const currentLevel = user?.gamification_level || 1;
+  const currentTier = calculateTier(currentXP);
 
   // Tier-based progress
-  const tierProgressPercentage = gamification.progressPercent;
-  const xpRemainingForNextTier = gamification.xpRemaining;
+  const tierProgressPercentage = currentTier.progress || 0;
+  const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
@@ -599,7 +589,7 @@ export default function Gamification() {
                     <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey])}</p>
                     {activeRanking === 'global' && (
                       <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
-                        {getLevelTitle(getLevelFromXP(rankedData[0].gamification_xp || 0))}
+                        {calculateTier(rankedData[0].gamification_xp || 0).icon} {calculateTier(rankedData[0].gamification_xp || 0).name}
                       </Badge>
                     )}
                   </div>
