@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -63,9 +64,14 @@ import ProductManagement from "../components/admin/ProductManagement";
 import BroadcastManager from "../components/admin/BroadcastManager";
 
 export default function AdminDashboard() {
+  // ============================================
+  // CRITICAL: ALL HOOKS AT THE TOP - FIXED ORDER
+  // ============================================
+
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
   // Parse query params to set initial active tab
   const getInitialTab = () => {
     if (typeof window !== 'undefined') {
@@ -74,82 +80,13 @@ export default function AdminDashboard() {
     }
     return "overview";
   };
+
+  // 1. All useState hooks
   const [activeTab, setActiveTab] = useState(getInitialTab());
-  // userSearchState movido para AdminUserTable
-
   const [isSyncingProfiles, setIsSyncingProfiles] = useState(false);
-
-  const handleSyncUserProfiles = async () => {
-    if (!confirm("Isto irá verificar todos os usuários e criar perfis públicos (UserProfile) para quem não tem. Continuar?")) return;
-    
-    setIsSyncingProfiles(true);
-    try {
-      toast.info("Iniciando sincronização... isso pode levar alguns segundos.");
-      
-      // 1. Fetch ALL users (increase limit significantly)
-      const allUsers = await base44.entities.User.list('-created_date', 5000);
-      
-      // 2. Fetch ALL existing profiles to compare in memory (much faster)
-      const allProfiles = await base44.entities.UserProfile.list('-created_date', 5000);
-      const userEmailsWithProfile = new Set(allProfiles.map(p => p.user_email));
-      
-      // 3. Identify missing profiles
-      const usersMissingProfile = allUsers.filter(u => !userEmailsWithProfile.has(u.email));
-      
-      console.log(`Found ${usersMissingProfile.length} users missing profiles out of ${allUsers.length} total users.`);
-      
-      if (usersMissingProfile.length === 0) {
-        toast.success("Todos os usuários já possuem perfil público!");
-        setIsSyncingProfiles(false);
-        return;
-      }
-
-      let createdCount = 0;
-      const BATCH_SIZE = 10; // Batch requests to avoid rate limits
-
-      // 4. Create missing profiles in batches
-      for (let i = 0; i < usersMissingProfile.length; i += BATCH_SIZE) {
-        const batch = usersMissingProfile.slice(i, i + BATCH_SIZE);
-        
-        await Promise.all(batch.map(async (user) => {
-          try {
-            await base44.entities.UserProfile.create({
-              user_email: user.email,
-              user_id: user.id,
-              username: user.username,
-              full_name: user.full_name || 'Utilizador',
-              profile_photo_url: user.profile_photo_url,
-              cover_photo_url: user.cover_photo_url,
-              role: user.role || 'user',
-              gamification_xp: user.gamification_xp || 0,
-              is_verified: user.is_verified || false
-            });
-            createdCount++;
-          } catch (e) {
-            console.error(`Failed to create profile for ${user.email}`, e);
-          }
-        }));
-        
-        // Small delay between batches to be nice to the API
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-      
-      toast.success(`Sincronização concluída! ${createdCount} perfis criados.`);
-      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-    } catch (error) {
-      console.error("Error syncing profiles:", error);
-      toast.error("Erro ao sincronizar perfis: " + (error.message || "Erro desconhecido"));
-    } finally {
-      setIsSyncingProfiles(false);
-    }
-  };
-
-
-  
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
-  // userTypeFilter removido em favor do userSearchState.filters.accountType
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userFormData, setUserFormData] = useState({});
@@ -178,39 +115,47 @@ export default function AdminDashboard() {
     description: "",
     icon: "⭐",
     image_url: "",
-    image_png_file: "", 
-    animation_url: "", // New field for GIFs
+    image_png_file: "",
+    animation_url: "",
     rarity: "common",
     category: "special",
-    criteria: { type: "manual", action: "", count: 0 } // New field for complex conditions
+    criteria: { type: "manual", action: "", count: 0 }
   });
   const [selectedUsersForBadge, setSelectedUsersForBadge] = useState([]);
   const [uploadingCustomBadgeImage, setUploadingCustomBadgeImage] = useState(false);
   const [badgeUserSearchTerm, setBadgeUserSearchTerm] = useState("");
-  const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState(""); 
+  const [grantBadgeSearchTerm, setGrantBadgeSearchTerm] = useState("");
   const [usersToGrantBadge, setUsersToGrantBadge] = useState([]);
-  
-  // CRM States
   const [selectedClient, setSelectedClient] = useState(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
   const [crmSearchTerm, setCrmSearchTerm] = useState("");
   const [crmFilter, setCrmFilter] = useState("all");
-  
-  // Estado para o Modal de Concessão de Badge Individual
   const [showGrantSingleBadgeModal, setShowGrantSingleBadgeModal] = useState(false);
   const [grantBadgeTargetEmail, setGrantBadgeTargetEmail] = useState("");
   const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
-  const [showAllBadges, setShowAllBadges] = useState(false); // State for expanding badge list
-  const [badgeSearchTerm, setBadgeSearchTerm] = useState(""); // Search for badges
-
-  // Product management states
+  const [showAllBadges, setShowAllBadges] = useState(false);
+  const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
   const [productFilter, setProductFilter] = useState('all');
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(null);
-  
+  const [companiesPage, setCompaniesPage] = useState(1);
+  const [companiesPerPage, setCompaniesPerPage] = useState(10);
+  const [productsPage, setProductsPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(10);
+  const [servicesPage, setServicesPage] = useState(1);
+  const [servicesPerPage, setServicesPerPage] = useState(10);
+  const [bookingsPage2, setBookingsPage2] = useState(1);
+  const [bookingsPerPage, setBookingsPerPage] = useState(20);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsPerPage, setPaymentsPerPage] = useState(20);
+  const [announcementsPage, setAnnouncementsPage] = useState(1);
+  const [announcementsPerPage, setAnnouncementsPerPage] = useState(10);
+
+
+  // 2. All useQuery hooks (currentUser first to determine isAdmin)
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -223,18 +168,9 @@ export default function AdminDashboard() {
     },
   });
 
-  // Wait for auth to complete before checking admin status
-  const [isAuthVerified, setIsAuthVerified] = React.useState(false);
-  
-  React.useEffect(() => {
-    if (!loadingUser) {
-      setIsAuthVerified(true);
-    }
-  }, [loadingUser]);
-
+  // Determine admin status
   const isAdmin = user?.role === 'admin';
 
-  // STATS QUERY - Dedicated for dashboard overview
   const { data: adminStats, isLoading: loadingStats } = useQuery({
     queryKey: ['adminDashboardStats'],
     queryFn: async () => {
@@ -293,9 +229,6 @@ export default function AdminDashboard() {
     refetchOnMount: 'always',
   });
 
-  // Lógica de filtragem movida para AdminUserTable
-
-  // Fetch ALL profiles to ensure we don't miss any pending ones due to exact filter matching
   const { data: allWalkers = [] } = useQuery({
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
@@ -323,13 +256,6 @@ export default function AdminDashboard() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Filter in memory for robust matching
-  const walkerApplications = allWalkers.filter(w => w.verification_status === 'pending' || !w.verification_status);
-  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || !t.verification_status);
-  const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || !s.verification_status);
-  
-  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified');
-
   const { data: adoptionApplications = [], isFetching: loadingAdoptions } = useQuery({
     queryKey: ['allAdoptionApplications'],
     placeholderData: keepPreviousData,
@@ -349,7 +275,6 @@ export default function AdminDashboard() {
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-  const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
 
   const { data: allPartnerProducts = [], isFetching: loadingProducts } = useQuery({
     queryKey: ['allPartnerProducts'],
@@ -361,12 +286,6 @@ export default function AdminDashboard() {
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-  const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
-
-  const filteredProducts = React.useMemo(() => {
-    if (productFilter === 'all') return allPartnerProducts;
-    return allPartnerProducts.filter(p => p.moderation_status === productFilter);
-  }, [allPartnerProducts, productFilter]);
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
@@ -382,43 +301,6 @@ export default function AdminDashboard() {
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
-  const adminDeleteBookingMutation = useMutation({
-    mutationFn: async ({ id, entityType }) => {
-      const entity = entityType === 'training' ? base44.entities.TrainingBooking : base44.entities.Booking;
-      
-      // 1. Excluir Reviews associadas
-      const reviews = await base44.entities.Review.filter(
-        entityType === 'walk' ? { booking_id: id } : { training_booking_id: id }
-      );
-      if (reviews.length > 0) {
-        await Promise.all(reviews.map(r => base44.entities.Review.delete(r.id)));
-      }
-
-      // 2. Excluir Rastro GPS (WalkCheckpoints) - Apenas para passeios
-      if (entityType === 'walk') {
-        const checkpoints = await base44.entities.WalkCheckpoint.filter({ booking_id: id });
-        if (checkpoints.length > 0) {
-          await Promise.all(checkpoints.map(c => base44.entities.WalkCheckpoint.delete(c.id)));
-        }
-      }
-
-      // 3. Excluir a Reserva Principal
-      await entity.delete(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['allBookings']);
-      toast.success("Reserva eliminada permanentemente.");
-    },
-    onError: () => toast.error("Erro ao eliminar reserva.")
-  });
-
-  const handleAdminDeleteBooking = (booking) => {
-    if (window.confirm("ATENÇÃO ADMIN: Esta ação é irreversível e apagará todo o histórico (Reviews, GPS, etc). Continuar?")) {
-      const type = booking.entityType || (booking.trainer_id ? 'training' : 'walk');
-      adminDeleteBookingMutation.mutate({ id: booking.id, entityType: type });
-    }
-  };
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
@@ -462,11 +344,11 @@ export default function AdminDashboard() {
       const allServices = await base44.entities.PartnerService.list();
 
       const companiesWithStats = allCompanies.map((company) => {
-          const companyAnnouncements = allAnnouncements.filter(a => 
+          const companyAnnouncements = allAnnouncements.filter(a =>
             a.company_email === company.company_email || a.company_id === company.id
           );
-          
-          const companyServices = allServices.filter(s => 
+
+          const companyServices = allServices.filter(s =>
             s.partner_company_email === company.company_email || s.partner_id === company.id
           );
 
@@ -499,7 +381,7 @@ export default function AdminDashboard() {
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
-    initialData: [], 
+    initialData: [],
   });
 
   const { data: allReviews = [], isFetching: loadingReviews } = useQuery({
@@ -510,7 +392,6 @@ export default function AdminDashboard() {
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
-  const pendingReviews = allReviews.filter(r => !r.is_verified);
 
   const { data: adoptionListings = [] } = useQuery({
     queryKey: ['allAdoptionListings'],
@@ -531,52 +412,85 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: true,
   });
 
-  // Pagination states - AFTER queries, BEFORE useMemo
-  const [companiesPage, setCompaniesPage] = useState(1);
-  const [companiesPerPage, setCompaniesPerPage] = useState(10);
-  const [productsPage, setProductsPage] = useState(1);
-  const [productsPerPage, setProductsPerPage] = useState(10);
-  const [servicesPage, setServicesPage] = useState(1);
-  const [servicesPerPage, setServicesPerPage] = useState(10);
-  const [bookingsPage2, setBookingsPage2] = useState(1);
-  const [bookingsPerPage, setBookingsPerPage] = useState(20);
-  const [paymentsPage, setPaymentsPage] = useState(1);
-  const [paymentsPerPage, setPaymentsPerPage] = useState(20);
-  const [announcementsPage, setAnnouncementsPage] = useState(1);
-  const [announcementsPerPage, setAnnouncementsPerPage] = useState(10);
+  // Derived computed values (not hooks)
+  const walkerApplications = allWalkers.filter(w => w.verification_status === 'pending' || !w.verification_status);
+  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || !t.verification_status);
+  const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || !s.verification_status);
+  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified');
+  const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
+  const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
+  const pendingReviews = allReviews.filter(r => !r.is_verified);
 
-  // Paginated data for all sections - AFTER all queries
-  const paginatedCompanies = React.useMemo(() => {
+
+  // 3. All useMemo hooks
+  const filteredProducts = useMemo(() => {
+    if (productFilter === 'all') return allPartnerProducts;
+    return allPartnerProducts.filter(p => p.moderation_status === productFilter);
+  }, [allPartnerProducts, productFilter]);
+
+  const paginatedCompanies = useMemo(() => {
     const startIndex = (companiesPage - 1) * companiesPerPage;
     return companies.slice(startIndex, startIndex + companiesPerPage);
   }, [companies, companiesPage, companiesPerPage]);
 
-  const paginatedProducts = React.useMemo(() => {
+  const paginatedProducts = useMemo(() => {
     const startIndex = (productsPage - 1) * productsPerPage;
     return filteredProducts.slice(startIndex, startIndex + productsPerPage);
   }, [filteredProducts, productsPage, productsPerPage]);
 
-  const paginatedServices = React.useMemo(() => {
+  const paginatedServices = useMemo(() => {
     const startIndex = (servicesPage - 1) * servicesPerPage;
     return allPartnerServices.slice(startIndex, startIndex + servicesPerPage);
   }, [allPartnerServices, servicesPage, servicesPerPage]);
 
-  const paginatedBookings = React.useMemo(() => {
+  const paginatedBookings = useMemo(() => {
     const startIndex = (bookingsPage2 - 1) * bookingsPerPage;
     return allBookings.slice(startIndex, startIndex + bookingsPerPage);
   }, [allBookings, bookingsPage2, bookingsPerPage]);
 
-  const paginatedPayments = React.useMemo(() => {
+  const paginatedPayments = useMemo(() => {
     const startIndex = (paymentsPage - 1) * paymentsPerPage;
     return allPayments.slice(startIndex, startIndex + paymentsPerPage);
   }, [allPayments, paymentsPage, paymentsPerPage]);
 
-  const paginatedAnnouncements = React.useMemo(() => {
+  const paginatedAnnouncements = useMemo(() => {
     const startIndex = (announcementsPage - 1) * announcementsPerPage;
     return allAnnouncements.slice(startIndex, startIndex + announcementsPerPage);
   }, [allAnnouncements, announcementsPage, announcementsPerPage]);
 
-  // Mutations
+  const dashboardStats = useMemo(() => [
+    {
+      icon: Users,
+      value: adminStats?.totalUsers || 0,
+      label: "Utilizadores Totais",
+      subLabel: `${(adminStats?.totalUsers || 0)} contas registadas`,
+      color: "from-blue-600 to-cyan-600"
+    },
+    {
+      icon: Shield,
+      value: adminStats?.activeWalkers || 0,
+      label: "Walkers Ativos",
+      subLabel: `${adminStats?.verifiedWalkers || 0} verificados`,
+      color: "from-green-600 to-emerald-600"
+    },
+    {
+      icon: Clock,
+      value: adminStats?.pendingBookings || 0,
+      label: "Reservas Pendentes",
+      subLabel: `${adminStats?.completedBookings || 0} concluídas`,
+      color: "from-orange-600 to-red-600"
+    },
+    {
+      icon: AlertCircle,
+      value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0),
+      label: "Candidaturas",
+      subLabel: `${adminStats?.pendingWalkers || 0} walkers + ${adminStats?.pendingTrainers || 0} trainers`,
+      color: "from-purple-600 to-pink-600"
+    },
+  ], [adminStats]);
+
+
+  // 4. All useMutation hooks
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
@@ -585,6 +499,7 @@ export default function AdminDashboard() {
       setShowUserDialog(false);
       setSelectedUser(null);
     },
+    onError: (error) => toast.error("Erro ao atualizar utilizador: " + (error.message || "Erro desconhecido")),
   });
 
   const deleteUserMutation = useMutation({
@@ -593,6 +508,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
       toast.success("Utilizador eliminado!");
     },
+    onError: (error) => toast.error("Erro ao eliminar utilizador: " + (error.message || "Erro desconhecido")),
   });
 
   const createCompanyMutation = useMutation({
@@ -603,6 +519,7 @@ export default function AdminDashboard() {
       setShowCompanyDialog(false);
       setCompanyFormData({});
     },
+    onError: (error) => toast.error("Erro ao criar empresa: " + (error.message || "Erro desconhecido")),
   });
 
   const deleteCompanyMutation = useMutation({
@@ -611,26 +528,29 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allCompanies'] });
       toast.success("Empresa eliminada!");
     },
+    onError: (error) => toast.error("Erro ao eliminar empresa: " + (error.message || "Erro desconhecido")),
   });
 
   const updateAnnouncementMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.CompanyAnnouncement.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
-      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); // Assuming this query key is used elsewhere for active announcements
+      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] });
       toast.success("Anúncio atualizado!");
       setShowAnnouncementDialog(false);
       setSelectedAnnouncement(null);
     },
+    onError: (error) => toast.error("Erro ao atualizar anúncio: " + (error.message || "Erro desconhecido")),
   });
 
   const deleteAnnouncementMutation = useMutation({
     mutationFn: (id) => base44.entities.CompanyAnnouncement.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
-      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] }); 
+      queryClient.invalidateQueries({ queryKey: ['activeAnnouncements'] });
       toast.success("Anúncio eliminado!");
     },
+    onError: (error) => toast.error("Erro ao eliminar anúncio: " + (error.message || "Erro desconhecido")),
   });
 
   const updateProductMutation = useMutation({
@@ -644,6 +564,7 @@ export default function AdminDashboard() {
       setEditingProduct(null);
       toast.success('Produto atualizado!');
     },
+    onError: (error) => toast.error("Erro ao atualizar produto: " + (error.message || "Erro desconhecido")),
   });
 
   const deleteProductMutation = useMutation({
@@ -656,6 +577,7 @@ export default function AdminDashboard() {
       setShowDeleteProductConfirm(null);
       toast.success('Produto eliminado!');
     },
+    onError: (error) => toast.error("Erro ao eliminar produto: " + (error.message || "Erro desconhecido")),
   });
 
   const sendModerationEmail = async (email, name, type, status, reason) => {
@@ -689,9 +611,10 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['walkers'] }); // Update public list
+      queryClient.invalidateQueries({ queryKey: ['walkers'] });
       toast.success("Perfil de passeador atualizado e notificado!");
     },
+    onError: (error) => toast.error("Erro ao atualizar perfil de passeador: " + (error.message || "Erro desconhecido")),
   });
 
   const updateTrainerMutation = useMutation({
@@ -703,9 +626,10 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['trainers'] }); // Update public list
+      queryClient.invalidateQueries({ queryKey: ['trainers'] });
       toast.success("Perfil de treinador atualizado e notificado!");
     },
+    onError: (error) => toast.error("Erro ao atualizar perfil de treinador: " + (error.message || "Erro desconhecido")),
   });
 
   const updateShelterMutation = useMutation({
@@ -719,47 +643,8 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
       toast.success("Abrigo atualizado e notificado!");
     },
+    onError: (error) => toast.error("Erro ao atualizar abrigo: " + (error.message || "Erro desconhecido")),
   });
-
-  // Handlers para o AdminVerificationQueue
-  const handleApproveApplication = (type, item) => {
-    if (type === 'walker') {
-      updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, walker: item });
-    } else if (type === 'trainer') {
-      updateTrainerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, trainer: item });
-    } else if (type === 'shelter') {
-      updateShelterMutation.mutate({ id: item.id, data: { verification_status: 'approved', is_verified: true }, shelter: item });
-    }
-  };
-
-  const handleRejectApplication = (type, item) => {
-    const reason = prompt("Motivo da rejeição:");
-    if (!reason) return;
-
-    const data = { verification_status: 'rejected', rejection_reason: reason };
-    
-    if (type === 'walker') {
-      updateWalkerMutation.mutate({ id: item.id, data, walker: item });
-    } else if (type === 'trainer') {
-      updateTrainerMutation.mutate({ id: item.id, data, trainer: item });
-    } else if (type === 'shelter') {
-      updateShelterMutation.mutate({ id: item.id, data, shelter: item });
-    }
-  };
-
-  const handleViewApplicationDetails = (item, type) => {
-    // Adaptar o item para o formato esperado pelo Dialog (que é focado em walkers, mas pode ser expandido)
-    // Se for walker, já está ok. Se for trainer, campos podem variar ligeiramente.
-    setSelectedApplication({ ...item, type }); // Passar type para o dialog se necessário ajustar renderização
-    setShowApplicationDialog(true);
-  };
-
-  const handleRefreshApplications = () => {
-    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-    queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
-    toast.success("Listas atualizadas!");
-  };
 
   const createBadgeDefinitionMutation = useMutation({
     mutationFn: (data) => base44.entities.BadgeDefinition.create(data),
@@ -768,6 +653,7 @@ export default function AdminDashboard() {
       toast.success("Modelo de emblema salvo!");
       setShowCreateCustomBadgeModal(false);
     },
+    onError: (error) => toast.error("Erro ao criar modelo de emblema: " + (error.message || "Erro desconhecido")),
   });
 
   const deleteBadgeDefinitionMutation = useMutation({
@@ -776,6 +662,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['badgeDefinitions'] });
       toast.success("Modelo de emblema removido!");
     },
+    onError: (error) => toast.error("Erro ao remover modelo de emblema: " + (error.message || "Erro desconhecido")),
   });
 
   const deleteWalkerMutation = useMutation({
@@ -786,56 +673,52 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['walkers'] });
       toast.success("Perfil de passeador eliminado com sucesso!");
     },
+    onError: (error) => toast.error("Erro ao eliminar perfil de passeador: " + (error.message || "Erro desconhecido")),
   });
 
-  const handleAdminDocUpload = async (e, field) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedApplication) return;
+  const adminDeleteBookingMutation = useMutation({
+    mutationFn: async ({ id, entityType }) => {
+      const entity = entityType === 'training' ? base44.entities.TrainingBooking : base44.entities.Booking;
 
-    setUploadingDoc(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Determine entity type based on application data
-      const isWalker = !!selectedApplication.walker_name;
-      const entity = isWalker ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-      
-      await entity.update(selectedApplication.id, { [field]: file_url });
-      
-      // Update local state
-      setSelectedApplication(prev => ({ ...prev, [field]: file_url }));
-      
-      // Invalidate lists
-      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-      
-      toast.success("Documento carregado e associado com sucesso!");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Erro ao carregar documento.");
-    } finally {
-      setUploadingDoc(false);
-    }
-  };
+      const reviews = await base44.entities.Review.filter(
+        entityType === 'walk' ? { booking_id: id } : { training_booking_id: id }
+      );
+      if (reviews.length > 0) {
+        await Promise.all(reviews.map(r => base44.entities.Review.delete(r.id)));
+      }
 
-  // Mutation para conceder badge (a usuários selecionados ou todos)
+      if (entityType === 'walk') {
+        const checkpoints = await base44.entities.WalkCheckpoint.filter({ booking_id: id });
+        if (checkpoints.length > 0) {
+          await Promise.all(checkpoints.map(c => base44.entities.WalkCheckpoint.delete(c.id)));
+        }
+      }
+
+      await entity.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allBookings']);
+      toast.success("Reserva eliminada permanentemente.");
+    },
+    onError: (error) => toast.error("Erro ao eliminar reserva: " + (error.message || "Erro desconhecido"))
+  });
+
   const grantBadgeMutation = useMutation({
     mutationFn: async ({ badge, targetEmails }) => {
       const isAll = targetEmails === 'all';
       const targets = isAll ? allUsers : allUsers.filter(u => targetEmails.includes(u.email));
-      
-      console.log(`🎖️ Concedendo badge "${badge.name}" a ${targets.length} usuários...`);
-      
-      let grantedCount = 0;
 
-      // Processar em lotes para não sobrecarregar
-      const batchSize = 5;
-      for (let i = 0; i < targets.length; i += batchSize) {
-        const batch = targets.slice(i, i + batchSize);
+      console.log(`🎖️ Concedendo badge "${badge.name}" a ${targets.length} usuários...`);
+
+      let createdCount = 0;
+      const BATCH_SIZE = 10;
+
+      for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+        const batch = targets.slice(i, i + BATCH_SIZE);
+
         await Promise.all(batch.map(async (targetUser) => {
           const currentPublicBadges = targetUser.public_badges || [];
-          
-          // Verificar se já tem o badge
+
           const hasBadge = currentPublicBadges.some(b => b.badge_id === badge.badge_id);
           if (hasBadge) return;
 
@@ -853,7 +736,6 @@ export default function AdminDashboard() {
             granted_by: user.email
           };
 
-          // Create UserBadge record
           await base44.entities.UserBadge.create({
             user_email: targetUser.email,
             badge_id: newBadge.badge_id,
@@ -866,13 +748,11 @@ export default function AdminDashboard() {
             granted_by: user.email
           });
 
-          // Update User Auth Entity
           await base44.entities.User.update(targetUser.id, {
             public_badges: [...currentPublicBadges, newBadge],
             gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
           });
 
-          // Sync to UserProfile Entity (for public leaderboards)
           try {
             const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
             if (profiles.length > 0) {
@@ -883,12 +763,13 @@ export default function AdminDashboard() {
           } catch (e) {
             console.error("Error syncing XP to UserProfile:", e);
           }
-          
-          grantedCount++;
-        }));
-      }
 
-      return grantedCount;
+          createdCount++;
+        }));
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      return createdCount;
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
@@ -897,16 +778,14 @@ export default function AdminDashboard() {
       setSelectedBadgeForAll(null);
       setUsersToGrantBadge([]);
     },
-    onError: () => toast.error("Erro ao conceder badges.")
+    onError: (error) => toast.error("Erro ao conceder badges: " + (error.message || "Erro desconhecido")),
   });
 
-  // Mutation para conceder badge individual
   const grantBadgeToUserMutation = useMutation({
     mutationFn: async ({ email, badge }) => {
       const targetUser = allUsers.find(u => u.email === email);
       if (!targetUser) throw new Error("Usuário não encontrado");
 
-      // CRÍTICO: Usar o ID da entidade BadgeDefinition como badge_id se disponível
       const finalBadgeId = badge.badge_id || badge.id || `custom_${Date.now()}`;
 
       const currentPublicBadges = targetUser.public_badges || [];
@@ -928,10 +807,9 @@ export default function AdminDashboard() {
         granted_by: user.email
       };
 
-      // Create UserBadge record (Source of Truth)
       await base44.entities.UserBadge.create({
         user_email: targetUser.email,
-        badge_id: newBadge.badge_id, // ID correto da definição
+        badge_id: newBadge.badge_id,
         name: newBadge.name,
         description: newBadge.description,
         icon: newBadge.icon,
@@ -941,13 +819,11 @@ export default function AdminDashboard() {
         granted_by: user.email
       });
 
-      // Update User Auth Entity
       await base44.entities.User.update(targetUser.id, {
         public_badges: [...currentPublicBadges, newBadge],
         gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
       });
 
-      // Sync to UserProfile Entity (for public leaderboards)
       try {
         const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
         if (profiles.length > 0) {
@@ -973,7 +849,6 @@ export default function AdminDashboard() {
       const targetUser = allUsers.find(u => u.id === userId);
       if (!targetUser) throw new Error("Usuário não encontrado");
 
-      // 1. Remove form UserBadge entity (Source of Truth)
       try {
         const userBadges = await base44.entities.UserBadge.filter({ user_email: targetUser.email });
         const badgeRecord = userBadges.find(b => b.badge_id === badgeId);
@@ -984,10 +859,9 @@ export default function AdminDashboard() {
         console.error("Error deleting UserBadge record:", e);
       }
 
-      // 2. Update User Entity (Legacy/Display arrays)
       const currentPublicBadges = targetUser.public_badges || [];
       const currentAchievementsBadges = targetUser.achievements_badges || [];
-      
+
       const updatedPublic = currentPublicBadges.filter(b => b.badge_id !== badgeId);
       const updatedAchievements = currentAchievementsBadges.filter(b => b.badge_id !== badgeId);
 
@@ -999,11 +873,21 @@ export default function AdminDashboard() {
         achievements_badges: updatedAchievements,
         gamification_xp: newXP
       });
+
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+        if (profiles.length > 0) {
+          await base44.entities.UserProfile.update(profiles[0].id, {
+            gamification_xp: newXP
+          });
+        }
+      } catch (e) {
+        console.error("Error syncing XP to UserProfile:", e);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
       toast.success("Emblema removido com sucesso!");
-      // If editing a user, refresh the selected user data
       if (selectedUserForBadges) {
         const updatedUser = allUsers.find(u => u.id === selectedUserForBadges.id);
         if (updatedUser) setSelectedUserForBadges(updatedUser);
@@ -1012,12 +896,174 @@ export default function AdminDashboard() {
     onError: (err) => toast.error("Erro ao remover emblema: " + err.message)
   });
 
+
+  // ============================================
+  // AUTHORIZATION CHECK - AFTER ALL HOOKS
+  // ============================================
+  if (loadingUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-4 animate-pulse">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-gray-600 font-medium">Verificando permissões...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="glass-panel max-w-md border-0 shadow-2xl">
+          <CardContent className="p-12 text-center">
+            <Ban className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
+            <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ============================================
+  // HANDLER FUNCTIONS - AFTER AUTHORIZATION
+  // ============================================
+
+  const handleSyncUserProfiles = async () => {
+    if (!confirm("Isto irá verificar todos os usuários e criar perfis públicos (UserProfile) para quem não tem. Continuar?")) return;
+
+    setIsSyncingProfiles(true);
+    try {
+      toast.info("Iniciando sincronização... isso pode levar alguns segundos.");
+
+      const allUsersData = await base44.entities.User.list('-created_date', 5000);
+      const allProfilesData = await base44.entities.UserProfile.list('-created_date', 5000);
+      const userEmailsWithProfile = new Set(allProfilesData.map(p => p.user_email));
+
+      const usersMissingProfile = allUsersData.filter(u => !userEmailsWithProfile.has(u.email));
+
+      console.log(`Found ${usersMissingProfile.length} users missing profiles out of ${allUsersData.length} total users.`);
+
+      if (usersMissingProfile.length === 0) {
+        toast.success("Todos os usuários já possuem perfil público!");
+        setIsSyncingProfiles(false);
+        return;
+      }
+
+      let createdCount = 0;
+      const BATCH_SIZE = 10;
+
+      for (let i = 0; i < usersMissingProfile.length; i += BATCH_SIZE) {
+        const batch = usersMissingProfile.slice(i, i + BATCH_SIZE);
+
+        await Promise.all(batch.map(async (user) => {
+          try {
+            await base44.entities.UserProfile.create({
+              user_email: user.email,
+              user_id: user.id,
+              username: user.username,
+              full_name: user.full_name || 'Utilizador',
+              profile_photo_url: user.profile_photo_url,
+              cover_photo_url: user.cover_photo_url,
+              role: user.role || 'user',
+              gamification_xp: user.gamification_xp || 0,
+              is_verified: user.is_verified || false
+            });
+            createdCount++;
+          } catch (e) {
+            console.error(`Failed to create profile for ${user.email}`, e);
+          }
+        }));
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      toast.success(`Sincronização concluída! ${createdCount} perfis criados.`);
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+    } catch (error) {
+      console.error("Error syncing profiles:", error);
+      toast.error("Erro ao sincronizar perfis: " + (error.message || "Erro desconhecido"));
+    } finally {
+      setIsSyncingProfiles(false);
+    }
+  };
+
+
+  const handleApproveApplication = (type, item) => {
+    if (type === 'walker') {
+      updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, walker: item });
+    } else if (type === 'trainer') {
+      updateTrainerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, trainer: item });
+    } else if (type === 'shelter') {
+      updateShelterMutation.mutate({ id: item.id, data: { verification_status: 'approved', is_verified: true }, shelter: item });
+    }
+  };
+
+  const handleRejectApplication = (type, item) => {
+    const reason = prompt("Motivo da rejeição:");
+    if (!reason) return;
+
+    const data = { verification_status: 'rejected', rejection_reason: reason };
+
+    if (type === 'walker') {
+      updateWalkerMutation.mutate({ id: item.id, data, walker: item });
+    } else if (type === 'trainer') {
+      updateTrainerMutation.mutate({ id: item.id, data, trainer: item });
+    } else if (type === 'shelter') {
+      updateShelterMutation.mutate({ id: item.id, data, shelter: item });
+    }
+  };
+
+  const handleViewApplicationDetails = (item, type) => {
+    setSelectedApplication({ ...item, type });
+    setShowApplicationDialog(true);
+  };
+
+  const handleRefreshApplications = () => {
+    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
+    toast.success("Listas atualizadas!");
+  };
+
+  const handleAdminDocUpload = async (e, field) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedApplication) return;
+
+    setUploadingDoc(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      const isWalker = selectedApplication.type === 'walker' || selectedApplication.walker_name; // Use selectedApplication.type
+      const entity = isWalker ? base44.entities.WalkerProfile : (selectedApplication.type === 'trainer' ? base44.entities.TrainerProfile : null);
+
+      if (!entity) {
+          throw new Error("Tipo de aplicação desconhecido para upload de documento.");
+      }
+
+      await entity.update(selectedApplication.id, { [field]: file_url });
+
+      setSelectedApplication(prev => ({ ...prev, [field]: file_url }));
+
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+
+      toast.success("Documento carregado e associado com sucesso!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Erro ao carregar documento.");
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
   const openGrantBadgeDialog = (email) => {
     setGrantBadgeTargetEmail(email);
     setShowGrantSingleBadgeModal(true);
   };
 
-  // Handlers
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setUserFormData({
@@ -1028,8 +1074,8 @@ export default function AdminDashboard() {
       city: user.city || "",
       address: user.address || "",
       postal_code: user.postal_code || "",
-      social_role: user.social_role || 'user', // Added social_role
-      company_type: user.company_type || 'pet_store', // Added company_type
+      social_role: user.social_role || 'user',
+      company_type: user.company_type || 'pet_store',
     });
     setShowUserDialog(true);
   };
@@ -1062,12 +1108,10 @@ export default function AdminDashboard() {
     }
   };
 
-  // NOVO: Upload de imagem para badge customizado
   const handleUploadBadgeImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validar tamanho (max 500KB)
     if (file.size > 500000) {
       toast.error('Imagem muito grande! Máximo: 500KB');
       return;
@@ -1077,9 +1121,9 @@ export default function AdminDashboard() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setCustomBadgeForm({
-        ...customBadgeForm, 
+        ...customBadgeForm,
         image_url: file_url,
-        image_png_file: file_url // Set new field
+        image_png_file: file_url
       });
       toast.success('✅ Imagem PNG carregada!');
     } catch (error) {
@@ -1089,7 +1133,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // NOVO: Handlers para badges
   const handleOpenBadgesDialog = (user) => {
     setSelectedUserForBadges(user);
     setBadgesFormData({
@@ -1103,13 +1146,11 @@ export default function AdminDashboard() {
   const handleSaveBadges = async () => {
     if (!selectedUserForBadges) return;
 
-    // Update User (Auth/System)
     await updateUserMutation.mutateAsync({
       id: selectedUserForBadges.id,
       data: badgesFormData
     });
 
-    // Sync to UserProfile (Public)
     try {
       const profiles = await base44.entities.UserProfile.filter({ user_email: selectedUserForBadges.email });
       if (profiles.length > 0) {
@@ -1123,7 +1164,6 @@ export default function AdminDashboard() {
       console.error("Error syncing to UserProfile:", e);
     }
 
-    // Sync to WalkerProfile if exists
     try {
       const walkers = await base44.entities.WalkerProfile.filter({ created_by: selectedUserForBadges.email });
       if (walkers.length > 0 && badgesFormData.is_verified !== undefined) {
@@ -1135,7 +1175,6 @@ export default function AdminDashboard() {
       console.error("Error syncing to WalkerProfile:", e);
     }
 
-    // Sync to TrainerProfile if exists
     try {
       const trainers = await base44.entities.TrainerProfile.filter({ created_by: selectedUserForBadges.email });
       if (trainers.length > 0 && badgesFormData.is_verified !== undefined) {
@@ -1157,7 +1196,7 @@ export default function AdminDashboard() {
       toast.error('Preencha nome e descrição!');
       return;
     }
-    
+
     createBadgeDefinitionMutation.mutate({
       name: customBadgeForm.name,
       description: customBadgeForm.description,
@@ -1167,8 +1206,8 @@ export default function AdminDashboard() {
       animation_url: customBadgeForm.animation_url || "",
       rarity: customBadgeForm.rarity,
       category: customBadgeForm.category,
-      criteria: customBadgeForm.criteria, // Save complex criteria
-      xp: 100 // Default
+      criteria: customBadgeForm.criteria,
+      xp: 100
     });
   };
 
@@ -1195,7 +1234,7 @@ export default function AdminDashboard() {
       image_png_file: customBadgeForm.image_png_file || "",
       rarity: customBadgeForm.rarity,
       category: customBadgeForm.category,
-      xp: 100, 
+      xp: 100,
       earned_date: new Date().toISOString(),
       granted_by: user.email
     };
@@ -1219,13 +1258,12 @@ export default function AdminDashboard() {
         if (!targetUser) continue;
 
         const currentPublicBadges = targetUser.public_badges || [];
-        
+
         await base44.entities.User.update(targetUser.id, {
           public_badges: [...currentPublicBadges, badge],
           gamification_xp: (targetUser.gamification_xp || 0) + 100
         });
 
-        // Sync to UserProfile Entity
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
           if (profiles.length > 0) {
@@ -1256,64 +1294,12 @@ export default function AdminDashboard() {
     }
   };
 
-  // Loading state - show while auth is being verified
-  if (loadingUser || !isAuthVerified) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-4 animate-pulse">
-            <Shield className="w-8 h-8 text-white" />
-          </div>
-          <p className="text-gray-600 font-medium">Verificando permissões...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="glass-panel max-w-md border-0 shadow-2xl">
-          <CardContent className="p-12 text-center">
-            <Ban className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
-            <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const dashboardStats = React.useMemo(() => [
-    { 
-      icon: Users, 
-      value: adminStats?.totalUsers || 0, 
-      label: "Utilizadores Totais", 
-      subLabel: `${(adminStats?.totalUsers || 0)} contas registadas`,
-      color: "from-blue-600 to-cyan-600" 
-    },
-    { 
-      icon: Shield, 
-      value: adminStats?.activeWalkers || 0, 
-      label: "Walkers Ativos", 
-      subLabel: `${adminStats?.verifiedWalkers || 0} verificados`,
-      color: "from-green-600 to-emerald-600" 
-    },
-    { 
-      icon: Clock, 
-      value: adminStats?.pendingBookings || 0, 
-      label: "Reservas Pendentes", 
-      subLabel: `${adminStats?.completedBookings || 0} concluídas`,
-      color: "from-orange-600 to-red-600" 
-    },
-    { 
-      icon: AlertCircle, 
-      value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0), 
-      label: "Candidaturas", 
-      subLabel: `${adminStats?.pendingWalkers || 0} walkers + ${adminStats?.pendingTrainers || 0} trainers`,
-      color: "from-purple-600 to-pink-600" 
-    },
-  ], [adminStats]);
+  const handleAdminDeleteBooking = (booking) => {
+    if (window.confirm("ATENÇÃO ADMIN: Esta ação é irreversível e apagará todo o histórico (Reviews, GPS, etc). Continuar?")) {
+      const type = booking.entityType || (booking.trainer_id ? 'training' : 'walk');
+      adminDeleteBookingMutation.mutate({ id: booking.id, entityType: type });
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -1377,11 +1363,9 @@ export default function AdminDashboard() {
             <TabsTrigger value="reviews">{t('reviews', language)}</TabsTrigger>
           </TabsList>
 
-          {/* ... TabsContent for analytics, overview, users, active_walkers, adoptions, profile_edits, applications, companies, announcements, services, bookings, payments, reviews ... */}
-          {/* Keep existing TabsContent implementations */}
           <TabsContent value="analytics">
             <div className="mt-6">
-              <AdminAnalytics 
+              <AdminAnalytics
                 users={allUsers}
                 walkers={allWalkers}
                 bookings={allBookings}
@@ -1480,15 +1464,15 @@ export default function AdminDashboard() {
                   {allUsers
                     .filter(u => {
                       const search = crmSearchTerm.toLowerCase();
-                      const matchesSearch = !search || 
+                      const matchesSearch = !search ||
                         u.full_name?.toLowerCase().includes(search) ||
                         u.email?.toLowerCase().includes(search);
                       return matchesSearch;
                     })
                     .slice(0, 50)
                     .map(client => (
-                    <Card 
-                      key={client.id} 
+                    <Card
+                      key={client.id}
                       className="border-2 border-gray-200 hover:border-blue-400 cursor-pointer hover:shadow-lg transition-all"
                       onClick={() => {
                         setSelectedClient(client);
@@ -1525,7 +1509,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users">
-            <AdminUserTable 
+            <AdminUserTable
               users={allUsers}
               isLoading={loadingAllUsers}
               onEdit={handleEditUser}
@@ -1645,9 +1629,9 @@ export default function AdminDashboard() {
                                 className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
                                 onClick={() => {
                                   if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
-                                    updateWalkerMutation.mutate({ 
-                                      id: walker.id, 
-                                      data: { is_active: !walker.is_active } 
+                                    updateWalkerMutation.mutate({
+                                      id: walker.id,
+                                      data: { is_active: !walker.is_active }
                                     });
                                   }
                                 }}
@@ -1743,7 +1727,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="applications">
-            <AdminVerificationQueue 
+            <AdminVerificationQueue
               walkers={walkerApplications}
               trainers={trainerApplications}
               shelters={shelterApplications}
@@ -1754,7 +1738,6 @@ export default function AdminDashboard() {
             />
           </TabsContent>
 
-          {/* NOVA TAB: BADGES */}
           <TabsContent value="badges">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
@@ -1776,13 +1759,12 @@ export default function AdminDashboard() {
                           for (const targetUser of allUsers) {
                             const badges = targetUser.public_badges || [];
                             const totalBadgeXP = badges.reduce((sum, b) => sum + (b.xp || 50), 0);
-                            
+
                             if (totalBadgeXP > 0) {
                               await base44.entities.User.update(targetUser.id, {
                                 gamification_xp: totalBadgeXP
                               });
-                              
-                              // Sync to UserProfile
+
                               const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
                               if (profiles.length > 0) {
                                 await base44.entities.UserProfile.update(profiles[0].id, {
@@ -1792,7 +1774,7 @@ export default function AdminDashboard() {
                               updatedCount++;
                             }
                           }
-                          
+
                           queryClient.invalidateQueries(['allUsers']);
                           queryClient.invalidateQueries(['leaderboard']);
                           toast.success(`✅ ${updatedCount} usuários sincronizados!`);
@@ -1841,15 +1823,15 @@ export default function AdminDashboard() {
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
                       <h3 className="text-lg font-semibold">{t('myBadges', language)} ({badgeDefinitions.length})</h3>
                       <div className="flex gap-2">
-                        <Input 
-                          placeholder="Buscar emblemas..." 
+                        <Input
+                          placeholder="Buscar emblemas..."
                           value={badgeSearchTerm}
                           onChange={(e) => setBadgeSearchTerm(e.target.value)}
                           className="w-full md:w-64"
                         />
                       </div>
                     </div>
-                    
+
                     {loadingBadges && badgeDefinitions.length === 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
@@ -1950,11 +1932,11 @@ export default function AdminDashboard() {
                            </Card>
                           ))}
                         </div>
-                        
+
                         {badgeDefinitions.length > 6 && (
                           <div className="flex justify-center pt-2">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setShowAllBadges(!showAllBadges)}
                               className="w-full md:w-auto border-purple-200 text-purple-700 hover:bg-purple-50"
                             >
@@ -1965,7 +1947,6 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
-
 
 
                   {/* Lista de Usuários com Badges */}
@@ -1981,7 +1962,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-3">
                       {allUsers
-                        .filter(u => !grantBadgeSearchTerm || 
+                        .filter(u => !grantBadgeSearchTerm ||
                           u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) ||
                           u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
                         )
@@ -2131,7 +2112,7 @@ export default function AdminDashboard() {
                       </Card>
                     ))}
                   </div>
-                  
+
                   {companies.length > 0 && (
                     <Pagination
                       currentPage={companiesPage}
@@ -2177,7 +2158,7 @@ export default function AdminDashboard() {
 
                       return (
                         <Card key={announcement.id} className={`border-2 ${
-                          isActive && !isExpired ? 'border-green-200 bg-green-50' : 
+                          isActive && !isExpired ? 'border-green-200 bg-green-50' :
                           isExpired ? 'border-gray-300 bg-gray-50' :
                           'border-purple-100'
                         }`}>
@@ -2185,9 +2166,9 @@ export default function AdminDashboard() {
                             <div className="flex items-start justify-between">
                               <div className="flex gap-3 flex-1">
                                 {announcement.image_url && (
-                                  <img 
-                                    src={announcement.image_url} 
-                                    className="w-24 h-24 object-cover rounded-lg" 
+                                  <img
+                                    src={announcement.image_url}
+                                    className="w-24 h-24 object-cover rounded-lg"
                                     alt={announcement.title}
                                   />
                                 )}
@@ -2247,7 +2228,7 @@ export default function AdminDashboard() {
                       );
                     })}
                   </div>
-                  
+
                   {allAnnouncements.length > 0 && (
                     <Pagination
                       currentPage={announcementsPage}
@@ -2279,7 +2260,7 @@ export default function AdminDashboard() {
                 </p>
               </CardHeader>
               <CardContent>
-                <ProductManagement 
+                <ProductManagement
                   products={allPartnerProducts}
                   isLoading={loadingProducts}
                 />
@@ -2323,9 +2304,9 @@ export default function AdminDashboard() {
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               {service.image_url && (
-                                <img 
-                                  src={service.image_url} 
-                                  className="w-20 h-20 object-cover rounded-lg" 
+                                <img
+                                  src={service.image_url}
+                                  className="w-20 h-20 object-cover rounded-lg"
                                   alt={service.service_name}
                                 />
                               )}
@@ -2396,7 +2377,7 @@ export default function AdminDashboard() {
                                     variant="outline"
                                     onClick={async () => {
                                       await base44.entities.PartnerService.update(service.id, {
-                                        is_active: !isActive 
+                                        is_active: !isActive
                                       });
                                       queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
                                       queryClient.invalidateQueries({ queryKey: ['partnerServices'] });
@@ -2429,7 +2410,7 @@ export default function AdminDashboard() {
                       );
                     })}
                   </div>
-                  
+
                   {allPartnerServices.length > 0 && (
                     <Pagination
                       currentPage={servicesPage}
@@ -2478,9 +2459,9 @@ export default function AdminDashboard() {
                         <div>🐕 {booking.walker_name || booking.trainer_name}</div>
                         <div className="font-semibold">💰 €{booking.total_amount?.toFixed(2)}</div>
                         <div className="mt-2">
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
+                          <Button
+                            variant="destructive"
+                            size="sm"
                             className="w-full"
                             onClick={() => handleAdminDeleteBooking(booking)}
                           >
@@ -2524,8 +2505,8 @@ export default function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="destructive" 
+                            <Button
+                              variant="destructive"
                               size="icon"
                               onClick={() => handleAdminDeleteBooking(booking)}
                               title="Eliminar Reserva Permanentemente"
@@ -2538,7 +2519,7 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 </div>
-                
+
                 {allBookings.length > 0 && (
                   <div className="mt-6">
                     <Pagination
@@ -2614,7 +2595,7 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 </div>
-                
+
                 {allPayments.length > 0 && (
                   <div className="mt-6">
                     <Pagination
@@ -2710,8 +2691,8 @@ export default function AdminDashboard() {
 
               <div>
                 <Label>{t('companyType', language)} *</Label>
-                <Select 
-                  value={companyFormData.company_type || "pet_store"} 
+                <Select
+                  value={companyFormData.company_type || "pet_store"}
                   onValueChange={(value) => setCompanyFormData({...companyFormData, company_type: value})}
                 >
                   <SelectTrigger className="bg-white text-gray-900">
@@ -2809,8 +2790,8 @@ export default function AdminDashboard() {
                 {/* NOVO: Tipo de Conta */}
                 <div>
                   <Label>Tipo de Conta</Label>
-                  <Select 
-                    value={userFormData.account_type || 'owner'} 
+                  <Select
+                    value={userFormData.account_type || 'owner'}
                     onValueChange={(value) => setUserFormData({...userFormData, account_type: value})}
                   >
                     <SelectTrigger>
@@ -2829,8 +2810,8 @@ export default function AdminDashboard() {
                 {/* NOVO: Role (Admin/User) */}
                 <div>
                   <Label>{t('roleSystem', language)}</Label>
-                  <Select 
-                    value={userFormData.role || 'user'} 
+                  <Select
+                    value={userFormData.role || 'user'}
                     onValueChange={(value) => setUserFormData({...userFormData, role: value})}
                   >
                     <SelectTrigger>
@@ -2846,8 +2827,8 @@ export default function AdminDashboard() {
                 {/* NOVO: Social Role */}
                 <div>
                   <Label>{t('socialRole', language)}</Label>
-                  <Select 
-                    value={userFormData.social_role || 'user'} 
+                  <Select
+                    value={userFormData.social_role || 'user'}
                     onValueChange={(value) => setUserFormData({...userFormData, social_role: value})}
                   >
                     <SelectTrigger>
@@ -2865,8 +2846,8 @@ export default function AdminDashboard() {
                 {userFormData.account_type === 'company' && (
                   <div>
                     <Label>Tipo de Empresa</Label>
-                    <Select 
-                      value={userFormData.company_type || 'pet_store'} 
+                    <Select
+                      value={userFormData.company_type || 'pet_store'}
                       onValueChange={(value) => setUserFormData({...userFormData, company_type: value})}
                     >
                       <SelectTrigger>
@@ -2924,8 +2905,8 @@ export default function AdminDashboard() {
                   <CardContent className="p-3 md:p-4 flex items-center gap-2 md:gap-3">
                     <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg flex items-center justify-center text-3xl md:text-4xl shadow-sm flex-shrink-0">
                       {selectedBadgeForAll.image_url || selectedBadgeForAll.image_png_file ? (
-                        <img 
-                          src={selectedBadgeForAll.image_png_file || selectedBadgeForAll.image_url} 
+                        <img
+                          src={selectedBadgeForAll.image_png_file || selectedBadgeForAll.image_url}
                           className="w-full h-full object-cover rounded"
                           alt={selectedBadgeForAll.name}
                         />
@@ -2942,7 +2923,7 @@ export default function AdminDashboard() {
                 {/* User Selection */}
                 <div>
                   <Label className="mb-2 block text-sm font-semibold">{t('selectUsers', language)}</Label>
-                  <Input 
+                  <Input
                    placeholder="Buscar por nome ou email..."
                    value={grantBadgeSearchTerm}
                    onChange={(e) => setGrantBadgeSearchTerm(e.target.value)}
@@ -2962,8 +2943,8 @@ export default function AdminDashboard() {
                      </div>
                    ) : (
                      allUsers
-                       .filter(u => !grantBadgeSearchTerm || 
-                         u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) || 
+                       .filter(u => !grantBadgeSearchTerm ||
+                         u.full_name?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase()) ||
                          u.email?.toLowerCase().includes(grantBadgeSearchTerm.toLowerCase())
                        )
                        .map(u => (
@@ -2992,9 +2973,9 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex justify-between items-center mt-3 text-sm text-gray-700 font-medium">
                     <span>{usersToGrantBadge.length} selecionado{usersToGrantBadge.length !== 1 ? 's' : ''}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="text-xs h-7"
                       onClick={() => setUsersToGrantBadge([])}
                       disabled={usersToGrantBadge.length === 0}
@@ -3016,7 +2997,7 @@ export default function AdminDashboard() {
                       `✅ Entregar a ${usersToGrantBadge.length} Conta${usersToGrantBadge.length !== 1 ? 's' : ''}`
                     )}
                   </Button>
-                  
+
                   <div className="relative flex py-3 items-center">
                     <div className="flex-grow border-t border-gray-300"></div>
                     <span className="flex-shrink-0 mx-4 text-gray-500 text-xs font-medium">OU</span>
@@ -3050,11 +3031,11 @@ export default function AdminDashboard() {
                 Para: <span className="font-semibold text-gray-900">{grantBadgeTargetEmail}</span>
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-              <Input 
-                placeholder="Buscar emblema..." 
+              <Input
+                placeholder="Buscar emblema..."
                 value={badgeSearchTerm}
                 onChange={(e) => setBadgeSearchTerm(e.target.value)}
                 className="pl-10 h-10 md:h-9 text-sm"
@@ -3072,8 +3053,8 @@ export default function AdminDashboard() {
                 <div className="text-center py-10">
                   <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm mb-3">Nenhum emblema na biblioteca.</p>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => {
                       setShowGrantSingleBadgeModal(false);
@@ -3088,20 +3069,20 @@ export default function AdminDashboard() {
                 badgeDefinitions
                   .filter(b => !badgeSearchTerm || b.name.toLowerCase().includes(badgeSearchTerm.toLowerCase()))
                   .map(badge => (
-                  <div 
-                    key={badge.id} 
+                  <div
+                    key={badge.id}
                     onClick={() => setSelectedBadgeToGrant(badge)}
                     className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer active:scale-[0.98] ${
-                      selectedBadgeToGrant?.id === badge.id 
-                        ? 'border-purple-600 bg-purple-100 shadow-md' 
+                      selectedBadgeToGrant?.id === badge.id
+                        ? 'border-purple-600 bg-purple-100 shadow-md'
                         : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white'
                     }`}
                   >
                     <div className="w-12 h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100">
                       {badge.image_url || badge.image_png_file ? (
-                        <img 
-                          src={badge.image_png_file || badge.image_url} 
-                          className="w-full h-full object-cover rounded-lg" 
+                        <img
+                          src={badge.image_png_file || badge.image_url}
+                          className="w-full h-full object-cover rounded-lg"
                           alt={badge.name}
                         />
                       ) : (
@@ -3130,7 +3111,7 @@ export default function AdminDashboard() {
               <Button variant="outline" onClick={() => setShowGrantSingleBadgeModal(false)} className="w-full md:w-auto h-11 md:h-10">
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={() => grantBadgeToUserMutation.mutate({ email: grantBadgeTargetEmail, badge: selectedBadgeToGrant })}
                 disabled={!selectedBadgeToGrant || grantBadgeToUserMutation.isPending}
                 className="bg-purple-600 hover:bg-purple-700 w-full md:w-auto h-11 md:h-10 font-semibold"
@@ -3186,8 +3167,8 @@ export default function AdminDashboard() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label>Raridade</Label>
-                    <Select 
-                      value={customBadgeForm.rarity} 
+                    <Select
+                      value={customBadgeForm.rarity}
                       onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, rarity: value})}
                     >
                       <SelectTrigger>
@@ -3203,8 +3184,8 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <Label>Categoria</Label>
-                    <Select 
-                      value={customBadgeForm.category} 
+                    <Select
+                      value={customBadgeForm.category}
                       onValueChange={(value) => setCustomBadgeForm({...customBadgeForm, category: value})}
                     >
                       <SelectTrigger>
@@ -3227,10 +3208,10 @@ export default function AdminDashboard() {
                 <Label className="mb-2 block font-semibold text-gray-700">Condição de Conquista</Label>
                 <div className="grid md:grid-cols-3 gap-3">
                   <div className="md:col-span-1">
-                    <Select 
-                      value={customBadgeForm.criteria?.type || "manual"} 
+                    <Select
+                      value={customBadgeForm.criteria?.type || "manual"}
                       onValueChange={(value) => setCustomBadgeForm({
-                        ...customBadgeForm, 
+                        ...customBadgeForm,
                         criteria: { ...customBadgeForm.criteria, type: value, count: '' }
                       })}
                     >
@@ -3245,15 +3226,15 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   {customBadgeForm.criteria?.type !== 'manual' && (
                     <>
                       {customBadgeForm.criteria?.type !== 'xp_milestone' && (
                         <div className="md:col-span-1">
-                          <Select 
-                            value={customBadgeForm.criteria?.action || "post"} 
+                          <Select
+                            value={customBadgeForm.criteria?.action || "post"}
                             onValueChange={(value) => setCustomBadgeForm({
-                              ...customBadgeForm, 
+                              ...customBadgeForm,
                               criteria: { ...customBadgeForm.criteria, action: value }
                             })}
                           >
@@ -3271,7 +3252,7 @@ export default function AdminDashboard() {
                         </div>
                       )}
                       <div className="md:col-span-1">
-                        <Input 
+                        <Input
                           type="text"
                           inputMode="numeric"
                           placeholder={customBadgeForm.criteria?.type === 'streak' ? "Dias" : customBadgeForm.criteria?.type === 'xp_milestone' ? "XP Total" : "Quantidade"}
@@ -3279,7 +3260,7 @@ export default function AdminDashboard() {
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '');
                             setCustomBadgeForm({
-                              ...customBadgeForm, 
+                              ...customBadgeForm,
                               criteria: { ...customBadgeForm.criteria, count: value ? parseInt(value) : '' }
                             });
                           }}
@@ -3330,10 +3311,10 @@ export default function AdminDashboard() {
 
               <div>
                 <Label className="text-sm font-semibold">Selecionar Usuários</Label>
-                <Input 
-                  placeholder="Buscar por nome ou email..." 
-                  value={badgeUserSearchTerm} 
-                  onChange={(e) => setBadgeUserSearchTerm(e.target.value)} 
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={badgeUserSearchTerm}
+                  onChange={(e) => setBadgeUserSearchTerm(e.target.value)}
                   className="mb-3 mt-2 h-10 md:h-9"
                 />
                 <div className="border-2 rounded-lg p-3 h-80 overflow-y-auto space-y-2 bg-gray-50">
@@ -3391,8 +3372,8 @@ export default function AdminDashboard() {
             </div>
 
             <DialogFooter className="flex flex-col gap-2 md:flex-row md:justify-between">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleSaveBadgeDefinition}
                 disabled={!customBadgeForm.name || !customBadgeForm.description || createBadgeDefinitionMutation.isPending}
                 className="w-full md:w-auto h-11 md:h-10 order-2 md:order-1"
@@ -3454,8 +3435,8 @@ export default function AdminDashboard() {
 
                 <div>
                   <Label>Role Social</Label>
-                  <Select 
-                    value={badgesFormData.social_role || 'user'} 
+                  <Select
+                    value={badgesFormData.social_role || 'user'}
                     onValueChange={(value) => setBadgesFormData({...badgesFormData, social_role: value})}
                   >
                     <SelectTrigger>
@@ -3548,7 +3529,6 @@ export default function AdminDashboard() {
                                 gamification_xp: selectedUserForBadges.gamification_xp || 0
                               });
 
-                              // Sync to UserProfile
                               const profiles = await base44.entities.UserProfile.filter({ user_email: selectedUserForBadges.email });
                               if (profiles.length > 0) {
                                 await base44.entities.UserProfile.update(profiles[0].id, {
@@ -3893,7 +3873,7 @@ export default function AdminDashboard() {
         <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{t('applicationDetails', language)} - {selectedApplication?.walker_name}</DialogTitle>
+              <DialogTitle>{t('applicationDetails', language)} - {selectedApplication?.walker_name || selectedApplication?.trainer_name || selectedApplication?.shelter_name || "Candidatura"}</DialogTitle>
             </DialogHeader>
             {selectedApplication && (
               <div className="space-y-6">
@@ -3943,10 +3923,10 @@ export default function AdminDashboard() {
                           </Label>
                         </div>
                       )}
-                      <Input 
-                        id="upload-id" 
-                        type="file" 
-                        className="hidden" 
+                      <Input
+                        id="upload-id"
+                        type="file"
+                        className="hidden"
                         onChange={(e) => handleAdminDocUpload(e, 'id_document_url')}
                         disabled={uploadingDoc}
                       />
@@ -3973,10 +3953,10 @@ export default function AdminDashboard() {
                           </Label>
                         </div>
                       )}
-                      <Input 
-                        id="upload-addr" 
-                        type="file" 
-                        className="hidden" 
+                      <Input
+                        id="upload-addr"
+                        type="file"
+                        className="hidden"
                         onChange={(e) => handleAdminDocUpload(e, 'proof_of_address_url')}
                         disabled={uploadingDoc}
                       />
@@ -4006,10 +3986,10 @@ export default function AdminDashboard() {
                           </Label>
                         </div>
                       )}
-                      <Input 
-                        id="upload-bg" 
-                        type="file" 
-                        className="hidden" 
+                      <Input
+                        id="upload-bg"
+                        type="file"
+                        className="hidden"
                         onChange={(e) => handleAdminDocUpload(e, 'background_check_url')}
                         disabled={uploadingDoc}
                       />
@@ -4037,13 +4017,16 @@ export default function AdminDashboard() {
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowApplicationDialog(false)}>{t('cancel', language)}</Button>
               <div className="flex gap-2">
-                <Button 
+                <Button
                   variant="destructive"
                   onClick={() => {
                     if (selectedApplication) {
                       const reason = prompt("Motivo da rejeição:");
                       if (reason) {
-                        updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, walker: selectedApplication });
+                        const type = selectedApplication.type;
+                        if (type === 'walker') updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, walker: selectedApplication });
+                        else if (type === 'trainer') updateTrainerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, trainer: selectedApplication });
+                        else if (type === 'shelter') updateShelterMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, shelter: selectedApplication });
                         setShowApplicationDialog(false);
                       }
                     }
@@ -4051,11 +4034,14 @@ export default function AdminDashboard() {
                 >
                   {t('reject', language)}
                 </Button>
-                <Button 
+                <Button
                   className="bg-green-600 hover:bg-green-700"
                   onClick={() => {
                     if (selectedApplication) {
-                      updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true }, walker: selectedApplication });
+                      const type = selectedApplication.type;
+                      if (type === 'walker') updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true }, walker: selectedApplication });
+                      else if (type === 'trainer') updateTrainerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true }, trainer: selectedApplication });
+                      else if (type === 'shelter') updateShelterMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'approved', is_verified: true }, shelter: selectedApplication });
                       setShowApplicationDialog(false);
                     }
                   }}
