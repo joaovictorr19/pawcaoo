@@ -1049,7 +1049,7 @@ function LayoutContent({ children, currentPageName }) {
                     } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
                     >
                     <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
-                    <span className="hidden lg:inline">{item.title}</span>
+                    <span className="truncate">{item.title}</span>
                   </Link>
                 ))}
                 {authUser && (
@@ -1063,7 +1063,7 @@ function LayoutContent({ children, currentPageName }) {
                   }`}
                   >
                   <User className={`w-3.5 h-3.5 flex-shrink-0 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
-                  <span className="hidden lg:inline">{t('myProfile', language)}</span>
+                  <span className="truncate">{t('myProfile', language)}</span>
                 </Link>
                 )}
               </div>
