@@ -39,7 +39,8 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
             key={`badge-${badge.badge_id || badge.id}-${idx}`}
             initial={false}
             whileHover={{ scale: 1.05 }}
-            className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all ${locked ? 'opacity-60 grayscale' : ''}`}
+            whileTap={{ scale: 0.95 }}
+            className={`flex flex-col items-center cursor-pointer relative p-2 rounded-xl transition-all touch-manipulation min-w-[48px] min-h-[48px] z-10 ${locked ? 'opacity-60 grayscale' : ''}`}
           >
             <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-2 md:mb-3 border-2 shadow-lg relative overflow-hidden ${
               locked 

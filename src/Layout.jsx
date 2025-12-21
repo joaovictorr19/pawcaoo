@@ -989,20 +989,22 @@ function LayoutContent({ children, currentPageName }) {
             <header className={`mx-3 md:mx-6 mt-4 mb-2 px-3 md:px-6 py-2.5 md:py-4 sticky top-4 z-50 transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
               colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
             }`}>
-            <div className="flex items-center gap-2 md:gap-4">
-              {authUser && (
-                <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
-              )}
+            <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 md:gap-4">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {authUser && (
+                  <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
+                )}
 
-              <Link 
-                to={createPageUrl("Home")} 
-                className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
-              >
-                <PawCaoLogo size="small" showText={!authUser} />
-              </Link>
+                <Link 
+                  to={createPageUrl("Home")} 
+                  className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
+                >
+                  <PawCaoLogo size="small" showText={!authUser} />
+                </Link>
+              </div>
 
               {authUser && (
-                <div className="hidden md:flex items-center justify-center gap-2 flex-1">
+                <div className="hidden md:flex items-center justify-center gap-2 flex-1 min-w-0 overflow-x-auto">
                   {mainMenu.map((item) => (
                     <Link
                       key={item.url}
