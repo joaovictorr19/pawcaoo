@@ -1060,13 +1060,33 @@ export default function Home() {
                       <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
                       
                       <div className="relative z-10">
-                        <div className="mb-3">
-                          <h2 className="text-2xl font-bold text-white mb-1">
-                            Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
-                          </h2>
-                          <p className="text-sm text-white/80">
-                            Nível {currentLevel} • {displayedXP.toLocaleString('pt-PT')} XP • {currentTier.icon} {currentTier.name}
-                          </p>
+                        <div className="flex items-center gap-4 mb-4">
+                          <motion.div 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
+                            className="w-16 h-16 rounded-full border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm"
+                          >
+                             {user.profile_photo_url ? (
+                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover" />
+                             ) : (
+                               <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
+                                 {user.full_name?.charAt(0) || 'U'}
+                               </div>
+                             )}
+                          </motion.div>
+                          <div>
+                            <h2 className="text-2xl font-bold text-white mb-0.5">
+                              Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
+                            </h2>
+                            <p className="text-sm text-white/80 flex items-center gap-2 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))}>
+                              <span>Nível {currentLevel}</span>
+                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                              <span>{displayedXP.toLocaleString('pt-PT')} XP</span>
+                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                              <span>{currentTier.icon} {currentTier.name}</span>
+                            </p>
+                          </div>
                         </div>
                         
                         <div className="mb-3">

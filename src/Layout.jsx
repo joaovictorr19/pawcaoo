@@ -1052,20 +1052,7 @@ function LayoutContent({ children, currentPageName }) {
                     <span>{item.title}</span>
                   </Link>
                 ))}
-                {authUser && (
-                <Link 
-                  id="header-profile"
-                  to={authUser?.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser?.id}`)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
-                    location.pathname.includes('UserProfile')
-                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                      : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
-                  }`}
-                  >
-                  <User className={`w-4 h-4 flex-shrink-0 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
-                  <span>{t('myProfile', language)}</span>
-                </Link>
-                )}
+                {/* Profile moved to Home page client area */}
               </div>
             </div>
 
