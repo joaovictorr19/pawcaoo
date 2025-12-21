@@ -806,14 +806,15 @@ export default function Home() {
         const matchesInstantBooking = !advancedFilters.instantBooking ||
                                        walker.instant_booking === true;
         
-        // Filtros básicos (Ocultar apenas se explicitamente rejeitado ou suspenso)
+        // Filtros básicos de segurança
+        // Apenas oculta se estiver explicitamente rejeitado. 
+        // Perfis pendentes ou sem status definido devem aparecer (para novos usuários verem seu perfil)
         if (walker.verification_status === 'rejected') return false;
-        // if (!walker.is_active) return false; // Mantido comentado para não ocultar perfis em edição
         
-        // Simplify filtering logic to avoid false negatives
-        if (!matchesLocation) return false;
-        if (!matchesSize) return false;
-        if (!matchesTime) return false;
+        // Filtros de busca (apenas se definidos)
+        if (searchLocation && !matchesLocation) return false;
+        if (filterSize !== "all" && !matchesSize) return false;
+        if (filterTime !== "all" && !matchesTime) return false;
 
         // Only apply these strict filters if they are actually selected/active
         if (filterDogSitting !== "all" && !matchesDogSitting) return false;
