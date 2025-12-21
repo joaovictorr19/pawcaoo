@@ -112,8 +112,7 @@ export default function BecomeProfessional() {
           bank_routing_number: data.bank_routing_number,
           mbway_number: data.mbway_number,
           portfolio: data.portfolio,
-          languages_spoken: data.languages_spoken,
-          verification_status: "pending"
+          languages_spoken: data.languages_spoken
         });
       }
       
