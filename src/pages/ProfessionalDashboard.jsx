@@ -565,33 +565,31 @@ export default function ProfessionalDashboard() {
 
     const handleSubmit = async () => {
       try {
-        if (walkerProfile) {
-          const services = walkerProfile.services_offered || [];
-          const updated = editingService 
-            ? services.map(s => s === editingService ? formData : s)
-            : [...services, formData];
-          
-          await base44.entities.WalkerProfile.update(walkerProfile.id, {
-            services_offered: updated
-          });
-        } else if (trainerProfile) {
-          const services = trainerProfile.services_offered || [];
-          const updated = editingService
-            ? services.map(s => s === editingService ? formData : s)
-            : [...services, formData];
-          
-          await base44.entities.TrainerProfile.update(trainerProfile.id, {
-            services_offered: updated
-          });
-        }
+        // Calculate updated services
+        const currentServices = (walkerProfile || trainerProfile)?.services_offered || [];
+        const updatedServices = editingService 
+          ? currentServices.map(s => s === editingService ? formData : s)
+          : [...currentServices, formData];
 
-        queryClient.invalidateQueries(['myWalkerProfile']);
-        queryClient.invalidateQueries(['myTrainerProfile']);
-        toast.success("Service updated successfully!");
+        // Create edit request instead of updating directly
+        const currentUser = await base44.auth.me();
+        const activeProfile = walkerProfile || trainerProfile;
+        
+        await base44.entities.ProfileEditRequest.create({
+          profile_type: walkerProfile ? 'walker' : 'trainer',
+          profile_id: activeProfile.id,
+          requester_email: currentUser.email,
+          requester_name: currentUser.full_name,
+          changes_requested: { services_offered: updatedServices },
+          status: 'pending'
+        });
+
+        queryClient.invalidateQueries(['profileEditRequests']);
+        toast.success("✅ Serviço enviado para aprovação do administrador!", { duration: 4000 });
         setShowServiceForm(false);
         setEditingService(null);
       } catch (error) {
-        toast.error("Failed to update service");
+        toast.error("Erro ao enviar: " + error.message);
       }
     };
 

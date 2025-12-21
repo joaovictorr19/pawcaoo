@@ -20,22 +20,14 @@ export default function ProfileEditRequests() {
 
   const approveEditMutation = useMutation({
     mutationFn: async ({ requestId, profileType, profileId, changes }) => {
-      // Apply changes to profile AND mark as verified
+      // Apply changes to profile - keep existing verification status
       if (profileType === 'walker') {
-        await base44.entities.WalkerProfile.update(profileId, {
-          ...changes,
-          verification_status: 'verified',
-          is_active: true
-        });
+        await base44.entities.WalkerProfile.update(profileId, changes);
       } else if (profileType === 'trainer') {
-        await base44.entities.TrainerProfile.update(profileId, {
-          ...changes,
-          verification_status: 'verified',
-          is_active: true
-        });
+        await base44.entities.TrainerProfile.update(profileId, changes);
       }
 
-      // Update request status
+      // Mark request as approved
       await base44.entities.ProfileEditRequest.update(requestId, {
         status: 'approved',
         reviewed_date: new Date().toISOString()
@@ -47,20 +39,18 @@ export default function ProfileEditRequests() {
       queryClient.invalidateQueries({ queryKey: ['trainers'] });
       queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
       queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-      toast.success('✅ Edição aprovada e perfil verificado!');
+      toast.success('✅ Alterações aprovadas e publicadas!');
     },
   });
 
   const rejectEditMutation = useMutation({
     mutationFn: async (requestId) => {
-      await base44.entities.ProfileEditRequest.update(requestId, {
-        status: 'rejected',
-        reviewed_date: new Date().toISOString()
-      });
+      // Delete the request - reject means discard draft
+      await base44.entities.ProfileEditRequest.delete(requestId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
-      toast.success('Edição rejeitada.');
+      toast.success('✅ Edição rejeitada e rascunho apagado.');
     },
   });
 
@@ -99,9 +89,22 @@ export default function ProfileEditRequests() {
           <CardContent className="p-6">
             <div className="mb-4">
               <h4 className="font-semibold text-gray-900 mb-2">Alterações Solicitadas:</h4>
-              <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-96">
-                {JSON.stringify(request.changes_requested, null, 2)}
-              </pre>
+              <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200 space-y-3 max-h-96 overflow-auto">
+                {Object.entries(request.changes_requested).map(([key, value]) => (
+                  <div key={key} className="bg-white p-3 rounded-lg border border-gray-200">
+                    <p className="text-xs font-bold text-purple-600 uppercase mb-1">{key.replace(/_/g, ' ')}</p>
+                    <div className="text-sm text-gray-800">
+                      {typeof value === 'object' ? (
+                        <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto">
+                          {JSON.stringify(value, null, 2)}
+                        </pre>
+                      ) : (
+                        <p className="font-semibold">{value?.toString()}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="flex gap-3">
