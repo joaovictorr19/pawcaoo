@@ -732,62 +732,72 @@ function LayoutContent({ children, currentPageName }) {
       <DynamicBackground />
 
       <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 bg-transparent">
-        {/* Header sempre visível no topo */}
-        <header className={`w-full px-4 py-3 sticky top-0 z-[999] transition-all duration-300 shadow-lg backdrop-blur-xl border-b ${
-          colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
-        }`}>
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 w-full">
-            <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+        {/* ========== HEADER FIXO NO TOPO ========== */}
+        <header 
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 9999,
+            width: '100%',
+            display: 'block',
+            visibility: 'visible',
+            opacity: 1,
+          }}
+          className={`px-4 py-3 shadow-lg backdrop-blur-xl border-b ${
+            colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
+          }`}
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
+            {/* Logo + Sidebar Trigger */}
+            <div className="flex items-center gap-3 flex-shrink-0">
               {authUser && (
-                <SidebarTrigger className="md:hidden hover:bg-green-100 h-9 w-9 p-2 rounded-xl transition-colors flex-shrink-0 touch-manipulation" aria-label="Toggle sidebar" />
+                <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0" aria-label="Menu" />
               )}
-
-              <Link 
-                to={createPageUrl("Home")} 
-                className={`${authUser ? "md:hidden" : ""} flex-shrink-0 hover:opacity-80 transition-opacity`}
-              >
-                <PawCaoLogo size="small" showText={!authUser} />
+              <Link to={createPageUrl("Home")} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+                <PawCaoLogo size="small" showText={true} />
               </Link>
             </div>
 
-            <div className="hidden md:flex items-center justify-center gap-2 flex-1 px-4">
-              <div className="flex items-center gap-2 flex-wrap justify-center w-full pb-1">
+            {/* Menu de Navegação Desktop - Linha Única */}
+            <nav className="hidden md:flex items-center justify-center flex-1 px-4">
+              <div className="flex items-center gap-1 lg:gap-2">
                 {mainMenu.map((item) => (
                   <Link
                     key={item.url}
                     id={item.id}
                     to={item.url}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
                       isRouteActive(item.url)
                         ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100")
-                    } ${item.className && !isRouteActive(item.url) ? item.className.replace('bg-red-50', '').replace('text-red-600', colors?.isDarkMode ? 'text-gray-300' : 'text-gray-600') : ""}`}
+                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100")
+                    }`}
                   >
-                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : "text-gray-500"}`} />
-                    <span>{item.title}</span>
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
+                    <span className="hidden lg:inline">{item.title}</span>
                   </Link>
                 ))}
               </div>
-            </div>
+            </nav>
 
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            {/* Ações Direita */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="Change language">
+                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
                     <Globe className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 PT</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 EN</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 ES</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               {!authUser && (
                 <Button 
                   onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-sm text-xs px-3 h-8"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
                   size="sm"
                 >
                   {getMenuText('login')}
@@ -796,6 +806,7 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </div>
         </header>
+        {/* ========== FIM HEADER ========== */}
 
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
