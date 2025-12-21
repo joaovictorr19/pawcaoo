@@ -784,8 +784,46 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </nav>
 
-          {/* Ações Direita */}
+          {/* Ações Direita + XP Badge com Tier Color */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* XP Badge - Desktop Only */}
+            {authUser && (
+              <Link to={createPageUrl("Gamification")} className="hidden md:flex hover:scale-105 transition-transform">
+                <div 
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-sm"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${gamification.tierColor}20, ${gamification.tierColor}10)`,
+                    borderColor: `${gamification.tierColor}40`
+                  }}
+                >
+                  <span className="text-xs font-bold" style={{ color: gamification.tierColor }}>
+                    {getLevelTitle(gamification.level).split(' ')[0]} Nv.{gamification.level}
+                  </span>
+                  <span className="text-[10px] opacity-70" style={{ color: gamification.tierColor }}>•</span>
+                  <span className="text-xs font-bold" style={{ color: gamification.tierColor }}>
+                    {formatXP(gamification.xp)} XP
+                  </span>
+                </div>
+              </Link>
+            )}
+
+            {/* XP Badge - Mobile Only (compacto) */}
+            {authUser && (
+              <Link to={createPageUrl("Gamification")} className="md:hidden">
+                <div 
+                  className="flex items-center gap-1 px-2 py-1 rounded-full border"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${gamification.tierColor}20, ${gamification.tierColor}10)`,
+                    borderColor: `${gamification.tierColor}40`
+                  }}
+                >
+                  <span className="text-[10px] font-bold" style={{ color: gamification.tierColor }}>
+                    {getLevelTitle(gamification.level).split(' ')[0]} {formatXP(gamification.xp)}
+                  </span>
+                </div>
+              </Link>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
@@ -798,6 +836,23 @@ function LayoutContent({ children, currentPageName }) {
                 <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Notificações - Mobile Only */}
+            {authUser && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden h-8 w-8 relative"
+                onClick={() => setIsNotificationPanelOpen(true)}
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            )}
 
             {!authUser && (
               <Button 
