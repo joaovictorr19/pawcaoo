@@ -806,13 +806,40 @@ export default function Home() {
         const matchesInstantBooking = !advancedFilters.instantBooking ||
                                        walker.instant_booking === true;
         
-        return matchesLocation && matchesSize && matchesTime && matchesAvailability &&
-               matchesDogSitting && matchesServiceTypesQuick && matchesSpecializationsQuick &&
-               matchesRadius && matchesLanguages && matchesAdvancedSpecializations && matchesBreeds &&
-               matchesCertifications && matchesAdvancedServiceTypes && matchesTimeSlots && matchesDate &&
-               matchesExperience && matchesRating && matchesPrice && matchesBackgroundCheck &&
-               matchesVerifiedOnly && matchesInstantBooking;
-      })
+        // Simplify filtering logic to avoid false negatives
+        if (!matchesLocation) return false;
+        if (!matchesSize) return false;
+        if (!matchesTime) return false;
+
+        // Only apply these strict filters if they are actually selected/active
+        if (filterDogSitting !== "all" && !matchesDogSitting) return false;
+        if (selectedServiceTypes.length > 0 && !matchesServiceTypesQuick) return false;
+        if (selectedSpecializations.length > 0 && !matchesSpecializationsQuick) return false;
+
+        // Radius check only if user has location set
+        if (userLocation && !matchesRadius) return false;
+
+        // Advanced filters - only apply if set
+        if (advancedFilters.languages?.length > 0 && !matchesLanguages) return false;
+        if (advancedFilters.specializations?.length > 0 && !matchesAdvancedSpecializations) return false;
+        if (advancedFilters.breeds?.length > 0 && !matchesBreeds) return false;
+        if (advancedFilters.certifications?.length > 0 && !matchesCertifications) return false;
+        if (advancedFilters.serviceTypes?.length > 0 && !matchesAdvancedServiceTypes) return false;
+        if (advancedFilters.timeSlots?.length > 0 && !matchesTimeSlots) return false;
+        if (advancedFilters.availableDate && !matchesDate) return false;
+
+        if (advancedFilters.minExperience > 0 && !matchesExperience) return false;
+        if (advancedFilters.minRating > 0 && !matchesRating) return false;
+        // Price filter - be careful with defaults
+        if (advancedFilters.minPrice > 0 && (walker.hourly_rate || 0) < advancedFilters.minPrice) return false;
+        if (advancedFilters.maxPrice < 100 && (walker.hourly_rate || 0) > advancedFilters.maxPrice) return false;
+
+        if (advancedFilters.backgroundCheck && !matchesBackgroundCheck) return false;
+        if (advancedFilters.verifiedOnly && !matchesVerifiedOnly) return false;
+        if (advancedFilters.instantBooking && !matchesInstantBooking) return false;
+
+        return true;
+        })
       .sort((a, b) => {
         if (selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) {
           if (a.matchScore !== b.matchScore) {
