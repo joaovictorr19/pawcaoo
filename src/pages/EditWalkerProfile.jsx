@@ -52,13 +52,15 @@ export default function EditWalkerProfile() {
     mutationFn: async (changes) => {
       const currentUser = await base44.auth.me();
       
-      // CRITICAL: ALL changes require admin approval - create request only
       await base44.entities.ProfileEditRequest.create({
-        profile_type: 'walker',
-        profile_id: walkerProfile.id,
-        requester_email: currentUser.email,
-        requester_name: currentUser.full_name,
-        changes_requested: changes,
+        walker_id: walkerProfile.id,
+        walker_name: walkerProfile.walker_name,
+        walker_email: currentUser.email,
+        requested_changes: changes,
+        original_data: {
+          services_offered: walkerProfile.services_offered,
+          hourly_rate: walkerProfile.hourly_rate
+        },
         status: 'pending'
       });
     },
