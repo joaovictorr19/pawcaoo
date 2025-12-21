@@ -807,71 +807,10 @@ function LayoutContent({ children, currentPageName }) {
       {/* ========== FIM HEADER ========== */}
 
       <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 pt-20">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
-            {/* Logo + Sidebar Trigger */}
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {authUser && (
-                <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0" aria-label="Menu" />
-              )}
-              <Link to={createPageUrl("Home")} className="flex-shrink-0 hover:opacity-80 transition-opacity">
-                <PawCaoLogo size="small" showText={true} />
-              </Link>
-            </div>
-
-            {/* Menu de Navegação Desktop - Linha Única */}
-            <nav className="hidden md:flex items-center justify-center flex-1 px-4">
-              <div className="flex items-center gap-1 lg:gap-2">
-                {mainMenu.map((item) => (
-                  <Link
-                    key={item.url}
-                    id={item.id}
-                    to={item.url}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                      isRouteActive(item.url)
-                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100")
-                    }`}
-                  >
-                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
-                    <span className="hidden lg:inline">{item.title}</span>
-                  </Link>
-                ))}
-              </div>
-            </nav>
-
-            {/* Ações Direita */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
-                    <Globe className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {!authUser && (
-                <Button 
-                  onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
-                  size="sm"
-                >
-                  {getMenuText('login')}
-                </Button>
-              )}
-            </div>
-          </div>
-        </header>
-        {/* ========== FIM HEADER ========== */}
-
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
-        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-6rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
+        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 m-4 mt-0 rounded-[2rem] h-[calc(100vh-7rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
           colors?.isDarkMode 
             ? 'border-slate-700/40' 
             : 'border-white/40'
