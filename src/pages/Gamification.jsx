@@ -170,12 +170,12 @@ export default function Gamification() {
   }, [activeRanking, allUsers, walkerProfiles, allBookings]);
 
   const currentXP = user?.gamification_xp || 0;
-  const currentLevel = user?.gamification_level || 1;
   const currentTier = calculateTier(currentXP);
+  const currentLevel = currentTier.level;
 
   // Tier-based progress
   const tierProgressPercentage = currentTier.progress || 0;
-  const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
+  const xpRemainingForNextLevel = currentTier.xpToNextLevel || 0;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
@@ -255,11 +255,10 @@ export default function Gamification() {
 
   const currentConfig = rankingConfig[activeRanking];
 
-  // Donut chart data (based on tier progress, not level)
-  const xpInCurrentTier = currentTier.max !== Infinity ? currentXP - currentTier.min : currentXP;
+  // Donut chart data (based on level progress)
   const chartData = [
-    { name: 'Progress', value: xpInCurrentTier },
-    { name: 'Remaining', value: Math.max(0, xpRemainingForNextTier) }
+    { name: 'Progress', value: tierProgressPercentage },
+    { name: 'Remaining', value: 100 - tierProgressPercentage }
   ];
 
   return (
@@ -317,13 +316,14 @@ export default function Gamification() {
                       </div>
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
+                      <h2 className="text-2xl font-black tracking-tight" style={{ color: currentTier.primary }}>
                         {currentTier.name}
                       </h2>
                       <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
                         <Star className="w-3 h-3" />
-                        Nível {currentLevel}
+                        Nível {currentLevel} de 100
                       </p>
+                      <p className="text-xs text-gray-500">Tier {currentTier.tierRange}</p>
                     </div>
                   </div>
                 </div>
@@ -372,12 +372,20 @@ export default function Gamification() {
                     </div>
                   </div>
                   
-                  {xpRemainingForNextTier > 0 && (
+                  {xpRemainingForNextLevel > 0 && currentLevel < 100 && (
                     <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mt-3 shadow-sm">
-                      <div className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
-                        {xpRemainingForNextTier.toLocaleString('pt-PT')}
+                      <div className="text-2xl font-black tracking-tight" style={{ color: currentTier.primary }}>
+                        {xpRemainingForNextLevel.toLocaleString('pt-PT')}
                       </div>
-                      <div className="text-xs text-gray-600 font-bold uppercase tracking-wide">XP restantes</div>
+                      <div className="text-xs text-gray-600 font-bold uppercase tracking-wide">XP para Nível {currentLevel + 1}</div>
+                    </div>
+                  )}
+                  {currentLevel >= 100 && (
+                    <div className="bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl p-3 mt-3 shadow-sm border border-yellow-300">
+                      <div className="text-lg font-black tracking-tight text-yellow-600">
+                        ✨ NÍVEL MÁXIMO ✨
+                      </div>
+                      <div className="text-xs text-yellow-700 font-bold">Lendário Galáctico</div>
                     </div>
                   )}
                 </div>
@@ -477,23 +485,26 @@ export default function Gamification() {
                   className="flex flex-col items-center w-32"
                 >
                   <div className="relative">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
-                      {rankedData[1].profile_photo_url ? (
-                        <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[1].full_name} />
-                      ) : (
-                        <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
-                          {rankedData[1].full_name?.[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
-                      2
-                    </div>
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
+                    {rankedData[1].profile_photo_url ? (
+                      <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[1].full_name} />
+                    ) : (
+                      <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
+                        {rankedData[1].full_name?.[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
+                    2
+                  </div>
                   </div>
                   <div className="mt-2 md:mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
-                    <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
-                    <p className="font-bold text-xs md:text-sm truncate">{rankedData[1].full_name}</p>
-                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey])}</p>
+                  <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
+                  <p className="font-bold text-xs md:text-sm truncate">{rankedData[1].full_name}</p>
+                  <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey])}</p>
+                  {activeRanking === 'global' && (
+                    <p className="text-[9px] opacity-75 mt-1">Nv. {calculateTier(rankedData[1].gamification_xp || 0).level}</p>
+                  )}
                   </div>
                 </motion.div>
               )}
@@ -589,7 +600,7 @@ export default function Gamification() {
                     <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey])}</p>
                     {activeRanking === 'global' && (
                       <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
-                        {calculateTier(rankedData[0].gamification_xp || 0).icon} {calculateTier(rankedData[0].gamification_xp || 0).name}
+                        {calculateTier(rankedData[0].gamification_xp || 0).icon} Nv. {calculateTier(rankedData[0].gamification_xp || 0).level} - {calculateTier(rankedData[0].gamification_xp || 0).name}
                       </Badge>
                     )}
                   </div>
@@ -623,6 +634,9 @@ export default function Gamification() {
                     <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
                     <p className="font-bold text-xs md:text-sm truncate">{rankedData[2].full_name}</p>
                     <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[2][currentConfig.metricKey])}</p>
+                    {activeRanking === 'global' && (
+                      <p className="text-[9px] opacity-75 mt-1">Nv. {calculateTier(rankedData[2].gamification_xp || 0).level}</p>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -652,7 +666,7 @@ export default function Gamification() {
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{rankUser.full_name}</p>
                     {activeRanking === 'global' && (
-                      <p className="text-xs text-gray-600">Nível {rankUser.gamification_level || 1}</p>
+                      <p className="text-xs text-gray-600">{calculateTier(rankUser.gamification_xp || 0).icon} Nível {calculateTier(rankUser.gamification_xp || 0).level} • {calculateTier(rankUser.gamification_xp || 0).name}</p>
                     )}
                     {activeRanking === 'walkers' && (
                       <p className="text-xs text-gray-600">Walker Verificado</p>
