@@ -731,22 +731,82 @@ function LayoutContent({ children, currentPageName }) {
       {/* Dynamic Background - Orbs that change color based on user tier */}
       <DynamicBackground />
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 bg-transparent">
-        {/* ========== HEADER FIXO NO TOPO ========== */}
-        <header 
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 9999,
-            width: '100%',
-            display: 'block',
-            visibility: 'visible',
-            opacity: 1,
-          }}
-          className={`px-4 py-3 shadow-lg backdrop-blur-xl border-b ${
-            colors?.isDarkMode ? 'bg-slate-900/95 border-slate-700/40' : 'bg-white/95 border-white/40'
-          }`}
-        >
+      {/* ========== HEADER FIXO NO TOPO - ACIMA DE TUDO ========== */}
+      <header 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 99999,
+          width: '100vw',
+        }}
+        className={`px-4 py-3 shadow-lg backdrop-blur-xl border-b ${
+          colors?.isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
+          {/* Logo + Sidebar Trigger */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {authUser && (
+              <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0" aria-label="Menu" />
+            )}
+            <Link to={createPageUrl("Home")} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+              <PawCaoLogo size="small" showText={true} />
+            </Link>
+          </div>
+
+          {/* Menu de Navegação Desktop - Linha Única */}
+          <nav className="hidden md:flex items-center justify-center flex-1 px-4">
+            <div className="flex items-center gap-1 lg:gap-2">
+              {mainMenu.map((item) => (
+                <Link
+                  key={item.url}
+                  id={item.id}
+                  to={item.url}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                    isRouteActive(item.url)
+                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
+                      : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100")
+                  }`}
+                >
+                  <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
+                  <span className="hidden lg:inline">{item.title}</span>
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          {/* Ações Direita */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
+                  <Globe className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {!authUser && (
+              <Button 
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
+                size="sm"
+              >
+                {getMenuText('login')}
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+      {/* ========== FIM HEADER ========== */}
+
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 pt-20">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
             {/* Logo + Sidebar Trigger */}
             <div className="flex items-center gap-3 flex-shrink-0">
