@@ -22,7 +22,7 @@ export default function DogCollar({ userEmail, onClick }) {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="inline-flex items-center gap-2 cursor-pointer group"
+      className="inline-flex items-center gap-2 cursor-pointer group touch-manipulation"
       onClick={onClick}
       title={dogsCount > 0 ? `${dogsCount} ${dogsCount === 1 ? 'Cão' : 'Cães'} cadastrado(s)` : 'Adicionar Cão'}
     >

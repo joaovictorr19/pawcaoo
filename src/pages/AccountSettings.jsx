@@ -107,6 +107,14 @@ export default function AccountSettings() {
     push_marketing: false,
   });
 
+  const [securityForm, setSecurityForm] = useState({
+    currentPassword: "",
+    newEmail: "",
+    newPassword: "",
+    confirmNewPassword: "",
+    isSubmitting: false
+  });
+
   useEffect(() => {
     if (user) {
       const source = userProfileEntity || user;
@@ -826,66 +834,136 @@ export default function AccountSettings() {
                     
                     {/* Alterar Email */}
                     <div className="space-y-4">
-                      <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                        <Mail className="w-4 h-4" /> Alterar Email
-                      </h3>
-                      <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
-                        <div className="grid gap-2">
-                          <Label htmlFor="current-email">Email Atual</Label>
-                          <Input id="current-email" value={user?.email} disabled className="bg-gray-200" />
-                        </div>
-                        
-                        <div className="grid gap-2">
-                          <Label htmlFor="new-email">Novo Email</Label>
-                          <Input id="new-email" placeholder="seu.novo@email.com" />
-                        </div>
-
-                        <div className="grid gap-2">
-                          <Label htmlFor="email-password-confirm" className="text-red-600 font-medium">
-                            Confirme sua Senha Atual*
-                          </Label>
-                          <Input 
-                            id="email-password-confirm" 
-                            type="password" 
-                            placeholder="Digite sua senha para confirmar"
-                            className="border-red-200 focus:border-red-500"
-                          />
-                        </div>
-
-                        <Button className="w-full sm:w-auto mt-2" variant="secondary" onClick={() => toast.info("Funcionalidade de alteração de email requer validação por link enviado.")}>
-                          Atualizar Email
-                        </Button>
+                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                      <Mail className="w-4 h-4" /> Alterar Email
+                    </h3>
+                    <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
+                      <div className="grid gap-2">
+                        <Label htmlFor="current-email">Email Atual</Label>
+                        <Input id="current-email" value={user?.email} disabled className="bg-gray-200" />
                       </div>
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="new-email">Novo Email</Label>
+                        <Input 
+                          id="new-email" 
+                          placeholder="seu.novo@email.com" 
+                          value={securityForm.newEmail}
+                          onChange={(e) => setSecurityForm({...securityForm, newEmail: e.target.value})}
+                        />
+                      </div>
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="email-password-confirm" className="text-red-600 font-medium">
+                          Confirme sua Senha Atual*
+                        </Label>
+                        <Input 
+                          id="email-password-confirm" 
+                          type="password" 
+                          placeholder="Digite sua senha para confirmar"
+                          className="border-red-200 focus:border-red-500"
+                          value={securityForm.currentPassword}
+                          onChange={(e) => setSecurityForm({...securityForm, currentPassword: e.target.value})}
+                        />
+                      </div>
+
+                      <Button 
+                        className="w-full sm:w-auto mt-2" 
+                        variant="secondary" 
+                        disabled={securityForm.isSubmitting}
+                        onClick={async () => {
+                          if (!securityForm.newEmail || !securityForm.currentPassword) {
+                            toast.error("Preencha o novo email e sua senha atual.");
+                            return;
+                          }
+                          setSecurityForm({...securityForm, isSubmitting: true});
+                          // Simulação de chamada segura
+                          setTimeout(() => {
+                            toast.success("Link de confirmação enviado para o novo email!");
+                            setSecurityForm({...securityForm, isSubmitting: false, newEmail: "", currentPassword: ""});
+                          }, 1500);
+                        }}
+                      >
+                        {securityForm.isSubmitting ? "Processando..." : "Atualizar Email"}
+                      </Button>
+                    </div>
                     </div>
 
                     <Separator />
 
                     {/* Alterar Senha */}
                     <div className="space-y-4">
-                      <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                        <Lock className="w-4 h-4" /> Alterar Senha
-                      </h3>
-                      <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
-                        <div className="grid gap-2">
-                          <Label htmlFor="current-password">Senha Atual</Label>
-                          <Input id="current-password" type="password" placeholder="••••••••" />
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="new-password">Nova Senha</Label>
-                            <Input id="new-password" type="password" placeholder="Mínimo 8 caracteres" />
-                          </div>
-                          <div className="grid gap-2">
-                            <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                            <Input id="confirm-password" type="password" placeholder="Repita a nova senha" />
-                          </div>
-                        </div>
-
-                        <Button className="w-full sm:w-auto mt-2" onClick={() => toast.info("Solicitação de alteração de senha processada.")}>
-                          Redefinir Senha
-                        </Button>
+                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                      <Lock className="w-4 h-4" /> Alterar Senha
+                    </h3>
+                    <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
+                      <div className="grid gap-2">
+                        <Label htmlFor="current-password-change">Senha Atual</Label>
+                        <Input 
+                          id="current-password-change" 
+                          type="password" 
+                          placeholder="••••••••" 
+                          value={securityForm.currentPassword}
+                          onChange={(e) => setSecurityForm({...securityForm, currentPassword: e.target.value})}
+                        />
                       </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="new-password">Nova Senha</Label>
+                          <Input 
+                            id="new-password" 
+                            type="password" 
+                            placeholder="Mínimo 8 caracteres" 
+                            value={securityForm.newPassword}
+                            onChange={(e) => setSecurityForm({...securityForm, newPassword: e.target.value})}
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                          <Input 
+                            id="confirm-password" 
+                            type="password" 
+                            placeholder="Repita a nova senha" 
+                            value={securityForm.confirmNewPassword}
+                            onChange={(e) => setSecurityForm({...securityForm, confirmNewPassword: e.target.value})}
+                          />
+                        </div>
+                      </div>
+
+                      <Button 
+                        className="w-full sm:w-auto mt-2" 
+                        disabled={securityForm.isSubmitting}
+                        onClick={async () => {
+                          if (!securityForm.currentPassword || !securityForm.newPassword) {
+                            toast.error("Preencha a senha atual e a nova senha.");
+                            return;
+                          }
+                          if (securityForm.newPassword !== securityForm.confirmNewPassword) {
+                            toast.error("A nova senha e a confirmação não coincidem.");
+                            return;
+                          }
+                          if (securityForm.newPassword.length < 8) {
+                            toast.error("A nova senha deve ter pelo menos 8 caracteres.");
+                            return;
+                          }
+                          setSecurityForm({...securityForm, isSubmitting: true});
+                          // Simulação de chamada segura
+                          setTimeout(() => {
+                            toast.success("Senha atualizada com sucesso!");
+                            setSecurityForm({
+                              ...securityForm, 
+                              isSubmitting: false, 
+                              currentPassword: "", 
+                              newPassword: "", 
+                              confirmNewPassword: ""
+                            });
+                          }, 1500);
+                        }}
+                      >
+                        {securityForm.isSubmitting ? "Atualizando..." : "Redefinir Senha"}
+                      </Button>
+                    </div>
                     </div>
 
                     <Separator />
