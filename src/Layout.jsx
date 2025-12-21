@@ -1034,8 +1034,8 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
             </div>
 
-            <div className="hidden md:flex items-center justify-center gap-2 flex-1 overflow-hidden px-4">
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full justify-center pb-1">
+            <div className="hidden md:flex items-center justify-center gap-2 flex-1 px-4">
+              <div className="flex items-center gap-2 flex-wrap justify-center w-full pb-1">
                 {mainMenu.map((item) => (
                   <Link
                     key={item.url}
