@@ -172,7 +172,9 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
+        console.log('👤 Fetching user...');
         const userData = await base44.auth.me();
+        console.log('✅ User fetched:', userData?.email || 'not logged in');
 
         // Sync XP bidirectionally between User and UserProfile
         if (userData?.email) {
@@ -492,6 +494,8 @@ function LayoutContent({ children, currentPageName }) {
       base44.auth.logout();
     }
   };
+
+  console.log('🎨 Layout render - User:', authUser?.email || 'none', 'Loading:', isLoadingUser);
 
   return (
     <SidebarProvider>

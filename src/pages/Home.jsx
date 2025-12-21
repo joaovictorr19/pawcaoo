@@ -467,10 +467,12 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
+        console.log('🔍 Fetching walkers...');
         const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
+        console.log('✅ Walkers fetched:', res?.length || 0);
         return Array.isArray(res) ? res : [];
       } catch (error) {
-        console.error("Walkers fetch error:", error);
+        console.error("❌ Walkers fetch error:", error);
         return [];
       }
     },
@@ -680,7 +682,11 @@ export default function Home() {
 
   // Safe Memoized Walkers Filter
   const filteredWalkers = React.useMemo(() => {
-    if (!Array.isArray(walkers)) return [];
+    console.log('🎯 Filtering walkers. Total:', walkers?.length || 0);
+    if (!Array.isArray(walkers)) {
+      console.warn('⚠️ Walkers is not an array:', walkers);
+      return [];
+    }
     
     return walkers
       .map(walker => ({
@@ -855,6 +861,13 @@ export default function Home() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  
+  console.log('📊 Pagination:', { 
+    total: filteredWalkers.length, 
+    currentPage, 
+    totalPages,
+    showing: paginatedWalkers.length 
+  });
 
   // Safe Memoized Trainers Filter
   const filteredTrainers = React.useMemo(() => {
