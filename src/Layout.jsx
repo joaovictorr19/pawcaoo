@@ -1051,9 +1051,10 @@ function LayoutContent({ children, currentPageName }) {
                     <span className="hidden lg:inline">{item.title}</span>
                   </Link>
                 ))}
+                {authUser && (
                 <Link 
                   id="header-profile"
-                  to={authUser.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser.id}`)}
+                  to={authUser?.username ? createPageUrl(`UserProfile?username=${authUser.username}`) : createPageUrl(`UserProfile?id=${authUser?.id}`)}
                   className={`flex items-center gap-1.5 px-2.5 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 whitespace-nowrap flex-shrink-0 ${
                     location.pathname.includes('UserProfile')
                       ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
@@ -1063,6 +1064,7 @@ function LayoutContent({ children, currentPageName }) {
                   <User className={`w-3.5 h-3.5 flex-shrink-0 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
                   <span className="hidden lg:inline">{t('myProfile', language)}</span>
                 </Link>
+                )}
                 )}
               </div>
             </div>
