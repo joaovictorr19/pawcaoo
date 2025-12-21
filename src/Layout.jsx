@@ -712,9 +712,9 @@ function LayoutContent({ children, currentPageName }) {
       {/* Dynamic Background - Orbs that change color based on user tier */}
       <DynamicBackground />
 
-      <div className="flex w-full max-w-[100vw] min-h-screen overflow-x-hidden relative z-10 bg-transparent">
+      <div className="flex w-full max-w-[100vw] min-h-screen relative z-10 bg-transparent">
         {authUser && (
-        <Sidebar className={`backdrop-blur-2xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent ${
+        <Sidebar className={`backdrop-blur-2xl border transition-colors duration-300 m-4 rounded-[2rem] h-[calc(100vh-2rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent z-50 ${
           colors?.isDarkMode 
             ? 'border-slate-700/40' 
             : 'border-white/40'
