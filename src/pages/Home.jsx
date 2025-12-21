@@ -467,8 +467,8 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        // Tenta buscar todos os walkers sem filtro de active primeiro para debug
         const res = await base44.entities.WalkerProfile.list('-rating', 100);
+        // Force refresh for user to see real profiles
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
@@ -706,7 +706,10 @@ export default function Home() {
         const matchesAvailability = filterAvailability === "all" || filterAvailability === "available";
 
         const matchesDogSitting = filterDogSitting === "all" || (() => {
-          const services = walker.services_offered || [];
+          // If profile has no services defined yet, but filter is active, we might want to hide them or not?
+          // For now, if they have no services, they can't match a specific service type.
+          if (services.length === 0) return false;
+
           if (filterDogSitting === "boarding") {
             return services.some(s => 
               s.service_name?.toLowerCase().includes('boarding') || 
@@ -822,10 +825,11 @@ export default function Home() {
                                        walker.instant_booking === true;
         
         // Filtros básicos de segurança
-        // Apenas oculta se estiver explicitamente rejeitado. 
-        // Perfis pendentes ou sem status definido devem aparecer (para novos usuários verem seu perfil)
         if (walker.verification_status === 'rejected') return false;
         
+        // Ensure services is never null/undefined for filtering logic
+        const services = walker.services_offered || [];
+
         // Filtros de busca (apenas se definidos)
         if (searchLocation && !(walker.location || "").toLowerCase().includes(searchLocation.toLowerCase())) return false;
         if (filterSize !== "all" && !matchesSize) return false;
