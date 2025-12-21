@@ -7,14 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Trophy, Crown, Medal, Award, Lock, Sparkles, 
-  Star, TrendingUp, Users, ChevronRight
+  Star, TrendingUp, Users, ChevronRight, Dog
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useTheme } from "@/components/ThemeContext";
-import { calculateTier } from "@/components/gamification/tierSystem";
+import { calculateTier, getLevelFromXP, TIER_COLORS_BY_LEVEL } from "@/components/gamification/tierSystem";
 
 export default function Gamification() {
   const navigate = useNavigate();
@@ -79,22 +78,32 @@ export default function Gamification() {
     enabled: activeRanking === 'global',
   });
 
-  // Fetch walker profiles for Walker Rankings
+  // Fetch walker profiles for Walker Rankings - NOVO: Baseado em Serviços Concluídos + Avaliações
   const { data: walkerProfiles = [] } = useQuery({
     queryKey: ['walkerProfiles'],
     queryFn: async () => {
       const profiles = await base44.entities.WalkerProfile.list('-rating', 500);
-      return profiles.filter(p => p.is_active && p.verification_status === 'verified');
+      return profiles.filter(p => p.is_active || p.total_walks > 0);
     },
     enabled: activeRanking === 'walkers',
   });
 
-  // Fetch bookings for completed rides count
+  // Fetch ALL completed bookings for accurate counting
   const { data: allBookings = [] } = useQuery({
-    queryKey: ['allBookings'],
+    queryKey: ['allBookingsHallOfFame'],
     queryFn: async () => {
       const bookings = await base44.entities.Booking.filter({ status: 'completed' });
       return bookings;
+    },
+    enabled: activeRanking === 'walkers' || activeRanking === 'quality',
+  });
+
+  // Fetch reviews for quality ranking
+  const { data: allReviews = [] } = useQuery({
+    queryKey: ['allReviewsHallOfFame'],
+    queryFn: async () => {
+      const reviews = await base44.entities.Review.list('-created_date', 1000);
+      return reviews;
     },
     enabled: activeRanking === 'walkers',
   });
@@ -110,36 +119,78 @@ export default function Gamification() {
   });
 
   // Process data based on active ranking
+  // HALL DA FAMA: Pódio baseado em Serviços Concluídos, Cães Únicos Ajudados e Média de Avaliações
   const rankedData = React.useMemo(() => {
     if (activeRanking === 'global') {
-      return allUsers;
+      // Global: Ordenar por XP
+      return allUsers.map(u => ({
+        ...u,
+        tier: calculateTier(u.gamification_xp || 0)
+      }));
     }
 
     if (activeRanking === 'walkers') {
-      // Count completed rides per walker
-      const walkerRidesCount = {};
+      // NOVO: Ranking baseado em Score Composto
+      // Score = (Serviços Concluídos * 10) + (Cães Únicos * 20) + (Média Avaliações * 50)
+      
+      const walkerStats = {};
+      
+      // Contar serviços e cães únicos por walker
       allBookings.forEach(booking => {
         const walkerEmail = booking.walker_email;
-        if (walkerEmail) {
-          walkerRidesCount[walkerEmail] = (walkerRidesCount[walkerEmail] || 0) + 1;
+        if (!walkerEmail) return;
+        
+        if (!walkerStats[walkerEmail]) {
+          walkerStats[walkerEmail] = {
+            completedServices: 0,
+            uniqueDogs: new Set(),
+            totalRating: 0,
+            reviewCount: 0
+          };
+        }
+        
+        walkerStats[walkerEmail].completedServices++;
+        if (booking.dog_name) {
+          walkerStats[walkerEmail].uniqueDogs.add(booking.dog_name);
         }
       });
-
-      // Map to walker profiles and sort by rides count
+      
+      // Adicionar avaliações
+      allReviews.forEach(review => {
+        const walkerEmail = walkerProfiles.find(w => w.id === review.walker_id)?.created_by;
+        if (walkerEmail && walkerStats[walkerEmail]) {
+          walkerStats[walkerEmail].totalRating += review.rating || 0;
+          walkerStats[walkerEmail].reviewCount++;
+        }
+      });
+      
+      // Calcular score e mapear para profiles
       return walkerProfiles
-        .map(profile => ({
-          ...profile,
-          completed_rides: walkerRidesCount[profile.created_by] || 0,
-          full_name: profile.walker_name,
-          profile_photo_url: profile.photo_url,
-          email: profile.created_by
-        }))
-        .filter(w => w.completed_rides > 0)
-        .sort((a, b) => b.completed_rides - a.completed_rides);
+        .map(profile => {
+          const stats = walkerStats[profile.created_by] || { completedServices: 0, uniqueDogs: new Set(), totalRating: 0, reviewCount: 0 };
+          const avgRating = stats.reviewCount > 0 ? stats.totalRating / stats.reviewCount : profile.rating || 5;
+          const uniqueDogsCount = stats.uniqueDogs.size;
+          
+          // Score composto
+          const score = (stats.completedServices * 10) + (uniqueDogsCount * 20) + (avgRating * 50);
+          
+          return {
+            ...profile,
+            completed_rides: stats.completedServices,
+            unique_dogs: uniqueDogsCount,
+            avg_rating: avgRating,
+            hall_score: Math.round(score),
+            full_name: profile.walker_name,
+            profile_photo_url: profile.photo_url,
+            email: profile.created_by
+          };
+        })
+        .filter(w => w.completed_rides > 0 || w.total_walks > 0)
+        .sort((a, b) => b.hall_score - a.hall_score);
     }
 
     if (activeRanking === 'quality') {
-      // Count completed bookings per dog
+      // CÃES FELIZES: Ordenar por número de passeios
       const dogBookingsCount = {};
       allBookings.forEach(booking => {
         const dogName = booking.dog_name;
@@ -150,15 +201,14 @@ export default function Gamification() {
         }
       });
 
-      // Map to dog profiles and sort by bookings count
       return dogProfiles
         .map(dog => {
-          const dogKey = `${dog.owner_email}-${dog.dog_name}`;
+          const dogKey = `${dog.owner_email || dog.created_by}-${dog.dog_name}`;
           return {
             ...dog,
             full_name: dog.dog_name,
             profile_photo_url: dog.photo_url,
-            email: dog.owner_email,
+            email: dog.owner_email || dog.created_by,
             total_walks: dogBookingsCount[dogKey] || 0
           };
         })
@@ -167,15 +217,15 @@ export default function Gamification() {
     }
 
     return [];
-  }, [activeRanking, allUsers, walkerProfiles, allBookings]);
+  }, [activeRanking, allUsers, walkerProfiles, allBookings, allReviews, dogProfiles]);
 
   const currentXP = user?.gamification_xp || 0;
+  const currentLevel = user?.gamification_level || 1;
   const currentTier = calculateTier(currentXP);
-  const currentLevel = currentTier.level;
 
   // Tier-based progress
   const tierProgressPercentage = currentTier.progress || 0;
-  const xpRemainingForNextLevel = currentTier.xpToNextLevel || 0;
+  const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
@@ -222,7 +272,7 @@ export default function Gamification() {
   // User rank
   const userRank = rankedData.findIndex(u => u.email === user?.email) + 1;
 
-  // Ranking configuration
+  // Ranking configuration - ATUALIZADO com Hall Score
   const rankingConfig = {
     global: {
       title: 'Rank Global',
@@ -231,16 +281,21 @@ export default function Gamification() {
       bgGradient: 'from-yellow-50 to-orange-50',
       metricKey: 'gamification_xp',
       metricLabel: 'XP',
-      formatMetric: (value) => value?.toLocaleString('pt-PT')
+      formatMetric: (value) => `${(value || 0).toLocaleString('pt-PT')} XP`
     },
     walkers: {
-      title: 'Top Passeadores',
+      title: 'Hall da Fama',
       podiumColor: 'from-green-400 to-green-600',
       accentColor: 'text-green-600',
       bgGradient: 'from-green-50 to-emerald-50',
-      metricKey: 'completed_rides',
-      metricLabel: 'Passeios',
-      formatMetric: (value) => `${value || 0} Passeios`
+      metricKey: 'hall_score',
+      metricLabel: 'Score',
+      formatMetric: (value, item) => {
+        if (item?.completed_rides !== undefined) {
+          return `${item.completed_rides} 🐕 ${item.unique_dogs || 0} ⭐ ${(item.avg_rating || 5).toFixed(1)}`;
+        }
+        return `${value || 0} pts`;
+      }
     },
     quality: {
       title: 'Cães Felizes',
@@ -249,16 +304,17 @@ export default function Gamification() {
       bgGradient: 'from-pink-50 to-rose-50',
       metricKey: 'total_walks',
       metricLabel: 'Passeios',
-      formatMetric: (value) => `${value || 0} Passeios`
+      formatMetric: (value) => `${value || 0} 🦴`
     }
   };
 
   const currentConfig = rankingConfig[activeRanking];
 
-  // Donut chart data (based on level progress)
+  // Donut chart data (based on tier progress, not level)
+  const xpInCurrentTier = currentTier.max !== Infinity ? currentXP - currentTier.min : currentXP;
   const chartData = [
-    { name: 'Progress', value: tierProgressPercentage },
-    { name: 'Remaining', value: 100 - tierProgressPercentage }
+    { name: 'Progress', value: xpInCurrentTier },
+    { name: 'Remaining', value: Math.max(0, xpRemainingForNextTier) }
   ];
 
   return (
@@ -316,14 +372,13 @@ export default function Gamification() {
                       </div>
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black tracking-tight" style={{ color: currentTier.primary }}>
+                      <h2 className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
                         {currentTier.name}
                       </h2>
                       <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
                         <Star className="w-3 h-3" />
-                        Nível {currentLevel} de 100
+                        Nível {currentLevel}
                       </p>
-                      <p className="text-xs text-gray-500">Tier {currentTier.tierRange}</p>
                     </div>
                   </div>
                 </div>
@@ -356,13 +411,13 @@ export default function Gamification() {
                 <div className="space-y-4">
                   <div className="relative">
                     <div className="flex justify-between text-xs text-gray-600 mb-2 font-medium">
-                      <span>Progresso</span>
+                      <span>Nível {currentLevel} → {Math.min(100, currentLevel + 1)}</span>
                       <span className="font-black">{Math.round(tierProgressPercentage)}%</span>
                     </div>
                     <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner relative">
                       <motion.div 
                         className="h-full rounded-full relative overflow-hidden"
-                        style={{ background: `linear-gradient(90deg, ${colors?.orb2 || colors?.primary}, ${colors?.primary})` }}
+                        style={{ background: `linear-gradient(90deg, ${currentTier.orb2 || currentTier.primary}, ${currentTier.primary})` }}
                         initial={{ width: 0 }}
                         animate={{ width: `${tierProgressPercentage}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
@@ -381,11 +436,8 @@ export default function Gamification() {
                     </div>
                   )}
                   {currentLevel >= 100 && (
-                    <div className="bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl p-3 mt-3 shadow-sm border border-yellow-300">
-                      <div className="text-lg font-black tracking-tight text-yellow-600">
-                        ✨ NÍVEL MÁXIMO ✨
-                      </div>
-                      <div className="text-xs text-yellow-700 font-bold">Lendário Galáctico</div>
+                    <div className="bg-gradient-to-br from-yellow-100 to-amber-100 rounded-xl p-3 mt-3 shadow-sm border border-yellow-300">
+                      <div className="text-lg font-black text-yellow-700">✨ NÍVEL MÁXIMO!</div>
                     </div>
                   )}
                 </div>
@@ -485,26 +537,23 @@ export default function Gamification() {
                   className="flex flex-col items-center w-32"
                 >
                   <div className="relative">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
-                    {rankedData[1].profile_photo_url ? (
-                      <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[1].full_name} />
-                    ) : (
-                      <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
-                        {rankedData[1].full_name?.[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
-                    2
-                  </div>
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
+                      {rankedData[1].profile_photo_url ? (
+                        <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[1].full_name} />
+                      ) : (
+                        <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
+                          {rankedData[1].full_name?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
+                      2
+                    </div>
                   </div>
                   <div className="mt-2 md:mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
-                  <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
-                  <p className="font-bold text-xs md:text-sm truncate">{rankedData[1].full_name}</p>
-                  <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey])}</p>
-                  {activeRanking === 'global' && (
-                    <p className="text-[9px] opacity-75 mt-1">Nv. {calculateTier(rankedData[1].gamification_xp || 0).level}</p>
-                  )}
+                    <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
+                    <p className="font-bold text-xs md:text-sm truncate">{rankedData[1].full_name}</p>
+                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey], rankedData[1])}</p>
                   </div>
                 </motion.div>
               )}
@@ -597,10 +646,15 @@ export default function Gamification() {
                   <div className={`mt-2 md:mt-4 bg-gradient-to-b ${currentConfig.podiumColor} text-white rounded-2xl px-4 md:px-8 py-4 md:py-6 text-center shadow-2xl h-36 md:h-40 flex flex-col justify-center w-full`}>
                     <Trophy className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2" />
                     <p className="font-black text-sm md:text-lg truncate">{rankedData[0].full_name}</p>
-                    <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey])}</p>
+                    <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey], rankedData[0])}</p>
                     {activeRanking === 'global' && (
                       <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
-                        {calculateTier(rankedData[0].gamification_xp || 0).icon} Nv. {calculateTier(rankedData[0].gamification_xp || 0).level} - {calculateTier(rankedData[0].gamification_xp || 0).name}
+                        {calculateTier(rankedData[0].gamification_xp || 0).icon} Nv.{calculateTier(rankedData[0].gamification_xp || 0).level} {calculateTier(rankedData[0].gamification_xp || 0).name}
+                      </Badge>
+                    )}
+                    {activeRanking === 'walkers' && rankedData[0].unique_dogs > 0 && (
+                      <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
+                        🐕 {rankedData[0].unique_dogs} cães únicos
                       </Badge>
                     )}
                   </div>
@@ -633,10 +687,7 @@ export default function Gamification() {
                   <div className="mt-2 md:mt-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
                     <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
                     <p className="font-bold text-xs md:text-sm truncate">{rankedData[2].full_name}</p>
-                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[2][currentConfig.metricKey])}</p>
-                    {activeRanking === 'global' && (
-                      <p className="text-[9px] opacity-75 mt-1">Nv. {calculateTier(rankedData[2].gamification_xp || 0).level}</p>
-                    )}
+                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[2][currentConfig.metricKey], rankedData[2])}</p>
                   </div>
                 </motion.div>
               )}
@@ -666,7 +717,7 @@ export default function Gamification() {
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{rankUser.full_name}</p>
                     {activeRanking === 'global' && (
-                      <p className="text-xs text-gray-600">{calculateTier(rankUser.gamification_xp || 0).icon} Nível {calculateTier(rankUser.gamification_xp || 0).level} • {calculateTier(rankUser.gamification_xp || 0).name}</p>
+                      <p className="text-xs text-gray-600">Nível {rankUser.gamification_level || 1}</p>
                     )}
                     {activeRanking === 'walkers' && (
                       <p className="text-xs text-gray-600">Walker Verificado</p>
@@ -677,7 +728,7 @@ export default function Gamification() {
                   </div>
                   <div className="text-right">
                     <p className={`font-bold ${currentConfig.accentColor}`}>
-                      {currentConfig.formatMetric(rankUser[currentConfig.metricKey])}
+                      {currentConfig.formatMetric(rankUser[currentConfig.metricKey], rankUser)}
                     </p>
                     <p className="text-xs text-gray-500">{currentConfig.metricLabel}</p>
                   </div>
