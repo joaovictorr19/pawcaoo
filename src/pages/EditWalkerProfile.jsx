@@ -462,21 +462,23 @@ export default function EditWalkerProfile() {
                 />
               </div>
 
-              {/* Services */}
+              {/* Services - Structured */}
               <div className="border-t-2 border-green-100 pt-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xl font-bold">Serviços Oferecidos</Label>
-                  <Button type="button" variant="outline" onClick={addService}>
-                    <PlusCircle className="w-4 h-4 mr-2" />
-                    Adicionar Serviço
-                  </Button>
-                </div>
+                <Label className="text-xl font-bold">Serviços Oferecidos</Label>
+                
+                <Alert className="border-orange-300 bg-orange-50">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  <AlertDescription className="text-orange-900 text-sm">
+                    Alterações de preços e serviços necessitam aprovação do Admin antes de aparecerem no site.
+                  </AlertDescription>
+                </Alert>
 
+                {/* Display Current Services */}
                 {(formData.services_offered || []).map((service, index) => (
                   <Card key={index} className="p-4 bg-green-50 border-2 border-green-200">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">Serviço #{index + 1}</h4>
+                        <h4 className="font-semibold">{service.service_name}</h4>
                         <Button
                           type="button"
                           variant="ghost"
@@ -511,6 +513,11 @@ export default function EditWalkerProfile() {
                     </div>
                   </Card>
                 ))}
+
+                <Button type="button" variant="outline" onClick={addService} className="w-full">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Adicionar Novo Serviço
+                </Button>
               </div>
 
               {/* Dog Sizes */}
