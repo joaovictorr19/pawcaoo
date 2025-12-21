@@ -50,58 +50,27 @@ export default function EditWalkerProfile() {
 
   const submitEditRequestMutation = useMutation({
     mutationFn: async (changes) => {
-      // Sensitive fields that trigger re-approval
-      const sensitiveFields = ['photo_url', 'bio', 'hourly_rate', 'cover_photo_url', 'video_intro_url', 'experience_years'];
-      const hasSensitiveChanges = Object.keys(changes).some(key => sensitiveFields.includes(key));
+      const currentUser = await base44.auth.me();
       
-      // CRITICAL: Always preserve is_active status
-      const updateData = {
-        ...changes,
-        is_active: true
-      };
-
-      // Only change verification if there are sensitive changes AND currently verified
-      if (hasSensitiveChanges && walkerProfile.verification_status === 'verified') {
-        updateData.verification_status = 'pending';
-      }
-      
-      console.log('📝 Updating walker profile with:', updateData);
-      await base44.entities.WalkerProfile.update(walkerProfile.id, updateData);
-      
-      // Create edit request for admin tracking
-      try {
-        const currentUser = await base44.auth.me();
-        await base44.entities.ProfileEditRequest.create({
-          profile_type: 'walker',
-          profile_id: walkerProfile.id,
-          requester_email: currentUser.email,
-          requester_name: currentUser.full_name,
-          changes_requested: changes,
-          status: 'pending',
-          has_sensitive_changes: hasSensitiveChanges
-        });
-      } catch (err) {
-        console.error("Edit request tracking failed:", err);
-      }
-      
-      return { hasSensitiveChanges };
+      // CRITICAL: ALL changes require admin approval - create request only
+      await base44.entities.ProfileEditRequest.create({
+        profile_type: 'walker',
+        profile_id: walkerProfile.id,
+        requester_email: currentUser.email,
+        requester_name: currentUser.full_name,
+        changes_requested: changes,
+        status: 'pending'
+      });
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['myWalkerProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['editRequests'] });
-      
-      if (data.hasSensitiveChanges) {
-        toast.success('✅ Alterações enviadas para análise! Seu perfil permanece visível enquanto aguarda aprovação.', {
-          duration: 6000
-        });
-      } else {
-        toast.success('✅ Perfil atualizado com sucesso!');
-      }
-      
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
+      toast.success('✅ Alterações enviadas para aprovação do administrador. Suas mudanças serão aplicadas após revisão.', {
+        duration: 5000
+      });
       setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 2000);
     },
     onError: (error) => {
-      toast.error('Erro ao salvar: ' + error.message);
+      toast.error('Erro ao enviar: ' + error.message);
     }
   });
 
