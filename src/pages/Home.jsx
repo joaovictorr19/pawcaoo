@@ -475,8 +475,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   const { data: trainers, isLoading: loadingTrainers } = useQuery({
@@ -491,8 +492,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
@@ -589,8 +591,9 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   const getWalkerDistance = (walker) => {
