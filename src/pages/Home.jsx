@@ -869,6 +869,10 @@ export default function Home() {
   }, [walkers, searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, 
       selectedServiceTypes, selectedSpecializations, advancedFilters, userLocation]);
 
+  useEffect(() => {
+    console.log('🔍 Walkers Debug:', { total: walkers?.length, visible: filteredWalkers?.length });
+  }, [walkers, filteredWalkers]);
+
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
