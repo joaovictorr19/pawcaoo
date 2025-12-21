@@ -213,8 +213,24 @@ export default function AdminDashboard() {
   
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+      }
+    },
   });
+
+  // Wait for auth to complete before checking admin status
+  const [isAuthVerified, setIsAuthVerified] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (!loadingUser) {
+      setIsAuthVerified(true);
+    }
+  }, [loadingUser]);
 
   const isAdmin = user?.role === 'admin';
 
@@ -1240,15 +1256,21 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loadingUser) {
+  // Loading state - show while auth is being verified
+  if (loadingUser || !isAuthVerified) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
-        <Skeleton className="w-full max-w-7xl h-96" />
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-4 animate-pulse">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-gray-600 font-medium">Verificando permissões...</p>
+        </div>
       </div>
     );
   }
 
-  if (user?.role !== 'admin') {
+  if (!user || user?.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <Card className="glass-panel max-w-md border-0 shadow-2xl">
