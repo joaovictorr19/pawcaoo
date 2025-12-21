@@ -562,7 +562,7 @@ function LayoutContent({ children, currentPageName }) {
       }
 
       body, #root {
-      background: transparent !important;
+      background: #f8fafc;
       }
 
       /* CRITICAL: Prevent click blocking from overlays */
