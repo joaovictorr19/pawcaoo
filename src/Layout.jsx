@@ -733,13 +733,13 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* ========== HEADER PREMIUM FLUTUANTE ========== */}
       <header 
+        className={`
+          fixed top-[10px] z-[99999] px-4 py-3
+          ${authUser ? 'left-[15px] md:left-[295px]' : 'left-[15px]'}
+          right-[15px]
+        `}
         style={{
-          position: 'fixed',
-          top: '10px',
-          left: '15px',
-          right: '15px',
-          zIndex: 99999,
-          width: 'calc(100% - 30px)',
+          width: authUser ? undefined : 'calc(100% - 30px)',
           background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
@@ -747,7 +747,6 @@ function LayoutContent({ children, currentPageName }) {
           borderRadius: '20px',
           boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
         }}
-        className="px-4 py-3"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
           {/* Logo + Sidebar Trigger */}
@@ -814,11 +813,18 @@ function LayoutContent({ children, currentPageName }) {
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
-        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden bg-white/90 shrink-0 ${
-          colors?.isDarkMode 
-            ? 'border-slate-700/40 bg-slate-900/90' 
-            : 'border-white/40'
-        }`} style={{ height: 'calc(100vh - 100px)' }}>
+        <Sidebar 
+          className={`hidden md:flex border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden shrink-0 ${
+            colors?.isDarkMode 
+              ? 'border-slate-700/40' 
+              : 'border-white/40'
+          }`} 
+          style={{ 
+            height: 'calc(100vh - 100px)',
+            background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}>
           <SidebarHeader className={`border-b p-4 md:p-6 ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
