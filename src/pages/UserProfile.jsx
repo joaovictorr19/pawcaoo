@@ -756,12 +756,16 @@ export default function UserProfile() {
     queryKey: ['followersList', profileEmail],
     queryFn: () => base44.entities.SocialFollow.filter({ following_email: profileEmail }),
     enabled: showFollowers && !!profileEmail,
+    staleTime: 300000, // 5 minutes cache to prevent flicker
+    refetchOnWindowFocus: false
   });
 
   const { data: followingList = [] } = useQuery({
     queryKey: ['followingList', profileEmail],
     queryFn: () => base44.entities.SocialFollow.filter({ follower_email: profileEmail }),
     enabled: showFollowing && !!profileEmail,
+    staleTime: 300000, // 5 minutes cache
+    refetchOnWindowFocus: false
   });
 
   const { data: isFollowing = false } = useQuery({

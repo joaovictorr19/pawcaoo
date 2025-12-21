@@ -819,13 +819,73 @@ export default function AccountSettings() {
               {activeSection === "security" && (
                 <Card className="border-gray-200 shadow-sm">
                   <CardHeader>
-                    <CardTitle>Segurança</CardTitle>
+                    <CardTitle>Segurança e Login</CardTitle>
+                    <p className="text-sm text-gray-600">Gerencie suas credenciais de acesso</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm text-green-900">
-                        ✓ Sua conta está protegida pela autenticação Base44
-                      </p>
+                    
+                    {/* Alterar Email */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                        <Mail className="w-4 h-4" /> Alterar Email
+                      </h3>
+                      <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
+                        <div className="grid gap-2">
+                          <Label htmlFor="current-email">Email Atual</Label>
+                          <Input id="current-email" value={user?.email} disabled className="bg-gray-200" />
+                        </div>
+                        
+                        <div className="grid gap-2">
+                          <Label htmlFor="new-email">Novo Email</Label>
+                          <Input id="new-email" placeholder="seu.novo@email.com" />
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label htmlFor="email-password-confirm" className="text-red-600 font-medium">
+                            Confirme sua Senha Atual*
+                          </Label>
+                          <Input 
+                            id="email-password-confirm" 
+                            type="password" 
+                            placeholder="Digite sua senha para confirmar"
+                            className="border-red-200 focus:border-red-500"
+                          />
+                        </div>
+
+                        <Button className="w-full sm:w-auto mt-2" variant="secondary" onClick={() => toast.info("Funcionalidade de alteração de email requer validação por link enviado.")}>
+                          Atualizar Email
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Alterar Senha */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> Alterar Senha
+                      </h3>
+                      <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
+                        <div className="grid gap-2">
+                          <Label htmlFor="current-password">Senha Atual</Label>
+                          <Input id="current-password" type="password" placeholder="••••••••" />
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="new-password">Nova Senha</Label>
+                            <Input id="new-password" type="password" placeholder="Mínimo 8 caracteres" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                            <Input id="confirm-password" type="password" placeholder="Repita a nova senha" />
+                          </div>
+                        </div>
+
+                        <Button className="w-full sm:w-auto mt-2" onClick={() => toast.info("Solicitação de alteração de senha processada.")}>
+                          Redefinir Senha
+                        </Button>
+                      </div>
                     </div>
 
                     <Separator />
@@ -833,7 +893,7 @@ export default function AccountSettings() {
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                       <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
                       <p className="text-sm text-red-700 mb-4">
-                        Ações irreversíveis
+                        Encerrar sessão neste dispositivo
                       </p>
                       <Button
                         variant="outline"
@@ -841,7 +901,7 @@ export default function AccountSettings() {
                         onClick={handleLogout}
                       >
                         <LogOut className="w-4 h-4 mr-2" />
-                        Sair
+                        Sair da Conta
                       </Button>
                     </div>
                   </CardContent>
