@@ -69,6 +69,47 @@ export default function TrainerDetails() {
     initialData: [],
   });
 
+  // FETCH USER PROFILE TO GET PINNED BADGES
+  const { data: userProfile } = useQuery({
+    queryKey: ['trainerUserProfile', trainer?.created_by],
+    queryFn: async () => {
+      if (!trainer?.created_by) return null;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: trainer.created_by });
+      return profiles[0] || null;
+    },
+    enabled: !!trainer?.created_by,
+  });
+
+  // FETCH PINNED BADGES BASED ON USER PROFILE
+  const { data: trainerBadges = [] } = useQuery({
+    queryKey: ['trainerPinnedBadges', userProfile?.pinned_badge_ids, userProfile?.highlighted_emblem_id],
+    queryFn: async () => {
+      if (!userProfile) return [];
+      
+      // Priority: highlighted_emblem_id for slot 0, then pinned_badge_ids
+      const pinnedIds = [];
+      if (userProfile.highlighted_emblem_id) {
+        pinnedIds.push(userProfile.highlighted_emblem_id);
+      }
+      if (userProfile.pinned_badge_ids && userProfile.pinned_badge_ids.length > 0) {
+        pinnedIds.push(...userProfile.pinned_badge_ids.filter(id => id !== userProfile.highlighted_emblem_id));
+      }
+      
+      if (pinnedIds.length === 0) return [];
+      
+      // Fetch only the pinned badges
+      const allBadges = await base44.entities.UserBadge.filter({ user_email: trainer.created_by });
+      const badgeDefinitions = await base44.entities.BadgeDefinition.list();
+      
+      return pinnedIds.slice(0, 4).map(id => {
+        return allBadges.find(b => (b.badge_id || b.id) === id) || 
+               badgeDefinitions.find(b => b.id === id);
+      }).filter(Boolean);
+    },
+    enabled: !!userProfile && !!trainer?.created_by,
+    initialData: [],
+  });
+
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : trainer?.rating || 5;
@@ -231,8 +272,42 @@ export default function TrainerDetails() {
               </>
             }
           />
+
+          {/* Emblemas em Destaque do Perfil Pessoal */}
+          {trainerBadges.length > 0 && (
+            <div className="px-8 pt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Award className="w-5 h-5 text-purple-600" />
+                <h3 className="font-semibold text-gray-900 text-sm">
+                  Conquistas em Destaque ({trainerBadges.length})
+                </h3>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {trainerBadges.map((badge, idx) => (
+                  <div 
+                    key={`badge-${badge.id || idx}`}
+                    className="flex flex-col items-center text-center p-2 bg-purple-50 rounded-lg border border-purple-100 hover:shadow-sm transition-all" 
+                    title={badge.description}
+                  >
+                    <div className="text-2xl mb-1 h-8 w-8 flex items-center justify-center">
+                      {badge.image_png_file ? (
+                        <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" loading="lazy" />
+                      ) : badge.image_url ? (
+                        <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded" loading="lazy" />
+                      ) : (
+                        badge.icon
+                      )}
+                    </div>
+                    <span className="text-[10px] font-medium text-purple-900 leading-tight line-clamp-2">
+                      {badge.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
-          <div className="px-8 pb-8">
+          <div className="px-8 pb-8 pt-4">
             <ServiceList services={trainer.services_offered} type="trainer" />
 
             {/* Training Specialties - ENHANCED */}

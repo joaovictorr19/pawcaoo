@@ -182,15 +182,44 @@ export default function WalkerDetails() {
     initialData: [],
   });
 
-  // FETCH BADGES (Sync Count & List)
-  const { data: walkerBadges = [] } = useQuery({
-    queryKey: ['walkerBadges', walker?.created_by],
+  // FETCH USER PROFILE TO GET PINNED BADGES
+  const { data: userProfile } = useQuery({
+    queryKey: ['walkerUserProfile', walker?.created_by],
     queryFn: async () => {
-      if (!walker?.created_by) return [];
-      // Fetch UserBadge linking user_email to walker's email
-      return await base44.entities.UserBadge.filter({ user_email: walker.created_by });
+      if (!walker?.created_by) return null;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: walker.created_by });
+      return profiles[0] || null;
     },
     enabled: !!walker?.created_by,
+  });
+
+  // FETCH PINNED BADGES BASED ON USER PROFILE
+  const { data: walkerBadges = [] } = useQuery({
+    queryKey: ['walkerPinnedBadges', userProfile?.pinned_badge_ids, userProfile?.highlighted_emblem_id],
+    queryFn: async () => {
+      if (!userProfile) return [];
+      
+      // Priority: highlighted_emblem_id for slot 0, then pinned_badge_ids
+      const pinnedIds = [];
+      if (userProfile.highlighted_emblem_id) {
+        pinnedIds.push(userProfile.highlighted_emblem_id);
+      }
+      if (userProfile.pinned_badge_ids && userProfile.pinned_badge_ids.length > 0) {
+        pinnedIds.push(...userProfile.pinned_badge_ids.filter(id => id !== userProfile.highlighted_emblem_id));
+      }
+      
+      if (pinnedIds.length === 0) return [];
+      
+      // Fetch only the pinned badges
+      const allBadges = await base44.entities.UserBadge.filter({ user_email: walker.created_by });
+      const badgeDefinitions = await base44.entities.BadgeDefinition.list();
+      
+      return pinnedIds.slice(0, 4).map(id => {
+        return allBadges.find(b => (b.badge_id || b.id) === id) || 
+               badgeDefinitions.find(b => b.id === id);
+      }).filter(Boolean);
+    },
+    enabled: !!userProfile && !!walker?.created_by,
     initialData: [],
   });
 
