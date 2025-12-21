@@ -162,7 +162,7 @@ function ShopTab({ language }) {
                       <img
                         src={product.image_url}
                         alt={product.product_name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover aspect-square group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -216,7 +216,7 @@ function ShopTab({ language }) {
                       <img
                         src={partner.logo_url}
                         alt={partner.company_name}
-                        className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-contain aspect-square p-4 group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
                       <Store className="w-12 h-12 text-gray-300" />
@@ -475,8 +475,8 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent flicker
+    refetchOnWindowFocus: false,
   });
 
   const { data: trainers, isLoading: loadingTrainers } = useQuery({
@@ -491,6 +491,8 @@ export default function Home() {
       }
     },
     initialData: [],
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnWindowFocus: false,
   });
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
@@ -516,10 +518,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    staleTime: 30 * 1000, // 30s cache for emergencies
+    refetchOnWindowFocus: false,
+    refetchInterval: 60000, // Poll every minute
   });
 
   // Stats em tempo real
@@ -588,10 +589,8 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const getWalkerDistance = (walker) => {
