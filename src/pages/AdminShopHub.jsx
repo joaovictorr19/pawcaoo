@@ -26,6 +26,7 @@ export default function AdminShopHub() {
   // Products
   const [editingProduct, setEditingProduct] = useState(null);
   const [productForm, setProductForm] = useState({});
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
   
   // Announcements
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
@@ -495,11 +496,40 @@ export default function AdminShopHub() {
                       />
                     </div>
                     <div>
-                      <Label>URL da Imagem</Label>
+                      <Label>Imagem do Produto (Formato Quadrado)</Label>
                       <Input 
-                        value={productForm.image_url || ''} 
-                        onChange={(e) => setProductForm({...productForm, image_url: e.target.value})}
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          setUploadingProductImage(true);
+                          try {
+                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                            setProductForm({...productForm, image_url: file_url});
+                            toast.success('✅ Imagem carregada!');
+                          } catch (error) {
+                            toast.error('Erro ao carregar imagem');
+                          } finally {
+                            setUploadingProductImage(false);
+                          }
+                        }}
+                        disabled={uploadingProductImage}
                       />
+                      {uploadingProductImage && (
+                        <p className="text-xs text-blue-600 mt-1 animate-pulse">A carregar imagem...</p>
+                      )}
+                      {productForm.image_url && (
+                        <div className="mt-2">
+                          <img 
+                            src={productForm.image_url} 
+                            alt="Preview" 
+                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                            style={{ aspectRatio: '1/1' }}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-4">
                       <label className="flex items-center gap-2">
@@ -520,16 +550,27 @@ export default function AdminShopHub() {
                       </label>
                     </div>
                     <Button 
-                      onClick={() => createProductMutation.mutate({
-                        ...productForm,
-                        partner_id: 'platform',
-                        partner_name: 'PawCão',
-                        partner_company_email: 'admin@pawcao.net',
-                        moderation_status: 'approved'
-                      })}
-                      className="w-full"
+                      onClick={() => {
+                        if (!productForm.product_name || !productForm.price_euro) {
+                          toast.error('Preencha nome e preço!');
+                          return;
+                        }
+                        createProductMutation.mutate({
+                          ...productForm,
+                          partner_id: 'platform',
+                          partner_name: 'PawCão',
+                          partner_company_email: 'admin@pawcao.net',
+                          moderation_status: 'approved',
+                          is_available: productForm.is_available !== false,
+                          stock_quantity: parseInt(productForm.stock_quantity) || 0,
+                          price_euro: parseFloat(productForm.price_euro),
+                          points_cost: parseInt(productForm.points_cost) || 0
+                        });
+                      }}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      disabled={createProductMutation.isPending || uploadingProductImage}
                     >
-                      Criar Produto
+                      {createProductMutation.isPending ? 'A criar...' : 'Adicionar Produto'}
                     </Button>
                   </div>
                 </DialogContent>
