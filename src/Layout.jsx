@@ -810,7 +810,7 @@ function LayoutContent({ children, currentPageName }) {
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
-        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 m-4 mt-0 rounded-[2rem] h-[calc(100vh-7rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
+        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] h-[calc(100vh-7rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
           colors?.isDarkMode 
             ? 'border-slate-700/40' 
             : 'border-white/40'
