@@ -157,7 +157,7 @@ export default function ManageAvailability() {
     
     if (existing) {
       setTimeSlots(existing.time_slots || [{ start_time: "09:00", end_time: "18:00", is_available: true }]);
-      setIsDayOff(existing.is_fully_booked || false);
+      setIsDayOff(existing.is_day_off || existing.is_fully_booked || false);
     } else {
       setTimeSlots([{ start_time: "09:00", end_time: "18:00", is_available: true }]);
       setIsDayOff(false);

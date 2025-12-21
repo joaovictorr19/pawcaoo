@@ -27,39 +27,44 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
 
     if (isPast(date) && !isToday(date)) return { status: 'past' };
     
+    // PRIORITY 1: Day-off blocks everything
+    if (availability?.is_day_off) return { status: 'day_off' };
+    
     // Logic for Pending vs Accepted visualization
     const hasPending = dayBookings.some(b => b.status === 'pending');
-    const hasConfirmed = dayBookings.some(b => b.status === 'confirmed' || b.status === 'completed'); // Completed is also occupied/accepted
+    const hasConfirmed = dayBookings.some(b => b.status === 'confirmed' || b.status === 'completed');
     
-    // Prioridade: Confirmado > Pendente > Manualmente Lotado
+    // PRIORITY 2: Confirmed bookings
+    if (hasConfirmed) return { status: 'accepted', count: dayBookings.length };
     
-    if (hasConfirmed) return { status: 'accepted', count: dayBookings.length }; // Verde Escuro
-    if (hasPending) return { status: 'pending', count: dayBookings.length }; // Amarelo
+    // PRIORITY 3: Pending bookings
+    if (hasPending) return { status: 'pending', count: dayBookings.length };
     
-    if (availability?.is_fully_booked) return { status: 'booked' }; // Vermelho (Manual Block)
-    if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length }; // Azul (alguma atividade)
-    if (availability && !availability.is_fully_booked) return { status: 'available' }; // Verde Claro (Specific Availability)
+    // PRIORITY 4: Manually marked as fully booked
+    if (availability?.is_fully_booked) return { status: 'booked' };
     
-    // Fallback to General Availability (Profile)
+    // PRIORITY 5: Has some bookings
+    if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length };
+    
+    // PRIORITY 6: Specific availability defined
+    if (availability && !availability.is_fully_booked) return { status: 'available' };
+    
+    // PRIORITY 7: Fallback to General Availability (Profile)
     if (generalAvailability && generalAvailability.length > 0) {
-        // If user has ANY general availability selected (Morning, Afternoon, etc.), treat day as available unless specifically blocked
-        // This is a simplification. Ideally we map days of week or specific slots. 
-        // But per request: "check WalkerProfile.availability checkboxes"
         return { status: 'available' }; 
     }
 
-    return { status: 'unavailable' }; // Branco
+    return { status: 'unavailable' };
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      available: "bg-green-500 border-green-600 text-white hover:bg-green-600", // Verde para disponível (sólido)
-      partial: "bg-yellow-400 border-yellow-500 text-yellow-900", // Amarelo para pendente/parcial
-      booked: "bg-red-500 border-red-600 text-white", // Vermelho para lotado
-      
-      pending: "bg-yellow-400 border-yellow-500 text-yellow-900", // Amarelo para pendente
-      accepted: "bg-red-500 border-red-600 text-white", // Aceito = Ocupado para outros usuários (Vermelho)
-      
+      available: "bg-green-500 border-green-600 text-white hover:bg-green-600",
+      partial: "bg-yellow-400 border-yellow-500 text-yellow-900",
+      booked: "bg-red-500 border-red-600 text-white",
+      pending: "bg-yellow-400 border-yellow-500 text-yellow-900",
+      accepted: "bg-red-500 border-red-600 text-white",
+      day_off: "bg-gray-400 border-gray-500 text-white",
       past: "bg-gray-100 border-gray-200 text-gray-300",
       unavailable: "bg-white border-gray-200 text-gray-400"
     };
@@ -119,18 +124,21 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
             return (
               <button
                 key={date.toString()}
-                onClick={() => onDateSelect && status !== 'past' && onDateSelect(date)}
-                disabled={status === 'past'}
+                onClick={() => onDateSelect && status !== 'past' && status !== 'day_off' && onDateSelect(date)}
+                disabled={status === 'past' || status === 'day_off'}
                 className={`
                   aspect-square p-0.5 md:p-1 rounded-md md:rounded-lg border transition-all text-[10px] md:text-sm
                   ${getStatusColor(status)}
                   ${isSelected ? 'ring-1 md:ring-2 ring-green-500 scale-105 shadow-md' : ''}
-                  ${status === 'past' ? 'cursor-not-allowed opacity-50' : 'hover:scale-110 cursor-pointer'}
+                  ${status === 'past' || status === 'day_off' ? 'cursor-not-allowed opacity-70' : 'hover:scale-110 cursor-pointer'}
                   ${isToday(date) ? 'font-bold ring-1 ring-yellow-500' : ''}
                   flex flex-col items-center justify-center relative
                 `}
               >
                 <span className="font-semibold">{format(date, 'd')}</span>
+                {status === 'day_off' && (
+                  <span className="absolute bottom-0 text-[8px]">🚫</span>
+                )}
                 {count > 0 && (
                   <Badge className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 h-3 w-3 md:h-4 md:w-4 min-w-0 p-0 text-[8px] md:text-xs bg-blue-600 flex items-center justify-center">
                     {count}
@@ -163,6 +171,10 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
             <span className="text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-gray-400 border border-gray-500" />
+            <span className="text-[10px] md:text-xs text-gray-600">Folga</span>
           </div>
         </div>
       </CardContent>
