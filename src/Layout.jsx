@@ -732,14 +732,11 @@ function LayoutContent({ children, currentPageName }) {
       <DynamicBackground />
 
       {/* ========== HEADER PREMIUM FLUTUANTE ========== */}
+      {/* Desktop Header - Flutuante ao lado da Sidebar */}
       <header 
-        className={`
-          fixed top-[10px] z-[99999] px-4 py-3
-          ${authUser ? 'left-[15px] md:left-[295px]' : 'left-[15px]'}
-          right-[15px]
-        `}
+        className="hidden md:block fixed top-[10px] z-[99999] px-4 py-3 right-[15px]"
         style={{
-          width: authUser ? undefined : 'calc(100% - 30px)',
+          left: authUser ? '295px' : '15px',
           background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
@@ -749,18 +746,15 @@ function LayoutContent({ children, currentPageName }) {
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
-          {/* Logo + Sidebar Trigger */}
+          {/* Logo */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            {authUser && (
-              <SidebarTrigger className="md:hidden hover:bg-green-100 h-10 w-10 p-2 rounded-xl transition-colors flex-shrink-0" aria-label="Menu" />
-            )}
             <Link to={createPageUrl("Home")} className="flex-shrink-0 hover:opacity-80 transition-opacity">
               <PawCaoLogo size="small" showText={true} />
             </Link>
           </div>
 
-          {/* Menu de Navegação Desktop - Linha Única */}
-          <nav className="hidden md:flex items-center justify-center flex-1 px-4">
+          {/* Menu de Navegação Desktop */}
+          <nav className="flex items-center justify-center flex-1 px-4">
             <div className="flex items-center gap-1 lg:gap-2">
               {mainMenu.map((item) => (
                 <Link
@@ -780,8 +774,14 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </nav>
 
-          {/* Ações Direita */}
+          {/* Ações Direita + XP Badge */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {authUser && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-full border border-purple-300/30">
+                <span className="text-xs font-bold text-purple-700">⚡ {authUser.gamification_xp || 0} XP</span>
+              </div>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
@@ -807,9 +807,82 @@ function LayoutContent({ children, currentPageName }) {
           </div>
         </div>
       </header>
+
+      {/* Mobile Header - Minimalista, largura total */}
+      <header 
+        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-4 py-2"
+        style={{
+          background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: colors?.isDarkMode ? '1px solid rgba(148, 163, 184, 0.2)' : '1px solid rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <div className="flex items-center justify-between h-12">
+          {/* Logo + Menu Trigger */}
+          <div className="flex items-center gap-2">
+            {authUser && (
+              <SidebarTrigger className="hover:bg-gray-100 h-9 w-9 p-2 rounded-lg transition-colors" aria-label="Menu" />
+            )}
+            <Link to={createPageUrl("Home")} className="hover:opacity-80 transition-opacity">
+              <PawCaoLogo size="small" showText={false} />
+            </Link>
+          </div>
+
+          {/* Centro - XP Badge (se logado) */}
+          {authUser && (
+            <Link to={createPageUrl("Gamification")} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500/15 to-indigo-500/15 rounded-full border border-purple-200/50">
+              <span className="text-[10px] font-bold text-purple-600">⚡ {authUser.gamification_xp || 0}</span>
+            </Link>
+          )}
+
+          {/* Direita - Idioma + Login/Notificações */}
+          <div className="flex items-center gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Idioma">
+                  <Globe className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {authUser ? (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 relative"
+                onClick={() => setIsNotificationPanelOpen(true)}
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs px-3 h-8"
+                size="sm"
+              >
+                Entrar
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '90px' }}>
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '64px' }}>
+        {/* Espaçamento extra para desktop onde o header é flutuante */}
+        <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
