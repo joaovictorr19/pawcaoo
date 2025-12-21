@@ -961,7 +961,7 @@ export default function Home() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters]);
+  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
 
   if (userLoading) {
     return (
