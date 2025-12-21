@@ -467,8 +467,8 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.WalkerProfile.list('-rating', 100);
-        // Force refresh for user to see real profiles
+        // Fetch by created_date to ensure we see everyone, verified ones are priority but listing all active
+        const res = await base44.entities.WalkerProfile.list('-created_date', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
@@ -476,8 +476,8 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Disable cache to ensure updates
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
 
@@ -485,7 +485,8 @@ export default function Home() {
     queryKey: ['trainers'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.TrainerProfile.filter({ is_active: true }, '-rating');
+        // Fetch all trainers, sort by creation
+        const res = await base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("Trainers fetch error:", error);
