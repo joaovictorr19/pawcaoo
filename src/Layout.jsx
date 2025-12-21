@@ -1016,10 +1016,10 @@ function LayoutContent({ children, currentPageName }) {
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent" style={{ marginLeft: authUser ? '1rem' : '0' }}>
-            <header className={`mx-2 md:mx-6 mt-4 mb-2 px-2 md:px-6 py-2 md:py-4 sticky top-4 transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 md:ml-4 relative z-10 bg-transparent">
+            <header className={`mx-2 md:mx-6 mt-4 mb-2 px-2 md:px-6 py-2 md:py-4 sticky top-4 z-[999] transition-all duration-300 shadow-xl backdrop-blur-2xl rounded-[2rem] border ${
             colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
-            }`} style={{ zIndex: 100 }}>
+            }`}>
             <div className="flex items-center justify-between gap-2 w-full">
             <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
             {authUser && (
