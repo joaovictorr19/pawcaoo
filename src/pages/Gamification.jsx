@@ -220,12 +220,12 @@ export default function Gamification() {
   }, [activeRanking, allUsers, walkerProfiles, allBookings, allReviews, dogProfiles]);
 
   const currentXP = user?.gamification_xp || 0;
-  const currentLevel = user?.gamification_level || 1;
   const currentTier = calculateTier(currentXP);
+  const currentLevel = currentTier.level;
 
-  // Tier-based progress
+  // Tier-based progress (novo sistema de 100 níveis)
   const tierProgressPercentage = currentTier.progress || 0;
-  const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
+  const xpRemainingForNextLevel = currentTier.xpToNextLevel || 0;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
@@ -309,13 +309,6 @@ export default function Gamification() {
   };
 
   const currentConfig = rankingConfig[activeRanking];
-
-  // Donut chart data (based on tier progress, not level)
-  const xpInCurrentTier = currentTier.max !== Infinity ? currentXP - currentTier.min : currentXP;
-  const chartData = [
-    { name: 'Progress', value: xpInCurrentTier },
-    { name: 'Remaining', value: Math.max(0, xpRemainingForNextTier) }
-  ];
 
   return (
     <div className="min-h-screen pb-8 relative">
