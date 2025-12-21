@@ -1511,21 +1511,8 @@ export default function Home() {
                     background: activeTab === 'walkers' ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` : 'transparent'
                   }}
                 >
-                  <Dog className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {language === 'pt' ? 'Passeadores' : language === 'es' ? 'Paseadores' : 'Walkers'}
-                </TabsTrigger>
-
-                <TabsTrigger 
-                  value="trainers" 
-                  className={`text-xs md:text-sm font-semibold rounded-lg transition-all ${
-                    activeTab === 'trainers' ? 'text-white' : 'text-gray-700'
-                  }`}
-                  style={{
-                    background: activeTab === 'trainers' ? `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` : 'transparent'
-                  }}
-                >
-                  <Award className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {language === 'pt' ? 'Treinadores' : language === 'es' ? 'Entrenadores' : 'Trainers'}
+                  <Users className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                  {language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals'}
                 </TabsTrigger>
                 
                 <TabsTrigger 
@@ -1549,7 +1536,7 @@ export default function Home() {
                   className="text-xs md:text-sm font-semibold data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-lg transition-all"
                 >
                   <Zap className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  {t('emergency', language)}
+                  {language === 'pt' ? 'Passeio de Emergência' : t('emergency', language)}
                 </TabsTrigger>
               </TabsList>
 
@@ -1614,7 +1601,7 @@ export default function Home() {
                       <div className="flex items-center gap-2 flex-wrap mt-2">
                         <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
                           <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                          {filteredWalkers.length} {t('found', language)}
+                          {filteredWalkers.length + filteredTrainers.length} {t('found', language)}
                         </p>
                         
                         {selectedServiceTypes.length > 0 && (
@@ -1752,6 +1739,7 @@ export default function Home() {
                       ) : (
                         <>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 mb-8">
+                            {/* Render Walkers */}
                             {paginatedWalkers.map((walker) => (
                               <WalkerCard 
                                 key={walker.id} 
@@ -1759,6 +1747,14 @@ export default function Home() {
                                 distance={walker.distance}
                                 matchScore={walker.matchScore}
                                 showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                              />
+                            ))}
+                            {/* Render Trainers (appended to grid for now, or interleaved if we had a unified list) */}
+                            {filteredTrainers.map((trainer) => (
+                              <TrainerCard 
+                                key={trainer.id} 
+                                trainer={trainer}
+                                distance={trainer.distance}
                               />
                             ))}
                           </div>
@@ -1830,72 +1826,7 @@ export default function Home() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="trainers">
-                <div>
-                  <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
-                        {language === 'pt' ? 'Treinadores Disponíveis' : 
-                         language === 'es' ? 'Entrenadores Disponibles' : 
-                         'Available Trainers'}
-                      </h2>
-                      <div className="flex items-center gap-2 flex-wrap mt-2">
-                        <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                          {filteredTrainers.length} {t('found', language)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {loadingTrainers ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {[1, 2, 3].map(i => (
-                        <div key={`trainer-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : filteredTrainers.length === 0 ? (
-                    <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden">
-                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                        <Award className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                      </div>
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
-                        {language === 'pt' ? 'Nenhum Treinador encontrado.' : 
-                         language === 'es' ? 'No se encontraron entrenadores.' : 
-                         'No Trainers found.'}
-                      </h3>
-                      <p className="text-sm md:text-base text-gray-600 mb-4">
-                        {language === 'pt' ? 'Tente ajustar os filtros.' : 'Try adjusting filters.'}
-                      </p>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={resetTrainerFilters}
-                        className="text-white hover:opacity-90"
-                        style={{
-                          background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-                        }}
-                      >
-                        Limpar Filtros
-                      </Button>
-                    </Card>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 mb-8">
-                      {filteredTrainers.map((trainer) => (
-                        <TrainerCard 
-                          key={trainer.id} 
-                          trainer={trainer}
-                          distance={trainer.distance}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
+              {/* Trainers Tab Content Removed */}
 
               <TabsContent value="shop">
                 <ShopTab language={language} />
