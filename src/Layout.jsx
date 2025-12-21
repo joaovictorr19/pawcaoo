@@ -731,18 +731,23 @@ function LayoutContent({ children, currentPageName }) {
       {/* Dynamic Background - Orbs that change color based on user tier */}
       <DynamicBackground />
 
-      {/* ========== HEADER FIXO NO TOPO - ACIMA DE TUDO ========== */}
+      {/* ========== HEADER PREMIUM FLUTUANTE ========== */}
       <header 
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
+          top: '10px',
+          left: '15px',
+          right: '15px',
           zIndex: 99999,
-          width: '100%',
-          background: colors?.isDarkMode ? '#0f172a' : '#ffffff',
+          width: 'calc(100% - 30px)',
+          background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: colors?.isDarkMode ? '1px solid rgba(148, 163, 184, 0.2)' : '1px solid rgba(255, 255, 255, 0.4)',
+          borderRadius: '20px',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
         }}
-        className="px-4 py-3 shadow-lg border-b border-gray-200"
+        className="px-4 py-3"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
           {/* Logo + Sidebar Trigger */}
@@ -805,7 +810,7 @@ function LayoutContent({ children, currentPageName }) {
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '80px' }}>
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '90px' }}>
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
