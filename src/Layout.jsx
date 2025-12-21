@@ -1104,125 +1104,124 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Main Content Area with bottom padding for mobile nav */}
           <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent">
-          <div className="flex-1 relative pb-24 md:pb-8">
-            <div className="md:hidden">
-              <PullToRefresh>
-                <div className="relative mb-24" style={{ zIndex: 1 }}>
+            <div className="flex-1 relative pb-24 md:pb-8 px-0">
+              <div className="md:hidden">
+                <PullToRefresh>
+                  <div className="relative mb-24" style={{ zIndex: 1 }}>
+                    {children}
+                  </div>
+                </PullToRefresh>
+              </div>
+              <div className="hidden md:block h-full">
+                <div className="relative mb-8" style={{ zIndex: 1 }}>
                   {children}
                 </div>
-              </PullToRefresh>
-            </div>
-            <div className="hidden md:block h-full">
-              <div className="relative mb-8" style={{ zIndex: 1 }}>
-                {children}
               </div>
             </div>
-          </div>
-          </div>
 
-          {/* Mobile Navigation Bar */}
-          <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
+            {/* Mobile Navigation Bar */}
+            <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
 
-          <NotificationArea 
-            isOpen={isNotificationPanelOpen} 
-            onClose={() => setIsNotificationPanelOpen(false)} 
-          />
-
-          {/* Badge Notification */}
-          {newBadge && (
-            <BadgeNotification 
-              badge={newBadge}
-              onClose={() => setNewBadge(null)}
+            <NotificationArea 
+              isOpen={isNotificationPanelOpen} 
+              onClose={() => setIsNotificationPanelOpen(false)} 
             />
-          )}
 
-          {authUser && (
-            <OnboardingWizard 
-              user={authUser}
-              steps={[
-                {
-                  targetId: '#nav-home',
-                  title: 'Encontre Ajuda',
-                  content: 'Aqui podes encontrar passeadores e treinadores verificados perto de ti.'
-                },
-                {
-                  targetId: '#nav-gamification',
-                  title: 'Ganhe Prémios',
-                  content: 'Acumule XP em cada passeio e desbloqueie emblemas exclusivos para o teu perfil!'
-                },
-                {
-                  targetId: '#header-profile',
-                  title: 'O Teu Perfil',
-                  content: 'Aqui vês o teu nível, estatísticas e podes editar as tuas preferências.'
-                }
-              ]}
-            />
-          )}
+            {/* Badge Notification */}
+            {newBadge && (
+              <BadgeNotification 
+                badge={newBadge}
+                onClose={() => setNewBadge(null)}
+              />
+            )}
 
-          <footer className={`mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-10 ${
-            colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
-          }`}>
-            <div className="max-w-7xl mx-auto px-6 py-8">
-              <div className="grid md:grid-cols-4 gap-8 mb-8">
-                <div>
-                  <PawCaoLogo size="default" className="mb-4" />
-                  <p className="text-sm text-gray-600 mb-4">
-                    {t('footerTagline', language)}
-                  </p>
-                  <div className="space-y-2">
-                    <a href="mailto:support@pawcao.net" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                      support@pawcao.net
-                    </a>
-                    <a href="https://instagram.com/paw.cao" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
-                      <Camera className="w-4 h-4" />
-                      @Paw.cao
-                    </a>
+            {authUser && (
+              <OnboardingWizard 
+                user={authUser}
+                steps={[
+                  {
+                    targetId: '#nav-home',
+                    title: 'Encontre Ajuda',
+                    content: 'Aqui podes encontrar passeadores e treinadores verificados perto de ti.'
+                  },
+                  {
+                    targetId: '#nav-gamification',
+                    title: 'Ganhe Prémios',
+                    content: 'Acumule XP em cada passeio e desbloqueie emblemas exclusivos para o teu perfil!'
+                  },
+                  {
+                    targetId: '#header-profile',
+                    title: 'O Teu Perfil',
+                    content: 'Aqui vês o teu nível, estatísticas e podes editar as tuas preferências.'
+                  }
+                ]}
+              />
+            )}
+
+            <footer className={`mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-10 ${
+              colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
+            }`}>
+              <div className="max-w-7xl mx-auto px-6 py-8">
+                <div className="grid md:grid-cols-4 gap-8 mb-8">
+                  <div>
+                    <PawCaoLogo size="default" className="mb-4" />
+                    <p className="text-sm text-gray-600 mb-4">
+                      {t('footerTagline', language)}
+                    </p>
+                    <div className="space-y-2">
+                      <a href="mailto:support@pawcao.net" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
+                        <MessageCircle className="w-4 h-4" />
+                        support@pawcao.net
+                      </a>
+                      <a href="https://instagram.com/paw.cao" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
+                        <Camera className="w-4 h-4" />
+                        @Paw.cao
+                      </a>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
+                      <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
+                      <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
+                      <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('forProfessionals', language)}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
+                      <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
+                      <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
+                      <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
+                      <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
+                      <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
+                      <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
+                      <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
+                    </ul>
                   </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
-                    <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
-                    <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
-                    <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">{t('forProfessionals', language)}</h4>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
-                    <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
-                    <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
-                    <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
-                    <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
-                    <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
-                    <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
-                    <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
-                  </ul>
+                
+                <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <p className="text-sm text-gray-600">
+                    © 2025 PawCão. {t('allRightsReserved', language)}.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <PawCaoLogo size="small" showText={false} />
+                    <span className="text-sm text-green-700 font-semibold">
+                      ✓ {t('verifiedProfessionals', language)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              
-              <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-sm text-gray-600">
-                  © 2025 PawCão. {t('allRightsReserved', language)}.
-                </p>
-                <div className="flex items-center gap-2">
-                  <PawCaoLogo size="small" showText={false} />
-                  <span className="text-sm text-green-700 font-semibold">
-                    ✓ {t('verifiedProfessionals', language)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </footer>
+            </footer>
           </div>
         </div>
       </div>
