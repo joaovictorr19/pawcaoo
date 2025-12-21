@@ -806,10 +806,10 @@ export default function Home() {
         const matchesInstantBooking = !advancedFilters.instantBooking ||
                                        walker.instant_booking === true;
         
-        // Filtros de segurança obrigatórios para exibição pública (Remove não aceites/não verificados)
-        if (!walker.is_active) return false;
-        if (walker.verification_status !== 'verified') return false;
-
+        // Filtros básicos (Ocultar apenas se explicitamente rejeitado ou suspenso)
+        if (walker.verification_status === 'rejected') return false;
+        // if (!walker.is_active) return false; // Mantido comentado para não ocultar perfis em edição
+        
         // Simplify filtering logic to avoid false negatives
         if (!matchesLocation) return false;
         if (!matchesSize) return false;
