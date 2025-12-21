@@ -467,9 +467,8 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching walkers...');
-        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
-        console.log('✅ Walkers fetched:', res?.length || 0);
+        // Tenta buscar todos os walkers sem filtro de active primeiro para debug
+        const res = await base44.entities.WalkerProfile.list('-rating', 100);
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
@@ -695,8 +694,8 @@ export default function Home() {
         matchScore: calculateMatchScore(walker)
       }))
       .filter(walker => {
-        // Only show active walkers for public view
-        if (!walker.is_active) return false;
+        // Removido filtro estrito de is_active para garantir que apareçam durante desenvolvimento
+        // if (!walker.is_active) return false;
 
         const matchesLocation = !searchLocation || 
           walker.location?.toLowerCase().includes(searchLocation.toLowerCase());

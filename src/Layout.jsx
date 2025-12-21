@@ -1034,7 +1034,6 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
             </div>
 
-            {authUser && (
             <div className="hidden md:flex items-center justify-center gap-2 flex-1 min-w-0">
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                 {mainMenu.map((item) => (
@@ -1064,9 +1063,9 @@ function LayoutContent({ children, currentPageName }) {
                   <User className={`w-3.5 h-3.5 flex-shrink-0 ${location.pathname.includes('UserProfile') ? "text-white" : "text-gray-500"}`} />
                   <span className="hidden lg:inline">{t('myProfile', language)}</span>
                 </Link>
+                )}
               </div>
             </div>
-            )}
 
             <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
             <DropdownMenu>
