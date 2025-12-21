@@ -78,36 +78,48 @@ export const ThemeProvider = ({ children }) => {
       const tier = calculateTier(xp);
       setTierTheme({
         name: tier.name,
-        colors: tier.colors,
+        level: tier.level,
+        colors: {
+          primary: tier.primary,
+          gradient: tier.gradient,
+          orb1: tier.orb1,
+          orb2: tier.orb2,
+          text: tier.text,
+          bg: tier.bg
+        },
         icon: tier.icon,
-        progress: tier.progress
+        progress: tier.progress,
+        isDark: tier.isDark,
+        isLegendary: tier.isLegendary
       });
 
       // Inject CSS Variables into :root for dynamic orbs
       const root = document.documentElement;
-      root.style.setProperty('--color-orb-1', tier.colors.orb1 || tier.colors.primary);
-      root.style.setProperty('--color-orb-2', tier.colors.orb2 || tier.colors.primary);
-      root.style.setProperty('--color-primary', tier.colors.primary);
+      root.style.setProperty('--color-orb-1', tier.orb1 || tier.primary);
+      root.style.setProperty('--color-orb-2', tier.orb2 || tier.primary);
+      root.style.setProperty('--color-primary', tier.primary);
 
-      // Apply Cosmos dark mode
-      if (tier.name === 'Cosmos') {
+      // Apply dark mode for dark tiers (Obsidiana, Cosmos)
+      if (tier.isDark) {
         document.documentElement.classList.add('dark-cosmos');
       } else {
         document.documentElement.classList.remove('dark-cosmos');
       }
 
-      console.log(`🎨 Tema ${tier.name} aplicado | XP: ${xp} | Cores: ${tier.colors.orb1 || tier.colors.primary}, ${tier.colors.orb2 || tier.colors.primary}`);
+      console.log(`🎨 Tema ${tier.name} (Nv.${tier.level}) aplicado | XP: ${xp}`);
     }
   }, [userProfile]);
 
   const value = {
     tier: tierTheme.name,
+    level: tierTheme.level || 1,
     colors: {
       ...tierTheme.colors,
-      isDarkMode: tierTheme.name === 'Cosmos'
+      isDarkMode: tierTheme.isDark || false
     },
     icon: tierTheme.icon,
     progress: tierTheme.progress || 0,
+    isLegendary: tierTheme.isLegendary || false
   };
 
   return (
