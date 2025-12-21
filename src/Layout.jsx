@@ -518,6 +518,8 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
+      {/* TESTE DE VIDA - REMOVER DEPOIS */}
+      <div style={{background: 'red', color: 'white', padding: '20px', textAlign: 'center', zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, width: '100%'}}>ESTOU VIVO</div>
       <Helmet>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
