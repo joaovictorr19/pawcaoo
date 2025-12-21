@@ -518,8 +518,6 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      {/* TESTE DE VIDA - REMOVER DEPOIS */}
-      <div style={{background: 'red', color: 'white', padding: '20px', textAlign: 'center', zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, width: '100%'}}>ESTOU VIVO</div>
       <Helmet>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
@@ -741,11 +739,10 @@ function LayoutContent({ children, currentPageName }) {
           left: 0,
           right: 0,
           zIndex: 99999,
-          width: '100vw',
+          width: '100%',
+          background: colors?.isDarkMode ? '#0f172a' : '#ffffff',
         }}
-        className={`px-4 py-3 shadow-lg backdrop-blur-xl border-b ${
-          colors?.isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'
-        }`}
+        className="px-4 py-3 shadow-lg border-b border-gray-200"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
           {/* Logo + Sidebar Trigger */}
@@ -808,15 +805,15 @@ function LayoutContent({ children, currentPageName }) {
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 pt-20">
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '80px' }}>
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
-        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] h-[calc(100vh-7rem)] shadow-xl shadow-blue-900/5 overflow-hidden bg-transparent shrink-0 ${
+        <Sidebar className={`hidden md:flex backdrop-blur-2xl border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden bg-white/90 shrink-0 ${
           colors?.isDarkMode 
-            ? 'border-slate-700/40' 
+            ? 'border-slate-700/40 bg-slate-900/90' 
             : 'border-white/40'
-        }`}>
+        }`} style={{ height: 'calc(100vh - 100px)' }}>
           <SidebarHeader className={`border-b p-4 md:p-6 ${
             colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
           }`}>
