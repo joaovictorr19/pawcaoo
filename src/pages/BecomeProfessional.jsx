@@ -64,6 +64,13 @@ export default function BecomeProfessional() {
     training_methodologies: [],
     consultation_options: [],
     training_philosophy: "",
+    // Services check
+    hasBoarding: false,
+    boardingPrice: 25,
+    hasHouseSitting: false,
+    houseSittingPrice: 30,
+    hasDropIn: false,
+    dropInPrice: 15,
   });
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -92,6 +99,8 @@ export default function BecomeProfessional() {
           experience_years: data.experience_years,
           phone: data.phone,
           whatsapp_number: data.whatsapp_number,
+          is_active: false, // Force inactive
+          verification_status: "pending", // Force pending
           dog_sizes: data.dog_sizes,
           dog_breeds_handled: data.dog_breeds_handled,
           breed_specialization: data.breed_specialization,
@@ -216,11 +225,53 @@ export default function BecomeProfessional() {
       return;
     }
 
+    // Construct Services Array
+    const services = [];
+    // Default Walk
+    services.push({
+      service_name: 'Dog Walking',
+      description: 'Passeio regular para exercício e necessidades.',
+      duration_options: ['30 min', '60 min'],
+      price: rate,
+      custom_pricing: false
+    });
+
+    if (formData.hasBoarding) {
+      services.push({
+        service_name: 'Dog Boarding',
+        description: 'Cuidado 24/7, ambiente familiar, fotos diárias.',
+        duration_options: ['24h'],
+        price: parseFloat(formData.boardingPrice) || 25,
+        custom_pricing: true
+      });
+    }
+    if (formData.hasHouseSitting) {
+      services.push({
+        service_name: 'House Sitting',
+        description: 'Cão fica em casa, segurança da casa, mantém a rotina.',
+        duration_options: ['24h'],
+        price: parseFloat(formData.houseSittingPrice) || 30,
+        custom_pricing: true
+      });
+    }
+    if (formData.hasDropIn) {
+      services.push({
+        service_name: 'Drop-in Visits',
+        description: '30-60 min, alimentação, medicação.',
+        duration_options: ['30 min', '60 min'],
+        price: parseFloat(formData.dropInPrice) || 15,
+        custom_pricing: true
+      });
+    }
+
     await createProfileMutation.mutateAsync({
       ...formData,
       hourly_rate: rate,
+      services_offered: services,
       experience_years: isNaN(exp) ? 0 : exp,
       age: isNaN(ageNum) ? 0 : ageNum,
+      is_active: false, // Aprovação obrigatória
+      verification_status: 'pending' // Estado pendente
     });
   };
 
@@ -485,11 +536,99 @@ export default function BecomeProfessional() {
                           />
                         </div>
 
-                        {/* Custom Services */}
-                        <CustomServiceManager
-                          services={formData.services_offered}
-                          onUpdate={(services) => setFormData({...formData, services_offered: services})}
-                        />
+                        {/* Fixed Service Selection */}
+                        <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                            Serviços Adicionais
+                          </h3>
+                          
+                          {/* Alojamento */}
+                          <div className="flex items-start gap-4">
+                            <div className="flex items-center h-10">
+                              <Checkbox
+                                id="hasBoarding"
+                                checked={formData.hasBoarding}
+                                onCheckedChange={(c) => setFormData({...formData, hasBoarding: c})}
+                              />
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex justify-between items-center">
+                                <Label htmlFor="hasBoarding" className="font-semibold text-gray-800">Alojamento para Cães (Boarding)</Label>
+                                {formData.hasBoarding && (
+                                  <div className="relative w-24">
+                                    <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                    <Input 
+                                      type="number" 
+                                      className="h-8 pl-5 text-sm" 
+                                      placeholder="25"
+                                      value={formData.boardingPrice}
+                                      onChange={(e) => setFormData({...formData, boardingPrice: e.target.value})}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600">Cuidado 24/7 na sua casa, ambiente familiar, fotos diárias.</p>
+                            </div>
+                          </div>
+
+                          {/* Casa Sitting */}
+                          <div className="flex items-start gap-4">
+                            <div className="flex items-center h-10">
+                              <Checkbox
+                                id="hasHouseSitting"
+                                checked={formData.hasHouseSitting}
+                                onCheckedChange={(c) => setFormData({...formData, hasHouseSitting: c})}
+                              />
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex justify-between items-center">
+                                <Label htmlFor="hasHouseSitting" className="font-semibold text-gray-800">Casa-Sitting</Label>
+                                {formData.hasHouseSitting && (
+                                  <div className="relative w-24">
+                                    <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                    <Input 
+                                      type="number" 
+                                      className="h-8 pl-5 text-sm" 
+                                      placeholder="30"
+                                      value={formData.houseSittingPrice}
+                                      onChange={(e) => setFormData({...formData, houseSittingPrice: e.target.value})}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600">Você fica na casa do cliente. Segurança da casa, mantém a rotina do cão.</p>
+                            </div>
+                          </div>
+
+                          {/* Visitas */}
+                          <div className="flex items-start gap-4">
+                            <div className="flex items-center h-10">
+                              <Checkbox
+                                id="hasDropIn"
+                                checked={formData.hasDropIn}
+                                onCheckedChange={(c) => setFormData({...formData, hasDropIn: c})}
+                              />
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex justify-between items-center">
+                                <Label htmlFor="hasDropIn" className="font-semibold text-gray-800">Visitas de Controlo (Drop-in)</Label>
+                                {formData.hasDropIn && (
+                                  <div className="relative w-24">
+                                    <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                    <Input 
+                                      type="number" 
+                                      className="h-8 pl-5 text-sm" 
+                                      placeholder="15"
+                                      value={formData.dropInPrice}
+                                      onChange={(e) => setFormData({...formData, dropInPrice: e.target.value})}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600">Visitas de 30-60 min para alimentação, medicação e companhia.</p>
+                            </div>
+                          </div>
+                        </div>
 
                         {/* Service Areas */}
                         <div className="space-y-2">

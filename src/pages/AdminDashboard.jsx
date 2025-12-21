@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -1705,6 +1704,19 @@ export default function AdminDashboard() {
 
           <TabsContent value="profile_edits">
             <div className="mt-6">
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      Aqui você aprova alterações sensíveis (Preço, Serviços) feitas pelos profissionais.
+                      Alterações de bio ou fotos são aplicadas automaticamente.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <ProfileEditRequests />
             </div>
           </TabsContent>

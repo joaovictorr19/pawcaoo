@@ -466,7 +466,89 @@ export default function WalkerDetails() {
                   </div>
                 )}
 
-                <ServiceList services={walker.services_offered || []} type="walker" />
+                {walker.services_offered?.length > 0 && (
+                  <div className="mb-8 space-y-4">
+                    <h3 className="font-bold text-gray-900 flex items-center gap-2 text-lg">
+                      <Award className="w-5 h-5 text-indigo-600" />
+                      Serviços Disponíveis
+                    </h3>
+                    <div className="grid gap-4">
+                      {walker.services_offered.map((service, idx) => {
+                        const isBoarding = service.service_name?.toLowerCase().includes('boarding') || service.service_name?.toLowerCase().includes('alojamento');
+                        const isHouseSitting = service.service_name?.toLowerCase().includes('house') || service.service_name?.toLowerCase().includes('casa');
+                        const isDropIn = service.service_name?.toLowerCase().includes('drop') || service.service_name?.toLowerCase().includes('visita');
+                        
+                        let icon = <Dog className="w-6 h-6 text-gray-600" />;
+                        let bgColor = "bg-gray-50";
+                        let borderColor = "border-gray-200";
+
+                        if (isBoarding) {
+                          icon = <MessageCircle className="w-6 h-6 text-purple-600" />; // Home icon replacement
+                          bgColor = "bg-purple-50/50";
+                          borderColor = "border-purple-100";
+                        } else if (isHouseSitting) {
+                          icon = <ShieldCheck className="w-6 h-6 text-blue-600" />;
+                          bgColor = "bg-blue-50/50";
+                          borderColor = "border-blue-100";
+                        } else if (isDropIn) {
+                          icon = <Clock className="w-6 h-6 text-green-600" />;
+                          bgColor = "bg-green-50/50";
+                          borderColor = "border-green-100";
+                        }
+
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 rounded-2xl border transition-all hover:shadow-lg ${bgColor} ${borderColor}`}
+                          >
+                            <div className="flex gap-4 items-start">
+                              <div className="mt-1 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                                {icon}
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900 text-lg">{service.service_name}</p>
+                                <p className="text-sm text-gray-600 mt-1 leading-relaxed max-w-md">
+                                  {service.description || (isBoarding 
+                                    ? "Cuidado 24/7, ambiente familiar, fotos diárias." 
+                                    : isHouseSitting 
+                                    ? "Cão fica em casa, segurança da casa, mantém a rotina."
+                                    : isDropIn 
+                                    ? "30-60 min, alimentação, medicação." 
+                                    : "Passeio profissional.")}
+                                </p>
+                                <div className="flex gap-2 mt-2">
+                                  {service.duration_options?.map((dur, i) => (
+                                    <Badge key={i} variant="secondary" className="bg-white/80 backdrop-blur-sm text-xs border border-gray-200">
+                                      {dur}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-4 sm:mt-0 text-right w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3">
+                              <div className="bg-white px-4 py-1.5 rounded-xl shadow-sm border border-gray-100">
+                                <span className="block font-black text-2xl text-gray-900">€{service.price}</span>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                className="bg-gray-900 text-white hover:bg-gray-800 shadow-md px-6 rounded-lg font-semibold"
+                                onClick={() => {
+                                  const bookingSection = document.getElementById('booking-section');
+                                  if (bookingSection) {
+                                    bookingSection.scrollIntoView({ behavior: 'smooth' });
+                                    toast.info(`Selecione uma data para agendar ${service.service_name}`);
+                                  }
+                                }}
+                              >
+                                Solicitar
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Compact Details Section */}
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
