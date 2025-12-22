@@ -97,7 +97,7 @@ export default function DigitalWalletPass({
       >
         {/* === HEADER === */}
         <div 
-          className="relative h-[120px] px-5 pt-4 pb-12"
+          className="relative h-[140px] px-5 pt-4 pb-16"
           style={{ 
             background: `linear-gradient(135deg, ${levelColor}, ${levelColor}dd)`,
           }}
@@ -110,13 +110,16 @@ export default function DigitalWalletPass({
             }}
           />
           
-          {/* Logo + Badge */}
-          <div className="relative z-10 flex items-start justify-between">
+          {/* Logo Oficial + Badge Verificado */}
+          <div className="relative z-10 flex items-center justify-between">
+            {/* Logo real */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                <span className="text-white text-lg">🐕</span>
-              </div>
-              <span className="text-white font-bold text-sm tracking-wide">PawCão</span>
+              <img 
+                src="/logo.png" 
+                alt="PawCão Logo"
+                className="h-8 w-auto object-contain"
+                crossOrigin="anonymous"
+              />
             </div>
             
             {isVerified ? (
@@ -132,22 +135,22 @@ export default function DigitalWalletPass({
             )}
           </div>
 
-          {/* Tier badge decorativo */}
-          <div className="absolute bottom-3 left-5 flex items-center gap-2">
-            <div className="text-white/80 text-xs font-semibold uppercase tracking-widest">
+          {/* Digital Pass - posicionado com z-index alto e espaço adequado */}
+          <div className="absolute bottom-4 left-5 z-30">
+            <div className="text-white font-bold text-sm uppercase tracking-[0.2em] drop-shadow-md">
               Digital Pass
             </div>
           </div>
         </div>
 
         {/* === BODY === */}
-        <div className="relative bg-gradient-to-b from-gray-50 to-white px-5 pt-16 pb-5">
-          {/* Foto flutuante (sobreposição) */}
+        <div className="relative bg-gradient-to-b from-gray-50 to-white px-5 pt-20 pb-5">
+          {/* Foto flutuante (sobreposição) - posicionada abaixo do "Digital Pass" */}
           <div 
-            className="absolute left-1/2 -translate-x-1/2 -top-14 z-20"
+            className="absolute left-1/2 -translate-x-1/2 -top-12 z-10"
           >
             <div 
-              className="w-28 h-28 rounded-2xl overflow-hidden shadow-xl border-4 border-white"
+              className="w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white"
               style={{ 
                 boxShadow: `0 8px 32px ${levelColor}40`
               }}
@@ -161,7 +164,7 @@ export default function DigitalWalletPass({
                 />
               ) : (
                 <div 
-                  className="w-full h-full flex items-center justify-center text-white text-4xl font-black"
+                  className="w-full h-full flex items-center justify-center text-white text-3xl font-black"
                   style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
                 >
                   {name.charAt(0).toUpperCase()}
@@ -171,7 +174,7 @@ export default function DigitalWalletPass({
           </div>
 
           {/* Nome e Título */}
-          <div className="text-center mt-2 mb-6">
+          <div className="text-center mt-0 mb-6">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight mb-1">
               {name}
             </h1>
