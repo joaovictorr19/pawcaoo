@@ -1445,54 +1445,374 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="space-y-6 mt-6">
+              {/* Financial Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <DollarSign className="w-8 h-8 text-green-600" />
+                      <Badge className="bg-green-100 text-green-700">Total</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">Volume de Transações</p>
+                    <p className="text-2xl font-bold text-green-700">
+                      €{allPayments.reduce((sum, p) => sum + (p.total_amount || 0), 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <TrendingUp className="w-8 h-8 text-blue-600" />
+                      <Badge className="bg-blue-100 text-blue-700">Plataforma</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">Receita da Plataforma</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      €{allPayments.reduce((sum, p) => sum + (p.platform_fee || 0), 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Crown className="w-8 h-8 text-purple-600" />
+                      <Badge className="bg-purple-100 text-purple-700">Subscrições</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">Receita Mensal Recorrente</p>
+                    <p className="text-2xl font-bold text-purple-700">
+                      €{(() => {
+                        const subscriptions = allUsers.map(u => u.email);
+                        return '0.00';
+                      })()}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Calendar className="w-8 h-8 text-orange-600" />
+                      <Badge className="bg-orange-100 text-orange-700">Hoje</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">Reservas Hoje</p>
+                    <p className="text-2xl font-bold text-orange-700">
+                      {allBookings.filter(b => {
+                        const bookingDate = new Date(b.walk_date || b.session_date || b.created_date);
+                        const today = new Date();
+                        return bookingDate.toDateString() === today.toDateString();
+                      }).length}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* User Distribution */}
               <Card className="glass-panel border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>{t('financialOverview', language)}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-gray-700" />
+                    Distribuição de Utilizadores
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <p className="text-sm text-gray-600">{t('totalTransactionVolume', language)}</p>
-                      <p className="text-2xl font-bold text-green-700">
-                        €{allPayments.reduce((sum, p) => sum + (p.total_amount || 0), 0).toLocaleString()}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <p className="text-sm text-gray-600 mb-1">Clientes</p>
+                      <p className="text-3xl font-bold text-blue-700">
+                        {allUsers.filter(u => !u.account_type || u.account_type === 'owner').length}
                       </p>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-600">{t('platformRevenue', language)}</p>
-                      <p className="text-2xl font-bold text-blue-700">
-                        €{allPayments.reduce((sum, p) => sum + (p.platform_fee || 0), 0).toLocaleString()}
+                    <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                      <p className="text-sm text-gray-600 mb-1">Passeadores</p>
+                      <p className="text-3xl font-bold text-green-700">
+                        {allUsers.filter(u => u.account_type === 'walker' || u.account_type === 'both').length}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                      <p className="text-sm text-gray-600 mb-1">Treinadores</p>
+                      <p className="text-3xl font-bold text-purple-700">
+                        {allUsers.filter(u => u.account_type === 'trainer' || u.account_type === 'both').length}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                      <p className="text-sm text-gray-600 mb-1">Empresas</p>
+                      <p className="text-3xl font-bold text-orange-700">
+                        {allUsers.filter(u => u.account_type === 'company').length}
                       </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Activity Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-indigo-600" />
+                      Reservas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Total</span>
+                        <Badge variant="outline">{allBookings.length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Concluídas</span>
+                        <Badge className="bg-green-500">{allBookings.filter(b => b.status === 'completed').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Em Progresso</span>
+                        <Badge className="bg-blue-500">{allBookings.filter(b => b.status === 'in_progress' || b.status === 'confirmed').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Canceladas</span>
+                        <Badge className="bg-gray-400">{allBookings.filter(b => b.status === 'cancelled').length}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Heart className="w-5 h-5 text-pink-600" />
+                      Adoções
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Anúncios Ativos</span>
+                        <Badge className="bg-pink-500">{adoptionListings.filter(a => a.status === 'available').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Candidaturas</span>
+                        <Badge variant="outline">{adoptionApplications.length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Adotados</span>
+                        <Badge className="bg-green-500">{adoptionListings.filter(a => a.status === 'adopted').length}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Star className="w-5 h-5 text-yellow-600" />
+                      Avaliações
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Total</span>
+                        <Badge variant="outline">{allReviews.length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Média</span>
+                        <Badge className="bg-yellow-500">
+                          {allReviews.length > 0 
+                            ? (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length).toFixed(1)
+                            : '0.0'} ⭐
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">5 Estrelas</span>
+                        <Badge className="bg-green-500">{allReviews.filter(r => r.rating === 5).length}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Professional Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-green-600" />
+                      Profissionais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Passeadores Verificados</span>
+                        <Badge className="bg-green-500">{allWalkers.filter(w => w.verification_status === 'verified').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Passeadores Ativos</span>
+                        <Badge className="bg-blue-500">{allWalkers.filter(w => w.is_active).length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Pendentes Verificação</span>
+                        <Badge className="bg-orange-500">{allWalkers.filter(w => w.verification_status === 'pending').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Treinadores Ativos</span>
+                        <Badge className="bg-purple-500">{allTrainers.filter(t => t.is_active).length}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Store className="w-5 h-5 text-indigo-600" />
+                      Loja & Parcerias
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Empresas Ativas</span>
+                        <Badge className="bg-indigo-500">{companies.filter(c => c.is_active).length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Produtos Ativos</span>
+                        <Badge className="bg-blue-500">{allPartnerProducts.filter(p => p.is_available && p.moderation_status === 'approved').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Serviços Ativos</span>
+                        <Badge className="bg-green-500">{allPartnerServices.filter(s => s.is_active && s.moderation_status === 'approved').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Anúncios Ativos</span>
+                        <Badge className="bg-purple-500">
+                          {allAnnouncements.filter(a => {
+                            const now = new Date();
+                            const start = a.start_date ? new Date(a.start_date) : null;
+                            const end = a.end_date ? new Date(a.end_date) : null;
+                            return a.is_active && a.moderation_status === 'approved' && start && end && now >= start && now <= end;
+                          }).length}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Activity */}
               <Card className="glass-panel border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>{t('userDistribution', language)}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-gray-700" />
+                    Atividade Recente
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span>{t('clients', language)} (Owners)</span>
-                      <Badge className="bg-blue-500">{allUsers.filter(u => u.account_type === 'owner').length}</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>{t('walkers', language)}</span>
-                      <Badge className="bg-green-500">{allUsers.filter(u => u.account_type === 'walker' || u.account_type === 'both').length}</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>{t('trainers', language)}</span>
-                      <Badge className="bg-purple-500">{allUsers.filter(u => u.account_type === 'trainer' || u.account_type === 'both').length}</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>{t('companies', language)}</span>
-                      <Badge className="bg-orange-500">{allUsers.filter(u => u.account_type === 'company').length}</Badge>
-                    </div>
+                  <div className="space-y-2">
+                    {allBookings.slice(0, 5).map((booking, idx) => (
+                      <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${
+                            booking.status === 'completed' ? 'bg-green-500' :
+                            booking.status === 'in_progress' ? 'bg-blue-500' :
+                            booking.status === 'confirmed' ? 'bg-yellow-500' : 'bg-gray-400'
+                          }`} />
+                          <div>
+                            <p className="text-sm font-medium">{booking.owner_name} → {booking.walker_name || booking.trainer_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {format(new Date(booking.created_date), 'dd/MM/yyyy HH:mm', { locale: pt })}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">€{booking.total_amount?.toFixed(2)}</Badge>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Pending Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="glass-panel border-0 shadow-lg border-l-4 border-l-orange-500">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-orange-600" />
+                      Ações Pendentes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() => setActiveTab('applications')}
+                        disabled={(walkerApplications.length + trainerApplications.length + shelterApplications.length) === 0}
+                      >
+                        <span className="text-sm">Verificações Pendentes</span>
+                        <Badge className="bg-orange-500">
+                          {walkerApplications.length + trainerApplications.length + shelterApplications.length}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() => setActiveTab('services')}
+                        disabled={pendingApprovalServices.length === 0}
+                      >
+                        <span className="text-sm">Serviços para Aprovar</span>
+                        <Badge className="bg-orange-500">{pendingApprovalServices.length}</Badge>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() => setActiveTab('products')}
+                        disabled={pendingProducts.length === 0}
+                      >
+                        <span className="text-sm">Produtos para Aprovar</span>
+                        <Badge className="bg-orange-500">{pendingProducts.length}</Badge>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-0 shadow-lg border-l-4 border-l-blue-500">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-blue-600" />
+                      Estatísticas Rápidas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Taxa de Conclusão</span>
+                        <Badge className="bg-green-100 text-green-700">
+                          {allBookings.length > 0 
+                            ? ((allBookings.filter(b => b.status === 'completed').length / allBookings.length) * 100).toFixed(1)
+                            : '0'}%
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Valor Médio Reserva</span>
+                        <Badge variant="outline">
+                          €{allBookings.length > 0
+                            ? (allBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0) / allBookings.length).toFixed(2)
+                            : '0.00'}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Avaliação Média</span>
+                        <Badge className="bg-yellow-100 text-yellow-700">
+                          {allReviews.length > 0
+                            ? (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length).toFixed(1)
+                            : '0.0'} ⭐
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
