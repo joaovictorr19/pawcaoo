@@ -817,9 +817,9 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </header>
 
-      {/* Mobile Header - Com menu de navegação principal */}
+      {/* Mobile Header - Minimalista, largura total */}
       <header 
-        className="md:hidden fixed top-0 left-0 right-0 z-[99999]"
+        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-4 py-2"
         style={{
           background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(12px)',
@@ -828,8 +828,7 @@ function LayoutContent({ children, currentPageName }) {
           boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
         }}
       >
-        {/* Top row - Logo, Trophy, Actions */}
-        <div className="flex items-center justify-between h-12 px-4">
+        <div className="flex items-center justify-between h-12">
           {/* Logo + Menu Trigger */}
           <div className="flex items-center gap-2">
             {authUser && (
@@ -887,63 +886,10 @@ function LayoutContent({ children, currentPageName }) {
             )}
           </div>
         </div>
-
-        {/* Bottom row - Main navigation menu (sempre visível) */}
-        <div className="flex items-center justify-around px-2 py-2 border-t border-gray-100/50 overflow-x-auto scrollbar-hide">
-          <Link 
-            to={createPageUrl("Home")}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[60px] ${
-              isRouteActive(createPageUrl("Home"))
-                ? 'bg-green-100 text-green-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Users className="w-5 h-5" />
-            <span className="text-[10px] font-medium whitespace-nowrap">Profissionais</span>
-          </Link>
-
-          <Link 
-            to={createPageUrl("Partners")}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[60px] ${
-              isRouteActive(createPageUrl("Partners"))
-                ? 'bg-purple-100 text-purple-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Store className="w-5 h-5" />
-            <span className="text-[10px] font-medium whitespace-nowrap">Loja</span>
-          </Link>
-
-          <Link 
-            to={createPageUrl("AdoptionListings")}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[60px] ${
-              isRouteActive(createPageUrl("AdoptionListings"))
-                ? 'bg-pink-100 text-pink-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-[10px] font-medium whitespace-nowrap">Adotar</span>
-          </Link>
-
-          <Link 
-            to={createPageUrl("PostEmergency")}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[60px] ${
-              isRouteActive(createPageUrl("PostEmergency"))
-                ? 'bg-red-100 text-red-700'
-                : 'text-red-500 hover:bg-red-50'
-            }`}
-          >
-            <Zap className="w-5 h-5" />
-            <span className="text-[10px] font-medium whitespace-nowrap">Emergência</span>
-          </Link>
-        </div>
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 mt-[64px] md:mt-[64px]" style={{ '--mobile-header-height': '110px' }}>
-          {/* Extra spacing for mobile double-row header */}
-          <div className="md:hidden" style={{ height: '46px' }} />
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '64px' }}>
         {/* Espaçamento extra para desktop onde o header é flutuante */}
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
