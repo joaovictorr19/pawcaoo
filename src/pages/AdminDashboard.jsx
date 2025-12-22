@@ -61,6 +61,7 @@ import LazyImage from "../components/ui/LazyImage";
 import ClientDetails from "../components/admin/ClientDetails";
 import ProductManagement from "../components/admin/ProductManagement";
 import BroadcastManager from "../components/admin/BroadcastManager";
+import StoreItemsManager from "../components/admin/StoreItemsManager";
 
 export default function AdminDashboard() {
   // ============================================
@@ -1357,6 +1358,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="announcements" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('announcements', language)}</TabsTrigger>
             <TabsTrigger value="services" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('services', language)}</TabsTrigger>
             <TabsTrigger value="products" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Produtos</TabsTrigger>
+            <TabsTrigger value="store" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">🛒 PawStore</TabsTrigger>
             <TabsTrigger value="bookings" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('bookings', language)}</TabsTrigger>
             <TabsTrigger value="payments" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('payments', language)}</TabsTrigger>
             <TabsTrigger value="reviews" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('reviews', language)}</TabsTrigger>
@@ -2339,6 +2341,12 @@ export default function AdminDashboard() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="store">
+            <div className="mt-6">
+              <StoreItemsManager />
+            </div>
           </TabsContent>
 
           <TabsContent value="services">
