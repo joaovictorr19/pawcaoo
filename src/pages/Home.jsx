@@ -1211,19 +1211,17 @@ export default function Home() {
                   <div className="relative inline-block mb-6">
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight relative px-6 py-3"
                         style={{
-                          background: 'linear-gradient(145deg, #4a5568 0%, #718096 25%, #e2e8f0 50%, #a0aec0 75%, #4a5568 100%)',
+                          background: 'linear-gradient(145deg, #1e293b 0%, #475569 25%, #94a3b8 50%, #64748b 75%, #334155 100%)',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
                           backgroundClip: 'text',
-                          textShadow: '0 8px 24px rgba(148, 163, 184, 0.5), 0 4px 12px rgba(100, 116, 139, 0.3)',
-                          filter: 'drop-shadow(0 6px 10px rgba(71, 85, 105, 0.25)) drop-shadow(0 2px 4px rgba(148, 163, 184, 0.2))',
+                          filter: 'drop-shadow(0 4px 8px rgba(30, 41, 59, 0.4)) drop-shadow(0 2px 4px rgba(51, 65, 85, 0.3))',
                           letterSpacing: '-0.02em'
                         }}>
                       {t('homeTitle', language)}
                     </h1>
                     {/* Silver metallic glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-300/20 via-white/30 to-slate-300/20 blur-3xl -z-10 rounded-full"></div>
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent blur-xl -z-10"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-400/15 via-slate-300/20 to-slate-400/15 blur-2xl -z-10 rounded-full"></div>
                   </div>
                 </motion.div>
               </div>
