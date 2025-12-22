@@ -73,9 +73,9 @@ export default function AvailabilityCalendar({
       available: "bg-green-100 border-green-400 text-green-800 hover:bg-green-200",
       partial: "bg-yellow-100 border-yellow-400 text-yellow-800",
       booked: "bg-red-100 border-red-400 text-red-800",
-      pending: "bg-yellow-100 border-yellow-400 text-yellow-800",
+      pending: "bg-orange-100 border-orange-400 text-orange-800",
       accepted: "bg-blue-100 border-blue-400 text-blue-800",
-      day_off: "bg-red-500 border-red-600 text-white cursor-not-allowed",
+      day_off: "bg-red-600 border-red-700 text-white font-bold shadow-md",
       past: "bg-gray-100 border-gray-200 text-gray-300",
       unavailable: "bg-white border-gray-200 text-gray-400"
     };
@@ -154,7 +154,7 @@ export default function AvailabilityCalendar({
               >
                 <span className="font-semibold">{format(date, 'd')}</span>
                 {status === 'day_off' && (
-                  <span className="absolute bottom-1 text-[10px] opacity-80">🚫</span>
+                  <span className="absolute top-0 left-0 text-[10px]">🚫</span>
                 )}
                 {count > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 w-4 min-w-0 p-0 text-[9px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-sm">
@@ -189,10 +189,18 @@ export default function AvailabilityCalendar({
             <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
             <span className="text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-500 border border-red-600" />
-            <span className="text-[10px] md:text-xs text-gray-600 font-medium">Folga (Clique para alterar)</span>
-          </div>
+          {isInteractive && (
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
+              <span className="text-[10px] md:text-xs text-gray-600 font-bold">🚫 Folga (Clique para alterar)</span>
+            </div>
+          )}
+          {!isInteractive && (
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
+              <span className="text-[10px] md:text-xs text-gray-600 font-medium">🚫 Folga</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1515,7 +1515,8 @@ export default function ProfessionalDashboard() {
                         Agenda & Folgas
                       </CardTitle>
                       <p className="text-sm text-gray-500 mt-1">
-                        Clique nos dias para marcar/desmarcar folgas. Dias com reservas não podem ser marcados como folga.
+                        <strong>Clique nos dias</strong> para marcar/desmarcar folgas. 
+                        <span className="text-red-600 font-semibold"> Dias de folga ficam bloqueados para clientes.</span>
                       </p>
                     </div>
                     <div className="flex gap-2">
