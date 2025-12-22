@@ -3427,9 +3427,9 @@ export default function AdminDashboard() {
 
         {/* NOVO: Modal para Editar Badges de um Usuário */}
         <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
-              <DialogTitle>Editar Badges de {selectedUserForBadges?.full_name || selectedUserForBadges?.email}</DialogTitle>
+              <DialogTitle className="text-base md:text-lg">Editar Badges de {selectedUserForBadges?.full_name || selectedUserForBadges?.email}</DialogTitle>
             </DialogHeader>
             {selectedUserForBadges && (
               <div className="space-y-4 py-4">
