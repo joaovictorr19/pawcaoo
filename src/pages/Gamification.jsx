@@ -381,7 +381,7 @@ export default function Gamification() {
                     {currentTier.name}
                   </div>
                   <div className="text-[10px] text-gray-500 mt-1">
-                    {Math.round(tierProgressPercentage)}% para o próximo
+                    Faltam {xpRemainingForNextLevel} XP para Nível {currentLevel + 1}
                   </div>
                 </div>
               </div>
@@ -411,12 +411,14 @@ export default function Gamification() {
                     <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">XP</div>
                   </div>
                 </div>
-                {xpRemainingForNextLevel > 0 && currentLevel < 100 && (
+                {currentLevel < 100 && (
                   <div className="mt-2 md:mt-3 text-center">
                     <div className="text-xs md:text-sm font-bold" style={{ color: levelColor }}>
-                      +{xpRemainingForNextLevel.toLocaleString('pt-PT')}
+                      {tierProgressPercentage}/100 XP
                     </div>
-                    <div className="text-[9px] md:text-xs text-gray-500">próximo nível</div>
+                    <div className="text-[9px] md:text-xs text-gray-500">
+                      +{xpRemainingForNextLevel} para Nível {currentLevel + 1}
+                    </div>
                   </div>
                 )}
               </div>
