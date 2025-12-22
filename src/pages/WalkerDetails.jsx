@@ -500,42 +500,42 @@ export default function WalkerDetails() {
                         return (
                           <div 
                             key={idx} 
-                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 rounded-2xl border transition-all hover:shadow-lg ${bgColor} ${borderColor}`}
+                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 md:p-4 rounded-xl border transition-all hover:shadow-md ${bgColor} ${borderColor}`}
                           >
-                            <div className="flex gap-4 items-start">
-                              <div className="mt-1 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                                {icon}
+                            <div className="flex gap-2 md:gap-3 items-start flex-1 min-w-0">
+                              <div className="mt-0.5 bg-white p-2 rounded-lg shadow-sm border border-gray-100 flex-shrink-0">
+                                {React.cloneElement(icon, { className: 'w-4 h-4 md:w-5 md:h-5' })}
                               </div>
-                              <div>
-                                <p className="font-bold text-gray-900 text-lg">{service.service_name}</p>
-                                <p className="text-sm text-gray-600 mt-1 leading-relaxed max-w-md">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 text-sm md:text-base truncate">{service.service_name}</p>
+                                <p className="text-xs md:text-sm text-gray-600 mt-0.5 line-clamp-2">
                                   {service.description || (isBoarding 
-                                    ? "Cuidado 24/7, ambiente familiar, fotos diárias." 
+                                    ? "Cuidado 24/7, ambiente familiar." 
                                     : isHouseSitting 
-                                    ? "Cão fica em casa, segurança da casa, mantém a rotina."
+                                    ? "Cão fica em casa, mantém a rotina."
                                     : isDropIn 
                                     ? "30-60 min, alimentação, medicação." 
                                     : "Passeio profissional.")}
                                 </p>
-                                <div className="flex gap-2 mt-2">
-                                  {service.duration_options?.map((dur, i) => (
-                                    <Badge key={i} variant="secondary" className="bg-white/80 backdrop-blur-sm text-xs border border-gray-200">
-                                      {dur}
-                                    </Badge>
-                                  ))}
-                                </div>
+                                {service.duration_options?.length > 0 && (
+                                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                                    {service.duration_options.slice(0, 2).map((dur, i) => (
+                                      <Badge key={i} variant="secondary" className="bg-white/80 text-[10px] border border-gray-200 h-5">
+                                        {dur}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <div className="mt-4 sm:mt-0 text-right w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3">
-                              <div className="bg-white px-4 py-1.5 rounded-xl shadow-sm border border-gray-100">
-                                <span className="block font-black text-2xl text-gray-900">€{service.price}</span>
-                                <span className="text-[10px] text-gray-500">por dia</span>
+                            <div className="mt-3 sm:mt-0 w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 sm:gap-1.5 flex-shrink-0">
+                              <div className="bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-100">
+                                <span className="block font-black text-lg md:text-xl text-gray-900">€{service.price}</span>
+                                <span className="text-[9px] md:text-[10px] text-gray-500">por dia</span>
                               </div>
                               <Button 
                                 size="sm" 
-                                className={`shadow-md px-6 rounded-lg font-semibold ${
-                                  service.service_type ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90' : 'bg-gray-900 text-white hover:bg-gray-800'
-                                }`}
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md px-4 md:px-5 rounded-lg font-semibold h-8 md:h-9 text-xs md:text-sm"
                                 onClick={() => {
                                   if (!user) {
                                     base44.auth.redirectToLogin(window.location.href);
@@ -548,7 +548,7 @@ export default function WalkerDetails() {
                                   }
                                 }}
                               >
-                                {service.service_type ? '⚡ Reservar Agora' : 'Solicitar'}
+                                ⚡ Reservar
                               </Button>
                             </div>
                           </div>
