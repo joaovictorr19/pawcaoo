@@ -1043,6 +1043,13 @@ export default function ProfessionalDashboard() {
                 <QrCode className="w-4 h-4" />
                 {dt('digitalCard', language)}
               </TabsTrigger>
+              <TabsTrigger 
+                value="export" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Dados
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -2027,6 +2034,14 @@ export default function ProfessionalDashboard() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Data Export Tab */}
+          <TabsContent value="export">
+            <DataExportPanel 
+              professionalEmail={user?.email} 
+              country={profile?.country_of_operation}
+            />
           </TabsContent>
         </Tabs>
 
