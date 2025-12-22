@@ -196,9 +196,18 @@ export default function NotificationArea({ isOpen, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            onClick={handleCloseAll}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleCloseAll();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleCloseAll();
+            }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            style={{ zIndex: 40 }}
+            style={{ zIndex: 9998, pointerEvents: 'auto' }}
           />
 
           {/* PANEL: Slide from right */}
@@ -208,7 +217,8 @@ export default function NotificationArea({ isOpen, onClose }) {
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white shadow-2xl flex flex-col overflow-hidden"
-            style={{ zIndex: 50 }}
+            style={{ zIndex: 9999, pointerEvents: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="p-4 border-b flex items-center justify-between bg-white flex-shrink-0">
@@ -233,7 +243,21 @@ export default function NotificationArea({ isOpen, onClose }) {
                     Marcar Lidas
                   </Button>
                 )}
-                <Button variant="ghost" size="icon" onClick={handleCloseAll} className="h-8 w-8">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCloseAll();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCloseAll();
+                  }}
+                  className="h-8 w-8"
+                >
                   <X className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
                 </Button>
               </div>
