@@ -329,7 +329,7 @@ export default function StoreItemsManager() {
             <ScrollArea className="flex-1 px-4">
               <div className="grid gap-3 py-3">
               {/* Type & Category */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Tipo *</Label>
                   <Select 
