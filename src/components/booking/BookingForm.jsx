@@ -446,6 +446,22 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       return;
     }
 
+    // CRITICAL: Validate date is not a day-off (extra security layer)
+    const dateStr = format(formData.walk_date, 'yyyy-MM-dd');
+    const dayAvailability = availability.find(a => 
+      a.date === dateStr && a.professional_email === pro?.created_by
+    );
+    
+    if (dayAvailability?.is_day_off) {
+      toast.error('Este profissional não está disponível nesta data. Por favor, escolha outra data.');
+      return;
+    }
+    
+    if (dayAvailability?.is_fully_booked) {
+      toast.error('Esta data está totalmente reservada. Por favor, escolha outra data.');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
