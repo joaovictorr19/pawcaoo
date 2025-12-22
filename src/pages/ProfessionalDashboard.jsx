@@ -1357,6 +1357,25 @@ export default function ProfessionalDashboard() {
                               size="sm"
                               variant="outline"
                               className="text-red-600 hover:bg-red-50 h-10"
+                              onClick={async () => {
+                                if (!window.confirm(`Remover "${service.service_name}"?`)) return;
+                                
+                                try {
+                                  const currentServices = (walkerProfile || trainerProfile)?.services_offered || [];
+                                  const updatedServices = currentServices.filter(s => s !== service);
+                                  
+                                  const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                  const profileId = (walkerProfile || trainerProfile).id;
+                                  
+                                  await entity.update(profileId, { services_offered: updatedServices });
+                                  
+                                  queryClient.invalidateQueries(['myWalkerProfile']);
+                                  queryClient.invalidateQueries(['myTrainerProfile']);
+                                  toast.success("✅ Serviço removido!");
+                                } catch (error) {
+                                  toast.error("Erro ao remover serviço");
+                                }
+                              }}
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>

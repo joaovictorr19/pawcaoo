@@ -470,9 +470,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     // Disable past dates
                     if (date < new Date().setHours(0,0,0,0)) return true;
                     
-                    // Check availability
+                    // Check availability - CRITICAL: Must check pro's email
                     const dateStr = format(date, 'yyyy-MM-dd');
-                    const dayAvail = availability.find(a => a.date === dateStr);
+                    const dayAvail = availability.find(a => 
+                      a.date === dateStr && 
+                      a.professional_email === pro?.created_by
+                    );
                     
                     // CRITICAL: Disable if day-off or fully booked
                     if (dayAvail?.is_day_off || dayAvail?.is_fully_booked) return true;
@@ -496,7 +499,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 <SelectValue placeholder={!formData.walk_date ? "Selecione uma data primeiro" : "Selecione um horário"} />
               </SelectTrigger>
               <SelectContent className="max-h-60">
-                {formData.walk_date && availability.find(a => a.date === format(formData.walk_date, 'yyyy-MM-dd'))?.is_day_off ? (
+                {formData.walk_date && availability.find(a => 
+                  a.date === format(formData.walk_date, 'yyyy-MM-dd') && 
+                  a.professional_email === pro?.created_by
+                )?.is_day_off ? (
                   <SelectItem value={null} disabled>
                     🚫 Profissional indisponível neste dia
                   </SelectItem>
