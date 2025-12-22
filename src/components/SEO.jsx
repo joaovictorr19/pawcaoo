@@ -6,8 +6,8 @@ export default function SEO({ title, description, keywords, image, url, type = '
   const { language } = useLanguage();
   const siteTitle = 'PawCão';
   const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-  const metaDescription = description ? description.substring(0, 160) : 'A melhor plataforma de cuidados para pets em Portugal. Encontre passeadores, treinadores e adote seu novo melhor amigo.';
-  const metaImage = image || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=2070&auto=format&fit=crop';
+  const metaDescription = description ? description.substring(0, 160) : 'Passeador de cães, Treinador de cães, Pet Sitter Portugal | Paseador de perros España | Promeneur de chien France';
+  const metaImage = image || 'https://pawcao.net/social-preview.jpg';
   const currentUrl = url || window.location.href;
 
   return (
@@ -18,7 +18,7 @@ export default function SEO({ title, description, keywords, image, url, type = '
       {/* Standard metadata */}
       <title>{fullTitle}</title>
       <meta name='description' content={metaDescription} />
-      <meta name='keywords' content={keywords || 'pets, cães, gatos, passeadores, adoção, portugal, pawcão, dog walking, pet sitting, dog training'} />
+      <meta name='keywords' content={keywords || 'Passeador de cães, Treinador de cães, Pet Sitter Portugal, Cuidador de animais exóticos, Paseador de perros, Adiestrador canino, Cuidadores de mascotas España, Promeneur de chien, Garde d\'animaux, Pet Sitter France, Dressage canin, Pension pour animaux'} />
 
       {/* Open Graph */}
       <meta property='og:title' content={fullTitle} />
@@ -40,6 +40,7 @@ export default function SEO({ title, description, keywords, image, url, type = '
       {/* Hreflang Tags */}
       <link rel="alternate" hreflang="pt" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
       <link rel="alternate" hreflang="es" href={`${window.location.origin}${window.location.pathname}?lang=es`} />
+      <link rel="alternate" hreflang="fr" href={`${window.location.origin}${window.location.pathname}?lang=fr`} />
       <link rel="alternate" hreflang="en" href={`${window.location.origin}${window.location.pathname}?lang=en`} />
       <link rel="alternate" hreflang="x-default" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
 
