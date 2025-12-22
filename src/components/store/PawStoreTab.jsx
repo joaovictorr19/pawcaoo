@@ -267,7 +267,7 @@ export default function PawStoreTab() {
       </div>
 
       {/* Categories */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide justify-center">
         {categories.map(cat => (
           <Button
             key={cat.id}
