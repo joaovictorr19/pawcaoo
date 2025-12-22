@@ -108,10 +108,10 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
             placeholder="Enter address or city..."
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="pl-10 rounded-lg"
+            className="pl-10"
           />
         </div>
-        <Button type="submit" disabled={loading || !address.trim()} variant="outline" className="rounded-lg">
+        <Button type="submit" disabled={loading || !address.trim()} variant="outline">
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
@@ -124,7 +124,6 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
           onClick={getCurrentLocation}
           disabled={gettingLocation}
           title="Use my current location"
-          className="rounded-lg"
         >
           {gettingLocation ? (
             <Loader2 className="w-4 h-4 animate-spin" />

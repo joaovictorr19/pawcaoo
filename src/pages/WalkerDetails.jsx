@@ -25,7 +25,6 @@ import ServiceList from "../components/professionals/ServiceList";
 const ServiceAreaMap = lazy(() => import("../components/professionals/ServiceAreaMap"));
 import SEO from "../components/SEO";
 import { useTheme } from "@/components/ThemeContext";
-import { Helmet } from 'react-helmet-async';
 
 // Mini component for favorite button logic
 function FavoriteButton({ walker, user }) {
