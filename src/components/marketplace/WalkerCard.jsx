@@ -13,6 +13,7 @@ import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import ProfessionalRoleBadge from "@/components/ui/ProfessionalRoleBadge";
 import { AnimalIconsList } from "@/components/professionals/AnimalIcons";
+import InstagramVerifiedBadge from "@/components/ui/InstagramVerifiedBadge";
 
 // Dummy data for specializations for the purpose of this component
 // In a real application, this would likely be imported from a constants file or fetched from an API.
@@ -94,7 +95,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
       className="cursor-pointer group"
     >
       <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full rounded-3xl">
-        <div className="relative h-32 md:h-44 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden rounded-t-xl">
+        <div className="relative h-28 sm:h-32 md:h-44 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden rounded-t-xl">
           {walker.photo_url ? (
             <img
               src={walker.photo_url}
@@ -164,28 +165,15 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           </motion.button>
         </div>
 
-        <CardContent className="p-3 md:p-4 space-y-2">
+        <CardContent className="p-2.5 sm:p-3 md:p-4 space-y-1.5 sm:space-y-2">
           {/* Nome e Rating */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
               <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors truncate">
                 {walker.walker_name}
               </h3>
               {(walker.is_verified || walker.verification_status === 'verified') && (
-                <svg 
-                  viewBox="0 0 22 22" 
-                  className="w-4 h-4 flex-shrink-0"
-                  fill="none"
-                >
-                  <circle cx="11" cy="11" r="10" fill="#3b82f6"/>
-                  <path 
-                    d="M8 11l2.5 2.5L14.5 8" 
-                    stroke="white" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <InstagramVerifiedBadge size="sm" className="flex-shrink-0" />
               )}
             </div>
             {(walker.rating > 0 && walker.total_walks > 0) ? (
@@ -291,7 +279,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           )}
 
           <Button 
-            className="w-full text-white shadow-lg text-xs h-8 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
+            className="w-full text-white shadow-lg text-[11px] sm:text-xs h-7 sm:h-8 hover:opacity-90 bg-gradient-to-r from-blue-600 to-indigo-600"
             onClick={handleViewProfile}
           >
             Ver Perfil
