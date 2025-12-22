@@ -1230,7 +1230,7 @@ export default function Home() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 
               <TabsContent value="walkers">
-                <div>
+                <div className={user ? "" : "mt-40 md:mt-52"}>
                   {/* Barra de busca compacta em linha reta */}
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-sm p-2 mb-3 flex items-center gap-2 flex-wrap">
                     <div className="flex-1 min-w-[200px]">
