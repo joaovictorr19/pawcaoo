@@ -1214,38 +1214,82 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-4 max-w-2xl mx-auto"
+                className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-4 max-w-3xl mx-auto"
               >
-                <div className="flex flex-col sm:flex-row gap-3 items-stretch w-full">
-                  <div className="flex-1 w-full relative">
-                    <LocationSearch
-                      onLocationChange={(loc) => {
-                          console.log('📍 Location selected:', loc);
-                          setUserLocation(loc);
-                          if(loc && loc.lat && loc.lng) {
-                            console.log('✅ GPS coordinates set:', { lat: loc.lat, lng: loc.lng });
-                            setTimeout(() => {
-                              document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                            }, 500);
-                          }
+                <div className="flex flex-col gap-3 w-full">
+                  {/* Linha 1: Localização + Botão */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1 relative">
+                      <LocationSearch
+                        onLocationChange={(loc) => {
+                            console.log('📍 Location selected:', loc);
+                            setUserLocation(loc);
+                            if(loc && loc.lat && loc.lng) {
+                              console.log('✅ GPS coordinates set:', { lat: loc.lat, lng: loc.lng });
+                              setTimeout(() => {
+                                document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                              }, 500);
+                            }
+                        }}
+                        currentLocation={userLocation}
+                        className="border-2 border-gray-200 shadow-sm bg-white h-12 text-base focus:border-blue-500 transition-all rounded-xl"
+                        placeholder="📍 Onde procura? (Ex: Porto, Lisboa...)"
+                      />
+                    </div>
+                    <Button 
+                      id="find-walker-btn"
+                      size="lg" 
+                      onClick={() => {
+                        setActiveTab('walkers');
+                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      currentLocation={userLocation}
-                      className="border-2 border-gray-200 shadow-sm bg-white h-12 text-base focus:border-blue-500 transition-all rounded-xl"
-                      placeholder="📍 Onde procura? (Ex: Porto, Lisboa...)"
-                    />
+                      className="text-white font-bold h-12 px-6 shadow-lg rounded-xl transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
+                    >
+                      <Search className="w-5 h-5 mr-2" />
+                      Procurar
+                    </Button>
                   </div>
-                  <Button 
-                    id="find-walker-btn"
-                    size="lg" 
-                    onClick={() => {
-                      setActiveTab('walkers');
-                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="text-white font-bold h-12 px-6 shadow-lg rounded-xl transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
-                  >
-                    <Search className="w-5 h-5 mr-2" />
-                    Procurar
-                  </Button>
+                  
+                  {/* Linha 2: Filtros */}
+                  <div className="flex flex-wrap gap-2">
+                    <Select value={filterSize} onValueChange={setFilterSize}>
+                      <SelectTrigger className="h-10 w-32 text-sm bg-white border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
+                        <SelectValue placeholder="Tamanho" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="small">Pequeno</SelectItem>
+                        <SelectItem value="medium">Médio</SelectItem>
+                        <SelectItem value="large">Grande</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={filterTime} onValueChange={setFilterTime}>
+                      <SelectTrigger className="h-10 w-32 text-sm bg-white border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
+                        <SelectValue placeholder="Horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="morning">Manhã</SelectItem>
+                        <SelectItem value="afternoon">Tarde</SelectItem>
+                        <SelectItem value="evening">Noite</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {(filterSize !== "all" || filterTime !== "all") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setFilterSize("all");
+                          setFilterTime("all");
+                        }}
+                        className="h-10 text-sm bg-white text-gray-700 border-2 border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold"
+                      >
+                        Limpar Filtros
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
 
@@ -1307,47 +1351,6 @@ export default function Home() {
 
               <TabsContent value="walkers">
                 <div>
-                  {/* Compact Filters */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Select value={filterSize} onValueChange={setFilterSize}>
-                      <SelectTrigger className="h-9 w-32 text-xs bg-white/95 backdrop-blur-sm border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
-                        <SelectValue placeholder="Tamanho" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="small">Pequeno</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="large">Grande</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filterTime} onValueChange={setFilterTime}>
-                      <SelectTrigger className="h-9 w-32 text-xs bg-white/95 backdrop-blur-sm border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
-                        <SelectValue placeholder="Horário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="morning">Manhã</SelectItem>
-                        <SelectItem value="afternoon">Tarde</SelectItem>
-                        <SelectItem value="evening">Noite</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {(filterSize !== "all" || filterTime !== "all") && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setFilterSize("all");
-                          setFilterTime("all");
-                        }}
-                        className="h-9 text-xs bg-white text-gray-700 border-2 border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold"
-                      >
-                        Limpar Filtros
-                      </Button>
-                    )}
-                  </div>
-
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
