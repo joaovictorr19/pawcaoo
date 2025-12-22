@@ -299,36 +299,53 @@ export default function MembershipPlans() {
           transition={{ delay: 0.5 }}
           className="mt-16 text-center"
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Como funcionam os Tokens?</h2>
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Como funciona o Sistema?</h2>
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">Crédito Mensal</h3>
+                <h3 className="font-bold text-gray-900 mb-2">Tokens Mensais</h3>
                 <p className="text-sm text-gray-600">
-                  Receba tokens automaticamente ao renovar sua assinatura
+                  Receba 1-3 passeios grátis ao pagar a assinatura
                 </p>
               </div>
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Dog className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">Use em Serviços</h3>
+                <h3 className="font-bold text-gray-900 mb-2">Pagamento Auto</h3>
                 <p className="text-sm text-gray-600">
-                  Cada token vale €12 e pode ser usado em qualquer passeio
+                  Ao usar token, o Walker recebe €12-15 automaticamente
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Star className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2">Cashback Interno</h3>
+                <p className="text-sm text-gray-600">
+                  5-15% volta como crédito para usar na Loja PawCão
                 </p>
               </div>
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Shield className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">Válido 30 Dias</h3>
+                <h3 className="font-bold text-gray-900 mb-2">Validade 30 Dias</h3>
                 <p className="text-sm text-gray-600">
-                  Tokens não utilizados expiram no próximo ciclo de cobrança
+                  Use seus tokens antes do próximo ciclo
                 </p>
               </div>
+            </div>
+            
+            {/* Restriction Note */}
+            <div className="mt-8 p-4 bg-blue-50 rounded-xl">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Dica:</strong> Tokens grátis são válidos em <strong>dias úteis (9h-18h)</strong>. 
+                Para fins-de-semana (+€5) ou horário noturno (+€3), aplica-se taxa adicional.
+              </p>
             </div>
           </div>
         </motion.div>
