@@ -1044,62 +1044,38 @@ export default function UserProfile() {
                 
                 {/* User Details (Left) */}
                 <div className="text-center md:text-left w-full md:w-auto">
-                  <div className="flex items-center gap-2 justify-center md:justify-start flex-wrap">
-                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 break-words">
-                     {profileUser.full_name}
-                   </h1>
+                 <div className="flex items-center gap-2 justify-center md:justify-start">
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">
+                    {profileUser.full_name}
+                  </h1>
 
-                   {/* Lógica de verificação e Badges */}
-                   {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
-                     <div className="flex-shrink-0">
-                       <VerifiedBadge size="md" />
-                     </div>
-                   )}
+                  {/* Lógica de verificação e Badges */}
+                  {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
+                    <VerifiedBadge size="md" />
+                  )}
                     {(profileUser.role === 'admin' || (isSelfView && currentUser?.role === 'admin')) && (
-                      <div className="flex-shrink-0">
-                        <AdminBadgeGlass />
-                      </div>
+                      <AdminBadgeGlass />
                     )}
                     {(profileUser.is_adoption_advocate || (isSelfView && currentUser?.is_adoption_advocate) || earnedBadges.some(b => b.badge_id === 'adoption_advocate' || b.id === 'adoption_advocate')) && (
-                      <div className="flex-shrink-0">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <div 
-                                className="w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden shadow-sm border border-pink-400/30 cursor-help flex-shrink-0"
-                                style={{
-                                  background: 'linear-gradient(135deg, #f472b6 0%, #e11d48 100%)',
-                                  boxShadow: '0 4px 6px -1px rgba(225, 29, 72, 0.3), 0 2px 4px -1px rgba(225, 29, 72, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.4)'
-                                }}
-                              >
-                                <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)' }} />
-                                <Heart className="w-3.5 h-3.5 text-white drop-shadow-md z-10 fill-white" strokeWidth={2.5} />
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Defensor de Adoção</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    )}
-                    {walkerProfile && (
-                      <Badge 
-                        className="bg-green-600 text-white cursor-pointer hover:bg-green-700 flex-shrink-0 text-xs" 
-                        onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walkerProfile.id}`))}
-                      >
-                        <Dog className="w-3 h-3 mr-1" />
-                        {t('walkService', language || 'pt') || 'Passeador'}
-                      </Badge>
-                    )}
-                    {trainerProfile && (
-                      <Badge 
-                        className="bg-blue-600 text-white cursor-pointer hover:bg-blue-700 flex-shrink-0 text-xs" 
-                        onClick={() => navigate(createPageUrl(`TrainerDetails?id=${trainerProfile.id}`))}
-                      >
-                        <Award className="w-3 h-3 mr-1" />
-                        {t('trainers', language || 'pt') || 'Treinador'}
-                      </Badge>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div 
+                              className="w-6 h-6 rounded-full flex items-center justify-center relative overflow-hidden shadow-sm border border-pink-400/30 cursor-help"
+                              style={{
+                                background: 'linear-gradient(135deg, #f472b6 0%, #e11d48 100%)',
+                                boxShadow: '0 4px 6px -1px rgba(225, 29, 72, 0.3), 0 2px 4px -1px rgba(225, 29, 72, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.4)'
+                              }}
+                            >
+                              <div className="absolute top-0 left-0 right-0 h-1/2 rounded-t-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)' }} />
+                              <Heart className="w-3.5 h-3.5 text-white drop-shadow-md z-10 fill-white" strokeWidth={2.5} />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Defensor de Adoção</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                   

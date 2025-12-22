@@ -903,10 +903,10 @@ export default function Home() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
-                            className="w-16 h-16 rounded-full border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm"
+                            className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
                           >
                              {user.profile_photo_url ? (
-                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover" />
+                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
                              ) : (
                                <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
                                  {user.full_name?.charAt(0) || 'U'}
@@ -1052,9 +1052,9 @@ export default function Home() {
                             whileHover={{ scale: 1.05, y: -4 }}
                             className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-1.5 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer"
                           >
-                            <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-white">
+                            <div className="w-12 h-12 mx-auto mb-1 rounded-xl border-2 border-white shadow-md overflow-hidden bg-white aspect-square">
                               {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
                               ) : (
                                 <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-lg font-bold">
                                   {dog.dog_name?.charAt(0)}
@@ -1073,7 +1073,7 @@ export default function Home() {
                           whileHover={{ scale: 1.05, y: -4 }}
                           className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-1.5 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all"
                         >
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-1">
+                          <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-1 aspect-square">
                             <Plus className="w-5 h-5 text-gray-400" />
                           </div>
                           <p className="text-[10px] font-bold text-gray-500">Adicionar</p>
@@ -1103,8 +1103,8 @@ export default function Home() {
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
                       className="relative"
                     >
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110">
-                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover" />
+                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110 aspect-square">
+                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
                       </div>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
                         🚶 Walker
@@ -1134,8 +1134,8 @@ export default function Home() {
                       transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
                       className="relative"
                     >
-                      <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110">
-                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
+                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
                       </div>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
                         🐕 {dog.dog_name}
