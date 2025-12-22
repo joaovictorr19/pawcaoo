@@ -76,6 +76,8 @@ export const ThemeProvider = ({ children }) => {
     if (userProfile) {
       const xp = userProfile.gamification_xp || 0;
       const tier = calculateTier(xp);
+      
+      // Novo sistema de 100 níveis com 20 cores
       setTierTheme({
         name: tier.name,
         level: tier.level,
@@ -85,12 +87,12 @@ export const ThemeProvider = ({ children }) => {
           orb1: tier.orb1,
           orb2: tier.orb2,
           text: tier.text,
-          bg: tier.bg
+          bg: tier.bg,
+          isDark: tier.isDark,
+          isLegendary: tier.isLegendary
         },
         icon: tier.icon,
-        progress: tier.progress,
-        isDark: tier.isDark,
-        isLegendary: tier.isLegendary
+        progress: tier.progress
       });
 
       // Inject CSS Variables into :root for dynamic orbs
@@ -106,7 +108,7 @@ export const ThemeProvider = ({ children }) => {
         document.documentElement.classList.remove('dark-cosmos');
       }
 
-      console.log(`🎨 Tema ${tier.name} (Nv.${tier.level}) aplicado | XP: ${xp}`);
+      console.log(`🎨 Tema ${tier.name} (Nv.${tier.level}) aplicado | XP: ${xp} | Cores: ${tier.orb1}, ${tier.orb2}`);
     }
   }, [userProfile]);
 
@@ -115,11 +117,10 @@ export const ThemeProvider = ({ children }) => {
     level: tierTheme.level || 1,
     colors: {
       ...tierTheme.colors,
-      isDarkMode: tierTheme.isDark || false
+      isDarkMode: tierTheme.colors?.isDark || tierTheme.name === 'Cosmos' || tierTheme.name === 'Obsidiana'
     },
     icon: tierTheme.icon,
     progress: tierTheme.progress || 0,
-    isLegendary: tierTheme.isLegendary || false
   };
 
   return (
