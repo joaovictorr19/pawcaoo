@@ -844,44 +844,14 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Ações Direita */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {authUser ? (
-              <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
-                      <Globe className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : (
-              <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
-                      <Globe className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button 
-                  onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
-                  size="sm"
-                >
-                  {getMenuText('login')}
-                </Button>
-              </>
+            {!authUser && (
+              <Button 
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
+                size="sm"
+              >
+                {getMenuText('login')}
+              </Button>
             )}
           </div>
         </div>
@@ -909,21 +879,8 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
           </div>
 
-          {/* Direita - Idioma + Login/Notificações */}
+          {/* Direita - Login/Notificações */}
           <div className="flex items-center gap-1">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Idioma">
-                  <Globe className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {authUser ? (
               <Button 
                 variant="ghost" 
