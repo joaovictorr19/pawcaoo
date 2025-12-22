@@ -29,36 +29,54 @@ const VerificationCard = ({ item, type, onApprove, onReject, onViewDetails, lang
     return item.location;
   };
 
+  // Check document status
+  const hasIdDocument = !!item.id_document_url;
+  const hasAddressProof = !!item.proof_of_address_url;
+  const hasAllDocs = hasIdDocument && hasAddressProof;
+
   return (
-    <div className="glass-panel p-4 rounded-xl border border-white/40 shadow-sm hover:shadow-md transition-all bg-white/60 backdrop-blur-md mb-4">
-      <div className="flex flex-col lg:flex-row gap-4 items-center lg:items-stretch">
+    <div className="glass-panel p-3 md:p-4 rounded-xl border border-white/40 shadow-sm hover:shadow-md transition-all bg-white/60 backdrop-blur-md mb-4">
+      <div className="flex flex-col gap-3 md:gap-4">
         
-        {/* Left: Identity */}
-        <div className="flex items-center gap-4 min-w-[250px]">
-          <Avatar className="w-16 h-16 border-2 border-white shadow-sm">
-            <AvatarImage src={item.photo_url || item.logo_url} />
-            <AvatarFallback className="bg-gray-100 text-gray-500">
-              {getTitle()?.[0]?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="font-bold text-gray-900">{getTitle()}</h4>
-              <div className="bg-white/80 p-1 rounded-full shadow-sm">
-                {getIcon()}
+        {/* Top: Identity + Documents */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Avatar className="w-12 h-12 md:w-16 md:h-16 border-2 border-white shadow-sm flex-shrink-0">
+              <AvatarImage src={item.photo_url || item.logo_url} />
+              <AvatarFallback className="bg-gray-100 text-gray-500">
+                {getTitle()?.[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">{getTitle()}</h4>
+                <div className="bg-white/80 p-1 rounded-full shadow-sm flex-shrink-0">
+                  {getIcon()}
+                </div>
               </div>
+              <div className="flex items-center text-xs md:text-sm text-gray-600 mt-1">
+                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">{getSubtitle() || 'N/A'}</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5 truncate">{item.created_by}</p>
             </div>
-            <div className="flex items-center text-sm text-gray-600 mt-1">
-              <MapPin className="w-3 h-3 mr-1" />
-              <span className="truncate max-w-[150px]">{getSubtitle() || 'N/A'}</span>
-            </div>
+          </div>
+
+          {/* Documents Status - Quick View */}
+          <div className="flex gap-2 flex-wrap">
+            <Badge className={hasIdDocument ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'}>
+              {hasIdDocument ? '✓ CC/BI' : '✗ CC/BI'}
+            </Badge>
+            <Badge className={hasAddressProof ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'}>
+              {hasAddressProof ? '✓ Morada' : '✗ Morada'}
+            </Badge>
           </div>
         </div>
 
-        {/* Center: Key Data */}
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2 text-sm border-l border-r border-gray-200/50 px-4 mx-2">
+        {/* Middle: Key Data */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs md:text-sm bg-gray-50/50 rounded-lg p-2 md:p-3">
           {type !== 'shelter' && (
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col">
               <span className="text-gray-500 text-xs">Experiência</span>
               <span className="font-medium flex items-center">
                 <Star className="w-3 h-3 mr-1 text-yellow-500" />
@@ -67,50 +85,78 @@ const VerificationCard = ({ item, type, onApprove, onReject, onViewDetails, lang
             </div>
           )}
           {type !== 'shelter' && (
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col">
               <span className="text-gray-500 text-xs">Preço/Hora</span>
               <span className="font-medium flex items-center">
                 <Euro className="w-3 h-3 mr-1 text-green-600" />
-                {item.hourly_rate || item.base_rate || 0}
+                €{item.hourly_rate || item.base_rate || 0}
               </span>
             </div>
           )}
-          <div className="flex flex-col justify-center col-span-2 md:col-span-1">
+          <div className="flex flex-col col-span-2">
             <span className="text-gray-500 text-xs">Bio</span>
-            <span className="text-gray-700 line-clamp-2 text-xs italic">
+            <span className="text-gray-700 line-clamp-1 text-xs italic">
               "{item.bio || item.description || 'Sem descrição.'}"
             </span>
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex flex-row lg:flex-col gap-2 min-w-[140px] justify-center">
+        {/* Document Links - Quick Access */}
+        {(hasIdDocument || hasAddressProof) && (
+          <div className="flex gap-2 flex-wrap text-xs">
+            {hasIdDocument && (
+              <a 
+                href={item.id_document_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Eye className="w-3 h-3" />
+                Ver CC/BI
+              </a>
+            )}
+            {hasAddressProof && (
+              <a 
+                href={item.proof_of_address_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Eye className="w-3 h-3" />
+                Ver Morada
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Bottom: Actions */}
+        <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-gray-200/50">
           <Button 
-            className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
+            className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-xs md:text-sm h-8 md:h-9"
             size="sm"
             onClick={() => onApprove(type, item)}
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
             {t('approve', language)}
           </Button>
           
           <Button 
             variant="outline" 
-            className="text-red-600 border-red-200 hover:bg-red-50"
+            className="text-red-600 border-red-200 hover:bg-red-50 text-xs md:text-sm h-8 md:h-9"
             size="sm"
             onClick={() => onReject(type, item)}
           >
-            <XCircle className="w-4 h-4 mr-2" />
+            <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
             {t('reject', language)}
           </Button>
 
           <Button 
             variant="ghost" 
-            className="text-gray-600 hover:bg-gray-100"
+            className="text-gray-600 hover:bg-gray-100 text-xs md:text-sm h-8 md:h-9"
             size="sm"
             onClick={() => onViewDetails(item, type)}
           >
-            <Eye className="w-4 h-4 mr-2" />
+            <Eye className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
             {t('viewDetails', language)}
           </Button>
         </div>
