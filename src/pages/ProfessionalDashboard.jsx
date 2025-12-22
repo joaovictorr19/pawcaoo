@@ -19,7 +19,7 @@ import { format, subDays, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell
 } from 'recharts';
 import { Download, ExternalLink, Share2, Calendar as CalendarIcon, FileText, QrCode } from "lucide-react";
 import { bookingToEvent, generateMultiICS, downloadICS } from "../components/calendar/calendarHelpers";
@@ -43,6 +43,104 @@ import DigitalWalletPass from "../components/professionals/DigitalWalletPass";
 import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+
+// Traduções do Painel Profissional
+const dashboardTranslations = {
+  professionalDashboard: { pt: 'Painel Profissional', en: 'Professional Dashboard', es: 'Panel Profesional', fr: 'Tableau de Bord Professionnel' },
+  editProfile: { pt: 'Editar Perfil', en: 'Edit Profile', es: 'Editar Perfil', fr: 'Modifier Profil' },
+  manageSchedule: { pt: 'Gerir Agenda', en: 'Manage Schedule', es: 'Gestionar Agenda', fr: 'Gérer Agenda' },
+  addService: { pt: 'Adicionar Serviço', en: 'Add Service', es: 'Añadir Servicio', fr: 'Ajouter Service' },
+  fiscalReports: { pt: 'Fiscal & Relatórios', en: 'Fiscal & Reports', es: 'Fiscal y Reportes', fr: 'Fiscal & Rapports' },
+  directRequests: { pt: 'Solicitações Diretas', en: 'Direct Requests', es: 'Solicitudes Directas', fr: 'Demandes Directes' },
+  respond: { pt: 'RESPONDER', en: 'RESPOND', es: 'RESPONDER', fr: 'RÉPONDRE' },
+  overview: { pt: 'Resumo', en: 'Overview', es: 'Resumen', fr: 'Aperçu' },
+  bookings: { pt: 'Reservas', en: 'Bookings', es: 'Reservas', fr: 'Réservations' },
+  analytics: { pt: 'Analytics', en: 'Analytics', es: 'Analíticas', fr: 'Analytiques' },
+  services: { pt: 'Serviços', en: 'Services', es: 'Servicios', fr: 'Services' },
+  schedule: { pt: 'Agenda', en: 'Schedule', es: 'Agenda', fr: 'Agenda' },
+  reviews: { pt: 'Reviews', en: 'Reviews', es: 'Reseñas', fr: 'Avis' },
+  digitalCard: { pt: 'Cartão Digital', en: 'Digital Card', es: 'Tarjeta Digital', fr: 'Carte Numérique' },
+  earningsTrend: { pt: 'Tendência de Ganhos', en: 'Earnings Trend', es: 'Tendencia de Ganancias', fr: 'Tendance des Revenus' },
+  bookingStatus: { pt: 'Estado das Reservas', en: 'Booking Status', es: 'Estado de Reservas', fr: 'Statut des Réservations' },
+  recentActivity: { pt: 'Atividade Recente', en: 'Recent Activity', es: 'Actividad Reciente', fr: 'Activité Récente' },
+  completed: { pt: 'Concluídos', en: 'Completed', es: 'Completados', fr: 'Terminés' },
+  pending: { pt: 'Pendentes', en: 'Pending', es: 'Pendientes', fr: 'En attente' },
+  inProgress: { pt: 'Em Progresso', en: 'In Progress', es: 'En Progreso', fr: 'En cours' },
+  cancelled: { pt: 'Cancelados', en: 'Cancelled', es: 'Cancelados', fr: 'Annulés' },
+  directBookings: { pt: 'Pedidos Diretos', en: 'Direct Bookings', es: 'Pedidos Directos', fr: 'Réservations Directes' },
+  clientsChoseYou: { pt: 'Clientes que escolheram VOCÊ', en: 'Clients who chose YOU', es: 'Clientes que te eligieron', fr: 'Clients qui vous ont choisi' },
+  allBookings: { pt: 'Todas as Reservas', en: 'All Bookings', es: 'Todas las Reservas', fr: 'Toutes les Réservations' },
+  noBookingsYet: { pt: 'Nenhuma reserva ainda', en: 'No bookings yet', es: 'Sin reservas aún', fr: 'Aucune réservation' },
+  bookingsWillAppear: { pt: 'Quando os clientes fizerem reservas, elas aparecerão aqui.', en: 'When clients make bookings, they will appear here.', es: 'Cuando los clientes hagan reservas, aparecerán aquí.', fr: 'Les réservations des clients apparaîtront ici.' },
+  accept: { pt: 'Aceitar', en: 'Accept', es: 'Aceptar', fr: 'Accepter' },
+  decline: { pt: 'Recusar', en: 'Decline', es: 'Rechazar', fr: 'Refuser' },
+  cancel: { pt: 'Cancelar', en: 'Cancel', es: 'Cancelar', fr: 'Annuler' },
+  markComplete: { pt: 'Concluído', en: 'Complete', es: 'Completado', fr: 'Terminé' },
+  confirmPayment: { pt: 'Confirmar €', en: 'Confirm €', es: 'Confirmar €', fr: 'Confirmer €' },
+  awaitingPayment: { pt: 'Aguarda Pagamento', en: 'Awaiting Payment', es: 'Esperando Pago', fr: 'En attente de paiement' },
+  last7Days: { pt: 'Últimos 7 dias', en: 'Last 7 Days', es: 'Últimos 7 días', fr: '7 derniers jours' },
+  last30Days: { pt: 'Últimos 30 dias', en: 'Last 30 Days', es: 'Últimos 30 días', fr: '30 derniers jours' },
+  last90Days: { pt: 'Últimos 90 dias', en: 'Last 90 Days', es: 'Últimos 90 días', fr: '90 derniers jours' },
+  bookingsOverTime: { pt: 'Reservas ao Longo do Tempo', en: 'Bookings Over Time', es: 'Reservas en el Tiempo', fr: 'Réservations au fil du temps' },
+  performanceMetrics: { pt: 'Métricas de Desempenho', en: 'Performance Metrics', es: 'Métricas de Rendimiento', fr: 'Métriques de Performance' },
+  totalEarnings: { pt: 'Ganhos Totais', en: 'Total Earnings', es: 'Ganancias Totales', fr: 'Revenus Totaux' },
+  completionRate: { pt: 'Taxa de Conclusão', en: 'Completion Rate', es: 'Tasa de Finalización', fr: 'Taux de Complétion' },
+  averageRating: { pt: 'Avaliação Média', en: 'Average Rating', es: 'Calificación Promedio', fr: 'Note Moyenne' },
+  responseRate: { pt: 'Taxa de Resposta', en: 'Response Rate', es: 'Tasa de Respuesta', fr: 'Taux de Réponse' },
+  quickServices: { pt: 'Serviços Rápidos', en: 'Quick Services', es: 'Servicios Rápidos', fr: 'Services Rapides' },
+  chooseAnimalSetPrice: { pt: 'Escolha o Animal e Defina o Preço', en: 'Choose Animal and Set Price', es: 'Elige Animal y Define Precio', fr: 'Choisir Animal et Définir Prix' },
+  activatePreConfigured: { pt: 'Ative serviços pré-configurados por tipo de animal', en: 'Activate pre-configured services by animal type', es: 'Active servicios preconfigurados por tipo de animal', fr: 'Activez les services préconfigurés par type d\'animal' },
+  dogsAndCats: { pt: 'Cães & Gatos', en: 'Dogs & Cats', es: 'Perros y Gatos', fr: 'Chiens & Chats' },
+  exoticAnimals: { pt: 'Animais Exóticos', en: 'Exotic Animals', es: 'Animales Exóticos', fr: 'Animaux Exotiques' },
+  dogWalk: { pt: 'Passeio Cães', en: 'Dog Walk', es: 'Paseo Perros', fr: 'Promenade Chiens' },
+  catWalk: { pt: 'Passeio Gatos', en: 'Cat Walk', es: 'Paseo Gatos', fr: 'Promenade Chats' },
+  boarding: { pt: 'Alojamento', en: 'Boarding', es: 'Alojamiento', fr: 'Pension' },
+  standardWalk: { pt: 'Passeio padrão', en: 'Standard walk', es: 'Paseo estándar', fr: 'Promenade standard' },
+  catWalkDesc: { pt: 'Passeio para gatos', en: 'Walk for cats', es: 'Paseo para gatos', fr: 'Promenade pour chats' },
+  animalStaysWithYou: { pt: 'Animal fica em sua casa', en: 'Animal stays at your home', es: 'Animal se queda en tu casa', fr: 'Animal reste chez vous' },
+  reptileCare: { pt: 'Cuidar Répteis', en: 'Reptile Care', es: 'Cuidado Reptiles', fr: 'Soins Reptiles' },
+  arachnidCare: { pt: 'Cuidar Aracnídeos', en: 'Arachnid Care', es: 'Cuidado Arácnidos', fr: 'Soins Arachnides' },
+  birdCare: { pt: 'Cuidar Aves', en: 'Bird Care', es: 'Cuidado Aves', fr: 'Soins Oiseaux' },
+  rodentCare: { pt: 'Cuidar Roedores', en: 'Rodent Care', es: 'Cuidado Roedores', fr: 'Soins Rongeurs' },
+  feedingAndCleaning: { pt: 'Alimentação e limpeza', en: 'Feeding and cleaning', es: 'Alimentación y limpieza', fr: 'Alimentation et nettoyage' },
+  specializedMaintenance: { pt: 'Manutenção especializada', en: 'Specialized maintenance', es: 'Mantenimiento especializado', fr: 'Entretien spécialisé' },
+  feedingAndCage: { pt: 'Alimentação e gaiola', en: 'Feeding and cage', es: 'Alimentación y jaula', fr: 'Alimentation et cage' },
+  hamstersRabbits: { pt: 'Hamsters, coelhos, etc.', en: 'Hamsters, rabbits, etc.', es: 'Hámsters, conejos, etc.', fr: 'Hamsters, lapins, etc.' },
+  activate: { pt: 'Ativar', en: 'Activate', es: 'Activar', fr: 'Activer' },
+  deactivate: { pt: 'Desativar', en: 'Deactivate', es: 'Desactivar', fr: 'Désactiver' },
+  price: { pt: 'Preço', en: 'Price', es: 'Precio', fr: 'Prix' },
+  customServices: { pt: 'Serviços Personalizados', en: 'Custom Services', es: 'Servicios Personalizados', fr: 'Services Personnalisés' },
+  addCustom: { pt: 'Adicionar Customizado', en: 'Add Custom', es: 'Añadir Personalizado', fr: 'Ajouter Personnalisé' },
+  noCustomServices: { pt: 'Nenhum serviço personalizado', en: 'No custom services', es: 'Sin servicios personalizados', fr: 'Aucun service personnalisé' },
+  scheduleAndDaysOff: { pt: 'Agenda & Folgas', en: 'Schedule & Days Off', es: 'Agenda y Días Libres', fr: 'Agenda & Congés' },
+  clickDaysToMark: { pt: 'Clique nos dias para marcar/desmarcar folgas.', en: 'Click on days to mark/unmark days off.', es: 'Haga clic en los días para marcar/desmarcar días libres.', fr: 'Cliquez sur les jours pour marquer/démarquer les congés.' },
+  daysOffBlocked: { pt: 'Dias de folga ficam bloqueados para clientes.', en: 'Days off are blocked for clients.', es: 'Los días libres están bloqueados para clientes.', fr: 'Les jours de congé sont bloqués pour les clients.' },
+  exportICal: { pt: 'Exportar iCal', en: 'Export iCal', es: 'Exportar iCal', fr: 'Exporter iCal' },
+  markedDaysOff: { pt: 'Dias de Folga Marcados', en: 'Marked Days Off', es: 'Días Libres Marcados', fr: 'Congés Marqués' },
+  clickToRemove: { pt: 'Clique no ✕ para remover a folga e abrir a agenda', en: 'Click ✕ to remove day off and open schedule', es: 'Haga clic en ✕ para eliminar el día libre', fr: 'Cliquez sur ✕ pour supprimer le congé' },
+  integrationsExport: { pt: 'Integrações & Exportar', en: 'Integrations & Export', es: 'Integraciones y Exportar', fr: 'Intégrations & Exporter' },
+  bookingLink: { pt: 'Link de Agendamento', en: 'Booking Link', es: 'Enlace de Reserva', fr: 'Lien de Réservation' },
+  shareLink: { pt: 'Partilhe este link com clientes para agendamentos diretos.', en: 'Share this link with clients for direct bookings.', es: 'Comparta este enlace con clientes para reservas directas.', fr: 'Partagez ce lien avec vos clients pour les réservations directes.' },
+  copy: { pt: 'Copiar', en: 'Copy', es: 'Copiar', fr: 'Copier' },
+  externalSync: { pt: 'Sincronização Externa', en: 'External Sync', es: 'Sincronización Externa', fr: 'Synchronisation Externe' },
+  exportToCalendar: { pt: 'Exporte os seus agendamentos para Google Calendar, Outlook ou Apple Calendar.', en: 'Export your bookings to Google Calendar, Outlook or Apple Calendar.', es: 'Exporte sus reservas a Google Calendar, Outlook o Apple Calendar.', fr: 'Exportez vos réservations vers Google Calendar, Outlook ou Apple Calendar.' },
+  downloadSchedule: { pt: 'Baixar Agenda (.ics)', en: 'Download Schedule (.ics)', es: 'Descargar Agenda (.ics)', fr: 'Télécharger Agenda (.ics)' },
+  noReviewsYet: { pt: 'Sem avaliações ainda.', en: 'No reviews yet.', es: 'Sin reseñas aún.', fr: 'Pas encore d\'avis.' },
+  shareProfileInPerson: { pt: 'Partilhe o seu perfil presencialmente com clientes', en: 'Share your profile in person with clients', es: 'Comparta su perfil en persona con clientes', fr: 'Partagez votre profil en personne avec les clients' },
+  profileNeeded: { pt: 'Perfil Profissional Necessário', en: 'Professional Profile Needed', es: 'Perfil Profesional Necesario', fr: 'Profil Professionnel Requis' },
+  createProfileMessage: { pt: 'Crie o seu perfil de passeador ou treinador para aceder ao painel.', en: 'Create your walker or trainer profile to access the dashboard.', es: 'Cree su perfil de paseador o entrenador para acceder al panel.', fr: 'Créez votre profil de promeneur ou dresseur pour accéder au tableau de bord.' },
+  becomeWalker: { pt: 'Tornar-me Passeador', en: 'Become Walker', es: 'Ser Paseador', fr: 'Devenir Promeneur' },
+  becomeTrainer: { pt: 'Tornar-me Treinador', en: 'Become Trainer', es: 'Ser Entrenador', fr: 'Devenir Dresseur' },
+  total: { pt: 'Total', en: 'Total', es: 'Total', fr: 'Total' },
+  vsLastPeriod: { pt: 'vs anterior', en: 'vs previous', es: 'vs anterior', fr: 'vs précédent' },
+  small: { pt: 'Pequeno', en: 'Small', es: 'Pequeño', fr: 'Petit' },
+  medium: { pt: 'Médio', en: 'Medium', es: 'Mediano', fr: 'Moyen' },
+  large: { pt: 'Grande', en: 'Large', es: 'Grande', fr: 'Grand' },
+  extraLarge: { pt: 'XL', en: 'XL', es: 'XL', fr: 'XL' },
+  notes: { pt: 'Notas', en: 'Notes', es: 'Notas', fr: 'Notes' },
+};
+
+const dt = (key, lang) => dashboardTranslations[key]?.[lang] || dashboardTranslations[key]?.en || key;
 
 export default function ProfessionalDashboard() {
   const { language } = useLanguage();
@@ -504,10 +602,10 @@ export default function ProfessionalDashboard() {
   const chartData = getLast7DaysData();
 
   const statusData = [
-    { name: 'Completed', value: allBookings.filter(b => b.status === 'completed').length, color: '#10b981' },
-    { name: 'Pending', value: allBookings.filter(b => b.status === 'pending').length, color: '#f59e0b' },
-    { name: 'In Progress', value: allBookings.filter(b => b.status === 'in_progress').length, color: '#3b82f6' },
-    { name: 'Cancelled', value: allBookings.filter(b => b.status === 'cancelled').length, color: '#ef4444' },
+    { name: dt('completed', language), value: allBookings.filter(b => b.status === 'completed').length, color: '#10b981' },
+    { name: dt('pending', language), value: allBookings.filter(b => b.status === 'pending').length, color: '#f59e0b' },
+    { name: dt('inProgress', language), value: allBookings.filter(b => b.status === 'in_progress' || b.status === 'confirmed').length, color: '#3b82f6' },
+    { name: dt('cancelled', language), value: allBookings.filter(b => b.status === 'cancelled').length, color: '#ef4444' },
   ];
 
   const stats = [
@@ -521,14 +619,14 @@ export default function ProfessionalDashboard() {
     {
       icon: Calendar,
       value: directRequests.length,
-      label: 'Solicitações Diretas',
+      label: dt('directRequests', language),
       color: "from-purple-500 to-pink-600",
-      badge: directRequests.length > 0 ? '🎯 RESPONDER' : ''
+      badge: directRequests.length > 0 ? `🎯 ${dt('respond', language)}` : ''
     },
     {
       icon: Star,
       value: averageRating,
-      label: `${t('rating', language)} (${reviews.length} ${t('reviews', language).toLowerCase()})`,
+      label: `${t('rating', language)} (${reviews.length} ${dt('reviews', language).toLowerCase()})`,
       color: "from-yellow-500 to-orange-600",
     },
     {
@@ -769,17 +867,17 @@ export default function ProfessionalDashboard() {
           <CardContent className="p-8 md:p-12 text-center">
             <Users className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-              Perfil Profissional Necessário
+              {dt('profileNeeded', language)}
             </h2>
             <p className="text-sm md:text-base text-gray-600 mb-6">
-              Crie o seu perfil de passeador ou treinador para aceder ao painel.
+              {dt('createProfileMessage', language)}
             </p>
             <div className="flex flex-col md:flex-row gap-3">
               <Button onClick={() => navigate(createPageUrl('BecomeWalker'))} className="flex-1 h-12 bg-green-600 hover:bg-green-700">
-                Tornar-me Passeador
+                {dt('becomeWalker', language)}
               </Button>
               <Button onClick={() => navigate(createPageUrl('BecomeTrainer'))} className="flex-1 h-12">
-                Tornar-me Treinador
+                {dt('becomeTrainer', language)}
               </Button>
             </div>
           </CardContent>
@@ -802,7 +900,7 @@ export default function ProfessionalDashboard() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Painel Profissional</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{dt('professionalDashboard', language)}</h1>
               <p className="text-gray-600 mt-1">{profile.walker_name || profile.trainer_name}</p>
             </div>
           </div>
@@ -814,7 +912,7 @@ export default function ProfessionalDashboard() {
               className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
             >
               <Edit className="w-4 h-4 mr-2" />
-              Editar Perfil
+              {dt('editProfile', language)}
             </Button>
             <Button 
               onClick={() => navigate(createPageUrl('ManageAvailability'))} 
@@ -822,7 +920,7 @@ export default function ProfessionalDashboard() {
               className="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-md"
             >
               <Calendar className="w-4 h-4 mr-2" />
-              Gerir Agenda
+              {dt('manageSchedule', language)}
             </Button>
             <Button
               onClick={() => setShowServiceForm(true)}
@@ -830,7 +928,7 @@ export default function ProfessionalDashboard() {
               className="border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 shadow-md"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Adicionar Serviço
+              {dt('addService', language)}
             </Button>
             <Button
               onClick={() => navigate(createPageUrl('FiscalSettings'))}
@@ -838,7 +936,7 @@ export default function ProfessionalDashboard() {
               className="border-2 border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 shadow-md"
             >
               <FileText className="w-4 h-4 mr-2" />
-              Fiscal & Relatórios
+              {dt('fiscalReports', language)}
             </Button>
           </div>
 
@@ -896,14 +994,14 @@ export default function ProfessionalDashboard() {
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
                 <BarChart3 className="w-4 h-4" />
-                Resumo
+                {dt('overview', language)}
               </TabsTrigger>
               <TabsTrigger 
                 value="bookings" 
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 relative transition-all flex items-center gap-2"
               >
                 <Calendar className="w-4 h-4" />
-                Reservas
+                {dt('bookings', language)}
                 {directRequests.length > 0 && (
                   <Badge className="ml-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse shadow-lg">
                     {directRequests.length}
@@ -915,35 +1013,35 @@ export default function ProfessionalDashboard() {
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
                 <TrendingUp className="w-4 h-4" />
-                Analytics
+                {dt('analytics', language)}
               </TabsTrigger>
               <TabsTrigger 
                 value="services" 
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
                 <Package className="w-4 h-4" />
-                Serviços
+                {dt('services', language)}
               </TabsTrigger>
               <TabsTrigger 
                 value="calendar" 
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
                 <CalendarIcon className="w-4 h-4" />
-                Agenda
+                {dt('schedule', language)}
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews" 
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
                 <Star className="w-4 h-4" />
-                Reviews
+                {dt('reviews', language)}
               </TabsTrigger>
               <TabsTrigger 
                 value="qrcode" 
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
                 <QrCode className="w-4 h-4" />
-                Cartão Digital
+                {dt('digitalCard', language)}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -956,7 +1054,7 @@ export default function ProfessionalDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Activity className="w-5 h-5 text-green-600" />
-                    Earnings Trend
+                    {dt('earningsTrend', language)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -991,19 +1089,19 @@ export default function ProfessionalDashboard() {
               <Card className="border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <PieChart className="w-5 h-5 text-purple-600" />
-                    Booking Status
+                    <BarChart3 className="w-5 h-5 text-purple-600" />
+                    {dt('bookingStatus', language)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
+                    <RechartsPieChart>
                       <Pie
                         data={statusData}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => percent > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -1012,8 +1110,9 @@ export default function ProfessionalDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
-                    </PieChart>
+                      <Tooltip formatter={(value, name) => [value, name]} />
+                      <Legend />
+                    </RechartsPieChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
@@ -1024,7 +1123,7 @@ export default function ProfessionalDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5 text-blue-600" />
-                  Recent Activity
+                  {dt('recentActivity', language)}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1085,9 +1184,9 @@ export default function ProfessionalDashboard() {
                         <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
                           🎯
                         </div>
-                        Pedidos Diretos ({directRequests.length})
+                        {dt('directBookings', language)} ({directRequests.length})
                       </CardTitle>
-                      <p className="text-sm text-purple-100 mt-1">Clientes que escolheram VOCÊ</p>
+                      <p className="text-sm text-purple-100 mt-1">{dt('clientsChoseYou', language)}</p>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
@@ -1181,9 +1280,9 @@ export default function ProfessionalDashboard() {
             <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-lg">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl md:text-2xl">Todas as Reservas</CardTitle>
+                  <CardTitle className="text-xl md:text-2xl">{dt('allBookings', language)}</CardTitle>
                   <Badge className="bg-gray-100 text-gray-700 font-semibold">
-                    {allBookings.length} Total
+                    {allBookings.length} {dt('total', language)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -1193,8 +1292,8 @@ export default function ProfessionalDashboard() {
                     <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Calendar className="w-10 h-10 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma reserva ainda</h3>
-                    <p className="text-gray-600">Quando os clientes fizerem reservas, elas aparecerão aqui.</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{dt('noBookingsYet', language)}</h3>
+                    <p className="text-gray-600">{dt('bookingsWillAppear', language)}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1210,7 +1309,11 @@ export default function ProfessionalDashboard() {
                                booking.status === 'service_completed' ? 'bg-purple-100 text-purple-800 border-purple-300' :
                                'bg-orange-100 text-orange-800 border-orange-300'
                              } border-2`}>
-                               {booking.status === 'service_completed' ? '💰 Aguarda Pagamento' : booking.status}
+                               {booking.status === 'service_completed' ? `💰 ${dt('awaitingPayment', language)}` : 
+                                booking.status === 'completed' ? dt('completed', language) :
+                                booking.status === 'confirmed' ? dt('inProgress', language) :
+                                booking.status === 'pending' ? dt('pending', language) :
+                                booking.status === 'cancelled' ? dt('cancelled', language) : booking.status}
                              </Badge>
                            </div>
                            <p className="text-sm text-gray-700 font-medium mb-1">{booking.owner_name}</p>
@@ -1306,9 +1409,9 @@ export default function ProfessionalDashboard() {
                 onChange={(e) => setDateRange(e.target.value)}
                 className="px-4 py-2 border rounded-lg"
               >
-                <option value="7days">Last 7 Days</option>
-                <option value="30days">Last 30 Days</option>
-                <option value="90days">Last 90 Days</option>
+                <option value="7days">{dt('last7Days', language)}</option>
+                <option value="30days">{dt('last30Days', language)}</option>
+                <option value="90days">{dt('last90Days', language)}</option>
               </select>
             </div>
 
@@ -1316,7 +1419,7 @@ export default function ProfessionalDashboard() {
               {/* Bookings Chart */}
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Bookings Over Time</CardTitle>
+                  <CardTitle>{dt('bookingsOverTime', language)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -1336,20 +1439,20 @@ export default function ProfessionalDashboard() {
               {/* Performance Metrics */}
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Performance Metrics</CardTitle>
+                  <CardTitle>{dt('performanceMetrics', language)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                       <div>
-                        <p className="text-sm text-gray-600">Total Earnings</p>
+                        <p className="text-sm text-gray-600">{dt('totalEarnings', language)}</p>
                         <p className="text-2xl font-bold text-green-600">€{totalEarnings.toFixed(2)}</p>
                       </div>
                       <DollarSign className="w-8 h-8 text-green-600" />
                     </div>
                     <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                       <div>
-                        <p className="text-sm text-gray-600">Completion Rate</p>
+                        <p className="text-sm text-gray-600">{dt('completionRate', language)}</p>
                         <p className="text-2xl font-bold text-blue-600">
                           {((completedBookings.length / rangeBookings.length * 100) || 0).toFixed(1)}%
                         </p>
@@ -1358,14 +1461,14 @@ export default function ProfessionalDashboard() {
                     </div>
                     <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                       <div>
-                        <p className="text-sm text-gray-600">Average Rating</p>
+                        <p className="text-sm text-gray-600">{dt('averageRating', language)}</p>
                         <p className="text-2xl font-bold text-purple-600">{averageRating} ⭐</p>
                       </div>
                       <Star className="w-8 h-8 text-purple-600" />
                     </div>
                     <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
                       <div>
-                        <p className="text-sm text-gray-600">Response Rate</p>
+                        <p className="text-sm text-gray-600">{dt('responseRate', language)}</p>
                         <p className="text-2xl font-bold text-orange-600">98%</p>
                       </div>
                       <Activity className="w-8 h-8 text-orange-600" />
@@ -1871,13 +1974,13 @@ export default function ProfessionalDashboard() {
           <TabsContent value="reviews">
             <Card className="border-0 shadow-xl">
               <CardHeader>
-                <CardTitle>Reviews ({reviews.length})</CardTitle>
+                <CardTitle>{dt('reviews', language)} ({reviews.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {reviews.length === 0 ? (
                   <div className="text-center py-12">
                     <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">No reviews yet.</p>
+                    <p className="text-gray-600">{dt('noReviewsYet', language)}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1898,10 +2001,10 @@ export default function ProfessionalDashboard() {
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
                     <QrCode className="w-6 h-6 text-white" />
                   </div>
-                  Cartão Digital
+                  {dt('digitalCard', language)}
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Partilhe o seu perfil presencialmente com clientes
+                  {dt('shareProfileInPerson', language)}
                 </p>
               </CardHeader>
               <CardContent className="py-10 flex justify-center">
