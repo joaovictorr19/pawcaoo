@@ -1352,6 +1352,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="profile_edits" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">✏️ Edições</TabsTrigger>
             <TabsTrigger value="communication" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">📢 Comunic.</TabsTrigger>
             <TabsTrigger value="active_walkers" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('activeWalkers', language)}</TabsTrigger>
+            <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">📄 Documentos</TabsTrigger>
             <TabsTrigger value="adoptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('adoptions', language)}</TabsTrigger>
             <TabsTrigger value="badges" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('badges', language)}</TabsTrigger>
             <TabsTrigger value="companies" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('companies', language)}</TabsTrigger>
@@ -1672,6 +1673,153 @@ export default function AdminDashboard() {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="documents">
+            <Card className="glass-panel border-0 shadow-xl mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-6 h-6 text-indigo-600" />
+                  Documentos de Verificação
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Documentos enviados por passeadores e treinadores
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[...allWalkers, ...allTrainers].filter(p => 
+                    p.id_document_url || p.proof_of_address_url || p.background_check_url
+                  ).map(professional => {
+                    const isWalker = professional.walker_name;
+                    return (
+                      <Card key={professional.id} className="border-2 border-gray-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-bold text-lg">
+                                {professional.walker_name || professional.trainer_name}
+                              </h4>
+                              <p className="text-sm text-gray-600">{professional.created_by}</p>
+                              <Badge className={
+                                professional.verification_status === 'verified' ? 'bg-green-500' :
+                                professional.verification_status === 'pending' ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }>
+                                {professional.verification_status}
+                              </Badge>
+                            </div>
+                            <Badge variant="outline" className="capitalize">
+                              {isWalker ? 'Passeador' : 'Treinador'}
+                            </Badge>
+                          </div>
+
+                          <div className="grid md:grid-cols-3 gap-3">
+                            {/* ID Document */}
+                            <div className="border rounded-lg p-3 bg-gray-50">
+                              <p className="text-xs font-semibold mb-2 text-gray-700">
+                                📋 Documento de Identidade
+                              </p>
+                              {professional.id_document_url ? (
+                                <a 
+                                  href={professional.id_document_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  Ver Documento
+                                </a>
+                              ) : (
+                                <p className="text-xs text-red-500">Não enviado</p>
+                              )}
+                            </div>
+
+                            {/* Address Proof */}
+                            <div className="border rounded-lg p-3 bg-gray-50">
+                              <p className="text-xs font-semibold mb-2 text-gray-700">
+                                🏠 Comprovativo de Morada
+                              </p>
+                              {professional.proof_of_address_url ? (
+                                <a 
+                                  href={professional.proof_of_address_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  Ver Documento
+                                </a>
+                              ) : (
+                                <p className="text-xs text-red-500">Não enviado</p>
+                              )}
+                            </div>
+
+                            {/* Criminal Record */}
+                            <div className="border rounded-lg p-3 bg-gray-50">
+                              <p className="text-xs font-semibold mb-2 text-gray-700">
+                                🛡️ Registo Criminal
+                              </p>
+                              {professional.background_check_url ? (
+                                <div>
+                                  <a 
+                                    href={professional.background_check_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 mb-1"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                    Ver Documento
+                                  </a>
+                                  {professional.background_check_provider && (
+                                    <p className="text-xs text-gray-500">
+                                      Fornecedor: {professional.background_check_provider}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500">Opcional - Não enviado</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 mt-3 pt-3 border-t">
+                            <Button
+                              size="sm"
+                              onClick={() => handleViewApplicationDetails(professional, isWalker ? 'walker' : 'trainer')}
+                              variant="outline"
+                              className="flex-1"
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Tudo
+                            </Button>
+                            {professional.verification_status !== 'verified' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveApplication(isWalker ? 'walker' : 'trainer', professional)}
+                                className="bg-green-600 hover:bg-green-700 flex-1"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Aprovar
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  
+                  {[...allWalkers, ...allTrainers].filter(p => 
+                    p.id_document_url || p.proof_of_address_url || p.background_check_url
+                  ).length === 0 && (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-600">Nenhum documento enviado ainda</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
