@@ -852,7 +852,23 @@ export default function Home() {
       <div className="relative z-10 overflow-hidden">
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
-          {user ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/80 backdrop-blur-sm shadow-md rounded-xl p-1">
+              <TabsTrigger value="walkers" className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <Users className="w-4 h-4 mr-2" />
+                Profissionais
+              </TabsTrigger>
+              <TabsTrigger value="shop" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                <Store className="w-4 h-4 mr-2" />
+                Loja
+              </TabsTrigger>
+              <TabsTrigger value="adoption" className="rounded-lg data-[state=active]:bg-pink-600 data-[state=active]:text-white">
+                <Heart className="w-4 h-4 mr-2" />
+                Adoção
+              </TabsTrigger>
+            </TabsList>
+
+          {user && (
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
@@ -1060,8 +1076,9 @@ export default function Home() {
                 )}
                 </div>
                 )}
+
                 {!user && (
-            <div className="text-center max-w-6xl mx-auto relative">
+                <div className="text-center max-w-6xl mx-auto relative">
               {/* Floating Interactive Elements */}
               <div className="relative mb-8">
                 {/* Walkers - Top Left & Top Right */}
@@ -1183,11 +1200,10 @@ export default function Home() {
 
                 </motion.div>
               </div>
-
             </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
       {/* Modal de Avaliação */}
       {reviewBooking && (
@@ -1237,7 +1253,7 @@ export default function Home() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-              <TabsContent value="walkers">
+            <TabsContent value="walkers">
                 <div>
                   {/* Título e Filtros lado a lado */}
                   <div className="flex items-center justify-between gap-3 mb-3">
@@ -1736,11 +1752,12 @@ export default function Home() {
                   )}
                 </div>
               </TabsContent>
-              </div>
-        </div>
 
-        </Tabs>
-        {/* Professional Call-to-Action Section */}
+              <TabsContent value="shop">
+                <ShopTab language={language} />
+              </TabsContent>
+
+              <TabsContent value="adoption">
         <div className="mt-16 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
