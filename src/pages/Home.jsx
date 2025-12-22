@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, AlertCircle } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
@@ -289,7 +290,7 @@ export default function Home() {
   radius: 50,
   languages: [],
   specializations: [],
-  breeds: [], // Added breeds
+  breeds: [],
   certifications: [], 
   serviceTypes: [],   
   timeSlots: [],      
@@ -386,8 +387,6 @@ export default function Home() {
     enabled: !!user?.email,
   });
 
-  // getLevelInfo removed - using calculateTier from tierSystem instead
-
   const priorityData = React.useMemo(() => {
       const live = activeBookings.find(b => b.status === 'in_progress');
       if (live) return { type: 'live', booking: live };
@@ -448,7 +447,7 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 0, // Disable cache to ensure updates
+    staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -457,7 +456,6 @@ export default function Home() {
     queryKey: ['trainers'],
     queryFn: async () => {
       try {
-        // Fetch all trainers, sort by creation
         const res = await base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
@@ -494,12 +492,11 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 30 * 1000, // 30s cache for emergencies
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: 60000, // Poll every minute
+    refetchInterval: 60000,
   });
 
-  // Stats em tempo real
   // Featured items for floating elements
   const { data: featuredWalkers = [] } = useQuery({
     queryKey: ['featuredWalkers'],
@@ -548,20 +545,15 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
-        // Buscar todos os dados em paralelo
         const [activeWalkers, allBookings, allAdoptions] = await Promise.all([
           base44.entities.WalkerProfile.list('-created_date', 100),
           base44.entities.Booking.list('-created_date', 500),
           base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
 
-        // Filtrar walkers ativos
         const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
-
-        // Filtrar bookings completados
         const completedBookings = allBookings.filter(b => b.status === 'completed');
 
-        // Contar cães únicos que foram passeados (clientes satisfeitos)
         const uniqueDogs = new Set();
         completedBookings.forEach(booking => {
           if (booking.dog_name) {
@@ -569,15 +561,7 @@ export default function Home() {
           }
         });
 
-        // Filtrar adoções aprovadas
         const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
-
-        console.log('📊 Stats:', {
-          walkers: walkersAtivos.length,
-          completedBookings: completedBookings.length,
-          happyDogs: uniqueDogs.size,
-          adoptions: approvedAdoptions.length
-        });
 
         return {
           totalWalkers: walkersAtivos.length || 0,
@@ -599,7 +583,6 @@ export default function Home() {
     if (!userLocation || !userLocation.lat || !userLocation.lng) {
       return null;
     }
-    // Se o passeador não tiver coordenadas, retornamos null para não filtrar incorretamente
     if (!walker.latitude || !walker.longitude) {
       return null;
     }
@@ -690,17 +673,14 @@ export default function Home() {
       ...trainer,
       type: 'trainer',
       distance: getTrainerDistance(trainer),
-      matchScore: 0 // Trainers mostly scored by filters
+      matchScore: 0
     }));
 
-    // Combine them
     const allPros = [...processedWalkers, ...processedTrainers];
 
     return allPros.filter(pro => {
-      // Basic Safety Filter
       if (pro.verification_status === 'rejected') return false;
 
-      // Common Filters
       const matchesSearch = !searchLocation || 
         (pro.location || "").toLowerCase().includes(searchLocation.toLowerCase()) ||
         (pro.walker_name || pro.trainer_name || "").toLowerCase().includes(searchLocation.toLowerCase());
@@ -711,20 +691,14 @@ export default function Home() {
       const matchesTime = filterTime === "all" || 
         pro.availability?.includes(filterTime);
 
-      // Animal Type Filter
       const matchesAnimalType = filterAnimalType === "all" || 
         (pro.accepted_animals || ['dogs']).includes(filterAnimalType);
 
-      // Distance Filter
       const matchesRadius = !userLocation || pro.distance === null || 
         pro.distance <= (advancedFilters.radius || 50);
 
       if (!matchesSearch || !matchesSize || !matchesTime || !matchesAnimalType || !matchesRadius) return false;
 
-      // Type-specific logic (only apply if pro matches the type of filter)
-      // If we are filtering for specific walker services, trainers might be excluded unless we want them to show up?
-      // For now, let's keep it simple: strict filters only apply to the relevant type.
-      
       if (pro.type === 'walker') {
         const services = pro.services_offered || [];
         const matchesDogSitting = filterDogSitting === "all" || (() => {
@@ -736,7 +710,6 @@ export default function Home() {
         })();
         if (!matchesDogSitting) return false;
         
-        // Walker-specific Advanced Filters
         if (selectedServiceTypes.length > 0) {
            const matches = selectedServiceTypes.every(type =>
             pro.services_offered?.some(s => (s.service_name || "").toLowerCase().includes(type.toLowerCase().replace('_', ' ')))
@@ -746,23 +719,17 @@ export default function Home() {
       }
 
       if (pro.type === 'trainer') {
-        // If user selected "boarding" explicitly, hide trainers (unless they offer it, but currently they don't)
         if (filterDogSitting !== "all") return false;
         
-        // Trainer filters logic (simplified for unification)
-        // If specific trainer filters are active, apply them
         const matchesExperience = (pro.experience_years || 0) >= (trainerFilters.minExperience || 0);
         if (!matchesExperience) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      // Sort logic
-      // 1. Distance (if location set)
       if (userLocation && a.distance !== null && b.distance !== null) {
         return a.distance - b.distance;
       }
-      // 2. Rating
       return (b.rating || 0) - (a.rating || 0);
     });
   }, [walkers, trainers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
@@ -879,25 +846,20 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
-              {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentLevel = user?.gamification_level || 1;
                 const currentTier = calculateTier(currentXP);
                 
-                // Tier-based progress (same as Gamification page)
                 const tierProgressPercentage = currentTier.progress || 0;
                 const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
                 
                 return (
                   <div className="space-y-3 mb-6 relative">
-                    {/* Ambient glow circle */}
                     <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
                     <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
-                      {/* Shimmer effect overlay */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
                       
-                      {/* Decorative bubbles */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
                       <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
@@ -1519,7 +1481,7 @@ export default function Home() {
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
                       <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
                         <InteractiveMap
-                          walkers={filteredWalkers}
+                          walkers={filteredProfessionals}
                           userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
                           radiusKm={advancedFilters.radius || 50}
                           onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
@@ -1663,8 +1625,6 @@ export default function Home() {
                   )}
                 </div>
               </TabsContent>
-
-              {/* Trainers Tab Content Removed */}
 
               <TabsContent value="shop">
                 <ShopTab language={language} />
