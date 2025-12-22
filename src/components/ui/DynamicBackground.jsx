@@ -18,31 +18,39 @@ export default function DynamicBackground() {
 
   const isLoggedIn = !!user;
 
-  // If not logged in, show subtle nature meadow background
+  // If not logged in, show real nature leaves background
   if (!isLoggedIn) {
     return (
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Base gradient - soft natural greens and warm earth tones */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-green-50/80 to-amber-50/40" />
-        
-        {/* Subtle grass texture pattern - very light */}
+        {/* Real nature photo background */}
         <div 
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5S5 11 5 8zm12 0c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5-2.5-2-2.5-5zm12 0c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5-2.5-2-2.5-5zm12 0c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5-2.5-2-2.5-5zM5 35c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5S5 38 5 35zm12 0c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5-2.5-2-2.5-5zm12 0c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5-2.5-2-2.5-5zm12 0c0-3 1.5-7 2.5-7s2.5 4 2.5 7-1 5-2.5 5-2.5-2-2.5-5z' fill='%2322c55e' fill-opacity='1'/%3E%3C/svg%3E")`,
+            backgroundImage: 'url(https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80)',
           }}
         />
         
-        {/* Soft floating orbs - like morning sunlight on grass */}
-        <div className="absolute top-[5%] left-[10%] w-[40vw] h-[40vw] bg-green-200/25 rounded-full blur-[100px] animate-blob-1" />
-        <div className="absolute top-[50%] right-[5%] w-[35vw] h-[35vw] bg-emerald-100/20 rounded-full blur-[80px] animate-blob-2" />
-        <div className="absolute bottom-[10%] left-[30%] w-[30vw] h-[30vw] bg-lime-100/15 rounded-full blur-[90px] animate-blob" />
+        {/* Soft green overlay for brand consistency */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2e7d32]/30 via-[#4caf50]/20 to-[#81c784]/30" />
         
-        {/* Warm sunlight from top - like sun through trees */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-100/30 via-transparent to-transparent" />
+        {/* Animated light spots (sun rays through leaves) */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-40 animate-blob-1"
+            style={{ backgroundColor: '#c8e6c9' }}
+          />
+          <div 
+            className="absolute bottom-[15%] right-[10%] w-[45vw] h-[45vw] rounded-full mix-blend-soft-light filter blur-[80px] opacity-35 animate-blob-2"
+            style={{ backgroundColor: '#a5d6a7' }}
+          />
+        </div>
         
-        {/* Bottom fade for content readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/30 to-transparent" />
+        {/* Premium vignette for depth */}
+        <div className="absolute inset-0" 
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.15) 100%)'
+          }}
+        />
       </div>
     );
   }
