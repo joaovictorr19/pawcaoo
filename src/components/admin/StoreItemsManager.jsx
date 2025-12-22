@@ -388,7 +388,7 @@ export default function StoreItemsManager() {
               </div>
 
               {/* Brand / Provider */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {formData.type === 'product' && (
                   <div className="space-y-2">
                     <Label>Marca</Label>
