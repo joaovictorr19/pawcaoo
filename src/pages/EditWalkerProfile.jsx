@@ -146,51 +146,25 @@ export default function EditWalkerProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Check for sensitive changes (Services or Price)
-    const newServices = formData.services_offered;
-    const newHourlyRate = parseFloat(formData.hourly_rate);
-    const oldServices = walkerProfile.services_offered;
-    const oldHourlyRate = walkerProfile.hourly_rate;
-
-    const hasSensitiveChanges = 
-        JSON.stringify(newServices) !== JSON.stringify(oldServices) ||
-        newHourlyRate !== oldHourlyRate;
-
-    // Separate changes
-    const sensitiveChanges = {};
-    const directChanges = {};
+    // ALL changes now require admin approval
+    const allChanges = {};
 
     Object.keys(formData).forEach(key => {
+      // Skip id, created_by, created_date, updated_date
+      if (['id', 'created_by', 'created_date', 'updated_date'].includes(key)) return;
+      
       if (JSON.stringify(formData[key]) !== JSON.stringify(walkerProfile[key])) {
-        if (key === 'services_offered' || key === 'hourly_rate') {
-           sensitiveChanges[key] = formData[key];
-        } else {
-           directChanges[key] = formData[key];
-        }
+        allChanges[key] = formData[key];
       }
     });
 
-    // Handle Direct Changes (Bio, Location, Photos, etc)
-    if (Object.keys(directChanges).length > 0) {
-        try {
-            await base44.entities.WalkerProfile.update(walkerProfile.id, directChanges);
-            toast.success("Informações gerais atualizadas!");
-        } catch (err) {
-            console.error("Failed to update direct info", err);
-            toast.error("Erro ao atualizar informações gerais.");
-        }
+    if (Object.keys(allChanges).length === 0) {
+      toast.info('Nenhuma alteração detectada.');
+      return;
     }
 
-    // Handle Sensitive Changes (Edit Request)
-    if (Object.keys(sensitiveChanges).length > 0) {
-        submitEditRequestMutation.mutate(sensitiveChanges);
-    } else if (Object.keys(directChanges).length > 0) {
-        // If only direct changes, refresh
-        queryClient.invalidateQueries(['myWalkerProfile']);
-        setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 1000);
-    } else {
-        toast.info('Nenhuma alteração detectada.');
-    }
+    // Send ALL changes to admin approval
+    submitEditRequestMutation.mutate(allChanges);
   };
 
   const toggleArrayItem = (field, value) => {
