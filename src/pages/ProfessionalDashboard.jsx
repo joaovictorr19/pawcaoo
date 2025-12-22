@@ -12,7 +12,7 @@ import {
   Calendar, DollarSign, TrendingUp, Users, Star, MessageCircle,
   MapPin, Clock, CheckCircle, AlertCircle, BarChart3, Activity,
   Package, Edit, Trash2, Plus, Bell, ArrowUp, ArrowDown, Loader2, Home,
-  Dog, Cat, Bird
+  Dog, Cat, Bird, Award
 } from "lucide-react";
 import { ReptileIcon, ArachnidIcon, RodentIcon } from "@/components/professionals/AnimalIcons";
 import { format, subDays, startOfWeek, endOfWeek } from "date-fns";
