@@ -693,6 +693,15 @@ export default function Home() {
       const matchesAnimalType = filterAnimalType === "all" || 
         (pro.accepted_animals || ['dogs']).includes(filterAnimalType);
 
+      // Debug log for animal filtering
+      if (filterAnimalType !== "all" && pro.type === 'walker') {
+        console.log(`🔍 Checking walker ${pro.walker_name}:`, {
+          filterAnimalType,
+          accepted_animals: pro.accepted_animals,
+          matches: matchesAnimalType
+        });
+      }
+
       const matchesRadius = !userLocation || pro.distance === null || 
         pro.distance <= (advancedFilters.radius || 50);
 
@@ -1248,7 +1257,7 @@ export default function Home() {
                     </h2>
 
                     {/* Barra única com localização + filtros */}
-                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2">
+                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2 flex-wrap">
                       <LocationSearch
                         onLocationChange={(loc) => {
                           console.log('📍 Location selected:', loc);
@@ -1258,7 +1267,7 @@ export default function Home() {
                           }
                         }}
                         currentLocation={userLocation}
-                        className="border-0 shadow-none bg-transparent h-8 text-sm w-40"
+                        className="border-0 shadow-none bg-transparent h-8 text-sm min-w-[160px]"
                         placeholder="📍 Localização"
                       />
 
@@ -1293,8 +1302,13 @@ export default function Home() {
                       </Select>
 
                       <Select value={filterAnimalType} onValueChange={(value) => {
-                        console.log('Filter animal changed:', value);
+                        console.log('🐾 Filter animal changed to:', value);
                         setFilterAnimalType(value);
+                        console.log('🔍 Current filter state:', {
+                          size: filterSize,
+                          time: filterTime,
+                          animal: value
+                        });
                       }}>
                         <SelectTrigger className="h-8 w-28 text-xs bg-white rounded-lg border border-gray-200">
                           <SelectValue placeholder="Animal" />
