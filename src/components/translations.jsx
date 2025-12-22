@@ -1,4 +1,72 @@
 export const translations = {
+  // ============ FRENCH TRANSLATIONS ============
+  // Navigation & Common
+  home: { fr: 'Accueil' },
+  professionals: { fr: 'Professionnels' },
+  walkers: { fr: 'Promeneurs' },
+  trainers: { fr: 'Dresseurs' },
+  shop: { fr: 'Boutique' },
+  adoption: { fr: 'Adoption' },
+  emergency: { fr: 'Urgence' },
+  settings: { fr: 'Paramètres' },
+  profile: { fr: 'Profil' },
+  logout: { fr: 'Déconnexion' },
+  login: { fr: 'Connexion' },
+  register: { fr: "S'inscrire" },
+  
+  // Search & Filters
+  search: { fr: 'Rechercher' },
+  filter: { fr: 'Filtrer' },
+  sortBy: { fr: 'Trier par' },
+  distance: { fr: 'Distance' },
+  price: { fr: 'Prix' },
+  rating: { fr: 'Note' },
+  availability: { fr: 'Disponibilité' },
+  
+  // Booking
+  bookNow: { fr: 'Réserver' },
+  selectDate: { fr: 'Sélectionner une date' },
+  selectTime: { fr: 'Sélectionner une heure' },
+  duration: { fr: 'Durée' },
+  totalPrice: { fr: 'Prix total' },
+  confirmBooking: { fr: 'Confirmer la réservation' },
+  payNow: { fr: 'Payer maintenant' },
+  paymentDeadline: { fr: 'Date limite de paiement' },
+  
+  // Dog sizes
+  small: { fr: 'Petit' },
+  medium: { fr: 'Moyen' },
+  large: { fr: 'Grand' },
+  extraLarge: { fr: 'Très grand' },
+  
+  // Time slots
+  morning: { fr: 'Matin' },
+  afternoon: { fr: 'Après-midi' },
+  evening: { fr: 'Soir' },
+  night: { fr: 'Nuit' },
+  
+  // Services
+  dogWalking: { fr: 'Promenade de chien' },
+  dogSitting: { fr: 'Garde de chien' },
+  boarding: { fr: 'Pension' },
+  houseSitting: { fr: 'Garde à domicile' },
+  dropInVisit: { fr: 'Visite à domicile' },
+  training: { fr: 'Dressage' },
+  
+  // Status
+  pending: { fr: 'En attente' },
+  confirmed: { fr: 'Confirmé' },
+  completed: { fr: 'Terminé' },
+  cancelled: { fr: 'Annulé' },
+  inProgress: { fr: 'En cours' },
+  
+  // Messages
+  noResults: { fr: 'Aucun résultat trouvé' },
+  loading: { fr: 'Chargement...' },
+  error: { fr: 'Une erreur est survenue' },
+  success: { fr: 'Succès!' },
+  
+  // ============ EXISTING TRANSLATIONS CONTINUE BELOW ============
   pt: {
     // SEO
     seoTitle: "PawCão - Passeadores de Cães em Portugal e Espanha",

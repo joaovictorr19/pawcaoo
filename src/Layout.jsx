@@ -27,6 +27,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 import { ThemeProvider, useTheme } from "@/components/ThemeContext";
+import { LocalizationProvider, useLocalization } from "@/components/LocalizationContext";
+import CountrySelector from "@/components/ui/CountrySelector";
+import { getAvailableLanguages } from "@/components/translations";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { ToastProvider } from "@/components/notifications/NotificationToast";
@@ -419,17 +422,17 @@ function LayoutContent({ children, currentPageName }) {
   }, [authUser?.email, queryClient]);
 
 
-  const languageFlags = {
-    pt: "🇵🇹",
-    en: "🇬🇧",
-    es: "🇪🇸"
-  };
+  const availableLanguages = getAvailableLanguages();
+  
+  const languageFlags = availableLanguages.reduce((acc, lang) => {
+    acc[lang.code] = lang.flag;
+    return acc;
+  }, {});
 
-  const languageNames = {
-    pt: "Português",
-    en: "English",
-    es: "Español"
-  };
+  const languageNames = availableLanguages.reduce((acc, lang) => {
+    acc[lang.code] = lang.name;
+    return acc;
+  }, {});
 
   const getPlanBadge = () => {
     if (!ownerSubscription) return null;
@@ -983,16 +986,16 @@ function LayoutContent({ children, currentPageName }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-48">
-                <DropdownMenuItem onClick={() => setLanguage('pt')} className="cursor-pointer">
-                  🇵🇹 Português
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
-                  🇬🇧 English
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('es')} className="cursor-pointer">
-                  🇪🇸 Español
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+                    {availableLanguages.map(lang => (
+                      <DropdownMenuItem 
+                        key={lang.code} 
+                        onClick={() => setLanguage(lang.code)} 
+                        className="cursor-pointer"
+                      >
+                        {lang.flag} {lang.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
             </DropdownMenu>
           </SidebarHeader>
 
@@ -1384,13 +1387,15 @@ export default function Layout({ children, currentPageName }) {
   return (
     <HelmetProvider>
       <LanguageProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <ErrorBoundary>
-              <LayoutContent children={children} currentPageName={currentPageName} />
-            </ErrorBoundary>
-          </ToastProvider>
-        </ThemeProvider>
+        <LocalizationProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <ErrorBoundary>
+                <LayoutContent children={children} currentPageName={currentPageName} />
+              </ErrorBoundary>
+            </ToastProvider>
+          </ThemeProvider>
+        </LocalizationProvider>
       </LanguageProvider>
     </HelmetProvider>
   );

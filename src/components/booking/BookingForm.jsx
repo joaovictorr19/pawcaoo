@@ -16,12 +16,17 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCreateNotification } from "../NotificationService";
 import { useTheme } from "@/components/ThemeContext";
+import { useLocalization } from "@/components/LocalizationContext";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 
 export default function BookingForm({ walker, professional, onClose, initialDate, selectedServiceType }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
   const { colors } = useTheme();
+  const { formatCurrency, formatDate, formatTime, getPaymentDeadline, country } = useLocalization();
+  const { language } = useLanguage();
   
   // Support both legacy 'walker' prop and new generic 'professional' prop
   const pro = professional || walker;
@@ -847,21 +852,21 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 <div className="bg-white rounded-lg p-3 space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span>{amounts.serviceName}</span>
-                    <span>€{amounts.baseAmount.toFixed(2)}</span>
+                    <span>{formatCurrency(amounts.baseAmount)}</span>
                   </div>
                   {amounts.discount > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
-                      <span>Desconto membro</span>
-                      <span>-€{amounts.discountAmount.toFixed(2)}</span>
+                      <span>{t('memberDiscount', language)}</span>
+                      <span>-{formatCurrency(amounts.discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm text-gray-500">
-                    <span>Taxa de serviço</span>
-                    <span>€{amounts.platformFee.toFixed(2)}</span>
+                    <span>{t('serviceFee', language)}</span>
+                    <span>{formatCurrency(amounts.platformFee)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-xl">
                     <span>Total</span>
-                    <span className="text-green-600">€{amounts.totalAmount.toFixed(2)}</span>
+                    <span className="text-green-600">{formatCurrency(amounts.totalAmount)}</span>
                   </div>
                 </div>
               </div>
@@ -874,13 +879,35 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </p>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-amber-800 mb-1">⏰ Prazo de Pagamento</p>
-                <p className="text-amber-700 text-xs">
-                  O pagamento deve ser efetuado até <strong>24 horas antes</strong> do horário marcado. 
-                  Caso não seja pago a tempo, a reserva será cancelada e o horário ficará disponível para outros clientes.
-                </p>
-              </div>
+              {(() => {
+                const deadline = getPaymentDeadline(
+                  formData.walk_date ? format(formData.walk_date, 'yyyy-MM-dd') : null, 
+                  formData.walk_time, 
+                  24
+                );
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                    <p className="font-semibold text-amber-800 mb-1">
+                      ⏰ {language === 'fr' ? 'Date limite de paiement' : language === 'es' ? 'Plazo de pago' : 'Prazo de Pagamento'}
+                    </p>
+                    <p className="text-amber-700 text-xs">
+                      {language === 'fr' 
+                        ? `Le paiement doit être effectué avant le ${deadline?.formatted || '...'} à ${deadline?.time || '...'}. Sinon, la réservation sera annulée.`
+                        : language === 'es'
+                        ? `El pago debe realizarse antes del ${deadline?.formatted || '...'} a las ${deadline?.time || '...'}. De lo contrario, la reserva será cancelada.`
+                        : language === 'en'
+                        ? `Payment must be made by ${deadline?.formatted || '...'} at ${deadline?.time || '...'}. Otherwise, the booking will be cancelled.`
+                        : `O pagamento deve ser efetuado até ${deadline?.formatted || '...'} às ${deadline?.time || '...'}. Caso não seja pago a tempo, a reserva será cancelada.`
+                      }
+                    </p>
+                    {deadline?.isExpired && (
+                      <p className="text-red-600 font-bold mt-1 text-xs">
+                        ⚠️ {language === 'fr' ? 'Délai expiré!' : language === 'es' ? '¡Plazo expirado!' : 'Prazo expirado!'}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </>
           )}
 
@@ -914,11 +941,11 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 {isPaymentProcessing ? (
                   <>
                     <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    Processando...
+                    {t('processing', language)}...
                   </>
                 ) : (
                   <>
-                    💳 Pagar €{amounts.totalAmount.toFixed(2)}
+                    💳 {t('payNow', language)} {formatCurrency(amounts.totalAmount)}
                   </>
                 )}
               </Button>

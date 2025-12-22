@@ -124,6 +124,7 @@ Deno.serve(async (req) => {
       },
       success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&type=booking`,
       cancel_url: `${origin}/WalkerDetails?id=${professional_id}&cancelled=true`,
+      locale: body.locale || 'auto', // Stripe will auto-detect or use provided locale
       payment_intent_data: {
         capture_method: 'automatic',
         metadata: {
