@@ -17,7 +17,7 @@ import { createPageUrl } from "@/utils";
 import { useCreateNotification } from "../NotificationService";
 import { useTheme } from "@/components/ThemeContext";
 
-export default function BookingForm({ walker, professional, onClose, initialDate }) {
+export default function BookingForm({ walker, professional, onClose, initialDate, selectedServiceType }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
@@ -28,13 +28,18 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const proName = pro?.walker_name || pro?.trainer_name;
   const isWalker = !!pro?.walker_name;
 
+  // Find selected service details
+  const selectedService = selectedServiceType 
+    ? pro?.services_offered?.find(s => s.service_type === selectedServiceType)
+    : null;
+
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_size: "medium",
     walk_date: initialDate || null,
     walk_time: "morning",
     duration_hours: 1,
-    special_notes: ""
+    special_notes: selectedService ? `Serviço: ${selectedService.service_name}` : ""
   });
 
   // Update date if initialDate prop changes
@@ -178,17 +183,21 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   // Calcular valores - NOVO MODELO: Cliente paga taxa ADICIONAL
   const calculateAmounts = () => {
-    const walkerRate = (pro?.hourly_rate || 0) * formData.duration_hours;
+    // If quick service is selected, use service price directly
+    const baseRate = selectedService 
+      ? selectedService.price 
+      : (pro?.hourly_rate || 0) * formData.duration_hours;
+    
     const discount = ownerSubscription?.booking_discount_percentage || 0;
-    const discountAmount = walkerRate * (discount / 100);
-    const walkerReceives = walkerRate - discountAmount; // Walker recebe valor integral
+    const discountAmount = baseRate * (discount / 100);
+    const walkerReceives = baseRate - discountAmount;
     
     const commissionRate = proSubscription?.commission_rate || 15;
     const platformFee = walkerReceives * (commissionRate / 100);
-    const totalAmount = walkerReceives + platformFee; // Cliente paga walker + taxa
+    const totalAmount = walkerReceives + platformFee;
 
     return {
-      baseAmount: walkerRate,
+      baseAmount: baseRate,
       discount,
       discountAmount,
       walkerReceives,
@@ -391,10 +400,23 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         <CardHeader 
           className="text-white"
           style={{
-            background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+            background: selectedService 
+              ? 'linear-gradient(to right, #3b82f6, #6366f1)' 
+              : `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
           }}
         >
-          <CardTitle className="text-lg md:text-2xl">{isWalker ? 'Agendar Passeio' : 'Agendar Sessão'}</CardTitle>
+          <CardTitle className="text-lg md:text-2xl">
+            {selectedService ? (
+              <span className="flex items-center gap-2">
+                {selectedService.service_type === 'boarding' && '🏠'}
+                {selectedService.service_type === 'house_sitting' && '🏡'}
+                {selectedService.service_type === 'drop_in_feeding' && '🚪'}
+                {selectedService.service_name}
+              </span>
+            ) : (
+              isWalker ? 'Agendar Passeio' : 'Agendar Sessão'
+            )}
+          </CardTitle>
           <p className="text-sm md:text-base text-white/80">com {proName}</p>
         </CardHeader>
         <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -603,7 +625,9 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">Resumo do Valor</h4>
 
             <div className="flex justify-between text-xs md:text-sm">
-              <span>Serviço ({formData.duration_hours}h × €{pro?.hourly_rate})</span>
+              <span>
+                {selectedService ? `${selectedService.service_name} (por dia)` : `Serviço (${formData.duration_hours}h × €${pro?.hourly_rate})`}
+              </span>
               <span>€{amounts.baseAmount.toFixed(2)}</span>
             </div>
               

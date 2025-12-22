@@ -103,6 +103,7 @@ export default function WalkerDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   // Support both 'id' and 'walker_id' parameters
   const walkerId = urlParams.get('id') || urlParams.get('walker_id');
+  const serviceParam = urlParams.get('service');
   
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -528,11 +529,18 @@ export default function WalkerDetails() {
                             <div className="mt-4 sm:mt-0 text-right w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3">
                               <div className="bg-white px-4 py-1.5 rounded-xl shadow-sm border border-gray-100">
                                 <span className="block font-black text-2xl text-gray-900">€{service.price}</span>
+                                <span className="text-[10px] text-gray-500">por dia</span>
                               </div>
                               <Button 
                                 size="sm" 
-                                className="bg-gray-900 text-white hover:bg-gray-800 shadow-md px-6 rounded-lg font-semibold"
+                                className={`shadow-md px-6 rounded-lg font-semibold ${
+                                  service.service_type ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90' : 'bg-gray-900 text-white hover:bg-gray-800'
+                                }`}
                                 onClick={() => {
+                                  if (!user) {
+                                    base44.auth.redirectToLogin(window.location.href);
+                                    return;
+                                  }
                                   const bookingSection = document.getElementById('booking-section');
                                   if (bookingSection) {
                                     bookingSection.scrollIntoView({ behavior: 'smooth' });
@@ -540,7 +548,7 @@ export default function WalkerDetails() {
                                   }
                                 }}
                               >
-                                Solicitar
+                                {service.service_type ? '⚡ Reservar Agora' : 'Solicitar'}
                               </Button>
                             </div>
                           </div>
@@ -685,6 +693,7 @@ export default function WalkerDetails() {
                         professional={walker}
                         onClose={handleBookingInitiated}
                         initialDate={selectedDate}
+                        selectedServiceType={serviceParam}
                         key={selectedDate?.toISOString()} // Force re-render on date change
                     />
                 ) : (
@@ -696,6 +705,17 @@ export default function WalkerDetails() {
                         <p className="text-gray-500 max-w-xs">
                             Clique em um dia disponível (verde) no calendário à esquerda para iniciar o agendamento.
                         </p>
+                        {serviceParam && (
+                          <div className="mt-4">
+                            <Badge className="bg-blue-500 text-white">
+                              Serviço selecionado: {
+                                serviceParam === 'boarding' ? '🏠 Alojamento' :
+                                serviceParam === 'house_sitting' ? '🏡 House Sitting' :
+                                serviceParam === 'drop_in_feeding' ? '🚪 Visitas Rápidas' : serviceParam
+                              }
+                            </Badge>
+                          </div>
+                        )}
                     </Card>
                 )}
 
