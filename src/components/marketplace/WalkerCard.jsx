@@ -11,8 +11,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
-import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
-import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
+import ProfessionalRoleBadge from "@/components/ui/ProfessionalRoleBadge";
 
 // Dummy data for specializations for the purpose of this component
 // In a real application, this would likely be imported from a constants file or fetched from an API.
