@@ -31,9 +31,6 @@ export default function PetCareAssistantButton({ userDogs = [] }) {
               onClick={() => setIsOpen(true)}
               className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-2xl group relative overflow-hidden"
             >
-              {/* Pulse effect */}
-              <span className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
-              
               <div className="relative z-10 flex items-center justify-center">
                 <Bot className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
                 <Sparkles className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1" />
