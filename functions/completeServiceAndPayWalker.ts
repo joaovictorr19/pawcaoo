@@ -1,7 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import Stripe from 'npm:stripe@14.5.0';
-
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 import Stripe from 'npm:stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
@@ -69,7 +66,39 @@ Deno.serve(async (req) => {
       });
     }
 
-    // === 4. TRANSFERIR VIA STRIPE CONNECT ===
+    // === 4. VERIFICAR DADOS FISCAIS (BLOQUEIO DE PAYOUT) ===
+    const taxDataRecords = await base44.asServiceRole.entities.ProfessionalTaxData.filter({
+      professional_email: payout.walker_email
+    });
+    const taxData = taxDataRecords[0];
+
+    // BLOQUEIO: Exigir NIF antes de transferir
+    if (!taxData || !taxData.tax_id || taxData.status !== 'verified') {
+      await base44.asServiceRole.entities.WalkerPayout.update(payout.id, {
+        status: 'failed',
+        notes: 'Payout bloqueado: Dados fiscais incompletos ou não verificados. Complete o NIF/NIE/SIRET na secção Fiscal.'
+      });
+
+      // Notificar profissional
+      await base44.asServiceRole.entities.Notification.create({
+        recipient_email: payout.walker_email,
+        title: '⚠️ Payout Bloqueado - Dados Fiscais Necessários',
+        message: `Para receber os seus ganhos (€${payout.net_amount}), deve completar e verificar os seus dados fiscais (NIF/NIE/SIRET). Aceda a Configurações Fiscais no painel.`,
+        type: 'payment',
+        related_id: booking_id,
+        priority: 'high',
+        action_url: '/FiscalSettings'
+      });
+
+      return Response.json({ 
+        success: false,
+        error: 'fiscal_data_required',
+        message: 'Dados fiscais incompletos. Complete o NIF para receber pagamentos.',
+        required_fields: ['tax_id', 'fiscal_address', 'proof_of_address_url']
+      }, { status: 400 });
+    }
+
+    // === 5. TRANSFERIR VIA STRIPE CONNECT ===
     let stripeTransferId = null;
     
     // Buscar Stripe account do walker
@@ -113,21 +142,22 @@ Deno.serve(async (req) => {
       console.log('⚠️ Walker sem Stripe Connect - pagamento manual necessário');
     }
 
-    // === 5. ATUALIZAR PAYOUT ===
+    // === 6. ATUALIZAR PAYOUT ===
     await base44.asServiceRole.entities.WalkerPayout.update(payout.id, {
       status: 'completed',
       stripe_transfer_id: stripeTransferId,
-      paid_at: new Date().toISOString()
+      paid_at: new Date().toISOString(),
+      notes: `Pago via Stripe Connect. NIF: ${taxData.tax_id}`
     });
 
-    // === 6. ATUALIZAR BOOKING ===
+    // === 7. ATUALIZAR BOOKING ===
     await base44.asServiceRole.entities.Booking.update(booking_id, {
       payment_status: 'released',
       status: 'completed',
       completed_date: new Date().toISOString()
     });
 
-    // === 7. REGISTAR TRANSAÇÃO FINAL ===
+    // === 8. REGISTAR TRANSAÇÃO FINAL ===
     await base44.asServiceRole.entities.WalletTransaction.create({
       user_email: payout.client_email,
       transaction_type: 'escrow_released',
@@ -137,7 +167,7 @@ Deno.serve(async (req) => {
       balance_after: 0
     });
 
-    // === 7.5 CREDITAR PONTOS AO CLIENTE ===
+    // === 9. CREDITAR PONTOS AO CLIENTE ===
     const clientMemberships = await base44.asServiceRole.entities.MembershipPlan.filter({ 
       user_email: payout.client_email,
       status: 'active'
@@ -165,7 +195,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // === 8. NOTIFICAÇÕES ===
+    // === 10. NOTIFICAÇÕES ===
     await base44.asServiceRole.entities.Notification.create({
       recipient_email: payout.walker_email,
       title: '✅ Pagamento Recebido!',

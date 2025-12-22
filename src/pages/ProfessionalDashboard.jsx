@@ -37,6 +37,7 @@ import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import VerificationBanner from "../components/professionals/VerificationBanner";
 import TimeOffManager from "../components/professional/TimeOffManager";
+import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -747,6 +748,9 @@ export default function ProfessionalDashboard() {
     <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
         <ErrorBoundary>
+        {/* Fiscal Compliance Banner - CRITICAL */}
+        <FiscalComplianceBanner />
+
         {/* Verification Banner */}
         <VerificationBanner profile={profile} type={walkerProfile ? 'walker' : 'trainer'} />
 
