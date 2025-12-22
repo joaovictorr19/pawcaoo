@@ -15,15 +15,15 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 
 const categories = [
-  { id: 'all', label: 'Todos', icon: '🛒' },
-  { id: 'Alimentação', label: 'Alimentação', icon: '🍖' },
-  { id: 'Acessórios', label: 'Acessórios', icon: '🎀' },
-  { id: 'Brinquedos', label: 'Brinquedos', icon: '🎾' },
-  { id: 'Higiene', label: 'Higiene', icon: '🧴' },
-  { id: 'Veterinária', label: 'Veterinária', icon: '🏥' },
-  { id: 'Estética', label: 'Estética', icon: '✂️' },
-  { id: 'Treino', label: 'Treino', icon: '🎓' },
-  { id: 'Seguro', label: 'Seguro', icon: '🛡️' },
+  { id: 'all', label: 'Todos' },
+  { id: 'Alimentação', label: 'Alimentação' },
+  { id: 'Acessórios', label: 'Acessórios' },
+  { id: 'Brinquedos', label: 'Brinquedos' },
+  { id: 'Higiene', label: 'Higiene' },
+  { id: 'Veterinária', label: 'Veterinária' },
+  { id: 'Estética', label: 'Estética' },
+  { id: 'Treino', label: 'Treino' },
+  { id: 'Seguro', label: 'Seguro' },
 ];
 
 // Product Card
@@ -84,7 +84,7 @@ function ProductCard({ item }) {
             )}
           </div>
 
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2 h-11">
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2 h-11 rounded-lg font-semibold shadow-md">
             <ShoppingCart className="w-4 h-4" />
             Adicionar ao Carrinho
           </Button>
@@ -158,7 +158,7 @@ function ServiceCard({ item }) {
             </span>
           </div>
 
-          <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2 h-11">
+          <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2 h-11 rounded-lg font-semibold shadow-md">
             <Calendar className="w-4 h-4" />
             Agendar
           </Button>
@@ -194,15 +194,15 @@ function AdSlotCard({ item }) {
 
           <Button 
             onClick={() => navigate(item.cta_url || createPageUrl('RegisterCompany'))}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white gap-2 px-8 h-12 text-base"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white gap-2 px-8 h-11 rounded-lg font-semibold shadow-md"
           >
             <Megaphone className="w-5 h-5" />
             {item.cta_text || 'Anunciar Agora'}
           </Button>
 
           <div className="flex items-center gap-4 mt-6 text-sm text-gray-500">
-            <span>📈 +5k visitas/mês</span>
-            <span>🎯 Público segmentado</span>
+            <span>+5k visitas/mes</span>
+            <span>Publico segmentado</span>
           </div>
         </CardContent>
       </Card>
@@ -250,19 +250,19 @@ export default function PawStoreTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">🐾 PawStore</h2>
+      <div className="text-center bg-white rounded-2xl p-6 shadow-lg mb-4">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">PawStore</h2>
         <p className="text-gray-600">Produtos, serviços e muito mais para o seu pet</p>
       </div>
 
       {/* Search */}
       <div className="max-w-xl mx-auto relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
         <Input
           placeholder="Pesquisar produtos, serviços..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 h-12 rounded-xl border-gray-200 shadow-sm"
+          className="pl-12 h-12 rounded-xl border-gray-300 shadow-md bg-white text-gray-900"
         />
       </div>
 
@@ -272,13 +272,14 @@ export default function PawStoreTab() {
           <Button
             key={cat.id}
             size="sm"
-            variant={selectedCategory === cat.id ? "default" : "outline"}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`whitespace-nowrap rounded-full ${
-              selectedCategory === cat.id ? 'bg-blue-600 text-white' : ''
+            className={`whitespace-nowrap rounded-full px-4 py-2 font-medium transition-all ${
+              selectedCategory === cat.id 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md' 
+                : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 shadow-sm'
             }`}
           >
-            {cat.icon} {cat.label}
+            {cat.label}
           </Button>
         ))}
       </div>
@@ -301,41 +302,41 @@ export default function PawStoreTab() {
 
       {/* Empty State */}
       {!isLoading && filteredItems.length === 0 && (
-        <div className="text-center py-16 bg-gray-50 rounded-2xl">
+        <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
           <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Store className="w-10 h-10 text-purple-500" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Loja em Construção</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Loja em Construcao</h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            Em breve teremos produtos e serviços incríveis para o seu pet!
+            Em breve teremos produtos e servicos incriveis para o seu pet!
           </p>
           <Button 
             onClick={() => navigate(createPageUrl('RegisterCompany'))}
-            className="bg-purple-600 hover:bg-purple-700"
+            className="bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold shadow-md h-11 px-6"
           >
             <Megaphone className="w-4 h-4 mr-2" />
-            Anuncie seu Negócio Aqui
+            Anuncie seu Negocio Aqui
           </Button>
         </div>
       )}
 
       {/* CTA for Businesses */}
-      <Card className="p-6 border-2 border-dashed border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 mt-8">
+      <Card className="p-6 border-2 border-dashed border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 mt-8 shadow-lg">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
               <Store className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h4 className="font-bold text-gray-900 text-lg">Tem um PetShop ou oferece serviços?</h4>
-              <p className="text-gray-600">Venda os seus produtos e serviços na PawStore</p>
+              <h4 className="font-bold text-gray-900 text-lg">Tem um PetShop ou oferece servicos?</h4>
+              <p className="text-gray-600">Venda os seus produtos e servicos na PawStore</p>
             </div>
           </div>
           <Button 
             onClick={() => navigate(createPageUrl('RegisterCompany'))}
-            className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
+            className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap rounded-lg font-semibold shadow-md h-11 px-6"
           >
-            Começar a Vender
+            Comecar a Vender
           </Button>
         </div>
       </Card>
