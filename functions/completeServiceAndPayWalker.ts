@@ -134,6 +134,34 @@ Deno.serve(async (req) => {
       balance_after: 0
     });
 
+    // === 7.5 CREDITAR PONTOS AO CLIENTE ===
+    const clientMemberships = await base44.asServiceRole.entities.MembershipPlan.filter({ 
+      user_email: payout.client_email,
+      status: 'active'
+    });
+    const clientPlan = clientMemberships[0];
+    const pointsMultiplier = clientPlan?.points_multiplier || 1;
+    const pointsEarned = Math.floor(payout.net_amount * pointsMultiplier);
+
+    if (wallets.length > 0 && pointsEarned > 0) {
+      const wallet = wallets[0];
+      const newPoints = (wallet.total_points || 0) + pointsEarned;
+      
+      await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
+        total_points: newPoints
+      });
+
+      await base44.asServiceRole.entities.WalletTransaction.create({
+        user_email: payout.client_email,
+        transaction_type: 'points_earned',
+        amount: 0,
+        points_amount: pointsEarned,
+        description: `${pointsEarned} pontos ganhos (${pointsMultiplier}x - Passeio concluído)`,
+        related_booking_id: booking_id,
+        balance_after: newPoints
+      });
+    }
+
     // === 8. NOTIFICAÇÕES ===
     await base44.asServiceRole.entities.Notification.create({
       recipient_email: payout.walker_email,
@@ -147,7 +175,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.Notification.create({
       recipient_email: payout.client_email,
       title: '🐕 Passeio Concluído',
-      message: `O passeio foi concluído com sucesso. O pagamento de €${payout.net_amount} foi transferido ao Dog Walker.`,
+      message: `Passeio concluído! €${payout.net_amount} enviados. Você ganhou ${pointsEarned} pontos! 🌟`,
       type: 'booking',
       related_id: booking_id,
       priority: 'normal'
