@@ -1843,41 +1843,166 @@ export default function AdminDashboard() {
           <TabsContent value="adoptions">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>{t('adoptionApplications', language)} ({adoptionApplications.length})</CardTitle>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>{t('adoptionManagement', language) || 'Gestão de Adoções'}</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {adoptionListings.length} anúncios • {adoptionApplications.length} candidaturas
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['allAdoptionListings'] });
+                      queryClient.invalidateQueries({ queryKey: ['allAdoptionApplications'] });
+                      toast.success("Adoções atualizadas!");
+                    }}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {loadingAdoptions && adoptionApplications.length === 0 ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
-                  </div>
-                ) : adoptionApplications.length === 0 ? (
-                  <p className="text-center py-8 text-gray-600">{t('noAdoptions', language)}</p>
-                ) : (
-                  <div className="space-y-4">
-                    {adoptionApplications.map(app => (
-                      <Card key={app.id} className="border border-gray-200">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge variant={app.application_status === 'pending' ? 'default' : 'outline'}>
-                                  {app.application_status}
-                                </Badge>
-                                <span className="text-xs text-gray-500">{format(new Date(app.created_date), 'dd/MM/yyyy')}</span>
+                <Tabs defaultValue="listings" className="w-full">
+                  <TabsList className="grid grid-cols-2 w-full mb-4">
+                    <TabsTrigger value="listings">Anúncios de Adoção</TabsTrigger>
+                    <TabsTrigger value="applications">Candidaturas</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="listings">
+                    {adoptionListings.length === 0 ? (
+                      <p className="text-center py-8 text-gray-600">Nenhum anúncio de adoção</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {adoptionListings.map(listing => (
+                          <Card key={listing.id} className="border-2 border-pink-100">
+                            <CardContent className="p-4">
+                              <div className="flex gap-4">
+                                {listing.primary_photo_url && (
+                                  <img
+                                    src={listing.primary_photo_url}
+                                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                                    alt={listing.pet_name}
+                                  />
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div>
+                                      <h4 className="font-bold text-lg">{listing.pet_name || 'Sem Nome'}</h4>
+                                      <p className="text-sm text-gray-600">{listing.breed} • {listing.pet_type}</p>
+                                      <p className="text-xs text-gray-500">{listing.location_city}</p>
+                                    </div>
+                                    <Badge className={
+                                      listing.status === 'available' ? 'bg-green-600' :
+                                      listing.status === 'adopted' ? 'bg-blue-600' :
+                                      listing.status === 'pending' ? 'bg-yellow-500' :
+                                      'bg-gray-500'
+                                    }>
+                                      {listing.status}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex gap-2 flex-wrap mb-2">
+                                    {listing.is_verified && (
+                                      <Badge className="bg-blue-500 text-white text-xs">✓ Verificado</Badge>
+                                    )}
+                                    {listing.urgency_level !== 'normal' && (
+                                      <Badge className="bg-red-500 text-white text-xs">
+                                        {listing.urgency_level === 'urgent' ? '⚠️ Urgente' : '🔴 Crítico'}
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline" className="text-xs">
+                                      {listing.applications_count || 0} candidaturas
+                                    </Badge>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${listing.id}`))}
+                                    >
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      Ver
+                                    </Button>
+                                    <Select
+                                      value={listing.status}
+                                      onValueChange={async (newStatus) => {
+                                        await base44.entities.AdoptionListing.update(listing.id, {
+                                          status: newStatus,
+                                          adopted_date: newStatus === 'adopted' ? new Date().toISOString() : null
+                                        });
+                                        queryClient.invalidateQueries({ queryKey: ['allAdoptionListings'] });
+                                        toast.success(`Status alterado para: ${newStatus}`);
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-9 w-32">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="available">Disponível</SelectItem>
+                                        <SelectItem value="pending">Pendente</SelectItem>
+                                        <SelectItem value="adopted">Adotado</SelectItem>
+                                        <SelectItem value="on_hold">Em Espera</SelectItem>
+                                        <SelectItem value="removed">Removido</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-red-600 border-red-200"
+                                      onClick={async () => {
+                                        if (confirm(`Eliminar anúncio de ${listing.pet_name}?`)) {
+                                          await base44.entities.AdoptionListing.delete(listing.id);
+                                          queryClient.invalidateQueries({ queryKey: ['allAdoptionListings'] });
+                                          toast.success('Anúncio eliminado!');
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
-                              <h4 className="font-bold text-lg">Pet: {app.pet_name}</h4>
-                              <p className="text-sm text-gray-700">Interessado: {app.applicant_name} ({app.applicant_email})</p>
-                              <p className="text-sm text-gray-600">Motivo: {app.reason_for_adoption}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-gray-500">Listing ID: {app.listing_id}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="applications">
+                    {adoptionApplications.length === 0 ? (
+                      <p className="text-center py-8 text-gray-600">{t('noAdoptions', language)}</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {adoptionApplications.map(app => (
+                          <Card key={app.id} className="border border-gray-200">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Badge variant={app.application_status === 'pending' ? 'default' : 'outline'}>
+                                      {app.application_status}
+                                    </Badge>
+                                    <span className="text-xs text-gray-500">{format(new Date(app.created_date), 'dd/MM/yyyy')}</span>
+                                  </div>
+                                  <h4 className="font-bold text-lg">Pet: {app.pet_name}</h4>
+                                  <p className="text-sm text-gray-700">Interessado: {app.applicant_name} ({app.applicant_email})</p>
+                                  <p className="text-sm text-gray-600">Motivo: {app.reason_for_adoption}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-gray-500">Listing ID: {app.listing_id}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </TabsContent>
