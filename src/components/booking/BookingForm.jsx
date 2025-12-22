@@ -738,8 +738,9 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 {isProcessing ? 'Enviando...' : '✓ Confirmar Pedido'}
               </Button>
             )}
-        </CardContent>
-      </Card>
-    </form>
-  );
-}
+          </div>
+          </CardContent>
+          </Card>
+          </form>
+          );
+          }
