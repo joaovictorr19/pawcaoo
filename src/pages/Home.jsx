@@ -1204,7 +1204,7 @@ export default function Home() {
           <PersonalizedRecommendations user={user} />
         )}
 
-        {/* Tabs Section - Show for everyone */}
+        {/* Filters and Results Section */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
             {showAdvancedFilters && (
@@ -1237,8 +1237,6 @@ export default function Home() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-
               <TabsContent value="walkers">
                 <div>
                   {/* Título e Filtros lado a lado */}
@@ -1738,10 +1736,10 @@ export default function Home() {
                   )}
                 </div>
               </TabsContent>
-            </Tabs>
-          </div>
+              </div>
         </div>
 
+        </Tabs>
         {/* Professional Call-to-Action Section */}
         <div className="mt-16 mb-12">
           <motion.div

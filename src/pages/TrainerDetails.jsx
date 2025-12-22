@@ -20,6 +20,7 @@ import ServiceList from "../components/professionals/ServiceList";
 import { AnimatePresence } from "framer-motion";
 import CheckoutModal from "../components/payments/CheckoutModal";
 import { useTheme } from "@/components/ThemeContext";
+import { Helmet } from 'react-helmet-async';
 
 export default function TrainerDetails() {
   const navigate = useNavigate();
@@ -247,6 +248,10 @@ export default function TrainerDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50">
+      <Helmet>
+        <title>{`${trainer.trainer_name} - Treinador Profissional | PawCão`}</title>
+        <meta name="description" content={`${trainer.trainer_name} - Treinador avaliado com ${averageRating?.toFixed(1)} estrelas. ${trainer.bio?.substring(0, 100) || 'Serviços profissionais de treino.'}`} />
+      </Helmet>
       <div className="max-w-5xl mx-auto p-6">
         <Button
           variant="outline"
