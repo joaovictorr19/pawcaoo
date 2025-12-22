@@ -455,12 +455,7 @@ export default function EditWalkerProfile() {
               <div className="border-t-2 border-green-100 pt-6 space-y-4">
                 <Label className="text-xl font-bold">Serviços Oferecidos</Label>
                 
-                <Alert className="border-orange-300 bg-orange-50">
-                  <AlertCircle className="h-4 w-4 text-orange-600" />
-                  <AlertDescription className="text-orange-900 text-sm">
-                    Alterações de preços e serviços necessitam aprovação do Admin antes de aparecerem no site.
-                  </AlertDescription>
-                </Alert>
+
 
                 {/* Display Current Services */}
                 {(formData.services_offered || []).map((service, index) => (
