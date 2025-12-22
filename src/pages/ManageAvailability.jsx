@@ -6,22 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Plus, X, CalendarOff, CheckCircle2, Sun, Moon, Sunset, Sunrise } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Calendar, Clock, Plus, X, CalendarOff, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { pt } from "date-fns/locale";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function ManageAvailability() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { language } = useLanguage();
+  const { colors } = useTheme();
   const [selectedDate, setSelectedDate] = useState(null);
   const [timeSlots, setTimeSlots] = useState([
     { start_time: "09:00", end_time: "12:00", is_available: true }
   ]);
   const [isDayOff, setIsDayOff] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data: authUser } = useQuery({
     queryKey: ['currentUser'],
@@ -38,29 +45,48 @@ export default function ManageAvailability() {
     enabled: !!authUser?.email,
   });
 
+  const { data: trainerProfile } = useQuery({
+    queryKey: ['trainerProfile', authUser?.email],
+    queryFn: async () => {
+      if (!authUser?.email) return null;
+      const profiles = await base44.entities.TrainerProfile.filter({ created_by: authUser.email });
+      return profiles && profiles.length > 0 ? profiles[0] : null;
+    },
+    enabled: !!authUser?.email,
+  });
+
+  const professionalType = walkerProfile ? 'walker' : (trainerProfile ? 'trainer' : 'walker');
+
   const updateGeneralAvailabilityMutation = useMutation({
     mutationFn: async (newAvailability) => {
-      if (!walkerProfile?.id) return;
-      return await base44.entities.WalkerProfile.update(walkerProfile.id, {
-        availability: newAvailability
-      });
+      if (walkerProfile?.id) {
+        return await base44.entities.WalkerProfile.update(walkerProfile.id, {
+          availability: newAvailability
+        });
+      } else if (trainerProfile?.id) {
+        return await base44.entities.TrainerProfile.update(trainerProfile.id, {
+          availability: newAvailability
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['walkerProfile'] });
-      toast.success("Disponibilidade geral atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['trainerProfile'] });
+      toast.success(language === 'pt' ? "Disponibilidade geral atualizada!" : "General availability updated!");
     },
   });
 
   const toggleGeneralAvailability = (slot) => {
-    if (!walkerProfile) return;
-    const current = walkerProfile.availability || [];
+    const profile = walkerProfile || trainerProfile;
+    if (!profile) return;
+    const current = profile.availability || [];
     const updated = current.includes(slot)
       ? current.filter(s => s !== slot)
       : [...current, slot];
     updateGeneralAvailabilityMutation.mutate(updated);
   };
 
-  const { data: availabilityData = [] } = useQuery({
+  const { data: availabilityData = [], refetch: refetchAvailability } = useQuery({
     queryKey: ['availability', authUser?.email],
     queryFn: () => {
       if (!authUser?.email) return [];
@@ -74,71 +100,17 @@ export default function ManageAvailability() {
     queryKey: ['professionalBookings', authUser?.email],
     queryFn: async () => {
       if (!authUser?.email) return [];
-      // Filter bookings where the current user is the professional
       const walkerBookings = await base44.entities.Booking.filter({ walker_email: authUser.email });
-      // Try to fetch trainer bookings if entity exists (handling potential missing schema in some envs)
       let trainerBookings = [];
       try {
-         trainerBookings = await base44.entities.TrainingBooking.filter({ trainer_email: authUser.email });
+        trainerBookings = await base44.entities.TrainingBooking.filter({ trainer_email: authUser.email });
       } catch (e) {
-         console.log("Training bookings not available or error fetching");
+        console.log("Training bookings not available");
       }
       return [...walkerBookings, ...trainerBookings];
     },
     enabled: !!authUser?.email,
     initialData: [],
-  });
-
-  const saveAvailabilityMutation = useMutation({
-    mutationFn: async (data) => {
-      if (!selectedDate || !authUser?.email) {
-        throw new Error('Missing required data');
-      }
-      
-      const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      
-      // Re-fetch to get latest data
-      const currentAvailability = await base44.entities.CalendarAvailability.filter({ 
-        professional_email: authUser.email,
-        date: dateStr
-      });
-      
-      const existing = currentAvailability.length > 0 ? currentAvailability[0] : null;
-
-      console.log('🔄 Mutation executing:', { dateStr, existing: !!existing, existingId: existing?.id, data });
-
-      if (existing) {
-        console.log('📝 Updating existing record:', existing.id);
-        const result = await base44.entities.CalendarAvailability.update(existing.id, data);
-        console.log('📝 Update result:', result);
-        return result;
-      } else {
-        console.log('➕ Creating new record for:', authUser.email);
-        const newRecord = {
-          ...data,
-          professional_email: authUser.email,
-          professional_name: authUser.full_name || 'Professional',
-          professional_type: "walker",
-          date: dateStr
-        };
-        console.log('➕ New record data:', newRecord);
-        const result = await base44.entities.CalendarAvailability.create(newRecord);
-        console.log('➕ Create result:', result);
-        return result;
-      }
-    },
-    onSuccess: (result) => {
-      console.log('✅ Save successful:', result);
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast.success(isDayOff 
-        ? (language === 'pt' ? '✅ Dia marcado como indisponível!' : '✅ Day marked as unavailable!')
-        : (t('saveAvailability', language) + "!")
-      );
-    },
-    onError: (error) => {
-      console.error('❌ Save failed:', error);
-      toast.error(language === 'pt' ? 'Erro ao guardar. Tente novamente.' : 'Error saving. Please try again.');
-    }
   });
 
   const addTimeSlot = () => {
@@ -155,9 +127,10 @@ export default function ManageAvailability() {
     setTimeSlots(updated);
   };
 
+  // Direct save function without mutation wrapper for better control
   const handleSave = async () => {
     if (!selectedDate) {
-      toast.error(t('selectDate', language));
+      toast.error(language === 'pt' ? 'Selecione uma data primeiro' : 'Select a date first');
       return;
     }
     
@@ -166,258 +139,331 @@ export default function ManageAvailability() {
       return;
     }
 
-    console.log('💾 Saving availability:', {
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      isDayOff,
-      timeSlots: isDayOff ? [] : timeSlots,
-      userEmail: authUser.email
-    });
+    setIsSaving(true);
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
-    saveAvailabilityMutation.mutate({
-      time_slots: isDayOff ? [] : timeSlots,
-      is_fully_booked: isDayOff,
-      is_day_off: isDayOff
-    });
+    try {
+      console.log('💾 Saving:', { dateStr, isDayOff, email: authUser.email });
+
+      // Fetch existing record for this date
+      const existingRecords = await base44.entities.CalendarAvailability.filter({ 
+        professional_email: authUser.email,
+        date: dateStr
+      });
+
+      const dataToSave = {
+        time_slots: isDayOff ? [] : timeSlots,
+        is_fully_booked: isDayOff,
+        is_day_off: isDayOff
+      };
+
+      let result;
+      if (existingRecords.length > 0) {
+        // Update existing
+        console.log('📝 Updating record:', existingRecords[0].id);
+        result = await base44.entities.CalendarAvailability.update(existingRecords[0].id, dataToSave);
+      } else {
+        // Create new
+        console.log('➕ Creating new record');
+        result = await base44.entities.CalendarAvailability.create({
+          ...dataToSave,
+          professional_email: authUser.email,
+          professional_name: authUser.full_name || 'Professional',
+          professional_type: professionalType,
+          date: dateStr
+        });
+      }
+
+      console.log('✅ Save result:', result);
+      
+      // Refresh data
+      await refetchAvailability();
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
+      
+      toast.success(
+        isDayOff 
+          ? (language === 'pt' ? '✅ Dia marcado como folga!' : '✅ Day marked as day off!')
+          : (language === 'pt' ? '✅ Disponibilidade guardada!' : '✅ Availability saved!')
+      );
+
+    } catch (error) {
+      console.error('❌ Save error:', error);
+      toast.error(language === 'pt' ? 'Erro ao guardar. Tente novamente.' : 'Error saving. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = (date, status) => {
     setSelectedDate(date);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const existing = (availabilityData || []).find(a => a.date === dateStr);
+    const existing = (availabilityData || []).find(a => a.date === dateStr && a.professional_email === authUser?.email);
     
     if (existing) {
-      setTimeSlots(existing.time_slots || [{ start_time: "09:00", end_time: "18:00", is_available: true }]);
-      setIsDayOff(existing.is_day_off || existing.is_fully_booked || false);
+      setTimeSlots(existing.time_slots?.length > 0 ? existing.time_slots : [{ start_time: "09:00", end_time: "18:00", is_available: true }]);
+      setIsDayOff(existing.is_day_off === true);
     } else {
       setTimeSlots([{ start_time: "09:00", end_time: "18:00", is_available: true }]);
       setIsDayOff(false);
     }
   };
 
+  const profile = walkerProfile || trainerProfile;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-3 md:p-6">
+    <div className="min-h-screen p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header - Compact */}
-        <div className="mb-4 md:mb-6">
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-1 md:mb-2">
+        {/* Back Button */}
+        <Button
+          variant="outline"
+          onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+          className="mb-4 md:mb-6 glass-panel shadow-lg hover:shadow-xl transition-all duration-300 border-white/60 hover:scale-105 active:scale-95 px-4 py-2.5 h-auto"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          <span className="font-semibold">{language === 'pt' ? 'Voltar ao Painel' : 'Back to Dashboard'}</span>
+        </Button>
+
+        {/* Header */}
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
             {t('manageAvailability', language)}
           </h1>
           <p className="text-gray-600 text-sm md:text-lg">{t('setAvailableTimeSlots', language)}</p>
         </div>
 
-        {walkerProfile && (
-          <div className="mb-8 p-6 bg-gray-100 border-4 border-gray-900 rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-mono relative overflow-hidden">
-            {/* Pixel Art Decorative Elements */}
-            <div className="absolute top-2 right-2 flex gap-1">
-              <div className="w-3 h-3 bg-red-500 border border-black"></div>
-              <div className="w-3 h-3 bg-yellow-500 border border-black"></div>
-              <div className="w-3 h-3 bg-green-500 border border-black"></div>
-            </div>
-            
-            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter border-b-4 border-black pb-2 mb-6 flex items-center gap-3">
-              <span className="text-2xl">👾</span>
-              Horário Padrão (Global)
+        {/* General Availability - Glass Panel */}
+        {profile && (
+          <div className="mb-6 md:mb-8 glass-panel rounded-2xl p-4 md:p-6 border border-white/40">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-green-600" />
+              {language === 'pt' ? 'Horário Padrão (Global)' : 'Default Schedule (Global)'}
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {[
-                { id: 'morning', label: 'Manhã', icon: '🌅', desc: '06:00 - 12:00' },
-                { id: 'afternoon', label: 'Tarde', icon: '☀️', desc: '12:00 - 18:00' },
-                { id: 'evening', label: 'Noite', icon: '🌆', desc: '18:00 - 00:00' },
-                { id: 'night', label: 'Madrugada', icon: '🦉', desc: '00:00 - 06:00' }
+                { id: 'morning', label: language === 'pt' ? 'Manhã' : 'Morning', icon: '🌅', desc: '06:00 - 12:00' },
+                { id: 'afternoon', label: language === 'pt' ? 'Tarde' : 'Afternoon', icon: '☀️', desc: '12:00 - 18:00' },
+                { id: 'evening', label: language === 'pt' ? 'Noite' : 'Evening', icon: '🌆', desc: '18:00 - 00:00' },
+                { id: 'night', label: language === 'pt' ? 'Madrugada' : 'Night', icon: '🦉', desc: '00:00 - 06:00' }
               ].map((slot) => {
-                const isActive = walkerProfile.availability?.includes(slot.id);
+                const isActive = profile.availability?.includes(slot.id);
                 return (
                   <button
                     key={slot.id}
                     onClick={() => toggleGeneralAvailability(slot.id)}
                     className={`
-                      relative group h-28 flex flex-col items-center justify-center border-4 border-black transition-all duration-100
+                      relative p-4 rounded-xl border-2 transition-all duration-200
                       ${isActive 
-                        ? 'bg-green-400 translate-x-[2px] translate-y-[2px] shadow-none' 
-                        : 'bg-white hover:bg-gray-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]'
+                        ? 'bg-green-100 border-green-500 shadow-md' 
+                        : 'bg-white/60 border-gray-200 hover:border-gray-300 hover:bg-white/80'
                       }
                     `}
                   >
                     {isActive && (
-                      <div className="absolute top-1 right-1 text-black">
-                        <CheckCircle2 className="w-5 h-5 fill-white" />
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
                       </div>
                     )}
-                    <span className="text-3xl mb-1 grayscale-0">{slot.icon}</span>
-                    <span className="font-bold text-lg uppercase tracking-wide">{slot.label}</span>
-                    <span className="text-[10px] font-bold opacity-60 mt-1">{slot.desc}</span>
+                    <span className="text-2xl block mb-1">{slot.icon}</span>
+                    <span className="font-semibold text-sm block">{slot.label}</span>
+                    <span className="text-[10px] text-gray-500">{slot.desc}</span>
                   </button>
                 );
               })}
             </div>
-            <p className="text-xs font-bold mt-4 text-gray-500 flex items-center gap-2">
-              <span className="animate-pulse">▋</span>
-              DEFINE A TUA VISIBILIDADE NA PESQUISA. PARA DIAS ESPECÍFICOS, USA O CALENDÁRIO ABAIXO.
+            <p className="text-xs text-gray-500 mt-4">
+              💡 {language === 'pt' ? 'Define a tua visibilidade na pesquisa. Para dias específicos, usa o calendário abaixo.' : 'Sets your visibility in search. For specific days, use the calendar below.'}
             </p>
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-3 md:gap-6">
-          {/* Calendar - Responsive */}
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Calendar */}
           <div className="lg:col-span-2">
-            <AvailabilityCalendar
-              availabilityData={availabilityData}
-              bookings={bookings}
-              generalAvailability={walkerProfile?.availability}
-              onDateSelect={handleDateSelect}
-              selectedDate={selectedDate}
-              walkerEmail={authUser?.email}
-              isInteractive={true}
-            />
+            <div className="glass-panel rounded-2xl border border-white/40 overflow-hidden">
+              <AvailabilityCalendar
+                availabilityData={availabilityData}
+                bookings={bookings}
+                generalAvailability={profile?.availability}
+                onDateSelect={handleDateSelect}
+                selectedDate={selectedDate}
+                walkerEmail={authUser?.email}
+                isInteractive={true}
+                locale={pt}
+              />
+            </div>
           </div>
 
-          {/* Time Slots Panel - Compact */}
-          <div className="space-y-3 md:space-y-4">
-            <Card className="border-0 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white p-3 md:p-6">
-                <CardTitle className="flex items-center gap-2 text-base md:text-xl">
-                  <Clock className="w-4 h-4 md:w-6 md:h-6" />
-                  {selectedDate ? format(selectedDate, 'MMM d, yyyy') : t('selectDate', language)}
+          {/* Time Slots Panel */}
+          <div className="space-y-4">
+            <Card className="glass-panel border-0 shadow-xl rounded-2xl overflow-hidden">
+              <CardHeader 
+                className="text-white p-4 md:p-5"
+                style={{
+                  background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}cc)`
+                }}
+              >
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <Calendar className="w-5 h-5" />
+                  {selectedDate ? format(selectedDate, 'dd MMM yyyy', { locale: pt }) : (language === 'pt' ? 'Selecione uma data' : 'Select a date')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 md:p-6">
+              <CardContent className="p-4 md:p-5">
                 {!selectedDate ? (
-                  <div className="text-center py-8 md:py-12">
-                    <Calendar className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-2 md:mb-4" />
-                    <p className="text-gray-600 text-sm md:text-base">{t('selectDate', language)}</p>
+                  <div className="text-center py-10">
+                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">{language === 'pt' ? 'Clique num dia no calendário' : 'Click a day on the calendar'}</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 md:space-y-4">
-                    {/* Status Toggle */}
-                    <div className={`p-3 rounded-lg border-2 transition-colors ${isDayOff ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                  <div className="space-y-4">
+                    {/* Day Off Toggle - Main Control */}
+                    <div className={`p-4 rounded-xl border-2 transition-all ${isDayOff ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'}`}>
                       <div className="flex items-center justify-between">
-                        <Label className="font-medium text-sm md:text-base flex items-center gap-2 cursor-pointer">
+                        <div className="flex items-center gap-3">
                           {isDayOff ? (
-                            <>
-                              <CalendarOff className="w-5 h-5 text-red-500" />
-                              <span className="text-red-700">{language === 'pt' ? 'Indisponível (Folga)' : 'Unavailable (Day Off)'}</span>
-                            </>
+                            <CalendarOff className="w-6 h-6 text-red-500" />
                           ) : (
-                            <>
-                              <CheckCircle2 className="w-5 h-5 text-green-600" />
-                              <span className="text-green-700">{language === 'pt' ? 'Disponível para Agendamentos' : 'Available for Bookings'}</span>
-                            </>
+                            <CheckCircle2 className="w-6 h-6 text-green-600" />
                           )}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="day-status" 
-                            checked={isDayOff} 
-                            onCheckedChange={(checked) => setIsDayOff(checked)}
-                            className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
-                          />
-                          <Label htmlFor="day-status" className="text-xs text-gray-500 cursor-pointer">
-                            {language === 'pt' ? 'Marcar como Indisponível' : 'Mark as Unavailable'}
-                          </Label>
+                          <div>
+                            <p className={`font-semibold ${isDayOff ? 'text-red-700' : 'text-green-700'}`}>
+                              {isDayOff 
+                                ? (language === 'pt' ? 'Dia de Folga' : 'Day Off')
+                                : (language === 'pt' ? 'Disponível' : 'Available')
+                              }
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {isDayOff 
+                                ? (language === 'pt' ? 'Não aceita agendamentos' : 'Not accepting bookings')
+                                : (language === 'pt' ? 'Aceita agendamentos' : 'Accepting bookings')
+                              }
+                            </p>
+                          </div>
                         </div>
+                        <Switch
+                          checked={isDayOff}
+                          onCheckedChange={setIsDayOff}
+                          className="data-[state=checked]:bg-red-500"
+                        />
                       </div>
                     </div>
 
                     {!isDayOff && (
                       <>
-                        <div className="flex justify-between items-center mt-4">
-                          <h3 className="font-semibold text-gray-900 text-sm md:text-base">{t('timeSlots', language)}</h3>
-                          <Button size="sm" onClick={addTimeSlot} variant="outline" className="h-7 md:h-9 text-xs md:text-sm">
-                            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                            {t('addSlot', language)}
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-semibold text-gray-900 text-sm">{t('timeSlots', language)}</h3>
+                          <Button size="sm" onClick={addTimeSlot} variant="outline" className="h-8 text-xs">
+                            <Plus className="w-3 h-3 mr-1" />
+                            {language === 'pt' ? 'Adicionar' : 'Add'}
                           </Button>
                         </div>
 
-                        <div className="space-y-2 md:space-y-3">
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
                           {timeSlots.map((slot, index) => (
-                            <div key={index} className="border rounded-lg p-2 md:p-3 bg-gray-50">
+                            <div key={index} className="border rounded-lg p-3 bg-white/60">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                  <Checkbox
+                                  <Switch
                                     checked={slot.is_available}
                                     onCheckedChange={(checked) => updateTimeSlot(index, 'is_available', checked)}
+                                    className="scale-75"
                                   />
-                                  <Label className="text-xs md:text-sm">{t('available', language)}</Label>
+                                  <Label className="text-xs">{slot.is_available ? '✓ Ativo' : '✗ Bloqueado'}</Label>
                                 </div>
                                 <Button
                                   size="icon"
                                   variant="ghost"
                                   onClick={() => removeTimeSlot(index)}
                                   disabled={timeSlots.length === 1}
-                                  className="h-6 w-6 md:h-8 md:w-8"
+                                  className="h-6 w-6"
                                 >
-                                  <X className="w-3 h-3 md:w-4 md:h-4" />
+                                  <X className="w-3 h-3" />
                                 </Button>
                               </div>
                               <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <Label className="text-[10px] md:text-xs">{t('startTime', language)}</Label>
-                                  <Input
-                                    type="time"
-                                    value={slot.start_time}
-                                    onChange={(e) => updateTimeSlot(index, 'start_time', e.target.value)}
-                                    className="h-8 md:h-10 text-xs md:text-sm"
-                                  />
-                                </div>
-                                <div>
-                                  <Label className="text-[10px] md:text-xs">{t('endTime', language)}</Label>
-                                  <Input
-                                    type="time"
-                                    value={slot.end_time}
-                                    onChange={(e) => updateTimeSlot(index, 'end_time', e.target.value)}
-                                    className="h-8 md:h-10 text-xs md:text-sm"
-                                  />
-                                </div>
+                                <Input
+                                  type="time"
+                                  value={slot.start_time}
+                                  onChange={(e) => updateTimeSlot(index, 'start_time', e.target.value)}
+                                  className="h-8 text-xs"
+                                />
+                                <Input
+                                  type="time"
+                                  value={slot.end_time}
+                                  onChange={(e) => updateTimeSlot(index, 'end_time', e.target.value)}
+                                  className="h-8 text-xs"
+                                />
                               </div>
                             </div>
                           ))}
                         </div>
-                        
-                        <p className="text-xs text-gray-500 mt-3 bg-yellow-50 border border-yellow-200 rounded p-2">
-                          💡 <strong>Dica:</strong> Desmarque "Disponível" em um horário para bloqueá-lo sem excluir.
-                        </p>
                       </>
                     )}
 
                     {isDayOff && (
-                      <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed">
-                        <CalendarOff className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                        <p className="text-sm">{language === 'pt' ? 'Nenhum horário disponível para este dia.' : 'No slots available for this day.'}</p>
+                      <div className="py-6 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                        <CalendarOff className="w-10 h-10 mx-auto mb-2 text-red-300" />
+                        <p className="text-sm font-medium text-red-600">
+                          {language === 'pt' ? 'Este dia será bloqueado' : 'This day will be blocked'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {language === 'pt' ? 'Clientes não poderão agendar' : 'Clients cannot book'}
+                        </p>
                       </div>
                     )}
 
+                    {/* Save Button */}
                     <Button
-                      className="w-full bg-gradient-to-r from-green-600 to-green-500 h-9 md:h-11 text-sm md:text-base"
+                      className="w-full h-11 text-white font-semibold"
+                      style={{
+                        background: isDayOff 
+                          ? 'linear-gradient(to right, #dc2626, #b91c1c)' 
+                          : `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}cc)`
+                      }}
                       onClick={handleSave}
-                      disabled={saveAvailabilityMutation.isPending}
+                      disabled={isSaving}
                     >
-                      {saveAvailabilityMutation.isPending ? t('saving', language) : t('saveAvailability', language)}
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {language === 'pt' ? 'A guardar...' : 'Saving...'}
+                        </>
+                      ) : isDayOff ? (
+                        <>
+                          <CalendarOff className="w-4 h-4 mr-2" />
+                          {language === 'pt' ? 'Marcar como Folga' : 'Mark as Day Off'}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          {language === 'pt' ? 'Guardar Disponibilidade' : 'Save Availability'}
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Upcoming Bookings - Compact */}
-            <Card className="border-0 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 md:p-4">
-                <CardTitle className="text-sm md:text-lg">{t('upcomingBookings', language)}</CardTitle>
+            {/* Upcoming Bookings */}
+            <Card className="glass-panel border-0 shadow-xl rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 p-4">
+                <CardTitle className="text-sm font-semibold">{t('upcomingBookings', language)}</CardTitle>
               </CardHeader>
-              <CardContent className="p-3 md:p-4">
+              <CardContent className="p-4">
                 {bookings.length === 0 ? (
-                  <p className="text-center text-gray-600 py-3 md:py-4 text-xs md:text-sm">{t('noUpcomingBookings', language)}</p>
+                  <p className="text-center text-gray-500 py-4 text-sm">{t('noUpcomingBookings', language)}</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {bookings.slice(0, 5).map(booking => (
-                      <div key={booking.id} className="p-2 md:p-3 bg-gray-50 rounded-lg">
-                        <div className="font-semibold text-xs md:text-sm text-gray-900">
-                          {booking.dog_name}
+                      <div key={booking.id} className="p-3 bg-white/60 rounded-lg border border-gray-100">
+                        <div className="font-semibold text-sm text-gray-900">
+                          🐕 {booking.dog_name}
                         </div>
-                        <div className="text-[10px] md:text-xs text-gray-600">
-                          {format(new Date(booking.walk_date || booking.session_date), 'MMM d, yyyy')}
+                        <div className="text-xs text-gray-600">
+                          {format(new Date(booking.walk_date || booking.session_date), 'dd MMM yyyy', { locale: pt })}
                         </div>
-                        <Badge className="mt-1 text-[10px] md:text-xs" variant="outline">
+                        <Badge className="mt-1 text-[10px]" variant="outline">
                           {booking.status}
                         </Badge>
                       </div>
