@@ -92,14 +92,33 @@ Deno.serve(async (req) => {
             });
 
             if (existingSubs.length > 0) {
+              const sub = existingSubs[0];
+              
+              // Calcular valor retido de passeios não usados (para estatísticas)
+              const unusedWalks = (sub.free_walks_per_month || 0) - (sub.free_walks_used_this_month || 0);
+              const unusedValue = unusedWalks * 15; // €15 por passeio
+              
               await base44.asServiceRole.entities.OwnerSubscription.update(
-                existingSubs[0].id,
+                sub.id,
                 {
                   free_walks_used_this_month: 0, // RESET - passeios não usados são perdidos
-                  is_active: true
+                  unused_walks_value_retained: (sub.unused_walks_value_retained || 0) + unusedValue,
+                  is_active: true,
+                  current_period_start: new Date().toISOString().split('T')[0],
+                  current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
                 }
               );
-              console.log(`Subscription renewed for ${userEmail}, free walks reset to 0`);
+
+              // Notificação de renovação bem sucedida
+              await base44.asServiceRole.entities.Notification.create({
+                recipient_email: userEmail,
+                title: '✅ Subscrição Renovada',
+                message: `A sua subscrição ${sub.plan_type.toUpperCase()} foi renovada com sucesso! Os seus ${sub.free_walks_per_month} passeios grátis foram repostos.`,
+                type: 'payment',
+                priority: 'normal'
+              });
+
+              console.log(`Subscription renewed for ${userEmail}, free walks reset to 0, unused value: €${unusedValue}`);
             }
           }
         }
@@ -118,6 +137,8 @@ Deno.serve(async (req) => {
           });
 
           if (existingSubs.length > 0) {
+            const oldPlan = existingSubs[0].plan_type;
+            
             // Reverter para plano free
             await base44.asServiceRole.entities.OwnerSubscription.update(
               existingSubs[0].id,
@@ -136,6 +157,16 @@ Deno.serve(async (req) => {
                 stripe_subscription_id: null
               }
             );
+
+            // Notificação de cancelamento
+            await base44.asServiceRole.entities.Notification.create({
+              recipient_email: userEmail,
+              title: 'Subscrição Terminada',
+              message: `A sua subscrição ${oldPlan.toUpperCase()} terminou. O seu plano foi alterado para Free. Pode fazer upgrade a qualquer momento para recuperar os benefícios.`,
+              type: 'payment',
+              priority: 'normal'
+            });
+
             console.log(`Subscription cancelled for ${userEmail}, reverted to free`);
           }
         }
