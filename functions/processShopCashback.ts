@@ -132,17 +132,45 @@ Deno.serve(async (req) => {
       });
     }
 
-    // === 8. REGISTAR RECEITA DA LOJA ===
+    // === 8. REGISTAR RECEITA DA LOJA (CONSIDERANDO TAXA DO PARCEIRO) ===
     const periodMonth = new Date().toISOString().slice(0, 7);
+    
+    // Buscar configuração de taxa do parceiro (se houver partner_id no request)
+    const { partner_id } = await req.json().catch(() => ({}));
+    let partnerFee = 0;
+    let partnerPayout = purchase_amount;
+    
+    if (partner_id) {
+      const partners = await base44.asServiceRole.entities.Partnership.filter({ id: partner_id });
+      if (partners.length > 0) {
+        const partner = partners[0];
+        
+        // Verificar isenção
+        const isExemptExpired = partner.fee_exemption_end_date && new Date(partner.fee_exemption_end_date) < new Date();
+        const isExempt = partner.is_fee_exempt && !isExemptExpired;
+        
+        if (!isExempt) {
+          const feePercentage = partner.custom_fee_percentage || 15;
+          partnerFee = purchase_amount * (feePercentage / 100);
+          partnerPayout = purchase_amount - partnerFee;
+        }
+        
+        // Atualizar estatísticas do parceiro
+        await base44.asServiceRole.entities.Partnership.update(partner.id, {
+          total_sales: (partner.total_sales || 0) + 1,
+          total_revenue: (partner.total_revenue || 0) + partnerPayout
+        });
+      }
+    }
     
     await base44.asServiceRole.entities.PlatformRevenue.create({
       revenue_type: 'shop_margin',
       source_id: order_id,
       user_email: user.email,
       gross_amount: purchase_amount,
-      cost_amount: cashbackEarned, // Cashback é "custo" mas volta para o ecossistema
-      net_profit: purchase_amount - cashbackEarned, // Margem real
-      description: `Venda loja: €${purchase_amount} - Cashback: €${cashbackEarned.toFixed(2)}`,
+      cost_amount: cashbackEarned + partnerPayout, // Cashback + payout ao parceiro
+      net_profit: partnerFee - cashbackEarned, // Comissão PawCão - Cashback dado
+      description: `Venda: €${purchase_amount} | Taxa: €${partnerFee.toFixed(2)} | Cashback: €${cashbackEarned.toFixed(2)}`,
       plan_type: planType,
       period_month: periodMonth
     });
