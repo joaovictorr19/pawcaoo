@@ -26,10 +26,20 @@ export default function DigitalWalletPass({
   const tier = calculateTier(xp);
   const levelColor = getTierColor(tier.level);
 
-  // URL do perfil para o QR Code - domínio oficial pawcao.net
-  const profileUrl = username 
-    ? `https://pawcao.net/UserProfile?username=${username}`
-    : `https://pawcao.net/WalkerDetails?id=${user?.id}`;
+  // URL do perfil PÚBLICO para o QR Code - página que qualquer cliente pode ver
+  // Rota: WalkerDetails para walkers, TrainerDetails para trainers
+  const getPublicProfileUrl = () => {
+    const baseUrl = "https://pawcao.net";
+    const profileId = user?.id;
+    
+    if (profileType === "trainer") {
+      return `${baseUrl}/TrainerDetails?id=${profileId}`;
+    }
+    // Default: Walker
+    return `${baseUrl}/WalkerDetails?id=${profileId}`;
+  };
+  
+  const profileUrl = getPublicProfileUrl();
 
   // Título baseado no tipo e nível
   const getTitle = () => {
@@ -112,11 +122,21 @@ export default function DigitalWalletPass({
             }}
           />
           
-          {/* Linha 1: Logo + Badge Verificado */}
+          {/* Linha 1: Logo Oficial + Badge Verificado */}
           <div className="relative z-10 flex items-center justify-between mb-3">
-            {/* Logo com fallback de texto */}
+            {/* Logo oficial da PawCão */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+              <img 
+                src="/logo.png" 
+                alt="PawCão" 
+                className="h-8 w-auto object-contain"
+                onError={(e) => {
+                  // Fallback se imagem não carregar
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="hidden w-8 h-8 bg-white rounded-lg items-center justify-center shadow-sm">
                 <span className="text-lg">🐾</span>
               </div>
               <span className="text-white font-bold text-base tracking-wide drop-shadow-sm">PawCão</span>
