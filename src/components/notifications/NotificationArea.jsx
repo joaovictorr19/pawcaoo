@@ -50,21 +50,36 @@ export default function NotificationArea({ isOpen, onClose }) {
       const personalNotifications = await base44.entities.Notification.list('-created_date');
       const myNotifications = personalNotifications.filter(n => n.recipient_email === user?.email);
 
-      // Fetch system notifications (broadcasts)
-      const systemNotifications = await base44.entities.SystemNotification.filter({ is_active: true });
+      // Fetch system notifications (broadcasts) - filter by recipient_email OR is_sent=true
+      let systemNotifications = [];
+      try {
+        // Get broadcasts sent to this user specifically
+        const userSystemNotifs = await base44.entities.SystemNotification.filter({ 
+          recipient_email: user?.email,
+          is_sent: true 
+        }, '-created_date');
+        systemNotifications = userSystemNotifs || [];
+      } catch (e) {
+        console.log('SystemNotification fetch error:', e);
+      }
       
       // Fetch read status for system notifications
-      const readStatuses = await base44.entities.SystemNotificationRead.filter({ user_email: user?.email });
-      const readIds = new Set(readStatuses.map(r => r.notification_id));
+      let readIds = new Set();
+      try {
+        const readStatuses = await base44.entities.SystemNotificationRead.filter({ user_email: user?.email });
+        readIds = new Set(readStatuses.map(r => r.notification_id));
+      } catch (e) {
+        console.log('Read status fetch skipped');
+      }
 
       // Map system notifications to the common notification format
       const formattedSystemNotifications = systemNotifications.map(sn => ({
         id: sn.id,
-        title: sn.subject,
-        message: sn.content,
+        title: sn.title,
+        message: sn.message,
         type: 'system',
-        created_date: sn.created_date || new Date().toISOString(), // Fallback if created_date missing
-        is_read: readIds.has(sn.id),
+        created_date: sn.created_date || new Date().toISOString(),
+        is_read: readIds.has(sn.id) || sn.is_read,
         is_system: true,
         priority: sn.priority
       }));
