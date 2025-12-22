@@ -4,47 +4,47 @@
 // Sistema de cores profissional sem emojis
 // Cores mudam a cada 10 níveis
 
-// Função para obter cor baseada no nível (Espectro 0-100)
+// Função para obter cor baseada no nível (Espectro 0-100) - Tema Quente
 export function getTierColor(level) {
   const safeLevel = Math.min(100, Math.max(0, level || 0));
   
-  if (safeLevel >= 100) return '#8B5CF6'; // Diamante (gradiente especial)
-  if (safeLevel >= 90) return '#EF4444';  // Vermelho Fogo
-  if (safeLevel >= 80) return '#EC4899';  // Rosa Choque
-  if (safeLevel >= 70) return '#8B5CF6';  // Roxo
-  if (safeLevel >= 60) return '#6366F1';  // Índigo
-  if (safeLevel >= 50) return '#3B82F6';  // Azul Real
-  if (safeLevel >= 40) return '#06B6D4';  // Ciano
-  if (safeLevel >= 30) return '#10B981';  // Verde Esmeralda
-  if (safeLevel >= 20) return '#84CC16';  // Verde Lima
-  if (safeLevel >= 10) return '#D97706';  // Bronze
-  return '#94A3B8';                        // Cinza Chumbo
+  if (safeLevel >= 100) return '#D97706'; // Lendário (dourado)
+  if (safeLevel >= 90) return '#9A3412';  // Vulcão (laranja escuro)
+  if (safeLevel >= 80) return '#991B1B';  // Rubi (vermelho escuro)
+  if (safeLevel >= 70) return '#B8860B';  // Ouro
+  if (safeLevel >= 60) return '#9CA3AF';  // Prata
+  if (safeLevel >= 50) return '#1E3A8A';  // Oceano (azul escuro)
+  if (safeLevel >= 40) return '#1E3A5F';  // Marinho
+  if (safeLevel >= 30) return '#065F46';  // Esmeralda
+  if (safeLevel >= 20) return '#166534';  // Floresta
+  if (safeLevel >= 10) return '#92400E';  // Bronze
+  return '#475569';                        // Chumbo
 }
 
-// Definição das 11 Cores do Espectro (a cada 10 níveis)
+// Definição das 11 Cores do Espectro (a cada 10 níveis) - Tema Quente e Aconchegante
 export const TIER_COLORS_BY_LEVEL = [
-  // Níveis 0-9: Cinza Chumbo
-  { minLevel: 0, maxLevel: 9, name: 'Chumbo', primary: '#94A3B8', gradient: 'from-slate-400 to-slate-600', orb1: '#94A3B8', orb2: '#CBD5E1', text: 'text-slate-500', bg: 'bg-slate-100' },
-  // Níveis 10-19: Bronze
-  { minLevel: 10, maxLevel: 19, name: 'Bronze', primary: '#D97706', gradient: 'from-amber-500 to-orange-600', orb1: '#D97706', orb2: '#F59E0B', text: 'text-amber-600', bg: 'bg-amber-50' },
-  // Níveis 20-29: Verde Lima
-  { minLevel: 20, maxLevel: 29, name: 'Lima', primary: '#84CC16', gradient: 'from-lime-400 to-green-500', orb1: '#84CC16', orb2: '#A3E635', text: 'text-lime-600', bg: 'bg-lime-50' },
-  // Níveis 30-39: Verde Esmeralda
-  { minLevel: 30, maxLevel: 39, name: 'Esmeralda', primary: '#10B981', gradient: 'from-emerald-400 to-green-600', orb1: '#10B981', orb2: '#34D399', text: 'text-emerald-600', bg: 'bg-emerald-50' },
-  // Níveis 40-49: Ciano
-  { minLevel: 40, maxLevel: 49, name: 'Ciano', primary: '#06B6D4', gradient: 'from-cyan-400 to-teal-500', orb1: '#06B6D4', orb2: '#22D3EE', text: 'text-cyan-600', bg: 'bg-cyan-50' },
-  // Níveis 50-59: Azul Real
-  { minLevel: 50, maxLevel: 59, name: 'Azul Real', primary: '#3B82F6', gradient: 'from-blue-500 to-blue-700', orb1: '#3B82F6', orb2: '#60A5FA', text: 'text-blue-600', bg: 'bg-blue-50' },
-  // Níveis 60-69: Índigo
-  { minLevel: 60, maxLevel: 69, name: 'Índigo', primary: '#6366F1', gradient: 'from-indigo-500 to-violet-600', orb1: '#6366F1', orb2: '#818CF8', text: 'text-indigo-600', bg: 'bg-indigo-50' },
-  // Níveis 70-79: Roxo
-  { minLevel: 70, maxLevel: 79, name: 'Roxo', primary: '#8B5CF6', gradient: 'from-violet-500 to-purple-600', orb1: '#8B5CF6', orb2: '#A78BFA', text: 'text-violet-600', bg: 'bg-violet-50' },
-  // Níveis 80-89: Rosa Choque
-  { minLevel: 80, maxLevel: 89, name: 'Rosa', primary: '#EC4899', gradient: 'from-pink-500 to-rose-600', orb1: '#EC4899', orb2: '#F472B6', text: 'text-pink-600', bg: 'bg-pink-50' },
-  // Níveis 90-99: Vermelho Fogo
-  { minLevel: 90, maxLevel: 99, name: 'Fogo', primary: '#EF4444', gradient: 'from-red-500 to-orange-600', orb1: '#EF4444', orb2: '#F87171', text: 'text-red-600', bg: 'bg-red-50' },
-  // Nível 100+: Diamante (Gradiente cyan para purple)
-  { minLevel: 100, maxLevel: 999, name: 'Diamante', primary: '#8B5CF6', gradient: 'from-cyan-400 via-blue-500 to-purple-600', orb1: '#06B6D4', orb2: '#8B5CF6', text: 'text-purple-600', bg: 'bg-gradient-to-br from-cyan-50 to-purple-50', isLegendary: true }
+  // Níveis 0-9: Chumbo (Cinza escuro elegante)
+  { minLevel: 0, maxLevel: 9, name: 'Chumbo', primary: '#475569', gradient: 'from-slate-600 via-slate-700 to-slate-800', orb1: '#64748B', orb2: '#475569', text: 'text-slate-400', bg: 'bg-slate-900', isDark: true },
+  // Níveis 10-19: Bronze (Laranja escuro/cobre)
+  { minLevel: 10, maxLevel: 19, name: 'Bronze', primary: '#92400E', gradient: 'from-amber-700 via-orange-800 to-amber-900', orb1: '#B45309', orb2: '#78350F', text: 'text-amber-400', bg: 'bg-amber-950', isDark: true },
+  // Níveis 20-29: Floresta (Verde escuro profundo)
+  { minLevel: 20, maxLevel: 29, name: 'Floresta', primary: '#166534', gradient: 'from-green-700 via-emerald-800 to-green-900', orb1: '#15803D', orb2: '#14532D', text: 'text-green-400', bg: 'bg-green-950', isDark: true },
+  // Níveis 30-39: Esmeralda (Verde escuro rico)
+  { minLevel: 30, maxLevel: 39, name: 'Esmeralda', primary: '#065F46', gradient: 'from-emerald-700 via-teal-800 to-emerald-900', orb1: '#047857', orb2: '#064E3B', text: 'text-emerald-400', bg: 'bg-emerald-950', isDark: true },
+  // Níveis 40-49: Marinho (Azul marinho profundo)
+  { minLevel: 40, maxLevel: 49, name: 'Marinho', primary: '#1E3A5F', gradient: 'from-blue-800 via-slate-800 to-blue-950', orb1: '#1E40AF', orb2: '#172554', text: 'text-blue-400', bg: 'bg-blue-950', isDark: true },
+  // Níveis 50-59: Oceano (Azul escuro elegante)
+  { minLevel: 50, maxLevel: 59, name: 'Oceano', primary: '#1E3A8A', gradient: 'from-blue-900 via-indigo-900 to-slate-900', orb1: '#1D4ED8', orb2: '#1E3A8A', text: 'text-blue-300', bg: 'bg-slate-900', isDark: true },
+  // Níveis 60-69: Prata (Elegante metálico)
+  { minLevel: 60, maxLevel: 69, name: 'Prata', primary: '#9CA3AF', gradient: 'from-gray-400 via-slate-500 to-gray-600', orb1: '#D1D5DB', orb2: '#9CA3AF', text: 'text-gray-300', bg: 'bg-gray-800', isDark: true },
+  // Níveis 70-79: Ouro (Dourado rico e quente)
+  { minLevel: 70, maxLevel: 79, name: 'Ouro', primary: '#B8860B', gradient: 'from-yellow-600 via-amber-600 to-yellow-700', orb1: '#EAB308', orb2: '#CA8A04', text: 'text-yellow-400', bg: 'bg-yellow-950', isDark: true },
+  // Níveis 80-89: Rubi (Vermelho escuro profundo)
+  { minLevel: 80, maxLevel: 89, name: 'Rubi', primary: '#991B1B', gradient: 'from-red-800 via-rose-900 to-red-950', orb1: '#DC2626', orb2: '#7F1D1D', text: 'text-red-400', bg: 'bg-red-950', isDark: true },
+  // Níveis 90-99: Vulcão (Laranja/vermelho intenso)
+  { minLevel: 90, maxLevel: 99, name: 'Vulcão', primary: '#9A3412', gradient: 'from-orange-800 via-red-800 to-orange-900', orb1: '#EA580C', orb2: '#7C2D12', text: 'text-orange-400', bg: 'bg-orange-950', isDark: true },
+  // Nível 100+: Lendário (Gradiente especial dourado-âmbar)
+  { minLevel: 100, maxLevel: 999, name: 'Lendário', primary: '#D97706', gradient: 'from-amber-500 via-yellow-600 to-orange-600', orb1: '#F59E0B', orb2: '#D97706', text: 'text-amber-300', bg: 'bg-gradient-to-br from-amber-950 to-orange-950', isDark: true, isLegendary: true }
 ];
 
 // ============================================
