@@ -87,6 +87,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import { AnimalIconsWithLabels } from "@/components/professionals/AnimalIcons";
 
 export default function WalkerDetails() {
   const { language } = useLanguage();
@@ -567,6 +568,14 @@ export default function WalkerDetails() {
 
                   {/* Preferences & Capabilities */}
                   <div className="space-y-4">
+                    {/* Animais Aceites */}
+                    {walker.accepted_animals && walker.accepted_animals.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Animais Aceites</h3>
+                        <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
+                      </div>
+                    )}
+
                     {walker.dog_sizes && walker.dog_sizes.length > 0 && (
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('dogSizesHandle', language)}</h3>
