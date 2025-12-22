@@ -21,7 +21,7 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
-import { Download, ExternalLink, Share2, Calendar as CalendarIcon, FileText } from "lucide-react";
+import { Download, ExternalLink, Share2, Calendar as CalendarIcon, FileText, QrCode } from "lucide-react";
 import { bookingToEvent, generateMultiICS, downloadICS } from "../components/calendar/calendarHelpers";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +38,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import VerificationBanner from "../components/professionals/VerificationBanner";
+import DigitalWalletPass from "../components/professionals/DigitalWalletPass";
 // TimeOffManager removed (integrated into calendar)
 import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
 import { useLanguage } from "@/components/LanguageContext";
@@ -936,6 +937,13 @@ export default function ProfessionalDashboard() {
               >
                 <Star className="w-4 h-4" />
                 Reviews
+              </TabsTrigger>
+              <TabsTrigger 
+                value="qrcode" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <QrCode className="w-4 h-4" />
+                Cartão Digital
               </TabsTrigger>
             </TabsList>
           </div>
@@ -1878,6 +1886,34 @@ export default function ProfessionalDashboard() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* QR Code / Digital Wallet Pass Tab */}
+          <TabsContent value="qrcode">
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="text-center border-b bg-gradient-to-br from-slate-50 to-gray-100">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
+                    <QrCode className="w-6 h-6 text-white" />
+                  </div>
+                  Cartão Digital
+                </CardTitle>
+                <p className="text-gray-600 mt-2">
+                  Partilhe o seu perfil presencialmente com clientes
+                </p>
+              </CardHeader>
+              <CardContent className="py-10 flex justify-center">
+                <DigitalWalletPass 
+                  user={{
+                    ...user,
+                    ...(walkerProfile || trainerProfile),
+                    username: user?.username || (walkerProfile || trainerProfile)?.id
+                  }}
+                  profileType={walkerProfile ? "walker" : "trainer"}
+                  isVerified={profile?.is_verified || profile?.verification_status === 'verified'}
+                />
               </CardContent>
             </Card>
           </TabsContent>
