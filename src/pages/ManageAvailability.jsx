@@ -237,6 +237,8 @@ export default function ManageAvailability() {
               generalAvailability={walkerProfile?.availability}
               onDateSelect={handleDateSelect}
               selectedDate={selectedDate}
+              walkerEmail={authUser?.email}
+              isInteractive={true}
             />
           </div>
 
