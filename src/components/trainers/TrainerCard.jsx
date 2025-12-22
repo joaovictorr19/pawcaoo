@@ -119,7 +119,7 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
             <img
               src={trainer.photo_url}
               alt={trainer.trainer_name}
-              className="w-full h-full aspect-square object-cover object-top group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full aspect-square object-cover object-center group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
           ) : (

@@ -50,7 +50,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 <img
                   src={professional.photo_url}
                   alt={name}
-                  className="w-32 h-32 rounded-full border-4 border-white aspect-square object-cover object-top bg-gray-100"
+                  className="w-32 h-32 rounded-full border-4 border-white aspect-square object-cover object-center bg-gray-100"
                   loading="lazy"
                 />
               ) : (

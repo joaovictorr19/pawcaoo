@@ -101,7 +101,7 @@ export default function PodiumDisplay({
               <img 
                 src={user.profile_photo_url} 
                 alt={user.full_name}
-                className="w-full h-full aspect-square object-cover object-top"
+                className="w-full h-full aspect-square object-cover object-center"
               />
             ) : (
               <div 
