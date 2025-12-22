@@ -547,11 +547,15 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
-        const [activeWalkers, completedBookings, approvedAdoptions] = await Promise.all([
+        // Buscar todos os dados em paralelo
+        const [activeWalkers, allBookings, allAdoptions] = await Promise.all([
           base44.entities.WalkerProfile.filter({ is_active: true }),
-          base44.entities.Booking.filter({ status: 'completed' }),
-          base44.entities.AdoptionApplication.filter({ status: 'approved' })
+          base44.entities.Booking.list('-created_date', 500),
+          base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
+
+        // Filtrar bookings completados
+        const completedBookings = allBookings.filter(b => b.status === 'completed');
 
         // Contar cães únicos que foram passeados (clientes satisfeitos)
         const uniqueDogs = new Set();
@@ -559,6 +563,16 @@ export default function Home() {
           if (booking.dog_name) {
             uniqueDogs.add(`${booking.created_by}-${booking.dog_name}`);
           }
+        });
+
+        // Filtrar adoções aprovadas
+        const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
+
+        console.log('📊 Stats:', {
+          walkers: activeWalkers.length,
+          completedBookings: completedBookings.length,
+          happyDogs: uniqueDogs.size,
+          adoptions: approvedAdoptions.length
         });
 
         return {
