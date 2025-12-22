@@ -53,10 +53,10 @@ export default function PodiumDisplay({
       >
         {/* Foto com borda na cor do nível */}
         <div className="relative mb-3">
-          {/* Coroa para 1º lugar */}
+          {/* Coroa para 1º lugar - CENTRALIZADA */}
           {isFirst && (
             <motion.div 
-              className="absolute -top-8 left-1/2 -translate-x-1/2 z-10"
+              className="absolute -top-10 left-0 right-0 flex justify-center z-10"
               animate={{ y: [-2, 2, -2] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -136,15 +136,23 @@ export default function PodiumDisplay({
   };
 
   return (
-    <div className="flex items-end justify-center gap-3 md:gap-6 py-8">
+    <div className="flex items-end justify-center gap-4 md:gap-8 py-8 px-2">
       {/* 2º Lugar - Esquerda */}
-      <PodiumCard user={second} position={2} />
+      {second ? (
+        <PodiumCard user={second} position={2} />
+      ) : (
+        <div className="w-28 md:w-36" /> /* Placeholder para manter layout */
+      )}
       
       {/* 1º Lugar - Centro (mais alto) */}
-      <PodiumCard user={first} position={1} className="relative z-10" />
+      {first && <PodiumCard user={first} position={1} className="relative z-10" />}
       
       {/* 3º Lugar - Direita */}
-      <PodiumCard user={third} position={3} />
+      {third ? (
+        <PodiumCard user={third} position={3} />
+      ) : (
+        <div className="w-28 md:w-36" /> /* Placeholder para manter layout */
+      )}
     </div>
   );
 }

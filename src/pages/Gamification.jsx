@@ -331,11 +331,17 @@ export default function Gamification() {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+              <div 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
+              >
                 <Trophy className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 bg-clip-text text-transparent">
+                <h1 
+                  className="text-4xl md:text-6xl font-black tracking-tight bg-clip-text text-transparent"
+                  style={{ backgroundImage: `linear-gradient(135deg, ${levelColor}, ${levelColor}99, ${levelColor})` }}
+                >
                   Hall da Fama
                 </h1>
               </div>
