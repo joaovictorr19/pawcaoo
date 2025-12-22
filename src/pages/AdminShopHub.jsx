@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Store, Package, Megaphone, Award, Trash2, Edit, Plus, Check, X, Building2, Image as ImageIcon } from "lucide-react";
+import { Store, Package, Megaphone, Award, Trash2, Edit, Plus, Check, X, Building2, Image as ImageIcon, DollarSign } from "lucide-react";
+import VendorManagement from "@/components/admin/VendorManagement";
 import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
 
@@ -281,7 +282,11 @@ export default function AdminShopHub() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
+            <TabsTrigger value="vendors" className="bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">
+              <DollarSign className="w-4 h-4 mr-2" />
+              Taxas & Parceiros
+            </TabsTrigger>
             <TabsTrigger value="companies">
               <Building2 className="w-4 h-4 mr-2" />
               Empresas ({companies.length})
@@ -296,13 +301,17 @@ export default function AdminShopHub() {
             </TabsTrigger>
             <TabsTrigger value="badges">
               <Award className="w-4 h-4 mr-2" />
-              Emblemas Utilizador
+              Emblemas User
             </TabsTrigger>
             <TabsTrigger value="companyBadges">
               <Store className="w-4 h-4 mr-2" />
               Emblemas Empresa
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="vendors">
+            <VendorManagement />
+          </TabsContent>
 
           <TabsContent value="companies">
             <div className="grid gap-4">
