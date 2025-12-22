@@ -51,7 +51,6 @@ export default function ProfessionalDashboard() {
   const [editingService, setEditingService] = useState(null);
   const [dateRange, setDateRange] = useState("7days");
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
-  const [selectedDayForTimeOff, setSelectedDayForTimeOff] = useState(null);
 
   // User and Profile queries with real-time updates
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -1555,143 +1554,101 @@ export default function ProfessionalDashboard() {
                       locale={ptBR}
                       walkerEmail={user?.email}
                       isInteractive={true}
-                      selectedDate={selectedDayForTimeOff?.date}
-                      onDateSelect={(date, status) => {
-                        // Open panel to confirm time off action
-                        setSelectedDayForTimeOff({ date, status });
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Time Off Manager Panel */}
-                  <AnimatePresence>
-                    {selectedDayForTimeOff && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        className="mt-6 p-4 bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl shadow-lg"
-                      >
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                          <div>
-                            <h3 className="font-bold text-gray-900 flex items-center gap-2 text-lg">
-                              <CalendarIcon className="w-5 h-5 text-red-600" />
-                              {format(selectedDayForTimeOff.date, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                            </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {selectedDayForTimeOff.status === 'day_off' ? '🚫 Dia marcado como folga' : 'Dia disponível'}
-                            </p>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => setSelectedDayForTimeOff(null)}>
-                            ✕
-                          </Button>
-                        </div>
-                        
-                        {/* Check bookings for this day */}
-                        {(() => {
-                          const dateStr = format(selectedDayForTimeOff.date, 'yyyy-MM-dd');
+                      onDateSelect={async (date, status) => {
+                        try {
+                          const dateStr = format(date, 'yyyy-MM-dd');
+                          
+                          // Check if day has bookings
                           const dayBookings = allBookings.filter(b => 
                             (b.walk_date === dateStr || b.session_date === dateStr) &&
                             (b.status !== 'cancelled' && b.status !== 'rejected')
                           );
                           
                           if (dayBookings.length > 0) {
-                            return (
-                              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
-                                <p className="text-sm font-semibold text-yellow-800 mb-2">
-                                  ⚠️ Este dia tem {dayBookings.length} reserva(s) ativa(s)
-                                </p>
-                                <p className="text-xs text-yellow-700">
-                                  Não é possível marcar folga. Cancele ou reagende as reservas primeiro.
-                                </p>
-                                <div className="mt-3 space-y-2">
-                                  {dayBookings.map(b => (
-                                    <div key={b.id} className="flex items-center gap-2 text-xs bg-white p-2 rounded border border-yellow-200">
-                                      <span className="font-bold">{b.dog_name}</span>
-                                      <span>•</span>
-                                      <span>{b.walk_time || b.session_time}</span>
-                                      <Badge className="ml-auto bg-yellow-100 text-yellow-800">{b.status}</Badge>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
+                            toast.error('❌ Dia com reservas!', {
+                              description: 'Não pode marcar folga. Cancele as reservas primeiro.'
+                            });
+                            return;
+                          }
+
+                          const existingRecord = availability.find(a => a.date === dateStr);
+
+                          if (status === 'day_off') {
+                            // REMOVE TIME OFF
+                            if (existingRecord) {
+                              await base44.entities.CalendarAvailability.delete(existingRecord.id);
+                              toast.success('✅ Folga removida!');
+                            }
+                          } else {
+                            // MARK AS TIME OFF
+                            if (existingRecord) {
+                              await base44.entities.CalendarAvailability.update(existingRecord.id, {
+                                is_day_off: true,
+                                is_fully_booked: true,
+                                notes: 'Folga'
+                              });
+                            } else {
+                              await base44.entities.CalendarAvailability.create({
+                                professional_email: user?.email,
+                                professional_name: profile?.walker_name || profile?.trainer_name,
+                                professional_type: walkerProfile ? 'walker' : 'trainer',
+                                date: dateStr,
+                                is_day_off: true,
+                                is_fully_booked: true,
+                                time_slots: [],
+                                notes: 'Folga'
+                              });
+                            }
+                            toast.success('🚫 Folga marcada!');
                           }
                           
-                          // No bookings - allow toggle
-                          return (
-                            <div className="space-y-3">
-                              {selectedDayForTimeOff.status === 'day_off' ? (
-                                <Button
-                                  onClick={async () => {
-                                    try {
-                                      const existingRecord = availability.find(a => a.date === dateStr);
-                                      if (existingRecord) {
-                                        await base44.entities.CalendarAvailability.delete(existingRecord.id);
-                                        toast.success('✅ Folga removida! Dia disponível para reservas.');
-                                        queryClient.invalidateQueries(['myAvailability']);
-                                        setSelectedDayForTimeOff(null);
-                                      }
-                                    } catch (err) {
-                                      console.error(err);
-                                      toast.error('Erro ao remover folga.');
-                                    }
-                                  }}
-                                  className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold shadow-lg"
-                                >
-                                  <CheckCircle className="w-5 h-5 mr-2" />
-                                  Remover Folga e Abrir Agenda
-                                </Button>
-                              ) : (
-                                <Button
-                                  onClick={async () => {
-                                    try {
-                                      const existingRecord = availability.find(a => a.date === dateStr);
-                                      
-                                      if (existingRecord) {
-                                        await base44.entities.CalendarAvailability.update(existingRecord.id, {
-                                          is_day_off: true,
-                                          is_fully_booked: true,
-                                          notes: 'Folga marcada pelo profissional'
-                                        });
-                                      } else {
-                                        await base44.entities.CalendarAvailability.create({
-                                          professional_email: user?.email,
-                                          professional_name: profile?.walker_name || profile?.trainer_name,
-                                          professional_type: walkerProfile ? 'walker' : 'trainer',
-                                          date: dateStr,
-                                          is_day_off: true,
-                                          is_fully_booked: true,
-                                          time_slots: [],
-                                          notes: 'Folga marcada pelo profissional'
-                                        });
-                                      }
-                                      
-                                      toast.success('🚫 Folga marcada! Dia bloqueado para clientes.');
-                                      queryClient.invalidateQueries(['myAvailability']);
-                                      setSelectedDayForTimeOff(null);
-                                    } catch (err) {
-                                      console.error(err);
-                                      toast.error('Erro ao marcar folga.');
-                                    }
-                                  }}
-                                  className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base font-bold shadow-lg"
-                                >
-                                  🚫 Marcar Como Folga
-                                </Button>
-                              )}
-                              
-                              <p className="text-xs text-gray-600 text-center bg-white p-2 rounded border">
-                                {selectedDayForTimeOff.status === 'day_off' 
-                                  ? 'Este dia está bloqueado. Clientes não podem fazer reservas.' 
-                                  : 'Ao marcar folga, clientes não poderão reservar este dia.'}
-                              </p>
-                            </div>
-                          );
-                        })()}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                          queryClient.invalidateQueries(['myAvailability']);
+                        } catch (err) {
+                          console.error(err);
+                          toast.error('Erro ao atualizar.');
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Lista de Dias de Folga Marcados */}
+                  {availability.filter(a => a.is_day_off).length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 p-4 bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl"
+                    >
+                      <h3 className="font-bold text-gray-900 flex items-center gap-2 mb-3">
+                        🚫 Dias de Folga Marcados
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {availability
+                          .filter(a => a.is_day_off)
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map((dayOff) => (
+                            <Badge
+                              key={dayOff.id}
+                              className="bg-red-600 text-white px-3 py-2 text-sm font-bold shadow-md hover:bg-red-700 transition-all cursor-pointer group relative"
+                              onClick={async () => {
+                                try {
+                                  await base44.entities.CalendarAvailability.delete(dayOff.id);
+                                  toast.success('✅ Folga removida!');
+                                  queryClient.invalidateQueries(['myAvailability']);
+                                } catch (err) {
+                                  toast.error('Erro ao remover folga.');
+                                }
+                              }}
+                            >
+                              <span className="mr-2">{format(new Date(dayOff.date), "d MMM", { locale: ptBR })}</span>
+                              <span className="opacity-70 group-hover:opacity-100 transition-opacity">✕</span>
+                            </Badge>
+                          ))}
+                      </div>
+                      <p className="text-xs text-gray-600 mt-3 bg-white p-2 rounded border">
+                        💡 Clique no <strong>✕</strong> para remover a folga e abrir a agenda
+                      </p>
+                    </motion.div>
+                  )}
                 </CardContent>
               </Card>
             </div>
