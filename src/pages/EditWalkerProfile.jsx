@@ -58,16 +58,13 @@ export default function EditWalkerProfile() {
         professional_name: walkerProfile.walker_name,
         professional_email: currentUser.email,
         requested_changes: changes,
-        original_data: {
-          services_offered: walkerProfile.services_offered,
-          hourly_rate: walkerProfile.hourly_rate
-        },
+        original_data: walkerProfile,
         status: 'pending'
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
-      toast.success('✅ Alterações enviadas para aprovação do administrador. Suas mudanças serão aplicadas após revisão.', {
+      toast.success('✅ Todas as alterações foram enviadas para aprovação do administrador. Suas mudanças serão aplicadas após revisão.', {
         duration: 5000
       });
       setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 2000);
