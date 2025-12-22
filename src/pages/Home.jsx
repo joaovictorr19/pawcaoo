@@ -637,8 +637,9 @@ export default function Home() {
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
-                const currentLevel = user?.gamification_level || 1;
+                // Use UserProfile XP as source of truth (same as Gamification page)
                 const currentTier = calculateTier(currentXP);
+                const currentLevel = currentTier.level;
                 
                 // Tier-based progress (same as Gamification page)
                 const tierProgressPercentage = currentTier.progress || 0;
