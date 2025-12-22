@@ -8,7 +8,7 @@ import { pt } from "date-fns/locale";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
-export default function AvailabilityCalendar({ availabilityData = [], bookings = [], generalAvailability = null, onDateSelect, selectedDate, locale = pt }) {
+export default function AvailabilityCalendar({ availabilityData = [], bookings = [], generalAvailability = null, onDateSelect, selectedDate, locale = pt, walkerEmail }) {
   const { language } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -27,8 +27,10 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
 
     if (isPast(date) && !isToday(date)) return { status: 'past' };
     
-    // PRIORITY 1: Day-off blocks everything
-    if (availability?.is_day_off) return { status: 'day_off' };
+    // PRIORITY 1: Day-off blocks everything (checks walker email match)
+    if (availability?.is_day_off && (!walkerEmail || availability.professional_email === walkerEmail)) {
+      return { status: 'day_off' };
+    }
     
     // Logic for Pending vs Accepted visualization
     const hasPending = dayBookings.some(b => b.status === 'pending');
@@ -121,16 +123,18 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
             const { status, count } = getDateStatus(date);
             const isSelected = selectedDate && isSameDay(date, selectedDate);
 
+            const isDisabled = status === 'past' || status === 'day_off';
+
             return (
               <button
                 key={date.toString()}
-                onClick={() => onDateSelect && status !== 'past' && status !== 'day_off' && onDateSelect(date)}
-                disabled={status === 'past' || status === 'day_off'}
+                onClick={() => !isDisabled && onDateSelect && onDateSelect(date)}
+                disabled={isDisabled}
                 className={`
                   aspect-square p-0.5 md:p-1 rounded-md md:rounded-lg border transition-all text-[10px] md:text-sm
                   ${getStatusColor(status)}
                   ${isSelected ? 'ring-1 md:ring-2 ring-green-500 scale-105 shadow-md' : ''}
-                  ${status === 'past' || status === 'day_off' ? 'cursor-not-allowed opacity-70' : 'hover:scale-110 cursor-pointer'}
+                  ${isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:scale-110 cursor-pointer'}
                   ${isToday(date) ? 'font-bold ring-1 ring-yellow-500' : ''}
                   flex flex-col items-center justify-center relative
                 `}

@@ -2010,15 +2010,31 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openGrantBadgeDialog(user.email)}
-                                className="border-purple-500 text-purple-600"
-                              >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Conceder Badge
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openGrantBadgeDialog(user.email)}
+                                  className="border-purple-500 text-purple-600"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Conceder
+                                </Button>
+                                {user.public_badges?.length > 0 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedUserForBadges(user);
+                                      setShowBadgesDialog(true);
+                                    }}
+                                    className="border-red-500 text-red-600"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Gerir
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </CardContent>
                         </Card>

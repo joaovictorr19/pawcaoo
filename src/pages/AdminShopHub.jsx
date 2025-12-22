@@ -551,20 +551,29 @@ export default function AdminShopHub() {
                     </div>
                     <Button 
                       onClick={() => {
-                        if (!productForm.product_name || !productForm.price_euro) {
-                          toast.error('Preencha nome e preço!');
+                        if (!productForm.product_name || !productForm.category) {
+                          toast.error('Preencha nome e categoria!');
                           return;
                         }
+                        if (!productForm.price_euro || parseFloat(productForm.price_euro) <= 0) {
+                          toast.error('Preço inválido!');
+                          return;
+                        }
+                        
                         createProductMutation.mutate({
-                          ...productForm,
                           partner_id: 'platform',
                           partner_name: 'PawCão',
                           partner_company_email: 'admin@pawcao.net',
-                          moderation_status: 'approved',
-                          is_available: productForm.is_available !== false,
-                          stock_quantity: parseInt(productForm.stock_quantity) || 0,
+                          product_name: productForm.product_name,
+                          description: productForm.description || '',
+                          category: productForm.category,
+                          image_url: productForm.image_url || '',
                           price_euro: parseFloat(productForm.price_euro),
-                          points_cost: parseInt(productForm.points_cost) || 0
+                          points_cost: parseInt(productForm.points_cost) || 0,
+                          stock_quantity: parseInt(productForm.stock_quantity) || 0,
+                          is_redeemable_with_points: productForm.is_redeemable_with_points !== false,
+                          is_available: productForm.is_available !== false,
+                          moderation_status: 'approved'
                         });
                       }}
                       className="w-full bg-green-600 hover:bg-green-700"
