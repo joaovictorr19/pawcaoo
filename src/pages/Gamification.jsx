@@ -216,20 +216,25 @@ export default function Gamification() {
 
   const currentXP = currentUserProfile?.gamification_xp || 0;
   const currentTier = calculateTier(currentXP);
+  
+  // SISTEMA LINEAR: 100 XP = 1 Nível
+  // level = floor(XP / 100), progress = XP % 100
   const currentLevel = currentTier.level;
+  const tierProgressPercentage = currentTier.progress; // 0-99 (XP dentro do nível)
+  const xpRemainingForNextLevel = currentTier.xpToNextLevel; // 100 - progress
 
   // DEBUG: Log tier info
-  console.log('🎯 Gamification Debug:', {
+  console.log('🎯 Gamification Debug (Linear):', {
     currentXP,
     currentLevel,
+    progress: tierProgressPercentage,
+    xpToNext: xpRemainingForNextLevel,
     tierName: currentTier.name,
-    tierIcon: currentTier.icon,
-    tierRange: currentTier.tierRange
+    // Exemplos de teste:
+    // XP=150 → Nível 1, progress=50, xpToNext=50
+    // XP=5000 → Nível 50, progress=0, xpToNext=100
+    // XP=5099 → Nível 50, progress=99, xpToNext=1
   });
-
-  // Tier-based progress (novo sistema de 100 níveis)
-  const tierProgressPercentage = currentTier.progress || 0;
-  const xpRemainingForNextLevel = currentTier.xpToNextLevel || 0;
 
   // Badges
   const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
