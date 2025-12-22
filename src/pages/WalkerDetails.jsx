@@ -294,7 +294,7 @@ export default function WalkerDetails() {
 
   if (!walker) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-6 flex items-center justify-center">
+      <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Ups! Não conseguimos encontrar este Passeador.</h2>
           <p className="text-gray-600 mb-6">O perfil pode ter sido desativado ou o link pode estar incorreto.</p>
