@@ -450,21 +450,54 @@ export default function StoreItemsManager() {
                 </div>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div className="space-y-2">
-                <Label>URL da Imagem</Label>
-                <Input 
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  placeholder="https://..."
-                />
-                {formData.image_url && (
-                  <img 
-                    src={formData.image_url} 
-                    alt="Preview" 
-                    className="w-24 h-24 object-cover rounded-lg mt-2"
+                <Label>Imagem</Label>
+                <div className="flex flex-col gap-2">
+                  {formData.image_url ? (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden bg-gray-100">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-2 right-2 w-7 h-7"
+                        onClick={() => setFormData({...formData, image_url: ''})}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={isUploading}
+                      />
+                      {isUploading ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                          <span className="text-xs text-gray-500">Carregar imagem</span>
+                        </>
+                      )}
+                    </label>
+                  )}
+                  <div className="text-center text-xs text-gray-400">ou</div>
+                  <Input 
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                    placeholder="Cole um URL de imagem..."
+                    className="text-sm"
                   />
-                )}
+                </div>
               </div>
 
               {/* Service specific fields */}
