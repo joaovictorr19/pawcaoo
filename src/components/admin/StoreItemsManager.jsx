@@ -78,6 +78,33 @@ export default function StoreItemsManager() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(emptyItem);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecione uma imagem válida');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter menos de 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, image_url: file_url }));
+      toast.success('Imagem carregada!');
+    } catch (error) {
+      toast.error('Erro ao carregar imagem');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['adminStoreItems'],
