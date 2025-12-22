@@ -390,22 +390,22 @@ export default function Gamification() {
             {/* Card 2: XP Total */}
             <motion.div 
               className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${colors?.primary}20` }}
+              style={{ borderColor: `${levelColor}30` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
             >
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" 
-                   style={{ background: colors?.primary }}></div>
+                   style={{ background: levelColor }}></div>
               <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
                   <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
                   <span>Experiência</span>
                 </h3>
-                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border border-gray-200">
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
+                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border" style={{ borderColor: `${levelColor}30` }}>
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${levelColor}10, ${levelColor}05)` }}></div>
                   <div className="relative z-10">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter leading-none" style={{ color: colors?.primary }}>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter leading-none" style={{ color: levelColor }}>
                       {currentXP.toLocaleString('pt-PT')}
                     </div>
                     <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">XP</div>
@@ -413,7 +413,7 @@ export default function Gamification() {
                 </div>
                 {xpRemainingForNextLevel > 0 && currentLevel < 100 && (
                   <div className="mt-2 md:mt-3 text-center">
-                    <div className="text-xs md:text-sm font-bold text-gray-700">
+                    <div className="text-xs md:text-sm font-bold" style={{ color: levelColor }}>
                       +{xpRemainingForNextLevel.toLocaleString('pt-PT')}
                     </div>
                     <div className="text-[9px] md:text-xs text-gray-500">próximo nível</div>
