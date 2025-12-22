@@ -978,8 +978,8 @@ function LayoutContent({ children, currentPageName }) {
                     asChild 
                     className={`mb-1.5 rounded-lg transition-all ${
                       isRouteActive(item.url)
-                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white hover:opacity-90 shadow-md` 
-                        : (item.className || (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md" 
+                        : (item.className || "hover:bg-gray-100 text-gray-700")
                     }`}
                   >
                     <Link 
@@ -988,10 +988,7 @@ function LayoutContent({ children, currentPageName }) {
                       {...getPrefetchHandlers(item)}
                     >
                       {isRouteActive(item.url) && (
-                        <div 
-                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full"
-                          style={{ backgroundColor: colors?.primary || '#3b82f6' }}
-                        />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-blue-500" />
                       )}
                       <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
                       <span className="font-medium text-xs md:text-sm flex-1 min-w-0">
@@ -1035,10 +1032,7 @@ function LayoutContent({ children, currentPageName }) {
                         >
                           <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
                             {isRouteActive(item.url) && (
-                              <div 
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
-                                style={{ backgroundColor: colors?.primary || '#3b82f6' }}
-                              />
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                             )}
                             <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
                             <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">{item.title}</span>
@@ -1264,9 +1258,7 @@ function LayoutContent({ children, currentPageName }) {
               />
             )}
 
-            <footer className={`mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-10 ${
-              colors?.isDarkMode ? 'bg-slate-900/30 border-slate-700/40' : 'bg-white/30 border-white/40'
-            }`}>
+            <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-10 bg-white/30 border-white/40">
               <div className="max-w-7xl mx-auto px-6 py-8">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
                   <div>
