@@ -14,15 +14,15 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     
-    // Calculate payment deadline (2 hours before walk time)
+    // Calculate payment deadline (24 hours before walk time)
     const walkDateTime = new Date(`${body.walk_date}T${body.walk_time.split(' ')[0] || body.walk_time}:00`);
-    const paymentDeadline = new Date(walkDateTime.getTime() - (2 * 60 * 60 * 1000)); // 2 hours before
+    const paymentDeadline = new Date(walkDateTime.getTime() - (24 * 60 * 60 * 1000)); // 24 hours before
     const now = new Date();
     
     // Check if we still have time to pay
     if (now >= paymentDeadline) {
       return Response.json({ 
-        error: 'Prazo de pagamento expirado. O pagamento deve ser feito até 2 horas antes do horário marcado.' 
+        error: 'Prazo de pagamento expirado. O pagamento deve ser feito até 24 horas antes do horário marcado.' 
       }, { status: 400 });
     }
     

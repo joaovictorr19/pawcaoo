@@ -877,8 +877,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
                 <p className="font-semibold text-amber-800 mb-1">⏰ Prazo de Pagamento</p>
                 <p className="text-amber-700 text-xs">
-                  O pagamento deve ser efetuado até <strong>2 horas antes</strong> do horário marcado. 
-                  Caso não seja pago a tempo, a reserva será automaticamente cancelada.
+                  O pagamento deve ser efetuado até <strong>24 horas antes</strong> do horário marcado. 
+                  Caso não seja pago a tempo, a reserva será cancelada e o horário ficará disponível para outros clientes.
                 </p>
               </div>
             </>
