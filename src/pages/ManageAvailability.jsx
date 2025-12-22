@@ -88,12 +88,17 @@ export default function ManageAvailability() {
 
   const { data: availabilityData = [], refetch: refetchAvailability } = useQuery({
     queryKey: ['availability', authUser?.email],
-    queryFn: () => {
+    queryFn: async () => {
       if (!authUser?.email) return [];
-      return base44.entities.CalendarAvailability.filter({ professional_email: authUser.email });
+      console.log('🔄 Fetching availability for:', authUser.email);
+      const data = await base44.entities.CalendarAvailability.filter({ professional_email: authUser.email });
+      console.log('📅 Availability data:', data?.length, 'records', data);
+      return data || [];
     },
     enabled: !!authUser?.email,
     initialData: [],
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always fetch fresh data
   });
 
   const { data: bookings = [] } = useQuery({
