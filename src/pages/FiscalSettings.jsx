@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/components/LanguageContext";
 import TaxDataForm from "@/components/fiscal/TaxDataForm";
 import MonthlyReportCard from "@/components/fiscal/MonthlyReportCard";
+import AccountantDashboard from "@/components/fiscal/AccountantDashboard";
 
 export default function FiscalSettings() {
   const navigate = useNavigate();
@@ -143,6 +144,13 @@ export default function FiscalSettings() {
               Relatórios
             </TabsTrigger>
             <TabsTrigger 
+              value="invoices" 
+              className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-4"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Faturas
+            </TabsTrigger>
+            <TabsTrigger 
               value="info" 
               className="data-[state=active]:bg-purple-600 data-[state=active]:text-white rounded-lg px-4"
             >
@@ -157,6 +165,10 @@ export default function FiscalSettings() {
 
           <TabsContent value="reports">
             <MonthlyReportCard />
+          </TabsContent>
+
+          <TabsContent value="invoices">
+            <AccountantDashboard />
           </TabsContent>
 
           <TabsContent value="info">
