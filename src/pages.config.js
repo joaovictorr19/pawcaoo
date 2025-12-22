@@ -72,6 +72,9 @@ import AdoptionListings from './pages/AdoptionListings';
 import AdminShopHub from './pages/AdminShopHub';
 import TestPayments from './pages/TestPayments';
 import EmployeeDashboard from './pages/EmployeeDashboard';
+import MembershipPlans from './pages/MembershipPlans';
+import MembershipSuccess from './pages/MembershipSuccess';
+import MyWallet from './pages/MyWallet';
 import __Layout from './Layout.jsx';
 
 
@@ -150,6 +153,9 @@ export const PAGES = {
     "AdminShopHub": AdminShopHub,
     "TestPayments": TestPayments,
     "EmployeeDashboard": EmployeeDashboard,
+    "MembershipPlans": MembershipPlans,
+    "MembershipSuccess": MembershipSuccess,
+    "MyWallet": MyWallet,
 }
 
 export const pagesConfig = {

@@ -1,0 +1,96 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { purchase_amount, order_id } = await req.json();
+
+    if (!purchase_amount || purchase_amount <= 0) {
+      return Response.json({ error: 'Invalid purchase amount' }, { status: 400 });
+    }
+
+    // Get user's membership plan
+    const memberships = await base44.entities.MembershipPlan.filter({ 
+      user_email: user.email,
+      status: 'active'
+    });
+
+    let cashbackRate = 0;
+    let pointsMultiplier = 1;
+    let planType = 'FREE';
+
+    if (memberships.length > 0) {
+      const plan = memberships[0];
+      cashbackRate = plan.cashback_rate || 0;
+      pointsMultiplier = plan.points_multiplier || 1;
+      planType = plan.plan_type;
+    }
+
+    const cashbackEarned = purchase_amount * cashbackRate;
+    const pointsEarned = Math.floor(purchase_amount * pointsMultiplier);
+
+    // Get or create wallet
+    const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
+    let wallet;
+
+    if (wallets.length > 0) {
+      wallet = wallets[0];
+      await base44.entities.UserWallet.update(wallet.id, {
+        cashback_balance: (wallet.cashback_balance || 0) + cashbackEarned,
+        total_points: (wallet.total_points || 0) + pointsEarned
+      });
+    } else {
+      wallet = await base44.entities.UserWallet.create({
+        user_email: user.email,
+        cashback_balance: cashbackEarned,
+        total_points: pointsEarned,
+        service_tokens: 0,
+        escrow_balance: 0
+      });
+    }
+
+    // Record cashback transaction
+    if (cashbackEarned > 0) {
+      await base44.entities.WalletTransaction.create({
+        user_email: user.email,
+        transaction_type: 'cashback_earned',
+        amount: cashbackEarned,
+        description: `${(cashbackRate * 100).toFixed(0)}% cashback de compra €${purchase_amount.toFixed(2)}`,
+        related_order_id: order_id,
+        balance_after: (wallet.cashback_balance || 0) + cashbackEarned
+      });
+    }
+
+    // Record points transaction
+    if (pointsEarned > 0) {
+      await base44.entities.WalletTransaction.create({
+        user_email: user.email,
+        transaction_type: 'points_earned',
+        amount: 0,
+        points_amount: pointsEarned,
+        description: `${pointsEarned} pontos (${pointsMultiplier}x multiplicador ${planType})`,
+        related_order_id: order_id,
+        balance_after: (wallet.total_points || 0) + pointsEarned
+      });
+    }
+
+    return Response.json({
+      success: true,
+      cashback_earned: cashbackEarned,
+      points_earned: pointsEarned,
+      new_cashback_balance: (wallet.cashback_balance || 0) + cashbackEarned,
+      new_points_balance: (wallet.total_points || 0) + pointsEarned,
+      plan_type: planType
+    });
+
+  } catch (error) {
+    console.error('Process cashback error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
