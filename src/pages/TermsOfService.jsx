@@ -85,7 +85,7 @@ export default function TermsOfService() {
         },
         {
           title: "19. Contacto",
-          content: "Para questões sobre estes Termos:\n• Email: legal@pawcao.pt\n• Telefone: +351 21 123 4567\n• Morada: Rua Exemplo 123, 1000-000 Lisboa, Portugal"
+          content: "Para questões sobre estes Termos:\n• Email: support@pawcao.net"
         }
       ]
     },
@@ -167,7 +167,7 @@ export default function TermsOfService() {
         },
         {
           title: "19. Contact",
-          content: "Questions about these Terms:\n• Email: legal@pawcao.pt\n• Phone: +351 21 123 4567\n• Address: Rua Exemplo 123, 1000-000 Lisbon, Portugal"
+          content: "Questions about these Terms:\n• Email: support@pawcao.net"
         }
       ]
     },
@@ -249,7 +249,7 @@ export default function TermsOfService() {
         },
         {
           title: "19. Contacto",
-          content: "Preguntas sobre estos Términos:\n• Email: legal@pawcao.pt\n• Teléfono: +351 21 123 4567\n• Dirección: Rua Exemplo 123, 1000-000 Lisboa, Portugal"
+          content: "Preguntas sobre estos Términos:\n• Email: support@pawcao.net"
         }
       ]
     }
