@@ -122,7 +122,10 @@ export default function ProfileEditRequests() {
                 <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
                   <Clock className="w-3 h-3 mr-1" /> Pendente
                 </Badge>
-                <h4 className="font-bold text-gray-900">{request.walker_name}</h4>
+                <h4 className="font-bold text-gray-900">{request.professional_name || request.walker_name}</h4>
+                <Badge className="text-xs capitalize">
+                  {request.profile_type || 'walker'}
+                </Badge>
               </div>
               <p className="text-xs text-gray-500">
                 Solicitado em {new Date(request.created_date).toLocaleDateString()}
