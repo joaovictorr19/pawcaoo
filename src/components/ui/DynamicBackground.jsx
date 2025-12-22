@@ -18,75 +18,66 @@ export default function DynamicBackground() {
 
   const isLoggedIn = !!user;
 
-  // If not logged in, show premium grass field background
+  // If not logged in, show premium nature background
   if (!isLoggedIn) {
     return (
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Base grass gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#7cb342] via-[#8bc34a] to-[#9ccc65]" />
+        {/* Base nature gradient - soft greens */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#e8f5e9] via-[#c8e6c9] to-[#a5d6a7]" />
         
-        {/* Grass texture pattern overlay */}
-        <div 
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 2px,
-                rgba(255,255,255,0.1) 2px,
-                rgba(255,255,255,0.1) 4px
-              ),
-              repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 8px,
-                rgba(0,100,0,0.15) 8px,
-                rgba(0,100,0,0.15) 16px
-              )
-            `,
-            backgroundSize: '4px 16px'
-          }}
-        />
+        {/* Organic leaf/nature texture pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="leaves" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+              {/* Leaf shapes */}
+              <path d="M20,50 Q30,30 50,50 Q30,70 20,50" fill="#2e7d32" transform="rotate(15 35 50)"/>
+              <path d="M60,20 Q70,5 85,20 Q70,35 60,20" fill="#388e3c" transform="rotate(-20 72 20)"/>
+              <path d="M70,70 Q80,55 95,70 Q80,85 70,70" fill="#43a047" transform="rotate(30 82 70)"/>
+              <path d="M5,80 Q15,65 30,80 Q15,95 5,80" fill="#4caf50" transform="rotate(-10 17 80)"/>
+              {/* Small dots like dewdrops */}
+              <circle cx="45" cy="45" r="2" fill="#81c784" opacity="0.6"/>
+              <circle cx="78" cy="42" r="1.5" fill="#a5d6a7" opacity="0.5"/>
+              <circle cx="25" cy="15" r="1.8" fill="#66bb6a" opacity="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#leaves)"/>
+        </svg>
         
-        {/* Grass blades effect */}
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(135deg, rgba(100,180,50,0.4) 25%, transparent 25%),
-              linear-gradient(225deg, rgba(100,180,50,0.4) 25%, transparent 25%),
-              linear-gradient(45deg, rgba(100,180,50,0.4) 25%, transparent 25%),
-              linear-gradient(315deg, rgba(100,180,50,0.4) 25%, transparent 25%)
-            `,
-            backgroundSize: '20px 20px',
-            backgroundPosition: '0 0, 10px 0, 10px -10px, 0px 10px'
-          }}
-        />
+        {/* Organic flowing shapes */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.05]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="organic" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+              <path d="M0,100 Q50,50 100,100 T200,100" stroke="#1b5e20" strokeWidth="1" fill="none"/>
+              <path d="M0,150 Q50,100 100,150 T200,150" stroke="#2e7d32" strokeWidth="0.8" fill="none"/>
+              <path d="M0,50 Q50,0 100,50 T200,50" stroke="#388e3c" strokeWidth="0.6" fill="none"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#organic)"/>
+        </svg>
         
-        {/* Animated light spots (sun rays on grass) */}
+        {/* Animated nature orbs (soft light through trees) */}
         <div className="absolute inset-0">
           <div 
-            className="absolute top-[5%] left-[20%] w-[60vw] h-[60vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-50 animate-blob-1"
-            style={{ backgroundColor: '#c5e1a5' }}
+            className="absolute top-[5%] left-[10%] w-[70vw] h-[70vw] rounded-full mix-blend-soft-light filter blur-[120px] opacity-60 animate-blob-1"
+            style={{ backgroundColor: '#c8e6c9' }}
           />
           <div 
-            className="absolute bottom-[20%] right-[15%] w-[50vw] h-[50vw] rounded-full mix-blend-soft-light filter blur-[80px] opacity-40 animate-blob-2"
-            style={{ backgroundColor: '#dce775' }}
+            className="absolute bottom-[10%] right-[5%] w-[60vw] h-[60vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-50 animate-blob-2"
+            style={{ backgroundColor: '#a5d6a7' }}
           />
           <div 
-            className="absolute top-[50%] left-[10%] w-[40vw] h-[40vw] rounded-full mix-blend-soft-light filter blur-[90px] opacity-35 animate-blob-3"
-            style={{ backgroundColor: '#aed581' }}
+            className="absolute top-[40%] right-[30%] w-[50vw] h-[50vw] rounded-full mix-blend-soft-light filter blur-[90px] opacity-40 animate-blob-3"
+            style={{ backgroundColor: '#81c784' }}
           />
         </div>
         
-        {/* Premium gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#558b2f]/30 via-transparent to-white/20" />
+        {/* Soft light gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#388e3c]/10 via-transparent to-white/30" />
         
-        {/* Subtle vignette for premium feel */}
-        <div className="absolute inset-0 bg-radial-gradient pointer-events-none" 
+        {/* Premium vignette */}
+        <div className="absolute inset-0" 
           style={{
-            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(46,125,50,0.15) 100%)'
+            background: 'radial-gradient(ellipse at center, transparent 50%, rgba(27,94,32,0.08) 100%)'
           }}
         />
       </div>
