@@ -532,7 +532,7 @@ export default function Gamification() {
           </div>
         </div>
 
-        {/* 3. PÓDIO ADAPTATIVO */}
+        {/* 3. PÓDIO ADAPTATIVO - NOVO DESIGN */}
         <Card className="glass-panel border-0 shadow-2xl overflow-hidden">
           <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
             <CardTitle className="flex items-center gap-3 text-2xl">
@@ -541,227 +541,40 @@ export default function Gamification() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 md:p-8">
-            {/* Pódio Visual Adaptativo */}
+            {/* Pódio Visual - Novo Componente */}
             {rankedData.length === 0 ? (
               <div className="text-center py-16">
                 <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg font-semibold">Nenhum dado disponível para este ranking</p>
               </div>
             ) : (
-            <div className="flex items-end justify-center gap-3 md:gap-6 mb-8 mt-6 md:mt-8 max-w-5xl mx-auto px-2">
-              {/* 2º Lugar */}
-              {rankedData[1] && (
-                <motion.div
-                  key={`second-${activeRanking}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="flex flex-col items-center w-32"
-                >
-                  <div className="relative">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl border-4 border-gray-400 overflow-hidden shadow-lg bg-white aspect-square">
-                      {rankedData[1].profile_photo_url ? (
-                        <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankedData[1].full_name} />
-                      ) : (
-                        <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
-                          {rankedData[1].full_name?.[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-lg flex items-center justify-center text-white font-bold shadow-lg text-sm">
-                      2
-                    </div>
-                  </div>
-                  <div className="mt-2 md:mt-3 bg-gradient-to-b from-gray-400 to-gray-500 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
-                    <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
-                    <p className="font-bold text-xs md:text-sm truncate">{rankedData[1].full_name}</p>
-                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[1][currentConfig.metricKey], rankedData[1])}</p>
-                  </div>
-                </motion.div>
-              )}
+              <>
+                <PodiumDisplay 
+                  rankedData={rankedData}
+                  rankingType={activeRanking}
+                  formatMetric={(user) => currentConfig.formatMetric(user[currentConfig.metricKey], user)}
+                />
 
-              {/* 1º Lugar (Centro, Mais Alto) */}
-              {rankedData[0] && (
-                <motion.div
-                  key={`first-${activeRanking}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center relative w-40"
-                >
-                  {/* Royal Crown - Emoji Style */}
-                  <div className="absolute -top-10 md:-top-12 left-1/2 -translate-x-1/2 z-30">
-                    <motion.div
-                      className="relative w-12 h-12 md:w-14 md:h-14"
-                      animate={{
-                        y: [-3, 0, -3]
-                      }}
-                      transition={{
-                        y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                      }}
-                    >
-                      {/* Glow effect */}
-                      <div className="absolute inset-0 bg-yellow-400 opacity-40 blur-xl rounded-full"></div>
-                      
-                      {/* Crown SVG */}
-                      <svg viewBox="0 0 64 64" className="w-full h-full drop-shadow-2xl relative z-10">
-                        <defs>
-                          <linearGradient id="gold-main" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#FFD700"/>
-                            <stop offset="50%" stopColor="#FFC700"/>
-                            <stop offset="100%" stopColor="#FFA500"/>
-                          </linearGradient>
-                          <radialGradient id="jewel-red">
-                            <stop offset="0%" stopColor="#FF6B9D"/>
-                            <stop offset="100%" stopColor="#DC143C"/>
-                          </radialGradient>
-                        </defs>
-                        
-                        {/* Crown base/band */}
-                        <ellipse cx="32" cy="48" rx="22" ry="5" fill="#B8860B" opacity="0.4"/>
-                        <rect x="10" y="40" width="44" height="8" fill="url(#gold-main)" rx="2" stroke="#DAA520" strokeWidth="1"/>
-                        
-                        {/* Crown points/peaks */}
-                        <path d="M 10 40 L 15 18 L 20 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
-                        <path d="M 20 40 L 27 22 L 34 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
-                        <path d="M 34 40 L 37 22 L 44 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
-                        <path d="M 44 40 L 49 18 L 54 40" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
-                        
-                        {/* Center peak (tallest) */}
-                        <path d="M 27 22 L 32 12 L 37 22" fill="url(#gold-main)" stroke="#DAA520" strokeWidth="1"/>
-                        
-                        {/* Precious gems */}
-                        <circle cx="32" cy="12" r="3.5" fill="url(#jewel-red)" opacity="0.95"/>
-                        <circle cx="32" cy="12" r="1.5" fill="#FFD1DC" opacity="0.8"/>
-                        <circle cx="15" cy="18" r="2.5" fill="#4169E1" opacity="0.9"/>
-                        <circle cx="49" cy="18" r="2.5" fill="#32CD32" opacity="0.9"/>
-                        
-                        {/* Decorative shine */}
-                        <path d="M 32 10 L 32.5 12 L 32 14" stroke="white" strokeWidth="0.5" opacity="0.8"/>
-                        <circle cx="28" cy="15" r="0.5" fill="white" opacity="0.7"/>
-                        <circle cx="36" cy="15" r="0.5" fill="white" opacity="0.7"/>
-                      </svg>
-                    </motion.div>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className={`w-20 h-20 md:w-28 md:h-28 rounded-xl border-4 overflow-hidden shadow-2xl bg-white ring-4 aspect-square ${
-                      activeRanking === 'global' ? 'border-yellow-500 ring-yellow-200' :
-                      activeRanking === 'walkers' ? 'border-green-500 ring-green-200' :
-                      'border-pink-500 ring-pink-200'
-                    }`}>
-                      {rankedData[0].profile_photo_url ? (
-                        <img src={rankedData[0].profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankedData[0].full_name} />
-                      ) : (
-                        <div className={`w-full h-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold ${
-                          activeRanking === 'global' ? 'bg-yellow-500' :
-                          activeRanking === 'walkers' ? 'bg-green-500' :
-                          'bg-pink-500'
-                        }`}>
-                          {rankedData[0].full_name?.[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br ${currentConfig.podiumColor} rounded-lg flex items-center justify-center text-white font-black shadow-lg text-base md:text-lg`}>
-                      1
-                    </div>
-                  </div>
-                  <div className={`mt-2 md:mt-4 bg-gradient-to-b ${currentConfig.podiumColor} text-white rounded-2xl px-4 md:px-8 py-4 md:py-6 text-center shadow-2xl h-36 md:h-40 flex flex-col justify-center w-full`}>
-                    <Trophy className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2" />
-                    <p className="font-black text-sm md:text-lg truncate">{rankedData[0].full_name}</p>
-                    <p className="text-xs md:text-sm opacity-95 font-bold">{currentConfig.formatMetric(rankedData[0][currentConfig.metricKey], rankedData[0])}</p>
-                    {activeRanking === 'global' && (
-                      <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
-                        {calculateTier(rankedData[0].gamification_xp || 0).icon} Nv.{calculateTier(rankedData[0].gamification_xp || 0).level} {calculateTier(rankedData[0].gamification_xp || 0).name}
-                      </Badge>
-                    )}
-                    {activeRanking === 'walkers' && rankedData[0].unique_dogs > 0 && (
-                      <Badge className="mt-1 md:mt-2 bg-white/30 text-white border-0 text-xs">
-                        🐕 {rankedData[0].unique_dogs} cães únicos
-                      </Badge>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* 3º Lugar */}
-              {rankedData[2] && (
-                <motion.div
-                  key={`third-${activeRanking}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex flex-col items-center w-32"
-                >
-                  <div className="relative">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl border-4 border-orange-600 overflow-hidden shadow-lg bg-white aspect-square">
-                      {rankedData[2].profile_photo_url ? (
-                        <img src={rankedData[2].profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankedData[2].full_name} />
-                      ) : (
-                        <div className="w-full h-full bg-orange-600 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
-                          {rankedData[2].full_name?.[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg text-sm">
-                      3
-                    </div>
-                  </div>
-                  <div className="mt-2 md:mt-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white rounded-xl px-3 md:px-6 py-3 md:py-4 text-center shadow-lg h-28 md:h-32 flex flex-col justify-center w-full">
-                    <Medal className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
-                    <p className="font-bold text-xs md:text-sm truncate">{rankedData[2].full_name}</p>
-                    <p className="text-[10px] md:text-xs opacity-90">{currentConfig.formatMetric(rankedData[2][currentConfig.metricKey], rankedData[2])}</p>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-            )}
-
-            {/* Resto do Ranking (4º-10º) */}
-            {rankedData.length > 3 && (
-            <div className="space-y-2">
-              {rankedData.slice(3, 10).map((rankUser, idx) => (
-                <div
-                  key={rankUser.id || rankUser.email}
-                  className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all"
-                >
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center font-bold text-gray-600">
-                    {idx + 4}
-                  </div>
-                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-200 aspect-square">
-                    {rankUser.profile_photo_url ? (
-                      <img src={rankUser.profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankUser.full_name} />
-                    ) : (
-                      <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                        {rankUser.full_name?.[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">{rankUser.full_name}</p>
-                    {activeRanking === 'global' && (
-                      <p className="text-xs text-gray-600">Nível {rankUser.gamification_level || 1}</p>
-                    )}
-                    {activeRanking === 'walkers' && (
-                      <p className="text-xs text-gray-600">Walker Verificado</p>
-                    )}
-                    {activeRanking === 'quality' && (
-                      <p className="text-xs text-gray-600">🐾 Cão Feliz</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-bold ${currentConfig.accentColor}`}>
-                      {currentConfig.formatMetric(rankUser[currentConfig.metricKey], rankUser)}
-                    </p>
-                    <p className="text-xs text-gray-500">{currentConfig.metricLabel}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                {/* Lista 4º-10º - Novo Componente */}
+                {rankedData.length > 3 && (
+                  <RankingList
+                    rankedData={rankedData}
+                    startRank={4}
+                    endRank={10}
+                    rankingType={activeRanking}
+                    formatMetric={(user) => currentConfig.formatMetric(user[currentConfig.metricKey], user)}
+                    metricLabel={currentConfig.metricLabel}
+                  />
+                )}
+              </>
             )}
 
             {/* Posição do Usuário (se fora do Top 10) */}
             {rankedData.length > 0 && userRank > 10 && (
-              <div className="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4 shadow-lg">
+              <div 
+                className="mt-6 text-white rounded-xl p-4 shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-bold">
                     {userRank}
