@@ -2069,21 +2069,36 @@ export default function AdminDashboard() {
                     <CardTitle className="text-2xl">{t('companyManagement', language)}</CardTitle>
                     <p className="text-sm text-gray-600 mt-1">{t('managePartners', language)}</p>
                   </div>
-                  <Button
-                    onClick={() => {
-                      setCompanyFormData({
-                        company_email: "",
-                        company_name: "",
-                        company_type: "pet_store",
-                        is_active: true
-                      });
-                      setShowCompanyDialog(true);
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('addCompany', language)}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ['allCompanies'] });
+                        toast.success("Empresas atualizadas!");
+                      }}
+                      disabled={loadingCompanies}
+                      className="gap-2"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loadingCompanies ? 'animate-spin' : ''}`} />
+                      Atualizar
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setCompanyFormData({
+                          company_email: "",
+                          company_name: "",
+                          company_type: "pet_store",
+                          is_active: true
+                        });
+                        setShowCompanyDialog(true);
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t('addCompany', language)}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
