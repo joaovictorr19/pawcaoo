@@ -91,30 +91,47 @@ export default function ManageAvailability() {
 
   const saveAvailabilityMutation = useMutation({
     mutationFn: async (data) => {
+      if (!selectedDate || !authUser?.email) {
+        throw new Error('Missing required data');
+      }
+      
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const existing = availabilityData.find(a => a.date === dateStr && a.professional_email === authUser?.email);
+      
+      // Re-fetch to get latest data
+      const currentAvailability = await base44.entities.CalendarAvailability.filter({ 
+        professional_email: authUser.email,
+        date: dateStr
+      });
+      
+      const existing = currentAvailability.length > 0 ? currentAvailability[0] : null;
 
-      console.log('🔄 Mutation executing:', { dateStr, existing: !!existing, data });
+      console.log('🔄 Mutation executing:', { dateStr, existing: !!existing, existingId: existing?.id, data });
 
       if (existing) {
         console.log('📝 Updating existing record:', existing.id);
-        return await base44.entities.CalendarAvailability.update(existing.id, data);
+        const result = await base44.entities.CalendarAvailability.update(existing.id, data);
+        console.log('📝 Update result:', result);
+        return result;
       } else {
-        console.log('➕ Creating new record');
-        return await base44.entities.CalendarAvailability.create({
+        console.log('➕ Creating new record for:', authUser.email);
+        const newRecord = {
           ...data,
-          professional_email: authUser?.email,
-          professional_name: authUser?.full_name,
+          professional_email: authUser.email,
+          professional_name: authUser.full_name || 'Professional',
           professional_type: "walker",
           date: dateStr
-        });
+        };
+        console.log('➕ New record data:', newRecord);
+        const result = await base44.entities.CalendarAvailability.create(newRecord);
+        console.log('➕ Create result:', result);
+        return result;
       }
     },
     onSuccess: (result) => {
       console.log('✅ Save successful:', result);
       queryClient.invalidateQueries({ queryKey: ['availability'] });
       toast.success(isDayOff 
-        ? (language === 'pt' ? 'Dia marcado como indisponível!' : 'Day marked as unavailable!')
+        ? (language === 'pt' ? '✅ Dia marcado como indisponível!' : '✅ Day marked as unavailable!')
         : (t('saveAvailability', language) + "!")
       );
     },
@@ -138,16 +155,22 @@ export default function ManageAvailability() {
     setTimeSlots(updated);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedDate) {
       toast.error(t('selectDate', language));
+      return;
+    }
+    
+    if (!authUser?.email) {
+      toast.error(language === 'pt' ? 'Sessão expirada. Faça login novamente.' : 'Session expired. Please login again.');
       return;
     }
 
     console.log('💾 Saving availability:', {
       date: format(selectedDate, 'yyyy-MM-dd'),
       isDayOff,
-      timeSlots: isDayOff ? [] : timeSlots
+      timeSlots: isDayOff ? [] : timeSlots,
+      userEmail: authUser.email
     });
 
     saveAvailabilityMutation.mutate({
