@@ -1241,9 +1241,9 @@ export default function Home() {
                           {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
                         </>
                       ) : (
-                        language === 'pt' ? 'Profissionais' : 
-                        language === 'es' ? 'Profesionales' : 
-                        'Professionals'
+                        language === 'pt' ? 'Profissionais Disponíveis' : 
+                        language === 'es' ? 'Profesionales Disponibles' : 
+                        'Available Professionals'
                       )}
                     </h2>
 
