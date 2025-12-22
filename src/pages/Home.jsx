@@ -868,11 +868,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative w-full overflow-hidden">
-      <SEO 
-        title={t('seoTitle', language)}
-        description={t('seoDescription', language)}
-        schema={[generateWebSiteSchema(), generateOrganizationSchema()]}
-      />
 
       <div className="relative z-10 overflow-hidden">
 

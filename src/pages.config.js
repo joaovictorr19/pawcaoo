@@ -31,7 +31,6 @@ import FAQ from './pages/FAQ';
 import Favorites from './pages/Favorites';
 import FiscalSettings from './pages/FiscalSettings';
 import ForumTopicDetails from './pages/ForumTopicDetails';
-import Gamification from './pages/Gamification';
 import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
 import LiveWalkTracking from './pages/LiveWalkTracking';
@@ -70,13 +69,14 @@ import StripeConnectSetup from './pages/StripeConnectSetup';
 import Subscriptions from './pages/Subscriptions';
 import TermsOfService from './pages/TermsOfService';
 import TestPayments from './pages/TestPayments';
-import TrainerDetails from './pages/TrainerDetails';
 import Trainers from './pages/Trainers';
 import UserProfile from './pages/UserProfile';
 import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
-import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
+import Gamification from './pages/Gamification';
+import TrainerDetails from './pages/TrainerDetails';
+import WalkerDetails from './pages/WalkerDetails';
 import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
@@ -115,7 +115,6 @@ export const PAGES = {
     "Favorites": Favorites,
     "FiscalSettings": FiscalSettings,
     "ForumTopicDetails": ForumTopicDetails,
-    "Gamification": Gamification,
     "Landing": Landing,
     "Leaderboard": Leaderboard,
     "LiveWalkTracking": LiveWalkTracking,
@@ -154,13 +153,14 @@ export const PAGES = {
     "Subscriptions": Subscriptions,
     "TermsOfService": TermsOfService,
     "TestPayments": TestPayments,
-    "TrainerDetails": TrainerDetails,
     "Trainers": Trainers,
     "UserProfile": UserProfile,
     "VeterinaryDashboard": VeterinaryDashboard,
     "WalkHistory": WalkHistory,
-    "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
+    "Gamification": Gamification,
+    "TrainerDetails": TrainerDetails,
+    "WalkerDetails": WalkerDetails,
     "Home": Home,
 }
 
