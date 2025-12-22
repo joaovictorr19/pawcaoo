@@ -76,6 +76,7 @@ import MembershipPlans from './pages/MembershipPlans';
 import MembershipSuccess from './pages/MembershipSuccess';
 import MyWallet from './pages/MyWallet';
 import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
+import FiscalSettings from './pages/FiscalSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -158,6 +159,7 @@ export const PAGES = {
     "MembershipSuccess": MembershipSuccess,
     "MyWallet": MyWallet,
     "AdminFinanceDashboard": AdminFinanceDashboard,
+    "FiscalSettings": FiscalSettings,
 }
 
 export const pagesConfig = {
