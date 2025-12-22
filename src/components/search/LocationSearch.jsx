@@ -101,16 +101,17 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
 
   return (
     <div className="space-y-2">
-      <form onSubmit={handleSearch} className="flex gap-2 bg-transparent">
+      <form onSubmit={handleSearch} className="flex items-center gap-0 bg-gray-100 rounded-xl overflow-hidden">
         <div className="relative flex-1">
           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
           <Input
             placeholder={language === 'pt' ? 'Morada ou cidade...' : language === 'es' ? 'Dirección o ciudad...' : 'Address or city...'}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="pl-10 bg-gray-100 border-0 rounded-xl"
+            className="pl-10 bg-transparent border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
+        <div className="w-px h-6 bg-gray-300 shrink-0" />
         <Button 
           type="button"
           variant="ghost"
@@ -118,7 +119,7 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
           onClick={getCurrentLocation}
           disabled={gettingLocation}
           title={language === 'pt' ? 'Usar minha localização' : 'Use my location'}
-          className="h-10 w-10 shrink-0 bg-gray-100 hover:bg-gray-200 rounded-xl"
+          className="h-10 w-10 shrink-0 bg-transparent hover:bg-gray-200 rounded-none"
         >
           {gettingLocation ? (
             <Loader2 className="w-4 h-4 animate-spin" />
