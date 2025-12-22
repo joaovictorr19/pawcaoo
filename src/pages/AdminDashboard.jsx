@@ -1342,24 +1342,24 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex flex-wrap justify-center w-full gap-2 bg-white shadow-lg p-2 h-auto rounded-xl min-h-[3rem]">
-            <TabsTrigger value="overview">{t('overview', language)}</TabsTrigger>
-            <TabsTrigger value="analytics">{t('analytics', language)}</TabsTrigger>
-            <TabsTrigger value="crm">👥 CRM</TabsTrigger>
-            <TabsTrigger value="users">{t('accounts', language)}</TabsTrigger>
-            <TabsTrigger value="applications">{t('verifications', language)}</TabsTrigger>
-            <TabsTrigger value="profile_edits">✏️ Edições</TabsTrigger>
-            <TabsTrigger value="communication">Comunicação</TabsTrigger>
-            <TabsTrigger value="active_walkers">{t('activeWalkers', language)}</TabsTrigger>
-            <TabsTrigger value="adoptions">{t('adoptions', language)}</TabsTrigger>
-            <TabsTrigger value="badges">{t('badges', language)}</TabsTrigger>
-            <TabsTrigger value="companies">{t('companies', language)}</TabsTrigger>
-            <TabsTrigger value="announcements">{t('announcements', language)}</TabsTrigger>
-            <TabsTrigger value="services">{t('services', language)}</TabsTrigger>
-            <TabsTrigger value="products">Produtos</TabsTrigger>
-            <TabsTrigger value="bookings">{t('bookings', language)}</TabsTrigger>
-            <TabsTrigger value="payments">{t('payments', language)}</TabsTrigger>
-            <TabsTrigger value="reviews">{t('reviews', language)}</TabsTrigger>
+          <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto rounded-xl min-h-[3rem] overflow-x-auto">
+            <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('overview', language)}</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('analytics', language)}</TabsTrigger>
+            <TabsTrigger value="crm" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">👥 CRM</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('accounts', language)}</TabsTrigger>
+            <TabsTrigger value="applications" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('verifications', language)}</TabsTrigger>
+            <TabsTrigger value="profile_edits" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">✏️ Edições</TabsTrigger>
+            <TabsTrigger value="communication" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">📢 Comunic.</TabsTrigger>
+            <TabsTrigger value="active_walkers" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('activeWalkers', language)}</TabsTrigger>
+            <TabsTrigger value="adoptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('adoptions', language)}</TabsTrigger>
+            <TabsTrigger value="badges" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('badges', language)}</TabsTrigger>
+            <TabsTrigger value="companies" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('companies', language)}</TabsTrigger>
+            <TabsTrigger value="announcements" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('announcements', language)}</TabsTrigger>
+            <TabsTrigger value="services" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('services', language)}</TabsTrigger>
+            <TabsTrigger value="products" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Produtos</TabsTrigger>
+            <TabsTrigger value="bookings" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('bookings', language)}</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('payments', language)}</TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('reviews', language)}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics">
