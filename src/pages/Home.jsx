@@ -1225,7 +1225,7 @@ export default function Home() {
                       setActiveTab('walkers');
                       document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="text-white font-bold h-12 px-6 shadow-lg rounded-xl transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
+                    className="text-white font-bold h-12 px-6 shadow-lg rounded-xl transition-all hover:scale-105 hover:shadow-green-400/50 hover:shadow-xl bg-gradient-to-r from-emerald-400 to-green-500"
                   >
                     <Search className="w-5 h-5 mr-2" />
                     Procurar
