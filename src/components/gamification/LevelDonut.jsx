@@ -3,20 +3,23 @@ import { getTierColor } from "./tierSystem";
 
 /**
  * SVG Donut Chart para exibir progresso de nível
- * O círculo preenche-se com a cor do nível atual
- * No centro: número do nível em tipografia grande e bold
+ * SISTEMA LINEAR: 100 XP = 1 Nível
+ * progress = totalXP % 100 (0-99, barra de 0 a 100)
+ * No centro: número do nível + progresso atual
  */
 export default function LevelDonut({ 
-  level = 1, 
-  progress = 0, 
+  level = 0, 
+  progress = 0, // 0-99 (XP dentro do nível atual)
   size = 140,
   strokeWidth = 12 
 }) {
   const color = getTierColor(level);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
+  // progress vai de 0 a 99, representando XP dentro do nível
   const progressOffset = circumference - (progress / 100) * circumference;
   const center = size / 2;
+  const xpToNext = 100 - progress; // XP restante para próximo nível
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -94,7 +97,7 @@ export default function LevelDonut({
         >
           Nível
         </span>
-        {/* Progresso linear: X/100 XP */}
+        {/* Progresso linear: X/100 XP (XP dentro do nível atual) */}
         <span 
           className="text-gray-400 font-semibold"
           style={{ fontSize: size * 0.09 }}

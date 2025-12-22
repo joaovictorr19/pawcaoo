@@ -59,6 +59,8 @@ export function getXPForLevel(level) {
 }
 
 // Calcular nível a partir de XP (linear: floor(xp / 100))
+// REGRA: Cada 100 XP = 1 Nível
+// Exemplos: 0-99 XP = Nível 0, 100-199 XP = Nível 1, 150 XP = Nível 1
 export function getLevelFromXP(xp) {
   if (!xp || xp <= 0) return 0;
   const level = Math.floor(xp / 100);
