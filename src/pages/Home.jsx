@@ -1054,101 +1054,86 @@ export default function Home() {
             <div className="text-center max-w-6xl mx-auto relative">
               {/* Floating Interactive Elements */}
               <div className="relative mb-8">
-                {/* Walkers - 3 Left & 3 Right */}
-                {featuredWalkers.slice(0, 6).map((walker, idx) => {
-                  const isLeft = idx % 2 === 0;
-                  const position = Math.floor(idx / 2);
-                  return (
+                {/* Walkers - Top Left & Top Right */}
+                {featuredWalkers.slice(0, 2).map((walker, idx) => (
+                  <motion.div
+                    key={`walker-${walker.id}`}
+                    initial={{ opacity: 0, scale: 0.5, y: -20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
+                    onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                  >
                     <motion.div
-                      key={`walker-${walker.id}`}
-                      initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1, duration: 0.5 }}
-                      className={`absolute ${isLeft ? '-left-16' : '-right-16'} cursor-pointer group z-20`}
-                      style={{ top: `${position * 120}px` }}
-                      onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
+                      className="relative"
                     >
-                      <motion.div
-                        animate={{ y: [0, -10, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
-                        className="relative"
-                      >
-                        <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110 aspect-square">
-                          <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
-                        </div>
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                          🚶 Walker
-                        </div>
-                      </motion.div>
+                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110 aspect-square">
+                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        🚶 Walker
+                      </div>
                     </motion.div>
-                  );
-                })}
+                  </motion.div>
+                ))}
 
-                {/* Happy Dogs - 3 Left & 3 Right */}
-                {featuredDogs.slice(0, 6).map((dog, idx) => {
-                  const isLeft = idx % 2 === 0;
-                  const position = Math.floor(idx / 2);
-                  return (
+                {/* Happy Dogs - Middle Left & Right */}
+                {featuredDogs.slice(0, 2).map((dog, idx) => (
+                  <motion.div
+                    key={`dog-${dog.id}`}
+                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
+                    onClick={() => {
+                      if (!user) {
+                        base44.auth.redirectToLogin(window.location.href);
+                        return;
+                      }
+                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                    }}
+                  >
                     <motion.div
-                      key={`dog-${dog.id}`}
-                      initial={{ opacity: 0, scale: 0.5, x: isLeft ? -20 : 20 }}
-                      animate={{ opacity: 1, scale: 1, x: 0 }}
-                      transition={{ delay: 0.3 + idx * 0.1, duration: 0.5 }}
-                      className={`absolute ${isLeft ? '-left-24' : '-right-24'} cursor-pointer group z-20`}
-                      style={{ top: `${120 + position * 100}px` }}
-                      onClick={() => {
-                        if (!user) {
-                          base44.auth.redirectToLogin(window.location.href);
-                          return;
-                        }
-                        navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
-                      }}
+                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
+                      className="relative"
                     >
-                      <motion.div
-                        animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
-                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
-                        className="relative"
-                      >
-                        <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
-                          <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                        </div>
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                          🐕 {dog.dog_name}
-                        </div>
-                      </motion.div>
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
+                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        🐕 {dog.dog_name}
+                      </div>
                     </motion.div>
-                  );
-                })}
+                  </motion.div>
+                ))}
 
-                {/* Adoptions - 3 Left & 3 Right */}
-                {featuredAdoptions.slice(0, 6).map((adoption, idx) => {
-                  const isLeft = idx % 2 === 0;
-                  const position = Math.floor(idx / 2);
-                  return (
+                {/* Adoptions - Bottom Left & Right */}
+                {featuredAdoptions.slice(0, 2).map((adoption, idx) => (
+                  <motion.div
+                    key={`adoption-${adoption.id}`}
+                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 0.6 + idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden lg:block ${idx === 0 ? '-left-12 bottom-8' : '-right-12 bottom-8'} cursor-pointer group z-20`}
+                    onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
+                  >
                     <motion.div
-                      key={`adoption-${adoption.id}`}
-                      initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ delay: 0.6 + idx * 0.1, duration: 0.5 }}
-                      className={`absolute ${isLeft ? '-left-12' : '-right-12'} cursor-pointer group z-20`}
-                      style={{ top: `${420 + position * 100}px` }}
-                      onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
+                      animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
+                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.9 }}
+                      className="relative"
                     >
-                      <motion.div
-                        animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
-                        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.9 }}
-                        className="relative"
-                      >
-                        <div className="w-18 h-18 rounded-2xl overflow-hidden border-4 border-pink-400 shadow-2xl group-hover:border-pink-600 transition-all group-hover:scale-110">
-                          <img src={adoption.primary_photo_url} alt={adoption.pet_name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                          ❤️ Adotar
-                        </div>
-                      </motion.div>
+                      <div className="w-18 h-18 rounded-2xl overflow-hidden border-4 border-pink-400 shadow-2xl group-hover:border-pink-600 transition-all group-hover:scale-110">
+                        <img src={adoption.primary_photo_url} alt={adoption.pet_name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        ❤️ Adotar
+                      </div>
                     </motion.div>
-                  );
-                })}
+                  </motion.div>
+                ))}
 
                 {/* Center Title with Stats */}
                 <motion.div
