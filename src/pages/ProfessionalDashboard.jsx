@@ -545,7 +545,8 @@ export default function ProfessionalDashboard() {
       price: "",
       duration_options: ["30min", "1h", "2h"],
       custom_pricing: false,
-      package_options: []
+      package_options: [],
+      animal_type: "dogs" // Default to dogs
     });
 
     const [newPackage, setNewPackage] = useState({ name: "", sessions: "", price: "" });
@@ -624,15 +625,53 @@ export default function ProfessionalDashboard() {
                 className="resize-none"
               />
             </div>
+            
+            {/* Animal Type Selector */}
+            <div className="space-y-2">
+              <Label className="text-sm md:text-base font-semibold">Tipo de Animal *</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {[
+                  { id: 'dogs', label: '🐕 Cães', icon: 'Dog' },
+                  { id: 'cats', label: '🐈 Gatos', icon: 'Cat' },
+                  { id: 'reptiles', label: '🐍 Répteis', icon: 'Snake' },
+                  { id: 'arachnids', label: '🕷️ Aracnídeos', icon: 'Bug' },
+                  { id: 'rodents', label: '🐹 Roedores', icon: 'Mouse' },
+                  { id: 'birds', label: '🦜 Aves', icon: 'Bird' }
+                ].map(animal => (
+                  <button
+                    key={animal.id}
+                    type="button"
+                    onClick={() => setFormData({...formData, animal_type: animal.id})}
+                    className={`p-3 rounded-lg border-2 transition-all text-left ${
+                      formData.animal_type === animal.id 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{animal.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm md:text-base">Preço (€) *</Label>
+                <Label className="text-sm md:text-base">
+                  Preço (€) * 
+                  <span className="text-xs text-gray-500 ml-1">
+                    {['dogs', 'cats'].includes(formData.animal_type) ? '/hora' : '/visita'}
+                  </span>
+                </Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                  placeholder="15.00"
+                  placeholder={
+                    ['dogs', 'cats'].includes(formData.animal_type) 
+                      ? "Ex: 10€ (por hora)" 
+                      : "Ex: 20€ (por visita)"
+                  }
                   className="h-11 md:h-10"
                 />
               </div>
@@ -764,67 +803,6 @@ export default function ProfessionalDashboard() {
             </div>
           </div>
           
-          {/* Pricing Configuration - Quick Edit */}
-          <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-green-50 to-emerald-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DollarSign className="w-5 h-5 text-green-600" />
-                Configuração de Preços
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Preço Base - Cães/Gatos (€/hora)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={profile.hourly_rate || ""}
-                    onChange={async (e) => {
-                      const newRate = parseFloat(e.target.value);
-                      if (newRate > 0) {
-                        const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-                        await entity.update(profile.id, { hourly_rate: newRate });
-                        queryClient.invalidateQueries(['myWalkerProfile']);
-                        queryClient.invalidateQueries(['myTrainerProfile']);
-                        toast.success('Preço atualizado!');
-                      }
-                    }}
-                    placeholder="Ex: 10€ (Média para cães)"
-                    className="h-12 text-lg font-semibold"
-                  />
-                </div>
-
-                {/* Exotic Rate - Only show if accepts exotic animals */}
-                {(profile.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Preço Exóticos - Répteis/Aracnídeos/Outros (€/visita)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={profile.exotic_rate || ""}
-                      onChange={async (e) => {
-                        const newRate = parseFloat(e.target.value);
-                        if (newRate > 0) {
-                          const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-                          await entity.update(profile.id, { exotic_rate: newRate });
-                          queryClient.invalidateQueries(['myWalkerProfile']);
-                          queryClient.invalidateQueries(['myTrainerProfile']);
-                          toast.success('Preço para exóticos atualizado!');
-                        }
-                      }}
-                      placeholder="Ex: 20€ (Taxa por visita a animais especiais)"
-                      className="h-12 text-lg font-semibold"
-                    />
-                  </div>
-                )}
-              </div>
-              <p className="text-xs text-gray-600 mt-3 bg-white p-3 rounded-lg border">
-                💡 <strong>Dica:</strong> O preço base aplica-se a cães e gatos (por hora). O preço de exóticos é por visita (alimentar/cuidar).
-              </p>
-            </CardContent>
-          </Card>
-
           {/* Quick Actions - Clean Row */}
           <div className="flex flex-wrap gap-3 mb-6">
             <Button
@@ -1389,104 +1367,191 @@ export default function ProfessionalDashboard() {
 
           {/* Services Tab */}
           <TabsContent value="services">
-            {/* Quick Services Selector */}
+            {/* Quick Services Selector - Organized by Animal Type */}
             <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Home className="w-5 h-5 text-blue-600" />
-                  Serviços Rápidos - Apenas Defina o Preço
+                  Serviços Rápidos - Escolha o Animal e Defina o Preço
                 </CardTitle>
-                <p className="text-sm text-gray-600">Ative serviços pré-configurados com um clique</p>
+                <p className="text-sm text-gray-600">Ative serviços pré-configurados por tipo de animal</p>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {[
-                    { id: 'boarding', name: 'Alojamento', icon: '🏠', desc: 'O cão fica em sua casa' },
-                    { id: 'house_sitting', name: 'House Sitting', icon: '🏡', desc: 'Você fica na casa do dono' },
-                    { id: 'drop_in_feeding', name: 'Visitas Rápidas', icon: '🚪', desc: 'Alimentação e cuidados rápidos' }
-                  ].map(quickService => {
-                    const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
-                    const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
-                    
-                    return (
-                      <Card key={quickService.id} className={`border-2 ${isActive ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
-                        <CardContent className="p-4">
-                          <div className="text-3xl mb-2">{quickService.icon}</div>
-                          <h4 className="font-bold mb-1">{quickService.name}</h4>
-                          <p className="text-xs text-gray-600 mb-3">{quickService.desc}</p>
-                          
-                          {isActive ? (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-semibold">Preço:</span>
-                                <span className="text-lg font-bold text-green-600">€{activeService?.price}</span>
+                {/* Quick Services for Dogs/Cats */}
+                <div className="mb-6">
+                  <h3 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                    🐕 Cães & Gatos
+                  </h3>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {[
+                      { id: 'walk_dogs', name: 'Passeio Cães', icon: '🐕', desc: 'Passeio padrão', animal: 'dogs' },
+                      { id: 'walk_cats', name: 'Passeio Gatos', icon: '🐈', desc: 'Passeio para gatos', animal: 'cats' },
+                      { id: 'boarding_dogs', name: 'Alojamento', icon: '🏠', desc: 'Animal fica em sua casa', animal: 'dogs' }
+                    ].map(quickService => {
+                      const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
+                      const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
+                      
+                      return (
+                        <Card key={quickService.id} className={`border-2 ${isActive ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
+                          <CardContent className="p-4">
+                            <div className="text-3xl mb-2">{quickService.icon}</div>
+                            <h4 className="font-bold mb-1">{quickService.name}</h4>
+                            <p className="text-xs text-gray-600 mb-3">{quickService.desc}</p>
+                            
+                            {isActive ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-semibold">Preço:</span>
+                                  <span className="text-lg font-bold text-green-600">€{activeService?.price}/h</span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full text-red-600"
+                                  onClick={async () => {
+                                    if (!confirm('Desativar este serviço?')) return;
+                                    const updatedServices = profile.services_offered.filter(s => s.service_type !== quickService.id);
+                                    const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                    await entity.update(profile.id, { services_offered: updatedServices });
+                                    queryClient.invalidateQueries(['myWalkerProfile']);
+                                    queryClient.invalidateQueries(['myTrainerProfile']);
+                                    toast.success('Serviço desativado');
+                                  }}
+                                >
+                                  Desativar
+                                </Button>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full text-red-600"
-                                onClick={async () => {
-                                  if (!confirm('Desativar este serviço?')) return;
-                                  
-                                  const updatedServices = profile.services_offered.filter(s => s.service_type !== quickService.id);
-                                  const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-                                  
-                                  await entity.update(profile.id, { services_offered: updatedServices });
-                                  queryClient.invalidateQueries(['myWalkerProfile']);
-                                  queryClient.invalidateQueries(['myTrainerProfile']);
-                                  toast.success('Serviço desativado');
-                                }}
-                              >
-                                Desativar
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              <Input
-                                type="number"
-                                placeholder="Preço por dia (€)"
-                                id={`price-${quickService.id}`}
-                                className="h-9 text-sm"
-                              />
-                              <Button
-                                size="sm"
-                                className="w-full bg-blue-600 hover:bg-blue-700"
-                                onClick={async () => {
-                                  const priceInput = document.getElementById(`price-${quickService.id}`);
-                                  const price = parseFloat(priceInput.value);
-                                  
-                                  if (!price || price <= 0) {
-                                    toast.error('Digite um preço válido');
-                                    return;
-                                  }
-                                  
-                                  const newService = {
-                                    service_type: quickService.id,
-                                    service_name: quickService.name,
-                                    description: quickService.desc,
-                                    price: price,
-                                    duration_options: ['1 dia', 'Vários dias'],
-                                    custom_pricing: false
-                                  };
-                                  
-                                  const updatedServices = [...(profile.services_offered || []), newService];
-                                  const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-                                  
-                                  await entity.update(profile.id, { services_offered: updatedServices });
-                                  queryClient.invalidateQueries(['myWalkerProfile']);
-                                  queryClient.invalidateQueries(['myTrainerProfile']);
-                                  toast.success('✅ Serviço ativado!');
-                                  priceInput.value = '';
-                                }}
-                              >
-                                Ativar Serviço
-                              </Button>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                            ) : (
+                              <div className="space-y-2">
+                                <Input
+                                  type="number"
+                                  placeholder="€/hora"
+                                  id={`price-${quickService.id}`}
+                                  className="h-9 text-sm"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-blue-600 hover:bg-blue-700"
+                                  onClick={async () => {
+                                    const priceInput = document.getElementById(`price-${quickService.id}`);
+                                    const price = parseFloat(priceInput.value);
+                                    if (!price || price <= 0) { toast.error('Preço inválido'); return; }
+                                    const newService = {
+                                      service_type: quickService.id,
+                                      service_name: quickService.name,
+                                      description: quickService.desc,
+                                      price: price,
+                                      animal_type: quickService.animal,
+                                      duration_options: ['30min', '1h', '2h'],
+                                      custom_pricing: false
+                                    };
+                                    const updatedServices = [...(profile.services_offered || []), newService];
+                                    const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                    await entity.update(profile.id, { services_offered: updatedServices });
+                                    queryClient.invalidateQueries(['myWalkerProfile']);
+                                    queryClient.invalidateQueries(['myTrainerProfile']);
+                                    toast.success('✅ Serviço ativado!');
+                                    priceInput.value = '';
+                                  }}
+                                >
+                                  Ativar
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Quick Services for Exotics */}
+                <div>
+                  <h3 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                    🐍 Animais Exóticos
+                  </h3>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {[
+                      { id: 'care_reptiles', name: 'Cuidar Répteis', icon: '🐍', desc: 'Alimentação e limpeza', animal: 'reptiles' },
+                      { id: 'care_arachnids', name: 'Cuidar Aracnídeos', icon: '🕷️', desc: 'Manutenção especializada', animal: 'arachnids' },
+                      { id: 'care_birds', name: 'Cuidar Aves', icon: '🦜', desc: 'Alimentação e gaiola', animal: 'birds' },
+                      { id: 'care_rodents', name: 'Cuidar Roedores', icon: '🐹', desc: 'Hamsters, coelhos, etc.', animal: 'rodents' }
+                    ].map(quickService => {
+                      const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
+                      const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
+                      
+                      return (
+                        <Card key={quickService.id} className={`border-2 ${isActive ? 'border-purple-400 bg-purple-50' : 'border-gray-200'}`}>
+                          <CardContent className="p-4">
+                            <div className="text-3xl mb-2">{quickService.icon}</div>
+                            <h4 className="font-bold mb-1">{quickService.name}</h4>
+                            <p className="text-xs text-gray-600 mb-3">{quickService.desc}</p>
+                            
+                            {isActive ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-semibold">Preço:</span>
+                                  <span className="text-lg font-bold text-purple-600">€{activeService?.price}/visita</span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full text-red-600"
+                                  onClick={async () => {
+                                    if (!confirm('Desativar este serviço?')) return;
+                                    const updatedServices = profile.services_offered.filter(s => s.service_type !== quickService.id);
+                                    const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                    await entity.update(profile.id, { services_offered: updatedServices });
+                                    queryClient.invalidateQueries(['myWalkerProfile']);
+                                    queryClient.invalidateQueries(['myTrainerProfile']);
+                                    toast.success('Serviço desativado');
+                                  }}
+                                >
+                                  Desativar
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <Input
+                                  type="number"
+                                  placeholder="€/visita"
+                                  id={`price-${quickService.id}`}
+                                  className="h-9 text-sm"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-purple-600 hover:bg-purple-700"
+                                  onClick={async () => {
+                                    const priceInput = document.getElementById(`price-${quickService.id}`);
+                                    const price = parseFloat(priceInput.value);
+                                    if (!price || price <= 0) { toast.error('Preço inválido'); return; }
+                                    const newService = {
+                                      service_type: quickService.id,
+                                      service_name: quickService.name,
+                                      description: quickService.desc,
+                                      price: price,
+                                      animal_type: quickService.animal,
+                                      duration_options: ['Visita única', 'Várias visitas'],
+                                      custom_pricing: false
+                                    };
+                                    const updatedServices = [...(profile.services_offered || []), newService];
+                                    const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                    await entity.update(profile.id, { services_offered: updatedServices });
+                                    queryClient.invalidateQueries(['myWalkerProfile']);
+                                    queryClient.invalidateQueries(['myTrainerProfile']);
+                                    toast.success('✅ Serviço ativado!');
+                                    priceInput.value = '';
+                                  }}
+                                >
+                                  Ativar
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>
