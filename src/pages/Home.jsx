@@ -1231,9 +1231,9 @@ export default function Home() {
 
               <TabsContent value="walkers">
                 <div>
-                  {/* Título e Busca na mesma linha */}
-                  <div className="flex items-center justify-between gap-4 mb-3">
-                    <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex-shrink-0">
+                  {/* Título e Filtros lado a lado */}
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <h2 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg flex-shrink-0">
                       {filterDogSitting !== "all" ? (
                         <>
                           {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -1241,95 +1241,78 @@ export default function Home() {
                           {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
                         </>
                       ) : (
-                        language === 'pt' ? 'Profissionais Disponíveis' : 
-                        language === 'es' ? 'Profesionales Disponibles' : 
-                        'Available Professionals'
+                        language === 'pt' ? 'Profissionais' : 
+                        language === 'es' ? 'Profesionales' : 
+                        'Professionals'
                       )}
                     </h2>
 
-                    <div className="w-72 flex-shrink-0 hidden md:block">
-                      <LocationSearch
-                        onLocationChange={(loc) => {
-                          console.log('📍 Location selected:', loc);
-                          setUserLocation(loc);
-                          if(loc && loc.lat && loc.lng) {
-                            console.log('✅ GPS coordinates set:', { lat: loc.lat, lng: loc.lng });
-                          }
-                        }}
-                        currentLocation={userLocation}
-                        className="border border-white/40 shadow-lg bg-white h-10 text-sm focus:border-blue-500 transition-all rounded-xl"
-                        placeholder="📍 Localização"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Filtros compactos */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-3 mb-3 flex items-center gap-2 flex-wrap">
-                    <div className="md:hidden flex-1 min-w-[200px]">
+                    {/* Barra única com localização + filtros */}
+                    <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-2">
                       <LocationSearch
                         onLocationChange={(loc) => {
                           setUserLocation(loc);
                         }}
                         currentLocation={userLocation}
-                        className="border border-gray-200 shadow-sm bg-white h-9 text-sm focus:border-blue-500 transition-all rounded-lg"
+                        className="border-0 shadow-none bg-transparent h-8 text-sm w-40 focus:border-blue-500"
                         placeholder="📍 Localização"
                       />
+
+                      <Select value={filterSize} onValueChange={setFilterSize}>
+                        <SelectTrigger className="h-8 w-24 text-xs bg-white/50 border-0 shadow-none">
+                          <SelectValue placeholder="Tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="small">Pequeno</SelectItem>
+                          <SelectItem value="medium">Médio</SelectItem>
+                          <SelectItem value="large">Grande</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={filterTime} onValueChange={setFilterTime}>
+                        <SelectTrigger className="h-8 w-24 text-xs bg-white/50 border-0 shadow-none">
+                          <SelectValue placeholder="Horário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="morning">Manhã</SelectItem>
+                          <SelectItem value="afternoon">Tarde</SelectItem>
+                          <SelectItem value="evening">Noite</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
+                        <SelectTrigger className="h-8 w-24 text-xs bg-white/50 border-0 shadow-none">
+                          <SelectValue placeholder="Animal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="dogs">Cães</SelectItem>
+                          <SelectItem value="cats">Gatos</SelectItem>
+                          <SelectItem value="reptiles">Répteis</SelectItem>
+                          <SelectItem value="arachnids">Aracnídeos</SelectItem>
+                          <SelectItem value="rodents">Roedores</SelectItem>
+                          <SelectItem value="birds">Aves</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all" || userLocation) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setFilterSize("all");
+                            setFilterTime("all");
+                            setFilterAnimalType("all");
+                            setUserLocation(null);
+                          }}
+                          className="h-8 text-xs px-2"
+                        >
+                          ✕
+                        </Button>
+                      )}
                     </div>
-
-                    <Select value={filterSize} onValueChange={setFilterSize}>
-                      <SelectTrigger className="h-9 w-28 text-sm bg-white border-gray-200 shadow-sm rounded-lg">
-                        <SelectValue placeholder="Tamanho" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="small">Pequeno</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="large">Grande</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filterTime} onValueChange={setFilterTime}>
-                      <SelectTrigger className="h-9 w-28 text-sm bg-white border-gray-200 shadow-sm rounded-lg">
-                        <SelectValue placeholder="Horário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="morning">Manhã</SelectItem>
-                        <SelectItem value="afternoon">Tarde</SelectItem>
-                        <SelectItem value="evening">Noite</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                      <SelectTrigger className="h-9 w-32 text-sm bg-white border-gray-200 shadow-sm rounded-lg">
-                        <SelectValue placeholder="Animal" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="dogs">Cães</SelectItem>
-                        <SelectItem value="cats">Gatos</SelectItem>
-                        <SelectItem value="reptiles">Répteis</SelectItem>
-                        <SelectItem value="arachnids">Aracnídeos</SelectItem>
-                        <SelectItem value="rodents">Roedores</SelectItem>
-                        <SelectItem value="birds">Aves</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all" || userLocation) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setFilterSize("all");
-                          setFilterTime("all");
-                          setFilterAnimalType("all");
-                          setUserLocation(null);
-                        }}
-                        className="h-9 text-sm px-4 rounded-lg bg-white hover:bg-gray-50"
-                      >
-                        Limpar
-                      </Button>
-                    )}
                   </div>
 
                   {/* Info de resultados */}
