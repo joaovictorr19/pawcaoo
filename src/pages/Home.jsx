@@ -958,98 +958,89 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-2 md:p-3 max-w-2xl mx-auto"
+                className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-3 max-w-xl mx-auto"
               >
-                <div className="flex flex-col gap-2 w-full">
-                  {/* Linha 1: Localização + Botão */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 relative">
-                      <LocationSearch
-                        onLocationChange={(loc) => {
-                            console.log('📍 Location selected:', loc);
-                            setUserLocation(loc);
-                            if(loc && loc.lat && loc.lng) {
-                              console.log('✅ GPS coordinates set:', { lat: loc.lat, lng: loc.lng });
-                              setTimeout(() => {
-                                document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                              }, 500);
-                            }
-                        }}
-                        currentLocation={userLocation}
-                        className="border border-gray-300 shadow-sm bg-white h-10 text-sm focus:border-blue-500 transition-all rounded-lg"
-                        placeholder="📍 Localização (Ex: Porto, Lisboa)"
-                      />
-                    </div>
-                    <Button 
-                      id="find-walker-btn"
-                      size="default"
-                      onClick={() => {
-                        setActiveTab('walkers');
-                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <LocationSearch
+                      onLocationChange={(loc) => {
+                          setUserLocation(loc);
+                          if(loc && loc.lat && loc.lng) {
+                            setTimeout(() => {
+                              document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                            }, 500);
+                          }
                       }}
-                      className="text-white font-semibold h-10 px-5 shadow-md rounded-lg transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
+                      currentLocation={userLocation}
+                      className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-blue-500 rounded-xl"
+                      placeholder="📍 Onde procura?"
+                    />
+                  </div>
+                  <Button 
+                    id="find-walker-btn"
+                    size="icon"
+                    onClick={() => {
+                      setActiveTab('walkers');
+                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="h-10 w-10 shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
+                  >
+                    <Search className="w-5 h-5" />
+                  </Button>
+                </div>
+                
+                {/* Filtros compactos em linha */}
+                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
+                  <Select value={filterSize} onValueChange={setFilterSize}>
+                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                      <SelectValue placeholder="Porte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Porte</SelectItem>
+                      <SelectItem value="small">Pequeno</SelectItem>
+                      <SelectItem value="medium">Médio</SelectItem>
+                      <SelectItem value="large">Grande</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterTime} onValueChange={setFilterTime}>
+                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                      <SelectValue placeholder="Horário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Horário</SelectItem>
+                      <SelectItem value="morning">Manhã</SelectItem>
+                      <SelectItem value="afternoon">Tarde</SelectItem>
+                      <SelectItem value="evening">Noite</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
+                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                      <SelectValue placeholder="Animal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Animal</SelectItem>
+                      <SelectItem value="dogs">Cães</SelectItem>
+                      <SelectItem value="cats">Gatos</SelectItem>
+                      <SelectItem value="reptiles">Répteis</SelectItem>
+                      <SelectItem value="rodents">Roedores</SelectItem>
+                      <SelectItem value="birds">Aves</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
+                    <button
+                      onClick={() => {
+                        setFilterSize("all");
+                        setFilterTime("all");
+                        setFilterAnimalType("all");
+                      }}
+                      className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
                     >
-                      <Search className="w-4 h-4 mr-2" />
-                      Procurar
-                    </Button>
-                  </div>
-                  
-                  {/* Linha 2: Filtros */}
-                  <div className="flex flex-wrap gap-2">
-                    <Select value={filterSize} onValueChange={setFilterSize}>
-                      <SelectTrigger className="h-9 w-28 text-xs bg-white border border-gray-300 shadow-sm hover:border-blue-400 transition-all rounded-lg">
-                        <SelectValue placeholder="Tamanho" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="small">Pequeno</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="large">Grande</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filterTime} onValueChange={setFilterTime}>
-                      <SelectTrigger className="h-9 w-28 text-xs bg-white border border-gray-300 shadow-sm hover:border-blue-400 transition-all rounded-lg">
-                        <SelectValue placeholder="Horário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="morning">Manhã</SelectItem>
-                        <SelectItem value="afternoon">Tarde</SelectItem>
-                        <SelectItem value="evening">Noite</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                      <SelectTrigger className="h-9 w-32 text-xs bg-white border border-gray-300 shadow-sm hover:border-blue-400 transition-all rounded-lg">
-                        <SelectValue placeholder="Tipo de Animal" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="dogs">Cães</SelectItem>
-                        <SelectItem value="cats">Gatos</SelectItem>
-                        <SelectItem value="reptiles">Répteis</SelectItem>
-                        <SelectItem value="arachnids">Aracnídeos</SelectItem>
-                        <SelectItem value="rodents">Roedores</SelectItem>
-                        <SelectItem value="birds">Aves</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setFilterSize("all");
-                          setFilterTime("all");
-                          setFilterAnimalType("all");
-                        }}
-                        className="h-9 text-xs bg-white text-gray-700 border border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold rounded-lg"
-                      >
-                        Limpar
-                      </Button>
-                    )}
-                  </div>
+                      ✕
+                    </button>
+                  )}
                 </div>
               </motion.div>
 
