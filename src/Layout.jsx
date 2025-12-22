@@ -751,6 +751,10 @@ function LayoutContent({ children, currentPageName }) {
                     key={item.url}
                     id={item.id}
                     to={item.url}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(item.url);
+                    }}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
                       isRouteActive(item.url)
                         ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
@@ -764,46 +768,46 @@ function LayoutContent({ children, currentPageName }) {
               ) : (
                 // Menu simplificado para visitantes (não logados)
                 <>
-                  <Link
-                    to={createPageUrl("Home")}
+                  <button
+                    onClick={() => navigate(createPageUrl("Home"))}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                      isRouteActive(createPageUrl("Home"))
+                      location.pathname === createPageUrl("Home") && !location.search.includes('tab=')
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     <Users className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
-                  </Link>
-                  <Link
-                    to={createPageUrl("Partners")}
+                  </button>
+                  <button
+                    onClick={() => navigate(createPageUrl("Partners"))}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                      isRouteActive(createPageUrl("Partners"))
+                      location.pathname === createPageUrl("Partners")
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     <Store className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
-                  </Link>
-                  <Link
-                    to={createPageUrl("AdoptionListings")}
+                  </button>
+                  <button
+                    onClick={() => navigate(createPageUrl("AdoptionListings"))}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                      isRouteActive(createPageUrl("AdoptionListings"))
+                      location.pathname === createPageUrl("AdoptionListings")
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     <Heart className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}</span>
-                  </Link>
-                  <Link
-                    to={createPageUrl("Home") + "?tab=emergency"}
+                  </button>
+                  <button
+                    onClick={() => navigate(createPageUrl("Home") + "?tab=emergency")}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap text-red-600 bg-red-50 hover:bg-red-100`}
                   >
                     <Zap className="w-4 h-4 flex-shrink-0 text-red-500" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Passeio de Emergência' : 'Emergency Walk'}</span>
-                  </Link>
+                  </button>
                 </>
               )}
             </div>
