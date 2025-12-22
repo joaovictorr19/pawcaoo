@@ -53,9 +53,10 @@ export default function EditWalkerProfile() {
       const currentUser = await base44.auth.me();
       
       await base44.entities.ProfileEditRequest.create({
-        walker_id: walkerProfile.id,
-        walker_name: walkerProfile.walker_name,
-        walker_email: currentUser.email,
+        profile_id: walkerProfile.id,
+        profile_type: 'walker',
+        professional_name: walkerProfile.walker_name,
+        professional_email: currentUser.email,
         requested_changes: changes,
         original_data: {
           services_offered: walkerProfile.services_offered,
