@@ -75,7 +75,7 @@ export default function AvailabilityCalendar({
       booked: "bg-red-100 border-red-400 text-red-800",
       pending: "bg-orange-100 border-orange-400 text-orange-800",
       accepted: "bg-blue-100 border-blue-400 text-blue-800",
-      day_off: "bg-red-600 border-red-700 text-white font-bold shadow-md",
+      day_off: "bg-gray-300 border-gray-500 text-gray-600 font-bold",
       past: "bg-gray-100 border-gray-200 text-gray-300",
       unavailable: "bg-white border-gray-200 text-gray-400"
     };
@@ -133,14 +133,19 @@ export default function AvailabilityCalendar({
             const isSelected = selectedDate && isSameDay(date, selectedDate);
 
             const isPastDay = status === 'past';
+            const isDayOff = status === 'day_off';
+            const isBooked = status === 'booked';
             const hasBookingsDay = status === 'accepted' || status === 'pending' || status === 'booked' || status === 'partial';
             
-            // In interactive mode: allow any non-past day without bookings
+            // CRITICAL FIX: Day-off days are NEVER clickable for clients
+            // In interactive mode (professional managing): allow clicking day_off to toggle
+            // In normal mode (client booking): day_off is completely blocked
             const isClickable = isInteractive 
-              ? (!isPastDay && !hasBookingsDay) 
-              : (status !== 'past' && status !== 'day_off' && status !== 'booked');
+              ? (!isPastDay && !hasBookingsDay) // Professional can toggle day_off
+              : (!isPastDay && !isDayOff && !isBooked); // Client CANNOT click day_off
             
-            console.log('Day:', format(date, 'dd'), 'Status:', status, 'Clickable:', isClickable, 'Interactive:', isInteractive); 
+            // Determine if this is a blocked date for visual feedback
+            const isBlocked = isDayOff || isBooked || isPastDay;
             
             return (
               <button
@@ -148,33 +153,49 @@ export default function AvailabilityCalendar({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('🔘 CLICK! Day:', format(date, 'dd/MM'), 'Status:', status, 'Clickable:', isClickable);
+                  
+                  // CRITICAL: Block click if not clickable (extra safety)
+                  if (!isClickable && !isInteractive) {
+                    return;
+                  }
+                  
                   if (onDateSelect) {
-                    console.log('✅ Calling onDateSelect');
                     onDateSelect(date, status);
-                  } else {
-                    console.log('❌ No onDateSelect handler!');
                   }
                 }}
                 type="button"
+                disabled={!isClickable && !isInteractive}
                 className={`
                   aspect-square p-1 sm:p-1.5 md:p-2 rounded-md border-2 transition-all 
                   text-[10px] xs:text-xs sm:text-sm md:text-base
                   font-bold
                   ${getStatusColor(status)}
                   ${isSelected ? 'ring-2 ring-green-500 scale-110 z-10 shadow-lg' : ''}
-                  ${!isClickable ? 'opacity-40' : 'hover:scale-110 hover:shadow-lg active:scale-95 hover:z-10'}
+                  ${!isClickable ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 hover:shadow-lg active:scale-95 hover:z-10 cursor-pointer'}
+                  ${isDayOff && !isInteractive ? 'bg-gray-200 border-gray-400 text-gray-500 line-through cursor-not-allowed opacity-60' : ''}
                   ${isToday(date) ? 'ring-2 ring-blue-500 shadow-md' : ''}
                   flex flex-col items-center justify-center relative
-                  select-none cursor-pointer
+                  select-none
                 `}
-                title={isInteractive ? (status === 'day_off' ? "Remover folga" : "Marcar folga") : ""}
+                title={
+                  isDayOff && !isInteractive 
+                    ? "Profissional não disponível nesta data" 
+                    : isInteractive 
+                      ? (status === 'day_off' ? "Remover folga" : "Marcar folga") 
+                      : ""
+                }
               >
                 <span className="leading-none">{format(date, 'd')}</span>
                 {count > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 min-w-0 p-0 text-[9px] sm:text-[10px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-md font-bold">
                     {count}
                   </Badge>
+                )}
+                {/* Visual indicator for day-off */}
+                {isDayOff && !isInteractive && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-full h-0.5 bg-gray-500 rotate-45 absolute" />
+                  </div>
                 )}
               </button>
             );
