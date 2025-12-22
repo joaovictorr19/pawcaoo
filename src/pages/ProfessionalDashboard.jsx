@@ -11,8 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar, DollarSign, TrendingUp, Users, Star, MessageCircle,
   MapPin, Clock, CheckCircle, AlertCircle, BarChart3, Activity,
-  Package, Edit, Trash2, Plus, Bell, ArrowUp, ArrowDown, Loader2, Home
+  Package, Edit, Trash2, Plus, Bell, ArrowUp, ArrowDown, Loader2, Home,
+  Dog, Cat, Bird
 } from "lucide-react";
+import { ReptileIcon, ArachnidIcon, RodentIcon } from "@/components/professionals/AnimalIcons";
 import { format, subDays, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -631,23 +633,24 @@ export default function ProfessionalDashboard() {
               <Label className="text-sm md:text-base font-semibold">Tipo de Animal *</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {[
-                  { id: 'dogs', label: '🐕 Cães', icon: 'Dog' },
-                  { id: 'cats', label: '🐈 Gatos', icon: 'Cat' },
-                  { id: 'reptiles', label: '🐍 Répteis', icon: 'Snake' },
-                  { id: 'arachnids', label: '🕷️ Aracnídeos', icon: 'Bug' },
-                  { id: 'rodents', label: '🐹 Roedores', icon: 'Mouse' },
-                  { id: 'birds', label: '🦜 Aves', icon: 'Bird' }
+                  { id: 'dogs', label: 'Cães', IconComponent: Dog },
+                  { id: 'cats', label: 'Gatos', IconComponent: Cat },
+                  { id: 'reptiles', label: 'Répteis', IconComponent: ReptileIcon },
+                  { id: 'arachnids', label: 'Aracnídeos', IconComponent: ArachnidIcon },
+                  { id: 'rodents', label: 'Roedores', IconComponent: RodentIcon },
+                  { id: 'birds', label: 'Aves', IconComponent: Bird }
                 ].map(animal => (
                   <button
                     key={animal.id}
                     type="button"
                     onClick={() => setFormData({...formData, animal_type: animal.id})}
-                    className={`p-3 rounded-lg border-2 transition-all text-left ${
+                    className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
                       formData.animal_type === animal.id 
                         ? 'border-green-500 bg-green-50' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
+                    <animal.IconComponent className="w-5 h-5 text-gray-700 flex-shrink-0" />
                     <span className="text-sm font-medium">{animal.label}</span>
                   </button>
                 ))}
@@ -1380,13 +1383,13 @@ export default function ProfessionalDashboard() {
                 {/* Quick Services for Dogs/Cats */}
                 <div className="mb-6">
                   <h3 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
-                    🐕 Cães & Gatos
+                    <Dog className="w-4 h-4" /> Cães & Gatos
                   </h3>
                   <div className="grid md:grid-cols-3 gap-4">
                     {[
-                      { id: 'walk_dogs', name: 'Passeio Cães', icon: '🐕', desc: 'Passeio padrão', animal: 'dogs' },
-                      { id: 'walk_cats', name: 'Passeio Gatos', icon: '🐈', desc: 'Passeio para gatos', animal: 'cats' },
-                      { id: 'boarding_dogs', name: 'Alojamento', icon: '🏠', desc: 'Animal fica em sua casa', animal: 'dogs' }
+                      { id: 'walk_dogs', name: 'Passeio Cães', IconComponent: Dog, desc: 'Passeio padrão', animal: 'dogs' },
+                      { id: 'walk_cats', name: 'Passeio Gatos', IconComponent: Cat, desc: 'Passeio para gatos', animal: 'cats' },
+                      { id: 'boarding_dogs', name: 'Alojamento', IconComponent: Home, desc: 'Animal fica em sua casa', animal: 'dogs' }
                     ].map(quickService => {
                       const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
                       const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
@@ -1394,7 +1397,9 @@ export default function ProfessionalDashboard() {
                       return (
                         <Card key={quickService.id} className={`border-2 ${isActive ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
                           <CardContent className="p-4">
-                            <div className="text-3xl mb-2">{quickService.icon}</div>
+                            <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center mb-3 shadow-sm">
+                              <quickService.IconComponent className="w-6 h-6 text-gray-700" />
+                            </div>
                             <h4 className="font-bold mb-1">{quickService.name}</h4>
                             <p className="text-xs text-gray-600 mb-3">{quickService.desc}</p>
                             
@@ -1468,14 +1473,14 @@ export default function ProfessionalDashboard() {
                 {/* Quick Services for Exotics */}
                 <div>
                   <h3 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
-                    🐍 Animais Exóticos
+                    <ReptileIcon className="w-4 h-4" /> Animais Exóticos
                   </h3>
                   <div className="grid md:grid-cols-3 gap-4">
                     {[
-                      { id: 'care_reptiles', name: 'Cuidar Répteis', icon: '🐍', desc: 'Alimentação e limpeza', animal: 'reptiles' },
-                      { id: 'care_arachnids', name: 'Cuidar Aracnídeos', icon: '🕷️', desc: 'Manutenção especializada', animal: 'arachnids' },
-                      { id: 'care_birds', name: 'Cuidar Aves', icon: '🦜', desc: 'Alimentação e gaiola', animal: 'birds' },
-                      { id: 'care_rodents', name: 'Cuidar Roedores', icon: '🐹', desc: 'Hamsters, coelhos, etc.', animal: 'rodents' }
+                      { id: 'care_reptiles', name: 'Cuidar Répteis', IconComponent: ReptileIcon, desc: 'Alimentação e limpeza', animal: 'reptiles' },
+                      { id: 'care_arachnids', name: 'Cuidar Aracnídeos', IconComponent: ArachnidIcon, desc: 'Manutenção especializada', animal: 'arachnids' },
+                      { id: 'care_birds', name: 'Cuidar Aves', IconComponent: Bird, desc: 'Alimentação e gaiola', animal: 'birds' },
+                      { id: 'care_rodents', name: 'Cuidar Roedores', IconComponent: RodentIcon, desc: 'Hamsters, coelhos, etc.', animal: 'rodents' }
                     ].map(quickService => {
                       const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
                       const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
@@ -1483,7 +1488,9 @@ export default function ProfessionalDashboard() {
                       return (
                         <Card key={quickService.id} className={`border-2 ${isActive ? 'border-purple-400 bg-purple-50' : 'border-gray-200'}`}>
                           <CardContent className="p-4">
-                            <div className="text-3xl mb-2">{quickService.icon}</div>
+                            <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center mb-3 shadow-sm">
+                              <quickService.IconComponent className="w-6 h-6 text-gray-700" />
+                            </div>
                             <h4 className="font-bold mb-1">{quickService.name}</h4>
                             <p className="text-xs text-gray-600 mb-3">{quickService.desc}</p>
                             

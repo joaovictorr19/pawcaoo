@@ -1,5 +1,5 @@
 import React from "react";
-import { Dog, Cat, Bug, Bird } from "lucide-react";
+import { Dog, Cat, Bird } from "lucide-react";
 
 // Ícone SVG customizado para répteis (cobra)
 const ReptileIcon = ({ className = "w-4 h-4" }) => (
@@ -19,13 +19,15 @@ const ArachnidIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-// Ícone SVG customizado para roedores (rato minimalista)
+// Ícone SVG customizado para roedores (coelho/hamster minimalista)
 const RodentIcon = ({ className = "w-4 h-4" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="14" cy="12" r="6"/>
-    <circle cx="10" cy="10" r="1.5" fill="currentColor"/>
-    <path d="M8 12c-2 0-3.5-1-4-2"/>
-    <circle cx="6" cy="8" r="3"/>
+    <ellipse cx="12" cy="14" rx="5" ry="6"/>
+    <circle cx="10" cy="12" r="1" fill="currentColor"/>
+    <circle cx="14" cy="12" r="1" fill="currentColor"/>
+    <path d="M8 8c0-2 1-3 2-4"/>
+    <path d="M16 8c0-2-1-3-2-4"/>
+    <path d="M12 16c0.5 0 1 0.5 1 1"/>
   </svg>
 );
 
