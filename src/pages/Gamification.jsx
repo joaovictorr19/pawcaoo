@@ -323,50 +323,178 @@ export default function Gamification() {
         {/* Transparent glass background */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-purple-50/10 to-blue-50/10"></div>
         
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-16 relative z-10">
-          {/* Header Title - Professional with Context */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-16 relative z-10">
+          {/* Header Title - Compacto Mobile */}
           <motion.div 
-            className="text-center mb-12"
+            className="text-center mb-6 md:mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
+            {/* Carteira flutuante no canto direito */}
+            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-20">
+              <motion.button
+                onClick={() => navigate(createPageUrl('MyWallet'))}
+                className="flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border-2 backdrop-blur-sm"
+                style={{ 
+                  background: 'rgba(255,255,255,0.9)', 
+                  borderColor: `${levelColor}40`
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Wallet className="w-4 h-4" style={{ color: levelColor }} />
+                <span className="text-sm font-black" style={{ color: levelColor }}>
+                  €{(userWallet?.cashback_balance || 0).toFixed(2)}
+                </span>
+              </motion.button>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4">
               <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg"
                 style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
               >
-                <Trophy className="w-7 h-7 text-white" />
+                <Trophy className="w-5 h-5 md:w-7 md:h-7 text-white" />
               </div>
-              <div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-800">
-                  Hall da Fama
-                </h1>
-              </div>
+              <h1 className="text-2xl md:text-6xl font-black tracking-tight text-slate-800">
+                Hall da Fama
+              </h1>
             </div>
             
-            <p className="text-sm md:text-base text-gray-600 font-medium max-w-2xl mx-auto">
-              Sistema de Recompensas e Rankings da Comunidade
+            <p className="text-xs md:text-base text-gray-600 font-medium max-w-2xl mx-auto">
+              Recompensas e Rankings da Comunidade
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 items-stretch mb-8 max-w-6xl mx-auto">
-            {/* Card 1: Donut Chart de Nível - SVG PERSONALIZADO */}
+          {/* MOBILE: Layout Compacto em 1 Card Principal */}
+          <div className="md:hidden mb-6">
             <motion.div 
-              className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${levelColor}30` }}
+              className="rounded-3xl relative overflow-hidden shadow-2xl"
+              style={{ 
+                background: `linear-gradient(135deg, ${levelColor}15, white 40%, ${levelColor}08)`,
+                border: `2px solid ${levelColor}30`
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {/* Glow effects */}
+              <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-30" 
+                   style={{ background: levelColor }}></div>
+              <div className="absolute bottom-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" 
+                   style={{ background: levelColor }}></div>
+              
+              <div className="relative z-10 p-5">
+                {/* Linha Principal: Donut + Info */}
+                <div className="flex items-center gap-4">
+                  {/* Mini Donut */}
+                  <div className="flex-shrink-0">
+                    <LevelDonut 
+                      level={currentLevel} 
+                      progress={tierProgressPercentage} 
+                      size={100}
+                      strokeWidth={10}
+                    />
+                  </div>
+                  
+                  {/* Info Stack */}
+                  <div className="flex-1 min-w-0">
+                    {/* Tier Name */}
+                    <div 
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black mb-2"
+                      style={{ background: `${levelColor}20`, color: levelColor }}
+                    >
+                      <Star className="w-3 h-3" />
+                      {currentTier.name}
+                    </div>
+                    
+                    {/* XP Display */}
+                    <div className="mb-2">
+                      <div className="text-3xl font-black tracking-tight" style={{ color: levelColor }}>
+                        {currentXP.toLocaleString('pt-PT')} <span className="text-lg opacity-70">XP</span>
+                      </div>
+                      <div className="text-[10px] text-gray-500 font-semibold">
+                        +{xpRemainingForNextLevel} XP para Nível {currentLevel + 1}
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar Mini */}
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${tierProgressPercentage}%`,
+                          background: `linear-gradient(90deg, ${levelColor}, ${levelColor}cc)`
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Linha de Conquistas */}
+                <div className="mt-4 pt-4 border-t" style={{ borderColor: `${levelColor}20` }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
+                      >
+                        <Award className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 font-semibold">Conquistas</div>
+                        <div className="text-lg font-black" style={{ color: levelColor }}>
+                          {allEarnedBadges.length}<span className="text-sm text-gray-400 font-medium">/{allPossibleBadges.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Preview das últimas 3 badges */}
+                    <div className="flex -space-x-2">
+                      {allEarnedBadges.slice(0, 3).map((badge, idx) => (
+                        <div 
+                          key={idx}
+                          className="w-8 h-8 rounded-lg bg-white border-2 flex items-center justify-center text-lg shadow-sm"
+                          style={{ borderColor: `${levelColor}30` }}
+                        >
+                          {badge.icon || '🏆'}
+                        </div>
+                      ))}
+                      {allEarnedBadges.length > 3 && (
+                        <div 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shadow-sm"
+                          style={{ background: levelColor, color: 'white' }}
+                        >
+                          +{allEarnedBadges.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* DESKTOP: Grid de 4 Cards (mantém original mas melhorado) */}
+          <div className="hidden md:grid md:grid-cols-4 gap-6 items-stretch mb-8 max-w-6xl mx-auto">
+            {/* Card 1: Donut Chart de Nível */}
+            <motion.div 
+              className="rounded-3xl relative overflow-hidden shadow-xl"
+              style={{ 
+                background: `linear-gradient(145deg, white, ${levelColor}08)`,
+                border: `2px solid ${levelColor}25`
+              }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" 
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-25" 
                    style={{ background: levelColor }}></div>
-              <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Star className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>Nível Atual</span>
+              <div className="relative z-10 p-7">
+                <h3 className="text-sm font-black mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
+                  <Star className="w-5 h-5" />
+                  Nível Atual
                 </h3>
                 
-                {/* SVG Donut Component */}
                 <div className="flex justify-center">
                   <LevelDonut 
                     level={currentLevel} 
@@ -376,15 +504,15 @@ export default function Gamification() {
                   />
                 </div>
 
-                <div className="mt-3 md:mt-4 text-center">
+                <div className="mt-4 text-center">
                   <div 
-                    className="text-xs md:text-sm font-bold truncate px-3 py-1 rounded-full inline-block"
+                    className="text-sm font-bold truncate px-4 py-1.5 rounded-full inline-block"
                     style={{ color: levelColor, backgroundColor: `${levelColor}15` }}
                   >
                     {currentTier.name}
                   </div>
-                  <div className="text-[10px] text-gray-500 mt-1">
-                    Faltam {xpRemainingForNextLevel} XP para Nível {currentLevel + 1}
+                  <div className="text-xs text-gray-500 mt-2">
+                    +{xpRemainingForNextLevel} XP → Nível {currentLevel + 1}
                   </div>
                 </div>
               </div>
@@ -392,108 +520,126 @@ export default function Gamification() {
 
             {/* Card 2: XP Total */}
             <motion.div 
-              className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${levelColor}30` }}
+              className="rounded-3xl relative overflow-hidden shadow-xl"
+              style={{ 
+                background: `linear-gradient(145deg, white, ${levelColor}08)`,
+                border: `2px solid ${levelColor}25`
+              }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
             >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" 
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" 
                    style={{ background: levelColor }}></div>
-              <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>Experiência</span>
+              <div className="relative z-10 p-7">
+                <h3 className="text-sm font-black mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
+                  <Sparkles className="w-5 h-5" />
+                  Experiência
                 </h3>
-                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border" style={{ borderColor: `${levelColor}30` }}>
-                  <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${levelColor}10, ${levelColor}05)` }}></div>
-                  <div className="relative z-10">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter leading-none" style={{ color: levelColor }}>
-                      {currentXP.toLocaleString('pt-PT')}
-                    </div>
-                    <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">XP</div>
+                
+                <div 
+                  className="text-center rounded-2xl p-5 mb-3"
+                  style={{ background: `linear-gradient(135deg, ${levelColor}12, ${levelColor}05)` }}
+                >
+                  <div className="text-4xl font-black tracking-tighter leading-none" style={{ color: levelColor }}>
+                    {currentXP.toLocaleString('pt-PT')}
                   </div>
+                  <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-2">XP Total</div>
                 </div>
-                {currentLevel < 100 && (
-                  <div className="mt-2 md:mt-3 text-center">
-                    <div className="text-xs md:text-sm font-bold" style={{ color: levelColor }}>
-                      {tierProgressPercentage}/100 XP
-                    </div>
-                    <div className="text-[9px] md:text-xs text-gray-500">
-                      +{xpRemainingForNextLevel} para Nível {currentLevel + 1}
-                    </div>
-                  </div>
-                )}
+                
+                {/* Progress bar */}
+                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ 
+                      width: `${tierProgressPercentage}%`,
+                      background: `linear-gradient(90deg, ${levelColor}, ${levelColor}aa)`
+                    }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-2 text-center font-semibold">
+                  {tierProgressPercentage}/100 XP neste nível
+                </div>
               </div>
             </motion.div>
 
-            {/* Card 3: Cashback - TEMA DINÂMICO */}
+            {/* Card 3: Carteira */}
             <motion.div 
-              className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${levelColor}30` }}
+              className="rounded-3xl relative overflow-hidden shadow-xl cursor-pointer group"
+              style={{ 
+                background: `linear-gradient(145deg, white, ${levelColor}08)`,
+                border: `2px solid ${levelColor}25`
+              }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              onClick={() => navigate(createPageUrl('MyWallet'))}
+              whileHover={{ scale: 1.02 }}
             >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: levelColor }}></div>
-              <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Wallet className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>Carteira</span>
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: levelColor }}></div>
+              <div className="relative z-10 p-7">
+                <h3 className="text-sm font-black mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
+                  <Wallet className="w-5 h-5" />
+                  Carteira
                 </h3>
                 
-                <div className="relative text-center rounded-2xl p-4 md:p-5 overflow-hidden border-2" style={{ borderColor: `${levelColor}30`, background: `linear-gradient(135deg, ${levelColor}10, ${levelColor}05)` }}>
-                  <div className="relative z-10">
-                    <div className="flex items-baseline justify-center gap-1 mb-2">
-                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter" style={{ color: levelColor }}>
-                        €
-                      </span>
-                      <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter" style={{ color: levelColor }}>
-                        {Math.floor(userWallet?.cashback_balance || 0).toLocaleString('pt-PT')}
-                      </span>
-                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter opacity-70" style={{ color: levelColor }}>
-                        .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
-                      </span>
-                    </div>
-                    <div className="text-xs md:text-sm font-bold uppercase tracking-wide opacity-70" style={{ color: levelColor }}>Cashback Disponível</div>
+                <div 
+                  className="text-center rounded-2xl p-5"
+                  style={{ background: `linear-gradient(135deg, ${levelColor}12, ${levelColor}05)` }}
+                >
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-2xl font-black" style={{ color: levelColor }}>€</span>
+                    <span className="text-5xl font-black tracking-tighter" style={{ color: levelColor }}>
+                      {Math.floor(userWallet?.cashback_balance || 0)}
+                    </span>
+                    <span className="text-2xl font-bold opacity-60" style={{ color: levelColor }}>
+                      .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold uppercase tracking-wide mt-2 opacity-70" style={{ color: levelColor }}>
+                    Cashback
                   </div>
                 </div>
                 
-                <div className="mt-3 md:mt-4 text-center">
-                  <div className="text-xs md:text-sm font-semibold text-gray-600">
-                    Use na Loja
-                  </div>
+                <div className="mt-4 text-center">
+                  <span className="text-xs text-gray-500 group-hover:text-gray-700 transition-colors font-semibold flex items-center justify-center gap-1">
+                    Ver Carteira <ChevronRight className="w-3 h-3" />
+                  </span>
                 </div>
               </div>
             </motion.div>
 
             {/* Card 4: Badges */}
             <motion.div 
-              className="glass-panel p-5 md:p-7 rounded-3xl text-center relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${levelColor}30` }}
+              className="rounded-3xl text-center relative overflow-hidden shadow-xl"
+              style={{ 
+                background: `linear-gradient(145deg, white, ${levelColor}08)`,
+                border: `2px solid ${levelColor}25`
+              }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: levelColor }}></div>
-              <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center justify-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Award className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>Conquistas</span>
+              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: levelColor }}></div>
+              <div className="relative z-10 p-7">
+                <h3 className="text-sm font-black mb-5 flex items-center justify-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
+                  <Award className="w-5 h-5" />
+                  Conquistas
                 </h3>
+                
                 <motion.div 
-                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 relative shadow-2xl"
-                  style={{ background: levelColor }}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative shadow-xl"
+                  style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
+                  whileHover={{ scale: 1.05, rotate: 5 }}
                 >
                   <div className="absolute inset-0 bg-white opacity-20 rounded-2xl"></div>
-                  <Trophy className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white relative z-10 filter drop-shadow-lg" />
+                  <Trophy className="w-10 h-10 text-white relative z-10" />
                 </motion.div>
-                <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-1" style={{ color: levelColor }}>
+                
+                <div className="text-5xl font-black tracking-tighter mb-1" style={{ color: levelColor }}>
                   {allEarnedBadges.length}
                 </div>
-                <p className="text-[9px] md:text-xs text-gray-500 font-medium">de {allPossibleBadges.length}</p>
+                <p className="text-xs text-gray-500 font-semibold">de {allPossibleBadges.length} emblemas</p>
               </div>
             </motion.div>
           </div>
@@ -501,38 +647,38 @@ export default function Gamification() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* 2. TAB SWITCHER - Sistema de Abas */}
-        <div className="flex justify-center">
-          <div className="inline-flex bg-white rounded-2xl p-2 shadow-xl border border-gray-200">
+        {/* 2. TAB SWITCHER - Sistema de Abas (Mobile Friendly) */}
+        <div className="flex justify-center overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="inline-flex bg-white rounded-2xl p-1.5 md:p-2 shadow-xl border border-gray-200 min-w-max">
             <button
               onClick={() => setActiveRanking('global')}
-              className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
+              className={`px-4 md:px-8 py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
                 activeRanking === 'global'
                   ? `bg-gradient-to-r ${colors?.gradient || 'from-yellow-400 to-orange-500'} text-white shadow-lg`
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              Rank Global
+              🏆 Global
             </button>
             <button
               onClick={() => setActiveRanking('walkers')}
-              className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
+              className={`px-4 md:px-8 py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
                 activeRanking === 'walkers'
                   ? 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-lg'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              Top Passeadores
+              🐕 Passeadores
             </button>
             <button
               onClick={() => setActiveRanking('quality')}
-              className={`px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
+              className={`px-4 md:px-8 py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
                 activeRanking === 'quality'
                   ? 'bg-gradient-to-r from-pink-400 to-pink-600 text-white shadow-lg'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              Cães Felizes
+              🦴 Cães Felizes
             </button>
           </div>
         </div>
