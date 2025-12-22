@@ -168,12 +168,9 @@ export default function AvailabilityCalendar({
                   flex flex-col items-center justify-center relative
                   select-none cursor-pointer
                 `}
-                title={isInteractive ? (status === 'day_off' ? "🚫 Remover folga" : "Marcar folga") : ""}
+                title={isInteractive ? (status === 'day_off' ? "Remover folga" : "Marcar folga") : ""}
               >
                 <span className="leading-none">{format(date, 'd')}</span>
-                {status === 'day_off' && (
-                  <span className="absolute top-0 left-0 text-[10px] sm:text-xs">🚫</span>
-                )}
                 {count > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 min-w-0 p-0 text-[9px] sm:text-[10px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-md font-bold">
                     {count}
@@ -200,7 +197,7 @@ export default function AvailabilityCalendar({
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-red-600 border-2 border-red-700" />
-            <span className="text-[10px] sm:text-xs md:text-sm text-red-700 font-bold">🚫 Folga</span>
+            <span className="text-[10px] sm:text-xs md:text-sm text-red-700 font-bold">Folga</span>
           </div>
         </div>
       </CardContent>

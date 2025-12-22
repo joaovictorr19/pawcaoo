@@ -1555,8 +1555,11 @@ export default function ProfessionalDashboard() {
                       walkerEmail={user?.email}
                       isInteractive={true}
                       onDateSelect={async (date, status) => {
+                        console.log('🔥 onDateSelect chamado!', format(date, 'dd/MM/yyyy'), 'Status:', status);
+                        
                         try {
                           const dateStr = format(date, 'yyyy-MM-dd');
+                          console.log('📅 DateStr:', dateStr);
                           
                           // Check if day has bookings
                           const dayBookings = allBookings.filter(b => 
@@ -1564,31 +1567,39 @@ export default function ProfessionalDashboard() {
                             (b.status !== 'cancelled' && b.status !== 'rejected')
                           );
                           
+                          console.log('📊 Bookings neste dia:', dayBookings.length);
+                          
                           if (dayBookings.length > 0) {
-                            toast.error('❌ Dia com reservas!', {
-                              description: 'Não pode marcar folga. Cancele as reservas primeiro.'
+                            toast.error('Dia com reservas!', {
+                              description: 'Cancele as reservas primeiro.'
                             });
                             return;
                           }
 
                           const existingRecord = availability.find(a => a.date === dateStr);
+                          console.log('📋 Registo existente:', existingRecord);
 
                           if (status === 'day_off') {
                             // REMOVE TIME OFF
+                            console.log('🗑️ Removendo folga...');
                             if (existingRecord) {
                               await base44.entities.CalendarAvailability.delete(existingRecord.id);
-                              toast.success('✅ Folga removida!');
+                              toast.success('Folga removida!');
+                              queryClient.invalidateQueries(['myAvailability']);
                             }
                           } else {
                             // MARK AS TIME OFF
+                            console.log('➕ Marcando folga...');
                             if (existingRecord) {
+                              console.log('Atualizando registo existente...');
                               await base44.entities.CalendarAvailability.update(existingRecord.id, {
                                 is_day_off: true,
                                 is_fully_booked: true,
                                 notes: 'Folga'
                               });
                             } else {
-                              await base44.entities.CalendarAvailability.create({
+                              console.log('Criando novo registo...');
+                              const newRecord = await base44.entities.CalendarAvailability.create({
                                 professional_email: user?.email,
                                 professional_name: profile?.walker_name || profile?.trainer_name,
                                 professional_type: walkerProfile ? 'walker' : 'trainer',
@@ -1598,14 +1609,14 @@ export default function ProfessionalDashboard() {
                                 time_slots: [],
                                 notes: 'Folga'
                               });
+                              console.log('✅ Folga criada:', newRecord);
                             }
-                            toast.success('🚫 Folga marcada!');
+                            toast.success('Folga marcada!');
+                            queryClient.invalidateQueries(['myAvailability']);
                           }
-                          
-                          queryClient.invalidateQueries(['myAvailability']);
                         } catch (err) {
-                          console.error(err);
-                          toast.error('Erro ao atualizar.');
+                          console.error('❌ Erro:', err);
+                          toast.error('Erro: ' + err.message);
                         }
                       }}
                     />
@@ -1619,7 +1630,7 @@ export default function ProfessionalDashboard() {
                       className="mt-6 p-4 bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl"
                     >
                       <h3 className="font-bold text-gray-900 flex items-center gap-2 mb-3">
-                        🚫 Dias de Folga Marcados
+                        Dias de Folga Marcados
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {availability
