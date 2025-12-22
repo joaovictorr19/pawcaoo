@@ -110,18 +110,18 @@ export default function AvailabilityCalendar({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-2 md:p-4">
-        {/* Week Days Header - Compact */}
-        <div className="grid grid-cols-7 gap-0.5 md:gap-1 mb-1.5 md:mb-2">
-          {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
-            <div key={idx} className="text-center text-[10px] md:text-xs font-bold text-gray-500 py-0.5 md:py-1">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        {/* Calendar Grid - Compact */}
-        <div className="grid grid-cols-7 gap-0.5 md:gap-1">
+      <CardContent className="p-1.5 sm:p-2 md:p-4">
+       {/* Week Days Header - Responsive */}
+       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-1.5 md:mb-2">
+         {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
+           <div key={idx} className="text-center text-[9px] sm:text-[10px] md:text-xs font-bold text-gray-500 py-0.5 md:py-1">
+             {day}
+           </div>
+         ))}
+       </div>
+
+       {/* Calendar Grid - Fully Responsive */}
+       <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {/* Padding days */}
           {paddingDays.map((_, idx) => (
             <div key={`pad-${idx}`} className="aspect-square" />
@@ -132,10 +132,18 @@ export default function AvailabilityCalendar({
             const { status, count } = getDateStatus(date);
             const isSelected = selectedDate && isSameDay(date, selectedDate);
 
-            const isDisabled = status === 'past' || status === 'day_off';
-
-            // If interactive, day-off is NOT disabled, so user can click to remove it
-            const isClickable = isInteractive || (!isDisabled); 
+            // In interactive mode (professional dashboard), allow clicking on:
+            // - day_off (to remove it)
+            // - available days (to mark day off)
+            // - unavailable days (to mark day off)
+            // DON'T allow clicking on past or days with bookings
+            
+            const isPastDay = status === 'past';
+            const hasBookingsDay = status === 'accepted' || status === 'pending' || status === 'booked' || status === 'partial';
+            
+            const isClickable = isInteractive 
+              ? (!isPastDay && !hasBookingsDay) 
+              : (status !== 'past' && status !== 'day_off' && status !== 'booked'); 
             
             return (
               <button
@@ -143,21 +151,22 @@ export default function AvailabilityCalendar({
                 onClick={() => isClickable && onDateSelect && onDateSelect(date, status)}
                 disabled={!isClickable}
                 className={`
-                  aspect-square p-0.5 md:p-1 rounded-md md:rounded-lg border transition-all text-[10px] md:text-sm
+                  aspect-square p-0.5 sm:p-1 rounded border-2 transition-all 
+                  text-[9px] xs:text-[10px] sm:text-xs md:text-sm
                   ${getStatusColor(status)}
                   ${isSelected ? 'ring-2 ring-green-500 scale-105 z-10 shadow-md' : ''}
-                  ${!isClickable ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-sm cursor-pointer hover:border-green-400'}
-                  ${isToday(date) ? 'font-bold ring-2 ring-blue-400' : ''}
+                  ${!isClickable ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-md cursor-pointer active:scale-95'}
+                  ${isToday(date) ? 'font-extrabold ring-2 ring-blue-500' : ''}
                   flex flex-col items-center justify-center relative
                 `}
-                title={isInteractive ? (status === 'day_off' ? "Clique para remover folga" : "Clique para marcar folga") : ""}
+                title={isInteractive ? (status === 'day_off' ? "🚫 Remover folga" : hasBookingsDay ? "Dia com reservas" : "Marcar folga") : ""}
               >
-                <span className="font-semibold">{format(date, 'd')}</span>
+                <span className="font-bold leading-none">{format(date, 'd')}</span>
                 {status === 'day_off' && (
-                  <span className="absolute top-0 left-0 text-[10px]">🚫</span>
+                  <span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px]">🚫</span>
                 )}
                 {count > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 min-w-0 p-0 text-[9px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-sm">
+                  <Badge className="absolute -top-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 min-w-0 p-0 text-[8px] sm:text-[9px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-sm">
                     {count}
                   </Badge>
                 )}
@@ -166,39 +175,34 @@ export default function AvailabilityCalendar({
           })}
         </div>
 
-        {/* Compact Legend */}
-        <div className="flex flex-wrap gap-1.5 md:gap-2 mt-3 md:mt-4 pt-2 md:pt-3 border-t">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-100 border border-green-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('available', language)}</span>
+        {/* Responsive Legend */}
+        <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 mt-2 sm:mt-3 md:mt-4 pt-2 md:pt-3 border-t">
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-green-100 border border-green-400" />
+            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('available', language)}</span>
           </div>
-          {/* Hide Partial if redundant or confuse user with Pending/Accepted */}
-          {/* <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-blue-100 border border-blue-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('partiallyBooked', language)}</span>
-          </div> */}
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-yellow-100 border border-yellow-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('pending', language)}</span>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-orange-100 border border-orange-400" />
+            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('pending', language)}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-green-600 border border-green-700" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('accepted', language)}</span>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-blue-100 border border-blue-400" />
+            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('accepted', language)}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
-            <span className="text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
+            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
           </div>
           {isInteractive && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
-              <span className="text-[10px] md:text-xs text-gray-600 font-bold">🚫 Folga (Clique para alterar)</span>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
+              <span className="text-[9px] sm:text-[10px] md:text-xs text-red-700 font-bold">🚫 Folga</span>
             </div>
           )}
           {!isInteractive && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
-              <span className="text-[10px] md:text-xs text-gray-600 font-medium">🚫 Folga</span>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
+              <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-medium">🚫 Indisponível</span>
             </div>
           )}
         </div>
