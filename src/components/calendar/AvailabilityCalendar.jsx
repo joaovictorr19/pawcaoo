@@ -61,12 +61,12 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
 
   const getStatusColor = (status) => {
     const colors = {
-      available: "bg-green-500 border-green-600 text-white hover:bg-green-600",
-      partial: "bg-yellow-400 border-yellow-500 text-yellow-900",
-      booked: "bg-red-500 border-red-600 text-white",
-      pending: "bg-yellow-400 border-yellow-500 text-yellow-900",
-      accepted: "bg-red-500 border-red-600 text-white",
-      day_off: "bg-gray-400 border-gray-500 text-white",
+      available: "bg-green-100 border-green-400 text-green-800 hover:bg-green-200",
+      partial: "bg-yellow-100 border-yellow-400 text-yellow-800",
+      booked: "bg-red-100 border-red-400 text-red-800",
+      pending: "bg-yellow-100 border-yellow-400 text-yellow-800",
+      accepted: "bg-blue-100 border-blue-400 text-blue-800",
+      day_off: "bg-red-500 border-red-600 text-white cursor-not-allowed",
       past: "bg-gray-100 border-gray-200 text-gray-300",
       unavailable: "bg-white border-gray-200 text-gray-400"
     };
