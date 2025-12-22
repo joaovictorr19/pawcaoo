@@ -1219,11 +1219,11 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-4 max-w-3xl mx-auto"
+                className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-2 md:p-3 max-w-2xl mx-auto"
               >
-                <div className="flex flex-col gap-3 w-full">
+                <div className="flex flex-col gap-2 w-full">
                   {/* Linha 1: Localização + Botão */}
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1 relative">
                       <LocationSearch
                         onLocationChange={(loc) => {
@@ -1237,20 +1237,20 @@ export default function Home() {
                             }
                         }}
                         currentLocation={userLocation}
-                        className="border-2 border-gray-200 shadow-sm bg-white h-12 text-base focus:border-blue-500 transition-all rounded-xl"
-                        placeholder="📍 Onde procura? (Ex: Porto, Lisboa...)"
+                        className="border border-gray-300 shadow-sm bg-white h-10 text-sm focus:border-blue-500 transition-all rounded-lg"
+                        placeholder="📍 Localização (Ex: Porto, Lisboa)"
                       />
                     </div>
                     <Button 
                       id="find-walker-btn"
-                      size="lg" 
+                      size="default"
                       onClick={() => {
                         setActiveTab('walkers');
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="text-white font-bold h-12 px-6 shadow-lg rounded-xl transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
+                      className="text-white font-semibold h-10 px-5 shadow-md rounded-lg transition-all hover:scale-105 bg-gradient-to-r from-blue-600 to-indigo-600"
                     >
-                      <Search className="w-5 h-5 mr-2" />
+                      <Search className="w-4 h-4 mr-2" />
                       Procurar
                     </Button>
                   </div>
@@ -1258,7 +1258,7 @@ export default function Home() {
                   {/* Linha 2: Filtros */}
                   <div className="flex flex-wrap gap-2">
                     <Select value={filterSize} onValueChange={setFilterSize}>
-                      <SelectTrigger className="h-10 w-32 text-sm bg-white border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
+                      <SelectTrigger className="h-9 w-28 text-xs bg-white border border-gray-300 shadow-sm hover:border-blue-400 transition-all rounded-lg">
                         <SelectValue placeholder="Tamanho" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1270,7 +1270,7 @@ export default function Home() {
                     </Select>
 
                     <Select value={filterTime} onValueChange={setFilterTime}>
-                      <SelectTrigger className="h-10 w-32 text-sm bg-white border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
+                      <SelectTrigger className="h-9 w-28 text-xs bg-white border border-gray-300 shadow-sm hover:border-blue-400 transition-all rounded-lg">
                         <SelectValue placeholder="Horário" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1282,7 +1282,7 @@ export default function Home() {
                     </Select>
 
                     <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                      <SelectTrigger className="h-10 w-36 text-sm bg-white border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
+                      <SelectTrigger className="h-9 w-32 text-xs bg-white border border-gray-300 shadow-sm hover:border-blue-400 transition-all rounded-lg">
                         <SelectValue placeholder="Tipo de Animal" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1305,9 +1305,9 @@ export default function Home() {
                           setFilterTime("all");
                           setFilterAnimalType("all");
                         }}
-                        className="h-10 text-sm bg-white text-gray-700 border-2 border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold"
+                        className="h-9 text-xs bg-white text-gray-700 border border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold rounded-lg"
                       >
-                        Limpar Filtros
+                        Limpar
                       </Button>
                     )}
                   </div>
