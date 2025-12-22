@@ -2980,9 +2980,9 @@ export const adoptionTranslations = {
 export const t = (key, lang = 'pt') => {
   // Supported languages with fallback chain
   const fallbackChain = {
-    pt: ['pt'],
+    pt: ['pt', 'en'],
     en: ['en', 'pt'],
-    es: ['es', 'pt'],
+    es: ['es', 'pt', 'en'],
     fr: ['fr', 'en', 'pt'],
     de: ['de', 'en', 'pt'],
     it: ['it', 'en', 'pt']
@@ -2996,7 +2996,7 @@ export const t = (key, lang = 'pt') => {
     if (adoptionTranslations[key]?.[l]) {
       return adoptionTranslations[key][l];
     }
-    // Check main translations  
+    // Check main translations (new structure with fr, de, it as top-level keys)
     if (translations[l]?.[key]) {
       return translations[l][key];
     }
