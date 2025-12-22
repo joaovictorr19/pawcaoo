@@ -412,7 +412,7 @@ export default function WalkerDetails() {
 
         {/* Profile Header - Full Width */}
         <div className="mb-8">
-            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+            <div className="glass-panel rounded-xl shadow-md overflow-hidden border border-white/40">
               <ProfessionalProfileHeader 
                 professional={walker} 
                 type="walker" 
