@@ -728,41 +728,59 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             </>
           )}
 
-          {/* STEP 3: Payment Summary */}
+          {/* STEP 3: Payment & Confirmation */}
           {step === 3 && (
             <>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Resumo da Reserva
+                </h4>
+                
+                <div className="space-y-2 text-sm mb-3">
+                  <div className="flex justify-between py-1 border-b border-green-100">
+                    <span className="text-gray-600">🐕 {formData.dog_name}</span>
+                    <span className="font-medium">{formData.walk_date ? format(formData.walk_date, 'dd/MM') : ''} às {formData.walk_time}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-green-100">
+                    <span className="text-gray-600">⏱️ Duração</span>
+                    <span className="font-medium">{formData.duration_hours} hora(s)</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-green-100">
+                    <span className="text-gray-600">📍 Local</span>
+                    <span className="font-medium text-right text-xs max-w-[150px] truncate">{pickupAddress}</span>
+                  </div>
+                </div>
 
-          {/* STEP 3: Payment Summary */}
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Serviço ({formData.duration_hours}h)</span>
+                <div className="bg-white rounded-lg p-3 space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span>Serviço ({formData.duration_hours}h × €{pro?.hourly_rate || selectedService?.price})</span>
                     <span>€{amounts.baseAmount.toFixed(2)}</span>
                   </div>
                   {amounts.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Desconto</span>
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Desconto membro</span>
                       <span>-€{amounts.discountAmount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-blue-700 font-medium">
-                    <span>Profissional</span>
-                    <span>€{amounts.walkerReceives.toFixed(2)}</span>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Taxa de serviço</span>
+                    <span>€{amounts.platformFee.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Taxa Plataforma</span>
-                    <span>+€{amounts.platformFee.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                  <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-xl">
                     <span>Total</span>
                     <span className="text-green-600">€{amounts.totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-xs text-blue-800">
-                  <p className="font-semibold mb-0.5">💳 Pagamento após confirmação</p>
-                  <p>MBWay será fornecido quando aceito.</p>
-                </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                <p className="font-semibold text-amber-800 mb-1">⏳ O que acontece a seguir?</p>
+                <ol className="text-amber-700 text-xs space-y-1 list-decimal list-inside">
+                  <li>{proName} recebe o seu pedido</li>
+                  <li>Se aceitar, recebe notificação para pagar</li>
+                  <li>Após pagamento, reserva confirmada!</li>
+                </ol>
               </div>
             </>
           )}
