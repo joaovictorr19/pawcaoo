@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, XCircle } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isPast, getDay } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useLanguage } from "@/components/LanguageContext";
-import { t } from "@/components/translations";
 
 export default function AvailabilityCalendar({ 
   availabilityData = [], 
@@ -16,7 +14,7 @@ export default function AvailabilityCalendar({
   selectedDate, 
   locale = pt, 
   walkerEmail,
-  isInteractive = false // New prop to enable managing time off
+  isInteractive = false 
 }) {
   const { language } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -25,212 +23,143 @@ export default function AvailabilityCalendar({
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Add empty cells for alignment
   const startDay = getDay(monthStart);
   const paddingDays = Array(startDay).fill(null);
 
+  // --- A CORREÇÃO MÁGICA ESTÁ AQUI ---
   const getDateStatus = (date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const availability = availabilityData.find(a => a.date === dateStr);
-    const dayBookings = bookings.filter(b => b.walk_date === dateStr || b.session_date === dateStr);
+    // 1. Criamos a string simples do dia do calendário (YYYY-MM-DD)
+    const calendarDateStr = format(date, 'yyyy-MM-dd');
 
+    // 2. Procuramos na base de dados, mas LIMPAMOS a data antes de comparar
+    const availability = availabilityData.find(a => {
+        if (!a.date) return false;
+        // Se vier "2024-01-20T00:00:00Z", cortamos pelo 'T' para ficar só a data
+        const dbDateClean = a.date.includes('T') ? a.date.split('T')[0] : a.date;
+        return dbDateClean === calendarDateStr && a.professional_email === walkerEmail;
+    });
+
+    const dayBookings = bookings.filter(b => {
+        const walkDate = b.walk_date ? (b.walk_date.includes('T') ? b.walk_date.split('T')[0] : b.walk_date) : null;
+        const sessionDate = b.session_date ? (b.session_date.includes('T') ? b.session_date.split('T')[0] : b.session_date) : null;
+        return walkDate === calendarDateStr || sessionDate === calendarDateStr;
+    });
+
+    // Se for dia passado (ontem para trás)
     if (isPast(date) && !isToday(date)) return { status: 'past' };
     
-    // PRIORITY 1: Day-off blocks everything (checks walker email match)
-    if (availability?.is_day_off && (!walkerEmail || availability.professional_email === walkerEmail)) {
+    // PRIORIDADE 1: FOLGA (Bloqueio Total)
+    if (availability?.is_day_off) {
       return { status: 'day_off' };
     }
     
-    // Logic for Pending vs Accepted visualization
+    // Outros estados...
     const hasPending = dayBookings.some(b => b.status === 'pending');
     const hasConfirmed = dayBookings.some(b => b.status === 'confirmed' || b.status === 'completed');
     
-    // PRIORITY 2: Confirmed bookings
     if (hasConfirmed) return { status: 'accepted', count: dayBookings.length };
-    
-    // PRIORITY 3: Pending bookings
     if (hasPending) return { status: 'pending', count: dayBookings.length };
-    
-    // PRIORITY 4: Manually marked as fully booked
     if (availability?.is_fully_booked) return { status: 'booked' };
-    
-    // PRIORITY 5: Has some bookings
     if (dayBookings.length > 0) return { status: 'partial', count: dayBookings.length };
-    
-    // PRIORITY 6: Specific availability defined
     if (availability && !availability.is_fully_booked) return { status: 'available' };
-    
-    // PRIORITY 7: Fallback to General Availability (Profile)
-    if (generalAvailability && generalAvailability.length > 0) {
-        return { status: 'available' }; 
-    }
+    if (generalAvailability && generalAvailability.length > 0) return { status: 'available' };
 
     return { status: 'unavailable' };
   };
 
-  const getStatusColor = (status, isInteractiveMode = false) => {
+  const getStatusColor = (status) => {
     const colors = {
       available: "bg-green-100 border-green-400 text-green-800 hover:bg-green-200",
       partial: "bg-yellow-100 border-yellow-400 text-yellow-800",
-      booked: "bg-red-100 border-red-400 text-red-800",
+      booked: "bg-red-50 border-red-200 text-red-400 opacity-50 cursor-not-allowed",
       pending: "bg-orange-100 border-orange-400 text-orange-800",
       accepted: "bg-blue-100 border-blue-400 text-blue-800",
-      // Day off: VERMELHO para indicar bloqueio visual claro
-      day_off: isInteractiveMode 
-        ? "bg-red-200 border-red-500 text-red-700 font-bold" // Professional view
-        : "bg-red-300 border-red-600 text-red-800 font-bold", // Client view (blocked)
-      past: "bg-gray-100 border-gray-200 text-gray-300",
+      day_off: "bg-red-500 border-red-600 text-white font-bold shadow-inner",
+      past: "bg-gray-100 border-gray-200 text-gray-300 opacity-60",
       unavailable: "bg-white border-gray-200 text-gray-400"
     };
     return colors[status] || colors.unavailable;
   };
 
   return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 p-2 md:p-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-1.5 md:gap-2 text-sm md:text-base">
-            <CalendarIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-green-600" />
-            <span className="truncate">{format(currentMonth, 'MMMM yyyy', { locale: locale })}</span>
-          </CardTitle>
-          <div className="flex gap-0.5 md:gap-1 flex-shrink-0">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="h-7 w-7 md:h-8 md:w-8"
-            >
-              <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="h-7 w-7 md:h-8 md:w-8"
-            >
-              <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-            </Button>
-          </div>
+    <div className="w-full">
+      {/* Header do Calendário */}
+      <div className="flex justify-between items-center mb-4 px-2">
+        <h2 className="text-lg font-bold capitalize text-gray-800">
+          {format(currentMonth, 'MMMM yyyy', { locale })}
+        </h2>
+        <div className="flex gap-1">
+          <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="h-8 w-8">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="h-8 w-8">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent className="p-2 sm:p-3 md:p-4">
-        {/* Week Days Header - Fully Responsive */}
-        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 mb-1.5 md:mb-2">
-          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day, idx) => (
-            <div key={idx} className="text-center text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs font-bold text-gray-600 py-1">
-              {day}
-            </div>
-          ))}
-        </div>
+      </div>
 
-        {/* Calendar Grid - Fully Responsive */}
-        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5">
-          {/* Padding days */}
-          {paddingDays.map((_, idx) => (
-            <div key={`pad-${idx}`} className="aspect-square" />
-          ))}
+      {/* Grid Dias da Semana */}
+      <div className="grid grid-cols-7 gap-1 mb-2 text-center">
+        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, i) => (
+          <div key={i} className="text-xs font-bold text-gray-400">{day}</div>
+        ))}
+      </div>
+
+      {/* Grid Dias do Mês */}
+      <div className="grid grid-cols-7 gap-1 md:gap-2">
+        {paddingDays.map((_, index) => (
+          <div key={`padding-${index}`} />
+        ))}
+
+        {daysInMonth.map((date) => {
+          const { status, count } = getDateStatus(date);
+          const isSelected = selectedDate && isSameDay(date, selectedDate);
           
-          {/* Actual days */}
-          {daysInMonth.map(date => {
-            const { status, count } = getDateStatus(date);
-            const isSelected = selectedDate && isSameDay(date, selectedDate);
+          return (
+            <button
+              key={date.toString()}
+              onClick={() => onDateSelect && onDateSelect(date)}
+              className={`
+                relative h-10 md:h-12 w-full rounded-lg border flex flex-col items-center justify-center transition-all duration-200
+                ${getStatusColor(status)}
+                ${isSelected ? 'ring-2 ring-offset-2 ring-green-500 scale-105 z-10' : ''}
+              `}
+            >
+              <span className={`text-sm ${status === 'day_off' ? 'text-white' : ''}`}>
+                {format(date, 'd')}
+              </span>
+              
+              {/* Indicadores visuais */}
+              {status === 'day_off' && <XCircle className="w-3 h-3 text-white absolute bottom-1" />}
+              {count > 0 && (
+                <div className="absolute bottom-1 right-1 flex gap-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75" />
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-            const isPastDay = status === 'past';
-            const isDayOff = status === 'day_off';
-            const isBooked = status === 'booked';
-            const hasBookingsDay = status === 'accepted' || status === 'pending' || status === 'booked' || status === 'partial';
-            
-            // CRITICAL: Day-off logic
-            // - Interactive mode (professional): can click any non-past, non-booked day to toggle
-            // - Client mode: CANNOT click day_off or booked days
-            const isClickable = isInteractive 
-              ? (!isPastDay && !hasBookingsDay) // Professional can toggle day_off status
-              : (!isPastDay && !isDayOff && !isBooked); // Client CANNOT click day_off
-            
-            return (
-              <button
-                key={date.toString()}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  // Block click for clients on day_off
-                  if (!isInteractive && isDayOff) {
-                    toast && toast.error("Este dia não está disponível");
-                    return;
-                  }
-                  
-                  if (!isClickable && !isInteractive) {
-                    return;
-                  }
-                  
-                  if (onDateSelect) {
-                    onDateSelect(date, status);
-                  }
-                }}
-                type="button"
-                disabled={!isClickable && !isInteractive}
-                className={`
-                  aspect-square p-1 sm:p-1.5 md:p-2 rounded-md border-2 transition-all 
-                  text-[10px] xs:text-xs sm:text-sm md:text-base
-                  font-bold
-                  ${getStatusColor(status, isInteractive)}
-                  ${isSelected ? 'ring-2 ring-green-500 scale-110 z-10 shadow-lg' : ''}
-                  ${!isClickable && !isInteractive ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 hover:shadow-md active:scale-95 hover:z-10 cursor-pointer'}
-                  ${isDayOff ? (isInteractive ? 'bg-red-200 border-red-500' : 'bg-red-300 border-red-600 cursor-not-allowed') : ''}
-                  ${isToday(date) ? 'ring-2 ring-blue-500 shadow-md' : ''}
-                  flex flex-col items-center justify-center relative
-                  select-none
-                `}
-                title={
-                  isDayOff 
-                    ? (isInteractive ? "Clique para remover folga" : "❌ Profissional de folga - Indisponível")
-                    : (isInteractive ? "Clique para marcar como folga" : "")
-                }
-              >
-                <span className="leading-none">{format(date, 'd')}</span>
-                {count > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 min-w-0 p-0 text-[9px] sm:text-[10px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-md font-bold">
-                    {count}
-                  </Badge>
-                )}
-                {/* Visual X indicator for day-off - visible to clients */}
-                {isDayOff && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[80%] h-0.5 bg-red-600 rotate-45 absolute rounded" />
-                    <div className="w-[80%] h-0.5 bg-red-600 -rotate-45 absolute rounded" />
-                  </div>
-                )}
-              </button>
-            );
-          })}
+      {/* Legenda */}
+      <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-gray-200">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-green-100 border-2 border-green-400" />
+          <span className="text-[10px] text-gray-600">Disponível</span>
         </div>
-
-        {/* Responsive Legend */}
-        <div className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-3 mt-3 md:mt-4 pt-3 border-t border-gray-200">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-green-100 border-2 border-green-400" />
-            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">{t('available', language)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-orange-100 border-2 border-orange-400" />
-            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">{t('pending', language)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-blue-100 border-2 border-blue-400" />
-            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">Confirmado</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-red-300 border-2 border-red-600 relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-[70%] h-[2px] bg-red-600 rotate-45 absolute" />
-                <div className="w-[70%] h-[2px] bg-red-600 -rotate-45 absolute" />
-              </div>
-            </div>
-            <span className="text-[10px] sm:text-xs md:text-sm text-red-700 font-bold">{language === 'pt' ? 'Folga' : 'Day Off'}</span>
-          </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-blue-100 border-2 border-blue-400" />
+          <span className="text-[10px] text-gray-600">Confirmado</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-orange-100 border-2 border-orange-400" />
+          <span className="text-[10px] text-gray-600">Pendente</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-red-500 border-2 border-red-600" />
+          <span className="text-[10px] text-red-700 font-bold">Folga</span>
+        </div>
+      </div>
+    </div>
   );
 }
