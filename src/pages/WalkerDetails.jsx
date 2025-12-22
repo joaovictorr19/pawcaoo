@@ -735,6 +735,8 @@ export default function WalkerDetails() {
                   selectedDate={selectedDate}
                   onDateSelect={handleDateSelect}
                   locale={currentLocale}
+                  walkerEmail={walker?.created_by}
+                  isInteractive={false}
                 />
               </CardContent>
             </Card>
