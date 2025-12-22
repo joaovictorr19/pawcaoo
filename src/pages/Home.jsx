@@ -1051,9 +1051,9 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="text-center max-w-6xl mx-auto relative">
+            <div className="text-center max-w-6xl mx-auto relative min-h-[400px] flex items-center justify-center">
               {/* Floating Interactive Elements */}
-              <div className="relative mb-8">
+              <div className="relative w-full">
                 {/* Walkers - Top Left & Top Right */}
                 {featuredWalkers.slice(0, 2).map((walker, idx) => (
                   <motion.div
@@ -1061,7 +1061,7 @@ export default function Home() {
                     initial={{ opacity: 0, scale: 0.5, y: -20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
+                    className={`absolute hidden md:block ${idx === 0 ? 'left-8 top-0' : 'right-8 top-0'} cursor-pointer group z-20`}
                     onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
                   >
                     <motion.div
@@ -1086,7 +1086,7 @@ export default function Home() {
                     initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
                     transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
+                    className={`absolute hidden md:block ${idx === 0 ? 'left-0 top-1/3' : 'right-0 top-1/3'} cursor-pointer group z-20`}
                     onClick={() => {
                       if (!user) {
                         base44.auth.redirectToLogin(window.location.href);
@@ -1117,7 +1117,7 @@ export default function Home() {
                     initial={{ opacity: 0, scale: 0.5, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: 0.6 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden lg:block ${idx === 0 ? '-left-12 bottom-8' : '-right-12 bottom-8'} cursor-pointer group z-20`}
+                    className={`absolute hidden lg:block ${idx === 0 ? 'left-16 bottom-0' : 'right-16 bottom-0'} cursor-pointer group z-20`}
                     onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
                   >
                     <motion.div
@@ -1140,6 +1140,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
+                  className="relative z-10"
                 >
                   <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
                     <motion.div 
@@ -1169,8 +1170,6 @@ export default function Home() {
                       <span className="text-xs opacity-90">Adoções</span>
                     </motion.div>
                   </div>
-
-
                 </motion.div>
               </div>
 
