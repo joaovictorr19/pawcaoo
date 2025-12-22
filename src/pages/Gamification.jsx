@@ -339,8 +339,8 @@ export default function Gamification() {
               </div>
               <div>
                 <h1 
-                  className="text-4xl md:text-6xl font-black tracking-tight bg-clip-text text-transparent"
-                  style={{ backgroundImage: `linear-gradient(135deg, ${levelColor}, ${levelColor}99, ${levelColor})` }}
+                  className="text-4xl md:text-6xl font-black tracking-tight"
+                  style={{ color: levelColor }}
                 >
                   Hall da Fama
                 </h1>
