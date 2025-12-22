@@ -18,37 +18,37 @@ export default function DynamicBackground() {
 
   const isLoggedIn = !!user;
 
-  // If not logged in, show dog park / nature background
+  // If not logged in, show real nature leaves background
   if (!isLoggedIn) {
     return (
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Dog park with grass, trees and nature - high quality image */}
+        {/* Real nature photo background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1920&q=80)',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80)',
           }}
         />
         
-        {/* Soft warm overlay for friendly feel */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#4caf50]/20 via-[#81c784]/15 to-[#a5d6a7]/25" />
+        {/* Soft green overlay for brand consistency */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2e7d32]/30 via-[#4caf50]/20 to-[#81c784]/30" />
         
-        {/* Sunlight effect through trees */}
+        {/* Animated light spots (sun rays through leaves) */}
         <div className="absolute inset-0">
           <div 
-            className="absolute top-[5%] right-[20%] w-[40vw] h-[40vw] rounded-full mix-blend-soft-light filter blur-[120px] opacity-50 animate-blob-1"
-            style={{ backgroundColor: '#fff9c4' }}
+            className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-40 animate-blob-1"
+            style={{ backgroundColor: '#c8e6c9' }}
           />
           <div 
-            className="absolute bottom-[20%] left-[10%] w-[35vw] h-[35vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-40 animate-blob-2"
-            style={{ backgroundColor: '#c8e6c9' }}
+            className="absolute bottom-[15%] right-[10%] w-[45vw] h-[45vw] rounded-full mix-blend-soft-light filter blur-[80px] opacity-35 animate-blob-2"
+            style={{ backgroundColor: '#a5d6a7' }}
           />
         </div>
         
-        {/* Subtle vignette for depth */}
+        {/* Premium vignette for depth */}
         <div className="absolute inset-0" 
           style={{
-            background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.12) 100%)'
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.15) 100%)'
           }}
         />
       </div>
