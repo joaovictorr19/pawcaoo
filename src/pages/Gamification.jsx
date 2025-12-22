@@ -216,6 +216,15 @@ export default function Gamification() {
   const currentTier = calculateTier(currentXP);
   const currentLevel = currentTier.level;
 
+  // DEBUG: Log tier info
+  console.log('🎯 Gamification Debug:', {
+    currentXP,
+    currentLevel,
+    tierName: currentTier.name,
+    tierIcon: currentTier.icon,
+    tierRange: currentTier.tierRange
+  });
+
   // Tier-based progress (novo sistema de 100 níveis)
   const tierProgressPercentage = currentTier.progress || 0;
   const xpRemainingForNextLevel = currentTier.xpToNextLevel || 0;
