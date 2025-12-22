@@ -54,12 +54,32 @@ export default function DigitalWalletPass({
     setIsDownloading(true);
     
     try {
+      // Aguardar renderização completa
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3, // Alta qualidade
-        backgroundColor: null, // Fundo transparente
-        borderRadius: 20,
-        useCORS: true, // Permitir imagens externas
+        scale: 2, // Escala para boa qualidade sem distorção
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: true,
         logging: false,
+        width: cardRef.current.offsetWidth,
+        height: cardRef.current.offsetHeight,
+        windowWidth: cardRef.current.offsetWidth,
+        windowHeight: cardRef.current.offsetHeight,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0,
+        imageTimeout: 5000,
+        onclone: (clonedDoc) => {
+          // Garantir que o clone mantém as dimensões
+          const clonedCard = clonedDoc.querySelector('[data-card-export]');
+          if (clonedCard) {
+            clonedCard.style.transform = 'none';
+            clonedCard.style.position = 'relative';
+          }
+        }
       });
 
       // Criar canvas com bordas arredondadas
@@ -69,7 +89,7 @@ export default function DigitalWalletPass({
       roundedCanvas.height = canvas.height;
 
       // Desenhar com bordas arredondadas
-      const radius = 60; // 20px * scale de 3
+      const radius = 40; // 20px * scale de 2
       ctx.beginPath();
       ctx.moveTo(radius, 0);
       ctx.lineTo(canvas.width - radius, 0);
@@ -101,10 +121,14 @@ export default function DigitalWalletPass({
       {/* Cartão Apple Wallet Style */}
       <div 
         ref={cardRef}
-        className="relative w-[340px] overflow-hidden shadow-2xl"
+        data-card-export="true"
+        className="relative overflow-hidden shadow-2xl"
         style={{ 
           borderRadius: 20,
-          background: '#fff'
+          background: '#fff',
+          width: 340,
+          minWidth: 340,
+          maxWidth: 340
         }}
       >
         {/* === HEADER === */}
@@ -125,32 +149,40 @@ export default function DigitalWalletPass({
           {/* Linha 1: Logo Oficial + Badge Verificado */}
           <div className="relative z-10 flex items-center justify-between mb-3">
             {/* Logo oficial da PawCão */}
-            <div className="flex items-center gap-2">
-              <img 
-                src="/logo.png" 
-                alt="PawCão" 
-                className="h-8 w-auto object-contain"
-                onError={(e) => {
-                  // Fallback se imagem não carregar
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <div className="hidden w-8 h-8 bg-white rounded-lg items-center justify-center shadow-sm">
-                <span className="text-lg">🐾</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 32, height: 32, backgroundColor: 'white', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 18 }}>🐾</span>
               </div>
-              <span className="text-white font-bold text-base tracking-wide drop-shadow-sm">PawCão</span>
+              <span style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '0.025em' }}>PawCão</span>
             </div>
             
             {isVerified ? (
-              <div className="flex items-center gap-1 bg-white/25 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                <span className="text-white text-[10px] font-bold uppercase tracking-wider">Verificado</span>
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  backgroundColor: 'rgba(255,255,255,0.25)',
+                  padding: '6px 10px',
+                  borderRadius: 9999
+                }}
+              >
+                <ShieldCheck style={{ width: 14, height: 14, color: 'white', flexShrink: 0 }} />
+                <span style={{ color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verificado</span>
               </div>
             ) : (
-              <div className="flex items-center gap-1 bg-white/25 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-                <span className="text-white text-[10px] font-bold uppercase tracking-wider">{tier.name}</span>
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  backgroundColor: 'rgba(255,255,255,0.25)',
+                  padding: '6px 10px',
+                  borderRadius: 9999
+                }}
+              >
+                <Sparkles style={{ width: 14, height: 14, color: 'white', flexShrink: 0 }} />
+                <span style={{ color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tier.name}</span>
               </div>
             )}
           </div>
@@ -168,8 +200,14 @@ export default function DigitalWalletPass({
           {/* Foto de perfil - NÃO flutuante, dentro do body */}
           <div className="flex justify-center mb-4">
             <div 
-              className="w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white"
               style={{ 
+                width: 96,
+                height: 96,
+                minWidth: 96,
+                minHeight: 96,
+                borderRadius: 16,
+                overflow: 'hidden',
+                border: '4px solid white',
                 boxShadow: `0 8px 32px ${levelColor}40`
               }}
             >
@@ -177,13 +215,27 @@ export default function DigitalWalletPass({
                 <img 
                   src={photo} 
                   alt={name}
-                  className="w-full h-full object-cover"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block'
+                  }}
                   crossOrigin="anonymous"
                 />
               ) : (
                 <div 
-                  className="w-full h-full flex items-center justify-center text-white text-3xl font-black"
-                  style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: 32,
+                    fontWeight: 900,
+                    background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)`
+                  }}
                 >
                   {name.charAt(0).toUpperCase()}
                 </div>
