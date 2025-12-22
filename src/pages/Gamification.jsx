@@ -383,7 +383,7 @@ export default function Gamification() {
                     </PieChart>
                   </ResponsiveContainer>
                   
-                  {/* Center Content - Sem Emoji */}
+                  {/* Center Content - Limpo sem Emoji */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter" style={{ color: colors?.primary }}>
                       {currentLevel}
