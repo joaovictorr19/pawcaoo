@@ -1708,7 +1708,9 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[...allWalkers, ...allTrainers].map(professional => {
+                  {[...allWalkers, ...allTrainers]
+                    .filter(p => (p.walker_name || p.trainer_name) && p.created_by)
+                    .map(professional => {
                     const isWalker = professional.walker_name;
                     return (
                       <Card key={professional.id} className="border-2 border-gray-200">

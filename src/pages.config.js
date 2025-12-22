@@ -24,6 +24,7 @@ import Dashboard from './pages/Dashboard';
 import DogConnectPremium from './pages/DogConnectPremium';
 import DogConnectRewards from './pages/DogConnectRewards';
 import DogSittingServices from './pages/DogSittingServices';
+import EditTrainerProfile from './pages/EditTrainerProfile';
 import EditWalkerProfile from './pages/EditWalkerProfile';
 import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
 import EmployeeDashboard from './pages/EmployeeDashboard';
@@ -53,6 +54,7 @@ import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerDetails from './pages/PartnerDetails';
 import PartnerServices from './pages/PartnerServices';
 import Partners from './pages/Partners';
+import PawStore from './pages/PawStore';
 import PaymentMethods from './pages/PaymentMethods';
 import PaymentSetup from './pages/PaymentSetup';
 import PostEmergency from './pages/PostEmergency';
@@ -78,8 +80,6 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import EditTrainerProfile from './pages/EditTrainerProfile';
-import PawStore from './pages/PawStore';
 import __Layout from './Layout.jsx';
 
 
@@ -110,6 +110,7 @@ export const PAGES = {
     "DogConnectPremium": DogConnectPremium,
     "DogConnectRewards": DogConnectRewards,
     "DogSittingServices": DogSittingServices,
+    "EditTrainerProfile": EditTrainerProfile,
     "EditWalkerProfile": EditWalkerProfile,
     "EmergencyWalkDetails": EmergencyWalkDetails,
     "EmployeeDashboard": EmployeeDashboard,
@@ -139,6 +140,7 @@ export const PAGES = {
     "PartnerDetails": PartnerDetails,
     "PartnerServices": PartnerServices,
     "Partners": Partners,
+    "PawStore": PawStore,
     "PaymentMethods": PaymentMethods,
     "PaymentSetup": PaymentSetup,
     "PostEmergency": PostEmergency,
@@ -164,8 +166,6 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "EditTrainerProfile": EditTrainerProfile,
-    "PawStore": PawStore,
 }
 
 export const pagesConfig = {
