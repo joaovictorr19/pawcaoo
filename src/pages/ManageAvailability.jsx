@@ -73,50 +73,56 @@ export default function ManageAvailability() {
     }
   }, [selectedDate, availabilityData]);
 
-  // --- GUARDAR A FOLGA (Versão Blindada) ---
+  // --- GUARDAR A FOLGA (Versão com Debug Completo) ---
   const handleToggleDayOff = async (checked) => {
     if (!selectedDate || !authUser?.email) {
        toast.error("Erro: Utilizador ou data não identificados.");
+       console.error("❌ Dados em falta:", { selectedDate, email: authUser?.email });
        return;
     }
 
-    // 1. Feedback visual imediato (Otimista)
     const previousState = isDayOff;
     setIsDayOff(checked); 
     setIsSaving(true);
     
-    // 2. Garantir formato da data string (YYYY-MM-DD)
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     
-    console.log("🚀 A tentar mudar folga para:", dateStr, "Estado:", checked);
+    console.log("🚀 INICIANDO SAVE:", {
+      date: dateStr,
+      isDayOff: checked,
+      userEmail: authUser.email,
+      userName: authUser.full_name
+    });
 
     try {
-      // 3. Buscar TODOS os registos deste utilizador (bypass ao filtro de data da API para segurança)
+      // Buscar registos existentes
+      console.log("📡 A buscar registos existentes...");
       const allRecords = await base44.entities.CalendarAvailability.filter({ 
         professional_email: authUser.email
       });
+      console.log("📊 Registos encontrados:", allRecords?.length || 0, allRecords);
 
-      // 4. Filtrar manualmente no Javascript (Infalível contra bugs de timezone)
-      const existingRecord = allRecords.find(r => {
-         // Limpa o 'T' se vier 2024-05-20T00:00:00Z
+      // Filtrar pelo dia específico
+      const existingRecord = (allRecords || []).find(r => {
+         if (!r.date) return false;
          const rDateClean = r.date.includes('T') ? r.date.split('T')[0] : r.date;
          return rDateClean === dateStr;
       });
 
-      console.log("🔍 Registo encontrado na BD?", existingRecord ? "SIM (ID: " + existingRecord.id + ")" : "NÃO");
+      console.log("🔍 Registo para esta data:", existingRecord ? `ID: ${existingRecord.id}` : "NENHUM");
 
+      let result;
       if (existingRecord) {
-        // --- CENÁRIO A: JÁ EXISTE -> ATUALIZAR ---
-        console.log("📝 A Atualizar registo existente...");
-        await base44.entities.CalendarAvailability.update(existingRecord.id, {
+        console.log("📝 ATUALIZANDO registo ID:", existingRecord.id);
+        result = await base44.entities.CalendarAvailability.update(existingRecord.id, {
           is_day_off: checked,
           is_fully_booked: checked,
           time_slots: checked ? [] : [{ start_time: "09:00", end_time: "18:00", is_available: true }] 
         });
+        console.log("✅ UPDATE resultado:", result);
       } else {
-        // --- CENÁRIO B: NÃO EXISTE -> CRIAR NOVO ---
-        console.log("➕ A Criar novo registo...");
-        await base44.entities.CalendarAvailability.create({
+        console.log("➕ CRIANDO novo registo...");
+        const newRecord = {
           professional_email: authUser.email,
           professional_name: authUser.full_name || 'Profissional',
           professional_type: 'walker',
@@ -124,18 +130,31 @@ export default function ManageAvailability() {
           is_day_off: checked,
           is_fully_booked: checked,
           time_slots: checked ? [] : [{ start_time: "09:00", end_time: "18:00", is_available: true }]
-        });
+        };
+        console.log("📦 Dados a criar:", newRecord);
+        result = await base44.entities.CalendarAvailability.create(newRecord);
+        console.log("✅ CREATE resultado:", result);
       }
 
-      // 5. Sucesso: Atualizar dados locais
+      // Verificar se guardou
+      console.log("🔄 A verificar se guardou...");
+      const verification = await base44.entities.CalendarAvailability.filter({ 
+        professional_email: authUser.email
+      });
+      const savedRecord = verification.find(r => {
+        const rDateClean = r.date?.includes('T') ? r.date.split('T')[0] : r.date;
+        return rDateClean === dateStr;
+      });
+      console.log("✅ VERIFICAÇÃO - Registo guardado:", savedRecord);
+
       await refetchAvailability();
-      toast.success(checked ? "Dia bloqueado (Folga)" : "Dia desbloqueado!");
+      toast.success(checked ? "✅ Folga guardada com sucesso!" : "✅ Dia desbloqueado!");
 
     } catch (error) {
-      console.error("❌ ERRO FATAL AO GUARDAR:", error);
-      toast.error("Erro ao guardar. Verifica a consola.");
-      
-      // 6. O "Efeito Elástico": Se falhou, volta ao estado anterior
+      console.error("❌ ERRO COMPLETO:", error);
+      console.error("❌ Error message:", error?.message);
+      console.error("❌ Error response:", error?.response?.data);
+      toast.error(`Erro: ${error?.message || 'Verifica a consola (F12)'}`);
       setIsDayOff(previousState);
     } finally {
       setIsSaving(false);
