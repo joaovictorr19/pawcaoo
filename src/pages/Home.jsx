@@ -1110,37 +1110,6 @@ export default function Home() {
                   </motion.div>
                 ))}
 
-                {/* Happy Dogs - Middle Left & Right */}
-                {featuredDogs.slice(0, 2).map((dog, idx) => (
-                  <motion.div
-                    key={`dog-${dog.id}`}
-                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
-                    onClick={() => {
-                      if (!user) {
-                        base44.auth.redirectToLogin(window.location.href);
-                        return;
-                      }
-                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
-                    }}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
-                      className="relative"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
-                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🐕 {dog.dog_name}
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
                 {/* Adoptions - Bottom Left & Right */}
                 {featuredAdoptions.slice(0, 2).map((adoption, idx) => (
                   <motion.div
