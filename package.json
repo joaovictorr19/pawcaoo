@@ -73,7 +73,8 @@
     "react-helmet-async": "^2.0.4",
     "jspdf": "^2.5.1",
     "html2canvas": "^1.4.1",
-    "canvas-confetti": "^1.9.2"
+    "canvas-confetti": "^1.9.2",
+    "react-qr-code": "^2.0.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
