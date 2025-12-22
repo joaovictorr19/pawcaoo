@@ -1314,27 +1314,126 @@ export default function ProfessionalDashboard() {
 
           {/* Services Tab */}
           <TabsContent value="services">
+            {/* Quick Services Selector */}
+            <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HomeIcon className="w-5 h-5 text-blue-600" />
+                  Serviços Rápidos - Apenas Defina o Preço
+                </CardTitle>
+                <p className="text-sm text-gray-600">Ative serviços pré-configurados com um clique</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {[
+                    { id: 'boarding', name: 'Alojamento', icon: '🏠', desc: 'O cão fica em sua casa' },
+                    { id: 'house_sitting', name: 'House Sitting', icon: '🏡', desc: 'Você fica na casa do dono' },
+                    { id: 'drop_in_feeding', name: 'Visitas Rápidas', icon: '🚪', desc: 'Alimentação e cuidados rápidos' }
+                  ].map(quickService => {
+                    const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
+                    const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
+                    
+                    return (
+                      <Card key={quickService.id} className={`border-2 ${isActive ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
+                        <CardContent className="p-4">
+                          <div className="text-3xl mb-2">{quickService.icon}</div>
+                          <h4 className="font-bold mb-1">{quickService.name}</h4>
+                          <p className="text-xs text-gray-600 mb-3">{quickService.desc}</p>
+                          
+                          {isActive ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-semibold">Preço:</span>
+                                <span className="text-lg font-bold text-green-600">€{activeService?.price}</span>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full text-red-600"
+                                onClick={async () => {
+                                  if (!confirm('Desativar este serviço?')) return;
+                                  
+                                  const updatedServices = profile.services_offered.filter(s => s.service_type !== quickService.id);
+                                  const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                  
+                                  await entity.update(profile.id, { services_offered: updatedServices });
+                                  queryClient.invalidateQueries(['myWalkerProfile']);
+                                  queryClient.invalidateQueries(['myTrainerProfile']);
+                                  toast.success('Serviço desativado');
+                                }}
+                              >
+                                Desativar
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <Input
+                                type="number"
+                                placeholder="Preço por dia (€)"
+                                id={`price-${quickService.id}`}
+                                className="h-9 text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700"
+                                onClick={async () => {
+                                  const priceInput = document.getElementById(`price-${quickService.id}`);
+                                  const price = parseFloat(priceInput.value);
+                                  
+                                  if (!price || price <= 0) {
+                                    toast.error('Digite um preço válido');
+                                    return;
+                                  }
+                                  
+                                  const newService = {
+                                    service_type: quickService.id,
+                                    service_name: quickService.name,
+                                    description: quickService.desc,
+                                    price: price,
+                                    duration_options: ['1 dia', 'Vários dias'],
+                                    custom_pricing: false
+                                  };
+                                  
+                                  const updatedServices = [...(profile.services_offered || []), newService];
+                                  const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                                  
+                                  await entity.update(profile.id, { services_offered: updatedServices });
+                                  queryClient.invalidateQueries(['myWalkerProfile']);
+                                  queryClient.invalidateQueries(['myTrainerProfile']);
+                                  toast.success('✅ Serviço ativado!');
+                                  priceInput.value = '';
+                                }}
+                              >
+                                Ativar Serviço
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Existing Services */}
             <Card className="border-0 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>My Services</CardTitle>
+                <CardTitle>Serviços Personalizados</CardTitle>
                 <Button onClick={() => setShowServiceForm(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Service
+                  Adicionar Customizado
                 </Button>
               </CardHeader>
               <CardContent>
-                {(profile.services_offered || []).length === 0 ? (
+                {(profile.services_offered || []).filter(s => !s.service_type).length === 0 ? (
                   <div className="text-center py-8 md:py-12">
                     <Package className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-sm md:text-base text-gray-600 mb-4">Nenhum serviço cadastrado ainda</p>
-                    <Button onClick={() => setShowServiceForm(true)} className="bg-green-600 hover:bg-green-700">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Primeiro Serviço
-                    </Button>
+                    <p className="text-sm md:text-base text-gray-600">Nenhum serviço personalizado</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                    {(profile.services_offered || []).map((service, idx) => (
+                    {(profile.services_offered || []).filter(s => !s.service_type).map((service, idx) => (
                       <Card key={idx} className="border-2 border-gray-200">
                         <CardContent className="p-4">
                           <h3 className="font-bold text-base md:text-lg mb-2">{service.service_name}</h3>
