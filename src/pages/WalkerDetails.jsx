@@ -82,7 +82,7 @@ function FavoriteButton({ walker, user }) {
       </Button>
   );
 }
-import { generateServiceSchema, generateBreadcrumbSchema } from "../components/seoHelpers";
+
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
