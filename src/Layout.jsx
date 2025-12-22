@@ -1014,9 +1014,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* MINHA ATIVIDADE */}
             <SidebarGroup>
               <SidebarGroupLabel 
-                className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
-                  colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className="text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase text-gray-600 hover:text-gray-900"
                 onClick={() => setMyActivityExpanded(!myActivityExpanded)}
               >
                 <span>{t('myActivity', language)}</span>
@@ -1031,8 +1029,8 @@ function LayoutContent({ children, currentPageName }) {
                           asChild 
                           className={`transition-all duration-200 rounded-lg mb-1 ${
                             isRouteActive(item.url) 
-                              ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
-                              : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md" 
+                              : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
                           <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
@@ -1062,9 +1060,7 @@ function LayoutContent({ children, currentPageName }) {
             {authUser && (
             <SidebarGroup>
               <SidebarGroupLabel 
-                className={`text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase ${
-                  colors?.isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className="text-[10px] md:text-xs px-2 cursor-pointer flex items-center justify-between group transition-all py-2 font-semibold uppercase text-gray-600 hover:text-gray-900"
                 onClick={() => setProfessionalServicesExpanded(!professionalServicesExpanded)}
               >
                 <span>{language === 'pt' ? 'Serviços' : 'Services'}</span>
@@ -1079,15 +1075,14 @@ function LayoutContent({ children, currentPageName }) {
                           asChild 
                           className={`transition-all duration-200 rounded-lg mb-1 ${
                             isRouteActive(item.url) 
-                              ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
-                              : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md" 
+                              : "hover:bg-gray-100 text-gray-700"
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
                             {isRouteActive(item.url) && (
                               <div 
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
-                                style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500"
                               />
                             )}
                             <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
@@ -1105,9 +1100,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* COMPANY - Only show if user is company OR allow registration */}
             {(authUser?.account_type === 'company' || companyMenu.length > 0) && (
               <SidebarGroup>
-                <SidebarGroupLabel className={`text-[10px] md:text-xs px-2 font-semibold uppercase ${
-                  colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}>
+                <SidebarGroupLabel className="text-[10px] md:text-xs px-2 font-semibold uppercase text-gray-600">
                   {getMenuText('company')}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -1119,16 +1112,13 @@ function LayoutContent({ children, currentPageName }) {
                             asChild 
                             className={`transition-all duration-200 rounded-lg mb-1 ${
                               isRouteActive(item.url) 
-                                ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md` 
-                                : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700')
+                                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md" 
+                                : "hover:bg-gray-100 text-gray-700"
                             }`}
                           >
                             <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
                               {isRouteActive(item.url) && (
-                                <div 
-                                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
-                                  style={{ backgroundColor: colors?.primary || '#3b82f6' }}
-                                />
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                               )}
                               <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                               <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
@@ -1167,7 +1157,7 @@ function LayoutContent({ children, currentPageName }) {
                           className={`transition-all duration-200 rounded-lg mb-1 ${
                             isRouteActive(item.url) 
                               ? 'bg-red-600 text-white shadow-md' 
-                              : (colors?.isDarkMode ? 'hover:bg-slate-800 text-gray-300' : 'hover:bg-red-50 text-gray-700')
+                              : 'hover:bg-red-50 text-gray-700'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
@@ -1186,17 +1176,13 @@ function LayoutContent({ children, currentPageName }) {
             )}
 
             {/* BOTÃO DE LOGOUT - NOVO */}
-            <SidebarGroup className={`mt-auto border-t pt-3 ${
-              colors?.isDarkMode ? 'border-slate-700/60' : 'border-gray-200'
-            }`}>
+            <SidebarGroup className="mt-auto border-t pt-3 border-gray-200">
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={handleLogout}
-                      className={`text-red-600 rounded-lg transition-colors w-full ${
-                        colors?.isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-red-50'
-                      }`}
+                      className="text-red-600 rounded-lg transition-colors w-full hover:bg-red-50"
                     >
                       <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3">
                         <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
