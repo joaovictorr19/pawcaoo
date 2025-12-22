@@ -318,32 +318,38 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         console.error("Erro ao sincronizar chat:", err);
       }
 
-      // 4. NOTIFICAR APENAS O WALKER ESCOLHIDO (Reserva Direta - NÃO é Broadcast)
+      // 4. NOTIFICAÇÃO PARA O PROFISSIONAL (In-App + Email)
       try {
-        await createNotification.mutateAsync({
-          recipient_email: pro.created_by, // APENAS este walker específico
-          title: '🎯 Solicitação Direta de Passeio!',
-          message: `${user.full_name} escolheu VOCÊ para passear ${bookingData.dog_name} em ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time}.`,
-          type: 'booking',
-          related_id: booking.id,
-          priority: 'urgent',
-          action_url: '/ProfessionalDashboard?tab=bookings'
+        await base44.functions.invoke('sendNotification', {
+          recipient_email: pro.created_by,
+          type: 'booking_request',
+          title: 'Nova Solicitação de Reserva',
+          message: `${user.full_name} solicitou o seu serviço para ${bookingData.dog_name} no dia ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time}.`,
+          link: '/ProfessionalDashboard?tab=bookings',
+          send_email: true,
+          email_subject: `Nova Reserva - ${bookingData.dog_name}`,
+          email_body: `Olá ${proName},\n\nVocê recebeu uma nova solicitação de reserva!\n\nCliente: ${user.full_name}\nCão: ${bookingData.dog_name}\nData: ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')}\nHorário: ${bookingData.walk_time}\nLocal: ${pickupAddress}\n\nAcesse o painel para aceitar ou recusar:\n${window.location.origin}/ProfessionalDashboard?tab=bookings\n\nObrigado,\nEquipa PawCão`
         });
-        console.log('🎯 Notificação DIRETA enviada apenas para:', pro.created_by);
+        console.log('✅ Notificação enviada para profissional:', pro.created_by);
       } catch (err) {
-        console.error("Erro ao notificar walker:", err);
+        console.error("Erro ao notificar profissional:", err);
       }
 
-      // 5. Enviar Email de Confirmação Imediata
+      // 5. NOTIFICAÇÃO PARA O CLIENTE (In-App + Email)
       try {
-        await base44.integrations.Core.SendEmail({
-          to: user.email,
-          subject: `Reserva Iniciada - ${proName}`,
-          body: `Olá ${user.full_name},\n\nSua reserva com ${proName} para ${formData.dog_name} no dia ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time} foi iniciada com sucesso!\n\nPor favor, aguarde a confirmação do profissional.\n\nObrigado,\nEquipa PawCão`
+        await base44.functions.invoke('sendNotification', {
+          recipient_email: user.email,
+          type: 'booking_request',
+          title: 'Reserva Enviada',
+          message: `A sua reserva com ${proName} para ${bookingData.dog_name} foi enviada. Aguarde a confirmação do profissional.`,
+          link: '/MyBookings',
+          send_email: true,
+          email_subject: `Reserva Iniciada - ${proName}`,
+          email_body: `Olá ${user.full_name},\n\nA sua reserva foi iniciada com sucesso!\n\nProfissional: ${proName}\nCão: ${formData.dog_name}\nData: ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')}\nHorário: ${bookingData.walk_time}\nLocal: ${pickupAddress}\n\nAguarde a confirmação do profissional. Será notificado assim que a reserva for confirmada.\n\nObrigado,\nEquipa PawCão`
         });
-        console.log('📧 Email de confirmação enviado');
+        console.log('✅ Notificação enviada para cliente:', user.email);
       } catch (err) {
-        console.error("Erro ao enviar email:", err);
+        console.error("Erro ao notificar cliente:", err);
       }
 
       return booking;
