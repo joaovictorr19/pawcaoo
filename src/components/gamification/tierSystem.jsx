@@ -16,8 +16,8 @@ export const TIER_COLORS_BY_LEVEL = [
   { minLevel: 16, maxLevel: 20, name: 'Bronze', icon: '🥉', primary: '#cd7f32', gradient: 'from-orange-400 to-amber-600', orb1: '#fb923c', orb2: '#fdba74', text: 'text-orange-600', bg: 'bg-orange-50' },
   // Níveis 21-25: Cobre
   { minLevel: 21, maxLevel: 25, name: 'Cobre', icon: '🔶', primary: '#b87333', gradient: 'from-orange-500 to-orange-700', orb1: '#ea580c', orb2: '#f97316', text: 'text-orange-700', bg: 'bg-orange-100' },
-  // Níveis 26-30: Prata
-  { minLevel: 26, maxLevel: 30, name: 'Prata', icon: '🥈', primary: '#c0c0c0', gradient: 'from-gray-300 to-slate-500', orb1: '#94a3b8', orb2: '#cbd5e1', text: 'text-slate-500', bg: 'bg-slate-100' },
+  // Níveis 26-30: Rocha
+  { minLevel: 26, maxLevel: 30, name: 'Rocha', icon: '🪨', primary: '#808080', gradient: 'from-gray-500 to-gray-700', orb1: '#6b7280', orb2: '#9ca3af', text: 'text-gray-400', bg: 'bg-gray-700', isDark: true },
   // Níveis 31-35: Jade
   { minLevel: 31, maxLevel: 35, name: 'Jade', icon: '🍀', primary: '#00a86b', gradient: 'from-emerald-400 to-teal-600', orb1: '#34d399', orb2: '#6ee7b7', text: 'text-emerald-600', bg: 'bg-emerald-50' },
   // Níveis 36-40: Ouro
