@@ -23,7 +23,7 @@ import { useCreateNotification } from "../components/NotificationService";
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
 const ServiceAreaMap = lazy(() => import("../components/professionals/ServiceAreaMap"));
-import SEO from "../components/SEO";
+import { Helmet } from "react-helmet-async";
 import { useTheme } from "@/components/ThemeContext";
 
 // Mini component for favorite button logic
