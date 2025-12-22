@@ -547,16 +547,24 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
-        const [totalWalkers, completedBookings, adoptedDogs] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }),
+        const [activeWalkers, completedBookings, approvedAdoptions] = await Promise.all([
+          base44.entities.WalkerProfile.filter({ is_active: true }),
           base44.entities.Booking.filter({ status: 'completed' }),
           base44.entities.AdoptionApplication.filter({ status: 'approved' })
         ]);
-        
+
+        // Contar cães únicos que foram passeados (clientes satisfeitos)
+        const uniqueDogs = new Set();
+        completedBookings.forEach(booking => {
+          if (booking.dog_name) {
+            uniqueDogs.add(`${booking.created_by}-${booking.dog_name}`);
+          }
+        });
+
         return {
-          totalWalkers: totalWalkers.length || 0,
-          happyDogs: completedBookings.length || 0,
-          adoptedDogs: adoptedDogs.length || 0
+          totalWalkers: activeWalkers.length || 0,
+          happyDogs: uniqueDogs.size || 0,
+          adoptedDogs: approvedAdoptions.length || 0
         };
       } catch (error) {
         console.error("Stats fetch error:", error);
