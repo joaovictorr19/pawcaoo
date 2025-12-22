@@ -1028,15 +1028,7 @@ export default function UserProfile() {
                           )}
                         </div>
 
-                        {isOwnProfile && (
-                          <button 
-                            onClick={() => navigate(createPageUrl('AccountSettings'))}
-                            className="hidden md:block absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors border-2 border-white"
-                            title="Alterar foto de perfil"
-                          >
-                            <Camera className="w-4 h-4" />
-                          </button>
-                        )}
+
                       </div>
               </div>
 
