@@ -45,17 +45,20 @@ export const ThemeProvider = ({ children }) => {
   });
 
   const { data: userProfile } = useQuery({
-    queryKey: ['userProfile', user?.email],
+    queryKey: ['userProfileTheme', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
       const profile = profiles[0] || null;
       
-      // UserProfile is the single source of truth for XP - no sync needed
+      // UserProfile is the single source of truth for XP
+      console.log('🎯 Theme XP fetched:', profile?.gamification_xp);
       
       return profile;
     },
     enabled: !!user?.email,
+    staleTime: 10 * 1000, // 10 seconds - refresh more often for theme changes
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
