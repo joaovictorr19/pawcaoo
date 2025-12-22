@@ -1258,7 +1258,7 @@ function LayoutContent({ children, currentPageName }) {
               />
             )}
 
-            <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-10 bg-white/30 border-white/40">
+            <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-0 bg-white/30 border-white/40">
               <div className="max-w-7xl mx-auto px-6 py-8">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
                   <div>
