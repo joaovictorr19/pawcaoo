@@ -41,6 +41,7 @@ import VerificationBanner from "../components/professionals/VerificationBanner";
 import DigitalWalletPass from "../components/professionals/DigitalWalletPass";
 // TimeOffManager removed (integrated into calendar)
 import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
+import DataExportPanel from "../components/professionals/DataExportPanel";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
