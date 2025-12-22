@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -484,7 +484,7 @@ export default function WalkerDetails() {
                         let borderColor = "border-gray-200";
 
                         if (isBoarding) {
-                          icon = <MessageCircle className="w-6 h-6 text-purple-600" />; // Home icon replacement
+                          icon = <Home className="w-6 h-6 text-purple-600" />;
                           bgColor = "bg-purple-50/50";
                           borderColor = "border-purple-100";
                         } else if (isHouseSitting) {
@@ -510,11 +510,11 @@ export default function WalkerDetails() {
                                 <p className="font-bold text-gray-900 text-sm md:text-base truncate">{service.service_name}</p>
                                 <p className="text-xs md:text-sm text-gray-600 mt-0.5 line-clamp-2">
                                   {service.description || (isBoarding 
-                                    ? "Cuidado 24/7, ambiente familiar." 
+                                    ? "O cão fica na casa do profissional com cuidado 24/7." 
                                     : isHouseSitting 
-                                    ? "Cão fica em casa, mantém a rotina."
+                                    ? "O profissional vai à sua casa cuidar do cão."
                                     : isDropIn 
-                                    ? "30-60 min, alimentação, medicação." 
+                                    ? "Visita rápida de 30-60 min para alimentação e medicação." 
                                     : "Passeio profissional.")}
                                 </p>
                                 {service.duration_options?.length > 0 && (
