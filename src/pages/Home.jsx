@@ -180,8 +180,21 @@ export default function Home() {
       return null;
   }, [activeBookings]);
 
-  // XP animation effect
-  const currentXP = user?.gamification_xp || 0;
+  // Fetch UserProfile as single source of truth for XP (same as Gamification page)
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ['currentUserProfileXP', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email,
+    staleTime: 10 * 1000, // 10 seconds - sync with theme
+    refetchOnWindowFocus: true,
+  });
+
+  // XP animation effect - UserProfile is single source of truth
+  const currentXP = currentUserProfile?.gamification_xp || 0;
   const [displayedXP, setDisplayedXP] = useState(currentXP);
   
   useEffect(() => {
