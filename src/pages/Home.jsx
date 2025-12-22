@@ -1362,6 +1362,37 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              {/* Tab Navigation Bar */}
+              <TabsList className="w-full flex justify-start gap-1 md:gap-2 mb-4 md:mb-6 bg-white/80 backdrop-blur-md p-1.5 md:p-2 rounded-xl shadow-lg border border-gray-200 overflow-x-auto">
+                <TabsTrigger 
+                  value="walkers" 
+                  className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md whitespace-nowrap"
+                >
+                  <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  {language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals'}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="shop" 
+                  className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md whitespace-nowrap"
+                >
+                  <Store className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  {language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="adoption" 
+                  className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-600 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-md whitespace-nowrap"
+                >
+                  <Heart className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  {language === 'pt' ? 'Adoção' : language === 'es' ? 'Adopción' : 'Adoption'}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="emergency" 
+                  className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md whitespace-nowrap text-orange-600"
+                >
+                  <Zap className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  {language === 'pt' ? 'Emergência' : language === 'es' ? 'Emergencia' : 'Emergency'}
+                </TabsTrigger>
+              </TabsList>
 
               <TabsContent value="walkers">
                 <div>
