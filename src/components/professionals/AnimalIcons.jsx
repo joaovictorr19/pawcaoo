@@ -1,15 +1,14 @@
 import React from "react";
 import { Dog, Cat, Bird } from "lucide-react";
 
-// Ícone SVG customizado para répteis (cobra melhorada)
+// Ícone SVG customizado para répteis (cobra aprimorada)
 export const ReptileIcon = ({ className = "w-4 h-4" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 3c-2 0-3.5 1-4.5 2.5C6.5 7 6 9 6 11c0 2 .5 4 2 5.5S11 19 13 19c1.5 0 3-.5 4-1.5" />
-    <path d="M17 17.5c1 1 2.5 1.5 4 1.5" />
-    <circle cx="9" cy="8" r="1" fill="currentColor" />
-    <circle cx="11" cy="8" r="1" fill="currentColor" />
-    <path d="M8 6c-.5-1-1-2-1-3" />
-    <path d="M12 6c.5-1 1-2 1-3" />
+    <path d="M3 12c0-2 1.5-3.5 3.5-3.5S10 10 11 11c.5.5 1 1 2 1s2-.5 3-1.5c1-1 2-2 3.5-2s3 1 3.5 2.5" />
+    <circle cx="5.5" cy="9.5" r="1.2" fill="currentColor" />
+    <path d="M4 8c-.5-.8-1-1.5-1-2.5 0-1 .5-1.5 1-1.5s1 .5 1 1.5c0 1-.5 1.7-1 2.5" />
+    <path d="M20 14c1 1 2 2 2 3.5 0 1-.5 2-1.5 2s-1.5-1-1.5-2c0-1.5 1-2.5 1-3.5" />
+    <path d="M8 13c0 .5-.2 1-.5 1.5M16 11c0 .5.2 1 .5 1.5" />
   </svg>
 );
 
