@@ -194,8 +194,8 @@ export default function SubscriptionsManager() {
           <div className="grid grid-cols-4 gap-4">
             {Object.entries(stats.byPlan).map(([plan, count]) => (
               <div key={plan} className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className={`w-10 h-10 ${planColors[plan]} rounded-xl flex items-center justify-center mx-auto mb-2 text-white text-xl`}>
-                  {planIcons[plan]}
+                <div className={`w-10 h-10 ${planColors[plan]} rounded-xl flex items-center justify-center mx-auto mb-2 text-white`}>
+                  <Crown className="w-5 h-5" />
                 </div>
                 <p className="text-2xl font-bold">{count}</p>
                 <p className="text-xs text-gray-600 capitalize">{plan}</p>
@@ -289,8 +289,8 @@ export default function SubscriptionsManager() {
                       </div>
                     </td>
                     <td className="text-center py-3 px-2">
-                      <Badge className={`${planColors[sub.plan_type]} text-white`}>
-                        {planIcons[sub.plan_type]} {sub.plan_type.toUpperCase()}
+                      <Badge className={`${planColors[sub.plan_type]} text-white capitalize`}>
+                        {sub.plan_type}
                       </Badge>
                     </td>
                     <td className="text-center py-3 px-2 capitalize">

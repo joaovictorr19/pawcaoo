@@ -1403,26 +1403,26 @@ export default function AdminDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto rounded-xl min-h-[3rem] overflow-x-auto">
-            <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('overview', language)}</TabsTrigger>
-            <TabsTrigger value="analytics" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('analytics', language)}</TabsTrigger>
-            <TabsTrigger value="subscriptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">👑 Subscrições</TabsTrigger>
-            <TabsTrigger value="crm" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">👥 CRM</TabsTrigger>
-            <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('accounts', language)}</TabsTrigger>
-            <TabsTrigger value="applications" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('verifications', language)}</TabsTrigger>
-            <TabsTrigger value="profile_edits" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">✏️ Edições</TabsTrigger>
-            <TabsTrigger value="communication" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">📢 Comunic.</TabsTrigger>
-            <TabsTrigger value="active_walkers" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('activeWalkers', language)}</TabsTrigger>
-            <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">📄 Documentos</TabsTrigger>
-            <TabsTrigger value="adoptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('adoptions', language)}</TabsTrigger>
-            <TabsTrigger value="badges" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('badges', language)}</TabsTrigger>
-            <TabsTrigger value="companies" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('companies', language)}</TabsTrigger>
-            <TabsTrigger value="announcements" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('announcements', language)}</TabsTrigger>
-            <TabsTrigger value="services" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('services', language)}</TabsTrigger>
+            <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Visão Geral</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Análises</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Subscrições</TabsTrigger>
+            <TabsTrigger value="crm" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Clientes</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Utilizadores</TabsTrigger>
+            <TabsTrigger value="applications" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Verificações</TabsTrigger>
+            <TabsTrigger value="profile_edits" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Edições de Perfil</TabsTrigger>
+            <TabsTrigger value="communication" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Comunicação</TabsTrigger>
+            <TabsTrigger value="active_walkers" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Profissionais Ativos</TabsTrigger>
+            <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Documentos</TabsTrigger>
+            <TabsTrigger value="adoptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Adoções</TabsTrigger>
+            <TabsTrigger value="badges" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Emblemas</TabsTrigger>
+            <TabsTrigger value="companies" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Empresas</TabsTrigger>
+            <TabsTrigger value="announcements" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Anúncios</TabsTrigger>
+            <TabsTrigger value="services" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Serviços</TabsTrigger>
             <TabsTrigger value="products" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Produtos</TabsTrigger>
-            <TabsTrigger value="store" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">🛒 PawStore</TabsTrigger>
-            <TabsTrigger value="bookings" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('bookings', language)}</TabsTrigger>
-            <TabsTrigger value="payments" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('payments', language)}</TabsTrigger>
-            <TabsTrigger value="reviews" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('reviews', language)}</TabsTrigger>
+            <TabsTrigger value="store" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Loja</TabsTrigger>
+            <TabsTrigger value="bookings" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Reservas</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Pagamentos</TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Avaliações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics">
@@ -1502,7 +1502,8 @@ export default function AdminDashboard() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
                     <CardTitle className="text-2xl flex items-center gap-2">
-                      👥 CRM - Gestão de Clientes
+                      <Users className="w-6 h-6 text-blue-600" />
+                      Gestão de Clientes
                     </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">Visualização completa de clientes com histórico e segmentação</p>
                   </div>
