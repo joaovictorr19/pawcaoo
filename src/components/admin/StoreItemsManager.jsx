@@ -556,7 +556,7 @@ export default function StoreItemsManager() {
               )}
 
               {/* Active & Featured */}
-              <div className="flex items-center gap-6 pt-2">
+              <div className="flex items-center gap-6 pt-2 pb-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Switch 
                     checked={formData.is_active}
@@ -573,14 +573,16 @@ export default function StoreItemsManager() {
                 </label>
               </div>
             </div>
+            </ScrollArea>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={handleCloseDialog}>
+            <DialogFooter className="p-4 pt-2 border-t flex-shrink-0 gap-2">
+              <Button variant="outline" onClick={handleCloseDialog} className="flex-1 sm:flex-none">
                 Cancelar
               </Button>
               <Button 
                 onClick={handleSubmit}
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={createMutation.isPending || updateMutation.isPending || isUploading}
+                className="flex-1 sm:flex-none"
               >
                 {(createMutation.isPending || updateMutation.isPending) && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
