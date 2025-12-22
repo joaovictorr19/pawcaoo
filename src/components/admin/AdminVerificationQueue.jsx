@@ -202,21 +202,24 @@ export default function AdminVerificationQueue({
         
         <CardContent className="px-0">
           <Tabs defaultValue="walkers" className="w-full">
-            <TabsList className="w-full justify-start bg-white/60 backdrop-blur-sm p-1 rounded-xl mb-6 border border-white/40">
-              <TabsTrigger value="walkers" className="rounded-lg data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 font-semibold px-6">
-                <Dog className="w-4 h-4 mr-2" />
-                {t('walkers', language)} 
-                <Badge className="ml-2 bg-blue-200 text-blue-800 border-0">{walkers.length}</Badge>
+            <TabsList className="w-full flex flex-wrap justify-start bg-white/60 backdrop-blur-sm p-1 rounded-xl mb-6 border border-white/40 gap-1 h-auto">
+              <TabsTrigger value="walkers" className="rounded-lg data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 font-semibold px-3 md:px-6 text-xs md:text-sm h-8 md:h-10">
+                <Dog className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">{t('walkers', language)}</span>
+                <span className="sm:hidden">Walk</span>
+                <Badge className="ml-1 md:ml-2 bg-blue-200 text-blue-800 border-0 text-xs">{walkers.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="trainers" className="rounded-lg data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 font-semibold px-6">
-                <Megaphone className="w-4 h-4 mr-2" />
-                {t('trainers', language)}
-                <Badge className="ml-2 bg-purple-200 text-purple-800 border-0">{trainers.length}</Badge>
+              <TabsTrigger value="trainers" className="rounded-lg data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 font-semibold px-3 md:px-6 text-xs md:text-sm h-8 md:h-10">
+                <Megaphone className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">{t('trainers', language)}</span>
+                <span className="sm:hidden">Train</span>
+                <Badge className="ml-1 md:ml-2 bg-purple-200 text-purple-800 border-0 text-xs">{trainers.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="shelters" className="rounded-lg data-[state=active]:bg-pink-100 data-[state=active]:text-pink-700 font-semibold px-6">
-                <Home className="w-4 h-4 mr-2" />
-                {t('shelters', language)}
-                <Badge className="ml-2 bg-pink-200 text-pink-800 border-0">{shelters.length}</Badge>
+              <TabsTrigger value="shelters" className="rounded-lg data-[state=active]:bg-pink-100 data-[state=active]:text-pink-700 font-semibold px-3 md:px-6 text-xs md:text-sm h-8 md:h-10">
+                <Home className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">{t('shelters', language)}</span>
+                <span className="sm:hidden">Abrigo</span>
+                <Badge className="ml-1 md:ml-2 bg-pink-200 text-pink-800 border-0 text-xs">{shelters.length}</Badge>
               </TabsTrigger>
             </TabsList>
 
