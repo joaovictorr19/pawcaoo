@@ -3,13 +3,13 @@ import { ShieldCheck, Award, Home as HomeIcon, Sparkles } from 'lucide-react';
 
 const VerifiedBadge = ({ className = "", type = "walker", size = "md" }) => {
   const sizeClasses = {
-    sm: 'w-5 h-5',
+    sm: 'w-[18px] h-[18px]',
     md: 'w-6 h-6',
     lg: 'w-8 h-8'
   };
 
   const iconSizes = {
-    sm: 'w-2.5 h-2.5',
+    sm: 'w-[10px] h-[10px]',
     md: 'w-3.5 h-3.5',
     lg: 'w-4.5 h-4.5'
   };
