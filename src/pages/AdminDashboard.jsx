@@ -1522,7 +1522,22 @@ export default function AdminDashboard() {
           <TabsContent value="active_walkers">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                      toast.success("Lista atualizada!");
+                    }}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="md:hidden space-y-4">
