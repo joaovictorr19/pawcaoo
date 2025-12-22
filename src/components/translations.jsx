@@ -1,70 +1,168 @@
 export const translations = {
-  // ============ FRENCH TRANSLATIONS ============
-  // Navigation & Common
-  home: { fr: 'Accueil' },
-  professionals: { fr: 'Professionnels' },
-  walkers: { fr: 'Promeneurs' },
-  trainers: { fr: 'Dresseurs' },
-  shop: { fr: 'Boutique' },
-  adoption: { fr: 'Adoption' },
-  emergency: { fr: 'Urgence' },
-  settings: { fr: 'Paramètres' },
-  profile: { fr: 'Profil' },
-  logout: { fr: 'Déconnexion' },
-  login: { fr: 'Connexion' },
-  register: { fr: "S'inscrire" },
-  
-  // Search & Filters
-  search: { fr: 'Rechercher' },
-  filter: { fr: 'Filtrer' },
-  sortBy: { fr: 'Trier par' },
-  distance: { fr: 'Distance' },
-  price: { fr: 'Prix' },
-  rating: { fr: 'Note' },
-  availability: { fr: 'Disponibilité' },
-  
-  // Booking
-  bookNow: { fr: 'Réserver' },
-  selectDate: { fr: 'Sélectionner une date' },
-  selectTime: { fr: 'Sélectionner une heure' },
-  duration: { fr: 'Durée' },
-  totalPrice: { fr: 'Prix total' },
-  confirmBooking: { fr: 'Confirmer la réservation' },
-  payNow: { fr: 'Payer maintenant' },
-  paymentDeadline: { fr: 'Date limite de paiement' },
-  
-  // Dog sizes
-  small: { fr: 'Petit' },
-  medium: { fr: 'Moyen' },
-  large: { fr: 'Grand' },
-  extraLarge: { fr: 'Très grand' },
-  
-  // Time slots
-  morning: { fr: 'Matin' },
-  afternoon: { fr: 'Après-midi' },
-  evening: { fr: 'Soir' },
-  night: { fr: 'Nuit' },
-  
-  // Services
-  dogWalking: { fr: 'Promenade de chien' },
-  dogSitting: { fr: 'Garde de chien' },
-  boarding: { fr: 'Pension' },
-  houseSitting: { fr: 'Garde à domicile' },
-  dropInVisit: { fr: 'Visite à domicile' },
-  training: { fr: 'Dressage' },
-  
-  // Status
-  pending: { fr: 'En attente' },
-  confirmed: { fr: 'Confirmé' },
-  completed: { fr: 'Terminé' },
-  cancelled: { fr: 'Annulé' },
-  inProgress: { fr: 'En cours' },
-  
-  // Messages
-  noResults: { fr: 'Aucun résultat trouvé' },
-  loading: { fr: 'Chargement...' },
-  error: { fr: 'Une erreur est survenue' },
-  success: { fr: 'Succès!' },
+  // ============ FRENCH TRANSLATIONS (fr) ============
+  fr: {
+    // Navigation
+    dashboard: "Tableau de bord",
+    findWalkers: "Promeneurs",
+    findTrainers: "Dresseurs",
+    postEmergency: "Promenade Urgente",
+    dogSitting: "Garde de chien",
+    pawcaoShop: "Boutique PawCão",
+    adoptAPet: "Adopter",
+    myFavorites: "Mes Favoris",
+    myBookings: "Mes Réservations",
+    scheduledWalks: "Promenades Programmées",
+    walkHistory: "Historique des Promenades",
+    messages: "Messages",
+    notifications: "Notifications",
+    loyaltyRewards: "Récompenses",
+    becomeWalker: "Devenir Promeneur",
+    becomeTrainer: "Devenir Dresseur",
+    manageAvailability: "Gérer Disponibilité",
+    walkerSubscriptions: "Abonnements Promeneur",
+    ownerMembership: "Adhésion Propriétaire",
+    partnerDashboard: "Tableau de bord Partenaire",
+    myProfile: "Mon Profil",
+    accountSettings: "Paramètres du Compte",
+    adminDashboard: "Tableau de bord Admin",
+    professionalDashboard: "Tableau de bord Professionnel",
+    leaderboard: "Classement",
+    
+    // Sidebar Groups
+    mainMenu: "MENU PRINCIPAL",
+    myActivity: "MON ACTIVITÉ",
+    professionalServices: "SERVICES PROFESSIONNELS",
+    account: "COMPTE",
+    
+    // Common
+    search: "Rechercher",
+    filter: "Filtrer",
+    allSizes: "Toutes les Tailles",
+    small: "Petit",
+    medium: "Moyen",
+    large: "Grand",
+    extraLarge: "Très Grand",
+    anyTime: "N'importe Quand",
+    morning: "Matin",
+    afternoon: "Après-midi",
+    evening: "Soir",
+    night: "Nuit",
+    location: "Localisation",
+    price: "Prix",
+    rating: "Note",
+    reviews: "Avis",
+    bookNow: "Réserver",
+    viewDetails: "Voir Détails",
+    cancel: "Annuler",
+    save: "Enregistrer",
+    submit: "Soumettre",
+    edit: "Modifier",
+    delete: "Supprimer",
+    back: "Retour",
+    next: "Suivant",
+    previous: "Précédent",
+    loading: "Chargement...",
+    noResults: "Aucun résultat trouvé",
+    perHour: "par heure",
+    month: "mois",
+    year: "an",
+    years: "ans",
+    verified: "Vérifié",
+    experience: "Expérience",
+    walks: "Promenades",
+    clients: "Clients",
+    
+    // Profile Page
+    hello: "Bonjour",
+    pawPoints: "PawPoints",
+    upcomingWalks: "Prochaines Promenades",
+    favorites: "Favoris",
+    accountInformation: "Informations du Compte",
+    fullName: "Nom Complet",
+    email: "Email",
+    role: "Rôle",
+    member: "Membre",
+    logout: "Déconnexion",
+    
+    // Home Page
+    homeTitle: "Trouvez le Promeneur Parfait au Portugal et en Espagne",
+    homeSubtitle: "Des promeneurs de confiance et expérimentés dans votre quartier",
+    searchPlaceholder: "Entrez votre localisation...",
+    browseWalkers: "Parcourir les Promeneurs",
+    emergencyWalks: "Promenades d'Urgence",
+    availableWalkers: "Promeneurs Disponibles",
+    
+    // Favorites
+    myFavoriteWalkers: "Mes Promeneurs Favoris",
+    noFavorites: "Pas encore de favoris",
+    
+    // Booking
+    bookingDetails: "Détails de la Réservation",
+    dogName: "Nom du Chien",
+    dogSize: "Taille du Chien",
+    walkDate: "Date de Promenade",
+    walkTime: "Heure de Promenade",
+    duration: "Durée",
+    specialNotes: "Notes Spéciales",
+    totalAmount: "Montant Total",
+    platformFee: "Frais de Plateforme",
+    confirmBooking: "Confirmer la Réservation",
+    
+    // Status
+    pending: "En Attente",
+    confirmed: "Confirmé",
+    inProgress: "En Cours",
+    completed: "Terminé",
+    cancelled: "Annulé",
+    
+    // Footer
+    footerTagline: "La plateforme leader pour les services professionnels de promenade et soins canins",
+    services: "Services",
+    forProfessionals: "Pour les Professionnels",
+    company: "Entreprise",
+    aboutUs: "À Propos",
+    allRightsReserved: "Tous droits réservés",
+    verifiedProfessionals: "Professionnels vérifiés",
+    termsOfService: "Conditions d'Utilisation",
+    privacyPolicy: "Politique de Confidentialité",
+    cookiesPolicy: "Politique des Cookies",
+    contactUs: "Contactez-nous",
+    
+    // Partners
+    partnersTitle: "Partenaires PawCão",
+    partnersSubtitle: "Le Marché Officiel du Monde des Animaux",
+    
+    // Notifications
+    stayUpdated: "Restez informé de votre activité",
+    markAllAsRead: "Tout marquer comme lu",
+    allNotifications: "Toutes",
+    unreadNotifications: "Non Lues",
+    noNotifications: "Aucune notification",
+    allCaughtUp: "Vous êtes à jour!",
+    
+    // Professional Dashboard
+    totalEarned: "Total Gagné",
+    totalBookings: "Total Réservations",
+    averageRating: "Note Moyenne",
+    recentReviews: "Avis Récents",
+    availabilityCalendar: "Calendrier de Disponibilité",
+    
+    // Gamification
+    level: "Niveau",
+    badges: "Badges",
+    totalXP: "XP Total",
+    
+    // Emergency
+    emergencyWalkRequest: "Demande de Promenade Urgente",
+    findWalkerNow: "Trouver un promeneur maintenant",
+    urgencyLevel: "Niveau d'Urgence",
+    pickupLocation: "Lieu de Prise en Charge",
+    offeredPayment: "Paiement Proposé (€)",
+    
+    // Adoption
+    adoptionListings: "Animaux à Adopter",
+    applyToAdopt: "Postuler pour Adopter",
+  },
   
   // ============ EXISTING TRANSLATIONS CONTINUE BELOW ============
   pt: {
