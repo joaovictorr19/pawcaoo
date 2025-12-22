@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Crown, Zap, Star, Sparkles, Shield, Heart, TrendingUp, Gift, Award, ChevronDown, ChevronUp, CheckCircle, ArrowLeft } from "lucide-react";
+import { Check, Crown, Zap, Star, Sparkles, Shield, Heart, TrendingUp, Gift, Award, ChevronDown, ChevronUp, CheckCircle, ArrowLeft, ArrowUp, ArrowDown, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -50,26 +50,53 @@ export default function OwnerSubscriptions() {
     enabled: !!user,
   });
 
+  const planOrder = ['free', 'basic', 'premium', 'vip'];
+
+  const getActionType = (currentPlan, newPlan) => {
+    const currentIdx = planOrder.indexOf(currentPlan);
+    const newIdx = planOrder.indexOf(newPlan);
+    if (newIdx > currentIdx) return 'upgrade';
+    if (newIdx < currentIdx) return 'downgrade';
+    return 'same';
+  };
+
   const subscribeMutation = useMutation({
     mutationFn: async ({ plan, billingCycle }) => {
+      const currentPlan = subscription?.plan_type || 'free';
+      const actionType = getActionType(currentPlan, plan.type);
+
+      // Se é o mesmo plano, não fazer nada
+      if (actionType === 'same') {
+        throw new Error('Já tem este plano ativo');
+      }
+
+      // Para upgrade/downgrade com subscrição existente
+      if (subscription && subscription.plan_type !== 'free') {
+        const response = await base44.functions.invoke('manageOwnerSubscription', {
+          action: actionType,
+          new_plan_type: plan.type,
+          new_billing_cycle: billingCycle
+        });
+
+        if (response?.data?.url) {
+          window.location.href = response.data.url;
+          return null;
+        } else if (response?.data?.success) {
+          return response.data;
+        } else {
+          throw new Error(response?.data?.error || 'Erro ao processar');
+        }
+      }
+
+      // Para nova subscrição ou upgrade do free
       if (plan.type === 'free') {
-        // Free plan - just create/update subscription
+        // Downgrade para free
         if (subscription) {
-          return await base44.entities.OwnerSubscription.update(subscription.id, {
-            plan_type: 'free',
-            billing_cycle: 'monthly',
-            monthly_price: 0,
-            annual_price: 0,
-            booking_discount_percentage: 0,
-            cashback_rate: 0,
-            free_walks_per_month: 0,
-            points_multiplier: 1,
-            free_cancellations: 0,
-            priority_booking: false,
-            free_insurance: false,
-            priority_support: false,
-            exclusive_walkers: false,
+          const response = await base44.functions.invoke('manageOwnerSubscription', {
+            action: 'downgrade',
+            new_plan_type: 'free'
           });
+          return response?.data;
         } else {
           return await base44.entities.OwnerSubscription.create({
             owner_email: user?.email,
@@ -128,9 +155,22 @@ export default function OwnerSubscriptions() {
     },
     onError: (error) => {
       console.error('Subscription error:', error);
-      toast.error("Erro ao processar pagamento: " + error.message);
+      toast.error("Erro ao processar: " + error.message);
     },
   });
+
+  const openBillingPortal = async () => {
+    try {
+      const response = await base44.functions.invoke('manageOwnerSubscription', {
+        action: 'get_portal'
+      });
+      if (response?.data?.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      toast.error('Erro ao abrir portal de pagamentos');
+    }
+  };
 
   const plans = [
     {
@@ -311,9 +351,10 @@ export default function OwnerSubscriptions() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.3 }}
+              className="flex flex-col items-center gap-2"
             >
               <Badge 
-                className="mt-3 px-6 py-2 text-white shadow-lg text-sm"
+                className="px-6 py-2 text-white shadow-lg text-sm"
                 style={{
                   background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
                 }}
@@ -321,6 +362,22 @@ export default function OwnerSubscriptions() {
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Plano Ativo: {subscription.plan_type.toUpperCase()}
               </Badge>
+              {subscription.plan_type !== 'free' && subscription.stripe_customer_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openBillingPortal}
+                  className="text-xs"
+                >
+                  <CreditCard className="w-3 h-3 mr-1" />
+                  Gerir Pagamentos
+                </Button>
+              )}
+              {subscription.free_walks_per_month > 0 && (
+                <p className={`text-xs ${colors?.isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Passeios grátis: {subscription.free_walks_used_this_month || 0}/{subscription.free_walks_per_month} usados este mês
+                </p>
+              )}
             </motion.div>
           )}
         </motion.div>
@@ -474,7 +531,17 @@ export default function OwnerSubscriptions() {
                       }}
                       disabled={isCurrentPlan || subscribeMutation.isPending}
                     >
-                      {isCurrentPlan ? 'Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
+                      {isCurrentPlan ? (
+                        'Plano Atual'
+                      ) : subscribeMutation.isPending ? (
+                        'Processando...'
+                      ) : subscription && planOrder.indexOf(plan.type) > planOrder.indexOf(subscription.plan_type) ? (
+                        <><ArrowUp className="w-4 h-4 mr-1" /> Upgrade</>
+                      ) : subscription && planOrder.indexOf(plan.type) < planOrder.indexOf(subscription.plan_type) ? (
+                        <><ArrowDown className="w-4 h-4 mr-1" /> Downgrade</>
+                      ) : (
+                        'Subscrever'
+                      )}
                     </Button>
                   </CardContent>
                 </Card>
