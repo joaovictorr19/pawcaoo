@@ -8,6 +8,7 @@ import { ArrowLeft, MapPin, Star, Award, Phone, Video, User as UserIcon, ShieldC
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import InstagramVerifiedBadge from "@/components/ui/InstagramVerifiedBadge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReviewCard from "../components/reviews/ReviewCard";
