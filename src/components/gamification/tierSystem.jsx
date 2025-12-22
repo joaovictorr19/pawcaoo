@@ -1,51 +1,50 @@
 // ============================================
-// TIER SYSTEM - 100 NÍVEIS, 20 CORES
+// TIER SYSTEM - ESPECTRO 100 NÍVEIS
 // ============================================
-// Nível 1-5: Cinza | Nível 96-100: Dourado Galáctico
-// Cores mudam a cada 5 níveis
+// Sistema de cores profissional sem emojis
+// Cores mudam a cada 10 níveis
 
-// Definição das 20 Cores (Tiers Visuais)
+// Função para obter cor baseada no nível (Espectro 0-100)
+export function getTierColor(level) {
+  const safeLevel = Math.min(100, Math.max(0, level || 0));
+  
+  if (safeLevel >= 100) return '#8B5CF6'; // Diamante (gradiente especial)
+  if (safeLevel >= 90) return '#EF4444';  // Vermelho Fogo
+  if (safeLevel >= 80) return '#EC4899';  // Rosa Choque
+  if (safeLevel >= 70) return '#8B5CF6';  // Roxo
+  if (safeLevel >= 60) return '#6366F1';  // Índigo
+  if (safeLevel >= 50) return '#3B82F6';  // Azul Real
+  if (safeLevel >= 40) return '#06B6D4';  // Ciano
+  if (safeLevel >= 30) return '#10B981';  // Verde Esmeralda
+  if (safeLevel >= 20) return '#84CC16';  // Verde Lima
+  if (safeLevel >= 10) return '#D97706';  // Bronze
+  return '#94A3B8';                        // Cinza Chumbo
+}
+
+// Definição das 11 Cores do Espectro (a cada 10 níveis)
 export const TIER_COLORS_BY_LEVEL = [
-  // Níveis 1-5: Prata Iniciante
-  { minLevel: 1, maxLevel: 5, name: 'Prata', icon: '⚪', primary: '#c0c0c0', gradient: 'from-gray-300 to-slate-500', orb1: '#94a3b8', orb2: '#cbd5e1', text: 'text-slate-500', bg: 'bg-slate-100' },
-  // Níveis 6-10: Verde Musgo
-  { minLevel: 6, maxLevel: 10, name: 'Musgo', icon: '🌿', primary: '#4d7c0f', gradient: 'from-lime-600 to-green-700', orb1: '#65a30d', orb2: '#a3e635', text: 'text-lime-600', bg: 'bg-lime-50' },
-  // Níveis 11-15: Azul Celeste
-  { minLevel: 11, maxLevel: 15, name: 'Celeste', icon: '🩵', primary: '#0ea5e9', gradient: 'from-sky-400 to-cyan-600', orb1: '#38bdf8', orb2: '#7dd3fc', text: 'text-sky-500', bg: 'bg-sky-50' },
-  // Níveis 16-20: Bronze
-  { minLevel: 16, maxLevel: 20, name: 'Bronze', icon: '🥉', primary: '#cd7f32', gradient: 'from-orange-400 to-amber-600', orb1: '#fb923c', orb2: '#fdba74', text: 'text-orange-600', bg: 'bg-orange-50' },
-  // Níveis 21-25: Cobre
-  { minLevel: 21, maxLevel: 25, name: 'Cobre', icon: '🔶', primary: '#b87333', gradient: 'from-orange-500 to-orange-700', orb1: '#ea580c', orb2: '#f97316', text: 'text-orange-700', bg: 'bg-orange-100' },
-  // Níveis 26-30: Rocha
-  { minLevel: 26, maxLevel: 30, name: 'Rocha', icon: '🪨', primary: '#808080', gradient: 'from-gray-500 to-gray-700', orb1: '#6b7280', orb2: '#9ca3af', text: 'text-gray-400', bg: 'bg-gray-700', isDark: true },
-  // Níveis 31-35: Jade
-  { minLevel: 31, maxLevel: 35, name: 'Jade', icon: '🍀', primary: '#00a86b', gradient: 'from-emerald-400 to-teal-600', orb1: '#34d399', orb2: '#6ee7b7', text: 'text-emerald-600', bg: 'bg-emerald-50' },
-  // Níveis 36-40: Ouro
-  { minLevel: 36, maxLevel: 40, name: 'Ouro', icon: '🥇', primary: '#ffd700', gradient: 'from-yellow-400 to-amber-500', orb1: '#facc15', orb2: '#fef08a', text: 'text-yellow-600', bg: 'bg-yellow-50' },
-  // Níveis 41-45: Topázio
-  { minLevel: 41, maxLevel: 45, name: 'Topázio', icon: '🔸', primary: '#ff8c00', gradient: 'from-amber-500 to-orange-600', orb1: '#f59e0b', orb2: '#fbbf24', text: 'text-amber-600', bg: 'bg-amber-50' },
-  // Níveis 46-50: Safira
-  { minLevel: 46, maxLevel: 50, name: 'Safira', icon: '💙', primary: '#1d4ed8', gradient: 'from-blue-500 to-indigo-700', orb1: '#3b82f6', orb2: '#60a5fa', text: 'text-blue-600', bg: 'bg-blue-50' },
-  // Níveis 51-55: Ametista
-  { minLevel: 51, maxLevel: 55, name: 'Ametista', icon: '💜', primary: '#9333ea', gradient: 'from-purple-500 to-violet-700', orb1: '#a855f7', orb2: '#c084fc', text: 'text-purple-600', bg: 'bg-purple-50' },
-  // Níveis 56-60: Rubi
-  { minLevel: 56, maxLevel: 60, name: 'Rubi', icon: '❤️', primary: '#e0115f', gradient: 'from-rose-500 to-red-700', orb1: '#f43f5e', orb2: '#fb7185', text: 'text-rose-600', bg: 'bg-rose-50' },
-  // Níveis 61-65: Esmeralda
-  { minLevel: 61, maxLevel: 65, name: 'Esmeralda', icon: '💚', primary: '#50c878', gradient: 'from-green-500 to-emerald-700', orb1: '#22c55e', orb2: '#4ade80', text: 'text-green-600', bg: 'bg-green-50' },
-  // Níveis 66-70: Turquesa
-  { minLevel: 66, maxLevel: 70, name: 'Turquesa', icon: '🩵', primary: '#40e0d0', gradient: 'from-teal-400 to-cyan-600', orb1: '#2dd4bf', orb2: '#5eead4', text: 'text-teal-500', bg: 'bg-teal-50' },
-  // Níveis 71-75: Platina
-  { minLevel: 71, maxLevel: 75, name: 'Platina', icon: '⬜', primary: '#e5e4e2', gradient: 'from-gray-200 via-slate-300 to-gray-400', orb1: '#e2e8f0', orb2: '#f1f5f9', text: 'text-slate-400', bg: 'bg-slate-50' },
-  // Níveis 76-80: Diamante
-  { minLevel: 76, maxLevel: 80, name: 'Diamante', icon: '💎', primary: '#b9f2ff', gradient: 'from-cyan-300 via-blue-200 to-white', orb1: '#22d3ee', orb2: '#e0f2fe', text: 'text-cyan-400', bg: 'bg-cyan-50' },
-  // Níveis 81-85: Obsidiana
-  { minLevel: 81, maxLevel: 85, name: 'Obsidiana', icon: '🖤', primary: '#1e1e1e', gradient: 'from-gray-800 via-slate-900 to-black', orb1: '#374151', orb2: '#1f2937', text: 'text-gray-300', bg: 'bg-gray-900', isDark: true },
-  // Níveis 86-90: Fénix
-  { minLevel: 86, maxLevel: 90, name: 'Fénix', icon: '🔥', primary: '#ff4500', gradient: 'from-red-500 via-orange-500 to-yellow-500', orb1: '#ef4444', orb2: '#f97316', text: 'text-orange-500', bg: 'bg-orange-50' },
-  // Níveis 91-95: Cosmos
-  { minLevel: 91, maxLevel: 95, name: 'Cosmos', icon: '🌌', primary: '#8b5cf6', gradient: 'from-violet-600 via-purple-800 to-indigo-900', orb1: '#7c3aed', orb2: '#4c1d95', text: 'text-violet-500', bg: 'bg-violet-950', isDark: true },
-  // Níveis 96-100: Dourado Galáctico
-  { minLevel: 96, maxLevel: 100, name: 'Galáctico', icon: '✨', primary: '#ffd700', gradient: 'from-yellow-300 via-amber-400 to-orange-500', orb1: '#fbbf24', orb2: '#fef3c7', text: 'text-yellow-500', bg: 'bg-gradient-to-br from-yellow-50 to-amber-100', isLegendary: true }
+  // Níveis 0-9: Cinza Chumbo
+  { minLevel: 0, maxLevel: 9, name: 'Chumbo', primary: '#94A3B8', gradient: 'from-slate-400 to-slate-600', orb1: '#94A3B8', orb2: '#CBD5E1', text: 'text-slate-500', bg: 'bg-slate-100' },
+  // Níveis 10-19: Bronze
+  { minLevel: 10, maxLevel: 19, name: 'Bronze', primary: '#D97706', gradient: 'from-amber-500 to-orange-600', orb1: '#D97706', orb2: '#F59E0B', text: 'text-amber-600', bg: 'bg-amber-50' },
+  // Níveis 20-29: Verde Lima
+  { minLevel: 20, maxLevel: 29, name: 'Lima', primary: '#84CC16', gradient: 'from-lime-400 to-green-500', orb1: '#84CC16', orb2: '#A3E635', text: 'text-lime-600', bg: 'bg-lime-50' },
+  // Níveis 30-39: Verde Esmeralda
+  { minLevel: 30, maxLevel: 39, name: 'Esmeralda', primary: '#10B981', gradient: 'from-emerald-400 to-green-600', orb1: '#10B981', orb2: '#34D399', text: 'text-emerald-600', bg: 'bg-emerald-50' },
+  // Níveis 40-49: Ciano
+  { minLevel: 40, maxLevel: 49, name: 'Ciano', primary: '#06B6D4', gradient: 'from-cyan-400 to-teal-500', orb1: '#06B6D4', orb2: '#22D3EE', text: 'text-cyan-600', bg: 'bg-cyan-50' },
+  // Níveis 50-59: Azul Real
+  { minLevel: 50, maxLevel: 59, name: 'Azul Real', primary: '#3B82F6', gradient: 'from-blue-500 to-blue-700', orb1: '#3B82F6', orb2: '#60A5FA', text: 'text-blue-600', bg: 'bg-blue-50' },
+  // Níveis 60-69: Índigo
+  { minLevel: 60, maxLevel: 69, name: 'Índigo', primary: '#6366F1', gradient: 'from-indigo-500 to-violet-600', orb1: '#6366F1', orb2: '#818CF8', text: 'text-indigo-600', bg: 'bg-indigo-50' },
+  // Níveis 70-79: Roxo
+  { minLevel: 70, maxLevel: 79, name: 'Roxo', primary: '#8B5CF6', gradient: 'from-violet-500 to-purple-600', orb1: '#8B5CF6', orb2: '#A78BFA', text: 'text-violet-600', bg: 'bg-violet-50' },
+  // Níveis 80-89: Rosa Choque
+  { minLevel: 80, maxLevel: 89, name: 'Rosa', primary: '#EC4899', gradient: 'from-pink-500 to-rose-600', orb1: '#EC4899', orb2: '#F472B6', text: 'text-pink-600', bg: 'bg-pink-50' },
+  // Níveis 90-99: Vermelho Fogo
+  { minLevel: 90, maxLevel: 99, name: 'Fogo', primary: '#EF4444', gradient: 'from-red-500 to-orange-600', orb1: '#EF4444', orb2: '#F87171', text: 'text-red-600', bg: 'bg-red-50' },
+  // Nível 100+: Diamante (Gradiente cyan para purple)
+  { minLevel: 100, maxLevel: 999, name: 'Diamante', primary: '#8B5CF6', gradient: 'from-cyan-400 via-blue-500 to-purple-600', orb1: '#06B6D4', orb2: '#8B5CF6', text: 'text-purple-600', bg: 'bg-gradient-to-br from-cyan-50 to-purple-50', isLegendary: true }
 ];
 
 // XP necessário por nível (progressão quadrática suave)
@@ -80,6 +79,7 @@ export function calculateTier(xp) {
   const safeXP = Number(xp) || 0;
   const level = getLevelFromXP(safeXP);
   const tier = getTierByLevel(level);
+  const color = getTierColor(level);
   
   // Calcular progresso para próximo nível
   const currentLevelXP = getXPForLevel(level);
@@ -92,7 +92,7 @@ export function calculateTier(xp) {
   return {
     level,
     name: tier.name,
-    icon: tier.icon,
+    color, // Cor hex direta do espectro
     primary: tier.primary,
     gradient: tier.gradient,
     orb1: tier.orb1,
@@ -115,8 +115,8 @@ export function calculateTier(xp) {
   };
 }
 
-// Alias para compatibilidade
-export function getTierColor(tierName) {
+// Alias para compatibilidade (por nome)
+export function getTierColorByName(tierName) {
   const tier = TIER_COLORS_BY_LEVEL.find(t => t.name === tierName);
   return tier || TIER_COLORS_BY_LEVEL[0];
 }
