@@ -79,6 +79,7 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import EditTrainerProfile from './pages/EditTrainerProfile';
+import PawStore from './pages/PawStore';
 import __Layout from './Layout.jsx';
 
 
@@ -164,6 +165,7 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "EditTrainerProfile": EditTrainerProfile,
+    "PawStore": PawStore,
 }
 
 export const pagesConfig = {
