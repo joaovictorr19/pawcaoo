@@ -152,13 +152,11 @@ export default function NotificationArea({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0" style={{ zIndex: 99999 }}>
       {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+      <div
         className="absolute inset-0 bg-black/50"
-        onClick={forceClose}
-        onTouchEnd={(e) => { e.preventDefault(); forceClose(); }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); forceClose(); }}
+        onTouchStart={(e) => { e.preventDefault(); forceClose(); }}
+        style={{ touchAction: 'none' }}
       />
 
       {/* Panel */}
@@ -192,15 +190,14 @@ export default function NotificationArea({ isOpen, onClose }) {
                 Marcar lidas
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={forceClose}
-              onTouchEnd={(e) => { e.preventDefault(); forceClose(); }}
-              className="h-8 w-8"
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); forceClose(); }}
+              onTouchStart={(e) => { e.preventDefault(); forceClose(); }}
+              className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200"
+              style={{ touchAction: 'manipulation' }}
             >
-              <X className="w-5 h-5" />
-            </Button>
+              <X className="w-6 h-6" />
+            </button>
           </div>
         </div>
 
