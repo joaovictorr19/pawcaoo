@@ -535,20 +535,23 @@ export default function WalkerDetails() {
                               </div>
                               <Button 
                                 size="sm" 
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md px-4 md:px-5 rounded-lg font-semibold h-8 md:h-9 text-xs md:text-sm"
+                                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg px-4 md:px-5 rounded-xl font-semibold h-9 md:h-10 text-xs md:text-sm transition-all hover:scale-105"
                                 onClick={() => {
                                   if (!user) {
                                     base44.auth.redirectToLogin(window.location.href);
                                     return;
                                   }
-                                  const bookingSection = document.getElementById('booking-section');
-                                  if (bookingSection) {
-                                    bookingSection.scrollIntoView({ behavior: 'smooth' });
-                                    toast.info(`Selecione uma data para agendar ${service.service_name}`);
-                                  }
+                                  // Navigate to booking with service pre-selected
+                                  navigate(createPageUrl(`WalkerDetails?id=${walker.id}&service=${service.service_type || service.service_name}&autobook=true`));
+                                  setTimeout(() => {
+                                    const bookingSection = document.getElementById('booking-section');
+                                    if (bookingSection) {
+                                      bookingSection.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                  }, 100);
                                 }}
                               >
-                                ⚡ Reservar
+                                Reservar Agora →
                               </Button>
                             </div>
                           </div>

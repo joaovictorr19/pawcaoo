@@ -33,16 +33,17 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     ? pro?.services_offered?.find(s => s.service_type === selectedServiceType)
     : null;
 
-  const [step, setStep] = useState(1); // 1: Select Dog/Date, 2: Contact Info, 3: Payment
+  const [step, setStep] = useState(1); // 1: Select Dog, 2: Confirm Details, 3: Payment
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_size: "medium",
     walk_date: initialDate || null,
-    walk_time: "morning",
+    walk_time: "09:00",
     duration_hours: 1,
     special_notes: selectedService ? `Serviço: ${selectedService.service_name}` : "",
     owner_phone: ""
   });
+  const [autoAdvance, setAutoAdvance] = useState(false);
 
   // Update date if initialDate prop changes
   React.useEffect(() => {
@@ -102,7 +103,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     );
   };
 
-  // AUTO-FILL from selected dog
+  // AUTO-FILL from selected dog - Complete auto-fill with all details
   React.useEffect(() => {
     if (selectedDogId && myDogs.length > 0) {
       const selectedDog = myDogs.find(d => d.id === selectedDogId);
@@ -110,12 +111,17 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         setFormData(prev => ({
           ...prev,
           dog_name: selectedDog.dog_name,
-          dog_size: selectedDog.size,
-          special_notes: `${selectedDog.dog_name} - ${selectedDog.breed || 'SRD'} - ${selectedDog.size}`
+          dog_size: selectedDog.size || 'medium',
+          special_notes: selectedDog.special_notes || `${selectedDog.dog_name} - ${selectedDog.breed || 'SRD'}`
         }));
+        
+        // Auto-fill address from dog profile or user profile
         if (selectedDog.default_pickup_address) {
           setPickupAddress(selectedDog.default_pickup_address);
+        } else if (user?.address) {
+          setPickupAddress(user.address);
         }
+        
         // Auto-fill GPS if available
         if (selectedDog.default_pickup_lat && selectedDog.default_pickup_lng) {
           setPickupCoords({
@@ -123,9 +129,19 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             lng: selectedDog.default_pickup_lng
           });
         }
+
+        // Check if profile is complete for auto-advance
+        const isComplete = selectedDog.default_pickup_address && 
+                          (user?.phone || formData.owner_phone) &&
+                          formData.walk_date;
+        
+        if (isComplete && autoAdvance) {
+          // Skip to payment step if all info is complete
+          setStep(3);
+        }
       }
     }
-  }, [selectedDogId, myDogs]);
+  }, [selectedDogId, myDogs, user, autoAdvance]);
 
   // Buscar subscrição do owner para descontos
   const { data: ownerSubscription } = useQuery({
@@ -474,25 +490,58 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           {/* STEP 1: Select Dog & Date */}
           {step === 1 && (
             <>
-              {myDogs?.length > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <Label className="text-sm font-semibold text-green-900 mb-2 block">🐕 Selecionar do My Pack</Label>
-                  <Select value={selectedDogId} onValueChange={setSelectedDogId}>
-                    <SelectTrigger className="bg-white h-9">
-                      <SelectValue placeholder="Escolher um dos meus cães" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {myDogs.map((dog) => (
-                        <SelectItem key={dog.id} value={dog.id}>
-                          {dog.dog_name} - {dog.size} {isDogProfileComplete(dog.id) && '✓'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {myDogs?.length > 0 ? (
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    🐕 Selecione seu cão
+                  </Label>
+                  <div className="grid gap-2">
+                    {myDogs.map((dog) => {
+                      const isComplete = isDogProfileComplete(dog.id);
+                      const isSelected = selectedDogId === dog.id;
+                      return (
+                        <div
+                          key={dog.id}
+                          onClick={() => {
+                            setSelectedDogId(dog.id);
+                            if (isComplete) setAutoAdvance(true);
+                          }}
+                          className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                            isSelected 
+                              ? 'border-green-500 bg-green-50 shadow-md' 
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {dog.photo_url ? (
+                              <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+                                🐕
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-900">{dog.dog_name}</p>
+                              <p className="text-xs text-gray-500">{dog.breed || 'SRD'} • {dog.size}</p>
+                            </div>
+                            {isComplete && (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                                ✓ Perfil Completo
+                              </span>
+                            )}
+                          </div>
+                          {isSelected && dog.default_pickup_address && (
+                            <div className="mt-2 pt-2 border-t border-green-200 text-xs text-gray-600">
+                              <MapPin className="w-3 h-3 inline mr-1" />
+                              {dog.default_pickup_address}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              )}
-
-              {!selectedDogId && (
+              ) : (
                 <>
                   <div>
                     <Label className="text-sm">Nome do Cão *</Label>
@@ -503,7 +552,6 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       className="h-9"
                     />
                   </div>
-
                   <div>
                     <Label className="text-sm">Tamanho *</Label>
                     <Select
@@ -524,106 +572,129 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </>
               )}
 
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-sm">Data *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal h-9 text-sm">
+                        <CalendarIcon className="mr-2 h-3 w-3" />
+                        {formData.walk_date ? format(formData.walk_date, 'dd/MM') : 'Data'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={formData.walk_date}
+                        onSelect={(date) => setFormData({...formData, walk_date: date})}
+                        disabled={(date) => {
+                          if (date < new Date().setHours(0,0,0,0)) return true;
+                          const dateStr = format(date, 'yyyy-MM-dd');
+                          const dayAvail = availability.find(a => 
+                            a.date === dateStr && a.professional_email === pro?.created_by
+                          );
+                          if (dayAvail?.is_day_off || dayAvail?.is_fully_booked) return true;
+                          return false;
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <Label className="text-sm">Horário *</Label>
+                  <Select
+                    value={formData.walk_time}
+                    onValueChange={(value) => setFormData({...formData, walk_time: value})}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Hora" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {availableSlots.length > 0 ? (
+                        availableSlots.map((slot, idx) => (
+                          <SelectItem key={idx} value={`${slot.start_time} - ${slot.end_time}`}>
+                            {slot.start_time}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        generateTimeSlots().map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div>
-                <Label className="text-sm">Data *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal h-9 text-sm">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.walk_date ? format(formData.walk_date, 'dd/MM/yyyy') : 'Selecione'}
+                <Label className="text-sm">Duração</Label>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map(h => (
+                    <Button
+                      key={h}
+                      type="button"
+                      variant={formData.duration_hours === h ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFormData({...formData, duration_hours: h})}
+                      className={`flex-1 ${formData.duration_hours === h ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                    >
+                      {h}h
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.walk_date}
-                      onSelect={(date) => setFormData({...formData, walk_date: date, walk_time: ""})}
-                      disabled={(date) => {
-                        if (date < new Date().setHours(0,0,0,0)) return true;
-                        const dateStr = format(date, 'yyyy-MM-dd');
-                        const dayAvail = availability.find(a => 
-                          a.date === dateStr && a.professional_email === pro?.created_by
-                        );
-                        if (dayAvail?.is_day_off || dayAvail?.is_fully_booked) return true;
-                        return false;
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div>
-                <Label className="text-sm">Horário *</Label>
-                <Select
-                  value={formData.walk_time}
-                  onValueChange={(value) => setFormData({...formData, walk_time: value})}
-                  disabled={!formData.walk_date}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder={!formData.walk_date ? "Selecione data" : "Horário"} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {availableSlots.length > 0 ? (
-                      availableSlots.map((slot, idx) => (
-                        <SelectItem key={idx} value={`${slot.start_time} - ${slot.end_time}`}>
-                          {slot.start_time} - {slot.end_time}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      generateTimeSlots().map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-sm">Duração *</Label>
-                <Select
-                  value={formData.duration_hours.toString()}
-                  onValueChange={(value) => setFormData({...formData, duration_hours: parseInt(value)})}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1h</SelectItem>
-                    <SelectItem value="2">2h</SelectItem>
-                    <SelectItem value="3">3h</SelectItem>
-                    <SelectItem value="4">4h</SelectItem>
-                  </SelectContent>
-                </Select>
+                  ))}
+                </div>
               </div>
             </>
           )}
 
-          {/* STEP 2: Contact & Address */}
+          {/* STEP 2: Confirm Details */}
           {step === 2 && (
             <>
+              <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                <h4 className="font-semibold text-sm text-gray-900">📋 Confirme os dados</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">Cão:</span>
+                    <span className="ml-1 font-medium">{formData.dog_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Data:</span>
+                    <span className="ml-1 font-medium">{formData.walk_date ? format(formData.walk_date, 'dd/MM') : '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Horário:</span>
+                    <span className="ml-1 font-medium">{formData.walk_time}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Duração:</span>
+                    <span className="ml-1 font-medium">{formData.duration_hours}h</span>
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <Label className="text-sm">Seu Telefone *</Label>
+                <Label className="text-sm">Telefone *</Label>
                 <Input
                   type="tel"
                   value={formData.owner_phone}
                   onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
-                  placeholder="Ex: 351912345678"
+                  placeholder="912345678"
                   className="h-9"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-purple-600" /> 
-                  Local de Recolha *
+                  <MapPin className="w-4 h-4 text-green-600" /> 
+                  Morada de Recolha *
                 </Label>
                 <Input 
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
-                  placeholder="Ex: Rua das Flores, 123, Lisboa"
-                  className="bg-gray-50 border-purple-100 h-9"
+                  placeholder="Rua, Número, Cidade"
+                  className="h-9"
                 />
                 
                 <div className="flex items-center gap-2">
@@ -632,31 +703,24 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     onClick={captureCurrentLocation}
                     variant="outline"
                     size="sm"
-                    className="text-xs h-8"
-                    style={{
-                      backgroundColor: `${colors?.primary || '#3b82f6'}10`,
-                      borderColor: `${colors?.primary || '#3b82f6'}40`,
-                      color: colors?.primary || '#3b82f6'
-                    }}
+                    className="text-xs h-7 bg-green-50 border-green-200 text-green-700"
                   >
                     <MapPin className="w-3 h-3 mr-1" />
-                    GPS Atual
+                    Usar GPS
                   </Button>
                   
-                  {pickupCoords.lat && pickupCoords.lng && (
-                    <span className="text-xs text-green-600 font-semibold">
-                      ✅ GPS Capturado
-                    </span>
+                  {pickupCoords.lat && (
+                    <span className="text-xs text-green-600 font-medium">✓ Localização OK</span>
                   )}
                 </div>
               </div>
 
               <div>
-                <Label className="text-sm">Notas Especiais</Label>
+                <Label className="text-sm">Observações</Label>
                 <Textarea
                   value={formData.special_notes}
                   onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
-                  placeholder="Info sobre o seu cão..."
+                  placeholder="Informações importantes..."
                   rows={2}
                   className="text-sm"
                 />
