@@ -1,21 +1,24 @@
 import React from "react";
 import { Dog, Cat, Bird } from "lucide-react";
 
-// Ícone SVG customizado para répteis (cobra)
+// Ícone SVG customizado para répteis (cobra/lagarto)
 export const ReptileIcon = ({ className = "w-4 h-4" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 5.5c-3 0-5.5 1.2-5.5 2.5v3c0 1.3 2.5 2.5 5.5 2.5s5.5-1.2 5.5-2.5v-3c0-1.3-2.5-2.5-5.5-2.5z"/>
-    <path d="M6.5 11v3c0 1.3 2.5 2.5 5.5 2.5s5.5-1.2 5.5-2.5v-3"/>
-    <ellipse cx="12" cy="8" rx="5.5" ry="2.5"/>
+    <path d="M4 12c0-2 2-3 4-3s3 1 4 2c1 1 2 2 4 2s4-1 4-3"/>
+    <circle cx="7" cy="10" r="1" fill="currentColor"/>
+    <path d="M6 9c-1-1-2-2-2-3s1-2 2-2 2 1 2 2"/>
+    <path d="M18 13c1 0 2 1 2 2s-1 2-2 2-2-1-2-2 1-2 2-2"/>
   </svg>
 );
 
-// Ícone SVG customizado para aracnídeos (aranha minimalista)
+// Ícone SVG customizado para aracnídeos (aranha)
 export const ArachnidIcon = ({ className = "w-4 h-4" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M12 9V6m0 12v-3M9 12H6m12 0h-3"/>
-    <path d="M14.5 14.5l2 2m-9-9l2 2m5 0l2-2m-9 9l2-2"/>
+    <ellipse cx="12" cy="12" rx="3" ry="4"/>
+    <path d="M9 10l-3-2m6-2l3-2m-6 8l-3 2m6 2l3 2"/>
+    <path d="M9 14l-2 3m6 0l2-3m-6-8l-2-3m6 0l2 3"/>
+    <circle cx="11" cy="11" r="0.5" fill="currentColor"/>
+    <circle cx="13" cy="11" r="0.5" fill="currentColor"/>
   </svg>
 );
 
