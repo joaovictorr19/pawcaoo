@@ -36,7 +36,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import VerificationBanner from "../components/professionals/VerificationBanner";
-import TimeOffManager from "../components/professional/TimeOffManager";
+// TimeOffManager removed (integrated into calendar)
 import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -1503,55 +1503,119 @@ export default function ProfessionalDashboard() {
 
           {/* Calendar Tab */}
           <TabsContent value="calendar">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-              {/* Gestor de Folgas */}
-              <div className="lg:col-span-2">
-                <TimeOffManager 
-                  professionalEmail={user?.email}
-                  professionalName={profile?.walker_name || profile?.trainer_name}
-                  professionalType={walkerProfile ? 'walker' : 'trainer'}
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Calendário Unificado Compacto */}
+              <Card className="border-0 shadow-xl overflow-hidden">
+                <CardHeader className="bg-gray-50 border-b border-gray-100 py-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                        <CalendarIcon className="w-5 h-5 text-blue-600" />
+                        Agenda & Folgas
+                      </CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Clique nos dias para marcar/desmarcar folgas. Dias com reservas não podem ser marcados como folga.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const events = allBookings
+                            .filter(b => b.status === 'confirmed' || b.status === 'in_progress')
+                            .map(bookingToEvent)
+                            .filter(e => e);
 
-              {/* Calendário de Disponibilidade */}
-              <Card className="border-0 shadow-xl">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg md:text-xl">Calendário</CardTitle>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => {
-                      const events = allBookings
-                        .filter(b => b.status === 'confirmed' || b.status === 'in_progress')
-                        .map(bookingToEvent)
-                        .filter(e => e);
+                          if (events.length === 0) {
+                            toast.info("Nenhum agendamento confirmado para exportar.");
+                            return;
+                          }
 
-                      if (events.length === 0) {
-                        toast.info("Nenhum agendamento confirmado para exportar.");
-                        return;
-                      }
-
-                      const icsContent = generateMultiICS(events);
-                      downloadICS("pawcao_bookings.ics", icsContent);
-                      toast.success("Calendário exportado!");
-                    }}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar iCal
-                  </Button>
+                          const icsContent = generateMultiICS(events);
+                          downloadICS("pawcao_bookings.ics", icsContent);
+                          toast.success("Calendário exportado!");
+                        }}
+                        className="bg-white"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Exportar iCal
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <AvailabilityCalendar 
-                    availabilityData={availability}
-                    bookings={allBookings}
-                    locale={ptBR}
-                    walkerEmail={user?.email}
-                  />
+                <CardContent className="p-4 md:p-6 bg-white">
+                  <div className="max-w-3xl mx-auto">
+                    <AvailabilityCalendar 
+                      availabilityData={availability}
+                      bookings={allBookings}
+                      locale={ptBR}
+                      walkerEmail={user?.email}
+                      isInteractive={true}
+                      onDateSelect={async (date, status) => {
+                        // Lógica de Toggle Time Off integrada
+                        try {
+                          const dateStr = format(date, 'yyyy-MM-dd');
+                          
+                          // 1. Check if has bookings
+                          const hasBooking = allBookings.some(b => 
+                            (b.walk_date === dateStr || b.session_date === dateStr) &&
+                            (b.status !== 'cancelled' && b.status !== 'rejected')
+                          );
+                          
+                          if (hasBooking) {
+                            toast.error('📅 Dia com reservas!', {
+                              description: 'Não é possível marcar folga. Cancele ou reagende as reservas primeiro.'
+                            });
+                            return;
+                          }
+
+                          // 2. Find existing availability record
+                          const existingRecord = availability.find(a => a.date === dateStr);
+
+                          if (status === 'day_off' && existingRecord) {
+                            // REMOVER FOLGA
+                            await base44.entities.CalendarAvailability.delete(existingRecord.id);
+                            toast.success('Folga removida. Dia disponível.');
+                          } else {
+                            // MARCAR FOLGA
+                            // Se já existe registro (ex: fully booked manual), atualiza. Se não, cria.
+                            if (existingRecord) {
+                               await base44.entities.CalendarAvailability.update(existingRecord.id, {
+                                 is_day_off: true,
+                                 is_fully_booked: true,
+                                 notes: 'Folga marcada pelo painel'
+                               });
+                            } else {
+                               await base44.entities.CalendarAvailability.create({
+                                professional_email: user?.email,
+                                professional_name: profile?.walker_name || profile?.trainer_name,
+                                professional_type: walkerProfile ? 'walker' : 'trainer',
+                                date: dateStr,
+                                is_day_off: true,
+                                is_fully_booked: true,
+                                time_slots: [],
+                                notes: 'Folga marcada pelo painel'
+                              });
+                            }
+                            toast.success('Folga marcada! 🚫');
+                          }
+                          
+                          // Refresh
+                          queryClient.invalidateQueries(['myAvailability']);
+                          
+                        } catch (err) {
+                          console.error(err);
+                          toast.error('Erro ao atualizar agenda.');
+                        }
+                      }}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Segunda linha - Integrações */}
+            {/* Segunda linha - Integrações (Mantida simplificada) */}
             <div className="mt-6">
               <Card className="border-0 shadow-xl">
                 <CardHeader>

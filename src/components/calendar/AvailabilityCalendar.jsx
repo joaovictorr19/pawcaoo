@@ -8,7 +8,16 @@ import { pt } from "date-fns/locale";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
-export default function AvailabilityCalendar({ availabilityData = [], bookings = [], generalAvailability = null, onDateSelect, selectedDate, locale = pt, walkerEmail }) {
+export default function AvailabilityCalendar({ 
+  availabilityData = [], 
+  bookings = [], 
+  generalAvailability = null, 
+  onDateSelect, 
+  selectedDate, 
+  locale = pt, 
+  walkerEmail,
+  isInteractive = false // New prop to enable managing time off
+}) {
   const { language } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -125,26 +134,30 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
 
             const isDisabled = status === 'past' || status === 'day_off';
 
+            // If interactive, day-off is NOT disabled, so user can click to remove it
+            const isClickable = isInteractive || (!isDisabled); 
+            
             return (
               <button
                 key={date.toString()}
-                onClick={() => !isDisabled && onDateSelect && onDateSelect(date)}
-                disabled={isDisabled}
+                onClick={() => isClickable && onDateSelect && onDateSelect(date, status)}
+                disabled={!isClickable}
                 className={`
                   aspect-square p-0.5 md:p-1 rounded-md md:rounded-lg border transition-all text-[10px] md:text-sm
                   ${getStatusColor(status)}
-                  ${isSelected ? 'ring-1 md:ring-2 ring-green-500 scale-105 shadow-md' : ''}
-                  ${isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:scale-110 cursor-pointer'}
-                  ${isToday(date) ? 'font-bold ring-1 ring-yellow-500' : ''}
+                  ${isSelected ? 'ring-2 ring-green-500 scale-105 z-10 shadow-md' : ''}
+                  ${!isClickable ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-sm cursor-pointer hover:border-green-400'}
+                  ${isToday(date) ? 'font-bold ring-2 ring-blue-400' : ''}
                   flex flex-col items-center justify-center relative
                 `}
+                title={isInteractive ? (status === 'day_off' ? "Clique para remover folga" : "Clique para marcar folga") : ""}
               >
                 <span className="font-semibold">{format(date, 'd')}</span>
                 {status === 'day_off' && (
-                  <span className="absolute bottom-0 text-[8px]">🚫</span>
+                  <span className="absolute bottom-1 text-[10px] opacity-80">🚫</span>
                 )}
                 {count > 0 && (
-                  <Badge className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 h-3 w-3 md:h-4 md:w-4 min-w-0 p-0 text-[8px] md:text-xs bg-blue-600 flex items-center justify-center">
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 min-w-0 p-0 text-[9px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-sm">
                     {count}
                   </Badge>
                 )}
@@ -177,8 +190,8 @@ export default function AvailabilityCalendar({ availabilityData = [], bookings =
             <span className="text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-gray-400 border border-gray-500" />
-            <span className="text-[10px] md:text-xs text-gray-600">Folga</span>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded bg-red-500 border border-red-600" />
+            <span className="text-[10px] md:text-xs text-gray-600 font-medium">Folga (Clique para alterar)</span>
           </div>
         </div>
       </CardContent>
