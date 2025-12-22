@@ -12,6 +12,7 @@ import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import { AnimalIconsList } from "@/components/professionals/AnimalIcons";
 
 const TrainerCard = React.memo(({ trainer, distance }) => {
   const navigate = useNavigate();
@@ -276,6 +277,13 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
                   <span className="ml-1 capitalize">{method.replace('_', ' ')}</span>
                 </Badge>
               ))}
+            </div>
+          )}
+
+          {/* Animais Aceites */}
+          {trainer.accepted_animals && trainer.accepted_animals.length > 0 && (
+            <div className="pt-2 border-t border-gray-100">
+              <AnimalIconsList acceptedAnimals={trainer.accepted_animals} size="sm" />
             </div>
           )}
 
