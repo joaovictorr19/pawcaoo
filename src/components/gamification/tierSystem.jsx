@@ -47,20 +47,36 @@ export const TIER_COLORS_BY_LEVEL = [
   { minLevel: 100, maxLevel: 999, name: 'Diamante', primary: '#8B5CF6', gradient: 'from-cyan-400 via-blue-500 to-purple-600', orb1: '#06B6D4', orb2: '#8B5CF6', text: 'text-purple-600', bg: 'bg-gradient-to-br from-cyan-50 to-purple-50', isLegendary: true }
 ];
 
-// XP necessário por nível (progressão quadrática suave)
-// Nível 1 = 0 XP, Nível 100 = ~500,000 XP
+// ============================================
+// SISTEMA LINEAR: 100 XP = 1 NÍVEL
+// ============================================
+// Nível 0 = 0 XP, Nível 50 = 5000 XP, Nível 100 = 10000 XP
+
+// XP necessário para atingir um nível (linear)
 export function getXPForLevel(level) {
-  if (level <= 1) return 0;
-  // Fórmula: (level^2) * 50, criando curva suave
-  return Math.floor(Math.pow(level - 1, 2) * 50);
+  if (level <= 0) return 0;
+  return level * 100;
 }
 
-// Calcular nível a partir de XP
+// Calcular nível a partir de XP (linear: floor(xp / 100))
 export function getLevelFromXP(xp) {
-  if (!xp || xp <= 0) return 1;
-  // Inverso da fórmula: sqrt(xp / 50) + 1
-  const level = Math.floor(Math.sqrt(xp / 50)) + 1;
-  return Math.min(100, Math.max(1, level));
+  if (!xp || xp <= 0) return 0;
+  const level = Math.floor(xp / 100);
+  return Math.min(100, level); // Cap at level 100
+}
+
+// Progresso dentro do nível atual (0-100)
+export function getLevelProgress(xp) {
+  if (!xp || xp <= 0) return 0;
+  return xp % 100; // Resto é o progresso para próximo nível
+}
+
+// XP restante para próximo nível
+export function getXPToNextLevel(xp) {
+  if (!xp || xp <= 0) return 100;
+  const currentLevel = getLevelFromXP(xp);
+  if (currentLevel >= 100) return 0;
+  return 100 - (xp % 100);
 }
 
 // Obter Tier (cor) baseado no nível
@@ -81,13 +97,11 @@ export function calculateTier(xp) {
   const tier = getTierByLevel(level);
   const color = getTierColor(level);
   
-  // Calcular progresso para próximo nível
+  // SISTEMA LINEAR: progresso = xp % 100
+  const progress = getLevelProgress(safeXP); // 0-100 (XP dentro do nível)
+  const xpToNextLevel = getXPToNextLevel(safeXP);
   const currentLevelXP = getXPForLevel(level);
   const nextLevelXP = getXPForLevel(level + 1);
-  const xpInCurrentLevel = safeXP - currentLevelXP;
-  const xpNeededForNext = nextLevelXP - currentLevelXP;
-  const progress = level >= 100 ? 100 : Math.min(100, (xpInCurrentLevel / xpNeededForNext) * 100);
-  const xpToNextLevel = level >= 100 ? 0 : nextLevelXP - safeXP;
 
   return {
     level,
@@ -103,7 +117,7 @@ export function calculateTier(xp) {
     isLegendary: tier.isLegendary || false,
     min: currentLevelXP,
     max: nextLevelXP,
-    progress: Math.round(progress),
+    progress, // 0-100 (XP dentro do nível atual)
     xpToNextLevel,
     tierRange: `${tier.minLevel}-${tier.maxLevel}`,
     colors: {
