@@ -46,6 +46,7 @@ import { useRealtimeNotifications } from "@/components/notifications/useRealtime
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
+import SEOManager from "@/components/SEOManager";
 import "./globals.css";
 
 // Query optimization configs - v1.1
@@ -133,6 +134,9 @@ function LayoutContent({ children, currentPageName }) {
 
   // CRITICAL: Global modal cleanup to prevent frozen UI
   useModalCleanup();
+
+  // SEO Manager - Dynamic title and metadata
+  const seoManager = <SEOManager />;
 
   // Dictionary for menu translations
   const menuTranslations = {
@@ -509,6 +513,7 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
+      {seoManager}
       <Helmet>
         <title>
           {language === 'pt' ? 'PawCão - O melhor para o seu Pet' :
