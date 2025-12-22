@@ -976,7 +976,8 @@ export default function Home() {
                                         </TooltipTrigger>
                                         <TooltipContent 
                                           side="top" 
-                                          className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700 z-50"
+                                          sideOffset={8}
+                                          className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700 z-[9999]"
                                         >
                                           <p className="font-bold text-xs mb-1 leading-tight">{badge.name}</p>
                                           {badge.description && (
