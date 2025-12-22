@@ -510,24 +510,35 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <SidebarProvider>
       <Helmet>
+        <title>PawCão | Serviços Pet em Portugal, Espanha e França</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
 
+        {/* SEO Meta Tags */}
+        <meta name="description" content="Passeador de cães, Treinador de cães, Pet Sitter Portugal | Paseador de perros, Adiestrador canino España | Promeneur de chien, Garde d'animaux France" />
+        <meta name="keywords" content="Passeador de cães, Treinador de cães, Pet Sitter Portugal, Cuidador de animais exóticos, Paseador de perros, Adiestrador canino, Cuidadores de mascotas España, Promeneur de chien, Garde d'animaux, Pet Sitter France, Dressage canin, Pension pour animaux" />
+        <meta name="author" content="PawCão" />
+        <link rel="canonical" href="https://pawcao.net" />
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="PawCão - Passeadores de Cães Verificados" />
-        <meta property="og:description" content="Encontre passeadores e treinadores certificados para o seu cão. Rastreamento GPS em tempo real e pagamentos seguros." />
-        <meta property="og:image" content="https://pawcao.net/logo.png" />
+        <meta property="og:site_name" content="PawCão" />
+        <meta property="og:title" content="PawCão - O melhor cuidado para o seu animal" />
+        <meta property="og:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em Portugal, Espanha e França. Rastreamento GPS e pagamentos seguros." />
+        <meta property="og:image" content="https://pawcao.net/social-preview.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:url" content="https://pawcao.net" />
+        <meta property="og:locale" content="pt_PT" />
+        <meta property="og:locale:alternate" content="es_ES" />
+        <meta property="og:locale:alternate" content="fr_FR" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="PawCão - Passeadores de Cães Verificados" />
-        <meta name="twitter:description" content="Encontre passeadores e treinadores certificados para o seu cão. Rastreamento GPS em tempo real e pagamentos seguros." />
-        <meta name="twitter:image" content="https://pawcao.net/logo.png" />
+        <meta name="twitter:title" content="PawCão - O melhor cuidado para o seu animal" />
+        <meta name="twitter:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em PT, ES e FR." />
+        <meta name="twitter:image" content="https://pawcao.net/social-preview.jpg" />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-9LBZ1D08FT"></script>
         <script>
