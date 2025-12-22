@@ -941,7 +941,9 @@ function LayoutContent({ children, currentPageName }) {
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '64px' }}>
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10 mt-[64px] md:mt-[64px]" style={{ '--mobile-header-height': '110px' }}>
+          {/* Extra spacing for mobile double-row header */}
+          <div className="md:hidden" style={{ height: '46px' }} />
         {/* Espaçamento extra para desktop onde o header é flutuante */}
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}

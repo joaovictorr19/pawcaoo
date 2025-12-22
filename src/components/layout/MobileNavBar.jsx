@@ -18,13 +18,6 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   const navItems = [
     {
-      label: "Explorar",
-      icon: Search,
-      path: createPageUrl("Home"),
-      activeColor: "text-green-600",
-      id: "nav-home"
-    },
-    {
       label: "Reservas",
       icon: Calendar,
       path: createPageUrl("MyBookings"),
