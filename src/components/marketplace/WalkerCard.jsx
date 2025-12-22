@@ -163,30 +163,29 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           </motion.button>
         </div>
 
-        <CardContent className="p-3 md:p-4">
-          <div className="flex items-start justify-between mb-1 md:mb-1.5 gap-2">
-            <div className="flex-1 overflow-hidden">
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors truncate">
-                  {walker.walker_name}
-                </h3>
-                {(walker.is_verified || walker.verification_status === 'verified') && (
-                  <svg 
-                    viewBox="0 0 22 22" 
-                    className="w-4 h-4 flex-shrink-0"
-                    fill="none"
-                  >
-                    <circle cx="11" cy="11" r="10" fill="#3b82f6"/>
-                    <path 
-                      d="M8 11l2.5 2.5L14.5 8" 
-                      stroke="white" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
+        <CardContent className="p-3 md:p-4 space-y-2">
+          {/* Nome e Rating */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors truncate">
+                {walker.walker_name}
+              </h3>
+              {(walker.is_verified || walker.verification_status === 'verified') && (
+                <svg 
+                  viewBox="0 0 22 22" 
+                  className="w-4 h-4 flex-shrink-0"
+                  fill="none"
+                >
+                  <circle cx="11" cy="11" r="10" fill="#3b82f6"/>
+                  <path 
+                    d="M8 11l2.5 2.5L14.5 8" 
+                    stroke="white" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
             </div>
             {(walker.rating > 0 && walker.total_walks > 0) ? (
               <div className="flex items-center gap-0.5 bg-yellow-50 px-1.5 py-0.5 rounded-lg flex-shrink-0">
@@ -194,80 +193,83 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
                 <span className="font-bold text-xs">{walker.rating.toFixed(1)}</span>
               </div>
             ) : (
-              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0 text-[10px] px-1.5 py-0.5">
+              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0 text-[10px] px-1.5 py-0.5 flex-shrink-0">
                 Novo
               </Badge>
             )}
           </div>
 
-          <div className="flex items-center text-gray-600 text-xs mb-1 overflow-hidden">
+          {/* Localização */}
+          <div className="flex items-center text-gray-600 text-xs min-w-0">
             <MapPin className="w-3 h-3 mr-1 text-green-600 flex-shrink-0" />
             <span className="truncate flex-1">{walker.location}</span>
             {distance !== null && distance !== undefined && (
-              <span className="text-blue-600 font-semibold ml-1">• {distance.toFixed(1)}km</span>
+              <span className="text-blue-600 font-semibold ml-1.5 flex-shrink-0">• {distance.toFixed(1)}km</span>
             )}
           </div>
 
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs text-gray-600">
+          {/* Passeios e Preço */}
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-600 flex-shrink-0">
               <span className="font-semibold text-gray-900">{walker.total_walks || 0}</span> passeios
             </div>
-            <div className="flex items-center gap-0.5 text-green-600 font-bold text-base">
-              <span>€{walker.hourly_rate}</span>
+            <div className="flex items-center gap-0.5 text-green-600 font-bold flex-shrink-0">
+              <span className="text-base">€{walker.hourly_rate}</span>
               <span className="text-[10px] text-gray-500">/h</span>
             </div>
           </div>
 
+          {/* Bio */}
           {walker.bio && (
-            <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+            <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed">
               {walker.bio}
             </p>
           )}
 
+          {/* Serviços */}
           {walker.services_offered && walker.services_offered.length > 0 && (
-            <div className="mb-1.5">
-              <div className="flex flex-wrap gap-1">
-                {walker.services_offered.slice(0, 3).map((service, idx) => {
-                  const quickIcons = {
-                    boarding: '🏠',
-                    house_sitting: '🏡',
-                    drop_in_feeding: '🚪'
-                  };
-                  const isQuick = !!service.service_type;
-                  
-                  return (
-                    <Badge 
-                      key={idx} 
-                      variant="outline" 
-                      className={`text-[9px] px-1 py-0 ${isQuick ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-gray-200'}`}
-                      onClick={(e) => {
-                        if (isQuick) {
-                          e.stopPropagation();
-                          navigate(createPageUrl(`WalkerDetails?id=${walker.id}&service=${service.service_type}`));
-                        }
-                      }}
-                    >
-                      {isQuick && <span className="mr-0.5">{quickIcons[service.service_type]}</span>}
-                      {service.service_name}
-                    </Badge>
-                  );
-                })}
-                {walker.services_offered.length > 3 && (
-                  <Badge variant="outline" className="text-[9px] px-1 py-0">+{walker.services_offered.length - 3}</Badge>
-                )}
-              </div>
+            <div className="flex flex-wrap gap-1">
+              {walker.services_offered.slice(0, 3).map((service, idx) => {
+                const quickIcons = {
+                  boarding: '🏠',
+                  house_sitting: '🏡',
+                  drop_in_feeding: '🚪'
+                };
+                const isQuick = !!service.service_type;
+                
+                return (
+                  <Badge 
+                    key={idx} 
+                    variant="outline" 
+                    className={`text-[9px] px-1.5 py-0.5 whitespace-nowrap ${isQuick ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-gray-200'}`}
+                    onClick={(e) => {
+                      if (isQuick) {
+                        e.stopPropagation();
+                        navigate(createPageUrl(`WalkerDetails?id=${walker.id}&service=${service.service_type}`));
+                      }
+                    }}
+                  >
+                    {isQuick && <span className="mr-0.5">{quickIcons[service.service_type]}</span>}
+                    <span className="truncate max-w-[80px]">{service.service_name}</span>
+                  </Badge>
+                );
+              })}
+              {walker.services_offered.length > 3 && (
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 whitespace-nowrap">+{walker.services_offered.length - 3}</Badge>
+              )}
             </div>
           )}
 
+          {/* Tamanhos de Cães */}
           {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
+            <div className="flex flex-wrap gap-1">
               {walker.dog_sizes.slice(0, 3).map(size => (
-                <Badge key={size} variant="outline" className="text-[9px] capitalize px-1 py-0">
+                <Badge key={size} variant="outline" className="text-[9px] capitalize px-1.5 py-0.5 whitespace-nowrap">
                   {size.replace('_', ' ')}
                 </Badge>
               ))}
               {walker.dog_sizes.length > 3 && (
-                <Badge variant="outline" className="text-[9px] px-1 py-0">+{walker.dog_sizes.length - 3}</Badge>
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 whitespace-nowrap">+{walker.dog_sizes.length - 3}</Badge>
               )}
             </div>
           )}
