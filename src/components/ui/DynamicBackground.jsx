@@ -18,28 +18,28 @@ export default function DynamicBackground() {
 
   const isLoggedIn = !!user;
 
-  // If not logged in, show green light background with effects
+  // If not logged in, show mint/sage green background (distinct from button greens)
   if (!isLoggedIn) {
     return (
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-br from-green-50 via-emerald-100 to-teal-50">
-        {/* Animated green orbs for non-logged users */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-br from-[#f0fdf4] via-[#e6f7ed] to-[#d1f5e0]">
+        {/* Animated sage/mint orbs for non-logged users */}
         <div className="absolute inset-0 animate-spin-slow">
           <div 
-            className="absolute top-[10%] left-[15%] w-[90vw] h-[90vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-50 animate-blob-1"
-            style={{ backgroundColor: '#86efac', transition: 'background-color 1s ease' }}
+            className="absolute top-[10%] left-[15%] w-[90vw] h-[90vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-40 animate-blob-1"
+            style={{ backgroundColor: '#a7f3d0', transition: 'background-color 1s ease' }}
           />
           <div 
-            className="absolute bottom-[15%] right-[10%] w-[85vw] h-[85vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-50 animate-blob-2"
-            style={{ backgroundColor: '#6ee7b7', transition: 'background-color 1s ease' }}
+            className="absolute bottom-[15%] right-[10%] w-[85vw] h-[85vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-45 animate-blob-2"
+            style={{ backgroundColor: '#bbf7d0', transition: 'background-color 1s ease' }}
           />
           <div 
-            className="absolute top-[40%] left-[40%] w-[95vw] h-[95vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-40 animate-blob-3"
-            style={{ backgroundColor: '#34d399', transition: 'background-color 1s ease' }}
+            className="absolute top-[40%] left-[40%] w-[95vw] h-[95vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-35 animate-blob-3"
+            style={{ backgroundColor: '#d1fae5', transition: 'background-color 1s ease' }}
           />
         </div>
         
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-green-100/30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-[#ecfdf5]/40" />
       </div>
     );
   }
