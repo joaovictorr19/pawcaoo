@@ -132,18 +132,15 @@ export default function AvailabilityCalendar({
             const { status, count } = getDateStatus(date);
             const isSelected = selectedDate && isSameDay(date, selectedDate);
 
-            // In interactive mode (professional dashboard), allow clicking on:
-            // - day_off (to remove it)
-            // - available days (to mark day off)
-            // - unavailable days (to mark day off)
-            // DON'T allow clicking on past or days with bookings
-            
             const isPastDay = status === 'past';
             const hasBookingsDay = status === 'accepted' || status === 'pending' || status === 'booked' || status === 'partial';
             
+            // In interactive mode: allow any non-past day without bookings
             const isClickable = isInteractive 
               ? (!isPastDay && !hasBookingsDay) 
-              : (status !== 'past' && status !== 'day_off' && status !== 'booked'); 
+              : (status !== 'past' && status !== 'day_off' && status !== 'booked');
+            
+            console.log('Day:', format(date, 'dd'), 'Status:', status, 'Clickable:', isClickable, 'Interactive:', isInteractive); 
             
             return (
               <button
