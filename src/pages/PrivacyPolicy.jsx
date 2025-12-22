@@ -1,174 +1,268 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, CheckCircle, Shield } from "lucide-react";
+import { Shield, Lock, Eye, Trash2, Cookie, Globe } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function PrivacyPolicy() {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   const content = {
     pt: {
       title: "Política de Privacidade",
-      lastUpdated: "Última atualização: 22 de Dezembro de 2024",
-      intro: "A PawCão está comprometida em proteger a sua privacidade. Esta Política de Privacidade explica como recolhemos, usamos, divulgamos e protegemos as suas informações pessoais em conformidade com o Regulamento Geral de Proteção de Dados (RGPD).",
+      lastUpdated: "Última atualização: 22 de Dezembro de 2025",
+      selectLanguage: "Selecionar idioma",
+      intro: "A PawCão está comprometida com a proteção dos seus dados pessoais. Esta Política de Privacidade explica como recolhemos, utilizamos e protegemos as suas informações, em total conformidade com o Regulamento Geral de Proteção de Dados (RGPD) da União Europeia.",
       sections: [
         {
-          title: "1. Informações que Recolhemos",
-          content: "**Informações de Conta:**\n• Nome completo\n• Endereço de email\n• Número de telefone\n• Morada\n• Fotografia de perfil\n\n**Informações de Pagamento:**\n• Detalhes de cartão de crédito/débito (processados via Stripe)\n• Histórico de transações\n• Informações bancárias (para profissionais)\n\n**Informações do Cão:**\n• Nome, raça, idade, tamanho\n• Informações médicas e comportamentais\n• Fotografias\n\n**Dados de Uso:**\n• Endereço IP\n• Tipo de navegador\n• Páginas visitadas\n• Localização GPS (durante passeios)\n• Cookies e tecnologias similares"
+          title: "1. Dados que Recolhemos",
+          icon: Eye,
+          content: "**Dados de Identidade:**\n• Nome completo\n• Endereço de email\n• Número de telefone\n• Fotografia de perfil (opcional)\n• Documento de identificação (apenas para profissionais)\n\n**Dados do Animal:**\n• Nome, raça, idade e peso\n• Fotografias\n• Histórico de saúde e vacinação\n• Comportamento e necessidades especiais\n\n**Dados de Geolocalização:**\n• Localização em tempo real APENAS durante a utilização ativa do serviço de passeio\n• Utilizados exclusivamente para o mapa de rastreamento do passeio\n• Não são armazenados após conclusão do serviço (apenas rota histórica)\n\n**Dados de Pagamento:**\n• Processados de forma encriptada através de parceiros certificados (Stripe)\n• A PawCão NÃO armazena dados completos de cartão de crédito\n• Apenas últimos 4 dígitos para identificação"
         },
         {
-          title: "2. Como Usamos as Suas Informações",
-          content: "Utilizamos os seus dados para:\n• Fornecer e melhorar os nossos serviços\n• Processar reservas e pagamentos\n• Facilitar comunicação entre utilizadores\n• Enviar notificações e atualizações\n• Prevenir fraude e garantir segurança\n• Cumprir obrigações legais\n• Análise e melhoria da plataforma\n• Marketing (com o seu consentimento)"
+          title: "2. Finalidade do Tratamento",
+          icon: Shield,
+          content: "Os seus dados são utilizados exclusivamente para:\n\n**Execução do Serviço:**\n• Criar e gerir a sua conta\n• Conectar donos de animais com profissionais\n• Processar pagamentos de forma segura\n• Permitir rastreamento GPS durante passeios\n• Enviar notificações sobre reservas e serviços\n\n**Segurança da Plataforma:**\n• Verificar identidade de profissionais\n• Prevenir fraudes e abusos\n• Resolver disputas entre utilizadores\n\n**Comunicação:**\n• Responder a questões de suporte\n• Enviar atualizações importantes sobre o serviço\n• Newsletter (apenas com consentimento explícito)\n\n**IMPORTANTE:** NÃO vendemos, alugamos ou partilhamos os seus dados pessoais com terceiros para fins publicitários ou de marketing."
         },
         {
-          title: "3. Partilha de Informações",
-          content: "Partilhamos as suas informações apenas quando necessário:\n\n**Com Profissionais:** Nome, telefone, morada, informações do cão (para prestação do serviço)\n\n**Com Processadores de Pagamento:** Stripe (para processar transações seguras)\n\n**Com Autoridades:** Quando exigido por lei ou regulamentação fiscal (ex: declarações CESU em França)\n\n**Com Parceiros da Loja:** Informações de envio para entrega de produtos\n\n**Nunca vendemos** os seus dados pessoais a terceiros para fins de marketing."
+          title: "3. Partilha de Dados",
+          icon: Lock,
+          content: "Os seus dados podem ser partilhados apenas com:\n\n**Outros Utilizadores da Plataforma:**\n• Profissionais veem dados necessários para prestar o serviço\n• Donos veem dados de contacto do profissional após confirmação\n\n**Prestadores de Serviços Técnicos:**\n• Processadores de pagamento (Stripe)\n• Serviços de hosting (infraestrutura cloud)\n• Serviços de email transacional\n\n**Autoridades Legais:**\n• Apenas quando legalmente obrigados por ordem judicial\n• Será notificado sempre que legalmente possível\n\nTodos os terceiros são obrigados contratualmente a proteger os seus dados conforme o RGPD."
         },
         {
-          title: "4. Direitos RGPD",
-          content: "Ao abrigo do RGPD, você tem direito a:\n\n✓ **Acesso:** Solicitar cópia dos seus dados\n✓ **Retificação:** Corrigir dados incorretos\n✓ **Apagamento:** Solicitar eliminação dos seus dados\n✓ **Portabilidade:** Receber dados em formato estruturado\n✓ **Oposição:** Opor-se ao processamento\n✓ **Restrição:** Limitar o processamento\n✓ **Retirar Consentimento:** A qualquer momento\n\nPara exercer estes direitos: privacy@pawcao.pt"
+          title: "4. Os Seus Direitos (RGPD)",
+          icon: Shield,
+          content: "Enquanto titular dos dados, tem os seguintes direitos:\n\n**Direito de Acesso:**\nPode solicitar uma cópia de todos os dados que temos sobre si.\n\n**Direito de Retificação:**\nPode corrigir dados incorretos ou desatualizados a qualquer momento.\n\n**Direito ao Esquecimento (Apagar):**\nPode solicitar a eliminação completa da sua conta e todos os dados associados. Processamos pedidos em até 30 dias.\n\n**Direito à Portabilidade:**\nPode solicitar os seus dados num formato estruturado e legível por máquina.\n\n**Direito de Oposição:**\nPode opor-se ao tratamento dos seus dados para fins específicos.\n\n**Direito de Limitação:**\nPode solicitar a limitação do tratamento em determinadas circunstâncias.\n\n**Para exercer estes direitos:** Contacte support@pawcao.net ou utilize as opções em Definições da Conta."
         },
         {
           title: "5. Segurança dos Dados",
-          content: "Implementamos medidas de segurança rigorosas:\n• Encriptação SSL/TLS para transmissão de dados\n• Encriptação de dados sensíveis em repouso\n• Autenticação de dois fatores (disponível)\n• Acesso restrito aos dados pessoais\n• Auditorias de segurança regulares\n• Servidores em data centers certificados na UE"
+          icon: Lock,
+          content: "Implementamos medidas técnicas e organizacionais robustas:\n\n• Encriptação SSL/TLS em todas as comunicações\n• Encriptação de dados sensíveis em repouso\n• Autenticação segura com hash de passwords\n• Monitorização contínua de acessos\n• Backups regulares com encriptação\n• Acesso restrito a dados pessoais (princípio do mínimo privilégio)\n• Auditorias de segurança regulares"
         },
         {
           title: "6. Retenção de Dados",
-          content: "Retemos os seus dados pelo tempo necessário:\n• **Dados de conta:** Enquanto a conta estiver ativa\n• **Dados de transação:** 7 anos (requisito legal)\n• **Dados de comunicação:** 2 anos\n• **Dados de marketing:** Até retirar consentimento\n\nApós eliminação da conta, anonimizamos ou eliminamos dados em 30 dias, exceto quando exigido por lei."
+          icon: Trash2,
+          content: "Mantemos os seus dados apenas pelo tempo necessário:\n\n**Conta Ativa:**\nDados mantidos enquanto a conta estiver ativa.\n\n**Após Eliminação de Conta:**\n• Dados pessoais: eliminados em 30 dias\n• Dados financeiros: mantidos 7 anos (obrigação legal fiscal)\n• Dados de litígio: mantidos até resolução\n\n**Dados de Geolocalização:**\n• Rastreamento em tempo real: não armazenado\n• Rota histórica do passeio: mantida para referência do dono"
         },
         {
           title: "7. Cookies",
-          content: "Usamos cookies para:\n• Funcionalidade essencial da plataforma\n• Análise de uso (Google Analytics)\n• Preferências de utilizador\n• Segurança e prevenção de fraude\n\nPode gerir preferências de cookies nas configurações do navegador. Ver Política de Cookies para detalhes."
+          icon: Cookie,
+          content: "Utilizamos cookies de forma limitada:\n\n**Estritamente Necessários:**\n• Autenticação e sessão de login\n• Preferências de idioma\n• Segurança (CSRF protection)\n\n**Funcionais (com consentimento):**\n• Lembrar preferências de pesquisa\n• Melhorar experiência de navegação\n\n**NÃO utilizamos:**\n• Cookies de rastreamento publicitário\n• Cookies de terceiros para marketing\n\nPode gerir as suas preferências de cookies nas definições do browser."
         },
         {
           title: "8. Transferências Internacionais",
-          content: "Os seus dados são armazenados principalmente em servidores na União Europeia. Quando transferimos dados para fora da UE, garantimos salvaguardas adequadas conforme RGPD (cláusulas contratuais padrão)."
+          icon: Globe,
+          content: "Os seus dados são processados principalmente na União Europeia. Quando transferências para fora da UE são necessárias (ex: serviços cloud), garantimos:\n\n• Cláusulas contratuais padrão da UE\n• Certificação de adequação do país de destino\n• Medidas de segurança adicionais conforme necessário"
         },
         {
           title: "9. Menores de Idade",
-          content: "A PawCão não se destina a menores de 18 anos. Não recolhemos intencionalmente informações de menores. Se tomar conhecimento de que recolhemos dados de um menor, contacte-nos para remoção imediata."
+          icon: Shield,
+          content: "A PawCão não se destina a menores de 18 anos. Não recolhemos intencionalmente dados de menores. Se descobrirmos que recolhemos dados de um menor, eliminaremos imediatamente essa informação."
         },
         {
-          title: "10. Alterações a Esta Política",
-          content: "Podemos atualizar esta política periodicamente. Notificaremos sobre alterações significativas por email ou através da plataforma. A data da última atualização está no topo desta página."
+          title: "10. Alterações a esta Política",
+          icon: Eye,
+          content: "Podemos atualizar esta política periodicamente. Notificaremos sobre alterações significativas através de:\n\n• Email para utilizadores registados\n• Aviso destacado na plataforma\n• Atualização da data de revisão\n\nRecomendamos a revisão periódica desta política."
         },
         {
-          title: "11. Direito ao Esquecimento",
-          content: "Você pode apagar a sua conta e todos os dados pessoais a qualquer momento através das configurações da conta ou contactando-nos em privacy@pawcao.pt.\n\nApós solicitação, eliminamos todos os dados pessoais em até 30 dias, exceto dados obrigatórios por lei (transações fiscais - 7 anos)."
-        },
-        {
-          title: "12. Contacto",
-          content: "Para questões sobre privacidade:\n\n**Encarregado de Proteção de Dados:**\nEmail: dpo@pawcao.pt\nTelefone: +351 21 123 4567\nMorada: Rua Exemplo 123, 1000-000 Lisboa, Portugal\n\n**Autoridade de Supervisão:**\nCNPD - Comissão Nacional de Proteção de Dados\nwww.cnpd.pt"
+          title: "11. Contacto e DPO",
+          icon: Shield,
+          content: "Para questões sobre privacidade ou exercício dos seus direitos:\n\n**Email:** support@pawcao.net\n\n**Autoridade de Controlo:**\nTem o direito de apresentar reclamação à autoridade de proteção de dados do seu país:\n• Portugal: CNPD (www.cnpd.pt)\n• Espanha: AEPD (www.aepd.es)\n• França: CNIL (www.cnil.fr)"
         }
       ]
     },
     en: {
       title: "Privacy Policy",
-      lastUpdated: "Last updated: December 22, 2024",
-      intro: "PawCão is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and protect your personal information in compliance with the General Data Protection Regulation (GDPR).",
+      lastUpdated: "Last updated: December 22, 2025",
+      selectLanguage: "Select language",
+      intro: "PawCão is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information, in full compliance with the European Union's General Data Protection Regulation (GDPR).",
       sections: [
         {
-          title: "1. Information We Collect",
-          content: "**Account Information:**\n• Full name\n• Email address\n• Phone number\n• Address\n• Profile photo\n\n**Payment Information:**\n• Credit/debit card details (processed via Stripe)\n• Transaction history\n• Bank information (for professionals)\n\n**Dog Information:**\n• Name, breed, age, size\n• Medical and behavioral information\n• Photos\n\n**Usage Data:**\n• IP address\n• Browser type\n• Pages visited\n• GPS location (during walks)\n• Cookies and similar technologies"
+          title: "1. Data We Collect",
+          icon: Eye,
+          content: "**Identity Data:**\n• Full name\n• Email address\n• Phone number\n• Profile photo (optional)\n• Identification document (professionals only)\n\n**Pet Data:**\n• Name, breed, age, and weight\n• Photos\n• Health and vaccination history\n• Behavior and special needs\n\n**Geolocation Data:**\n• Real-time location ONLY during active use of the walking service\n• Used exclusively for the walk tracking map\n• Not stored after service completion (only historical route)\n\n**Payment Data:**\n• Processed encrypted through certified partners (Stripe)\n• PawCão does NOT store complete credit card data\n• Only last 4 digits for identification"
         },
         {
-          title: "2. How We Use Your Information",
-          content: "We use your data to:\n• Provide and improve our services\n• Process bookings and payments\n• Facilitate communication between users\n• Send notifications and updates\n• Prevent fraud and ensure security\n• Comply with legal obligations\n• Platform analysis and improvement\n• Marketing (with your consent)"
+          title: "2. Purpose of Processing",
+          icon: Shield,
+          content: "Your data is used exclusively for:\n\n**Service Execution:**\n• Create and manage your account\n• Connect pet owners with professionals\n• Process payments securely\n• Enable GPS tracking during walks\n• Send notifications about bookings and services\n\n**Platform Security:**\n• Verify professional identity\n• Prevent fraud and abuse\n• Resolve disputes between users\n\n**Communication:**\n• Respond to support questions\n• Send important service updates\n• Newsletter (only with explicit consent)\n\n**IMPORTANT:** We do NOT sell, rent, or share your personal data with third parties for advertising or marketing purposes."
         },
         {
-          title: "3. Information Sharing",
-          content: "We share your information only when necessary:\n\n**With Professionals:** Name, phone, address, dog information (for service provision)\n\n**With Payment Processors:** Stripe (to process secure transactions)\n\n**With Authorities:** When required by law or tax regulation (e.g., CESU declarations in France)\n\n**With Shop Partners:** Shipping information for product delivery\n\n**We never sell** your personal data to third parties for marketing purposes."
+          title: "3. Data Sharing",
+          icon: Lock,
+          content: "Your data may only be shared with:\n\n**Other Platform Users:**\n• Professionals see data necessary to provide the service\n• Owners see professional's contact data after confirmation\n\n**Technical Service Providers:**\n• Payment processors (Stripe)\n• Hosting services (cloud infrastructure)\n• Transactional email services\n\n**Legal Authorities:**\n• Only when legally required by court order\n• You will be notified whenever legally possible\n\nAll third parties are contractually obligated to protect your data according to GDPR."
         },
         {
-          title: "4. GDPR Rights",
-          content: "Under GDPR, you have the right to:\n\n✓ **Access:** Request copy of your data\n✓ **Rectification:** Correct incorrect data\n✓ **Erasure:** Request deletion of your data\n✓ **Portability:** Receive data in structured format\n✓ **Object:** Object to processing\n✓ **Restriction:** Limit processing\n✓ **Withdraw Consent:** At any time\n\nTo exercise these rights: privacy@pawcao.pt"
+          title: "4. Your Rights (GDPR)",
+          icon: Shield,
+          content: "As a data subject, you have the following rights:\n\n**Right of Access:**\nYou can request a copy of all data we have about you.\n\n**Right to Rectification:**\nYou can correct incorrect or outdated data at any time.\n\n**Right to Erasure (Right to be Forgotten):**\nYou can request complete deletion of your account and all associated data. We process requests within 30 days.\n\n**Right to Portability:**\nYou can request your data in a structured, machine-readable format.\n\n**Right to Object:**\nYou can object to processing of your data for specific purposes.\n\n**Right to Restriction:**\nYou can request processing limitation in certain circumstances.\n\n**To exercise these rights:** Contact support@pawcao.net or use options in Account Settings."
         },
         {
           title: "5. Data Security",
-          content: "We implement strict security measures:\n• SSL/TLS encryption for data transmission\n• Encryption of sensitive data at rest\n• Two-factor authentication (available)\n• Restricted access to personal data\n• Regular security audits\n• Servers in certified EU data centers"
+          icon: Lock,
+          content: "We implement robust technical and organizational measures:\n\n• SSL/TLS encryption on all communications\n• Encryption of sensitive data at rest\n• Secure authentication with password hashing\n• Continuous access monitoring\n• Regular encrypted backups\n• Restricted access to personal data (least privilege principle)\n• Regular security audits"
         },
         {
           title: "6. Data Retention",
-          content: "We retain your data as long as necessary:\n• **Account data:** While account is active\n• **Transaction data:** 7 years (legal requirement)\n• **Communication data:** 2 years\n• **Marketing data:** Until consent withdrawn\n\nAfter account deletion, we anonymize or delete data within 30 days, except when required by law."
+          icon: Trash2,
+          content: "We keep your data only as long as necessary:\n\n**Active Account:**\nData maintained while the account is active.\n\n**After Account Deletion:**\n• Personal data: deleted within 30 days\n• Financial data: kept 7 years (legal tax obligation)\n• Litigation data: kept until resolution\n\n**Geolocation Data:**\n• Real-time tracking: not stored\n• Historical walk route: maintained for owner's reference"
         },
         {
           title: "7. Cookies",
-          content: "We use cookies for:\n• Essential platform functionality\n• Usage analysis (Google Analytics)\n• User preferences\n• Security and fraud prevention\n\nYou can manage cookie preferences in browser settings. See Cookie Policy for details."
+          icon: Cookie,
+          content: "We use cookies in a limited way:\n\n**Strictly Necessary:**\n• Authentication and login session\n• Language preferences\n• Security (CSRF protection)\n\n**Functional (with consent):**\n• Remember search preferences\n• Improve browsing experience\n\n**We do NOT use:**\n• Advertising tracking cookies\n• Third-party marketing cookies\n\nYou can manage your cookie preferences in browser settings."
         },
         {
           title: "8. International Transfers",
-          content: "Your data is primarily stored on servers in the European Union. When we transfer data outside the EU, we ensure adequate safeguards per GDPR (standard contractual clauses)."
+          icon: Globe,
+          content: "Your data is processed mainly in the European Union. When transfers outside the EU are necessary (e.g., cloud services), we ensure:\n\n• EU standard contractual clauses\n• Adequacy certification of destination country\n• Additional security measures as needed"
         },
         {
           title: "9. Minors",
-          content: "PawCão is not intended for individuals under 18. We do not intentionally collect information from minors. If you become aware we collected data from a minor, contact us for immediate removal."
+          icon: Shield,
+          content: "PawCão is not intended for minors under 18. We do not knowingly collect data from minors. If we discover we have collected data from a minor, we will immediately delete that information."
         },
         {
-          title: "10. Changes to This Policy",
-          content: "We may update this policy periodically. We will notify about significant changes via email or platform. The last update date is at the top of this page."
+          title: "10. Changes to this Policy",
+          icon: Eye,
+          content: "We may update this policy periodically. We will notify about significant changes through:\n\n• Email to registered users\n• Prominent notice on the platform\n• Update of the revision date\n\nWe recommend periodic review of this policy."
         },
         {
-          title: "11. Right to Erasure",
-          content: "You can delete your account and all personal data at any time through account settings or by contacting us at privacy@pawcao.pt.\n\nAfter request, we delete all personal data within 30 days, except data required by law (tax transactions - 7 years)."
-        },
-        {
-          title: "12. Contact",
-          content: "For privacy questions:\n\n**Data Protection Officer:**\nEmail: dpo@pawcao.pt\nPhone: +351 21 123 4567\nAddress: Rua Exemplo 123, 1000-000 Lisbon, Portugal\n\n**Supervisory Authority:**\nCNPD - Portuguese Data Protection Authority\nwww.cnpd.pt"
+          title: "11. Contact and DPO",
+          icon: Shield,
+          content: "For privacy questions or to exercise your rights:\n\n**Email:** support@pawcao.net\n\n**Supervisory Authority:**\nYou have the right to file a complaint with your country's data protection authority:\n• Portugal: CNPD (www.cnpd.pt)\n• Spain: AEPD (www.aepd.es)\n• France: CNIL (www.cnil.fr)"
         }
       ]
     },
     es: {
       title: "Política de Privacidad",
-      lastUpdated: "Última actualización: 22 de Diciembre de 2024",
-      intro: "PawCão está comprometido en proteger su privacidad. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos su información personal conforme al Reglamento General de Protección de Datos (RGPD).",
+      lastUpdated: "Última actualización: 22 de Diciembre de 2025",
+      selectLanguage: "Seleccionar idioma",
+      intro: "PawCão está comprometido con la protección de sus datos personales. Esta Política de Privacidad explica cómo recopilamos, utilizamos y protegemos su información, en total conformidad con el Reglamento General de Protección de Datos (RGPD) de la Unión Europea.",
       sections: [
         {
-          title: "1. Información que Recopilamos",
-          content: "**Información de Cuenta:**\n• Nombre completo\n• Dirección de correo electrónico\n• Número de teléfono\n• Dirección\n• Foto de perfil\n\n**Información de Pago:**\n• Detalles de tarjeta (procesados vía Stripe)\n• Historial de transacciones\n• Información bancaria (para profesionales)\n\n**Información del Perro:**\n• Nombre, raza, edad, tamaño\n• Información médica y comportamental\n• Fotografías\n\n**Datos de Uso:**\n• Dirección IP\n• Tipo de navegador\n• Páginas visitadas\n• Ubicación GPS (durante paseos)\n• Cookies y tecnologías similares"
+          title: "1. Datos que Recopilamos",
+          icon: Eye,
+          content: "**Datos de Identidad:**\n• Nombre completo\n• Dirección de email\n• Número de teléfono\n• Fotografía de perfil (opcional)\n• Documento de identificación (solo profesionales)\n\n**Datos del Animal:**\n• Nombre, raza, edad y peso\n• Fotografías\n• Historial de salud y vacunación\n• Comportamiento y necesidades especiales\n\n**Datos de Geolocalización:**\n• Ubicación en tiempo real SOLO durante el uso activo del servicio de paseo\n• Utilizados exclusivamente para el mapa de seguimiento del paseo\n• No se almacenan después de la finalización del servicio (solo ruta histórica)\n\n**Datos de Pago:**\n• Procesados de forma encriptada a través de socios certificados (Stripe)\n• PawCão NO almacena datos completos de tarjeta de crédito\n• Solo últimos 4 dígitos para identificación"
         },
         {
-          title: "2. Cómo Usamos Su Información",
-          content: "Utilizamos sus datos para:\n• Proporcionar y mejorar nuestros servicios\n• Procesar reservas y pagos\n• Facilitar comunicación entre usuarios\n• Enviar notificaciones y actualizaciones\n• Prevenir fraude y garantizar seguridad\n• Cumplir obligaciones legales\n• Análisis y mejora de la plataforma\n• Marketing (con su consentimiento)"
+          title: "2. Finalidad del Tratamiento",
+          icon: Shield,
+          content: "Sus datos se utilizan exclusivamente para:\n\n**Ejecución del Servicio:**\n• Crear y gestionar su cuenta\n• Conectar dueños de mascotas con profesionales\n• Procesar pagos de forma segura\n• Permitir seguimiento GPS durante paseos\n• Enviar notificaciones sobre reservas y servicios\n\n**Seguridad de la Plataforma:**\n• Verificar identidad de profesionales\n• Prevenir fraudes y abusos\n• Resolver disputas entre usuarios\n\n**Comunicación:**\n• Responder a preguntas de soporte\n• Enviar actualizaciones importantes sobre el servicio\n• Newsletter (solo con consentimiento explícito)\n\n**IMPORTANTE:** NO vendemos, alquilamos ni compartimos sus datos personales con terceros para fines publicitarios o de marketing."
         },
         {
-          title: "3. Compartir Información",
-          content: "Compartimos su información solo cuando sea necesario:\n\n**Con Profesionales:** Nombre, teléfono, dirección, información del perro (para servicio)\n\n**Con Procesadores de Pago:** Stripe (para procesar transacciones seguras)\n\n**Con Autoridades:** Cuando la ley o regulación fiscal lo requiera (ej: declaraciones CESU en Francia)\n\n**Con Socios de Tienda:** Información de envío para entrega de productos\n\n**Nunca vendemos** sus datos personales a terceros para fines de marketing."
+          title: "3. Compartición de Datos",
+          icon: Lock,
+          content: "Sus datos pueden compartirse solo con:\n\n**Otros Usuarios de la Plataforma:**\n• Los profesionales ven datos necesarios para prestar el servicio\n• Los dueños ven datos de contacto del profesional tras confirmación\n\n**Proveedores de Servicios Técnicos:**\n• Procesadores de pago (Stripe)\n• Servicios de hosting (infraestructura cloud)\n• Servicios de email transaccional\n\n**Autoridades Legales:**\n• Solo cuando legalmente requerido por orden judicial\n• Será notificado siempre que sea legalmente posible\n\nTodos los terceros están obligados contractualmente a proteger sus datos según el RGPD."
         },
         {
-          title: "4. Derechos RGPD",
-          content: "Bajo el RGPD, tiene derecho a:\n\n✓ **Acceso:** Solicitar copia de sus datos\n✓ **Rectificación:** Corregir datos incorrectos\n✓ **Supresión:** Solicitar eliminación de datos\n✓ **Portabilidad:** Recibir datos en formato estructurado\n✓ **Oposición:** Oponerse al procesamiento\n✓ **Restricción:** Limitar el procesamiento\n✓ **Retirar Consentimiento:** En cualquier momento\n\nPara ejercer estos derechos: privacy@pawcao.pt"
+          title: "4. Sus Derechos (RGPD)",
+          icon: Shield,
+          content: "Como titular de los datos, tiene los siguientes derechos:\n\n**Derecho de Acceso:**\nPuede solicitar una copia de todos los datos que tenemos sobre usted.\n\n**Derecho de Rectificación:**\nPuede corregir datos incorrectos o desactualizados en cualquier momento.\n\n**Derecho al Olvido (Supresión):**\nPuede solicitar la eliminación completa de su cuenta y todos los datos asociados. Procesamos solicitudes en hasta 30 días.\n\n**Derecho a la Portabilidad:**\nPuede solicitar sus datos en un formato estructurado y legible por máquina.\n\n**Derecho de Oposición:**\nPuede oponerse al tratamiento de sus datos para fines específicos.\n\n**Derecho de Limitación:**\nPuede solicitar la limitación del tratamiento en determinadas circunstancias.\n\n**Para ejercer estos derechos:** Contacte support@pawcao.net o utilice las opciones en Configuración de Cuenta."
         },
         {
-          title: "5. Seguridad de Datos",
-          content: "Implementamos medidas de seguridad estrictas:\n• Cifrado SSL/TLS para transmisión de datos\n• Cifrado de datos sensibles en reposo\n• Autenticación de dos factores (disponible)\n• Acceso restringido a datos personales\n• Auditorías de seguridad regulares\n• Servidores en centros de datos certificados UE"
+          title: "5. Seguridad de los Datos",
+          icon: Lock,
+          content: "Implementamos medidas técnicas y organizativas robustas:\n\n• Encriptación SSL/TLS en todas las comunicaciones\n• Encriptación de datos sensibles en reposo\n• Autenticación segura con hash de contraseñas\n• Monitorización continua de accesos\n• Copias de seguridad regulares encriptadas\n• Acceso restringido a datos personales (principio de mínimo privilegio)\n• Auditorías de seguridad regulares"
         },
         {
           title: "6. Retención de Datos",
-          content: "Retenemos sus datos el tiempo necesario:\n• **Datos de cuenta:** Mientras la cuenta esté activa\n• **Datos de transacción:** 7 años (requisito legal)\n• **Datos de comunicación:** 2 años\n• **Datos de marketing:** Hasta retirar consentimiento\n\nTras eliminar cuenta, anonimizamos o eliminamos datos en 30 días, excepto cuando la ley lo requiera."
+          icon: Trash2,
+          content: "Mantenemos sus datos solo el tiempo necesario:\n\n**Cuenta Activa:**\nDatos mantenidos mientras la cuenta esté activa.\n\n**Después de Eliminación de Cuenta:**\n• Datos personales: eliminados en 30 días\n• Datos financieros: mantenidos 7 años (obligación legal fiscal)\n• Datos de litigio: mantenidos hasta resolución\n\n**Datos de Geolocalización:**\n• Seguimiento en tiempo real: no almacenado\n• Ruta histórica del paseo: mantenida para referencia del dueño"
         },
         {
           title: "7. Cookies",
-          content: "Usamos cookies para:\n• Funcionalidad esencial de la plataforma\n• Análisis de uso (Google Analytics)\n• Preferencias de usuario\n• Seguridad y prevención de fraude\n\nPuede gestionar preferencias de cookies en configuración del navegador. Ver Política de Cookies para detalles."
+          icon: Cookie,
+          content: "Utilizamos cookies de forma limitada:\n\n**Estrictamente Necesarias:**\n• Autenticación y sesión de login\n• Preferencias de idioma\n• Seguridad (protección CSRF)\n\n**Funcionales (con consentimiento):**\n• Recordar preferencias de búsqueda\n• Mejorar experiencia de navegación\n\n**NO utilizamos:**\n• Cookies de seguimiento publicitario\n• Cookies de terceros para marketing\n\nPuede gestionar sus preferencias de cookies en la configuración del navegador."
         },
         {
           title: "8. Transferencias Internacionales",
-          content: "Sus datos se almacenan principalmente en servidores en la Unión Europea. Cuando transferimos datos fuera de la UE, garantizamos salvaguardias adecuadas según RGPD (cláusulas contractuales estándar)."
+          icon: Globe,
+          content: "Sus datos se procesan principalmente en la Unión Europea. Cuando son necesarias transferencias fuera de la UE (ej: servicios cloud), garantizamos:\n\n• Cláusulas contractuales estándar de la UE\n• Certificación de adecuación del país de destino\n• Medidas de seguridad adicionales según sea necesario"
         },
         {
           title: "9. Menores de Edad",
-          content: "PawCão no está destinado a menores de 18 años. No recopilamos intencionalmente información de menores. Si tiene conocimiento de que recopilamos datos de un menor, contáctenos para eliminación inmediata."
+          icon: Shield,
+          content: "PawCão no está destinado a menores de 18 años. No recopilamos intencionalmente datos de menores. Si descubrimos que hemos recopilado datos de un menor, eliminaremos inmediatamente esa información."
         },
         {
-          title: "10. Cambios a Esta Política",
-          content: "Podemos actualizar esta política periódicamente. Notificaremos sobre cambios significativos por correo o plataforma. La fecha de última actualización está al inicio de esta página."
+          title: "10. Cambios en esta Política",
+          icon: Eye,
+          content: "Podemos actualizar esta política periódicamente. Notificaremos sobre cambios significativos a través de:\n\n• Email a usuarios registrados\n• Aviso destacado en la plataforma\n• Actualización de la fecha de revisión\n\nRecomendamos la revisión periódica de esta política."
         },
         {
-          title: "11. Derecho al Olvido",
-          content: "Puede eliminar su cuenta y todos los datos personales en cualquier momento a través de la configuración de cuenta o contactándonos en privacy@pawcao.pt.\n\nTras la solicitud, eliminamos todos los datos personales en hasta 30 días, excepto datos requeridos por ley (transacciones fiscales - 7 años)."
+          title: "11. Contacto y DPO",
+          icon: Shield,
+          content: "Para preguntas sobre privacidad o ejercicio de sus derechos:\n\n**Email:** support@pawcao.net\n\n**Autoridad de Control:**\nTiene derecho a presentar una reclamación ante la autoridad de protección de datos de su país:\n• Portugal: CNPD (www.cnpd.pt)\n• España: AEPD (www.aepd.es)\n• Francia: CNIL (www.cnil.fr)"
+        }
+      ]
+    },
+    fr: {
+      title: "Politique de Confidentialité",
+      lastUpdated: "Dernière mise à jour : 22 Décembre 2025",
+      selectLanguage: "Sélectionner la langue",
+      intro: "PawCão s'engage à protéger vos données personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons et protégeons vos informations, en pleine conformité avec le Règlement Général sur la Protection des Données (RGPD) de l'Union Européenne.",
+      sections: [
+        {
+          title: "1. Données que Nous Collectons",
+          icon: Eye,
+          content: "**Données d'Identité :**\n• Nom complet\n• Adresse email\n• Numéro de téléphone\n• Photo de profil (optionnel)\n• Document d'identité (professionnels uniquement)\n\n**Données de l'Animal :**\n• Nom, race, âge et poids\n• Photos\n• Historique de santé et vaccination\n• Comportement et besoins spéciaux\n\n**Données de Géolocalisation :**\n• Localisation en temps réel UNIQUEMENT pendant l'utilisation active du service de promenade\n• Utilisées exclusivement pour la carte de suivi de promenade\n• Non stockées après la fin du service (uniquement itinéraire historique)\n\n**Données de Paiement :**\n• Traitées de manière cryptée via des partenaires certifiés (Stripe)\n• PawCão NE stocke PAS les données complètes de carte de crédit\n• Uniquement les 4 derniers chiffres pour identification"
         },
         {
-          title: "12. Contacto",
-          content: "Para cuestiones de privacidad:\n\n**Oficial de Protección de Datos:**\nEmail: dpo@pawcao.pt\nTeléfono: +351 21 123 4567\nDirección: Rua Exemplo 123, 1000-000 Lisboa, Portugal\n\n**Autoridad de Supervisión:**\nCNPD - Comisión Nacional de Protección de Datos\nwww.cnpd.pt"
+          title: "2. Finalité du Traitement",
+          icon: Shield,
+          content: "Vos données sont utilisées exclusivement pour :\n\n**Exécution du Service :**\n• Créer et gérer votre compte\n• Connecter propriétaires d'animaux et professionnels\n• Traiter les paiements de manière sécurisée\n• Permettre le suivi GPS pendant les promenades\n• Envoyer des notifications sur les réservations et services\n\n**Sécurité de la Plateforme :**\n• Vérifier l'identité des professionnels\n• Prévenir les fraudes et abus\n• Résoudre les litiges entre utilisateurs\n\n**Communication :**\n• Répondre aux questions de support\n• Envoyer des mises à jour importantes sur le service\n• Newsletter (uniquement avec consentement explicite)\n\n**IMPORTANT :** Nous NE vendons, louons ou partageons PAS vos données personnelles avec des tiers à des fins publicitaires ou marketing."
+        },
+        {
+          title: "3. Partage des Données",
+          icon: Lock,
+          content: "Vos données ne peuvent être partagées qu'avec :\n\n**Autres Utilisateurs de la Plateforme :**\n• Les professionnels voient les données nécessaires pour fournir le service\n• Les propriétaires voient les données de contact du professionnel après confirmation\n\n**Prestataires de Services Techniques :**\n• Processeurs de paiement (Stripe)\n• Services d'hébergement (infrastructure cloud)\n• Services d'email transactionnel\n\n**Autorités Légales :**\n• Uniquement lorsque légalement requis par ordonnance du tribunal\n• Vous serez notifié chaque fois que légalement possible\n\nTous les tiers sont contractuellement obligés de protéger vos données conformément au RGPD."
+        },
+        {
+          title: "4. Vos Droits (RGPD)",
+          icon: Shield,
+          content: "En tant que personne concernée, vous avez les droits suivants :\n\n**Droit d'Accès :**\nVous pouvez demander une copie de toutes les données que nous avons sur vous.\n\n**Droit de Rectification :**\nVous pouvez corriger les données incorrectes ou obsolètes à tout moment.\n\n**Droit à l'Effacement (Droit à l'Oubli) :**\nVous pouvez demander la suppression complète de votre compte et de toutes les données associées. Nous traitons les demandes sous 30 jours.\n\n**Droit à la Portabilité :**\nVous pouvez demander vos données dans un format structuré et lisible par machine.\n\n**Droit d'Opposition :**\nVous pouvez vous opposer au traitement de vos données à des fins spécifiques.\n\n**Droit à la Limitation :**\nVous pouvez demander la limitation du traitement dans certaines circonstances.\n\n**Pour exercer ces droits :** Contactez support@pawcao.net ou utilisez les options dans les Paramètres du Compte."
+        },
+        {
+          title: "5. Sécurité des Données",
+          icon: Lock,
+          content: "Nous mettons en œuvre des mesures techniques et organisationnelles robustes :\n\n• Cryptage SSL/TLS sur toutes les communications\n• Cryptage des données sensibles au repos\n• Authentification sécurisée avec hachage des mots de passe\n• Surveillance continue des accès\n• Sauvegardes régulières cryptées\n• Accès restreint aux données personnelles (principe du moindre privilège)\n• Audits de sécurité réguliers"
+        },
+        {
+          title: "6. Conservation des Données",
+          icon: Trash2,
+          content: "Nous conservons vos données uniquement le temps nécessaire :\n\n**Compte Actif :**\nDonnées conservées tant que le compte est actif.\n\n**Après Suppression du Compte :**\n• Données personnelles : supprimées sous 30 jours\n• Données financières : conservées 7 ans (obligation légale fiscale)\n• Données de litige : conservées jusqu'à résolution\n\n**Données de Géolocalisation :**\n• Suivi en temps réel : non stocké\n• Itinéraire historique de promenade : conservé pour référence du propriétaire"
+        },
+        {
+          title: "7. Cookies",
+          icon: Cookie,
+          content: "Nous utilisons les cookies de manière limitée :\n\n**Strictement Nécessaires :**\n• Authentification et session de connexion\n• Préférences de langue\n• Sécurité (protection CSRF)\n\n**Fonctionnels (avec consentement) :**\n• Mémoriser les préférences de recherche\n• Améliorer l'expérience de navigation\n\n**Nous N'utilisons PAS :**\n• Cookies de suivi publicitaire\n• Cookies tiers pour le marketing\n\nVous pouvez gérer vos préférences de cookies dans les paramètres du navigateur."
+        },
+        {
+          title: "8. Transferts Internationaux",
+          icon: Globe,
+          content: "Vos données sont traitées principalement dans l'Union Européenne. Lorsque des transferts hors UE sont nécessaires (ex : services cloud), nous garantissons :\n\n• Clauses contractuelles standard de l'UE\n• Certification d'adéquation du pays de destination\n• Mesures de sécurité supplémentaires si nécessaire"
+        },
+        {
+          title: "9. Mineurs",
+          icon: Shield,
+          content: "PawCão n'est pas destiné aux mineurs de moins de 18 ans. Nous ne collectons pas sciemment de données de mineurs. Si nous découvrons que nous avons collecté des données d'un mineur, nous supprimerons immédiatement ces informations."
+        },
+        {
+          title: "10. Modifications de cette Politique",
+          icon: Eye,
+          content: "Nous pouvons mettre à jour cette politique périodiquement. Nous informerons des changements significatifs par :\n\n• Email aux utilisateurs enregistrés\n• Avis visible sur la plateforme\n• Mise à jour de la date de révision\n\nNous recommandons une révision périodique de cette politique."
+        },
+        {
+          title: "11. Contact et DPO",
+          icon: Shield,
+          content: "Pour les questions de confidentialité ou l'exercice de vos droits :\n\n**Email :** support@pawcao.net\n\n**Autorité de Contrôle :**\nVous avez le droit de déposer une plainte auprès de l'autorité de protection des données de votre pays :\n• Portugal : CNPD (www.cnpd.pt)\n• Espagne : AEPD (www.aepd.es)\n• France : CNIL (www.cnil.fr)"
         }
       ]
     }
@@ -176,11 +270,41 @@ export default function PrivacyPolicy() {
 
   const t = content[language] || content.pt;
 
+  const languages = [
+    { code: 'pt', name: 'Português', flag: '🇵🇹' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
+        {/* Language Selector */}
+        <div className="flex justify-end mb-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Globe className="w-4 h-4" />
+                {t.selectLanguage}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {languages.map((lang) => (
+                <DropdownMenuItem 
+                  key={lang.code} 
+                  onClick={() => setLanguage(lang.code)}
+                  className="cursor-pointer"
+                >
+                  {lang.flag} {lang.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <Card className="border-0 shadow-2xl mb-6">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
             <div className="flex items-center gap-3">
               <Lock className="w-8 h-8" />
               <div>
@@ -190,38 +314,68 @@ export default function PrivacyPolicy() {
             </div>
           </CardHeader>
           <CardContent className="p-6 md:p-8">
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-900">{t.intro}</p>
-              </div>
+            {/* Introduction */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-8">
+              <p className="text-blue-900 leading-relaxed">
+                {t.intro}
+              </p>
             </div>
 
-            <div className="space-y-6">
-              {t.sections.map((section, index) => (
-                <div key={index} className="border-b border-gray-200 pb-6 last:border-0">
-                  <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-blue-600" />
-                    {section.title}
-                  </h2>
-                  <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                    {section.content}
+            {/* Sections */}
+            <div className="space-y-8">
+              {t.sections.map((section, index) => {
+                const IconComponent = section.icon || Shield;
+                return (
+                  <div key={index} className="border-b border-gray-200 pb-6 last:border-0">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <IconComponent className="w-5 h-5 text-white" />
+                      </div>
+                      {section.title}
+                    </h2>
+                    <div className="text-gray-700 whitespace-pre-line leading-relaxed pl-13 ml-13 prose prose-sm max-w-none">
+                      {section.content.split('\n').map((line, i) => {
+                        if (line.startsWith('**') && line.endsWith('**')) {
+                          return <p key={i} className="font-bold text-gray-900 mt-4 mb-2">{line.replace(/\*\*/g, '')}</p>;
+                        }
+                        if (line.includes('**')) {
+                          const parts = line.split(/\*\*(.*?)\*\*/g);
+                          return (
+                            <p key={i} className="mb-1">
+                              {parts.map((part, j) => 
+                                j % 2 === 1 ? <strong key={j} className="text-gray-900">{part}</strong> : part
+                              )}
+                            </p>
+                          );
+                        }
+                        if (line.startsWith('•')) {
+                          return <p key={i} className="mb-1 ml-4">{line}</p>;
+                        }
+                        if (line.trim() === '') {
+                          return <br key={i} />;
+                        }
+                        return <p key={i} className="mb-2">{line}</p>;
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
+            {/* Final Note */}
             <div className="mt-8 bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
               <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <Lock className="w-5 h-5 text-purple-600" />
-                {language === 'pt' && 'Os Seus Dados, Os Seus Direitos'}
-                {language === 'en' && 'Your Data, Your Rights'}
-                {language === 'es' && 'Sus Datos, Sus Derechos'}
+                <Shield className="w-5 h-5 text-purple-600" />
+                {language === 'pt' && 'O Seu Compromisso com a Privacidade'}
+                {language === 'en' && 'Your Privacy Commitment'}
+                {language === 'es' && 'Su Compromiso con la Privacidad'}
+                {language === 'fr' && 'Votre Engagement de Confidentialité'}
               </h3>
               <p className="text-sm text-gray-700">
-                {language === 'pt' && 'A PawCão respeita a sua privacidade e cumpre rigorosamente o RGPD. Tem controlo total sobre os seus dados pessoais e pode exercer os seus direitos a qualquer momento.'}
-                {language === 'en' && 'PawCão respects your privacy and strictly complies with GDPR. You have full control over your personal data and can exercise your rights at any time.'}
-                {language === 'es' && 'PawCão respeta su privacidad y cumple estrictamente con el RGPD. Tiene control total sobre sus datos personales y puede ejercer sus derechos en cualquier momento.'}
+                {language === 'pt' && 'A PawCão trata a privacidade dos seus dados com a máxima seriedade. Se tiver qualquer dúvida ou preocupação, não hesite em contactar-nos.'}
+                {language === 'en' && 'PawCão treats your data privacy with the utmost seriousness. If you have any questions or concerns, do not hesitate to contact us.'}
+                {language === 'es' && 'PawCão trata la privacidad de sus datos con la máxima seriedad. Si tiene alguna duda o preocupación, no dude en contactarnos.'}
+                {language === 'fr' && 'PawCão traite la confidentialité de vos données avec le plus grand sérieux. Si vous avez des questions ou des préoccupations, n\'hésitez pas à nous contacter.'}
               </p>
             </div>
           </CardContent>
