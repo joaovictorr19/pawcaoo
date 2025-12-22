@@ -1596,60 +1596,6 @@ export default function ProfessionalDashboard() {
                       Baixar Agenda (.ics)
                     </Button>
                   </div>
-
-                <CardContent className="grid md:grid-cols-2 gap-4">
-                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                    <h4 className="font-semibold text-sm text-blue-900 mb-1 flex items-center gap-2">
-                      <Share2 className="w-4 h-4" /> Link de Agendamento
-                    </h4>
-                    <p className="text-xs text-blue-700 mb-2">Partilhe com clientes.</p>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        value={`${window.location.origin}${createPageUrl(walkerProfile ? 'WalkerDetails' : 'TrainerDetails')}?id=${profile?.id}`} 
-                        readOnly 
-                        className="bg-white text-xs h-8"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        className="h-8 px-2"
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}${createPageUrl(walkerProfile ? 'WalkerDetails' : 'TrainerDetails')}?id=${profile?.id}`);
-                          toast.success("Link copiado!");
-                        }}
-                      >
-                        Copiar
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg">
-                    <h4 className="font-semibold text-sm text-purple-900 mb-1 flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4" /> Exportar Agenda
-                    </h4>
-                    <p className="text-xs text-purple-700 mb-2">Google Calendar, Outlook, Apple.</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full bg-white text-xs h-8"
-                      onClick={() => {
-                        const events = allBookings
-                          .filter(b => b.status === 'confirmed')
-                          .map(bookingToEvent)
-                          .filter(e => e);
-                        if (events.length === 0) {
-                          toast.info("Nenhum agendamento para exportar.");
-                          return;
-                        }
-                        const icsContent = generateMultiICS(events);
-                        downloadICS("pawcao_schedule.ics", icsContent);
-                        toast.success("Calendário exportado!");
-                      }}
-                    >
-                      <Download className="w-3 h-3 mr-2" />
-                      Baixar .ics
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             </div>
