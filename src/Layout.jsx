@@ -741,11 +741,12 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
           </div>
 
-          {/* Menu de Navegação Desktop - Apenas para usuários logados */}
-          {authUser && (
-            <nav className="flex items-center justify-center flex-1 px-4">
-              <div className="flex items-center gap-1 lg:gap-2">
-                {mainMenu.map((item) => (
+          {/* Menu de Navegação Desktop */}
+          <nav className="flex items-center justify-center flex-1 px-4">
+            <div className="flex items-center gap-1 lg:gap-2">
+              {authUser ? (
+                // Menu completo para usuários logados
+                mainMenu.map((item) => (
                   <Link
                     key={item.url}
                     id={item.id}
@@ -759,10 +760,54 @@ function LayoutContent({ children, currentPageName }) {
                     <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
                     <span className="hidden lg:inline">{item.title}</span>
                   </Link>
-                ))}
-              </div>
-            </nav>
-          )}
+                ))
+              ) : (
+                // Menu simplificado para visitantes (não logados)
+                <>
+                  <Link
+                    to={createPageUrl("Home")}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                      isRouteActive(createPageUrl("Home"))
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                  </Link>
+                  <Link
+                    to={createPageUrl("Partners")}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                      isRouteActive(createPageUrl("Partners"))
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Store className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
+                  </Link>
+                  <Link
+                    to={createPageUrl("AdoptionListings")}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                      isRouteActive(createPageUrl("AdoptionListings"))
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Heart className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}</span>
+                  </Link>
+                  <Link
+                    to={createPageUrl("PostEmergency")}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap text-red-600 bg-red-50 hover:bg-red-100`}
+                  >
+                    <Zap className="w-4 h-4 flex-shrink-0 text-red-500" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Emergência' : 'Emergency'}</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          </nav>
 
           {/* Ações Direita - Limpo, sem XP */}
           <div className="flex items-center gap-2 flex-shrink-0">
