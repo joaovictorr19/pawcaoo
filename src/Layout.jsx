@@ -541,7 +541,7 @@ function LayoutContent({ children, currentPageName }) {
         <meta property="og:site_name" content="PawCão" />
         <meta property="og:title" content="PawCão - O melhor cuidado para o seu animal" />
         <meta property="og:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em Portugal, Espanha e França. Rastreamento GPS e pagamentos seguros." />
-        <meta property="og:image" content={`${window.location.protocol}//${window.location.host}/social-preview.jpg`} />
+        <meta property="og:image" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:url" content={`${window.location.protocol}//${window.location.host}${window.location.pathname}`} />
@@ -553,7 +553,7 @@ function LayoutContent({ children, currentPageName }) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="PawCão - O melhor cuidado para o seu animal" />
         <meta name="twitter:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em PT, ES e FR." />
-        <meta name="twitter:image" content={`${window.location.protocol}//${window.location.host}/social-preview.jpg`} />
+        <meta name="twitter:image" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-9LBZ1D08FT"></script>
         <script>
