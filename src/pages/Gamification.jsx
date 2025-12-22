@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Trophy, Crown, Medal, Award, Lock, Sparkles, 
-  Star, TrendingUp, Users, ChevronRight, Dog
+  Star, TrendingUp, Users, ChevronRight, Dog, Wallet, Coins
 } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -24,6 +25,17 @@ export default function Gamification() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+  });
+
+  // Fetch wallet data for cashback display
+  const { data: userWallet } = useQuery({
+    queryKey: ['userWallet', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
+      return wallets[0] || null;
+    },
+    enabled: !!user?.email,
   });
 
   // Fetch all users for Global Ranking - UserProfile is single source of truth
@@ -291,10 +303,19 @@ export default function Gamification() {
 
   const currentConfig = rankingConfig[activeRanking];
 
+  // Donut chart data for level progress
+  const donutData = [
+    { name: 'Progresso', value: tierProgressPercentage, color: currentTier.primary },
+    { name: 'Restante', value: 100 - tierProgressPercentage, color: '#e5e7eb' }
+  ];
+
   return (
     <div className="min-h-screen pb-8 relative">
-    {/* 1. HERO SECTION - Professional */}
-    <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50 border-b border-gray-200">
+    {/* 1. HERO SECTION - Modern Transparent */}
+    <div className="relative overflow-hidden">
+        {/* Transparent glass background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-purple-50/30 to-blue-50/40 backdrop-blur-3xl"></div>
+        
         <div className="max-w-7xl mx-auto px-4 py-12 md:py-16 relative z-10">
           {/* Header Title - Professional with Context */}
           <motion.div 
@@ -324,10 +345,10 @@ export default function Gamification() {
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-4 items-stretch mb-8">
-            {/* Card 1: Tier com profundidade */}
+          <div className="grid md:grid-cols-4 gap-4 items-stretch mb-8">
+            {/* Card 1: Donut Chart de Nível - MODERNO */}
             <motion.div 
-              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl col-span-1"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -335,98 +356,134 @@ export default function Gamification() {
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
                    style={{ background: colors?.primary }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-16 h-16">
-                      <div className="absolute inset-0 blur-lg opacity-50" 
-                           style={{ background: colors?.primary }}></div>
-                      <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-4xl font-black text-white shadow-xl"
-                           style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}>
-                        {currentTier.icon}
-                      </div>
+                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                  <Star className="w-4 h-4" style={{ color: colors?.primary }} />
+                  Nível
+                </h3>
+                
+                {/* Donut Chart */}
+                <div className="relative w-32 h-32 mx-auto">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={donutData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={60}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        {donutData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  
+                  {/* Center Content */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-4xl mb-1">{currentTier.icon}</div>
+                    <div className="text-2xl font-black" style={{ color: colors?.primary }}>
+                      {currentLevel}
                     </div>
-                    <div>
-                      <h2 className="text-2xl font-black tracking-tight" style={{ color: colors?.primary }}>
-                        {currentTier.name}
-                      </h2>
-                      <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        Nível {currentLevel}
-                      </p>
-                    </div>
+                    <div className="text-[10px] text-gray-600 font-bold uppercase">Nível</div>
                   </div>
                 </div>
-                <div className="relative mt-4 text-center rounded-2xl p-4 overflow-hidden border border-gray-200">
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
-                  <div className="relative z-10">
-                    <div className="text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
-                      {currentXP.toLocaleString('pt-PT')}
-                    </div>
-                    <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">Experiência Total</div>
+
+                <div className="mt-4 text-center">
+                  <div className="text-sm font-bold" style={{ color: colors?.primary }}>
+                    {currentTier.name}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {Math.round(tierProgressPercentage)}% para Nv.{Math.min(100, currentLevel + 1)}
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Card 2: Progresso com efeitos */}
+            {/* Card 2: XP Total */}
+            <motion.div 
+              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
+                   style={{ background: colors?.primary }}></div>
+              <div className="relative z-10">
+                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                  <Sparkles className="w-4 h-4" style={{ color: colors?.primary }} />
+                  XP Total
+                </h3>
+                <div className="relative text-center rounded-2xl p-4 overflow-hidden border border-gray-200">
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
+                  <div className="relative z-10">
+                    <div className="text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
+                      {currentXP.toLocaleString('pt-PT')}
+                    </div>
+                    <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">Experiência</div>
+                  </div>
+                </div>
+                {xpRemainingForNextLevel > 0 && currentLevel < 100 && (
+                  <div className="mt-3 text-center">
+                    <div className="text-sm font-bold text-gray-700">
+                      +{xpRemainingForNextLevel.toLocaleString('pt-PT')} XP
+                    </div>
+                    <div className="text-xs text-gray-500">para próximo nível</div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Card 3: Cashback - IMPORTANTE */}
             <motion.div 
               className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 bg-blue-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 bg-green-500"></div>
               <div className="relative z-10">
                 <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
-                  <TrendingUp className="w-4 h-4" style={{ color: colors?.primary }} />
-                  Próximo Tier
+                  <Wallet className="w-4 h-4 text-green-600" />
+                  Cashback
                 </h3>
                 
-                <div className="space-y-4">
-                  <div className="relative">
-                    <div className="flex justify-between text-xs text-gray-600 mb-2 font-medium">
-                      <span>Nível {currentLevel} → {Math.min(100, currentLevel + 1)}</span>
-                      <span className="font-black">{Math.round(tierProgressPercentage)}%</span>
-                    </div>
-                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner relative">
-                      <motion.div 
-                        className="h-full rounded-full relative overflow-hidden"
-                        style={{ background: `linear-gradient(90deg, ${currentTier.orb2 || currentTier.primary}, ${currentTier.primary})` }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${tierProgressPercentage}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                      >
-                        <div className="absolute inset-0 bg-white opacity-30 animate-pulse"></div>
-                      </motion.div>
-                    </div>
-                  </div>
-                  
-                  {xpRemainingForNextLevel > 0 && currentLevel < 100 && (
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mt-3 shadow-sm">
-                      <div className="text-2xl font-black tracking-tight" style={{ color: currentTier.primary }}>
-                        {xpRemainingForNextLevel.toLocaleString('pt-PT')}
+                <div className="relative text-center rounded-2xl p-4 overflow-hidden border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Coins className="w-6 h-6 text-green-600" />
+                      <div className="text-4xl font-black tracking-tighter text-green-700">
+                        €{(userWallet?.cashback_balance || 0).toFixed(2)}
                       </div>
-                      <div className="text-xs text-gray-600 font-bold uppercase tracking-wide">XP para Nível {currentLevel + 1}</div>
                     </div>
-                  )}
-                  {currentLevel >= 100 && (
-                    <div className="bg-gradient-to-br from-yellow-100 to-amber-100 rounded-xl p-3 mt-3 shadow-sm border border-yellow-300">
-                      <div className="text-lg font-black text-yellow-700">✨ NÍVEL MÁXIMO!</div>
-                    </div>
-                  )}
+                    <div className="text-xs text-green-700 font-bold uppercase tracking-wide">Disponível</div>
+                  </div>
+                </div>
+                
+                <div className="mt-3 text-center">
+                  <div className="text-xs text-gray-600">
+                    Use na PawCão Shop
+                  </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Card 3: Badges com profundidade */}
+            {/* Card 4: Badges com profundidade */}
             <motion.div 
               className="glass-panel p-6 rounded-2xl text-center relative overflow-hidden shadow-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.25 }}
             >
               <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20 bg-purple-500"></div>
               <div className="relative z-10">
+                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center justify-center gap-2 uppercase tracking-wide">
+                  <Award className="w-4 h-4 text-purple-600" />
+                  Emblemas
+                </h3>
                 <motion.div 
                   className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative shadow-2xl"
                   style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}
@@ -434,13 +491,12 @@ export default function Gamification() {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="absolute inset-0 bg-white opacity-20 rounded-2xl"></div>
-                  <Award className="w-10 h-10 text-white relative z-10 filter drop-shadow-lg" />
+                  <Trophy className="w-10 h-10 text-white relative z-10 filter drop-shadow-lg" />
                 </motion.div>
                 <div className="text-5xl font-black tracking-tighter mb-1" style={{ color: colors?.primary }}>
                   {allEarnedBadges.length}
                 </div>
-                <p className="text-sm text-gray-700 font-bold uppercase tracking-wide">Emblemas</p>
-                <p className="text-xs text-gray-500 mt-1 font-medium">de {allPossibleBadges.length} disponíveis</p>
+                <p className="text-xs text-gray-500 mt-1 font-medium">de {allPossibleBadges.length} total</p>
               </div>
             </motion.div>
           </div>
