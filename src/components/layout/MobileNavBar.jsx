@@ -93,7 +93,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                     className={`w-6 h-6 ${active ? "ring-2 ring-offset-1" : ""}`}
                     style={active ? { '--tw-ring-color': colors?.primary || '#3b82f6' } : {}}
                   >
-                    <AvatarImage src={user.profile_photo_url} />
+                    <AvatarImage src={user.profile_photo_url} className="aspect-square object-cover object-top" />
                     <AvatarFallback className={`text-[9px] ${isDarkMode ? 'bg-slate-700 text-white' : 'bg-gray-200'}`}>
                       {user.full_name?.[0] || "EU"}
                     </AvatarFallback>
