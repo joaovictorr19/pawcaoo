@@ -127,7 +127,7 @@ export default function ManageAvailability() {
     setTimeSlots(updated);
   };
 
-  // Direct save function without mutation wrapper for better control
+  // Direct save function - simplified and robust
   const handleSave = async () => {
     if (!selectedDate) {
       toast.error(language === 'pt' ? 'Selecione uma data primeiro' : 'Select a date first');
@@ -143,52 +143,67 @@ export default function ManageAvailability() {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     try {
-      console.log('💾 Saving:', { dateStr, isDayOff, email: authUser.email });
+      console.log('💾 SAVING DAY OFF:', { dateStr, isDayOff, email: authUser.email });
 
-      // Fetch existing record for this date
-      const existingRecords = await base44.entities.CalendarAvailability.filter({ 
+      // Always create new record with all required fields
+      const recordData = {
         professional_email: authUser.email,
-        date: dateStr
-      });
-
-      const dataToSave = {
+        professional_name: authUser.full_name || 'Professional',
+        professional_type: professionalType,
+        date: dateStr,
         time_slots: isDayOff ? [] : timeSlots,
-        is_fully_booked: isDayOff,
-        is_day_off: isDayOff
+        is_fully_booked: isDayOff === true,
+        is_day_off: isDayOff === true
       };
 
-      let result;
-      if (existingRecords.length > 0) {
-        // Update existing
-        console.log('📝 Updating record:', existingRecords[0].id);
-        result = await base44.entities.CalendarAvailability.update(existingRecords[0].id, dataToSave);
-      } else {
-        // Create new
-        console.log('➕ Creating new record');
-        result = await base44.entities.CalendarAvailability.create({
-          ...dataToSave,
+      console.log('📝 Record data:', recordData);
+
+      // Check for existing record
+      let existingRecords = [];
+      try {
+        existingRecords = await base44.entities.CalendarAvailability.filter({ 
           professional_email: authUser.email,
-          professional_name: authUser.full_name || 'Professional',
-          professional_type: professionalType,
           date: dateStr
         });
+        console.log('🔍 Found existing:', existingRecords.length);
+      } catch (fetchErr) {
+        console.log('⚠️ Fetch error, will create new:', fetchErr);
       }
 
-      console.log('✅ Save result:', result);
+      let result;
+      if (existingRecords && existingRecords.length > 0) {
+        // Update existing record
+        const existingId = existingRecords[0].id;
+        console.log('📝 Updating existing record ID:', existingId);
+        result = await base44.entities.CalendarAvailability.update(existingId, {
+          time_slots: recordData.time_slots,
+          is_fully_booked: recordData.is_fully_booked,
+          is_day_off: recordData.is_day_off
+        });
+        console.log('✅ Update result:', result);
+      } else {
+        // Create new record
+        console.log('➕ Creating NEW record');
+        result = await base44.entities.CalendarAvailability.create(recordData);
+        console.log('✅ Create result:', result);
+      }
       
-      // Refresh data immediately
-      await refetchAvailability();
+      // Force refresh the availability data
+      const refreshed = await refetchAvailability();
+      console.log('🔄 Refreshed data:', refreshed.data?.length, 'records');
+      
+      // Also invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['availability'] });
       queryClient.invalidateQueries({ queryKey: ['walkerAvailability'] });
+      queryClient.invalidateQueries({ queryKey: ['proAvailability'] });
       
-      // Clear selection after successful save to show updated calendar
+      // Show success message
       if (isDayOff) {
-        // Keep selection to show confirmation visually
         toast.success(
           language === 'pt' 
-            ? '🚫 Dia marcado como FOLGA! Clientes não poderão agendar nesta data.' 
-            : '🚫 Day marked as DAY OFF! Clients cannot book this date.',
-          { duration: 4000 }
+            ? '🚫 FOLGA GUARDADA! O calendário agora mostra este dia em vermelho.' 
+            : '🚫 DAY OFF SAVED! Calendar now shows this day in red.',
+          { duration: 5000 }
         );
       } else {
         toast.success(
@@ -198,7 +213,12 @@ export default function ManageAvailability() {
 
     } catch (error) {
       console.error('❌ Save error:', error);
-      toast.error(language === 'pt' ? 'Erro ao guardar. Tente novamente.' : 'Error saving. Please try again.');
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      toast.error(
+        language === 'pt' 
+          ? `Erro ao guardar: ${error.message || 'Tente novamente'}` 
+          : `Error saving: ${error.message || 'Please try again'}`
+      );
     } finally {
       setIsSaving(false);
     }
