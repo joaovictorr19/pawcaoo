@@ -511,16 +511,16 @@ export default function Gamification() {
                   className="flex flex-col items-center w-32"
                 >
                   <div className="relative">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gray-400 overflow-hidden shadow-lg bg-white">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl border-4 border-gray-400 overflow-hidden shadow-lg bg-white aspect-square">
                       {rankedData[1].profile_photo_url ? (
-                        <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[1].full_name} />
+                        <img src={rankedData[1].profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankedData[1].full_name} />
                       ) : (
                         <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
                           {rankedData[1].full_name?.[0]}
                         </div>
                       )}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
+                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-gray-400 rounded-lg flex items-center justify-center text-white font-bold shadow-lg text-sm">
                       2
                     </div>
                   </div>
@@ -596,13 +596,13 @@ export default function Gamification() {
                   </div>
                   
                   <div className="relative">
-                    <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full border-4 overflow-hidden shadow-2xl bg-white ring-4 ${
+                    <div className={`w-20 h-20 md:w-28 md:h-28 rounded-xl border-4 overflow-hidden shadow-2xl bg-white ring-4 aspect-square ${
                       activeRanking === 'global' ? 'border-yellow-500 ring-yellow-200' :
                       activeRanking === 'walkers' ? 'border-green-500 ring-green-200' :
                       'border-pink-500 ring-pink-200'
                     }`}>
                       {rankedData[0].profile_photo_url ? (
-                        <img src={rankedData[0].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[0].full_name} />
+                        <img src={rankedData[0].profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankedData[0].full_name} />
                       ) : (
                         <div className={`w-full h-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold ${
                           activeRanking === 'global' ? 'bg-yellow-500' :
@@ -613,7 +613,7 @@ export default function Gamification() {
                         </div>
                       )}
                     </div>
-                    <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br ${currentConfig.podiumColor} rounded-full flex items-center justify-center text-white font-black shadow-lg text-base md:text-lg`}>
+                    <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br ${currentConfig.podiumColor} rounded-lg flex items-center justify-center text-white font-black shadow-lg text-base md:text-lg`}>
                       1
                     </div>
                   </div>
@@ -645,16 +645,16 @@ export default function Gamification() {
                   className="flex flex-col items-center w-32"
                 >
                   <div className="relative">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-orange-600 overflow-hidden shadow-lg bg-white">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl border-4 border-orange-600 overflow-hidden shadow-lg bg-white aspect-square">
                       {rankedData[2].profile_photo_url ? (
-                        <img src={rankedData[2].profile_photo_url} className="w-full h-full object-cover" alt={rankedData[2].full_name} />
+                        <img src={rankedData[2].profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankedData[2].full_name} />
                       ) : (
                         <div className="w-full h-full bg-orange-600 flex items-center justify-center text-white text-xl md:text-2xl font-bold">
                           {rankedData[2].full_name?.[0]}
                         </div>
                       )}
                     </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm">
+                    <div className="absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg text-sm">
                       3
                     </div>
                   </div>
@@ -676,12 +676,12 @@ export default function Gamification() {
                   key={rankUser.id || rankUser.email}
                   className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all"
                 >
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center font-bold text-gray-600">
                     {idx + 4}
                   </div>
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-200 aspect-square">
                     {rankUser.profile_photo_url ? (
-                      <img src={rankUser.profile_photo_url} className="w-full h-full object-cover" alt={rankUser.full_name} />
+                      <img src={rankUser.profile_photo_url} className="w-full h-full object-cover aspect-square" alt={rankUser.full_name} />
                     ) : (
                       <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
                         {rankUser.full_name?.[0]}
@@ -715,7 +715,7 @@ export default function Gamification() {
             {rankedData.length > 0 && userRank > 10 && (
               <div className="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4 shadow-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-bold">
                     {userRank}
                   </div>
                   <div className="flex-1">

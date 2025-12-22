@@ -93,13 +93,13 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
       className="cursor-pointer group"
     >
       <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full rounded-3xl">
-        <div className="relative h-32 md:h-44 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden">
+        <div className="relative h-32 md:h-44 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden rounded-t-xl">
           {walker.photo_url ? (
             <img
               src={walker.photo_url}
               alt={`Photo of ${walker.walker_name}, Dog Walker in ${walker.location}`}
               loading="lazy"
-              className="w-full h-full object-cover object-center aspect-square transition-transform duration-300 group-hover:scale-110 bg-gray-200"
+              className="w-full h-full object-cover object-center aspect-square transition-transform duration-300 group-hover:scale-110 bg-gray-200 rounded-t-xl"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(walker.walker_name) + '&background=10b981&color=fff&size=400';
@@ -107,7 +107,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-xl md:text-2xl font-bold text-green-600">
                   {walker.walker_name?.[0]?.toUpperCase()}
                 </span>
