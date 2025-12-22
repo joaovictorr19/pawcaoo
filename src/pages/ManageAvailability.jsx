@@ -176,15 +176,25 @@ export default function ManageAvailability() {
 
       console.log('✅ Save result:', result);
       
-      // Refresh data
+      // Refresh data immediately
       await refetchAvailability();
       queryClient.invalidateQueries({ queryKey: ['availability'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerAvailability'] });
       
-      toast.success(
-        isDayOff 
-          ? (language === 'pt' ? '✅ Dia marcado como folga!' : '✅ Day marked as day off!')
-          : (language === 'pt' ? '✅ Disponibilidade guardada!' : '✅ Availability saved!')
-      );
+      // Clear selection after successful save to show updated calendar
+      if (isDayOff) {
+        // Keep selection to show confirmation visually
+        toast.success(
+          language === 'pt' 
+            ? '🚫 Dia marcado como FOLGA! Clientes não poderão agendar nesta data.' 
+            : '🚫 Day marked as DAY OFF! Clients cannot book this date.',
+          { duration: 4000 }
+        );
+      } else {
+        toast.success(
+          language === 'pt' ? '✅ Disponibilidade guardada!' : '✅ Availability saved!'
+        );
+      }
 
     } catch (error) {
       console.error('❌ Save error:', error);
