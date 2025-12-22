@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SEO from "../components/SEO";
 import { generateWebSiteSchema, generateOrganizationSchema } from "../components/seoHelpers";
+import { Helmet } from 'react-helmet-async';
 import { calculateTier } from "@/components/gamification/tierSystem";
 import { useTheme } from "@/components/ThemeContext";
 import { CardContent } from "@/components/ui/card";
