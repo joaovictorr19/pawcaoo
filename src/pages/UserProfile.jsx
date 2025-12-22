@@ -26,7 +26,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
-import { getLevelFromXP, getTierName, getTierColor, getXPForLevel } from "@/components/gamification/gamificationRules";
+import { calculateTier, getLevelFromXP, getXPForLevel } from "@/components/gamification/tierSystem";
 import DogCollar from "@/components/ui/DogCollar";
 import DogManagerModal from "@/components/profile/DogManagerModal";
 
@@ -1383,42 +1383,42 @@ export default function UserProfile() {
           </TabsContent>
 
           <TabsContent value="gamification">
-           <Card className={`bg-gradient-to-br ${getTierColor(profileUser.gamification_level || 1)} text-white border-0 shadow-2xl rounded-2xl`}>
-             <CardHeader className="pb-3 md:pb-4">
-               <CardTitle className="text-2xl md:text-3xl flex items-center gap-2">
-                 <Zap className="w-6 h-6 md:w-8 md:h-8 text-yellow-300" />
-                 Nível {profileUser.gamification_level || 1}
-               </CardTitle>
-               <p className="text-white/80 text-base md:text-lg font-semibold">
-                 Tier: {getTierName(profileUser.gamification_level || 1)}
-               </p>
-             </CardHeader>
-             <CardContent>
-               <div className="space-y-4 md:space-y-6">
-                 <div>
-                   <div className="flex justify-between mb-2 text-xs md:text-sm">
-                     <span>XP Atual: {profileUser.gamification_xp || 0}</span>
-                     <span>Próximo: {getXPForLevel((profileUser.gamification_level || 1) + 1)}</span>
-                   </div>
-                   <div className="w-full bg-white/20 rounded-full h-2.5 md:h-3">
-                     <div 
-                       className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2.5 md:h-3 rounded-full transition-all duration-500"
-                       style={{ 
-                         width: `${Math.min(
-                           ((profileUser.gamification_xp || 0) - getXPForLevel(profileUser.gamification_level || 1)) / 
-                           (getXPForLevel((profileUser.gamification_level || 1) + 1) - getXPForLevel(profileUser.gamification_level || 1)) * 100, 
-                           100
-                         )}%` 
-                       }}
-                     />
-                   </div>
-                   <p className="text-[10px] md:text-xs text-white/70 mt-2">
-                     {getXPForLevel((profileUser.gamification_level || 1) + 1) - (profileUser.gamification_xp || 0)} XP para o próximo nível
+           {(() => {
+             const userXP = profileUser.gamification_xp || 0;
+             const tier = calculateTier(userXP);
+             return (
+               <Card className={`bg-gradient-to-br ${tier.gradient} text-white border-0 shadow-2xl rounded-2xl`}>
+                 <CardHeader className="pb-3 md:pb-4">
+                   <CardTitle className="text-2xl md:text-3xl flex items-center gap-2">
+                     <span className="text-3xl">{tier.icon}</span>
+                     Nível {tier.level}
+                   </CardTitle>
+                   <p className="text-white/80 text-base md:text-lg font-semibold">
+                     Tier: {tier.name}
                    </p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="space-y-4 md:space-y-6">
+                     <div>
+                       <div className="flex justify-between mb-2 text-xs md:text-sm">
+                         <span>XP Atual: {userXP.toLocaleString('pt-PT')}</span>
+                         <span>Próximo Nível: {tier.max !== Infinity ? tier.max.toLocaleString('pt-PT') : 'MAX'}</span>
+                       </div>
+                       <div className="w-full bg-white/20 rounded-full h-2.5 md:h-3">
+                         <div 
+                           className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2.5 md:h-3 rounded-full transition-all duration-500"
+                           style={{ width: `${tier.progress}%` }}
+                         />
+                       </div>
+                       <p className="text-[10px] md:text-xs text-white/70 mt-2">
+                         {tier.xpToNextLevel > 0 ? `${tier.xpToNextLevel.toLocaleString('pt-PT')} XP para o nível ${tier.level + 1}` : '🎉 Nível Máximo Atingido!'}
+                       </p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+             );
+           })()}
           </TabsContent>
 
           <TabsContent value="activity">
