@@ -748,20 +748,35 @@ export default function AdminDashboard() {
             granted_by: user.email
           });
 
-          await base44.entities.User.update(targetUser.id, {
-            public_badges: [...currentPublicBadges, newBadge],
-            gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
-          });
-
+          // CRÍTICO: UserProfile é fonte única de XP - buscar valor atual ANTES de somar
+          let currentXP = 0;
+          let userProfileId = null;
           try {
             const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
             if (profiles.length > 0) {
-              await base44.entities.UserProfile.update(profiles[0].id, {
-                gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
-              });
+              currentXP = profiles[0].gamification_xp || 0;
+              userProfileId = profiles[0].id;
             }
           } catch (e) {
-            console.error("Error syncing XP to UserProfile:", e);
+            console.error("Error fetching UserProfile XP:", e);
+          }
+
+          const newXP = currentXP + (badge.xp || 50);
+
+          await base44.entities.User.update(targetUser.id, {
+            public_badges: [...currentPublicBadges, newBadge],
+            gamification_xp: newXP
+          });
+
+          // Atualizar UserProfile (fonte única de verdade)
+          if (userProfileId) {
+            try {
+              await base44.entities.UserProfile.update(userProfileId, {
+                gamification_xp: newXP
+              });
+            } catch (e) {
+              console.error("Error syncing XP to UserProfile:", e);
+            }
           }
 
           createdCount++;
@@ -819,20 +834,35 @@ export default function AdminDashboard() {
         granted_by: user.email
       });
 
-      await base44.entities.User.update(targetUser.id, {
-        public_badges: [...currentPublicBadges, newBadge],
-        gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
-      });
-
+      // CRÍTICO: UserProfile é fonte única de XP - buscar valor atual ANTES de somar
+      let currentXP = 0;
+      let userProfileId = null;
       try {
         const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
         if (profiles.length > 0) {
-          await base44.entities.UserProfile.update(profiles[0].id, {
-            gamification_xp: (targetUser.gamification_xp || 0) + (badge.xp || 50)
-          });
+          currentXP = profiles[0].gamification_xp || 0;
+          userProfileId = profiles[0].id;
         }
       } catch (e) {
-        console.error("Error syncing XP to UserProfile:", e);
+        console.error("Error fetching UserProfile XP:", e);
+      }
+
+      const newXP = currentXP + (badge.xp || 50);
+
+      await base44.entities.User.update(targetUser.id, {
+        public_badges: [...currentPublicBadges, newBadge],
+        gamification_xp: newXP
+      });
+
+      // Atualizar UserProfile (fonte única de verdade)
+      if (userProfileId) {
+        try {
+          await base44.entities.UserProfile.update(userProfileId, {
+            gamification_xp: newXP
+          });
+        } catch (e) {
+          console.error("Error syncing XP to UserProfile:", e);
+        }
       }
     },
     onSuccess: () => {
@@ -865,8 +895,21 @@ export default function AdminDashboard() {
       const updatedPublic = currentPublicBadges.filter(b => b.badge_id !== badgeId);
       const updatedAchievements = currentAchievementsBadges.filter(b => b.badge_id !== badgeId);
 
+      // CRÍTICO: UserProfile é fonte única de XP - buscar valor atual ANTES de deduzir
+      let currentXP = 0;
+      let userProfileId = null;
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+        if (profiles.length > 0) {
+          currentXP = profiles[0].gamification_xp || 0;
+          userProfileId = profiles[0].id;
+        }
+      } catch (e) {
+        console.error("Error fetching UserProfile XP:", e);
+      }
+
       const xpToDeduct = badgeXP || 0;
-      const newXP = Math.max(0, (targetUser.gamification_xp || 0) - xpToDeduct);
+      const newXP = Math.max(0, currentXP - xpToDeduct);
 
       await base44.entities.User.update(userId, {
         public_badges: updatedPublic,
@@ -874,15 +917,15 @@ export default function AdminDashboard() {
         gamification_xp: newXP
       });
 
-      try {
-        const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
-        if (profiles.length > 0) {
-          await base44.entities.UserProfile.update(profiles[0].id, {
+      // Atualizar UserProfile (fonte única de verdade)
+      if (userProfileId) {
+        try {
+          await base44.entities.UserProfile.update(userProfileId, {
             gamification_xp: newXP
           });
+        } catch (e) {
+          console.error("Error syncing XP to UserProfile:", e);
         }
-      } catch (e) {
-        console.error("Error syncing XP to UserProfile:", e);
       }
     },
     onSuccess: () => {
@@ -1259,20 +1302,35 @@ export default function AdminDashboard() {
 
         const currentPublicBadges = targetUser.public_badges || [];
 
-        await base44.entities.User.update(targetUser.id, {
-          public_badges: [...currentPublicBadges, badge],
-          gamification_xp: (targetUser.gamification_xp || 0) + 100
-        });
-
+        // CRÍTICO: UserProfile é fonte única de XP - buscar valor atual ANTES de somar
+        let currentXP = 0;
+        let userProfileId = null;
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
           if (profiles.length > 0) {
-            await base44.entities.UserProfile.update(profiles[0].id, {
-              gamification_xp: (targetUser.gamification_xp || 0) + 100
-            });
+            currentXP = profiles[0].gamification_xp || 0;
+            userProfileId = profiles[0].id;
           }
         } catch (e) {
-          console.error("Error syncing XP to UserProfile:", e);
+          console.error("Error fetching UserProfile XP:", e);
+        }
+
+        const newXP = currentXP + 100;
+
+        await base44.entities.User.update(targetUser.id, {
+          public_badges: [...currentPublicBadges, badge],
+          gamification_xp: newXP
+        });
+
+        // Atualizar UserProfile (fonte única de verdade)
+        if (userProfileId) {
+          try {
+            await base44.entities.UserProfile.update(userProfileId, {
+              gamification_xp: newXP
+            });
+          } catch (e) {
+            console.error("Error syncing XP to UserProfile:", e);
+          }
         }
       }
 
