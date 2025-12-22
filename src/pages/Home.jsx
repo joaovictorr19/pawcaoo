@@ -1529,7 +1529,7 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="adoption">
-                <div>
+                <div className={user ? "" : "mt-40 md:mt-52"}>
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
