@@ -435,7 +435,7 @@ export default function WalkerDetails() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-green-800 text-sm">Perfil Verificado pela PawCão</h3>
-                      <p className="text-xs text-green-700">Identidade, documentos e antecedentes criminais verificados.</p>
+                      <p className="text-xs text-green-700">Identidade e documentos verificados.</p>
                     </div>
                   </div>
                 </div>
