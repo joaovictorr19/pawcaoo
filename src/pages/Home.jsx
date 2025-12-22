@@ -1204,18 +1204,7 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <div className="relative inline-block mb-6">
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight relative px-6 py-3 text-white"
-                        style={{
-                          textShadow: '0 4px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.4)',
-                          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25))',
-                          letterSpacing: '-0.02em'
-                        }}>
-                      {t('homeTitle', language)}
-                    </h1>
-                    {/* Subtle glow behind white text */}
-                    <div className="absolute inset-0 bg-white/10 blur-3xl -z-10 rounded-full"></div>
-                  </div>
+
                 </motion.div>
               </div>
 
