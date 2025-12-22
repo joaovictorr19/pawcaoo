@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Crown, Users, TrendingUp, DollarSign, Search, 
+  Crown, Users, DollarSign, Search, 
   Calendar, CheckCircle, XCircle, Clock, Filter,
-  Download, RefreshCw, Eye, Mail
+  Download, RefreshCw, Eye, Mail, TrendingUp
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
