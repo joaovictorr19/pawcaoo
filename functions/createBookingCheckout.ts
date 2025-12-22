@@ -50,6 +50,28 @@ Deno.serve(async (req) => {
       owner_phone
     } = body;
 
+    // CRITICAL SECURITY: Validate date is not blocked (day-off or fully booked)
+    const availabilityRecords = await base44.asServiceRole.entities.CalendarAvailability.filter({
+      professional_email: professional_email,
+      date: walk_date
+    });
+
+    if (availabilityRecords.length > 0) {
+      const dayAvailability = availabilityRecords[0];
+      
+      if (dayAvailability.is_day_off) {
+        return Response.json({ 
+          error: 'Este profissional não está disponível nesta data. Por favor, escolha outra data.' 
+        }, { status: 400 });
+      }
+      
+      if (dayAvailability.is_fully_booked) {
+        return Response.json({ 
+          error: 'Esta data está totalmente reservada. Por favor, escolha outra data.' 
+        }, { status: 400 });
+      }
+    }
+
     // Create or get Stripe customer
     let customerId;
     const existingCustomers = await stripe.customers.list({ 
