@@ -83,67 +83,44 @@ export default function BecomeProfessional() {
     mutationFn: async (data) => {
       const results = {};
       
-      // Create Walker Profile
-      if (professionalType === 'walker' || professionalType === 'both') {
-        results.walker = await base44.entities.WalkerProfile.create({
-          walker_name: data.name,
-          age: data.age,
-          photo_url: data.photo_url,
-          cover_photo_url: data.cover_photo_url,
-          video_intro_url: data.video_intro_url,
-          bio: data.bio,
-          location: data.location,
-          service_areas: data.service_areas,
-          hourly_rate: data.hourly_rate,
-          services_offered: data.services_offered,
-          experience_years: data.experience_years,
-          phone: data.phone,
-          whatsapp_number: data.whatsapp_number,
-          is_active: false, // Force inactive
-          verification_status: "pending", // Force pending
-          dog_sizes: data.dog_sizes,
-          dog_breeds_handled: data.dog_breeds_handled,
-          breed_specialization: data.breed_specialization,
-          availability: data.availability,
-          id_document_url: data.id_document_url,
-          proof_of_address_url: data.proof_of_address_url,
-          bank_account_holder: data.bank_account_holder,
-          bank_account_number: data.bank_account_number,
-          bank_routing_number: data.bank_routing_number,
-          mbway_number: data.mbway_number,
-          portfolio: data.portfolio,
-          languages_spoken: data.languages_spoken
-        });
-      }
+      // SEMPRE criar apenas WalkerProfile (unificado)
+      // Se for "both" ou "trainer", marcamos is_verified_trainer = true
+      const isAlsoTrainer = professionalType === 'trainer' || professionalType === 'both';
       
-      // Create Trainer Profile
-      if (professionalType === 'trainer' || professionalType === 'both') {
-        results.trainer = await base44.entities.TrainerProfile.create({
-          trainer_name: data.name,
-          photo_url: data.photo_url,
-          video_intro_url: data.video_intro_url,
-          bio: data.bio,
-          location: data.location,
-          service_areas: data.service_areas,
-          hourly_rate: data.hourly_rate,
-          services_offered: data.services_offered,
-          experience_years: data.experience_years,
-          phone: data.phone,
-          dog_sizes: data.dog_sizes,
-          dog_breeds_handled: data.dog_breeds_handled,
-          breed_specialization: data.breed_specialization,
-          availability: data.availability,
-          id_document_url: data.id_document_url,
-          proof_of_address_url: data.proof_of_address_url,
-          training_specialties: data.training_specialties,
-          training_methodologies: data.training_methodologies,
-          consultation_options: data.consultation_options,
-          training_philosophy: data.training_philosophy,
-          portfolio: data.portfolio,
-          languages: data.languages_spoken,
-          verification_status: "pending"
-        });
-      }
+      results.walker = await base44.entities.WalkerProfile.create({
+        walker_name: data.name,
+        age: data.age,
+        photo_url: data.photo_url,
+        cover_photo_url: data.cover_photo_url,
+        video_intro_url: data.video_intro_url,
+        bio: data.bio,
+        location: data.location,
+        service_areas: data.service_areas,
+        hourly_rate: data.hourly_rate,
+        services_offered: data.services_offered,
+        experience_years: data.experience_years,
+        phone: data.phone,
+        whatsapp_number: data.whatsapp_number,
+        is_active: false, // Force inactive until approved
+        verification_status: "pending", // Force pending
+        dog_sizes: data.dog_sizes,
+        dog_breeds_handled: data.dog_breeds_handled,
+        breed_specialization: data.breed_specialization,
+        availability: data.availability,
+        id_document_url: data.id_document_url,
+        proof_of_address_url: data.proof_of_address_url,
+        bank_account_holder: data.bank_account_holder,
+        bank_account_number: data.bank_account_number,
+        bank_routing_number: data.bank_routing_number,
+        mbway_number: data.mbway_number,
+        portfolio: data.portfolio,
+        languages_spoken: data.languages_spoken,
+        // Trainer fields (stored in same profile)
+        is_verified_trainer: isAlsoTrainer,
+        training_specialties: isAlsoTrainer ? data.training_specialties : [],
+        training_philosophy: isAlsoTrainer ? data.training_philosophy : "",
+        consultation_options: isAlsoTrainer ? data.consultation_options : []
+      });
 
       // Update user account_type
       await base44.auth.updateMe({ account_type: professionalType });
