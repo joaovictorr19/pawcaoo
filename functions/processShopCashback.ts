@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
       purchase_amount,
       order_id,
       product_names,
+      partner_id,
       apply_wallet_credit = false,
       wallet_credit_amount = 0
     } = await req.json();
@@ -135,8 +136,7 @@ Deno.serve(async (req) => {
     // === 8. REGISTAR RECEITA DA LOJA (CONSIDERANDO TAXA DO PARCEIRO) ===
     const periodMonth = new Date().toISOString().slice(0, 7);
     
-    // Buscar configuração de taxa do parceiro (se houver partner_id no request)
-    const { partner_id } = await req.json().catch(() => ({}));
+    // Configuração de taxa do parceiro
     let partnerFee = 0;
     let partnerPayout = purchase_amount;
     
