@@ -61,11 +61,7 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                 </div>
               )}
             </div>
-            {isWalker && (
-               <div className="absolute bottom-2 right-2 bg-green-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm" title="Passeador Profissional">
-                  <UserIcon className="w-4 h-4" />
-               </div>
-            )}
+
           </div>
           
           <div className="flex items-center gap-2 mb-1">
