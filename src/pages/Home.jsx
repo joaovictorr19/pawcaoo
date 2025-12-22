@@ -961,8 +961,8 @@ export default function Home() {
                                   })
                                   .slice(0, 5)
                                   .map((badge, i) => (
-                                    <TooltipProvider key={`badge-${i}-${badge.badge_id || badge.id || i}`}>
-                                      <Tooltip delayDuration={200}>
+                                    <TooltipProvider key={`badge-${i}-${badge.badge_id || badge.id || i}`} delayDuration={200}>
+                                      <Tooltip>
                                         <TooltipTrigger asChild>
                                           <div 
                                             className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
@@ -976,8 +976,9 @@ export default function Home() {
                                         </TooltipTrigger>
                                         <TooltipContent 
                                           side="top" 
-                                          sideOffset={8}
-                                          className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700 z-[9999]"
+                                          align="center"
+                                          sideOffset={12}
+                                          className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700"
                                         >
                                           <p className="font-bold text-xs mb-1 leading-tight">{badge.name}</p>
                                           {badge.description && (
