@@ -465,27 +465,27 @@ export default function Gamification() {
             {/* Card 4: Badges */}
             <motion.div 
               className="glass-panel p-5 md:p-7 rounded-3xl text-center relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${colors?.primary}20` }}
+              style={{ borderColor: `${levelColor}30` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: colors?.orb2 }}></div>
+              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: levelColor }}></div>
               <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center justify-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center justify-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
                   <Award className="w-4 h-4 md:w-5 md:h-5" />
                   <span>Conquistas</span>
                 </h3>
                 <motion.div 
                   className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 relative shadow-2xl"
-                  style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}
+                  style={{ background: levelColor }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="absolute inset-0 bg-white opacity-20 rounded-2xl"></div>
                   <Trophy className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white relative z-10 filter drop-shadow-lg" />
                 </motion.div>
-                <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-1" style={{ color: colors?.primary }}>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-1" style={{ color: levelColor }}>
                   {allEarnedBadges.length}
                 </div>
                 <p className="text-[9px] md:text-xs text-gray-500 font-medium">de {allPossibleBadges.length}</p>
