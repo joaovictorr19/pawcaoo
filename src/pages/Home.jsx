@@ -867,7 +867,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen relative w-full overflow-hidden">
+    <div className="min-h-screen relative w-full overflow-hidden" style={{
+      background: user ? 'transparent' : '#FAFAF9',
+      backgroundImage: user ? 'none' : `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E .leaf-stroke %7B fill: none; stroke: rgba(100, 149, 116, 0.15); stroke-width: 1.5; %7D .paw-stroke %7B fill: rgba(100, 149, 116, 0.08); %7D %3C/style%3E%3C/defs%3E%3C!-- Folha Monstera --%3E%3Cpath class='leaf-stroke' d='M 30 40 Q 35 20, 45 15 Q 55 20, 60 40 Q 55 60, 45 65 Q 35 60, 30 40 M 45 25 L 45 55 M 38 35 L 52 35 M 38 45 L 52 45'/%3E%3C!-- Feto --%3E%3Cpath class='leaf-stroke' d='M 140 30 Q 145 40, 140 50 M 140 35 Q 150 35, 155 40 M 140 40 Q 150 42, 153 48 M 140 45 Q 147 47, 150 52'/%3E%3C!-- Pegada Cão --%3E%3Cg class='paw-stroke'%3E%3Cellipse cx='90' cy='90' rx='5' ry='7'/%3E%3Cellipse cx='100' cy='85' rx='4' ry='6'/%3E%3Cellipse cx='110' cy='90' rx='5' ry='7'/%3E%3Cellipse cx='100' cy='100' rx='7' ry='9'/%3E%3C/g%3E%3C!-- Folha Simples --%3E%3Cpath class='leaf-stroke' d='M 160 150 Q 165 140, 170 135 Q 175 140, 180 150 Q 175 160, 170 165 Q 165 160, 160 150'/%3E%3C!-- Pegada Gato --%3E%3Cg class='paw-stroke'%3E%3Cellipse cx='25' cy='160' rx='3' ry='5'/%3E%3Cellipse cx='32' cy='157' rx='3' ry='5'/%3E%3Cellipse cx='39' cy='160' rx='3' ry='5'/%3E%3Cellipse cx='32' cy='168' rx='5' ry='6'/%3E%3C/g%3E%3C/svg%3E")`,
+      backgroundRepeat: 'repeat',
+      backgroundSize: '200px 200px'
+    }}>
       <SEO 
         title={t('seoTitle', language)}
         description={t('seoDescription', language)}
