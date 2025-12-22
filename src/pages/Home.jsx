@@ -227,23 +227,10 @@ export default function Home() {
     refetchOnMount: true,
   });
 
-  const { data: trainers, isLoading: loadingTrainers } = useQuery({
-    queryKey: ['trainers'],
-    queryFn: async () => {
-      try {
-        // Fetch all trainers, sort by creation
-        const res = await base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200);
-        return Array.isArray(res) ? res : [];
-      } catch (error) {
-        console.error("Trainers fetch error:", error);
-        return [];
-      }
-    },
-    initialData: [],
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
+  // Trainers são agora parte do WalkerProfile (is_verified_trainer = true)
+  // Não precisamos de query separada - usamos walkers com filtro
+  const loadingTrainers = false;
+  const trainers = [];
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
@@ -451,24 +438,19 @@ export default function Home() {
     return Math.round((score / totalPossibleScore) * 100);
   };
 
-  // Safe Memoized Unified Professionals Filter
+  // Safe Memoized Unified Professionals Filter (todos são WalkerProfile agora)
   const filteredProfessionals = React.useMemo(() => {
-    const processedWalkers = (Array.isArray(walkers) ? walkers : []).map(walker => ({
-      ...walker,
-      type: 'walker',
-      distance: getWalkerDistance(walker),
-      matchScore: calculateMatchScore(walker)
-    }));
+    const processedWalkers = (Array.isArray(walkers) ? walkers : [])
+      .filter(w => w.walker_name && w.created_by) // Filtrar perfis fantasma
+      .map(walker => ({
+        ...walker,
+        type: 'walker',
+        distance: getWalkerDistance(walker),
+        matchScore: calculateMatchScore(walker)
+      }));
 
-    const processedTrainers = (Array.isArray(trainers) ? trainers : []).map(trainer => ({
-      ...trainer,
-      type: 'trainer',
-      distance: getTrainerDistance(trainer),
-      matchScore: 0 // Trainers mostly scored by filters
-    }));
-
-    // Combine them
-    const allPros = [...processedWalkers, ...processedTrainers];
+    // Não há mais trainers separados - todos são walkers com is_verified_trainer
+    const allPros = [...processedWalkers];
 
     return allPros.filter(pro => {
       // Basic Safety Filter
@@ -519,15 +501,7 @@ export default function Home() {
         }
       }
 
-      if (pro.type === 'trainer') {
-        // If user selected "boarding" explicitly, hide trainers (unless they offer it, but currently they don't)
-        if (filterDogSitting !== "all") return false;
-        
-        // Trainer filters logic (simplified for unification)
-        // If specific trainer filters are active, apply them
-        const matchesExperience = (pro.experience_years || 0) >= (trainerFilters.minExperience || 0);
-        if (!matchesExperience) return false;
-      }
+      // Trainer filters não são mais necessários - tudo está no WalkerProfile
 
       return true;
     }).sort((a, b) => {
@@ -1307,21 +1281,13 @@ export default function Home() {
                         <>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 mb-8">
                             {paginatedProfessionals.map((pro) => (
-                              pro.type === 'trainer' ? (
-                                <TrainerCard 
-                                  key={pro.id} 
-                                  trainer={pro}
-                                  distance={pro.distance}
-                                />
-                              ) : (
-                                <WalkerCard 
-                                  key={pro.id} 
-                                  walker={pro}
-                                  distance={pro.distance}
-                                  matchScore={pro.matchScore}
-                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
-                                />
-                              )
+                              <WalkerCard 
+                                key={pro.id} 
+                                walker={pro}
+                                distance={pro.distance}
+                                matchScore={pro.matchScore}
+                                showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                              />
                             ))}
                           </div>
 
