@@ -420,7 +420,7 @@ export default function WalkerDetails() {
                 averageRating={averageRating}
                 customBadges={
                   <>
-                    {walker.verification_status === 'verified' && <VerifiedBadge size="lg" />}
+                    {walker.verification_status === 'verified' && <InstagramVerifiedBadge size="lg" />}
                     {walker.is_pawcao_employee && <GoldEmployeeBadge size="md" />}
                   </>
                 }
