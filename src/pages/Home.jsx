@@ -1057,9 +1057,10 @@ export default function Home() {
                     </div>
                   </CardContent>
                 </Card>
-              )}
-            </div>
-          ) : (
+                )}
+                </div>
+                )}
+                {!user && (
             <div className="text-center max-w-6xl mx-auto relative">
               {/* Floating Interactive Elements */}
               <div className="relative mb-8">
