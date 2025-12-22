@@ -1559,15 +1559,22 @@ export default function ProfessionalDashboard() {
                                       description: quickService.desc,
                                       price: price,
                                       animal_type: quickService.animal,
-                                      duration_options: ['30min', '1h', '2h'],
+                                      duration_options: quickService.isTraining ? ['1h', '1h30', '2h'] : ['30min', '1h', '2h'],
                                       custom_pricing: false
                                     };
                                     const updatedServices = [...(profile.services_offered || []), newService];
                                     const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-                                    await entity.update(profile.id, { services_offered: updatedServices });
+                                    
+                                    // Se for serviço de treino, também marca como treinador verificado
+                                    const updateData = { services_offered: updatedServices };
+                                    if (quickService.isTraining) {
+                                      updateData.is_verified_trainer = true;
+                                    }
+                                    
+                                    await entity.update(profile.id, updateData);
                                     queryClient.invalidateQueries(['myWalkerProfile']);
                                     queryClient.invalidateQueries(['myTrainerProfile']);
-                                    toast.success('✅ Serviço ativado!');
+                                    toast.success(quickService.isTraining ? '✅ Serviço de Treino ativado! Badge de Treinador adicionado.' : '✅ Serviço ativado!');
                                     priceInput.value = '';
                                   }}
                                 >
