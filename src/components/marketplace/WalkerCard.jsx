@@ -118,19 +118,15 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Special Badges - Top Right */}
+          {/* Professional Role Badge - Top Right */}
           {(walker.is_pawcao_employee || walker.is_verified_trainer) && (
-            <div className="absolute top-2 right-2 flex gap-1">
-              {walker.is_verified_trainer && (
-                <div className="transform hover:scale-110 transition-transform">
-                  <TrainerVerifiedBadge size="sm" />
-                </div>
-              )}
-              {walker.is_pawcao_employee && (
-                <div className="transform hover:scale-110 transition-transform">
-                  <GoldEmployeeBadge size="sm" />
-                </div>
-              )}
+            <div className="absolute top-2 right-2">
+              <ProfessionalRoleBadge 
+                isTrainer={walker.is_verified_trainer}
+                isWalker={!walker.is_verified_trainer && walker.is_pawcao_employee}
+                isPawcaoEmployee={walker.is_pawcao_employee}
+                size="sm"
+              />
             </div>
           )}
 
@@ -170,20 +166,12 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
         <CardContent className="p-3 md:p-4">
           <div className="flex items-start justify-between mb-1 md:mb-1.5 gap-2">
             <div className="flex-1 overflow-hidden">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors break-words">
-                  {walker.walker_name.length > 20 ? (
-                    <span className="animate-marquee inline-block">
-                      {walker.walker_name}
-                    </span>
-                  ) : (
-                    walker.walker_name
-                  )}
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors truncate">
+                  {walker.walker_name}
                 </h3>
                 {(walker.is_verified || walker.verification_status === 'verified') && (
-                  <div className="flex-shrink-0">
-                    <VerifiedBadge type="walker" size="sm" />
-                  </div>
+                  <VerifiedBadge type="walker" size="sm" />
                 )}
               </div>
             </div>
