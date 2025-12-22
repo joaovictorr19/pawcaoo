@@ -397,24 +397,7 @@ export default function Home() {
     enabled: !!user?.email,
   });
 
-  const getLevelInfo = (xp = 0) => {
-      const level = getLevelFromXP(xp);
-      const levelNames = {
-        1: { title: 'Novato', icon: '🌱' },
-        5: { title: 'Bronze', icon: '🥉' },
-        10: { title: 'Silver', icon: '🥈' },
-        20: { title: 'Gold', icon: '🥇' },
-        30: { title: 'Sapphire', icon: '💎' },
-        50: { title: 'Diamond', icon: '💠' }
-      };
-      
-      // Find the appropriate tier based on level
-      const tier = Object.entries(levelNames)
-        .reverse()
-        .find(([lvl]) => level >= parseInt(lvl))?.[1] || levelNames[1];
-      
-      return { ...tier, level };
-  };
+  // getLevelInfo removed - using calculateTier from tierSystem instead
 
   const priorityData = React.useMemo(() => {
       const live = activeBookings.find(b => b.status === 'in_progress');
