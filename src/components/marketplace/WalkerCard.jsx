@@ -121,16 +121,18 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Professional Role Badge - Top Right */}
-          {(walker.is_pawcao_employee || walker.is_verified_trainer) && (
-            <div className="absolute top-2 right-2">
-              <ProfessionalRoleBadge 
-                isTrainer={walker.is_verified_trainer}
-                isWalker={!walker.is_verified_trainer && walker.is_pawcao_employee}
-                isPawcaoEmployee={walker.is_pawcao_employee}
-                size="sm"
-              />
-            </div>
-          )}
+          <div className="absolute top-2 right-2 flex flex-col gap-1">
+            {walker.is_pawcao_employee && (
+              <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold">
+                PawCao
+              </Badge>
+            )}
+            {walker.is_verified_trainer && (
+              <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold">
+                Treinador
+              </Badge>
+            )}
+          </div>
 
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -207,7 +209,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
                 <span className="text-base">€{walker.hourly_rate}</span>
                 <span className="text-[10px] text-gray-500">/h</span>
               </div>
-              {walker.exotic_rate && (formData.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
+              {walker.exotic_rate && (walker.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
                 <div className="flex items-center gap-0.5 text-purple-600 font-semibold flex-shrink-0">
                   <span className="text-xs">€{walker.exotic_rate}</span>
                   <span className="text-[9px] text-gray-500">/visita exóticos</span>
