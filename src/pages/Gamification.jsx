@@ -425,38 +425,38 @@ export default function Gamification() {
             {/* Card 3: Cashback - TEMA DINÂMICO */}
             <motion.div 
               className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${colors?.primary}20` }}
+              style={{ borderColor: `${levelColor}30` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: colors?.orb1 }}></div>
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: levelColor }}></div>
               <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
                   <Wallet className="w-4 h-4 md:w-5 md:h-5" />
                   <span>Carteira</span>
                 </h3>
                 
-                <div className="relative text-center rounded-2xl p-4 md:p-5 overflow-hidden border-2" style={{ borderColor: `${colors?.primary}30`, background: `linear-gradient(135deg, ${colors?.orb1}15, ${colors?.orb2}15)` }}>
+                <div className="relative text-center rounded-2xl p-4 md:p-5 overflow-hidden border-2" style={{ borderColor: `${levelColor}30`, background: `linear-gradient(135deg, ${levelColor}10, ${levelColor}05)` }}>
                   <div className="relative z-10">
                     <div className="flex items-baseline justify-center gap-1 mb-2">
-                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
+                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter" style={{ color: levelColor }}>
                         €
                       </span>
-                      <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter" style={{ color: colors?.primary }}>
+                      <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter" style={{ color: levelColor }}>
                         {Math.floor(userWallet?.cashback_balance || 0).toLocaleString('pt-PT')}
                       </span>
-                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter opacity-70" style={{ color: colors?.primary }}>
+                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter opacity-70" style={{ color: levelColor }}>
                         .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
                       </span>
                     </div>
-                    <div className="text-xs md:text-sm font-bold uppercase tracking-wide opacity-70" style={{ color: colors?.primary }}>Cashback Disponível</div>
+                    <div className="text-xs md:text-sm font-bold uppercase tracking-wide opacity-70" style={{ color: levelColor }}>Cashback Disponível</div>
                   </div>
                 </div>
                 
                 <div className="mt-3 md:mt-4 text-center">
-                  <div className="text-xs md:text-sm font-semibold" style={{ color: colors?.primary }}>
-                    💳 Use na Loja
+                  <div className="text-xs md:text-sm font-semibold text-gray-600">
+                    Use na Loja
                   </div>
                 </div>
               </div>
