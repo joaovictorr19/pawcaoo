@@ -354,7 +354,7 @@ export default function WalkerDetails() {
   const currentLocale = locales[language] || pt;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen">
       <Helmet>
         <title>{`Contrate ${walker.walker_name} no PawCão | ${walker.location}`}</title>
         <meta name="description" content={`${walker.walker_name} - Passeador e Treinador avaliado com ${averageRating?.toFixed(1)} estrelas. ${walker.bio?.substring(0, 100) || 'Serviços profissionais de pet care.'}`} />
