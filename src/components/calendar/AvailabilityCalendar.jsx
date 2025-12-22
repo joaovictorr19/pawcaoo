@@ -68,14 +68,17 @@ export default function AvailabilityCalendar({
     return { status: 'unavailable' };
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status, isInteractiveMode = false) => {
     const colors = {
       available: "bg-green-100 border-green-400 text-green-800 hover:bg-green-200",
       partial: "bg-yellow-100 border-yellow-400 text-yellow-800",
       booked: "bg-red-100 border-red-400 text-red-800",
       pending: "bg-orange-100 border-orange-400 text-orange-800",
       accepted: "bg-blue-100 border-blue-400 text-blue-800",
-      day_off: "bg-gray-300 border-gray-500 text-gray-600 font-bold",
+      // Day off: VERMELHO para indicar bloqueio visual claro
+      day_off: isInteractiveMode 
+        ? "bg-red-200 border-red-500 text-red-700 font-bold" // Professional view
+        : "bg-red-300 border-red-600 text-red-800 font-bold", // Client view (blocked)
       past: "bg-gray-100 border-gray-200 text-gray-300",
       unavailable: "bg-white border-gray-200 text-gray-400"
     };
@@ -137,15 +140,12 @@ export default function AvailabilityCalendar({
             const isBooked = status === 'booked';
             const hasBookingsDay = status === 'accepted' || status === 'pending' || status === 'booked' || status === 'partial';
             
-            // CRITICAL FIX: Day-off days are NEVER clickable for clients
-            // In interactive mode (professional managing): allow clicking day_off to toggle
-            // In normal mode (client booking): day_off is completely blocked
+            // CRITICAL: Day-off logic
+            // - Interactive mode (professional): can click any non-past, non-booked day to toggle
+            // - Client mode: CANNOT click day_off or booked days
             const isClickable = isInteractive 
-              ? (!isPastDay && !hasBookingsDay) // Professional can toggle day_off
+              ? (!isPastDay && !hasBookingsDay) // Professional can toggle day_off status
               : (!isPastDay && !isDayOff && !isBooked); // Client CANNOT click day_off
-            
-            // Determine if this is a blocked date for visual feedback
-            const isBlocked = isDayOff || isBooked || isPastDay;
             
             return (
               <button
@@ -154,7 +154,12 @@ export default function AvailabilityCalendar({
                   e.preventDefault();
                   e.stopPropagation();
                   
-                  // CRITICAL: Block click if not clickable (extra safety)
+                  // Block click for clients on day_off
+                  if (!isInteractive && isDayOff) {
+                    toast && toast.error("Este dia não está disponível");
+                    return;
+                  }
+                  
                   if (!isClickable && !isInteractive) {
                     return;
                   }
@@ -169,20 +174,18 @@ export default function AvailabilityCalendar({
                   aspect-square p-1 sm:p-1.5 md:p-2 rounded-md border-2 transition-all 
                   text-[10px] xs:text-xs sm:text-sm md:text-base
                   font-bold
-                  ${getStatusColor(status)}
+                  ${getStatusColor(status, isInteractive)}
                   ${isSelected ? 'ring-2 ring-green-500 scale-110 z-10 shadow-lg' : ''}
-                  ${!isClickable ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 hover:shadow-lg active:scale-95 hover:z-10 cursor-pointer'}
-                  ${isDayOff && !isInteractive ? 'bg-gray-200 border-gray-400 text-gray-500 line-through cursor-not-allowed opacity-60' : ''}
+                  ${!isClickable && !isInteractive ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 hover:shadow-md active:scale-95 hover:z-10 cursor-pointer'}
+                  ${isDayOff ? (isInteractive ? 'bg-red-200 border-red-500' : 'bg-red-300 border-red-600 cursor-not-allowed') : ''}
                   ${isToday(date) ? 'ring-2 ring-blue-500 shadow-md' : ''}
                   flex flex-col items-center justify-center relative
                   select-none
                 `}
                 title={
-                  isDayOff && !isInteractive 
-                    ? "Profissional não disponível nesta data" 
-                    : isInteractive 
-                      ? (status === 'day_off' ? "Remover folga" : "Marcar folga") 
-                      : ""
+                  isDayOff 
+                    ? (isInteractive ? "Clique para remover folga" : "❌ Profissional de folga - Indisponível")
+                    : (isInteractive ? "Clique para marcar como folga" : "")
                 }
               >
                 <span className="leading-none">{format(date, 'd')}</span>
@@ -191,10 +194,11 @@ export default function AvailabilityCalendar({
                     {count}
                   </Badge>
                 )}
-                {/* Visual indicator for day-off */}
-                {isDayOff && !isInteractive && (
+                {/* Visual X indicator for day-off - visible to clients */}
+                {isDayOff && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-full h-0.5 bg-gray-500 rotate-45 absolute" />
+                    <div className="w-[80%] h-0.5 bg-red-600 rotate-45 absolute rounded" />
+                    <div className="w-[80%] h-0.5 bg-red-600 -rotate-45 absolute rounded" />
                   </div>
                 )}
               </button>
@@ -217,8 +221,13 @@ export default function AvailabilityCalendar({
             <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">Confirmado</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-red-600 border-2 border-red-700" />
-            <span className="text-[10px] sm:text-xs md:text-sm text-red-700 font-bold">Folga</span>
+            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-red-300 border-2 border-red-600 relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[70%] h-[2px] bg-red-600 rotate-45 absolute" />
+                <div className="w-[70%] h-[2px] bg-red-600 -rotate-45 absolute" />
+              </div>
+            </div>
+            <span className="text-[10px] sm:text-xs md:text-sm text-red-700 font-bold">{language === 'pt' ? 'Folga' : 'Day Off'}</span>
           </div>
         </div>
       </CardContent>
