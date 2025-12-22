@@ -2178,10 +2178,25 @@ export default function AdminDashboard() {
           <TabsContent value="announcements">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Megaphone className="w-6 h-6 text-pink-600" />
-                  {t('allAnnouncements', language)} ({allAnnouncements.length})
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="w-6 h-6 text-pink-600" />
+                    {t('allAnnouncements', language)} ({allAnnouncements.length})
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['allAnnouncements'] });
+                      toast.success("Anúncios atualizados!");
+                    }}
+                    disabled={loadingAnnouncements}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingAnnouncements ? 'animate-spin' : ''}`} />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingAnnouncements && allAnnouncements.length === 0 ? (
