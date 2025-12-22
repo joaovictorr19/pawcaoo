@@ -345,10 +345,10 @@ export default function Gamification() {
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-4 items-stretch mb-8">
-            {/* Card 1: Donut Chart de Nível - MODERNO */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 items-stretch mb-8">
+            {/* Card 1: Donut Chart de Nível - MODERNO SEM EMOJI */}
             <motion.div 
-              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl col-span-1"
+              className="glass-panel p-4 md:p-6 rounded-2xl relative overflow-hidden shadow-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -356,24 +356,25 @@ export default function Gamification() {
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
                    style={{ background: colors?.primary }}></div>
               <div className="relative z-10">
-                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
-                  <Star className="w-4 h-4" style={{ color: colors?.primary }} />
-                  Nível
+                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
+                  <Star className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
+                  <span className="hidden sm:inline">Nível</span>
                 </h3>
                 
                 {/* Donut Chart */}
-                <div className="relative w-32 h-32 mx-auto">
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={donutData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={45}
-                        outerRadius={60}
+                        innerRadius="65%"
+                        outerRadius="85%"
                         dataKey="value"
                         startAngle={90}
                         endAngle={-270}
+                        strokeWidth={0}
                       >
                         {donutData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -382,22 +383,23 @@ export default function Gamification() {
                     </PieChart>
                   </ResponsiveContainer>
                   
-                  {/* Center Content */}
+                  {/* Center Content - Sem Emoji */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-4xl mb-1">{currentTier.icon}</div>
-                    <div className="text-2xl font-black" style={{ color: colors?.primary }}>
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter" style={{ color: colors?.primary }}>
                       {currentLevel}
                     </div>
-                    <div className="text-[10px] text-gray-600 font-bold uppercase">Nível</div>
+                    <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-bold uppercase tracking-wider mt-0.5">
+                      Nível
+                    </div>
+                    <div className="text-[8px] sm:text-[9px] md:text-[10px] text-gray-500 font-semibold mt-1">
+                      {Math.round(tierProgressPercentage)}%
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-4 text-center">
-                  <div className="text-sm font-bold" style={{ color: colors?.primary }}>
+                <div className="mt-3 md:mt-4 text-center">
+                  <div className="text-xs md:text-sm font-bold truncate" style={{ color: colors?.primary }}>
                     {currentTier.name}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {Math.round(tierProgressPercentage)}% para Nv.{Math.min(100, currentLevel + 1)}
                   </div>
                 </div>
               </div>
@@ -405,7 +407,7 @@ export default function Gamification() {
 
             {/* Card 2: XP Total */}
             <motion.div 
-              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              className="glass-panel p-4 md:p-6 rounded-2xl relative overflow-hidden shadow-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
@@ -413,90 +415,95 @@ export default function Gamification() {
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
                    style={{ background: colors?.primary }}></div>
               <div className="relative z-10">
-                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
-                  <Sparkles className="w-4 h-4" style={{ color: colors?.primary }} />
-                  XP Total
+                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
+                  <span className="hidden sm:inline">XP Total</span>
                 </h3>
-                <div className="relative text-center rounded-2xl p-4 overflow-hidden border border-gray-200">
+                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border border-gray-200">
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
                   <div className="relative z-10">
-                    <div className="text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter leading-none" style={{ color: colors?.primary }}>
                       {currentXP.toLocaleString('pt-PT')}
                     </div>
-                    <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">Experiência</div>
+                    <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-bold uppercase tracking-wide mt-1">XP</div>
                   </div>
                 </div>
                 {xpRemainingForNextLevel > 0 && currentLevel < 100 && (
-                  <div className="mt-3 text-center">
-                    <div className="text-sm font-bold text-gray-700">
-                      +{xpRemainingForNextLevel.toLocaleString('pt-PT')} XP
+                  <div className="mt-2 md:mt-3 text-center">
+                    <div className="text-xs md:text-sm font-bold text-gray-700">
+                      +{xpRemainingForNextLevel.toLocaleString('pt-PT')}
                     </div>
-                    <div className="text-xs text-gray-500">para próximo nível</div>
+                    <div className="text-[9px] md:text-xs text-gray-500">próximo nível</div>
                   </div>
                 )}
               </div>
             </motion.div>
 
-            {/* Card 3: Cashback - IMPORTANTE */}
+            {/* Card 3: Cashback - PERFEITO MOBILE/DESKTOP */}
             <motion.div 
-              className="glass-panel p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              className="glass-panel p-4 md:p-6 rounded-2xl relative overflow-hidden shadow-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 bg-green-500"></div>
               <div className="relative z-10">
-                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
-                  <Wallet className="w-4 h-4 text-green-600" />
-                  Cashback
+                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
+                  <Wallet className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+                  <span className="hidden sm:inline">Cashback</span>
                 </h3>
                 
-                <div className="relative text-center rounded-2xl p-4 overflow-hidden border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
                   <div className="relative z-10">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Coins className="w-6 h-6 text-green-600" />
-                      <div className="text-4xl font-black tracking-tighter text-green-700">
-                        €{(userWallet?.cashback_balance || 0).toFixed(2)}
-                      </div>
+                    <div className="flex items-baseline justify-center gap-1 mb-1">
+                      <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-green-700">
+                        €
+                      </span>
+                      <span className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-green-700">
+                        {Math.floor(userWallet?.cashback_balance || 0)}
+                      </span>
+                      <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-green-600">
+                        .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
+                      </span>
                     </div>
-                    <div className="text-xs text-green-700 font-bold uppercase tracking-wide">Disponível</div>
+                    <div className="text-[9px] sm:text-[10px] md:text-xs text-green-700 font-bold uppercase tracking-wide">Saldo</div>
                   </div>
                 </div>
                 
-                <div className="mt-3 text-center">
-                  <div className="text-xs text-gray-600">
-                    Use na PawCão Shop
+                <div className="mt-2 md:mt-3 text-center">
+                  <div className="text-[9px] md:text-xs text-gray-600 font-medium">
+                    💳 Use na Shop
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Card 4: Badges com profundidade */}
+            {/* Card 4: Badges */}
             <motion.div 
-              className="glass-panel p-6 rounded-2xl text-center relative overflow-hidden shadow-xl"
+              className="glass-panel p-4 md:p-6 rounded-2xl text-center relative overflow-hidden shadow-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
               <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20 bg-purple-500"></div>
               <div className="relative z-10">
-                <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center justify-center gap-2 uppercase tracking-wide">
-                  <Award className="w-4 h-4 text-purple-600" />
-                  Emblemas
+                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center justify-center gap-1.5 uppercase tracking-wide">
+                  <Award className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
+                  <span className="hidden sm:inline">Emblemas</span>
                 </h3>
                 <motion.div 
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative shadow-2xl"
+                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 relative shadow-2xl"
                   style={{ background: `linear-gradient(135deg, ${colors?.orb1 || colors?.primary}, ${colors?.primary})` }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="absolute inset-0 bg-white opacity-20 rounded-2xl"></div>
-                  <Trophy className="w-10 h-10 text-white relative z-10 filter drop-shadow-lg" />
+                  <Trophy className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white relative z-10 filter drop-shadow-lg" />
                 </motion.div>
-                <div className="text-5xl font-black tracking-tighter mb-1" style={{ color: colors?.primary }}>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-1" style={{ color: colors?.primary }}>
                   {allEarnedBadges.length}
                 </div>
-                <p className="text-xs text-gray-500 mt-1 font-medium">de {allPossibleBadges.length} total</p>
+                <p className="text-[9px] md:text-xs text-gray-500 font-medium">de {allPossibleBadges.length}</p>
               </div>
             </motion.div>
           </div>
