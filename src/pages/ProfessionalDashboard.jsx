@@ -764,6 +764,67 @@ export default function ProfessionalDashboard() {
             </div>
           </div>
           
+          {/* Pricing Configuration - Quick Edit */}
+          <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-green-50 to-emerald-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Configuração de Preços
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Preço Base - Cães/Gatos (€/hora)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={profile.hourly_rate || ""}
+                    onChange={async (e) => {
+                      const newRate = parseFloat(e.target.value);
+                      if (newRate > 0) {
+                        const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                        await entity.update(profile.id, { hourly_rate: newRate });
+                        queryClient.invalidateQueries(['myWalkerProfile']);
+                        queryClient.invalidateQueries(['myTrainerProfile']);
+                        toast.success('Preço atualizado!');
+                      }
+                    }}
+                    placeholder="Ex: 10€ (Média para cães)"
+                    className="h-12 text-lg font-semibold"
+                  />
+                </div>
+
+                {/* Exotic Rate - Only show if accepts exotic animals */}
+                {(profile.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Preço Exóticos - Répteis/Aracnídeos/Outros (€/visita)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={profile.exotic_rate || ""}
+                      onChange={async (e) => {
+                        const newRate = parseFloat(e.target.value);
+                        if (newRate > 0) {
+                          const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                          await entity.update(profile.id, { exotic_rate: newRate });
+                          queryClient.invalidateQueries(['myWalkerProfile']);
+                          queryClient.invalidateQueries(['myTrainerProfile']);
+                          toast.success('Preço para exóticos atualizado!');
+                        }
+                      }}
+                      placeholder="Ex: 20€ (Taxa por visita a animais especiais)"
+                      className="h-12 text-lg font-semibold"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-600 mt-3 bg-white p-3 rounded-lg border">
+                💡 <strong>Dica:</strong> O preço base aplica-se a cães e gatos (por hora). O preço de exóticos é por visita (alimentar/cuidar).
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Quick Actions - Clean Row */}
           <div className="flex flex-wrap gap-3 mb-6">
             <Button
