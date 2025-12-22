@@ -32,9 +32,10 @@ import {
 } from "@/components/ui/table";
 import { 
   Plus, Pencil, Trash2, ShoppingCart, Calendar, Megaphone, 
-  RefreshCw, Image as ImageIcon, Loader2
+  RefreshCw, Image as ImageIcon, Loader2, Upload, X
 } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CATEGORIES = [
   'Alimentação', 'Acessórios', 'Brinquedos', 'Higiene', 
