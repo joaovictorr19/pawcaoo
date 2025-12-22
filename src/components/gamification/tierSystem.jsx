@@ -6,8 +6,8 @@
 
 // Definição das 20 Cores (Tiers Visuais)
 export const TIER_COLORS_BY_LEVEL = [
-  // Níveis 1-5: Cinza Iniciante
-  { minLevel: 1, maxLevel: 5, name: 'Cinza', icon: '⚪', primary: '#6b7280', gradient: 'from-gray-400 to-gray-600', orb1: '#9ca3af', orb2: '#d1d5db', text: 'text-gray-600', bg: 'bg-gray-100' },
+  // Níveis 1-5: Prata Iniciante
+  { minLevel: 1, maxLevel: 5, name: 'Prata', icon: '⚪', primary: '#c0c0c0', gradient: 'from-gray-300 to-slate-500', orb1: '#94a3b8', orb2: '#cbd5e1', text: 'text-slate-500', bg: 'bg-slate-100' },
   // Níveis 6-10: Verde Musgo
   { minLevel: 6, maxLevel: 10, name: 'Musgo', icon: '🌿', primary: '#4d7c0f', gradient: 'from-lime-600 to-green-700', orb1: '#65a30d', orb2: '#a3e635', text: 'text-lime-600', bg: 'bg-lime-50' },
   // Níveis 11-15: Azul Celeste

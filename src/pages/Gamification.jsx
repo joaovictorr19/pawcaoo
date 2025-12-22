@@ -312,9 +312,9 @@ export default function Gamification() {
   return (
     <div className="min-h-screen pb-8 relative">
     {/* 1. HERO SECTION - Modern Transparent */}
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden mb-8">
         {/* Transparent glass background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-purple-50/30 to-blue-50/40 backdrop-blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-purple-50/10 to-blue-50/10"></div>
         
         <div className="max-w-7xl mx-auto px-4 py-12 md:py-16 relative z-10">
           {/* Header Title - Professional with Context */}
@@ -446,27 +446,27 @@ export default function Gamification() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 bg-green-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10" style={{ background: colors?.orb1 }}></div>
               <div className="relative z-10">
                 <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
-                  <Wallet className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+                  <Wallet className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
                   <span className="hidden sm:inline">Cashback</span>
                 </h3>
                 
-                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border-2" style={{ borderColor: `${colors?.primary}30`, background: `linear-gradient(to bottom right, ${colors?.orb1}10, ${colors?.orb2}10)` }}>
                   <div className="relative z-10">
                     <div className="flex items-baseline justify-center gap-1 mb-1">
                       <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-green-700">
                         €
                       </span>
                       <span className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-green-700">
-                        {Math.floor(userWallet?.cashback_balance || 0)}
+                        {Math.floor(userWallet?.cashback_balance || 0).toLocaleString('pt-PT')}
                       </span>
                       <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-green-600">
                         .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
                       </span>
                     </div>
-                    <div className="text-[9px] sm:text-[10px] md:text-xs text-green-700 font-bold uppercase tracking-wide">Saldo</div>
+                    <div className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wide" style={{ color: colors?.primary }}>Saldo</div>
                   </div>
                 </div>
                 
@@ -485,10 +485,10 @@ export default function Gamification() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20 bg-purple-500"></div>
+              <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ background: colors?.orb2 }}></div>
               <div className="relative z-10">
                 <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center justify-center gap-1.5 uppercase tracking-wide">
-                  <Award className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
+                  <Award className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
                   <span className="hidden sm:inline">Emblemas</span>
                 </h3>
                 <motion.div 
