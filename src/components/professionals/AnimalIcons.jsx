@@ -1,14 +1,21 @@
 import React from "react";
 import { Dog, Cat, Bird } from "lucide-react";
 
-// Ícone SVG customizado para répteis (cobra aprimorada)
+// Ícone SVG customizado para répteis (cobra)
 export const ReptileIcon = ({ className = "w-4 h-4" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 12c0-2 1.5-3.5 3.5-3.5S10 10 11 11c.5.5 1 1 2 1s2-.5 3-1.5c1-1 2-2 3.5-2s3 1 3.5 2.5" />
-    <circle cx="5.5" cy="9.5" r="1.2" fill="currentColor" />
-    <path d="M4 8c-.5-.8-1-1.5-1-2.5 0-1 .5-1.5 1-1.5s1 .5 1 1.5c0 1-.5 1.7-1 2.5" />
-    <path d="M20 14c1 1 2 2 2 3.5 0 1-.5 2-1.5 2s-1.5-1-1.5-2c0-1.5 1-2.5 1-3.5" />
-    <path d="M8 13c0 .5-.2 1-.5 1.5M16 11c0 .5.2 1 .5 1.5" />
+    {/* Corpo sinuoso da cobra */}
+    <path d="M4 16c0-2 2-3 4-3s3 1.5 4 1.5 3-.5 4-2c1-1.5 2.5-2.5 4-2.5" />
+    {/* Cabeça da cobra */}
+    <ellipse cx="20" cy="10" rx="2" ry="1.5" fill="currentColor" />
+    {/* Olho */}
+    <circle cx="19.5" cy="9.5" r="0.5" fill="white" />
+    {/* Língua bifurcada */}
+    <path d="M22 10l1.5-.5M22 10l1.5.5" strokeWidth="1.5" />
+    {/* Cauda */}
+    <path d="M4 16c-1 1-1.5 2-1 3" strokeWidth="1.5" />
+    {/* Detalhes do corpo (escamas) */}
+    <path d="M8 13.5v1M12 12.5v1M16 11v1" strokeWidth="1" opacity="0.6" />
   </svg>
 );
 
