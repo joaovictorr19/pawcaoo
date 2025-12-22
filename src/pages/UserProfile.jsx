@@ -87,12 +87,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
                 {badge.name}
               </p>
               
-              {badge.xp > 0 && (
-                <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-black/30 border border-white/10">
-                  <Zap className="w-2 h-2 text-yellow-400 mr-1" />
-                  <span className="text-[10px] font-mono text-yellow-400">{badge.xp} XP</span>
-                </div>
-              )}
+
             </div>
           </motion.div>
         </TooltipTrigger>
