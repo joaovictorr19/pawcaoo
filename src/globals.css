@@ -207,6 +207,106 @@
     animation: shimmer 3s infinite;
   }
 
+  /* ============================================
+     DARK MAGMA ANIMATIONS - Ember System
+     ============================================ */
+
+  /* Nível 0-39: Pulsação Subtil - Brasa dormindo */
+  @keyframes ember-subtle {
+    0%, 100% { 
+      opacity: 1;
+      filter: brightness(1);
+    }
+    50% { 
+      opacity: 0.92;
+      filter: brightness(1.05);
+    }
+  }
+
+  .animate-ember-subtle {
+    animation: ember-subtle 4s ease-in-out infinite;
+  }
+
+  /* Nível 40-79: Brasa Média - Irradiando calor */
+  @keyframes ember-medium {
+    0%, 100% { 
+      transform: scale(1);
+      filter: brightness(1) drop-shadow(0 0 8px currentColor);
+    }
+    50% { 
+      transform: scale(1.02);
+      filter: brightness(1.1) drop-shadow(0 0 16px currentColor);
+    }
+  }
+
+  .animate-ember-medium {
+    animation: ember-medium 2.5s ease-in-out infinite;
+  }
+
+  /* Nível 80-99: Brasa Intensa - Ondas de calor */
+  @keyframes ember-intense {
+    0%, 100% { 
+      transform: scale(1);
+      filter: brightness(1.1) drop-shadow(0 0 12px currentColor);
+    }
+    25% { 
+      transform: scale(1.03);
+      filter: brightness(1.2) drop-shadow(0 0 20px currentColor);
+    }
+    50% { 
+      transform: scale(1.01);
+      filter: brightness(1.15) drop-shadow(0 0 16px currentColor);
+    }
+    75% { 
+      transform: scale(1.04);
+      filter: brightness(1.25) drop-shadow(0 0 24px currentColor);
+    }
+  }
+
+  .animate-ember-intense {
+    animation: ember-intense 2s ease-in-out infinite;
+  }
+
+  /* Nível 100: Lendário - Fogo vivo com faíscas */
+  @keyframes legendary-fire {
+    0% { 
+      transform: scale(1) rotate(0deg);
+      filter: brightness(1.2) drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 40px #FFA500);
+    }
+    25% { 
+      transform: scale(1.05) rotate(1deg);
+      filter: brightness(1.4) drop-shadow(0 0 30px #FFD700) drop-shadow(0 0 60px #FF8C00);
+    }
+    50% { 
+      transform: scale(1.02) rotate(-1deg);
+      filter: brightness(1.3) drop-shadow(0 0 25px #FFD700) drop-shadow(0 0 50px #FFA500);
+    }
+    75% { 
+      transform: scale(1.06) rotate(0.5deg);
+      filter: brightness(1.5) drop-shadow(0 0 35px #FFD700) drop-shadow(0 0 70px #FF6B00);
+    }
+    100% { 
+      transform: scale(1) rotate(0deg);
+      filter: brightness(1.2) drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 40px #FFA500);
+    }
+  }
+
+  .animate-legendary-fire {
+    animation: legendary-fire 1.5s ease-in-out infinite;
+  }
+
+  /* Shimmer dourado para itens lendários */
+  @keyframes golden-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .animate-golden-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);
+    background-size: 200% 100%;
+    animation: golden-shimmer 3s linear infinite;
+  }
+
   /* 4. Glassmorphism Premium */
   .glass-panel {
     background: rgba(255, 255, 255, 0.7) !important;

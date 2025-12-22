@@ -1,79 +1,146 @@
 // ============================================
-// TIER SYSTEM - ESPECTRO 100 NÍVEIS
+// TIER SYSTEM - DARK MAGMA THEME
 // ============================================
-// Sistema de cores profissional sem emojis
-// Cores mudam a cada 10 níveis
+// Paleta "Escuro & Quente" com animações graduais
+// Cores vibrantes de brasa, cobre, rubi, magma e ouro
 
-// Função para obter cor baseada no nível (Espectro 0-100)
+// Função para obter cor baseada no nível (Espectro Dark Magma 0-100)
 export function getTierColor(level) {
   const safeLevel = Math.min(100, Math.max(0, level || 0));
   
-  if (safeLevel >= 100) return '#8B5CF6'; // Diamante (gradiente especial)
-  if (safeLevel >= 90) return '#EF4444';  // Vermelho Fogo
-  if (safeLevel >= 80) return '#EC4899';  // Rosa Choque
-  if (safeLevel >= 70) return '#8B5CF6';  // Roxo
-  if (safeLevel >= 60) return '#6366F1';  // Índigo
-  if (safeLevel >= 50) return '#3B82F6';  // Azul Real
-  if (safeLevel >= 40) return '#06B6D4';  // Ciano
-  if (safeLevel >= 30) return '#10B981';  // Verde Esmeralda
-  if (safeLevel >= 20) return '#84CC16';  // Verde Lima
-  if (safeLevel >= 10) return '#D97706';  // Bronze
-  return '#94A3B8';                        // Cinza Chumbo
+  // Gradiente suave dentro de cada faixa
+  if (safeLevel >= 100) return '#FFD700'; // Ouro Puro
+  if (safeLevel >= 95) return '#F5C800';
+  if (safeLevel >= 90) return '#DAA520'; // Dourado
+  if (safeLevel >= 85) return '#CD9B1D';
+  if (safeLevel >= 80) return '#B8860B'; // Dourado Escuro
+  if (safeLevel >= 75) return '#FF7F00';
+  if (safeLevel >= 70) return '#FF6B00';
+  if (safeLevel >= 65) return '#FF5500';
+  if (safeLevel >= 60) return '#FF4500'; // Laranja Vermelho
+  if (safeLevel >= 55) return '#E63900';
+  if (safeLevel >= 50) return '#DC143C'; // Carmesim
+  if (safeLevel >= 45) return '#C41E3A';
+  if (safeLevel >= 40) return '#8B0000'; // Vermelho Sangue
+  if (safeLevel >= 35) return '#A52A2A';
+  if (safeLevel >= 30) return '#B22222'; // Vermelho Fogo
+  if (safeLevel >= 25) return '#BC4A3C';
+  if (safeLevel >= 20) return '#CD5C5C'; // Castanho Indiano
+  if (safeLevel >= 15) return '#A0522D';
+  if (safeLevel >= 10) return '#8B4513'; // Bronze Escuro
+  if (safeLevel >= 5) return '#6B3A0A';
+  return '#5C3317';  // Brasa Inicial
 }
 
-// Definição das 11 Cores do Espectro (a cada 10 níveis)
+// Definição das 5 Faixas do Espectro Dark Magma
 export const TIER_COLORS_BY_LEVEL = [
-  // Níveis 0-9: Cinza Chumbo
-  { minLevel: 0, maxLevel: 9, name: 'Chumbo', primary: '#94A3B8', gradient: 'from-slate-400 to-slate-600', orb1: '#94A3B8', orb2: '#CBD5E1', text: 'text-slate-500', bg: 'bg-slate-100' },
-  // Níveis 10-19: Bronze
-  { minLevel: 10, maxLevel: 19, name: 'Bronze', primary: '#D97706', gradient: 'from-amber-500 to-orange-600', orb1: '#D97706', orb2: '#F59E0B', text: 'text-amber-600', bg: 'bg-amber-50' },
-  // Níveis 20-29: Verde Lima
-  { minLevel: 20, maxLevel: 29, name: 'Lima', primary: '#84CC16', gradient: 'from-lime-400 to-green-500', orb1: '#84CC16', orb2: '#A3E635', text: 'text-lime-600', bg: 'bg-lime-50' },
-  // Níveis 30-39: Verde Esmeralda
-  { minLevel: 30, maxLevel: 39, name: 'Esmeralda', primary: '#10B981', gradient: 'from-emerald-400 to-green-600', orb1: '#10B981', orb2: '#34D399', text: 'text-emerald-600', bg: 'bg-emerald-50' },
-  // Níveis 40-49: Ciano
-  { minLevel: 40, maxLevel: 49, name: 'Ciano', primary: '#06B6D4', gradient: 'from-cyan-400 to-teal-500', orb1: '#06B6D4', orb2: '#22D3EE', text: 'text-cyan-600', bg: 'bg-cyan-50' },
-  // Níveis 50-59: Azul Real
-  { minLevel: 50, maxLevel: 59, name: 'Azul Real', primary: '#3B82F6', gradient: 'from-blue-500 to-blue-700', orb1: '#3B82F6', orb2: '#60A5FA', text: 'text-blue-600', bg: 'bg-blue-50' },
-  // Níveis 60-69: Índigo
-  { minLevel: 60, maxLevel: 69, name: 'Índigo', primary: '#6366F1', gradient: 'from-indigo-500 to-violet-600', orb1: '#6366F1', orb2: '#818CF8', text: 'text-indigo-600', bg: 'bg-indigo-50' },
-  // Níveis 70-79: Roxo
-  { minLevel: 70, maxLevel: 79, name: 'Roxo', primary: '#8B5CF6', gradient: 'from-violet-500 to-purple-600', orb1: '#8B5CF6', orb2: '#A78BFA', text: 'text-violet-600', bg: 'bg-violet-50' },
-  // Níveis 80-89: Rosa Choque
-  { minLevel: 80, maxLevel: 89, name: 'Rosa', primary: '#EC4899', gradient: 'from-pink-500 to-rose-600', orb1: '#EC4899', orb2: '#F472B6', text: 'text-pink-600', bg: 'bg-pink-50' },
-  // Níveis 90-99: Vermelho Fogo
-  { minLevel: 90, maxLevel: 99, name: 'Fogo', primary: '#EF4444', gradient: 'from-red-500 to-orange-600', orb1: '#EF4444', orb2: '#F87171', text: 'text-red-600', bg: 'bg-red-50' },
-  // Nível 100+: Diamante (Gradiente cyan para purple)
-  { minLevel: 100, maxLevel: 999, name: 'Diamante', primary: '#8B5CF6', gradient: 'from-cyan-400 via-blue-500 to-purple-600', orb1: '#06B6D4', orb2: '#8B5CF6', text: 'text-purple-600', bg: 'bg-gradient-to-br from-cyan-50 to-purple-50', isLegendary: true }
+  // Níveis 0-19: Brasa Inicial (Bronze Escuro → Siena Queimado)
+  { 
+    minLevel: 0, 
+    maxLevel: 19, 
+    name: 'Brasa', 
+    primary: '#8B4513', 
+    gradient: 'from-amber-900 to-orange-800', 
+    orb1: '#8B4513', 
+    orb2: '#A0522D', 
+    text: 'text-amber-800', 
+    bg: 'bg-amber-950/20',
+    animationClass: 'animate-ember-subtle',
+    glowIntensity: 'low'
+  },
+  // Níveis 20-39: Cobre Aquecido (Castanho Indiano → Vermelho Fogo Tijolo)
+  { 
+    minLevel: 20, 
+    maxLevel: 39, 
+    name: 'Cobre', 
+    primary: '#CD5C5C', 
+    gradient: 'from-red-800 to-orange-700', 
+    orb1: '#CD5C5C', 
+    orb2: '#B22222', 
+    text: 'text-red-700', 
+    bg: 'bg-red-950/20',
+    animationClass: 'animate-ember-subtle',
+    glowIntensity: 'low'
+  },
+  // Níveis 40-59: Rubi Intenso (Vermelho Sangue → Carmesim)
+  { 
+    minLevel: 40, 
+    maxLevel: 59, 
+    name: 'Rubi', 
+    primary: '#DC143C', 
+    gradient: 'from-red-700 to-rose-600', 
+    orb1: '#8B0000', 
+    orb2: '#DC143C', 
+    text: 'text-red-600', 
+    bg: 'bg-red-900/20',
+    animationClass: 'animate-ember-medium',
+    glowIntensity: 'medium'
+  },
+  // Níveis 60-79: Magma (Laranja Vermelho → Laranja Escuro)
+  { 
+    minLevel: 60, 
+    maxLevel: 79, 
+    name: 'Magma', 
+    primary: '#FF4500', 
+    gradient: 'from-orange-600 to-red-500', 
+    orb1: '#FF4500', 
+    orb2: '#FF8C00', 
+    text: 'text-orange-500', 
+    bg: 'bg-orange-900/20',
+    animationClass: 'animate-ember-medium',
+    glowIntensity: 'medium'
+  },
+  // Níveis 80-99: Ouro Fundido (Dourado Escuro → Ouro)
+  { 
+    minLevel: 80, 
+    maxLevel: 99, 
+    name: 'Ouro Fundido', 
+    primary: '#DAA520', 
+    gradient: 'from-yellow-500 to-amber-500', 
+    orb1: '#B8860B', 
+    orb2: '#FFD700', 
+    text: 'text-yellow-500', 
+    bg: 'bg-yellow-900/20',
+    animationClass: 'animate-ember-intense',
+    glowIntensity: 'high'
+  },
+  // Nível 100: Ouro Supremo (Lendário)
+  { 
+    minLevel: 100, 
+    maxLevel: 999, 
+    name: 'Supremo', 
+    primary: '#FFD700', 
+    gradient: 'from-yellow-400 via-amber-400 to-yellow-300', 
+    orb1: '#FFD700', 
+    orb2: '#FFA500', 
+    text: 'text-yellow-400', 
+    bg: 'bg-gradient-to-br from-yellow-900/30 to-amber-900/30', 
+    isLegendary: true,
+    animationClass: 'animate-legendary-fire',
+    glowIntensity: 'legendary'
+  }
 ];
 
 // ============================================
 // SISTEMA LINEAR: 100 XP = 1 NÍVEL
 // ============================================
-// Nível 0 = 0 XP, Nível 50 = 5000 XP, Nível 100 = 10000 XP
 
-// XP necessário para atingir um nível (linear)
 export function getXPForLevel(level) {
   if (level <= 0) return 0;
   return level * 100;
 }
 
-// Calcular nível a partir de XP (linear: floor(xp / 100))
-// REGRA: Cada 100 XP = 1 Nível
-// Exemplos: 0-99 XP = Nível 0, 100-199 XP = Nível 1, 150 XP = Nível 1
 export function getLevelFromXP(xp) {
   if (!xp || xp <= 0) return 0;
   const level = Math.floor(xp / 100);
-  return Math.min(100, level); // Cap at level 100
+  return Math.min(100, level);
 }
 
-// Progresso dentro do nível atual (0-100)
 export function getLevelProgress(xp) {
   if (!xp || xp <= 0) return 0;
-  return xp % 100; // Resto é o progresso para próximo nível
+  return xp % 100;
 }
 
-// XP restante para próximo nível
 export function getXPToNextLevel(xp) {
   if (!xp || xp <= 0) return 100;
   const currentLevel = getLevelFromXP(xp);
@@ -81,15 +148,55 @@ export function getXPToNextLevel(xp) {
   return 100 - (xp % 100);
 }
 
-// Obter Tier (cor) baseado no nível
 export function getTierByLevel(level) {
-  const safeLevel = Math.min(100, Math.max(1, level || 1));
+  const safeLevel = Math.min(100, Math.max(0, level || 0));
   for (const tier of TIER_COLORS_BY_LEVEL) {
     if (safeLevel >= tier.minLevel && safeLevel <= tier.maxLevel) {
       return { ...tier };
     }
   }
   return TIER_COLORS_BY_LEVEL[0];
+}
+
+// ============================================
+// SISTEMA DE ANIMAÇÕES GRADUAIS
+// ============================================
+
+export function getAnimationClass(level) {
+  const safeLevel = Math.min(100, Math.max(0, level || 0));
+  
+  if (safeLevel >= 100) return 'animate-legendary-fire';
+  if (safeLevel >= 80) return 'animate-ember-intense';
+  if (safeLevel >= 40) return 'animate-ember-medium';
+  return 'animate-ember-subtle';
+}
+
+export function getGlowStyle(level, color) {
+  const safeLevel = Math.min(100, Math.max(0, level || 0));
+  
+  if (safeLevel >= 100) {
+    // Lendário: Faíscas douradas intensas
+    return {
+      boxShadow: `0 0 30px ${color}, 0 0 60px ${color}80, 0 0 90px ${color}40, 0 0 120px ${color}20`,
+      filter: 'brightness(1.2)',
+    };
+  }
+  if (safeLevel >= 80) {
+    // Intenso: Brilho forte
+    return {
+      boxShadow: `0 0 20px ${color}90, 0 0 40px ${color}50, 0 0 60px ${color}30`,
+    };
+  }
+  if (safeLevel >= 40) {
+    // Médio: Brasa moderada
+    return {
+      boxShadow: `0 0 12px ${color}70, 0 0 24px ${color}30`,
+    };
+  }
+  // Subtil: Pulsação leve
+  return {
+    boxShadow: `0 0 8px ${color}40, 0 0 16px ${color}20`,
+  };
 }
 
 // Função principal: calcular tudo a partir de XP
@@ -99,29 +206,33 @@ export function calculateTier(xp) {
   const tier = getTierByLevel(level);
   const color = getTierColor(level);
   
-  // SISTEMA LINEAR: progresso = xp % 100
-  const progress = getLevelProgress(safeXP); // 0-100 (XP dentro do nível)
+  const progress = getLevelProgress(safeXP);
   const xpToNextLevel = getXPToNextLevel(safeXP);
   const currentLevelXP = getXPForLevel(level);
   const nextLevelXP = getXPForLevel(level + 1);
+  const animationClass = getAnimationClass(level);
+  const glowStyle = getGlowStyle(level, color);
 
   return {
     level,
     name: tier.name,
-    color, // Cor hex direta do espectro
+    color,
     primary: tier.primary,
     gradient: tier.gradient,
     orb1: tier.orb1,
     orb2: tier.orb2,
     text: tier.text,
     bg: tier.bg,
-    isDark: tier.isDark || false,
+    isDark: true, // Tema Dark Magma é sempre escuro
     isLegendary: tier.isLegendary || false,
     min: currentLevelXP,
     max: nextLevelXP,
-    progress, // 0-100 (XP dentro do nível atual)
+    progress,
     xpToNextLevel,
     tierRange: `${tier.minLevel}-${tier.maxLevel}`,
+    animationClass,
+    glowStyle,
+    glowIntensity: tier.glowIntensity,
     colors: {
       primary: tier.primary,
       gradient: tier.gradient,
@@ -131,7 +242,6 @@ export function calculateTier(xp) {
   };
 }
 
-// Alias para compatibilidade (por nome)
 export function getTierColorByName(tierName) {
   const tier = TIER_COLORS_BY_LEVEL.find(t => t.name === tierName);
   return tier || TIER_COLORS_BY_LEVEL[0];
@@ -144,7 +254,130 @@ export function getNextTier(currentLevel) {
   return getTierByLevel(nextTierStart);
 }
 
-// Exportar thresholds antigos para compatibilidade (não usar mais)
+// CSS Animations para injetar no globals.css
+export const MAGMA_ANIMATIONS_CSS = `
+/* ============================================
+   DARK MAGMA ANIMATIONS - Ember System
+   ============================================ */
+
+/* Nível 0-39: Pulsação Subtil - Brasa dormindo */
+@keyframes ember-subtle {
+  0%, 100% { 
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% { 
+    opacity: 0.92;
+    filter: brightness(1.05);
+  }
+}
+
+.animate-ember-subtle {
+  animation: ember-subtle 4s ease-in-out infinite;
+}
+
+/* Nível 40-79: Brasa Média - Irradiando calor */
+@keyframes ember-medium {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 8px currentColor);
+  }
+  50% { 
+    transform: scale(1.02);
+    filter: brightness(1.1) drop-shadow(0 0 16px currentColor);
+  }
+}
+
+.animate-ember-medium {
+  animation: ember-medium 2.5s ease-in-out infinite;
+}
+
+/* Nível 80-99: Brasa Intensa - Ondas de calor */
+@keyframes ember-intense {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1.1) drop-shadow(0 0 12px currentColor);
+  }
+  25% { 
+    transform: scale(1.03);
+    filter: brightness(1.2) drop-shadow(0 0 20px currentColor);
+  }
+  50% { 
+    transform: scale(1.01);
+    filter: brightness(1.15) drop-shadow(0 0 16px currentColor);
+  }
+  75% { 
+    transform: scale(1.04);
+    filter: brightness(1.25) drop-shadow(0 0 24px currentColor);
+  }
+}
+
+.animate-ember-intense {
+  animation: ember-intense 2s ease-in-out infinite;
+}
+
+/* Nível 100: Lendário - Fogo vivo com faíscas */
+@keyframes legendary-fire {
+  0% { 
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1.2) drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 40px #FFA500);
+  }
+  25% { 
+    transform: scale(1.05) rotate(1deg);
+    filter: brightness(1.4) drop-shadow(0 0 30px #FFD700) drop-shadow(0 0 60px #FF8C00);
+  }
+  50% { 
+    transform: scale(1.02) rotate(-1deg);
+    filter: brightness(1.3) drop-shadow(0 0 25px #FFD700) drop-shadow(0 0 50px #FFA500);
+  }
+  75% { 
+    transform: scale(1.06) rotate(0.5deg);
+    filter: brightness(1.5) drop-shadow(0 0 35px #FFD700) drop-shadow(0 0 70px #FF6B00);
+  }
+  100% { 
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1.2) drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 40px #FFA500);
+  }
+}
+
+.animate-legendary-fire {
+  animation: legendary-fire 1.5s ease-in-out infinite;
+}
+
+/* Shimmer effect for legendary items */
+@keyframes golden-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-golden-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);
+  background-size: 200% 100%;
+  animation: golden-shimmer 3s linear infinite;
+}
+
+/* Spark particles for legendary */
+@keyframes spark {
+  0% { 
+    opacity: 0;
+    transform: translateY(0) scale(0);
+  }
+  50% { 
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  100% { 
+    opacity: 0;
+    transform: translateY(-20px) scale(0);
+  }
+}
+
+.animate-spark {
+  animation: spark 1s ease-out infinite;
+}
+`;
+
+// Exportar thresholds para compatibilidade
 export const TIER_THRESHOLDS = TIER_COLORS_BY_LEVEL.map(t => ({
   name: t.name,
   min: getXPForLevel(t.minLevel),
