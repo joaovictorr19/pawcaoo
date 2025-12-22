@@ -572,7 +572,7 @@ export default function StoreItemsManager() {
                   <span className="text-sm">Destaque</span>
                 </label>
               </div>
-            </div>
+              </div>
             </ScrollArea>
 
             <DialogFooter className="p-4 pt-2 border-t flex-shrink-0 gap-2">
