@@ -331,11 +331,11 @@ export default function Gamification() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {/* Carteira flutuante no canto direito */}
-            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-20">
+            <div className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4">
+              {/* Carteira flutuante - posição relativa no fluxo */}
               <motion.button
                 onClick={() => navigate(createPageUrl('MyWallet'))}
-                className="flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border-2 backdrop-blur-sm"
+                className="absolute right-4 md:right-8 top-auto flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border-2 backdrop-blur-sm"
                 style={{ 
                   background: 'rgba(255,255,255,0.9)', 
                   borderColor: `${levelColor}40`
@@ -348,9 +348,6 @@ export default function Gamification() {
                   €{(userWallet?.cashback_balance || 0).toFixed(2)}
                 </span>
               </motion.button>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4">
               <div 
                 className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg"
                 style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}

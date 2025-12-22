@@ -5,9 +5,7 @@ import { getTierColor, calculateTier } from "./tierSystem";
 
 /**
  * Componente de Pódio Visual para Top 3
- * - 1º Lugar: Centro, foto grande, borda na cor do nível + efeito brilho
- * - 2º Lugar: Esquerda, foto média, posicionado abaixo
- * - 3º Lugar: Direita, foto média, mesma linha do 2º
+ * Design: Ouro (centro alto), Prata (esquerda), Bronze (direita)
  */
 export default function PodiumDisplay({ 
   rankedData = [], 
@@ -20,60 +18,84 @@ export default function PodiumDisplay({
   const second = rankedData[1];
   const third = rankedData[2];
 
-  // Obter cor do nível para cada posição
-  const getColor = (user) => {
-    if (rankingType === 'global') {
-      return getTierColor(user?.gamification_level || calculateTier(user?.gamification_xp || 0).level);
+  // Configuração visual por posição
+  const positionConfig = {
+    1: {
+      gradient: 'from-yellow-300 via-yellow-400 to-amber-500',
+      border: '#fbbf24',
+      glow: 'rgba(251, 191, 36, 0.5)',
+      medal: '🥇',
+      pedestalHeight: 'h-32 md:h-40',
+      photoSize: 'w-20 h-20 md:w-28 md:h-28',
+      label: 'OURO'
+    },
+    2: {
+      gradient: 'from-gray-200 via-gray-300 to-slate-400',
+      border: '#9ca3af',
+      glow: 'rgba(156, 163, 175, 0.4)',
+      medal: '🥈',
+      pedestalHeight: 'h-24 md:h-32',
+      photoSize: 'w-16 h-16 md:w-24 md:h-24',
+      label: 'PRATA'
+    },
+    3: {
+      gradient: 'from-orange-300 via-orange-400 to-amber-600',
+      border: '#f97316',
+      glow: 'rgba(249, 115, 22, 0.4)',
+      medal: '🥉',
+      pedestalHeight: 'h-20 md:h-28',
+      photoSize: 'w-16 h-16 md:w-24 md:h-24',
+      label: 'BRONZE'
     }
-    // Para outros rankings, usar cor baseada na posição
-    return null;
   };
 
-  const PodiumCard = ({ user, position, className = "" }) => {
+  const PodiumCard = ({ user, position }) => {
     if (!user) return null;
     
-    const levelColor = getColor(user);
+    const config = positionConfig[position];
+    const levelColor = rankingType === 'global' 
+      ? getTierColor(user?.gamification_level || calculateTier(user?.gamification_xp || 0).level)
+      : config.border;
     const isFirst = position === 1;
-    const photoSize = isFirst ? "w-24 h-24 md:w-32 md:h-32" : "w-18 h-18 md:w-24 md:h-24";
-    const pedestalHeight = isFirst ? "h-40 md:h-48" : "h-32 md:h-36";
-    
-    // Cores do pedestal por posição
-    const pedestalColors = {
-      1: 'from-yellow-400 to-amber-500',
-      2: 'from-gray-300 to-slate-400',
-      3: 'from-orange-400 to-amber-600'
-    };
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: position * 0.1 }}
-        className={`flex flex-col items-center ${className}`}
+        initial={{ opacity: 0, y: 50, scale: 0.8 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: position === 1 ? 0.1 : position === 2 ? 0.2 : 0.3, type: "spring", stiffness: 100 }}
+        className="flex flex-col items-center"
       >
-        {/* Foto com borda na cor do nível */}
-        <div className="relative mb-3">
-          {/* Coroa para 1º lugar - CENTRALIZADA */}
+        {/* Avatar Section */}
+        <div className="relative mb-2">
+          {/* Coroa animada para 1º lugar */}
           {isFirst && (
             <motion.div 
-              className="absolute -top-10 left-0 right-0 flex justify-center z-10"
-              animate={{ y: [-2, 2, -2] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute -top-8 md:-top-10 left-1/2 -translate-x-1/2 z-20"
+              animate={{ y: [-3, 3, -3], rotate: [-5, 5, -5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Crown className="w-8 h-8 md:w-10 md:h-10 text-yellow-500 drop-shadow-lg" 
-                     style={{ filter: 'drop-shadow(0 0 8px #fbbf24)' }} />
+              <Crown 
+                className="w-8 h-8 md:w-12 md:h-12 text-yellow-400" 
+                style={{ filter: 'drop-shadow(0 0 12px #fbbf24)' }}
+                fill="#fbbf24"
+              />
             </motion.div>
           )}
 
-          {/* Container da foto */}
+          {/* Glow ring */}
           <div 
-            className={`${photoSize} rounded-2xl overflow-hidden relative`}
+            className={`absolute inset-0 ${config.photoSize} rounded-full blur-md`}
+            style={{ background: config.glow, transform: 'scale(1.2)' }}
+          />
+
+          {/* Photo container */}
+          <motion.div 
+            className={`${config.photoSize} rounded-full overflow-hidden relative z-10`}
             style={{
-              border: `4px solid ${levelColor || (position === 1 ? '#fbbf24' : position === 2 ? '#9ca3af' : '#f97316')}`,
-              boxShadow: isFirst 
-                ? `0 0 30px ${levelColor || '#fbbf24'}60, 0 8px 32px rgba(0,0,0,0.2)` 
-                : '0 4px 16px rgba(0,0,0,0.15)'
+              border: `4px solid ${config.border}`,
+              boxShadow: `0 0 20px ${config.glow}, 0 8px 24px rgba(0,0,0,0.2)`
             }}
+            whileHover={{ scale: 1.1 }}
           >
             {user.profile_photo_url ? (
               <img 
@@ -83,76 +105,109 @@ export default function PodiumDisplay({
               />
             ) : (
               <div 
-                className="w-full h-full flex items-center justify-center text-white font-black text-2xl md:text-3xl"
-                style={{ backgroundColor: levelColor || '#3b82f6' }}
+                className={`w-full h-full flex items-center justify-center text-white font-black bg-gradient-to-br ${config.gradient}`}
+                style={{ fontSize: isFirst ? '2rem' : '1.5rem' }}
               >
-                {user.full_name?.[0]?.toUpperCase()}
+                {user.full_name?.[0]?.toUpperCase() || '?'}
               </div>
             )}
-          </div>
+          </motion.div>
 
-          {/* Badge de posição */}
+          {/* Medal badge */}
           <div 
-            className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${isFirst ? 'w-10 h-10' : 'w-8 h-8'} rounded-xl flex items-center justify-center font-black text-white shadow-lg`}
-            style={{
-              background: position === 1 
-                ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' 
-                : position === 2 
-                  ? 'linear-gradient(135deg, #9ca3af, #6b7280)'
-                  : 'linear-gradient(135deg, #f97316, #ea580c)'
-            }}
+            className={`absolute -bottom-1 left-1/2 -translate-x-1/2 ${isFirst ? 'text-3xl' : 'text-2xl'} z-20`}
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
           >
-            {position}
+            {config.medal}
           </div>
         </div>
 
         {/* Pedestal */}
-        <div 
-          className={`${pedestalHeight} w-28 md:w-36 bg-gradient-to-b ${pedestalColors[position]} rounded-t-2xl flex flex-col items-center justify-center px-3 shadow-xl`}
+        <motion.div 
+          className={`${config.pedestalHeight} w-24 md:w-32 bg-gradient-to-b ${config.gradient} rounded-t-2xl flex flex-col items-center justify-start pt-4 px-2 shadow-2xl relative overflow-hidden`}
+          initial={{ height: 0 }}
+          animate={{ height: 'auto' }}
+          transition={{ delay: position * 0.15, duration: 0.5 }}
         >
-          {isFirst && <Trophy className="w-7 h-7 md:w-8 md:h-8 text-white/90 mb-2" />}
-          {!isFirst && <Medal className="w-6 h-6 text-white/90 mb-1" />}
+          {/* Shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-shimmer" />
           
-          <p className="font-bold text-white text-sm md:text-base text-center truncate w-full">
-            {user.full_name}
+          {/* Position number */}
+          <div className="text-white/90 text-2xl md:text-3xl font-black mb-1 drop-shadow-lg">
+            {position}º
+          </div>
+          
+          {/* Name */}
+          <p className="font-bold text-white text-xs md:text-sm text-center truncate w-full drop-shadow-md">
+            {user.full_name?.split(' ')[0] || 'User'}
           </p>
           
-          <p className="text-white/80 text-xs md:text-sm font-semibold mt-1">
+          {/* Metric */}
+          <p className="text-white/90 text-[10px] md:text-xs font-semibold mt-1 drop-shadow">
             {formatMetric(user)}
           </p>
 
-          {/* Indicador de nível com cor */}
-          {rankingType === 'global' && levelColor && (
+          {/* Level indicator for global ranking */}
+          {rankingType === 'global' && (
             <div 
-              className="mt-2 px-3 py-1 rounded-full text-xs font-bold text-white"
-              style={{ backgroundColor: `${levelColor}CC` }}
+              className="mt-2 px-2 py-0.5 rounded-full text-[10px] md:text-xs font-bold text-white/90 backdrop-blur-sm"
+              style={{ backgroundColor: `${levelColor}90` }}
             >
-              Nv. {user.gamification_level || calculateTier(user.gamification_xp || 0).level}
+              Nv.{user.gamification_level || calculateTier(user.gamification_xp || 0).level}
             </div>
           )}
-        </div>
+        </motion.div>
       </motion.div>
     );
   };
 
   return (
-    <div className="flex items-end justify-center gap-4 md:gap-8 py-8 px-2">
-      {/* 2º Lugar - Esquerda */}
-      {second ? (
-        <PodiumCard user={second} position={2} />
-      ) : (
-        <div className="w-28 md:w-36" /> /* Placeholder para manter layout */
-      )}
+    <div className="relative py-6 md:py-10">
+      {/* Background glow */}
+      <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
+        <div className="w-64 h-32 bg-gradient-to-t from-yellow-400/20 to-transparent blur-3xl" />
+      </div>
       
-      {/* 1º Lugar - Centro (mais alto) */}
-      {first && <PodiumCard user={first} position={1} className="relative z-10" />}
+      {/* Podium container - 2º, 1º, 3º order */}
+      <div className="flex items-end justify-center gap-2 md:gap-4 relative z-10">
+        {/* 2º Lugar - Prata (Esquerda) */}
+        <div className="flex flex-col items-center">
+          {second ? (
+            <PodiumCard user={second} position={2} />
+          ) : (
+            <div className="w-24 md:w-32 h-24 md:h-32 rounded-t-2xl bg-gray-200/50 flex items-center justify-center">
+              <span className="text-gray-400 text-2xl">🥈</span>
+            </div>
+          )}
+        </div>
+        
+        {/* 1º Lugar - Ouro (Centro, mais alto) */}
+        <div className="flex flex-col items-center -mt-8 md:-mt-12">
+          {first ? (
+            <PodiumCard user={first} position={1} />
+          ) : (
+            <div className="w-24 md:w-32 h-32 md:h-40 rounded-t-2xl bg-yellow-200/50 flex items-center justify-center">
+              <span className="text-yellow-400 text-3xl">🥇</span>
+            </div>
+          )}
+        </div>
+        
+        {/* 3º Lugar - Bronze (Direita) */}
+        <div className="flex flex-col items-center">
+          {third ? (
+            <PodiumCard user={third} position={3} />
+          ) : (
+            <div className="w-24 md:w-32 h-20 md:h-28 rounded-t-2xl bg-orange-200/50 flex items-center justify-center">
+              <span className="text-orange-400 text-2xl">🥉</span>
+            </div>
+          )}
+        </div>
+      </div>
       
-      {/* 3º Lugar - Direita */}
-      {third ? (
-        <PodiumCard user={third} position={3} />
-      ) : (
-        <div className="w-28 md:w-36" /> /* Placeholder para manter layout */
-      )}
+      {/* Base do pódio */}
+      <div className="flex justify-center mt-0">
+        <div className="w-80 md:w-[420px] h-3 md:h-4 bg-gradient-to-r from-gray-300 via-gray-400 to-gray-300 rounded-b-xl shadow-inner" />
+      </div>
     </div>
   );
 }
