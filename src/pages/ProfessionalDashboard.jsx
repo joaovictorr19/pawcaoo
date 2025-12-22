@@ -1496,11 +1496,12 @@ export default function ProfessionalDashboard() {
                   <h3 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
                     <Dog className="w-4 h-4" /> Cães & Gatos
                   </h3>
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid md:grid-cols-4 gap-4">
                     {[
                       { id: 'walk_dogs', name: 'Passeio Cães', IconComponent: Dog, desc: 'Passeio padrão', animal: 'dogs' },
                       { id: 'walk_cats', name: 'Passeio Gatos', IconComponent: Cat, desc: 'Passeio para gatos', animal: 'cats' },
-                      { id: 'boarding_dogs', name: 'Alojamento', IconComponent: Home, desc: 'Animal fica em sua casa', animal: 'dogs' }
+                      { id: 'boarding_dogs', name: 'Alojamento', IconComponent: Home, desc: 'Animal fica em sua casa', animal: 'dogs' },
+                      { id: 'training_dogs', name: 'Treino Cães', IconComponent: Award, desc: 'Sessões de treino', animal: 'dogs', isTraining: true }
                     ].map(quickService => {
                       const isActive = profile.services_offered?.some(s => s.service_type === quickService.id);
                       const activeService = profile.services_offered?.find(s => s.service_type === quickService.id);
