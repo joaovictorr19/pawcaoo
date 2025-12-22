@@ -798,7 +798,7 @@ function LayoutContent({ children, currentPageName }) {
                     <span className="hidden lg:inline">{language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}</span>
                   </Link>
                   <Link
-                    to={createPageUrl("PostEmergency")}
+                    to={createPageUrl("Home") + "?tab=emergency"}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap text-red-600 bg-red-50 hover:bg-red-100`}
                   >
                     <Zap className="w-4 h-4 flex-shrink-0 text-red-500" />
