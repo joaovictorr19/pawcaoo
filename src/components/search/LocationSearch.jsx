@@ -101,40 +101,35 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
 
   return (
     <div className="space-y-2">
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex gap-2 bg-transparent">
         <div className="relative flex-1">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
           <Input
-            placeholder="Enter address or city..."
+            placeholder={language === 'pt' ? 'Morada ou cidade...' : language === 'es' ? 'Dirección o ciudad...' : 'Address or city...'}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-gray-100 border-0 rounded-xl"
           />
         </div>
-        <Button type="submit" disabled={loading || !address.trim()} variant="outline">
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            language === 'pt' ? 'Buscar' : language === 'es' ? 'Buscar' : 'Search'
-          )}
-        </Button>
-        <Button
+        <Button 
           type="button"
-          variant="outline"
+          variant="ghost"
+          size="icon"
           onClick={getCurrentLocation}
           disabled={gettingLocation}
-          title="Use my current location"
+          title={language === 'pt' ? 'Usar minha localização' : 'Use my location'}
+          className="h-10 w-10 shrink-0 bg-gray-100 hover:bg-gray-200 rounded-xl"
         >
           {gettingLocation ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Navigation className="w-4 h-4" />
+            <Navigation className="w-4 h-4 text-gray-600" />
           )}
         </Button>
       </form>
       
       {currentLocation && (
-        <p className="text-xs text-gray-600">
+        <p className="text-xs text-gray-600 truncate max-w-full">
           📍 {currentLocation.displayName || currentLocation.address}
         </p>
       )}
