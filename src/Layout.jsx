@@ -327,15 +327,17 @@ function LayoutContent({ children, currentPageName }) {
     ...(authUser?.company_type === 'veterinary' ? [{ title: getMenuText('vetDashboard'), url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
   ] : [];
 
-  // Award welcome badge on mount if user doesn't have it
+  // RESET SYSTEM: Welcome badge sem XP automático (sistema começa do zero)
+  // Badge de boas-vindas apenas se não tiver nenhum badge ainda
   React.useEffect(() => {
     const awardWelcomeBadge = async () => {
       if (!authUser?.email) return;
-      
+
       const badges = authUser.achievements_badges || [];
       const hasWelcomeBadge = badges.some(b => b.badge_id === 'welcome');
-      
-      if (!hasWelcomeBadge) {
+
+      // Só dar badge de boas-vindas se ainda não tiver NENHUM badge
+      if (!hasWelcomeBadge && badges.length === 0) {
         try {
           const badge = {
             badge_id: 'welcome',
@@ -345,14 +347,14 @@ function LayoutContent({ children, currentPageName }) {
             rarity: 'common',
             earned_date: new Date().toISOString(),
             category: 'milestone',
-            xp_reward: 50
+            xp_reward: 0 // SEM XP automático - sistema começa do zero
           };
-          
+
           await base44.auth.updateMe({
-            achievements_badges: [...badges, badge],
-            gamification_xp: (authUser.gamification_xp || 0) + 50
+            achievements_badges: [badge]
+            // NÃO adicionar XP aqui - começa do zero
           });
-          
+
           queryClient.invalidateQueries(['currentUser']);
           setNewBadge(badge);
         } catch (error) {
@@ -360,8 +362,7 @@ function LayoutContent({ children, currentPageName }) {
         }
       }
     };
-    
-    // Delay to ensure user data is loaded and badges are initialized
+
     if (authUser?.email && authUser.achievements_badges !== undefined) {
       awardWelcomeBadge();
     }
