@@ -354,20 +354,47 @@ export default function WalkerDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      <SEO 
-        title={`${walker.walker_name} - ${t('findWalkers', language)} in ${walker.location}`}
-        description={`Reserve passeios com ${walker.walker_name}. ${walker.bio?.substring(0, 120)}... ${t('rating', language)}: ${averageRating?.toFixed(1)}/5.`}
-        image={walker.photo_url}
-        type="profile"
-        schema={[
-          generateServiceSchema(walker),
-          generateBreadcrumbSchema([
-            { name: "Home", url: window.location.origin },
-            { name: "Walkers", url: window.location.origin },
-            { name: walker.walker_name, url: window.location.href }
-          ])
-        ]}
-      />
+      <Helmet>
+        <title>{`Contrate ${walker.walker_name} no PawCão | ${walker.location}`}</title>
+        <meta name="description" content={`${walker.walker_name} - Passeador e Treinador avaliado com ${averageRating?.toFixed(1)} estrelas. ${walker.bio?.substring(0, 100) || 'Serviços profissionais de pet care.'}`} />
+        
+        {/* Open Graph para WhatsApp/Instagram/Facebook */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:site_name" content="PawCão" />
+        <meta property="og:title" content={`Contrate ${walker.walker_name} no PawCão`} />
+        <meta property="og:description" content={`Passeador e Treinador avaliado com ${averageRating?.toFixed(1)} estrelas ⭐ | ${walker.location}`} />
+        <meta property="og:image" content={walker.photo_url || 'https://pawcao.net/social-preview.jpg'} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content={window.location.href} />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`Contrate ${walker.walker_name} no PawCão`} />
+        <meta name="twitter:description" content={`Avaliado com ${averageRating?.toFixed(1)} estrelas ⭐`} />
+        <meta name="twitter:image" content={walker.photo_url || 'https://pawcao.net/social-preview.jpg'} />
+        
+        {/* Schema.org JSON-LD */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": walker.walker_name,
+            "description": walker.bio,
+            "image": walker.photo_url,
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": walker.location
+            },
+            "aggregateRating": averageRating > 0 ? {
+              "@type": "AggregateRating",
+              "ratingValue": averageRating.toFixed(1),
+              "reviewCount": reviews.length
+            } : undefined,
+            "priceRange": `€${walker.hourly_rate}/hora`
+          })}
+        </script>
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Button
           variant="outline"
