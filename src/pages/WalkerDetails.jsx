@@ -573,6 +573,13 @@ export default function WalkerDetails() {
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 mb-2">Animais Aceites</h3>
                         <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
+                        {walker.exotic_rate && walker.accepted_animals.some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
+                          <div className="mt-2 bg-purple-50 border border-purple-200 rounded-lg p-2">
+                            <p className="text-xs text-purple-700">
+                              <span className="font-bold">Preço Exóticos:</span> €{walker.exotic_rate}/visita
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 

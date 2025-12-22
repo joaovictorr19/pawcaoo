@@ -306,6 +306,14 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
                 €{trainer.hourly_rate}
               </div>
               <div className="text-[10px] md:text-xs text-gray-500">/hora</div>
+              {trainer.exotic_rate && (trainer.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
+                <>
+                  <div className="text-sm font-semibold text-orange-600 mt-1">
+                    €{trainer.exotic_rate}
+                  </div>
+                  <div className="text-[9px] text-gray-500">/visita exóticos</div>
+                </>
+              )}
             </div>
           </div>
 

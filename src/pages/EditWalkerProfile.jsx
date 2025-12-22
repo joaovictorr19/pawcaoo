@@ -417,14 +417,29 @@ export default function EditWalkerProfile() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Taxa Horária (€)</Label>
+                  <Label>Preço Base - Cães/Gatos (€/hora)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={formData.hourly_rate || ""}
                     onChange={(e) => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})}
+                    placeholder="Ex: 10€ (Média para cães)"
                   />
                 </div>
+
+                {/* Exotic Rate - Only show if accepts exotic animals */}
+                {(formData.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
+                  <div className="space-y-2">
+                    <Label>Preço Exóticos - Répteis/Aracnídeos/Outros (€/visita)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.exotic_rate || ""}
+                      onChange={(e) => setFormData({...formData, exotic_rate: parseFloat(e.target.value)})}
+                      placeholder="Ex: 20€ (Taxa por visita a animais especiais)"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>WhatsApp</Label>

@@ -214,9 +214,17 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             <div className="text-xs text-gray-600 flex-shrink-0">
               <span className="font-semibold text-gray-900">{walker.total_walks || 0}</span> passeios
             </div>
-            <div className="flex items-center gap-0.5 text-green-600 font-bold flex-shrink-0">
-              <span className="text-base">€{walker.hourly_rate}</span>
-              <span className="text-[10px] text-gray-500">/h</span>
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="flex items-center gap-0.5 text-green-600 font-bold flex-shrink-0">
+                <span className="text-base">€{walker.hourly_rate}</span>
+                <span className="text-[10px] text-gray-500">/h</span>
+              </div>
+              {walker.exotic_rate && (formData.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
+                <div className="flex items-center gap-0.5 text-purple-600 font-semibold flex-shrink-0">
+                  <span className="text-xs">€{walker.exotic_rate}</span>
+                  <span className="text-[9px] text-gray-500">/visita exóticos</span>
+                </div>
+              )}
             </div>
           </div>
 
