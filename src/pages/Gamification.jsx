@@ -4,17 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
-  Trophy, Crown, Medal, Award, Lock, Sparkles, 
-  Star, TrendingUp, Users, ChevronRight, Dog, Wallet, Coins
+  Trophy, Award, Lock, Sparkles, 
+  Star, TrendingUp, Users, ChevronRight, Wallet
 } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useTheme } from "@/components/ThemeContext";
-import { calculateTier, getLevelFromXP, TIER_COLORS_BY_LEVEL } from "@/components/gamification/tierSystem";
+import { calculateTier, getTierColor, TIER_COLORS_BY_LEVEL } from "@/components/gamification/tierSystem";
+import LevelDonut from "@/components/gamification/LevelDonut";
+import PodiumDisplay from "@/components/gamification/PodiumDisplay";
+import RankingList from "@/components/gamification/RankingList";
 
 export default function Gamification() {
   const navigate = useNavigate();
