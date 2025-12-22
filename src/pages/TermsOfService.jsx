@@ -9,7 +9,7 @@ export default function TermsOfService() {
   const content = {
     pt: {
       title: "Termos de Serviço",
-      lastUpdated: "Última atualização: 3 de Novembro de 2025",
+      lastUpdated: "Última atualização: 22 de Dezembro de 2024",
       sections: [
         {
           title: "1. Aceitação dos Termos",
@@ -17,7 +17,7 @@ export default function TermsOfService() {
         },
         {
           title: "2. Descrição do Serviço",
-          content: "PawCão é uma plataforma que conecta donos de cães com passeadores profissionais, treinadores e serviços relacionados. Não somos empregadores dos profissionais listados, funcionamos como intermediários facilitando as conexões."
+          content: "PawCão é uma plataforma intermediária que conecta donos de animais com passeadores, treinadores, lojas e serviços veterinários em Portugal, Espanha e França. Não somos empregadores dos profissionais listados, funcionamos exclusivamente como facilitadores de conexões."
         },
         {
           title: "3. Elegibilidade",
@@ -33,7 +33,7 @@ export default function TermsOfService() {
         },
         {
           title: "6. Cancelamentos e Reembolsos",
-          content: "• Cancelamento gratuito até 24h antes do serviço\n• Cancelamentos com menos de 24h: reembolso de 50%\n• Cancelamentos pelo profissional: reembolso total\n• Cancelamentos devido a emergências: analisados caso a caso\n• Proprietários Premium/VIP têm cancelamentos grátis conforme plano"
+          content: "**Serviços de Passeio/Treino:**\n• Cancelamento gratuito até 24h antes do serviço\n• Cancelamentos com menos de 24h: sem reembolso\n• Cancelamentos pelo profissional: reembolso total\n• Cancelamentos devido a emergências: analisados caso a caso\n• Proprietários Premium/VIP têm cancelamentos grátis conforme plano\n\n**Loja PawStore (Produtos Físicos):**\n• Direito de livre resolução em 14 dias (Lei Europeia)\n• Produtos devem estar em condição original\n• Envios: 3-5 dias úteis\n• Garantia: 2 anos para produtos físicos"
         },
         {
           title: "7. Responsabilidades dos Profissionais",
@@ -76,18 +76,22 @@ export default function TermsOfService() {
           content: "PawCão não é responsável por danos indiretos, incidentais ou consequenciais. Nossa responsabilidade máxima está limitada ao valor pago pelos serviços nos últimos 12 meses."
         },
         {
-          title: "17. Lei Aplicável",
+          title: "17. Cláusula Especial - França (CESU)",
+          content: "🇫🇷 **Para utilizadores em França:**\n\nA PawCão permite a conexão entre particulares e prestadores de serviços. Se o prestador não tiver SIRET (auto-entrepreneur ou empresa), o cliente (dono do animal) é responsável pela declaração via CESU (Chèque emploi service universel).\n\n**Responsabilidade Legal:**\nA PawCão atua apenas como facilitador técnico. A relação contratual e fiscal entre cliente e prestador particular é de responsabilidade exclusiva das partes envolvidas, conforme legislação francesa sobre serviços domésticos.\n\n**Prestadores Profissionais em França:**\nPrestadores com SIRET seguem regime normal de auto-entrepreneur ou empresa, emitindo faturas diretamente ao cliente."
+        },
+        {
+          title: "18. Lei Aplicável",
           content: "Estes termos são regidos pelas leis de Portugal. Quaisquer disputas serão resolvidas nos tribunais de Lisboa, Portugal."
         },
         {
-          title: "18. Contacto",
+          title: "19. Contacto",
           content: "Para questões sobre estes Termos:\n• Email: legal@pawcao.pt\n• Telefone: +351 21 123 4567\n• Morada: Rua Exemplo 123, 1000-000 Lisboa, Portugal"
         }
       ]
     },
     en: {
       title: "Terms of Service",
-      lastUpdated: "Last updated: November 3, 2025",
+      lastUpdated: "Last updated: December 22, 2024",
       sections: [
         {
           title: "1. Acceptance of Terms",
@@ -95,7 +99,7 @@ export default function TermsOfService() {
         },
         {
           title: "2. Service Description",
-          content: "PawCão is a platform connecting dog owners with professional walkers, trainers, and related services. We are not employers of listed professionals; we function as intermediaries facilitating connections."
+          content: "PawCão is an intermediary platform connecting pet owners with walkers, trainers, shops, and veterinary services in Portugal, Spain, and France. We are not employers of listed professionals; we function exclusively as connection facilitators."
         },
         {
           title: "3. Eligibility",
@@ -111,7 +115,7 @@ export default function TermsOfService() {
         },
         {
           title: "6. Cancellations and Refunds",
-          content: "• Free cancellation up to 24h before service\n• Cancellations under 24h: 50% refund\n• Professional cancellations: full refund\n• Emergency cancellations: case-by-case review\n• Premium/VIP owners have free cancellations per plan"
+          content: "**Walk/Training Services:**\n• Free cancellation up to 24h before service\n• Cancellations under 24h: no refund\n• Professional cancellations: full refund\n• Emergency cancellations: case-by-case review\n• Premium/VIP owners have free cancellations per plan\n\n**PawStore (Physical Products):**\n• 14-day right of withdrawal (EU Law)\n• Products must be in original condition\n• Shipping: 3-5 business days\n• Warranty: 2 years for physical products"
         },
         {
           title: "7. Professional Responsibilities",
@@ -154,18 +158,22 @@ export default function TermsOfService() {
           content: "PawCão is not liable for indirect, incidental, or consequential damages. Our maximum liability is limited to amount paid for services in last 12 months."
         },
         {
-          title: "17. Governing Law",
+          title: "17. Special Clause - France (CESU)",
+          content: "🇫🇷 **For users in France:**\n\nPawCão enables connections between individuals and service providers. If the provider does not have a SIRET (auto-entrepreneur or company), the client (pet owner) is responsible for declaration via CESU (Chèque emploi service universel).\n\n**Legal Responsibility:**\nPawCão acts only as a technical facilitator. The contractual and fiscal relationship between client and individual provider is the exclusive responsibility of the parties involved, according to French legislation on domestic services.\n\n**Professional Providers in France:**\nProviders with SIRET follow normal auto-entrepreneur or company regime, issuing invoices directly to the client."
+        },
+        {
+          title: "18. Governing Law",
           content: "These terms are governed by the laws of Portugal. Any disputes will be resolved in the courts of Lisbon, Portugal."
         },
         {
-          title: "18. Contact",
+          title: "19. Contact",
           content: "Questions about these Terms:\n• Email: legal@pawcao.pt\n• Phone: +351 21 123 4567\n• Address: Rua Exemplo 123, 1000-000 Lisbon, Portugal"
         }
       ]
     },
     es: {
       title: "Términos de Servicio",
-      lastUpdated: "Última actualización: 3 de Noviembre de 2025",
+      lastUpdated: "Última actualización: 22 de Diciembre de 2024",
       sections: [
         {
           title: "1. Aceptación de los Términos",
@@ -173,7 +181,7 @@ export default function TermsOfService() {
         },
         {
           title: "2. Descripción del Servicio",
-          content: "PawCão es una plataforma que conecta dueños de perros con paseadores profesionales, entrenadores y servicios relacionados. No somos empleadores de los profesionales listados, funcionamos como intermediarios."
+          content: "PawCão es una plataforma intermediaria que conecta dueños de mascotas con paseadores, entrenadores, tiendas y servicios veterinarios en Portugal, España y Francia. No somos empleadores de los profesionales listados, funcionamos exclusivamente como facilitadores de conexiones."
         },
         {
           title: "3. Elegibilidad",
@@ -189,7 +197,7 @@ export default function TermsOfService() {
         },
         {
           title: "6. Cancelaciones y Reembolsos",
-          content: "• Cancelación gratuita hasta 24h antes\n• Cancelaciones bajo 24h: reembolso del 50%\n• Cancelaciones por profesional: reembolso total\n• Cancelaciones de emergencia: revisión caso por caso\n• Propietarios Premium/VIP tienen cancelaciones gratis según plan"
+          content: "**Servicios de Paseo/Entrenamiento:**\n• Cancelación gratuita hasta 24h antes\n• Cancelaciones bajo 24h: sin reembolso\n• Cancelaciones por profesional: reembolso total\n• Cancelaciones de emergencia: revisión caso por caso\n• Propietarios Premium/VIP tienen cancelaciones gratis según plan\n\n**Tienda PawStore (Productos Físicos):**\n• Derecho de desistimiento en 14 días (Ley Europea)\n• Productos deben estar en condición original\n• Envíos: 3-5 días hábiles\n• Garantía: 2 años para productos físicos"
         },
         {
           title: "7. Responsabilidades de Profesionales",
@@ -232,11 +240,15 @@ export default function TermsOfService() {
           content: "PawCão no es responsable de daños indirectos, incidentales o consecuentes. Nuestra responsabilidad máxima está limitada al monto pagado en los últimos 12 meses."
         },
         {
-          title: "17. Ley Aplicable",
+          title: "17. Cláusula Especial - Francia (CESU)",
+          content: "🇫🇷 **Para usuarios en Francia:**\n\nPawCão permite la conexión entre particulares y prestadores de servicios. Si el prestador no tiene SIRET (auto-entrepreneur o empresa), el cliente (dueño del animal) es responsable de la declaración vía CESU (Chèque emploi service universel).\n\n**Responsabilidad Legal:**\nPawCão actúa solo como facilitador técnico. La relación contractual y fiscal entre cliente y prestador particular es responsabilidad exclusiva de las partes involucradas, según legislación francesa sobre servicios domésticos.\n\n**Prestadores Profesionales en Francia:**\nPrestadores con SIRET siguen régimen normal de auto-entrepreneur o empresa, emitiendo facturas directamente al cliente."
+        },
+        {
+          title: "18. Ley Aplicable",
           content: "Estos términos se rigen por las leyes de Portugal. Las disputas se resolverán en los tribunales de Lisboa, Portugal."
         },
         {
-          title: "18. Contacto",
+          title: "19. Contacto",
           content: "Preguntas sobre estos Términos:\n• Email: legal@pawcao.pt\n• Teléfono: +351 21 123 4567\n• Dirección: Rua Exemplo 123, 1000-000 Lisboa, Portugal"
         }
       ]

@@ -510,13 +510,23 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <SidebarProvider>
       <Helmet>
-        <title>PawCão | Serviços Pet em Portugal, Espanha e França</title>
+        <title>
+          {language === 'pt' ? 'PawCão - O melhor para o seu Pet' :
+           language === 'es' ? 'PawCão - Lo mejor para tu Mascota' :
+           language === 'fr' ? 'PawCão - Le meilleur pour votre Animal' :
+           'PawCão - The best for your Pet'}
+        </title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
 
         {/* SEO Meta Tags */}
-        <meta name="description" content="Passeador de cães, Treinador de cães, Pet Sitter Portugal | Paseador de perros, Adiestrador canino España | Promeneur de chien, Garde d'animaux France" />
+        <meta name="description" content={
+          language === 'pt' ? 'Encontre Dog Walkers, Pet Sitters, Seguros e Produtos exclusivos em Portugal, Espanha e França.' :
+          language === 'es' ? 'Encuentra Paseadores, Entrenadores, Seguros y Productos exclusivos en Portugal, España y Francia.' :
+          language === 'fr' ? 'Trouvez des Promeneurs, Garde d\'animaux, Assurances et Produits exclusifs au Portugal, Espagne et France.' :
+          'Find Dog Walkers, Pet Sitters, Insurance and Exclusive Products in Portugal, Spain and France.'
+        } />
         <meta name="keywords" content="Passeador de cães, Treinador de cães, Pet Sitter Portugal, Cuidador de animais exóticos, Paseador de perros, Adiestrador canino, Cuidadores de mascotas España, Promeneur de chien, Garde d'animaux, Pet Sitter France, Dressage canin, Pension pour animaux" />
         <meta name="author" content="PawCão" />
         <link rel="canonical" href="https://pawcao.net" />

@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
   const content = {
     pt: {
       title: "Política de Privacidade",
-      lastUpdated: "Última atualização: 3 de Novembro de 2025",
+      lastUpdated: "Última atualização: 22 de Dezembro de 2024",
       intro: "A PawCão está comprometida em proteger a sua privacidade. Esta Política de Privacidade explica como recolhemos, usamos, divulgamos e protegemos as suas informações pessoais em conformidade com o Regulamento Geral de Proteção de Dados (RGPD).",
       sections: [
         {
@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
         },
         {
           title: "3. Partilha de Informações",
-          content: "Partilhamos as suas informações apenas quando necessário:\n\n**Com Profissionais:** Nome, telefone, morada, informações do cão (para prestação do serviço)\n\n**Com Processadores de Pagamento:** Stripe, PayPal (para processar transações)\n\n**Com Autoridades:** Quando exigido por lei\n\n**Nunca vendemos** os seus dados pessoais a terceiros para fins de marketing."
+          content: "Partilhamos as suas informações apenas quando necessário:\n\n**Com Profissionais:** Nome, telefone, morada, informações do cão (para prestação do serviço)\n\n**Com Processadores de Pagamento:** Stripe (para processar transações seguras)\n\n**Com Autoridades:** Quando exigido por lei ou regulamentação fiscal (ex: declarações CESU em França)\n\n**Com Parceiros da Loja:** Informações de envio para entrega de produtos\n\n**Nunca vendemos** os seus dados pessoais a terceiros para fins de marketing."
         },
         {
           title: "4. Direitos RGPD",
@@ -53,14 +53,18 @@ export default function PrivacyPolicy() {
           content: "Podemos atualizar esta política periodicamente. Notificaremos sobre alterações significativas por email ou através da plataforma. A data da última atualização está no topo desta página."
         },
         {
-          title: "11. Contacto",
+          title: "11. Direito ao Esquecimento",
+          content: "Você pode apagar a sua conta e todos os dados pessoais a qualquer momento através das configurações da conta ou contactando-nos em privacy@pawcao.pt.\n\nApós solicitação, eliminamos todos os dados pessoais em até 30 dias, exceto dados obrigatórios por lei (transações fiscais - 7 anos)."
+        },
+        {
+          title: "12. Contacto",
           content: "Para questões sobre privacidade:\n\n**Encarregado de Proteção de Dados:**\nEmail: dpo@pawcao.pt\nTelefone: +351 21 123 4567\nMorada: Rua Exemplo 123, 1000-000 Lisboa, Portugal\n\n**Autoridade de Supervisão:**\nCNPD - Comissão Nacional de Proteção de Dados\nwww.cnpd.pt"
         }
       ]
     },
     en: {
       title: "Privacy Policy",
-      lastUpdated: "Last updated: November 3, 2025",
+      lastUpdated: "Last updated: December 22, 2024",
       intro: "PawCão is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and protect your personal information in compliance with the General Data Protection Regulation (GDPR).",
       sections: [
         {
@@ -73,7 +77,7 @@ export default function PrivacyPolicy() {
         },
         {
           title: "3. Information Sharing",
-          content: "We share your information only when necessary:\n\n**With Professionals:** Name, phone, address, dog information (for service provision)\n\n**With Payment Processors:** Stripe, PayPal (to process transactions)\n\n**With Authorities:** When required by law\n\n**We never sell** your personal data to third parties for marketing purposes."
+          content: "We share your information only when necessary:\n\n**With Professionals:** Name, phone, address, dog information (for service provision)\n\n**With Payment Processors:** Stripe (to process secure transactions)\n\n**With Authorities:** When required by law or tax regulation (e.g., CESU declarations in France)\n\n**With Shop Partners:** Shipping information for product delivery\n\n**We never sell** your personal data to third parties for marketing purposes."
         },
         {
           title: "4. GDPR Rights",
@@ -104,14 +108,18 @@ export default function PrivacyPolicy() {
           content: "We may update this policy periodically. We will notify about significant changes via email or platform. The last update date is at the top of this page."
         },
         {
-          title: "11. Contact",
+          title: "11. Right to Erasure",
+          content: "You can delete your account and all personal data at any time through account settings or by contacting us at privacy@pawcao.pt.\n\nAfter request, we delete all personal data within 30 days, except data required by law (tax transactions - 7 years)."
+        },
+        {
+          title: "12. Contact",
           content: "For privacy questions:\n\n**Data Protection Officer:**\nEmail: dpo@pawcao.pt\nPhone: +351 21 123 4567\nAddress: Rua Exemplo 123, 1000-000 Lisbon, Portugal\n\n**Supervisory Authority:**\nCNPD - Portuguese Data Protection Authority\nwww.cnpd.pt"
         }
       ]
     },
     es: {
       title: "Política de Privacidad",
-      lastUpdated: "Última actualización: 3 de Noviembre de 2025",
+      lastUpdated: "Última actualización: 22 de Diciembre de 2024",
       intro: "PawCão está comprometido en proteger su privacidad. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos su información personal conforme al Reglamento General de Protección de Datos (RGPD).",
       sections: [
         {
@@ -124,7 +132,7 @@ export default function PrivacyPolicy() {
         },
         {
           title: "3. Compartir Información",
-          content: "Compartimos su información solo cuando sea necesario:\n\n**Con Profesionales:** Nombre, teléfono, dirección, información del perro (para servicio)\n\n**Con Procesadores de Pago:** Stripe, PayPal (para procesar transacciones)\n\n**Con Autoridades:** Cuando la ley lo requiera\n\n**Nunca vendemos** sus datos personales a terceros para fines de marketing."
+          content: "Compartimos su información solo cuando sea necesario:\n\n**Con Profesionales:** Nombre, teléfono, dirección, información del perro (para servicio)\n\n**Con Procesadores de Pago:** Stripe (para procesar transacciones seguras)\n\n**Con Autoridades:** Cuando la ley o regulación fiscal lo requiera (ej: declaraciones CESU en Francia)\n\n**Con Socios de Tienda:** Información de envío para entrega de productos\n\n**Nunca vendemos** sus datos personales a terceros para fines de marketing."
         },
         {
           title: "4. Derechos RGPD",
@@ -155,7 +163,11 @@ export default function PrivacyPolicy() {
           content: "Podemos actualizar esta política periódicamente. Notificaremos sobre cambios significativos por correo o plataforma. La fecha de última actualización está al inicio de esta página."
         },
         {
-          title: "11. Contacto",
+          title: "11. Derecho al Olvido",
+          content: "Puede eliminar su cuenta y todos los datos personales en cualquier momento a través de la configuración de cuenta o contactándonos en privacy@pawcao.pt.\n\nTras la solicitud, eliminamos todos los datos personales en hasta 30 días, excepto datos requeridos por ley (transacciones fiscales - 7 años)."
+        },
+        {
+          title: "12. Contacto",
           content: "Para cuestiones de privacidad:\n\n**Oficial de Protección de Datos:**\nEmail: dpo@pawcao.pt\nTeléfono: +351 21 123 4567\nDirección: Rua Exemplo 123, 1000-000 Lisboa, Portugal\n\n**Autoridad de Supervisión:**\nCNPD - Comisión Nacional de Protección de Datos\nwww.cnpd.pt"
         }
       ]
