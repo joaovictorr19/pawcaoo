@@ -806,9 +806,9 @@ export default function BecomeProfessional() {
                             <div className="space-y-4 bg-white p-4 rounded-lg border-2 border-blue-200">
                               <div className="space-y-2">
                                 <Label>Tipo de Prestador *</Label>
-                                <RadioGroup value={formData.france_professional_type} onValueChange={(val) => setFormData({...formData, france_professional_type: val})}>
+                                <RadioGroup value={formData.france_professional_type} onValueChange={(val) => setFormData({...formData, france_professional_type: val, tax_id_france: val === 'individual' ? '' : formData.tax_id_france})}>
                                   <div className="grid grid-cols-2 gap-3">
-                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'professional' ? 'ring-2 ring-blue-500' : ''}`}
+                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'professional' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'}`}
                                       onClick={() => setFormData({...formData, france_professional_type: 'professional'})}>
                                       <CardContent className="p-3 text-center">
                                         <RadioGroupItem value="professional" id="fr-pro" className="sr-only" />
@@ -817,8 +817,8 @@ export default function BecomeProfessional() {
                                       </CardContent>
                                     </Card>
 
-                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'individual' ? 'ring-2 ring-blue-500' : ''}`}
-                                      onClick={() => setFormData({...formData, france_professional_type: 'individual'})}>
+                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'individual' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-md'}`}
+                                      onClick={() => setFormData({...formData, france_professional_type: 'individual', tax_id_france: ''})}>
                                       <CardContent className="p-3 text-center">
                                         <RadioGroupItem value="individual" id="fr-ind" className="sr-only" />
                                         <div className="font-semibold text-sm">Particular</div>
@@ -830,7 +830,7 @@ export default function BecomeProfessional() {
                               </div>
 
                               {formData.france_professional_type === 'professional' && (
-                                <div className="space-y-2">
+                                <div className="space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-300">
                                   <Label>SIRET *</Label>
                                   <Input
                                     required
@@ -846,7 +846,7 @@ export default function BecomeProfessional() {
                               {formData.france_professional_type === 'individual' && (
                                 <Alert className="border-orange-300 bg-orange-50">
                                   <AlertDescription className="text-sm">
-                                    ⚠️ <strong>Atenção:</strong> Rendimentos sujeitos a declaração CESU. A responsabilidade legal é entre o cliente e o prestador.
+                                    ⚠️ <strong>Atenção:</strong> Como particular, não precisa de SIRET. Os rendimentos devem ser declarados via CESU pelo cliente. A responsabilidade legal é entre o cliente e o prestador.
                                   </AlertDescription>
                                 </Alert>
                               )}
