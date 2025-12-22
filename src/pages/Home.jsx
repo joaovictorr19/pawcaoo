@@ -279,6 +279,7 @@ export default function Home() {
   const [filterTime, setFilterTime] = useState("all");
   const [filterAvailability, setFilterAvailability] = useState("all");
   const [filterDogSitting, setFilterDogSitting] = useState(dogSittingServiceFilter || "all");
+  const [filterAnimalType, setFilterAnimalType] = useState("all");
   
   const [selectedServiceTypes, setSelectedServiceTypes] = useState([]);
   const [selectedSpecializations, setSelectedSpecializations] = useState([]);
@@ -710,11 +711,15 @@ export default function Home() {
       const matchesTime = filterTime === "all" || 
         pro.availability?.includes(filterTime);
 
+      // Animal Type Filter
+      const matchesAnimalType = filterAnimalType === "all" || 
+        (pro.accepted_animals || ['dogs']).includes(filterAnimalType);
+
       // Distance Filter
       const matchesRadius = !userLocation || pro.distance === null || 
         pro.distance <= (advancedFilters.radius || 50);
 
-      if (!matchesSearch || !matchesSize || !matchesTime || !matchesRadius) return false;
+      if (!matchesSearch || !matchesSize || !matchesTime || !matchesAnimalType || !matchesRadius) return false;
 
       // Type-specific logic (only apply if pro matches the type of filter)
       // If we are filtering for specific walker services, trainers might be excluded unless we want them to show up?
@@ -803,7 +808,7 @@ export default function Home() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
+  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
 
   if (userLoading) {
     return (
@@ -1276,13 +1281,29 @@ export default function Home() {
                       </SelectContent>
                     </Select>
 
-                    {(filterSize !== "all" || filterTime !== "all") && (
+                    <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
+                      <SelectTrigger className="h-10 w-36 text-sm bg-white border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-all">
+                        <SelectValue placeholder="Tipo de Animal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="dogs">Cães</SelectItem>
+                        <SelectItem value="cats">Gatos</SelectItem>
+                        <SelectItem value="reptiles">Répteis</SelectItem>
+                        <SelectItem value="arachnids">Aracnídeos</SelectItem>
+                        <SelectItem value="rodents">Roedores</SelectItem>
+                        <SelectItem value="birds">Aves</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
                           setFilterSize("all");
                           setFilterTime("all");
+                          setFilterAnimalType("all");
                         }}
                         className="h-10 text-sm bg-white text-gray-700 border-2 border-gray-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600 shadow-sm transition-all font-semibold"
                       >

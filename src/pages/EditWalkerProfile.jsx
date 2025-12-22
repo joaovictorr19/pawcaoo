@@ -579,6 +579,31 @@ export default function EditWalkerProfile() {
                 </div>
               </div>
 
+              {/* Animais Aceites */}
+              <div className="space-y-3">
+                <Label>Animais Aceites</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[
+                    { value: "dogs", label: "Cães" },
+                    { value: "cats", label: "Gatos" },
+                    { value: "reptiles", label: "Répteis" },
+                    { value: "arachnids", label: "Aracnídeos" },
+                    { value: "rodents", label: "Roedores" },
+                    { value: "birds", label: "Aves" },
+                  ].map(animal => (
+                    <div key={animal.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={(formData.accepted_animals || ['dogs']).includes(animal.value)}
+                        onCheckedChange={() => toggleArrayItem('accepted_animals', animal.value)}
+                      />
+                      <label className="text-sm font-medium cursor-pointer">
+                        {animal.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Portfolio */}
               <div className="space-y-2 border-t-2 border-green-100 pt-6">
                 <Label className="block text-base font-semibold">Portfolio de Trabalhos</Label>

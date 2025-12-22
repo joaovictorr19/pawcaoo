@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import ProfessionalRoleBadge from "@/components/ui/ProfessionalRoleBadge";
+import { AnimalIconsList } from "@/components/professionals/AnimalIcons";
 
 // Dummy data for specializations for the purpose of this component
 // In a real application, this would likely be imported from a constants file or fetched from an API.
@@ -271,6 +272,13 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
               {walker.dog_sizes.length > 3 && (
                 <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 whitespace-nowrap">+{walker.dog_sizes.length - 3}</Badge>
               )}
+            </div>
+          )}
+
+          {/* Animais Aceites */}
+          {walker.accepted_animals && walker.accepted_animals.length > 0 && (
+            <div className="pt-2 border-t border-gray-100">
+              <AnimalIconsList acceptedAnimals={walker.accepted_animals} size="sm" />
             </div>
           )}
 
