@@ -331,23 +331,24 @@ export default function Gamification() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4">
-              {/* Carteira flutuante - posição relativa no fluxo */}
-              <motion.button
-                onClick={() => navigate(createPageUrl('MyWallet'))}
-                className="absolute right-4 md:right-8 top-auto flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border-2 backdrop-blur-sm"
-                style={{ 
-                  background: 'rgba(255,255,255,0.9)', 
-                  borderColor: `${levelColor}40`
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Wallet className="w-4 h-4" style={{ color: levelColor }} />
-                <span className="text-sm font-black" style={{ color: levelColor }}>
-                  €{(userWallet?.cashback_balance || 0).toFixed(2)}
-                </span>
-              </motion.button>
+            {/* Carteira flutuante - fora do fluxo do título */}
+            <motion.button
+              onClick={() => navigate(createPageUrl('MyWallet'))}
+              className="absolute right-4 md:right-8 top-6 md:top-8 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border-2 backdrop-blur-sm z-30"
+              style={{ 
+                background: 'rgba(255,255,255,0.95)', 
+                borderColor: `${levelColor}40`
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Wallet className="w-4 h-4" style={{ color: levelColor }} />
+              <span className="text-sm font-black" style={{ color: levelColor }}>
+                €{(userWallet?.cashback_balance || 0).toFixed(2)}
+              </span>
+            </motion.button>
+
+            <div className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4 pt-2">
               <div 
                 className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg"
                 style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
