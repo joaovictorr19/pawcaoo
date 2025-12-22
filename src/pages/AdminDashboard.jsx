@@ -3478,21 +3478,27 @@ export default function AdminDashboard() {
                   </Select>
                 </div>
 
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3 md:p-4 mb-4">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm md:text-base">
                     <Award className="w-4 h-4 text-purple-600" />
-                    Badges Públicos Atuais ({selectedUserForBadges.public_badges?.length || 0})
+                    Badges Públicos ({selectedUserForBadges.public_badges?.length || 0})
                   </h4>
                   {selectedUserForBadges.public_badges?.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                       {selectedUserForBadges.public_badges.map((badge, idx) => (
-                        <div key={`badge-${badge.badge_id || idx}`} className="relative group">
-                          <Badge className="bg-purple-500 pr-6 text-white">
-                            {badge.icon} {badge.name}
-                          </Badge>
-                          <button
+                        <div 
+                          key={`badge-${badge.badge_id || idx}`} 
+                          className="flex items-center justify-between bg-white rounded-lg p-2 border border-purple-200 shadow-sm"
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="text-lg flex-shrink-0">{badge.icon}</span>
+                            <span className="text-xs font-medium truncate">{badge.name}</span>
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             onClick={() => {
-                              if (confirm(`Remover emblema "${badge.name}" de ${selectedUserForBadges.full_name}?\n\nEsta ação irá deduzir ${badge.xp || 0} XP.`)) {
+                              if (confirm(`Remover "${badge.name}"?\n(-${badge.xp || 0} XP)`)) {
                                 removeBadgeFromUserMutation.mutate({
                                   userId: selectedUserForBadges.id,
                                   badgeId: badge.badge_id,
@@ -3500,11 +3506,11 @@ export default function AdminDashboard() {
                                 });
                               }
                             }}
-                            className="absolute top-0 right-0 bottom-0 px-1.5 flex items-center justify-center bg-red-500 text-white text-xs rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                            title="Remover Emblema"
+                            className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                            title="Remover"
                           >
-                            <X className="w-3 h-3" />
-                          </button>
+                            <X className="w-4 h-4" />
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -3519,10 +3525,10 @@ export default function AdminDashboard() {
                         setShowBadgesDialog(false);
                         openGrantBadgeDialog(selectedUserForBadges.email);
                       }}
-                      className="w-full border-purple-500 text-purple-600 hover:bg-purple-50"
+                      className="w-full border-purple-500 text-purple-600 hover:bg-purple-50 h-9"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Novo Emblema
+                      Adicionar Emblema
                     </Button>
                   </div>
                 </div>
