@@ -952,7 +952,7 @@ export default function Home() {
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                                 Conquistas Recentes
                               </p>
-                              <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
+                              <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2 overflow-visible">
                                 {allBadges
                                   .sort((a, b) => {
                                     const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
@@ -961,32 +961,26 @@ export default function Home() {
                                   })
                                   .slice(0, 5)
                                   .map((badge, i) => (
-                                    <TooltipProvider key={`badge-${i}-${badge.badge_id || badge.id || i}`} delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <div 
-                                            className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
-                                          >
-                                            {badge.image_url ? (
-                                              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                              <span>{badge.icon || '🏅'}</span>
-                                            )}
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent 
-                                          side="top" 
-                                          align="center"
-                                          sideOffset={12}
-                                          className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700"
-                                        >
-                                          <p className="font-bold text-xs mb-1 leading-tight">{badge.name}</p>
-                                          {badge.description && (
-                                            <p className="text-[10px] text-gray-300 leading-snug">{badge.description}</p>
-                                          )}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
+                                    <div key={`badge-${i}-${badge.badge_id || badge.id || i}`} className="relative group flex-shrink-0">
+                                      <div 
+                                        className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
+                                      >
+                                        {badge.image_url ? (
+                                          <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <span>{badge.icon || '🏅'}</span>
+                                        )}
+                                      </div>
+                                      {/* Tooltip on hover */}
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-2 bg-gray-900 text-white rounded-lg shadow-xl border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] min-w-[140px] max-w-[200px] pointer-events-none">
+                                        <p className="font-bold text-xs mb-1 leading-tight text-center">{badge.name}</p>
+                                        {badge.description && (
+                                          <p className="text-[10px] text-gray-300 leading-snug text-center">{badge.description}</p>
+                                        )}
+                                        {/* Arrow */}
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900"></div>
+                                      </div>
+                                    </div>
                                   ))}
                               </div>
                             </div>
