@@ -30,9 +30,15 @@ export default function ProfileEditRequests() {
 
   const approveMutation = useMutation({
     mutationFn: async (request) => {
-      // 1. Update the WalkerProfile with the requested changes
+      // 1. Update the profile (Walker or Trainer) with the requested changes
       if (request.requested_changes) {
-        await base44.entities.WalkerProfile.update(request.walker_id, request.requested_changes);
+        if (request.profile_type === 'walker' || request.walker_id) {
+          const profileId = request.profile_id || request.walker_id;
+          await base44.entities.WalkerProfile.update(profileId, request.requested_changes);
+        } else if (request.profile_type === 'trainer' || request.trainer_id) {
+          const profileId = request.profile_id || request.trainer_id;
+          await base44.entities.TrainerProfile.update(profileId, request.requested_changes);
+        }
       }
       // 2. Mark request as approved
       await base44.entities.ProfileEditRequest.update(request.id, { 
@@ -43,6 +49,8 @@ export default function ProfileEditRequests() {
     onSuccess: () => {
       toast.success("Alterações aprovadas e aplicadas!");
       queryClient.invalidateQueries(['profileEditRequests']);
+      queryClient.invalidateQueries(['allWalkersAdmin']);
+      queryClient.invalidateQueries(['allTrainersAdmin']);
       setSelectedRequest(null);
     },
     onError: () => toast.error("Erro ao aprovar alterações.")
