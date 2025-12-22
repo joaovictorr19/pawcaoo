@@ -19,7 +19,7 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
-import { Download, ExternalLink, Share2, Calendar as CalendarIcon } from "lucide-react";
+import { Download, ExternalLink, Share2, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { bookingToEvent, generateMultiICS, downloadICS } from "../components/calendar/calendarHelpers";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -783,6 +783,14 @@ export default function ProfessionalDashboard() {
             >
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Serviço
+            </Button>
+            <Button
+              onClick={() => navigate(createPageUrl('FiscalSettings'))}
+              variant="outline"
+              className="border-2 border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 shadow-md"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Fiscal & Relatórios
             </Button>
           </div>
 
