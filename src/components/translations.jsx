@@ -2880,10 +2880,48 @@ export const adoptionTranslations = {
 };
 
 export const t = (key, lang = 'pt') => {
-  // Add adoption translations
-  if (adoptionTranslations[key]) {
-    return adoptionTranslations[key][lang] || adoptionTranslations[key].pt;
+  // Supported languages with fallback chain
+  const fallbackChain = {
+    pt: ['pt'],
+    en: ['en', 'pt'],
+    es: ['es', 'pt'],
+    fr: ['fr', 'en', 'pt'],
+    de: ['de', 'en', 'pt'],
+    it: ['it', 'en', 'pt']
+  };
+  
+  const languages = fallbackChain[lang] || ['en', 'pt'];
+  
+  // Try each language in the fallback chain
+  for (const l of languages) {
+    // Check adoption translations
+    if (adoptionTranslations[key]?.[l]) {
+      return adoptionTranslations[key][l];
+    }
+    // Check main translations  
+    if (translations[l]?.[key]) {
+      return translations[l][key];
+    }
   }
   
-  return translations[lang]?.[key] || translations['pt']?.[key] || key;
+  return key;
+};
+
+// Helper to get all available languages
+export const getAvailableLanguages = () => [
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' }
+];
+
+// Common keys for multi-language support
+export const commonTranslations = {
+  // Payment related
+  payNow: { pt: 'Pagar', en: 'Pay Now', es: 'Pagar', fr: 'Payer' },
+  processing: { pt: 'Processando', en: 'Processing', es: 'Procesando', fr: 'Traitement' },
+  memberDiscount: { pt: 'Desconto membro', en: 'Member discount', es: 'Descuento miembro', fr: 'Remise membre' },
+  serviceFee: { pt: 'Taxa de serviço', en: 'Service fee', es: 'Tarifa de servicio', fr: 'Frais de service' }
 };
