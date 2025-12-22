@@ -250,7 +250,7 @@ export default function PawStoreTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center bg-white rounded-2xl p-6 shadow-lg mb-4">
+      <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-4 shadow-md mb-4">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">PawStore</h2>
         <p className="text-gray-600">Produtos, serviços e muito mais para o seu pet</p>
       </div>
