@@ -31,124 +31,111 @@ function ProductCard({ item }) {
   const [isLiked, setIsLiked] = useState(false);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all bg-white h-full rounded-2xl">
-        <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-          <img 
-            src={item.image_url || 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400'} 
-            alt={item.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-          />
-          
-          {item.badge && (
-            <Badge className={`absolute top-2 left-2 ${
-              item.badge.includes('%') || item.badge.includes('-')
-                ? 'bg-red-500 text-white' 
-                : 'bg-blue-500 text-white'
-            }`}>
-              {item.badge}
-            </Badge>
-          )}
+    <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-all bg-white h-full rounded-xl">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+        <img 
+          src={item.image_url || 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400'} 
+          alt={item.title}
+          className="w-full h-full object-cover"
+        />
+        
+        {item.badge && (
+          <span className={`absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded font-medium ${
+            item.badge.includes('%') || item.badge.includes('-')
+              ? 'bg-red-500 text-white' 
+              : 'bg-blue-500 text-white'
+          }`}>
+            {item.badge}
+          </span>
+        )}
 
-          <button 
-            onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-          >
-            <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-          </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
+          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center"
+        >
+          <Heart className={`w-3 h-3 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+        </button>
+      </div>
+
+      <CardContent className="p-2.5">
+        {item.brand && (
+          <p className="text-[10px] text-gray-500 uppercase truncate">{item.brand}</p>
+        )}
+        
+        <h3 className="font-medium text-gray-900 text-xs leading-tight mb-1.5 line-clamp-2 min-h-[2rem]">
+          {item.title}
+        </h3>
+
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className="text-base font-bold text-gray-900">
+            €{(item.price || 0).toFixed(2)}
+          </span>
+          {item.original_price && (
+            <span className="text-[10px] text-gray-400 line-through">
+              €{item.original_price.toFixed(2)}
+            </span>
+          )}
         </div>
 
-        <CardContent className="p-4">
-          {item.brand && (
-            <p className="text-xs text-gray-500 uppercase mb-1">{item.brand}</p>
-          )}
-          
-          <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 min-h-[2.5rem]">
-            {item.title}
-          </h3>
-
-          <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-xl font-bold text-gray-900">
-              €{(item.price || 0).toFixed(2)}
-            </span>
-            {item.original_price && (
-              <span className="text-sm text-gray-400 line-through">
-                €{item.original_price.toFixed(2)}
-              </span>
-            )}
-          </div>
-
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Adicionar
-          </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] py-1.5 rounded-lg font-medium flex items-center justify-center gap-1">
+          <ShoppingCart className="w-3 h-3" />
+          Adicionar
+        </button>
+      </CardContent>
+    </Card>
   );
 }
 
 // Service Card
 function ServiceCard({ item }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all bg-white h-full rounded-2xl">
-        <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-          <img 
-            src={item.image_url || 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400'} 
-            alt={item.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-          />
-          
-          {item.availability && (
-            <Badge className="absolute top-2 left-2 bg-green-500 text-white">
-              <Sparkles className="w-3 h-3 mr-1" />
-              {item.availability}
-            </Badge>
-          )}
+    <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-all bg-white h-full rounded-xl">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+        <img 
+          src={item.image_url || 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400'} 
+          alt={item.title}
+          className="w-full h-full object-cover"
+        />
+        
+        {item.availability && (
+          <span className="absolute top-1.5 left-1.5 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
+            {item.availability}
+          </span>
+        )}
 
-          {item.duration && (
-            <Badge variant="secondary" className="absolute top-2 right-2 bg-white/90 text-gray-700">
-              <Clock className="w-3 h-3 mr-1" />
-              {item.duration}
-            </Badge>
-          )}
+        {item.duration && (
+          <span className="absolute top-1.5 right-1.5 bg-white/90 text-gray-700 text-[10px] px-1.5 py-0.5 rounded">
+            {item.duration}
+          </span>
+        )}
+      </div>
+
+      <CardContent className="p-2.5">
+        <p className="text-[10px] text-green-600 font-medium truncate">{item.provider || 'Parceiro'}</p>
+        
+        <h3 className="font-medium text-gray-900 text-xs leading-tight mb-1.5 line-clamp-2 min-h-[2rem]">
+          {item.title}
+        </h3>
+
+        {item.rating > 0 && (
+          <div className="flex items-center gap-0.5 mb-1.5">
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            <span className="text-[11px] font-medium text-gray-900">{item.rating}</span>
+          </div>
+        )}
+
+        <div className="mb-2">
+          <span className="text-base font-bold text-gray-900">
+            {item.price_text || (item.price ? `€${item.price.toFixed(2)}` : 'Consultar')}
+          </span>
         </div>
 
-        <CardContent className="p-4">
-          <p className="text-xs text-green-600 font-medium mb-1">{item.provider || 'Parceiro PawCão'}</p>
-          
-          <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 min-h-[2.5rem]">
-            {item.title}
-          </h3>
-
-          {item.rating > 0 && (
-            <div className="flex items-center gap-1 mb-2">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-semibold text-gray-900">{item.rating}</span>
-              <span className="text-sm text-gray-500">({item.reviews_count || 0})</span>
-            </div>
-          )}
-
-          <div className="mb-3">
-            <span className="text-xl font-bold text-gray-900">
-              {item.price_text || (item.price ? `€${item.price.toFixed(2)}` : 'Consultar')}
-            </span>
-          </div>
-
-          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-            <Calendar className="w-4 h-4 mr-2" />
-            Agendar
-          </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <button className="w-full bg-green-600 hover:bg-green-700 text-white text-[11px] py-1.5 rounded-lg font-medium flex items-center justify-center gap-1">
+          <Calendar className="w-3 h-3" />
+          Agendar
+        </button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -157,34 +144,28 @@ function AdSlotCard({ item }) {
   const navigate = useNavigate();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card className="overflow-hidden border-2 border-dashed border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 h-full rounded-2xl">
-        <CardContent className="p-6 text-center flex flex-col items-center justify-center h-full min-h-[280px]">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4 shadow-lg">
-            <Megaphone className="w-7 h-7 text-white" />
-          </div>
+    <Card className="overflow-hidden border border-dashed border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 h-full rounded-xl">
+      <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full min-h-[200px]">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-2">
+          <Megaphone className="w-5 h-5 text-white" />
+        </div>
 
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
-            {item.title}
-          </h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-1">
+          {item.title}
+        </h3>
 
-          <p className="text-sm text-gray-600 mb-4">
-            {item.description || 'Alcance milhares de donos de pets.'}
-          </p>
+        <p className="text-[11px] text-gray-600 mb-3 line-clamp-2">
+          {item.description || 'Alcance donos de pets.'}
+        </p>
 
-          <Button 
-            onClick={() => navigate(item.cta_url || createPageUrl('RegisterCompany'))}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-          >
-            <Megaphone className="w-4 h-4 mr-2" />
-            {item.cta_text || 'Anunciar Agora'}
-          </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <button 
+          onClick={() => navigate(item.cta_url || createPageUrl('RegisterCompany'))}
+          className="bg-purple-600 hover:bg-purple-700 text-white text-[11px] py-1.5 px-3 rounded-lg font-medium"
+        >
+          Anunciar
+        </button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -239,32 +220,26 @@ export default function PawStoreTab() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          placeholder="Pesquisar..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-10 text-sm rounded-xl border-gray-200 shadow-sm bg-white text-gray-900 w-full"
-        />
-      </div>
-
-      {/* Categories - horizontal scroll */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-all flex-shrink-0 ${
-              selectedCategory === cat.id 
-                ? 'bg-purple-600 text-white shadow-md' 
-                : 'bg-white/90 text-gray-700 hover:bg-white'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
+      {/* Search + Category Filter Row */}
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-sm rounded-lg border-gray-200 shadow-sm bg-white text-gray-900 w-full"
+          />
+        </div>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="h-9 px-3 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm min-w-[100px]"
+        >
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* Loading */}
@@ -276,7 +251,7 @@ export default function PawStoreTab() {
 
       {/* Grid */}
       {!isLoading && filteredItems.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
           {filteredItems.map((item) => (
             <StoreItemCard key={item.id} item={item} />
           ))}
@@ -285,46 +260,43 @@ export default function PawStoreTab() {
 
       {/* Empty State */}
       {!isLoading && filteredItems.length === 0 && (
-        <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden">
-          <div className="w-16 h-16 md:w-20 md:h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-            <Store className="w-8 h-8 md:w-10 md:h-10 text-purple-400" />
+        <div className="text-center py-8 bg-white rounded-xl shadow-md">
+          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Store className="w-6 h-6 text-purple-400" />
           </div>
-          <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+          <h3 className="text-sm font-semibold text-gray-700 mb-1">
             Loja em Construção
           </h3>
-          <p className="text-sm md:text-base text-gray-600 mb-4">
-            Em breve teremos produtos incríveis!
+          <p className="text-xs text-gray-600 mb-3">
+            Em breve teremos produtos!
           </p>
-          <Button 
+          <button 
             onClick={() => navigate(createPageUrl('RegisterCompany'))}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-2 px-4 rounded-lg font-medium"
           >
-            <Megaphone className="w-4 h-4 mr-2" />
             Anuncie Aqui
-          </Button>
-        </Card>
+          </button>
+        </div>
       )}
 
       {/* CTA for Businesses */}
-      <Card className="mt-8 p-4 md:p-6 border-2 border-dashed border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
-              <Store className="w-6 h-6 md:w-7 md:h-7 text-white" />
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 text-base md:text-lg">Tem um PetShop?</h4>
-              <p className="text-sm text-gray-600">Venda na PawStore</p>
-            </div>
+      <div className="mt-4 p-3 border border-dashed border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-purple-600 flex items-center justify-center flex-shrink-0">
+            <Store className="w-4 h-4 text-white" />
           </div>
-          <Button 
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-gray-900 text-xs">Tem um PetShop?</h4>
+            <p className="text-[10px] text-gray-600">Venda na PawStore</p>
+          </div>
+          <button 
             onClick={() => navigate(createPageUrl('RegisterCompany'))}
-            className="bg-purple-600 hover:bg-purple-700 text-white w-full md:w-auto"
+            className="bg-purple-600 hover:bg-purple-700 text-white text-[11px] py-1.5 px-3 rounded-lg font-medium flex-shrink-0"
           >
-            Começar a Vender
-          </Button>
+            Vender
+          </button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
