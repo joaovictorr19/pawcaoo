@@ -92,11 +92,15 @@ export default function ManageAvailability() {
   const saveAvailabilityMutation = useMutation({
     mutationFn: async (data) => {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const existing = availabilityData.find(a => a.date === dateStr);
+      const existing = availabilityData.find(a => a.date === dateStr && a.professional_email === authUser?.email);
+
+      console.log('🔄 Mutation executing:', { dateStr, existing: !!existing, data });
 
       if (existing) {
+        console.log('📝 Updating existing record:', existing.id);
         return await base44.entities.CalendarAvailability.update(existing.id, data);
       } else {
+        console.log('➕ Creating new record');
         return await base44.entities.CalendarAvailability.create({
           ...data,
           professional_email: authUser?.email,
@@ -106,21 +110,18 @@ export default function ManageAvailability() {
         });
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log('✅ Save successful:', result);
       queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast.success(t('saveAvailability', language) + "!");
-      
-      const nextWeek = new Date(selectedDate);
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      
-      base44.entities.Notification.create({
-        recipient_email: authUser?.email,
-        title: t('manageAvailability', language),
-        message: `${t('setAvailableTimeSlots', language)} ${format(nextWeek, 'MMM d, yyyy')}`,
-        type: "system",
-        priority: "low"
-      });
+      toast.success(isDayOff 
+        ? (language === 'pt' ? 'Dia marcado como indisponível!' : 'Day marked as unavailable!')
+        : (t('saveAvailability', language) + "!")
+      );
     },
+    onError: (error) => {
+      console.error('❌ Save failed:', error);
+      toast.error(language === 'pt' ? 'Erro ao guardar. Tente novamente.' : 'Error saving. Please try again.');
+    }
   });
 
   const addTimeSlot = () => {
@@ -142,6 +143,12 @@ export default function ManageAvailability() {
       toast.error(t('selectDate', language));
       return;
     }
+
+    console.log('💾 Saving availability:', {
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      isDayOff,
+      timeSlots: isDayOff ? [] : timeSlots
+    });
 
     saveAvailabilityMutation.mutate({
       time_slots: isDayOff ? [] : timeSlots,
