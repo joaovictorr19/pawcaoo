@@ -974,7 +974,7 @@ export default function UserProfile() {
         <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
           <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             {profileUser.cover_photo_url && (
-              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
+              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-top" loading="lazy" decoding="async" />
             )}
             {isOwnProfile && (
               <Button
@@ -999,7 +999,7 @@ export default function UserProfile() {
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <div className="relative">
                         <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white rounded-xl">
-                          <AvatarImage src={profileUser.profile_photo_url} className="object-cover object-center rounded-xl aspect-square" loading="lazy" decoding="async" />
+                          <AvatarImage src={profileUser.profile_photo_url} className="aspect-square object-cover object-top rounded-xl" loading="lazy" decoding="async" />
                           <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl md:text-4xl rounded-xl">
                             {profileUser.full_name?.[0]?.toUpperCase()}
                           </AvatarFallback>
