@@ -312,7 +312,9 @@ export default function Home() {
     availableDate: null
   });
 
-  const [activeTab, setActiveTab] = useState("walkers");
+  // Check URL for tab parameter
+  const urlTabParam = new URLSearchParams(window.location.search).get('tab');
+  const [activeTab, setActiveTab] = useState(urlTabParam || "walkers");
 
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
