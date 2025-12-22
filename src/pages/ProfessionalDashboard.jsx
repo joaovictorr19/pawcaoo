@@ -435,33 +435,36 @@ export default function ProfessionalDashboard() {
         const timeFormatted = booking.walk_time || booking.session_time;
 
         if (status === 'confirmed') {
-          // Add WhatsApp link if available
-          let message = `Sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi aceite.`;
-          
+          // Notificação de confirmação via serviço centralizado
           const profile = walkerProfile || trainerProfile;
-          if (profile && profile.whatsapp_number) {
-             const waLink = `https://wa.me/${profile.whatsapp_number.replace(/[^0-9]/g, '')}`;
-             message += `\n\nFale com o profissional pelo WhatsApp: ${waLink}`;
+          let emailBody = `Olá,\n\nA sua reserva foi confirmada!\n\nProfissional: ${user.full_name}\nData: ${dateFormatted}\nHorário: ${timeFormatted}\nLocal: ${booking.pickup_address || 'N/A'}\n\n`;
+          
+          if (profile?.whatsapp_number) {
+            emailBody += `WhatsApp: ${profile.whatsapp_number}\n\n`;
           }
+          
+          emailBody += `Obrigado por escolher PawCão!\nEquipa PawCão`;
 
-          await createNotification.mutateAsync({
+          await base44.functions.invoke('sendNotification', {
             recipient_email: clientEmail,
-            title: '✅ Reserva Confirmada!',
-            message: message,
-            type: 'booking',
-            related_id: booking.id,
-            priority: 'high',
-            action_url: '/MyBookings'
+            type: 'booking_confirmed',
+            title: 'Reserva Confirmada!',
+            message: `A sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi confirmada.`,
+            link: '/MyBookings',
+            send_email: true,
+            email_subject: `Reserva Confirmada - ${booking.dog_name}`,
+            email_body: emailBody
           });
         } else if (status === 'cancelled' || status === 'rejected') {
-          await createNotification.mutateAsync({
+          await base44.functions.invoke('sendNotification', {
             recipient_email: clientEmail,
-            title: '❌ Reserva Cancelada/Recusada',
-            message: `Sua reserva para ${dateFormatted} foi cancelada/recusada pelo profissional.`,
             type: 'booking',
-            related_id: booking.id,
-            priority: 'high',
-            action_url: '/MyBookings'
+            title: 'Reserva Cancelada',
+            message: `A sua reserva para ${dateFormatted} foi cancelada pelo profissional.`,
+            link: '/MyBookings',
+            send_email: true,
+            email_subject: 'Reserva Cancelada',
+            email_body: `Olá,\n\nInfelizmente, o profissional não pôde aceitar a sua reserva para ${dateFormatted}.\n\nPode procurar outros profissionais disponíveis na plataforma.\n\nObrigado,\nEquipa PawCão`
           });
         }
       } catch (e) { console.error(e); }
@@ -486,18 +489,19 @@ export default function ProfessionalDashboard() {
     // 1. Update status to 'service_completed'
     await handleBookingAction(booking, 'service_completed');
     
-    // 2. Notify Client specifically for Payment
+    // 2. Notify Client - Serviço Concluído
     try {
       const clientEmail = booking.owner_email || booking.created_by;
       const amount = booking.total_amount || 0;
-      await createNotification.mutateAsync({
+      await base44.functions.invoke('sendNotification', {
         recipient_email: clientEmail,
-        title: '✅ Serviço Concluído - Pagamento Necessário',
-        message: `O seu Walker marcou o serviço como concluído. Por favor, confirme o pagamento de €${amount} ao profissional (MBWay/Dinheiro) para finalizar.`,
-        type: 'payment',
-        related_id: booking.id,
-        priority: 'high',
-        action_url: '/MyBookings'
+        type: 'service_completed',
+        title: 'Serviço Concluído',
+        message: `O seu profissional marcou o serviço como concluído. Por favor, confirme o pagamento de €${amount.toFixed(2)}.`,
+        link: '/MyBookings',
+        send_email: true,
+        email_subject: 'Serviço Concluído - Pagamento Pendente',
+        email_body: `Olá ${booking.owner_name},\n\nO profissional marcou o serviço para ${booking.dog_name} como concluído.\n\nValor a pagar: €${amount.toFixed(2)}\n\nPor favor, efetue o pagamento via MBWay ou dinheiro e confirme na plataforma.\n\nObrigado,\nEquipa PawCão`
       });
     } catch (e) { console.error(e); }
   };
@@ -517,17 +521,18 @@ export default function ProfessionalDashboard() {
     
     toast.success('Pagamento confirmado! Reserva finalizada.');
 
-    // 2. Notify Client
+    // 2. Notify Client - Pagamento Confirmado
     try {
       const clientEmail = booking.owner_email || booking.created_by;
-      await createNotification.mutateAsync({
+      await base44.functions.invoke('sendNotification', {
         recipient_email: clientEmail,
-        title: '🎉 Pagamento Confirmado!',
-        message: `O Walker confirmou o recebimento. Obrigado! Por favor, avalie o serviço.`,
-        type: 'booking',
-        related_id: booking.id,
-        priority: 'normal',
-        action_url: `/MyBookings?review=${booking.id}`
+        type: 'payment',
+        title: 'Pagamento Confirmado',
+        message: `O profissional confirmou o recebimento do pagamento. Obrigado! Deixe uma avaliação.`,
+        link: `/MyBookings?review=${booking.id}`,
+        send_email: true,
+        email_subject: 'Pagamento Confirmado',
+        email_body: `Olá ${booking.owner_name},\n\nO profissional confirmou o recebimento do pagamento para o serviço de ${booking.dog_name}.\n\nObrigado por usar PawCão! Não se esqueça de deixar uma avaliação.\n\nEquipa PawCão`
       });
     } catch (e) { console.error(e); }
   };
@@ -1256,13 +1261,17 @@ export default function ProfessionalDashboard() {
                                       await base44.entities.Booking.update(booking.id, { status: 'confirmed' });
                                       queryClient.invalidateQueries(['myWalkBookings']);
                                       toast.success('✅ Pedido aceite!');
-                                      await createNotification.mutateAsync({
+                                      
+                                      // Notificação in-app + email
+                                      await base44.functions.invoke('sendNotification', {
                                         recipient_email: booking.owner_email || booking.created_by,
-                                        title: '✅ Pedido Aceite!',
-                                        message: `${user.full_name} aceitou o seu pedido para ${booking.dog_name}.`,
-                                        type: 'booking',
-                                        related_id: booking.id,
-                                        priority: 'high'
+                                        type: 'booking_confirmed',
+                                        title: 'Reserva Confirmada!',
+                                        message: `${user.full_name} confirmou a sua reserva para ${booking.dog_name} no dia ${format(new Date(booking.walk_date), 'dd/MM/yyyy')} às ${booking.walk_time}.`,
+                                        link: '/MyBookings',
+                                        send_email: true,
+                                        email_subject: `Reserva Confirmada - ${booking.dog_name}`,
+                                        email_body: `Olá ${booking.owner_name},\n\nBoas notícias! ${user.full_name} confirmou a sua reserva.\n\nDetalhes:\n- Cão: ${booking.dog_name}\n- Data: ${format(new Date(booking.walk_date), 'dd/MM/yyyy')}\n- Horário: ${booking.walk_time}\n- Local: ${booking.pickup_address}\n\nContacto WhatsApp: ${profile?.whatsapp_number || 'N/A'}\n\nAté breve,\nEquipa PawCão`
                                       });
                                     } catch (error) {
                                       toast.error('Erro ao aceitar');
