@@ -1,0 +1,127 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import Stripe from 'npm:stripe@14.14.0';
+
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const {
+      professional_id,
+      professional_email,
+      professional_name,
+      professional_type,
+      service_name,
+      service_amount,
+      platform_fee,
+      total_amount,
+      dog_name,
+      dog_size,
+      walk_date,
+      walk_time,
+      duration_hours,
+      special_notes,
+      pickup_address,
+      pickup_lat,
+      pickup_lng,
+      owner_phone
+    } = body;
+
+    // Create or get Stripe customer
+    let customerId;
+    const existingCustomers = await stripe.customers.list({ 
+      email: user.email, 
+      limit: 1 
+    });
+
+    if (existingCustomers.data.length > 0) {
+      customerId = existingCustomers.data[0].id;
+    } else {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.full_name,
+        metadata: {
+          user_id: user.id
+        }
+      });
+      customerId = customer.id;
+    }
+
+    // Get app host for redirect URLs
+    const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
+
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `${service_name} com ${professional_name}`,
+              description: `${dog_name} - ${walk_date} às ${walk_time}`,
+              metadata: {
+                professional_id,
+                professional_email,
+                dog_name,
+                walk_date
+              }
+            },
+            unit_amount: Math.round(total_amount * 100), // Stripe uses cents
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        type: 'booking',
+        professional_id,
+        professional_email,
+        professional_name,
+        professional_type,
+        service_name,
+        service_amount: service_amount.toString(),
+        platform_fee: platform_fee.toString(),
+        total_amount: total_amount.toString(),
+        dog_name,
+        dog_size,
+        walk_date,
+        walk_time,
+        duration_hours: duration_hours.toString(),
+        special_notes: special_notes || '',
+        pickup_address,
+        pickup_lat: pickup_lat?.toString() || '',
+        pickup_lng: pickup_lng?.toString() || '',
+        owner_email: user.email,
+        owner_name: user.full_name,
+        owner_phone: owner_phone || ''
+      },
+      success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&type=booking`,
+      cancel_url: `${origin}/WalkerDetails?id=${professional_id}&cancelled=true`,
+      payment_intent_data: {
+        capture_method: 'automatic', // Or 'manual' if you want to capture later
+        metadata: {
+          professional_email,
+          booking_type: 'service'
+        }
+      }
+    });
+
+    return Response.json({ 
+      url: session.url,
+      session_id: session.id 
+    });
+
+  } catch (error) {
+    console.error('Checkout error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});

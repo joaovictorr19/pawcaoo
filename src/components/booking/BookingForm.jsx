@@ -28,22 +28,26 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const proName = pro?.walker_name || pro?.trainer_name;
   const isWalker = !!pro?.walker_name;
 
-  // Find selected service details
-  const selectedService = selectedServiceType 
-    ? pro?.services_offered?.find(s => s.service_type === selectedServiceType)
-    : null;
+  // Available services from professional
+  const availableServices = pro?.services_offered || [];
+  
+  const [selectedServiceId, setSelectedServiceId] = useState(selectedServiceType || "");
+  const selectedService = availableServices.find(s => 
+    s.service_type === selectedServiceId || s.service_name === selectedServiceId
+  );
 
-  const [step, setStep] = useState(1); // 1: Select Dog, 2: Confirm Details, 3: Payment
+  const [step, setStep] = useState(1); // 1: Select Dog & Service, 2: Confirm Details, 3: Payment
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_size: "medium",
     walk_date: initialDate || null,
     walk_time: "09:00",
     duration_hours: 1,
-    special_notes: selectedService ? `Serviço: ${selectedService.service_name}` : "",
+    special_notes: "",
     owner_phone: ""
   });
   const [autoAdvance, setAutoAdvance] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 
   // Update date if initialDate prop changes
   React.useEffect(() => {
@@ -204,10 +208,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   // Calcular valores - NOVO MODELO: Cliente paga taxa ADICIONAL
   const calculateAmounts = () => {
-    // If quick service is selected, use service price directly
+    // If service is selected, use service price, otherwise hourly rate
     const baseRate = selectedService 
       ? selectedService.price 
-      : (pro?.hourly_rate || 0) * formData.duration_hours;
+      : (pro?.hourly_rate || 15) * formData.duration_hours;
     
     const discount = ownerSubscription?.booking_discount_percentage || 0;
     const discountAmount = baseRate * (discount / 100);
@@ -223,7 +227,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       discountAmount,
       walkerReceives,
       platformFee,
-      totalAmount
+      totalAmount,
+      serviceName: selectedService?.service_name || `Passeio ${formData.duration_hours}h`
     };
   };
 
@@ -361,6 +366,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         toast.error('Selecione a data do passeio');
         return;
       }
+      // Service selection is optional but recommended
       setStep(2);
     } else if (step === 2) {
       // Validate step 2
@@ -373,6 +379,44 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         return;
       }
       setStep(3);
+    }
+  };
+
+  // Stripe Checkout
+  const handleStripeCheckout = async () => {
+    setIsPaymentProcessing(true);
+    try {
+      const response = await base44.functions.invoke('createBookingCheckout', {
+        professional_id: pro.id,
+        professional_email: pro.created_by,
+        professional_name: proName,
+        professional_type: isWalker ? 'walker' : 'trainer',
+        service_name: amounts.serviceName,
+        service_amount: amounts.walkerReceives,
+        platform_fee: amounts.platformFee,
+        total_amount: amounts.totalAmount,
+        dog_name: formData.dog_name,
+        dog_size: formData.dog_size,
+        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
+        walk_time: formData.walk_time,
+        duration_hours: formData.duration_hours,
+        special_notes: formData.special_notes,
+        pickup_address: pickupAddress,
+        pickup_lat: pickupCoords.lat,
+        pickup_lng: pickupCoords.lng,
+        owner_phone: formData.owner_phone
+      });
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error('Erro ao criar sessão de pagamento');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Erro ao processar pagamento');
+    } finally {
+      setIsPaymentProcessing(false);
     }
   };
 
@@ -629,23 +673,71 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </div>
               </div>
 
-              <div>
-                <Label className="text-sm">Duração</Label>
-                <div className="flex gap-2">
-                  {[1, 2, 3].map(h => (
-                    <Button
-                      key={h}
-                      type="button"
-                      variant={formData.duration_hours === h ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFormData({...formData, duration_hours: h})}
-                      className={`flex-1 ${formData.duration_hours === h ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              {/* Service Selection */}
+              {availableServices.length > 0 && (
+                <div>
+                  <Label className="text-sm font-semibold mb-2 block">🎯 Tipo de Serviço</Label>
+                  <div className="grid gap-2">
+                    {availableServices.map((service, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedServiceId(service.service_type || service.service_name)}
+                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                          (service.service_type || service.service_name) === selectedServiceId
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
+                            <p className="text-xs text-gray-500">{service.description?.substring(0, 50) || 'Serviço profissional'}</p>
+                          </div>
+                          <span className="font-bold text-green-600">€{service.price}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Option for custom hourly rate */}
+                    <div
+                      onClick={() => setSelectedServiceId("")}
+                      className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                        !selectedServiceId
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
                     >
-                      {h}h
-                    </Button>
-                  ))}
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">Passeio por hora</p>
+                          <p className="text-xs text-gray-500">Duração personalizada</p>
+                        </div>
+                        <span className="font-bold text-green-600">€{pro?.hourly_rate || 15}/h</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Duration - only show if no service selected */}
+              {!selectedServiceId && (
+                <div>
+                  <Label className="text-sm">Duração</Label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3].map(h => (
+                      <Button
+                        key={h}
+                        type="button"
+                        variant={formData.duration_hours === h ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFormData({...formData, duration_hours: h})}
+                        className={`flex-1 ${formData.duration_hours === h ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      >
+                        {h}h
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -743,8 +835,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     <span className="font-medium">{formData.walk_date ? format(formData.walk_date, 'dd/MM') : ''} às {formData.walk_time}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">⏱️ Duração</span>
-                    <span className="font-medium">{formData.duration_hours} hora(s)</span>
+                    <span className="text-gray-600">🎯 Serviço</span>
+                    <span className="font-medium">{amounts.serviceName}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-green-100">
                     <span className="text-gray-600">📍 Local</span>
@@ -754,7 +846,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
                 <div className="bg-white rounded-lg p-3 space-y-1.5">
                   <div className="flex justify-between text-sm">
-                    <span>Serviço ({formData.duration_hours}h × €{pro?.hourly_rate || selectedService?.price})</span>
+                    <span>{amounts.serviceName}</span>
                     <span>€{amounts.baseAmount.toFixed(2)}</span>
                   </div>
                   {amounts.discount > 0 && (
@@ -774,13 +866,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </div>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-amber-800 mb-1">⏳ O que acontece a seguir?</p>
-                <ol className="text-amber-700 text-xs space-y-1 list-decimal list-inside">
-                  <li>{proName} recebe o seu pedido</li>
-                  <li>Se aceitar, recebe notificação para pagar</li>
-                  <li>Após pagamento, reserva confirmada!</li>
-                </ol>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                <p className="font-semibold text-blue-800 mb-1">💳 Pagamento Seguro</p>
+                <p className="text-blue-700 text-xs">
+                  Ao clicar em "Pagar", será redirecionado para o Stripe. 
+                  O valor fica retido até o profissional aceitar e completar o serviço.
+                </p>
               </div>
             </>
           )}
@@ -810,14 +901,21 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               </Button>
             ) : (
               <Button
-                type="submit"
-                disabled={isProcessing}
-                className="flex-1 h-10 text-sm text-white hover:opacity-90"
-                style={{
-                  background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-                }}
+                type="button"
+                onClick={handleStripeCheckout}
+                disabled={isPaymentProcessing}
+                className="flex-1 h-10 text-sm text-white hover:opacity-90 bg-gradient-to-r from-green-600 to-emerald-600"
               >
-                {isProcessing ? 'Enviando...' : '✓ Confirmar Pedido'}
+                {isPaymentProcessing ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    💳 Pagar €{amounts.totalAmount.toFixed(2)}
+                  </>
+                )}
               </Button>
             )}
           </div>

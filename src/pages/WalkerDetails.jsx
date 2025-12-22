@@ -500,7 +500,7 @@ export default function WalkerDetails() {
                         return (
                           <div 
                             key={idx} 
-                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 md:p-4 rounded-xl border transition-all hover:shadow-md ${bgColor} ${borderColor}`}
+                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 md:p-4 rounded-xl border transition-all ${bgColor} ${borderColor}`}
                           >
                             <div className="flex gap-2 md:gap-3 items-start flex-1 min-w-0">
                               <div className="mt-0.5 bg-white p-2 rounded-lg shadow-sm border border-gray-100 flex-shrink-0">
@@ -528,31 +528,11 @@ export default function WalkerDetails() {
                                 )}
                               </div>
                             </div>
-                            <div className="mt-3 sm:mt-0 w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 sm:gap-1.5 flex-shrink-0">
-                              <div className="bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-100">
+                            <div className="mt-3 sm:mt-0 flex-shrink-0">
+                              <div className="bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-100 text-center">
                                 <span className="block font-black text-lg md:text-xl text-gray-900">€{service.price}</span>
-                                <span className="text-[9px] md:text-[10px] text-gray-500">por dia</span>
+                                <span className="text-[9px] md:text-[10px] text-gray-500">por sessão</span>
                               </div>
-                              <Button 
-                                size="sm" 
-                                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg px-4 md:px-5 rounded-xl font-semibold h-9 md:h-10 text-xs md:text-sm transition-all hover:scale-105"
-                                onClick={() => {
-                                  if (!user) {
-                                    base44.auth.redirectToLogin(window.location.href);
-                                    return;
-                                  }
-                                  // Navigate to booking with service pre-selected
-                                  navigate(createPageUrl(`WalkerDetails?id=${walker.id}&service=${service.service_type || service.service_name}&autobook=true`));
-                                  setTimeout(() => {
-                                    const bookingSection = document.getElementById('booking-section');
-                                    if (bookingSection) {
-                                      bookingSection.scrollIntoView({ behavior: 'smooth' });
-                                    }
-                                  }, 100);
-                                }}
-                              >
-                                Reservar Agora →
-                              </Button>
                             </div>
                           </div>
                         );
