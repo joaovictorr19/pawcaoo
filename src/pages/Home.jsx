@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -380,7 +379,6 @@ export default function Home() {
         }, '-walk_date', 20);
         return Array.isArray(res) ? res : [];
       } catch (error) {
-        // console.error("Active bookings fetch error:", error);
         return [];
       }
     },
@@ -394,7 +392,6 @@ export default function Home() {
       const reviewPending = activeBookings.find(b => b.status === 'completed' && !b.review_id);
       if (reviewPending) return { type: 'review', booking: reviewPending };
 
-      // Find next confirmed (closest date)
       const upcoming = activeBookings
           .filter(b => b.status === 'confirmed')
           .sort((a, b) => new Date(a.walk_date + 'T' + a.walk_time) - new Date(b.walk_date + 'T' + b.walk_time))
@@ -438,7 +435,6 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        // Ensure we fetch all walkers without restrictive filtering initially
         const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
@@ -497,7 +493,6 @@ export default function Home() {
     refetchInterval: 60000,
   });
 
-  // Featured items for floating elements
   const { data: featuredWalkers = [] } = useQuery({
     queryKey: ['featuredWalkers'],
     queryFn: async () => {
@@ -694,7 +689,6 @@ export default function Home() {
       const matchesAnimalType = filterAnimalType === "all" || 
         (pro.accepted_animals || ['dogs']).includes(filterAnimalType);
 
-      // Debug log for animal filtering
       if (filterAnimalType !== "all" && pro.type === 'walker') {
         console.log(`🔍 Checking walker ${pro.walker_name}:`, {
           filterAnimalType,
@@ -851,7 +845,6 @@ export default function Home() {
       />
 
       <div className="relative z-10 overflow-hidden">
-
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/80 backdrop-blur-sm shadow-md rounded-xl p-1">
@@ -869,339 +862,337 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
 
-          {user && (
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
-              {(() => {
-                const currentLevel = user?.gamification_level || 1;
-                const currentTier = calculateTier(currentXP);
-                
-                const tierProgressPercentage = currentTier.progress || 0;
-                const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
-                
-                return (
-                  <div className="space-y-3 mb-6 relative">
-                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
-                    
-                    <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
+            {user && (
+              <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
+                {(() => {
+                  const currentLevel = user?.gamification_level || 1;
+                  const currentTier = calculateTier(currentXP);
+                  
+                  const tierProgressPercentage = currentTier.progress || 0;
+                  const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
+                  
+                  return (
+                    <div className="space-y-3 mb-6 relative">
+                      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                       
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
-                      <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
-                      
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-4 mb-4">
-                          <motion.div 
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
-                            className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
-                          >
-                             {user.profile_photo_url ? (
-                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
-                             ) : (
-                               <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
-                                 {user.full_name?.charAt(0) || 'U'}
-                               </div>
-                             )}
-                          </motion.div>
-                          <div>
-                            <h2 className="text-2xl font-bold text-white mb-0.5">
-                              Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
-                            </h2>
-                            <p className="text-sm text-white/80 flex items-center gap-2 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))}>
-                              <span>Nível {currentLevel}</span>
-                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
-                              <span>{displayedXP.toLocaleString('pt-PT')} XP</span>
-                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
-                              <span>{currentTier.icon} {currentTier.name}</span>
-                            </p>
-                          </div>
-                        </div>
+                      <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
                         
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-white/70">
-                              Progresso para {currentTier.max !== Infinity ? currentTier.next : 'Máximo'}
-                            </span>
-                            <span className="text-xs text-white/90 font-semibold">{Math.round(tierProgressPercentage)}%</span>
-                          </div>
-                          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
-                              style={{ width: `${tierProgressPercentage}%` }}
-                            />
-                          </div>
-                          {xpRemainingForNextTier > 0 && (
-                            <p className="text-[10px] text-white/70 mt-1">
-                              Faltam {xpRemainingForNextTier.toLocaleString('pt-PT')} XP
-                            </p>
-                          )}
-                        </div>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
                         
-                        {(() => {
-                          const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
-                          return allBadges.length > 0 && (
-                            <div className="mb-3 pt-3">
-                              <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
-                                Conquistas Recentes
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-4 mb-4">
+                            <motion.div 
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
+                              className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
+                            >
+                               {user.profile_photo_url ? (
+                                 <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
+                               ) : (
+                                 <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
+                                   {user.full_name?.charAt(0) || 'U'}
+                                 </div>
+                               )}
+                            </motion.div>
+                            <div>
+                              <h2 className="text-2xl font-bold text-white mb-0.5">
+                                Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
+                              </h2>
+                              <p className="text-sm text-white/80 flex items-center gap-2 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))}>
+                                <span>Nível {currentLevel}</span>
+                                <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                                <span>{displayedXP.toLocaleString('pt-PT')} XP</span>
+                                <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                                <span>{currentTier.icon} {currentTier.name}</span>
                               </p>
-                              <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
-                                {allBadges
-                                  .sort((a, b) => {
-                                    const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
-                                    const dateB = b.earned_date ? new Date(b.earned_date).getTime() : 0;
-                                    return dateB - dateA;
-                                  })
-                                  .slice(0, 5)
-                                  .map((badge, i) => (
-                                    <TooltipProvider key={`badge-${i}-${badge.badge_id || badge.id || i}`}>
-                                      <Tooltip delayDuration={200}>
-                                        <TooltipTrigger asChild>
-                                          <div 
-                                            className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
-                                          >
-                                            {badge.image_url ? (
-                                              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                              <span>{badge.icon || '🏅'}</span>
-                                            )}
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent 
-                                          side="top" 
-                                          className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700 z-50"
-                                        >
-                                          <p className="font-bold text-xs mb-1 leading-tight">{badge.name}</p>
-                                          {badge.description && (
-                                            <p className="text-[10px] text-gray-300 leading-snug">{badge.description}</p>
-                                          )}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  ))}
-                              </div>
                             </div>
-                          );
-                        })()}
+                          </div>
+                          
+                          <div className="mb-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-medium text-white/70">
+                                Progresso para {currentTier.max !== Infinity ? currentTier.next : 'Máximo'}
+                              </span>
+                              <span className="text-xs text-white/90 font-semibold">{Math.round(tierProgressPercentage)}%</span>
+                            </div>
+                            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
+                                style={{ width: `${tierProgressPercentage}%` }}
+                              />
+                            </div>
+                            {xpRemainingForNextTier > 0 && (
+                              <p className="text-[10px] text-white/70 mt-1">
+                                Faltam {xpRemainingForNextTier.toLocaleString('pt-PT')} XP
+                              </p>
+                            )}
+                          </div>
+                          
+                          {(() => {
+                            const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
+                            return allBadges.length > 0 && (
+                              <div className="mb-3 pt-3">
+                                <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
+                                  Conquistas Recentes
+                                </p>
+                                <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
+                                  {allBadges
+                                    .sort((a, b) => {
+                                      const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
+                                      const dateB = b.earned_date ? new Date(b.earned_date).getTime() : 0;
+                                      return dateB - dateA;
+                                    })
+                                    .slice(0, 5)
+                                    .map((badge, i) => (
+                                      <TooltipProvider key={`badge-${i}-${badge.badge_id || badge.id || i}`}>
+                                        <Tooltip delayDuration={200}>
+                                          <TooltipTrigger asChild>
+                                            <div 
+                                              className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
+                                            >
+                                              {badge.image_url ? (
+                                                <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <span>{badge.icon || '🏅'}</span>
+                                              )}
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent 
+                                            side="top" 
+                                            className="bg-gray-900 text-white p-2.5 max-w-[200px] shadow-xl border border-gray-700 z-50"
+                                          >
+                                            <p className="font-bold text-xs mb-1 leading-tight">{badge.name}</p>
+                                            {badge.description && (
+                                              <p className="text-[10px] text-gray-300 leading-snug">{badge.description}</p>
+                                            )}
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 w-full">
+                        <button
+                          onClick={() => navigate(createPageUrl('Favorites'))}
+                          className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        >
+                          <Heart className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" strokeWidth={1.5} />
+                          <span className="text-[10px] md:text-xs font-semibold text-slate-700">Favoritos</span>
+                        </button>
+
+                        <button
+                          onClick={() => navigate(createPageUrl('Gamification'))}
+                          className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        >
+                          <Trophy className="w-4 h-4 md:w-5 md:h-5 text-purple-600" strokeWidth={1.5} />
+                          <span className="text-[10px] md:text-xs font-semibold text-slate-700">Hall da Fama</span>
+                        </button>
+
+                        <button
+                          onClick={() => navigate(createPageUrl('MyBookings'))}
+                          className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        >
+                          <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" strokeWidth={1.5} />
+                          <span className="text-[10px] md:text-xs font-semibold text-slate-700">Histórico</span>
+                        </button>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 w-full">
-                      <button
-                        onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
-                      >
-                        <Heart className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" strokeWidth={1.5} />
-                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Favoritos</span>
-                      </button>
+                  );
+                })()}
 
-                      <button
-                        onClick={() => navigate(createPageUrl('Gamification'))}
-                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
-                      >
-                        <Trophy className="w-4 h-4 md:w-5 md:h-5 text-purple-600" strokeWidth={1.5} />
-                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Hall da Fama</span>
-                      </button>
-
-                      <button
-                        onClick={() => navigate(createPageUrl('MyBookings'))}
-                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
-                      >
-                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" strokeWidth={1.5} />
-                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Histórico</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Dogs Carousel */}
-              {myDogs && myDogs.length > 0 && (
-                <Card className="glass-panel border-0 shadow-lg rounded-3xl">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Dog className="w-4 h-4 text-orange-600" />
-                      <h3 className="font-bold text-sm text-gray-900">
-                        {language === 'pt' ? 'Meus Cães' : language === 'es' ? 'Mis Perros' : 'My Dogs'} ({myDogs.length})
-                      </h3>
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                      {myDogs?.map((dog) => (
+                {/* Dogs Carousel */}
+                {myDogs && myDogs.length > 0 && (
+                  <Card className="glass-panel border-0 shadow-lg rounded-3xl">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Dog className="w-4 h-4 text-orange-600" />
+                        <h3 className="font-bold text-sm text-gray-900">
+                          {language === 'pt' ? 'Meus Cães' : language === 'es' ? 'Mis Perros' : 'My Dogs'} ({myDogs.length})
+                        </h3>
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {myDogs?.map((dog) => (
+                          <div
+                            key={dog.id}
+                            onClick={() => {
+                              if (!user) {
+                                base44.auth.redirectToLogin(window.location.href);
+                                return;
+                              }
+                              console.log('🐕 Dog clicked:', dog.id);
+                              navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                            }}
+                            className="flex-shrink-0 w-16 cursor-pointer"
+                          >
+                            <motion.div
+                              whileHover={{ scale: 1.05, y: -4 }}
+                              className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-1.5 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer"
+                            >
+                              <div className="w-12 h-12 mx-auto mb-1 rounded-xl border-2 border-white shadow-md overflow-hidden bg-white aspect-square">
+                                {dog.photo_url ? (
+                                  <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
+                                ) : (
+                                  <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-lg font-bold">
+                                    {dog.dog_name?.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                              <p className="font-bold text-[10px] text-gray-900 truncate">{dog.dog_name}</p>
+                            </motion.div>
+                          </div>
+                        ))}
                         <div
-                          key={dog.id}
-                          onClick={() => {
-                            if (!user) {
-                              base44.auth.redirectToLogin(window.location.href);
-                              return;
-                            }
-                            console.log('🐕 Dog clicked:', dog.id);
-                            navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
-                          }}
+                          onClick={() => navigate(createPageUrl('AccountSettings?tab=dogs'))}
                           className="flex-shrink-0 w-16 cursor-pointer"
                         >
                           <motion.div
                             whileHover={{ scale: 1.05, y: -4 }}
-                            className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-1.5 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer"
+                            className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-1.5 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all"
                           >
-                            <div className="w-12 h-12 mx-auto mb-1 rounded-xl border-2 border-white shadow-md overflow-hidden bg-white aspect-square">
-                              {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                              ) : (
-                                <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-lg font-bold">
-                                  {dog.dog_name?.charAt(0)}
-                                </div>
-                              )}
+                            <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-1 aspect-square">
+                              <Plus className="w-5 h-5 text-gray-400" />
                             </div>
-                            <p className="font-bold text-[10px] text-gray-900 truncate">{dog.dog_name}</p>
+                            <p className="text-[10px] font-bold text-gray-500">Adicionar</p>
                           </motion.div>
                         </div>
-                      ))}
-                      <div
-                        onClick={() => navigate(createPageUrl('AccountSettings?tab=dogs'))}
-                        className="flex-shrink-0 w-16 cursor-pointer"
-                      >
-                        <motion.div
-                          whileHover={{ scale: 1.05, y: -4 }}
-                          className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-1.5 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all"
-                        >
-                          <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-1 aspect-square">
-                            <Plus className="w-5 h-5 text-gray-400" />
-                          </div>
-                          <p className="text-[10px] font-bold text-gray-500">Adicionar</p>
-                        </motion.div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
                 )}
-                </div>
-                )}
-
-                {!user && (
-                <div className="text-center max-w-6xl mx-auto relative">
-              {/* Floating Interactive Elements */}
-              <div className="relative mb-8">
-                {/* Walkers - Top Left & Top Right */}
-                {featuredWalkers.slice(0, 2).map((walker, idx) => (
-                  <motion.div
-                    key={`walker-${walker.id}`}
-                    initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
-                    onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
-                      className="relative"
-                    >
-                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110 aspect-square">
-                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🚶 Walker
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {/* Happy Dogs - Middle Left & Right */}
-                {featuredDogs.slice(0, 2).map((dog, idx) => (
-                  <motion.div
-                    key={`dog-${dog.id}`}
-                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
-                    onClick={() => {
-                      if (!user) {
-                        base44.auth.redirectToLogin(window.location.href);
-                        return;
-                      }
-                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
-                    }}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
-                      className="relative"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
-                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🐕 {dog.dog_name}
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {/* Adoptions - Bottom Left & Right */}
-                {featuredAdoptions.slice(0, 2).map((adoption, idx) => (
-                  <motion.div
-                    key={`adoption-${adoption.id}`}
-                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.6 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden lg:block ${idx === 0 ? '-left-12 bottom-8' : '-right-12 bottom-8'} cursor-pointer group z-20`}
-                    onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
-                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.9 }}
-                      className="relative"
-                    >
-                      <div className="w-18 h-18 rounded-2xl overflow-hidden border-4 border-pink-400 shadow-2xl group-hover:border-pink-600 transition-all group-hover:scale-110">
-                        <img src={adoption.primary_photo_url} alt={adoption.pet_name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        ❤️ Adotar
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {/* Center Title with Stats */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9 }}
-                >
-                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => setActiveTab('walkers')}
-                    >
-                      <Users className="w-4 h-4" />
-                      <span className="text-sm font-bold">{stats.totalWalkers}</span>
-                      <span className="text-xs opacity-90">Walkers</span>
-                    </motion.div>
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full shadow-lg cursor-default"
-                    >
-                      <Dog className="w-4 h-4" />
-                      <span className="text-sm font-bold">{stats.happyDogs}</span>
-                      <span className="text-xs opacity-90">Cães Felizes</span>
-                    </motion.div>
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => setActiveTab('adoption')}
-                    >
-                      <Heart className="w-4 h-4 fill-white" />
-                      <span className="text-sm font-bold">{stats.adoptedDogs}</span>
-                      <span className="text-xs opacity-90">Adoções</span>
-                    </motion.div>
-                  </div>
-
-
-                </motion.div>
               </div>
-            </div>
+            )}
+
+            {!user && (
+              <div className="text-center max-w-6xl mx-auto relative">
+                {/* Floating Interactive Elements */}
+                <div className="relative mb-8">
+                  {/* Walkers - Top Left & Top Right */}
+                  {featuredWalkers.slice(0, 2).map((walker, idx) => (
+                    <motion.div
+                      key={`walker-${walker.id}`}
+                      initial={{ opacity: 0, scale: 0.5, y: -20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ delay: idx * 0.15, duration: 0.5 }}
+                      className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
+                      onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                    >
+                      <motion.div
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
+                        className="relative"
+                      >
+                        <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110 aspect-square">
+                          <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
+                        </div>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                          🚶 Walker
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  ))}
+
+                  {/* Happy Dogs - Middle Left & Right */}
+                  {featuredDogs.slice(0, 2).map((dog, idx) => (
+                    <motion.div
+                      key={`dog-${dog.id}`}
+                      initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
+                      className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
+                      onClick={() => {
+                        if (!user) {
+                          base44.auth.redirectToLogin(window.location.href);
+                          return;
+                        }
+                        navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                      }}
+                    >
+                      <motion.div
+                        animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
+                        className="relative"
+                      >
+                        <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
+                          <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
+                        </div>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                          🐕 {dog.dog_name}
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  ))}
+
+                  {/* Adoptions - Bottom Left & Right */}
+                  {featuredAdoptions.slice(0, 2).map((adoption, idx) => (
+                    <motion.div
+                      key={`adoption-${adoption.id}`}
+                      initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ delay: 0.6 + idx * 0.15, duration: 0.5 }}
+                      className={`absolute hidden lg:block ${idx === 0 ? '-left-12 bottom-8' : '-right-12 bottom-8'} cursor-pointer group z-20`}
+                      onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
+                    >
+                      <motion.div
+                        animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
+                        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.9 }}
+                        className="relative"
+                      >
+                        <div className="w-18 h-18 rounded-2xl overflow-hidden border-4 border-pink-400 shadow-2xl group-hover:border-pink-600 transition-all group-hover:scale-110">
+                          <img src={adoption.primary_photo_url} alt={adoption.pet_name} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                          ❤️ Adotar
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  ))}
+
+                  {/* Center Title with Stats */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.9 }}
+                  >
+                    <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
+                      <motion.div 
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                        onClick={() => setActiveTab('walkers')}
+                      >
+                        <Users className="w-4 h-4" />
+                        <span className="text-sm font-bold">{stats.totalWalkers}</span>
+                        <span className="text-xs opacity-90">Walkers</span>
+                      </motion.div>
+                      <motion.div 
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full shadow-lg cursor-default"
+                      >
+                        <Dog className="w-4 h-4" />
+                        <span className="text-sm font-bold">{stats.happyDogs}</span>
+                        <span className="text-xs opacity-90">Cães Felizes</span>
+                      </motion.div>
+                      <motion.div 
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                        onClick={() => setActiveTab('adoption')}
+                      >
+                        <Heart className="w-4 h-4 fill-white" />
+                        <span className="text-sm font-bold">{stats.adoptedDogs}</span>
+                        <span className="text-xs opacity-90">Adoções</span>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
             )}
           </Tabs>
         </div>
@@ -1217,7 +1208,6 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-        {/* AI Recommendations Section - Only for logged in users */}
         {user && (
           <PersonalizedRecommendations user={user} />
         )}
@@ -1255,7 +1245,8 @@ export default function Home() {
           </AnimatePresence>
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-            <TabsContent value="walkers">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsContent value="walkers">
                 <div>
                   {/* Título e Filtros lado a lado */}
                   <div className="flex items-center justify-between gap-3 mb-3">
@@ -1570,28 +1561,28 @@ export default function Home() {
                 <ShopTab language={language} />
               </TabsContent>
 
-            <TabsContent value="adoption">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
-                      {language === 'pt' ? 'Pets Disponíveis para Adoção' : 'Pets Available for Adoption'}
-                    </h2>
-                    <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
-                      {adoptionListings.length} {language === 'pt' ? 'pets esperando por um lar' : 'pets waiting for a home'}
-                    </p>
+              <TabsContent value="adoption">
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                        {language === 'pt' ? 'Pets Disponíveis para Adoção' : 'Pets Available for Adoption'}
+                      </h2>
+                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
+                        {adoptionListings.length} {language === 'pt' ? 'pets esperando por um lar' : 'pets waiting for a home'}
+                      </p>
+                    </div>
+                    {user && (
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
+                        className="bg-white/90 hover:bg-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        {language === 'pt' ? 'Adicionar' : 'Add'}
+                      </Button>
+                    )}
                   </div>
-                  {user && (
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                      className="bg-white/90 hover:bg-white"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      {language === 'pt' ? 'Adicionar' : 'Add'}
-                    </Button>
-                  )}
-                </div>
 
                   {loadingAdoptions ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1756,87 +1747,82 @@ export default function Home() {
                   )}
                 </div>
               </TabsContent>
+            </Tabs>
+          </div>
+        </div>
 
-              <TabsContent value="shop">
-                <ShopTab language={language} />
-              </TabsContent>
-            </TabsContent>
-
-            <TabsContent value="adoption">
-              <div className="mt-16 mb-12">
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                  className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
+        {/* Professional Call-to-Action Section */}
+        <div className="mt-16 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 text-center">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
+              </h2>
+              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
+                {language === 'pt' 
+                  ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
+                  : 'Earn money doing what you love. Become a certified walker or trainer.'}
+              </p>
+              
+              <div className="flex justify-center">
+                <Button
+                  size="default"
+                  onClick={() => navigate(createPageUrl('BecomeProfessional'))}
+                  className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
                 >
-                  {/* Decorative elements */}
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-                  
-                  <div className="relative z-10 text-center">
-                    <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                      {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
-                    </h2>
-                    <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
-                      {language === 'pt' 
-                        ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
-                        : 'Earn money doing what you love. Become a certified walker or trainer.'}
-                    </p>
-                    
-                    <div className="flex justify-center">
-                      <Button
-                        size="default"
-                        onClick={() => navigate(createPageUrl('BecomeProfessional'))}
-                        className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
-                      >
-                        <Users className="w-4 h-4 mr-2" />
-                        {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Testimonials Section */}
-              {!user && <TestimonialsSection />}
-
-              {/* Trust Badges Section */}
-              <div className="mt-12 mb-8">
-              <div className="flex flex-wrap justify-center gap-6 md:gap-8">
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -4 }}
-                  className="flex flex-col items-center gap-2 cursor-default group"
-                >
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                    <Shield className="w-8 h-8 text-white" />
-                  </div>
-                  <span className="text-sm font-bold text-gray-700">{t('verifiedProfessionals', language)}</span>
-                </motion.div>
-
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -4 }}
-                  className="flex flex-col items-center gap-2 cursor-default group"
-                >
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                    <ShieldCheck className="w-8 h-8 text-white" />
-                  </div>
-                  <span className="text-sm font-bold text-gray-700">{t('securePayment', language)}</span>
-                </motion.div>
-
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -4 }}
-                  className="flex flex-col items-center gap-2 cursor-default group"
-                >
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                    <MessageCircle className="w-8 h-8 text-white" />
-                  </div>
-                  <span className="text-sm font-bold text-gray-700">{t('support247', language)}</span>
-                </motion.div>
+                  <Users className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
+                </Button>
               </div>
             </div>
-            </TabsContent>
+          </motion.div>
+        </div>
+
+        {/* Testimonials Section */}
+        {!user && <TestimonialsSection />}
+
+        {/* Trust Badges Section */}
+        <div className="mt-12 mb-8">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+            <motion.div 
+              whileHover={{ scale: 1.05, y: -4 }}
+              className="flex flex-col items-center gap-2 cursor-default group"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-sm font-bold text-gray-700">{t('verifiedProfessionals', language)}</span>
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ scale: 1.05, y: -4 }}
+              className="flex flex-col items-center gap-2 cursor-default group"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-sm font-bold text-gray-700">{t('securePayment', language)}</span>
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ scale: 1.05, y: -4 }}
+              className="flex flex-col items-center gap-2 cursor-default group"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <MessageCircle className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-sm font-bold text-gray-700">{t('support247', language)}</span>
+            </motion.div>
           </div>
         </div>
       </div>
