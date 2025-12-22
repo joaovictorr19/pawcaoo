@@ -347,61 +347,41 @@ export default function Gamification() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 items-stretch mb-8 max-w-6xl mx-auto">
-            {/* Card 1: Donut Chart de Nível - MODERNO SEM EMOJI */}
+            {/* Card 1: Donut Chart de Nível - SVG PERSONALIZADO */}
             <motion.div 
               className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
-              style={{ borderColor: `${colors?.primary}20` }}
+              style={{ borderColor: `${levelColor}30` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" 
-                   style={{ background: colors?.primary }}></div>
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" 
+                   style={{ background: levelColor }}></div>
               <div className="relative z-10">
-                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
                   <Star className="w-4 h-4 md:w-5 md:h-5" />
                   <span>Nível Atual</span>
                 </h3>
                 
-                {/* Donut Chart */}
-                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={donutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="65%"
-                        outerRadius="85%"
-                        dataKey="value"
-                        startAngle={90}
-                        endAngle={-270}
-                        strokeWidth={0}
-                      >
-                        {donutData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  
-                  {/* Center Content - Limpo sem Emoji */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter" style={{ color: colors?.primary }}>
-                      {currentLevel}
-                    </div>
-                    <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-bold uppercase tracking-wider mt-0.5">
-                      Nível
-                    </div>
-                    <div className="text-[8px] sm:text-[9px] md:text-[10px] text-gray-500 font-semibold mt-1">
-                      {Math.round(tierProgressPercentage)}%
-                    </div>
-                  </div>
+                {/* SVG Donut Component */}
+                <div className="flex justify-center">
+                  <LevelDonut 
+                    level={currentLevel} 
+                    progress={tierProgressPercentage} 
+                    size={140}
+                    strokeWidth={12}
+                  />
                 </div>
 
                 <div className="mt-3 md:mt-4 text-center">
-                  <div className="text-xs md:text-sm font-bold truncate" style={{ color: colors?.primary }}>
+                  <div 
+                    className="text-xs md:text-sm font-bold truncate px-3 py-1 rounded-full inline-block"
+                    style={{ color: levelColor, backgroundColor: `${levelColor}15` }}
+                  >
                     {currentTier.name}
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1">
+                    {Math.round(tierProgressPercentage)}% para o próximo
                   </div>
                 </div>
               </div>
