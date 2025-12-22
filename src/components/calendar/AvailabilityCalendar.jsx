@@ -147,12 +147,15 @@ export default function AvailabilityCalendar({
                 key={date.toString()}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (isClickable && onDateSelect) {
-                    console.log('📅 Day clicked:', format(date, 'yyyy-MM-dd'), 'Status:', status);
+                  e.stopPropagation();
+                  console.log('🔘 CLICK! Day:', format(date, 'dd/MM'), 'Status:', status, 'Clickable:', isClickable);
+                  if (onDateSelect) {
+                    console.log('✅ Calling onDateSelect');
                     onDateSelect(date, status);
+                  } else {
+                    console.log('❌ No onDateSelect handler!');
                   }
                 }}
-                disabled={!isClickable}
                 type="button"
                 className={`
                   aspect-square p-1 sm:p-1.5 md:p-2 rounded-md border-2 transition-all 
@@ -160,10 +163,10 @@ export default function AvailabilityCalendar({
                   font-bold
                   ${getStatusColor(status)}
                   ${isSelected ? 'ring-2 ring-green-500 scale-110 z-10 shadow-lg' : ''}
-                  ${!isClickable ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110 hover:shadow-lg cursor-pointer active:scale-95 hover:z-10'}
+                  ${!isClickable ? 'opacity-40' : 'hover:scale-110 hover:shadow-lg active:scale-95 hover:z-10'}
                   ${isToday(date) ? 'ring-2 ring-blue-500 shadow-md' : ''}
                   flex flex-col items-center justify-center relative
-                  select-none
+                  select-none cursor-pointer
                 `}
                 title={isInteractive ? (status === 'day_off' ? "🚫 Remover folga" : "Marcar folga") : ""}
               >
