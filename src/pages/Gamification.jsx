@@ -313,11 +313,8 @@ export default function Gamification() {
 
   const currentConfig = rankingConfig[activeRanking];
 
-  // Donut chart data for level progress
-  const donutData = [
-    { name: 'Progresso', value: tierProgressPercentage, color: currentTier.primary },
-    { name: 'Restante', value: 100 - tierProgressPercentage, color: '#e5e7eb' }
-  ];
+  // Cor do nível atual usando o novo sistema Espectro
+  const levelColor = getTierColor(currentLevel);
 
   return (
     <div className="min-h-screen pb-8 relative">
