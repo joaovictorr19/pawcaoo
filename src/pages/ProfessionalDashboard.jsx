@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar, DollarSign, TrendingUp, Users, Star, MessageCircle,
   MapPin, Clock, CheckCircle, AlertCircle, BarChart3, Activity,
-  Package, Edit, Trash2, Plus, Bell, ArrowUp, ArrowDown, Loader2
+  Package, Edit, Trash2, Plus, Bell, ArrowUp, ArrowDown, Loader2, Home
 } from "lucide-react";
 import { format, subDays, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1318,7 +1318,7 @@ export default function ProfessionalDashboard() {
             <Card className="border-0 shadow-xl mb-6 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <HomeIcon className="w-5 h-5 text-blue-600" />
+                  <Home className="w-5 h-5 text-blue-600" />
                   Serviços Rápidos - Apenas Defina o Preço
                 </CardTitle>
                 <p className="text-sm text-gray-600">Ative serviços pré-configurados com um clique</p>
