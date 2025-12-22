@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -1202,8 +1203,9 @@ export default function Home() {
               </div>
             </div>
             )}
-          </div>
+          </Tabs>
         </div>
+      </div>
 
       {/* Modal de Avaliação */}
       {reviewBooking && (
@@ -1758,79 +1760,83 @@ export default function Home() {
               <TabsContent value="shop">
                 <ShopTab language={language} />
               </TabsContent>
+            </TabsContent>
 
-              <TabsContent value="adoption">
-        <div className="mt-16 mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
-          >
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-            
-            <div className="relative z-10 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
-              </h2>
-              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
-                {language === 'pt' 
-                  ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
-                  : 'Earn money doing what you love. Become a certified walker or trainer.'}
-              </p>
-              
-              <div className="flex justify-center">
-                <Button
-                  size="default"
-                  onClick={() => navigate(createPageUrl('BecomeProfessional'))}
-                  className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
+            <TabsContent value="adoption">
+              <div className="mt-16 mb-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                  className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
-                </Button>
+                  {/* Decorative elements */}
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                  
+                  <div className="relative z-10 text-center">
+                    <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                      {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
+                    </h2>
+                    <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
+                      {language === 'pt' 
+                        ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
+                        : 'Earn money doing what you love. Become a certified walker or trainer.'}
+                    </p>
+                    
+                    <div className="flex justify-center">
+                      <Button
+                        size="default"
+                        onClick={() => navigate(createPageUrl('BecomeProfessional'))}
+                        className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Testimonials Section */}
+              {!user && <TestimonialsSection />}
+
+              {/* Trust Badges Section */}
+              <div className="mt-12 mb-8">
+              <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+                <motion.div 
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  className="flex flex-col items-center gap-2 cursor-default group"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                    <Shield className="w-8 h-8 text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">{t('verifiedProfessionals', language)}</span>
+                </motion.div>
+
+                <motion.div 
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  className="flex flex-col items-center gap-2 cursor-default group"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                    <ShieldCheck className="w-8 h-8 text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">{t('securePayment', language)}</span>
+                </motion.div>
+
+                <motion.div 
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  className="flex flex-col items-center gap-2 cursor-default group"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                    <MessageCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">{t('support247', language)}</span>
+                </motion.div>
               </div>
             </div>
-          </motion.div>
-          </div>
-
-          {/* Testimonials Section */}
-          {!user && <TestimonialsSection />}
-
-          {/* Trust Badges Section */}
-          <div className="mt-12 mb-8">
-          <div className="flex flex-wrap justify-center gap-6 md:gap-8">
-            <motion.div 
-              whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-2 cursor-default group"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <span className="text-sm font-bold text-gray-700">{t('verifiedProfessionals', language)}</span>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-2 cursor-default group"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <ShieldCheck className="w-8 h-8 text-white" />
-              </div>
-              <span className="text-sm font-bold text-gray-700">{t('securePayment', language)}</span>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-2 cursor-default group"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <MessageCircle className="w-8 h-8 text-white" />
-              </div>
-              <span className="text-sm font-bold text-gray-700">{t('support247', language)}</span>
-            </motion.div>
+            </TabsContent>
           </div>
         </div>
       </div>
