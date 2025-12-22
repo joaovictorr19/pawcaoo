@@ -1555,63 +1555,10 @@ export default function ProfessionalDashboard() {
                       locale={ptBR}
                       walkerEmail={user?.email}
                       isInteractive={true}
-                      selectedDate={selectedCalendarDate}
-                      onDateSelect={async (date, status) => {
-                        try {
-                          const dateStr = format(date, 'yyyy-MM-dd');
-                          
-                          // 1. Check bookings for this day
-                          const dayBookings = allBookings.filter(b => 
-                            (b.walk_date === dateStr || b.session_date === dateStr) &&
-                            (b.status !== 'cancelled' && b.status !== 'rejected')
-                          );
-                          
-                          // If has bookings, select date to show details
-                          if (dayBookings.length > 0) {
-                            setSelectedCalendarDate(date);
-                            toast.info(`📅 ${dayBookings.length} reservas em ${format(date, 'dd/MM')}`);
-                            return;
-                          }
-
-                          // If no bookings, toggle Time Off
-                          // 2. Find existing availability record
-                          const existingRecord = availability.find(a => a.date === dateStr);
-
-                          if (status === 'day_off' && existingRecord) {
-                            // REMOVE TIME OFF
-                            await base44.entities.CalendarAvailability.delete(existingRecord.id);
-                            toast.success('Folga removida. Dia disponível.');
-                          } else {
-                            // SET TIME OFF
-                            if (existingRecord) {
-                               await base44.entities.CalendarAvailability.update(existingRecord.id, {
-                                 is_day_off: true,
-                                 is_fully_booked: true,
-                                 notes: 'Folga marcada pelo painel'
-                               });
-                            } else {
-                               await base44.entities.CalendarAvailability.create({
-                                professional_email: user?.email,
-                                professional_name: profile?.walker_name || profile?.trainer_name,
-                                professional_type: walkerProfile ? 'walker' : 'trainer',
-                                date: dateStr,
-                                is_day_off: true,
-                                is_fully_booked: true,
-                                time_slots: [],
-                                notes: 'Folga marcada pelo painel'
-                              });
-                            }
-                            toast.success('Folga marcada! 🚫');
-                          }
-                          
-                          // Clear selection and refresh
-                          setSelectedCalendarDate(null);
-                          queryClient.invalidateQueries(['myAvailability']);
-                          
-                        } catch (err) {
-                          console.error(err);
-                          toast.error('Erro ao atualizar agenda.');
-                        }
+                      selectedDate={selectedDayForTimeOff?.date}
+                      onDateSelect={(date, status) => {
+                        // Open panel to confirm time off action
+                        setSelectedDayForTimeOff({ date, status });
                       }}
                     />
                   </div>

@@ -110,18 +110,18 @@ export default function AvailabilityCalendar({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-1.5 sm:p-2 md:p-4">
-       {/* Week Days Header - Responsive */}
-       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-1.5 md:mb-2">
-         {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
-           <div key={idx} className="text-center text-[9px] sm:text-[10px] md:text-xs font-bold text-gray-500 py-0.5 md:py-1">
-             {day}
-           </div>
-         ))}
-       </div>
+      <CardContent className="p-2 sm:p-3 md:p-4">
+        {/* Week Days Header - Fully Responsive */}
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 mb-1.5 md:mb-2">
+          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day, idx) => (
+            <div key={idx} className="text-center text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs font-bold text-gray-600 py-1">
+              {day}
+            </div>
+          ))}
+        </div>
 
-       {/* Calendar Grid - Fully Responsive */}
-       <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+        {/* Calendar Grid - Fully Responsive */}
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5">
           {/* Padding days */}
           {paddingDays.map((_, idx) => (
             <div key={`pad-${idx}`} className="aspect-square" />
@@ -148,25 +148,34 @@ export default function AvailabilityCalendar({
             return (
               <button
                 key={date.toString()}
-                onClick={() => isClickable && onDateSelect && onDateSelect(date, status)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (isClickable && onDateSelect) {
+                    console.log('📅 Day clicked:', format(date, 'yyyy-MM-dd'), 'Status:', status);
+                    onDateSelect(date, status);
+                  }
+                }}
                 disabled={!isClickable}
+                type="button"
                 className={`
-                  aspect-square p-0.5 sm:p-1 rounded border-2 transition-all 
-                  text-[9px] xs:text-[10px] sm:text-xs md:text-sm
+                  aspect-square p-1 sm:p-1.5 md:p-2 rounded-md border-2 transition-all 
+                  text-[10px] xs:text-xs sm:text-sm md:text-base
+                  font-bold
                   ${getStatusColor(status)}
-                  ${isSelected ? 'ring-2 ring-green-500 scale-105 z-10 shadow-md' : ''}
-                  ${!isClickable ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-md cursor-pointer active:scale-95'}
-                  ${isToday(date) ? 'font-extrabold ring-2 ring-blue-500' : ''}
+                  ${isSelected ? 'ring-2 ring-green-500 scale-110 z-10 shadow-lg' : ''}
+                  ${!isClickable ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110 hover:shadow-lg cursor-pointer active:scale-95 hover:z-10'}
+                  ${isToday(date) ? 'ring-2 ring-blue-500 shadow-md' : ''}
                   flex flex-col items-center justify-center relative
+                  select-none
                 `}
-                title={isInteractive ? (status === 'day_off' ? "🚫 Remover folga" : hasBookingsDay ? "Dia com reservas" : "Marcar folga") : ""}
+                title={isInteractive ? (status === 'day_off' ? "🚫 Remover folga" : "Marcar folga") : ""}
               >
-                <span className="font-bold leading-none">{format(date, 'd')}</span>
+                <span className="leading-none">{format(date, 'd')}</span>
                 {status === 'day_off' && (
-                  <span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px]">🚫</span>
+                  <span className="absolute top-0 left-0 text-[10px] sm:text-xs">🚫</span>
                 )}
                 {count > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 min-w-0 p-0 text-[8px] sm:text-[9px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-sm">
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 min-w-0 p-0 text-[9px] sm:text-[10px] bg-blue-600 border border-white text-white flex items-center justify-center shadow-md font-bold">
                     {count}
                   </Badge>
                 )}
@@ -176,35 +185,23 @@ export default function AvailabilityCalendar({
         </div>
 
         {/* Responsive Legend */}
-        <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 mt-2 sm:mt-3 md:mt-4 pt-2 md:pt-3 border-t">
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-green-100 border border-green-400" />
-            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('available', language)}</span>
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-3 mt-3 md:mt-4 pt-3 border-t border-gray-200">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-green-100 border-2 border-green-400" />
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">{t('available', language)}</span>
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-orange-100 border border-orange-400" />
-            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('pending', language)}</span>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-orange-100 border-2 border-orange-400" />
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">{t('pending', language)}</span>
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-blue-100 border border-blue-400" />
-            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('accepted', language)}</span>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-blue-100 border-2 border-blue-400" />
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 font-medium">Confirmado</span>
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-red-100 border border-red-400" />
-            <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{t('fullyBooked', language)}</span>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded bg-red-600 border-2 border-red-700" />
+            <span className="text-[10px] sm:text-xs md:text-sm text-red-700 font-bold">🚫 Folga</span>
           </div>
-          {isInteractive && (
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
-              <span className="text-[9px] sm:text-[10px] md:text-xs text-red-700 font-bold">🚫 Folga</span>
-            </div>
-          )}
-          {!isInteractive && (
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded bg-red-600 border border-red-700" />
-              <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-medium">🚫 Indisponível</span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
