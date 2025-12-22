@@ -549,10 +549,13 @@ export default function Home() {
       try {
         // Buscar todos os dados em paralelo
         const [activeWalkers, allBookings, allAdoptions] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true }),
+          base44.entities.WalkerProfile.list('-created_date', 100),
           base44.entities.Booking.list('-created_date', 500),
           base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
+
+        // Filtrar walkers ativos
+        const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
 
         // Filtrar bookings completados
         const completedBookings = allBookings.filter(b => b.status === 'completed');
@@ -569,14 +572,14 @@ export default function Home() {
         const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
 
         console.log('📊 Stats:', {
-          walkers: activeWalkers.length,
+          walkers: walkersAtivos.length,
           completedBookings: completedBookings.length,
           happyDogs: uniqueDogs.size,
           adoptions: approvedAdoptions.length
         });
 
         return {
-          totalWalkers: activeWalkers.length || 0,
+          totalWalkers: walkersAtivos.length || 0,
           happyDogs: uniqueDogs.size || 0,
           adoptedDogs: approvedAdoptions.length || 0
         };
@@ -586,9 +589,9 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   const getWalkerDistance = (walker) => {
