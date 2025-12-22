@@ -1568,17 +1568,18 @@ export default function Home() {
                 <ShopTab language={language} />
               </TabsContent>
 
-              <TabsContent value="adoption">
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
-                        {language === 'pt' ? 'Pets Disponíveis para Adoção' : 'Pets Available for Adoption'}
-                      </h2>
-                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
-                        {adoptionListings.length} {language === 'pt' ? 'pets esperando por um lar' : 'pets waiting for a home'}
-                      </p>
-                    </div>
+            <TabsContent value="adoption">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                      {language === 'pt' ? 'Pets Disponíveis para Adoção' : 'Pets Available for Adoption'}
+                    </h2>
+                    <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
+                      {adoptionListings.length} {language === 'pt' ? 'pets esperando por um lar' : 'pets waiting for a home'}
+                    </p>
+                  </div>
+                  {user && (
                     <Button
                       variant="outline"
                       onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
@@ -1587,7 +1588,8 @@ export default function Home() {
                       <Plus className="w-4 h-4 mr-2" />
                       {language === 'pt' ? 'Adicionar' : 'Add'}
                     </Button>
-                  </div>
+                  )}
+                </div>
 
                   {loadingAdoptions ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
