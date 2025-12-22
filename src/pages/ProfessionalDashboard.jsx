@@ -36,6 +36,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import VerificationBanner from "../components/professionals/VerificationBanner";
+import TimeOffManager from "../components/professional/TimeOffManager";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -1491,9 +1492,19 @@ export default function ProfessionalDashboard() {
           {/* Calendar Tab */}
           <TabsContent value="calendar">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-              <Card className="lg:col-span-2 border-0 shadow-xl">
+              {/* Gestor de Folgas */}
+              <div className="lg:col-span-2">
+                <TimeOffManager 
+                  professionalEmail={user?.email}
+                  professionalName={profile?.walker_name || profile?.trainer_name}
+                  professionalType={walkerProfile ? 'walker' : 'trainer'}
+                />
+              </div>
+
+              {/* Calendário de Disponibilidade */}
+              <Card className="border-0 shadow-xl">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg md:text-xl">Calendário de Disponibilidade</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Calendário</CardTitle>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -1522,12 +1533,17 @@ export default function ProfessionalDashboard() {
                     availabilityData={availability}
                     bookings={allBookings}
                     locale={ptBR}
+                    walkerEmail={user?.email}
                   />
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Segunda linha - Integrações */}
+            <div className="mt-6">
               <Card className="border-0 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-lg md:text-xl">Integrações & API</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Integrações & Exportar</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
@@ -1581,28 +1597,58 @@ export default function ProfessionalDashboard() {
                     </Button>
                   </div>
 
-                  <div className="space-y-3 pt-4 border-t">
-                    <h4 className="font-semibold text-xs md:text-sm text-gray-600 uppercase">Próximos Passeios</h4>
-                    {allBookings
-                      .filter(b => b.status === 'confirmed' && new Date(b.walk_date || b.session_date) >= new Date())
-                      .slice(0, 5)
-                      .map((booking) => (
-                        <div key={booking.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                          <div className="bg-green-100 p-2 rounded-full flex-shrink-0">
-                            <Calendar className="w-4 h-4 text-green-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm truncate">{booking.dog_name}</p>
-                            <p className="text-xs text-gray-500">
-                              {format(new Date(booking.walk_date || booking.session_date), 'dd MMM', { locale: ptBR })} • {booking.walk_time || booking.session_time}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    }
-                    {allBookings.filter(b => b.status === 'confirmed' && new Date(b.walk_date || b.session_date) >= new Date()).length === 0 && (
-                      <p className="text-xs text-gray-500 text-center py-4">Nenhum passeio agendado</p>
-                    )}
+                <CardContent className="grid md:grid-cols-2 gap-4">
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                    <h4 className="font-semibold text-sm text-blue-900 mb-1 flex items-center gap-2">
+                      <Share2 className="w-4 h-4" /> Link de Agendamento
+                    </h4>
+                    <p className="text-xs text-blue-700 mb-2">Partilhe com clientes.</p>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        value={`${window.location.origin}${createPageUrl(walkerProfile ? 'WalkerDetails' : 'TrainerDetails')}?id=${profile?.id}`} 
+                        readOnly 
+                        className="bg-white text-xs h-8"
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="h-8 px-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}${createPageUrl(walkerProfile ? 'WalkerDetails' : 'TrainerDetails')}?id=${profile?.id}`);
+                          toast.success("Link copiado!");
+                        }}
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg">
+                    <h4 className="font-semibold text-sm text-purple-900 mb-1 flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4" /> Exportar Agenda
+                    </h4>
+                    <p className="text-xs text-purple-700 mb-2">Google Calendar, Outlook, Apple.</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full bg-white text-xs h-8"
+                      onClick={() => {
+                        const events = allBookings
+                          .filter(b => b.status === 'confirmed')
+                          .map(bookingToEvent)
+                          .filter(e => e);
+                        if (events.length === 0) {
+                          toast.info("Nenhum agendamento para exportar.");
+                          return;
+                        }
+                        const icsContent = generateMultiICS(events);
+                        downloadICS("pawcao_schedule.ics", icsContent);
+                        toast.success("Calendário exportado!");
+                      }}
+                    >
+                      <Download className="w-3 h-3 mr-2" />
+                      Baixar .ics
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
