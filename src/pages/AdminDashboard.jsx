@@ -1681,19 +1681,34 @@ export default function AdminDashboard() {
           <TabsContent value="documents">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-6 h-6 text-indigo-600" />
-                  Documentos de Verificação
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  Documentos enviados por passeadores e treinadores
-                </p>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="w-6 h-6 text-indigo-600" />
+                      Documentos de Verificação
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Documentos enviados por passeadores e treinadores
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                      toast.success("Documentos atualizados!");
+                    }}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[...allWalkers, ...allTrainers].filter(p => 
-                    p.id_document_url || p.proof_of_address_url || p.background_check_url
-                  ).map(professional => {
+                  {[...allWalkers, ...allTrainers].map(professional => {
                     const isWalker = professional.walker_name;
                     return (
                       <Card key={professional.id} className="border-2 border-gray-200">
@@ -1811,16 +1826,14 @@ export default function AdminDashboard() {
                       </Card>
                     );
                   })}
-                  
-                  {[...allWalkers, ...allTrainers].filter(p => 
-                    p.id_document_url || p.proof_of_address_url || p.background_check_url
-                  ).length === 0 && (
-                    <div className="text-center py-12 bg-gray-50 rounded-xl">
-                      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-600">Nenhum documento enviado ainda</p>
-                    </div>
-                  )}
                 </div>
+                
+                {[...allWalkers, ...allTrainers].length === 0 && (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl">
+                    <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-600">Nenhum profissional cadastrado ainda</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
