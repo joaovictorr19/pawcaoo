@@ -17,7 +17,7 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
 import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
-import ProfessionalRoleBadge from "@/components/ui/ProfessionalRoleBadge";
+// ProfessionalRoleBadge removed from profile - too many badges already
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -1080,15 +1080,7 @@ export default function UserProfile() {
                     )}
                   </div>
 
-                  {/* Professional Role Badge - Top Right of Name Section */}
-                  <div className="absolute top-0 right-4 md:right-0">
-                    <ProfessionalRoleBadge
-                      isTrainer={!!trainerProfile?.is_verified_trainer}
-                      isWalker={!!walkerProfile && !trainerProfile?.is_verified_trainer}
-                      isPawcaoEmployee={walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee}
-                      size="md"
-                    />
-                  </div>
+
                   
                   {profileUser.bio && (
                     <p className="text-gray-600 mt-2 max-w-lg mx-auto md:mx-0 leading-relaxed">{profileUser.bio}</p>
