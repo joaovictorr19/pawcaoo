@@ -315,7 +315,7 @@ export default function WalkerDetails() {
   // Se o perfil estiver inativo e o utilizador não for o dono nem admin, mostrar mensagem de indisponível
   if (!walker.is_active && user?.email !== walker.created_by && user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
+      <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <UserIcon className="w-8 h-8 text-gray-400" />
