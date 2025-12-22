@@ -1041,7 +1041,7 @@ export default function UserProfile() {
               </div>
 
               {/* Info Column - Starts below cover photo line to prevent overlap */}
-              <div className="flex-1 flex flex-col md:flex-row justify-between items-start pt-4 px-4 md:pl-6 md:pr-0">
+              <div className="flex-1 flex flex-col md:flex-row justify-between items-start pt-4 px-4 md:pl-6 md:pr-0 relative">
                 
                 {/* User Details (Left) */}
                 <div className="text-center md:text-left w-full md:w-auto">
@@ -1078,6 +1078,16 @@ export default function UserProfile() {
                         </Tooltip>
                       </TooltipProvider>
                     )}
+                  </div>
+
+                  {/* Professional Role Badge - Top Right of Name Section */}
+                  <div className="absolute top-0 right-4 md:right-0">
+                    <ProfessionalRoleBadge
+                      isTrainer={!!trainerProfile?.is_verified_trainer}
+                      isWalker={!!walkerProfile && !trainerProfile?.is_verified_trainer}
+                      isPawcaoEmployee={walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee}
+                      size="md"
+                    />
                   </div>
                   
                   {profileUser.bio && (
