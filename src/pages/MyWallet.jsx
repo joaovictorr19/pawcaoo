@@ -79,7 +79,9 @@ export default function MyWallet() {
       points_redeemed: <Gift className="w-4 h-4 text-pink-500" />,
       escrow_reserved: <TrendingUp className="w-4 h-4 text-blue-500" />,
       escrow_released: <ArrowUpRight className="w-4 h-4 text-green-500" />,
-      escrow_expired: <ArrowDownLeft className="w-4 h-4 text-red-500" />
+      surcharge_paid: <Clock className="w-4 h-4 text-orange-500" />,
+      walker_payment_pending: <Dog className="w-4 h-4 text-yellow-500" />,
+      walker_payment_completed: <ArrowUpRight className="w-4 h-4 text-green-500" />
     };
     return icons[type] || <Wallet className="w-4 h-4" />;
   };
@@ -134,6 +136,34 @@ export default function MyWallet() {
           </Card>
         </motion.div>
 
+        {/* Token Restrictions Info */}
+        {wallet?.service_tokens > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <Card className="border-0 shadow-md bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-blue-900 text-sm">Como usar seus Tokens Grátis</p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Válidos em <strong>dias úteis (9h-18h)</strong> sem custo extra. 
+                      Fins-de-semana: +€5 | Horário noturno: +€3
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Ao usar um token, o pagamento de €{membership?.token_value || 12}-€15 é automaticamente enviado ao Dog Walker.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Balance Cards */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
           {/* Tokens */}
@@ -149,14 +179,20 @@ export default function MyWallet() {
                     <Zap className="w-6 h-6 text-blue-600" />
                   </div>
                   {wallet?.tokens_expiry_date && (
-                    <Badge variant="outline" className="text-xs">
-                      Expira {format(new Date(wallet.tokens_expiry_date), 'dd/MM', { locale: pt })}
+                    <Badge variant="outline" className={`text-xs ${new Date(wallet.tokens_expiry_date) < new Date(Date.now() + 7*24*60*60*1000) ? 'border-red-300 text-red-600 bg-red-50' : ''}`}>
+                      {new Date(wallet.tokens_expiry_date) < new Date() 
+                        ? 'Expirado!' 
+                        : `Expira ${format(new Date(wallet.tokens_expiry_date), 'dd/MM', { locale: pt })}`}
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Tokens de Serviço</p>
+                <p className="text-sm text-gray-600 mb-1">Passeios Grátis</p>
                 <p className="text-3xl font-black text-gray-900">{wallet?.service_tokens || 0}</p>
-                <p className="text-xs text-gray-500 mt-1">= €{(wallet?.service_tokens || 0) * 12} em passeios</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {wallet?.service_tokens > 0 
+                    ? `= €${(wallet?.service_tokens || 0) * (membership?.token_value || 12)} reservados`
+                    : 'Assine um plano para receber tokens'}
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -177,9 +213,13 @@ export default function MyWallet() {
                     {(membership?.cashback_rate * 100 || 0)}% cashback
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Saldo Cashback</p>
+                <p className="text-sm text-gray-600 mb-1">Crédito Interno</p>
                 <p className="text-3xl font-black text-gray-900">€{(wallet?.cashback_balance || 0).toFixed(2)}</p>
-                <p className="text-xs text-gray-500 mt-1">Uso interno na plataforma</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {wallet?.cashback_balance > 0 
+                    ? 'Use na Loja PawCão ou serviços'
+                    : 'Ganhe cashback nas compras'}
+                </p>
               </CardContent>
             </Card>
           </motion.div>
