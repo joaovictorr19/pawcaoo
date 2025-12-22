@@ -17,6 +17,7 @@ import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
 import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import ProfessionalRoleBadge from "@/components/ui/ProfessionalRoleBadge";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -1018,7 +1019,7 @@ export default function UserProfile() {
                                   <TrainerVerifiedBadge size="md" />
                                 </div>
                               )}
-                              {(walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee) && (
+                              {(walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee) && !trainerProfile?.is_verified_trainer && (
                                 <div className="transform hover:scale-110 transition-transform">
                                   <GoldEmployeeBadge size="lg" />
                                 </div>
