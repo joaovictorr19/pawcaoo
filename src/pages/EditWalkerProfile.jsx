@@ -247,7 +247,7 @@ export default function EditWalkerProfile() {
         <Alert className="mb-6 border-orange-200 bg-orange-50">
           <AlertCircle className="h-5 w-5 text-orange-600" />
           <AlertDescription className="text-orange-900">
-            <strong>Alterações sujeitas a aprovação:</strong> Todas as edições serão revisadas por um administrador antes de serem publicadas.
+            <strong>⚠️ Todas as alterações requerem aprovação:</strong> Qualquer edição (nome, bio, fotos, serviços, preços) será enviada para revisão do administrador antes de ser publicada.
           </AlertDescription>
         </Alert>
 
