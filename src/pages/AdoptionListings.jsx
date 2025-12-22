@@ -77,11 +77,10 @@ export default function AdoptionListings({ isEmbedded = false }) {
           {[1, 2, 3, 4, 5, 6].map(i => (
             <Skeleton key={i} className="h-96 rounded-2xl" />
           ))}
-          </div>
-          )}
-          </div>
-          );
-          }
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={isEmbedded ? '' : 'max-w-7xl mx-auto px-4 py-8'}>
@@ -301,8 +300,9 @@ export default function AdoptionListings({ isEmbedded = false }) {
               </CardContent>
             </Card>
           </motion.div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
