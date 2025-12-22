@@ -130,7 +130,6 @@ export default function AvailabilityCalendar({
               </span>
               
               {/* Indicadores visuais */}
-              {status === 'day_off' && <XCircle className="w-3 h-3 text-white absolute bottom-1" />}
               {count > 0 && (
                 <div className="absolute bottom-1 right-1 flex gap-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75" />
