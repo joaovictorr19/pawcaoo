@@ -211,16 +211,36 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             </p>
           )}
 
-          {showMatchScore && walker.services_offered && walker.services_offered.length > 0 && (
+          {walker.services_offered && walker.services_offered.length > 0 && (
             <div className="mb-1.5">
               <div className="flex flex-wrap gap-1">
-                {walker.services_offered.slice(0, 2).map((service, idx) => (
-                  <Badge key={idx} variant="outline" className="text-[9px] px-1 py-0 border-blue-200 text-blue-600">
-                    {service.service_name}
-                  </Badge>
-                ))}
-                {walker.services_offered.length > 2 && (
-                  <Badge variant="outline" className="text-[9px] px-1 py-0">+{walker.services_offered.length - 2}</Badge>
+                {walker.services_offered.slice(0, 3).map((service, idx) => {
+                  const quickIcons = {
+                    boarding: '🏠',
+                    house_sitting: '🏡',
+                    drop_in_feeding: '🚪'
+                  };
+                  const isQuick = !!service.service_type;
+                  
+                  return (
+                    <Badge 
+                      key={idx} 
+                      variant="outline" 
+                      className={`text-[9px] px-1 py-0 ${isQuick ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-gray-200'}`}
+                      onClick={(e) => {
+                        if (isQuick) {
+                          e.stopPropagation();
+                          navigate(createPageUrl(`WalkerDetails?id=${walker.id}&service=${service.service_type}`));
+                        }
+                      }}
+                    >
+                      {isQuick && <span className="mr-0.5">{quickIcons[service.service_type]}</span>}
+                      {service.service_name}
+                    </Badge>
+                  );
+                })}
+                {walker.services_offered.length > 3 && (
+                  <Badge variant="outline" className="text-[9px] px-1 py-0">+{walker.services_offered.length - 3}</Badge>
                 )}
               </div>
             </div>
