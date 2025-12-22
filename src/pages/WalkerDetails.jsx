@@ -396,23 +396,20 @@ export default function WalkerDetails() {
           })}
         </script>
       </Helmet>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8">
+        {/* Botão Voltar - Fixo no mobile para melhor UX */}
         <Button
           variant="outline"
-          className="mb-6 hover:opacity-80"
-          style={{
-            borderColor: `${colors?.primary || '#3b82f6'}40`,
-            color: colors?.primary || '#3b82f6'
-          }}
+          className="mb-4 md:mb-6 glass-panel shadow-lg hover:shadow-xl transition-all duration-300 border-white/60 hover:scale-105 active:scale-95 px-4 py-2.5 h-auto"
           onClick={() => navigate(createPageUrl('Home'))}
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {t('backToWalkers', language)}
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          <span className="font-semibold">{t('backToWalkers', language)}</span>
         </Button>
 
         {/* Profile Header - Full Width */}
-        <div className="mb-8">
-            <div className="glass-panel rounded-xl shadow-md overflow-hidden border border-white/40">
+        <div className="mb-6 md:mb-8">
+            <div className="glass-panel rounded-2xl shadow-lg overflow-hidden border border-white/40">
               <ProfessionalProfileHeader 
                 professional={walker} 
                 type="walker" 
@@ -428,8 +425,8 @@ export default function WalkerDetails() {
 
               {/* Selo de Verificação em Destaque */}
               {walker.verification_status === "verified" && (
-                <div className="px-5 pt-2 pb-0">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
+                <div className="px-3 sm:px-5 pt-2 pb-0">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 sm:p-3 flex items-center gap-2 sm:gap-3">
                     <div className="bg-green-100 p-2 rounded-full">
                       <ShieldCheck className="w-6 h-6 text-green-600" />
                     </div>
@@ -443,14 +440,14 @@ export default function WalkerDetails() {
 
               {/* Emblemas Conquistados (Sincronizado) */}
               {walkerBadges.length > 0 && (
-                <div className="px-5 pt-4">
+                <div className="px-3 sm:px-5 pt-3 sm:pt-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-5 h-5 text-purple-600" />
-                    <h3 className="font-semibold text-gray-900 text-sm">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">
                       Conquistas ({walkerBadges.length})
                     </h3>
                   </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                     {walkerBadges.slice(0, 4).map((badge) => (
                       <div 
                         key={badge.id} 
@@ -476,12 +473,12 @@ export default function WalkerDetails() {
                 </div>
               )}
               
-              <div className="px-5 pb-5 pt-5">
+              <div className="px-3 sm:px-5 pb-4 sm:pb-5 pt-4 sm:pt-5">
                 {/* Vídeo de Apresentação */}
                 {walker.video_intro_url && (
-                  <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <PlayCircle className="w-5 h-5 text-purple-600" />
+                  <div className="mb-6 sm:mb-8">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
+                      <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                       Apresentação em Vídeo
                     </h2>
                     <div className="rounded-xl overflow-hidden shadow-lg bg-black aspect-video relative group max-w-2xl">
@@ -498,12 +495,12 @@ export default function WalkerDetails() {
                 )}
 
                 {walker.services_offered?.length > 0 && (
-                  <div className="mb-8 space-y-4">
-                    <h3 className="font-bold text-gray-900 flex items-center gap-2 text-lg">
-                      <Award className="w-5 h-5 text-indigo-600" />
+                  <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
+                    <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg">
+                      <Award className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                       Serviços Disponíveis
                     </h3>
-                    <div className="grid gap-4">
+                    <div className="grid gap-3 sm:gap-4">
                       {walker.services_offered.map((service, idx) => {
                         const serviceName = service.service_name?.toLowerCase() || '';
                         const isBoarding = serviceName.includes('boarding') || serviceName.includes('alojamento');
@@ -600,14 +597,14 @@ export default function WalkerDetails() {
                 )}
 
                 {/* Compact Details Section */}
-                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-5 sm:mb-6">
                   {/* Service Areas & Map */}
-                  <div className="space-y-3">
-                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-green-600" />
                       {t('serviceAreas', language)}
                     </h2>
-                    <div className="h-48 rounded-lg overflow-hidden border border-gray-200">
+                    <div className="h-40 sm:h-48 rounded-lg overflow-hidden border border-gray-200">
                       <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
                         <ServiceAreaMap walker={walker} />
                       </Suspense>
@@ -722,16 +719,16 @@ export default function WalkerDetails() {
         </div>
 
         {/* BOOKING SECTION - SPLIT LAYOUT */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-8" id="booking-section">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8" id="booking-section">
             {/* LEFT: CALENDAR */}
-            <Card className="border-0 shadow-md h-fit">
-              <CardHeader className="py-4 px-5">
+            <Card className="glass-panel border-0 shadow-lg h-fit">
+              <CardHeader className="py-3 sm:py-4 px-3 sm:px-5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-green-600" />
                   {t('availability', language)}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-5 pt-0">
+              <CardContent className="p-3 sm:p-5 pt-0">
                 <AvailabilityCalendar
                   availabilityData={availability}
                   bookings={walkerBookings}
@@ -743,7 +740,7 @@ export default function WalkerDetails() {
             </Card>
 
             {/* RIGHT: BOOKING FORM (Compact) */}
-            <div className="space-y-5" id="booking-form-section">
+            <div className="space-y-4 sm:space-y-5" id="booking-form-section">
                 {selectedDate ? (
                     <BookingForm
                         professional={walker}
@@ -753,13 +750,13 @@ export default function WalkerDetails() {
                         key={selectedDate?.toISOString()} // Force re-render on date change
                     />
                 ) : (
-                    <Card className="border-dashed border-2 border-gray-200 shadow-none h-full min-h-[300px] flex flex-col items-center justify-center text-center p-6 bg-gray-50/50">
-                        <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                            <Calendar className="w-8 h-8 text-green-600" />
+                    <Card className="glass-panel border-dashed border-2 border-gray-200/50 shadow-none h-full min-h-[250px] sm:min-h-[300px] flex flex-col items-center justify-center text-center p-4 sm:p-6">
+                        <div className="bg-white/80 p-3 sm:p-4 rounded-full shadow-sm mb-3 sm:mb-4">
+                            <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
-                        <p className="text-gray-500 max-w-xs">
-                            Clique em um dia disponível (verde) no calendário à esquerda para iniciar o agendamento.
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
+                        <p className="text-sm sm:text-base text-gray-500 max-w-xs">
+                            Clique em um dia disponível (verde) no calendário {window.innerWidth < 1024 ? 'acima' : 'à esquerda'} para iniciar o agendamento.
                         </p>
                         {serviceParam && (
                           <div className="mt-4">
@@ -823,15 +820,15 @@ export default function WalkerDetails() {
         </div>
 
         {/* BOTTOM: REVIEWS */}
-        <Card className="border-0 shadow-md">
-          <CardHeader className="py-4 px-5 bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
-              {t('reviews', language)} ({reviews.length})
-              {averageRating > 0 && <span className="text-sm font-normal text-gray-500 ml-2">Média: {averageRating.toFixed(1)}</span>}
+        <Card className="glass-panel border-0 shadow-lg">
+          <CardHeader className="py-3 sm:py-4 px-3 sm:px-5 bg-white/50 border-b border-gray-100">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2 flex-wrap">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+              <span>{t('reviews', language)} ({reviews.length})</span>
+              {averageRating > 0 && <span className="text-xs sm:text-sm font-normal text-gray-500">Média: {averageRating.toFixed(1)}</span>}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             {loadingReviews ? (
               <div className="grid md:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map(i => (
@@ -839,13 +836,13 @@ export default function WalkerDetails() {
                 ))}
               </div>
             ) : reviews.length === 0 ? (
-              <div className="text-center py-12">
-                <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
-                <p className="text-gray-600">{t('beFirstReview', language)}</p>
+              <div className="text-center py-8 sm:py-12">
+                <Star className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
+                <p className="text-sm sm:text-base text-gray-600">{t('beFirstReview', language)}</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {reviews.map((review) => (
                   <ReviewCard key={review.id} review={review} />
                 ))}
