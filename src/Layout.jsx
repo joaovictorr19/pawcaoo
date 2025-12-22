@@ -816,18 +816,10 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </nav>
 
-          {/* Ações Direita - Limpo, sem XP */}
+          {/* Ações Direita */}
           <div className="flex items-center gap-2 flex-shrink-0">
             {authUser ? (
               <>
-                <Link 
-                  to={createPageUrl("Gamification")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full border border-purple-200/30 hover:border-purple-400/50 transition-all hover:scale-105"
-                >
-                  <Trophy className="w-4 h-4 text-purple-600" />
-                  <span className="text-xs font-bold text-purple-700 hidden lg:inline">Hall da Fama</span>
-                </Link>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
@@ -890,13 +882,6 @@ function LayoutContent({ children, currentPageName }) {
               <PawCaoLogo size="small" showText={false} />
             </Link>
           </div>
-
-          {/* Centro - Hall da Fama Link (sem XP no header) */}
-          {authUser && (
-            <Link to={createPageUrl("Gamification")} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full border border-purple-200/30 hover:border-purple-400/50 transition-all">
-              <Trophy className="w-3.5 h-3.5 text-purple-600" />
-            </Link>
-          )}
 
           {/* Direita - Idioma + Login/Notificações */}
           <div className="flex items-center gap-1">
