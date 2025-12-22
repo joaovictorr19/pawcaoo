@@ -1248,18 +1248,25 @@ export default function Home() {
                     </h2>
 
                     {/* Barra única com localização + filtros */}
-                    <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-2">
+                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2">
                       <LocationSearch
                         onLocationChange={(loc) => {
+                          console.log('📍 Location selected:', loc);
                           setUserLocation(loc);
+                          if(loc && loc.lat && loc.lng) {
+                            console.log('✅ GPS coordinates set:', { lat: loc.lat, lng: loc.lng });
+                          }
                         }}
                         currentLocation={userLocation}
-                        className="border-0 shadow-none bg-transparent h-8 text-sm w-40 focus:border-blue-500"
+                        className="border-0 shadow-none bg-transparent h-8 text-sm w-40"
                         placeholder="📍 Localização"
                       />
 
-                      <Select value={filterSize} onValueChange={setFilterSize}>
-                        <SelectTrigger className="h-8 w-24 text-xs bg-white/50 border-0 shadow-none">
+                      <Select value={filterSize} onValueChange={(value) => {
+                        console.log('Filter size changed:', value);
+                        setFilterSize(value);
+                      }}>
+                        <SelectTrigger className="h-8 w-24 text-xs bg-white rounded-lg border border-gray-200">
                           <SelectValue placeholder="Tamanho" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1270,8 +1277,11 @@ export default function Home() {
                         </SelectContent>
                       </Select>
 
-                      <Select value={filterTime} onValueChange={setFilterTime}>
-                        <SelectTrigger className="h-8 w-24 text-xs bg-white/50 border-0 shadow-none">
+                      <Select value={filterTime} onValueChange={(value) => {
+                        console.log('Filter time changed:', value);
+                        setFilterTime(value);
+                      }}>
+                        <SelectTrigger className="h-8 w-24 text-xs bg-white rounded-lg border border-gray-200">
                           <SelectValue placeholder="Horário" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1282,8 +1292,11 @@ export default function Home() {
                         </SelectContent>
                       </Select>
 
-                      <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                        <SelectTrigger className="h-8 w-24 text-xs bg-white/50 border-0 shadow-none">
+                      <Select value={filterAnimalType} onValueChange={(value) => {
+                        console.log('Filter animal changed:', value);
+                        setFilterAnimalType(value);
+                      }}>
+                        <SelectTrigger className="h-8 w-28 text-xs bg-white rounded-lg border border-gray-200">
                           <SelectValue placeholder="Animal" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1302,14 +1315,15 @@ export default function Home() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
+                            console.log('Clearing all filters');
                             setFilterSize("all");
                             setFilterTime("all");
                             setFilterAnimalType("all");
                             setUserLocation(null);
                           }}
-                          className="h-8 text-xs px-2"
+                          className="h-8 text-xs px-3 rounded-lg hover:bg-gray-100"
                         >
-                          ✕
+                          ✕ Limpar
                         </Button>
                       )}
                     </div>
