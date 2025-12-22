@@ -71,6 +71,12 @@ export default function BecomeProfessional() {
     houseSittingPrice: 30,
     hasDropIn: false,
     dropInPrice: 15,
+    // Multi-Country Tax Fields
+    country_of_operation: "",
+    tax_id_portugal: "",
+    tax_id_spain: "",
+    france_professional_type: "",
+    tax_id_france: "",
   });
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -119,7 +125,13 @@ export default function BecomeProfessional() {
         is_verified_trainer: isAlsoTrainer,
         training_specialties: isAlsoTrainer ? data.training_specialties : [],
         training_philosophy: isAlsoTrainer ? data.training_philosophy : "",
-        consultation_options: isAlsoTrainer ? data.consultation_options : []
+        consultation_options: isAlsoTrainer ? data.consultation_options : [],
+        // Multi-Country Tax Fields
+        country_of_operation: data.country_of_operation,
+        tax_id_portugal: data.tax_id_portugal,
+        tax_id_spain: data.tax_id_spain,
+        france_professional_type: data.france_professional_type,
+        tax_id_france: data.tax_id_france
       });
 
       // Update user account_type
@@ -185,6 +197,33 @@ export default function BecomeProfessional() {
     if (!professionalType) {
       toast.error("Por favor selecione o tipo de profissional");
       return;
+    }
+
+    // Validação Fiscal por País
+    if (!formData.country_of_operation) {
+      toast.error("Selecione o país de atuação");
+      return;
+    }
+
+    if (formData.country_of_operation === 'portugal' && !formData.tax_id_portugal) {
+      toast.error("NIF Português é obrigatório");
+      return;
+    }
+
+    if (formData.country_of_operation === 'spain' && !formData.tax_id_spain) {
+      toast.error("NIF/NIE/CIF Espanhol é obrigatório");
+      return;
+    }
+
+    if (formData.country_of_operation === 'france') {
+      if (!formData.france_professional_type) {
+        toast.error("Indique se é Profissional ou Particular (França)");
+        return;
+      }
+      if (formData.france_professional_type === 'professional' && !formData.tax_id_france) {
+        toast.error("SIRET é obrigatório para Profissionais em França");
+        return;
+      }
     }
 
     const rate = parseFloat(formData.hourly_rate);
@@ -691,6 +730,128 @@ export default function BecomeProfessional() {
                               </div>
                             ))}
                           </div>
+                        </div>
+
+                        {/* NOVO: Seleção de País e Dados Fiscais */}
+                        <div className="space-y-4 bg-yellow-50 border-2 border-yellow-300 p-6 rounded-xl">
+                          <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                            🌍 País de Atuação & Dados Fiscais
+                          </h3>
+                          
+                          <div className="space-y-2">
+                            <Label>Onde Presta Serviços? *</Label>
+                            <RadioGroup value={formData.country_of_operation} onValueChange={(val) => setFormData({...formData, country_of_operation: val})}>
+                              <div className="grid grid-cols-3 gap-3">
+                                <Card className={`cursor-pointer transition-all ${formData.country_of_operation === 'portugal' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-md'}`}
+                                  onClick={() => setFormData({...formData, country_of_operation: 'portugal'})}>
+                                  <CardContent className="p-4 text-center">
+                                    <RadioGroupItem value="portugal" id="pt" className="sr-only" />
+                                    <div className="text-3xl mb-2">🇵🇹</div>
+                                    <h4 className="font-bold text-sm">Portugal</h4>
+                                  </CardContent>
+                                </Card>
+
+                                <Card className={`cursor-pointer transition-all ${formData.country_of_operation === 'spain' ? 'ring-2 ring-red-500 bg-red-50' : 'hover:shadow-md'}`}
+                                  onClick={() => setFormData({...formData, country_of_operation: 'spain'})}>
+                                  <CardContent className="p-4 text-center">
+                                    <RadioGroupItem value="spain" id="es" className="sr-only" />
+                                    <div className="text-3xl mb-2">🇪🇸</div>
+                                    <h4 className="font-bold text-sm">Espanha</h4>
+                                  </CardContent>
+                                </Card>
+
+                                <Card className={`cursor-pointer transition-all ${formData.country_of_operation === 'france' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'}`}
+                                  onClick={() => setFormData({...formData, country_of_operation: 'france'})}>
+                                  <CardContent className="p-4 text-center">
+                                    <RadioGroupItem value="france" id="fr" className="sr-only" />
+                                    <div className="text-3xl mb-2">🇫🇷</div>
+                                    <h4 className="font-bold text-sm">França</h4>
+                                  </CardContent>
+                                </Card>
+                              </div>
+                            </RadioGroup>
+                          </div>
+
+                          {/* Portugal: NIF */}
+                          {formData.country_of_operation === 'portugal' && (
+                            <div className="space-y-2 bg-white p-4 rounded-lg border-2 border-green-200">
+                              <Label>NIF (Número de Identificação Fiscal) *</Label>
+                              <Input
+                                required
+                                value={formData.tax_id_portugal}
+                                onChange={(e) => setFormData({...formData, tax_id_portugal: e.target.value})}
+                                placeholder="123456789"
+                                maxLength={9}
+                              />
+                              <p className="text-xs text-gray-600">Obrigatório para emissão de Recibos Verdes ou Fatura</p>
+                            </div>
+                          )}
+
+                          {/* Spain: NIF/NIE/CIF */}
+                          {formData.country_of_operation === 'spain' && (
+                            <div className="space-y-2 bg-white p-4 rounded-lg border-2 border-red-200">
+                              <Label>NIF / NIE / CIF *</Label>
+                              <Input
+                                required
+                                value={formData.tax_id_spain}
+                                onChange={(e) => setFormData({...formData, tax_id_spain: e.target.value})}
+                                placeholder="12345678A ou X1234567A"
+                              />
+                              <p className="text-xs text-gray-600">Obrigatório para autónomos ou empresas (Hacienda)</p>
+                            </div>
+                          )}
+
+                          {/* France: Profissional ou Particular */}
+                          {formData.country_of_operation === 'france' && (
+                            <div className="space-y-4 bg-white p-4 rounded-lg border-2 border-blue-200">
+                              <div className="space-y-2">
+                                <Label>Tipo de Prestador *</Label>
+                                <RadioGroup value={formData.france_professional_type} onValueChange={(val) => setFormData({...formData, france_professional_type: val})}>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'professional' ? 'ring-2 ring-blue-500' : ''}`}
+                                      onClick={() => setFormData({...formData, france_professional_type: 'professional'})}>
+                                      <CardContent className="p-3 text-center">
+                                        <RadioGroupItem value="professional" id="fr-pro" className="sr-only" />
+                                        <div className="font-semibold text-sm">Profissional</div>
+                                        <p className="text-xs text-gray-600">Auto-entrepreneur / Empresa</p>
+                                      </CardContent>
+                                    </Card>
+
+                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'individual' ? 'ring-2 ring-blue-500' : ''}`}
+                                      onClick={() => setFormData({...formData, france_professional_type: 'individual'})}>
+                                      <CardContent className="p-3 text-center">
+                                        <RadioGroupItem value="individual" id="fr-ind" className="sr-only" />
+                                        <div className="font-semibold text-sm">Particular</div>
+                                        <p className="text-xs text-gray-600">Pessoa física</p>
+                                      </CardContent>
+                                    </Card>
+                                  </div>
+                                </RadioGroup>
+                              </div>
+
+                              {formData.france_professional_type === 'professional' && (
+                                <div className="space-y-2">
+                                  <Label>SIRET *</Label>
+                                  <Input
+                                    required
+                                    value={formData.tax_id_france}
+                                    onChange={(e) => setFormData({...formData, tax_id_france: e.target.value})}
+                                    placeholder="12345678901234"
+                                    maxLength={14}
+                                  />
+                                  <p className="text-xs text-gray-600">Número SIRET de 14 dígitos (obrigatório para auto-entrepreneurs)</p>
+                                </div>
+                              )}
+
+                              {formData.france_professional_type === 'individual' && (
+                                <Alert className="border-orange-300 bg-orange-50">
+                                  <AlertDescription className="text-sm">
+                                    ⚠️ <strong>Atenção:</strong> Rendimentos sujeitos a declaração CESU. A responsabilidade legal é entre o cliente e o prestador.
+                                  </AlertDescription>
+                                </Alert>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {/* Trainer Specific Fields */}

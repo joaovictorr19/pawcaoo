@@ -40,6 +40,7 @@ import LiveWalkTracking from './pages/LiveWalkTracking';
 import LoyaltyRewards from './pages/LoyaltyRewards';
 import ManageAdoptionListings from './pages/ManageAdoptionListings';
 import ManageAvailability from './pages/ManageAvailability';
+import ManageMyAdoptions from './pages/ManageMyAdoptions';
 import MembershipPlans from './pages/MembershipPlans';
 import MembershipSuccess from './pages/MembershipSuccess';
 import ModerationPanel from './pages/ModerationPanel';
@@ -80,7 +81,6 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import ManageMyAdoptions from './pages/ManageMyAdoptions';
 import __Layout from './Layout.jsx';
 
 
@@ -127,6 +127,7 @@ export const PAGES = {
     "LoyaltyRewards": LoyaltyRewards,
     "ManageAdoptionListings": ManageAdoptionListings,
     "ManageAvailability": ManageAvailability,
+    "ManageMyAdoptions": ManageMyAdoptions,
     "MembershipPlans": MembershipPlans,
     "MembershipSuccess": MembershipSuccess,
     "ModerationPanel": ModerationPanel,
@@ -167,7 +168,6 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "ManageMyAdoptions": ManageMyAdoptions,
 }
 
 export const pagesConfig = {
