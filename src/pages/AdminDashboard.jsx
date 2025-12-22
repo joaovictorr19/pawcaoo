@@ -3152,7 +3152,7 @@ export default function AdminDashboard() {
 
         {/* Modal Unificado para Conceder Badge (Seleção ou Todos) */}
         <Dialog open={showGrantAllUsersModal} onOpenChange={setShowGrantAllUsersModal}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-4 md:p-6">
+        <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle className="text-lg md:text-xl">{t('grantBadgeTitle', language)}</DialogTitle>
               <DialogDescription className="text-sm">
@@ -3285,7 +3285,7 @@ export default function AdminDashboard() {
 
           {/* Modal de Concessão Individual de Badge Melhorado */}
         <Dialog open={showGrantSingleBadgeModal} onOpenChange={setShowGrantSingleBadgeModal}>
-          <DialogContent className="max-w-md h-[85vh] md:h-[80vh] flex flex-col p-4 md:p-6">
+          <DialogContent className="w-[95vw] max-w-md h-[85vh] md:h-[80vh] flex flex-col p-4 md:p-6">
             <DialogHeader>
               <DialogTitle className="text-lg md:text-xl">Entregar Emblema</DialogTitle>
               <DialogDescription className="text-sm break-all">
@@ -3389,7 +3389,7 @@ export default function AdminDashboard() {
 
       {/* NOVO: Modal para Criar Badge Customizado */}
         <Dialog open={showCreateCustomBadgeModal} onOpenChange={setShowCreateCustomBadgeModal}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle>Criar Emblema Customizado</DialogTitle>
             </DialogHeader>
@@ -3660,7 +3660,7 @@ export default function AdminDashboard() {
 
         {/* NOVO: Modal para Editar Badges de um Usuário */}
         <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle className="text-base md:text-lg">Editar Badges de {selectedUserForBadges?.full_name || selectedUserForBadges?.email}</DialogTitle>
             </DialogHeader>
@@ -3777,34 +3777,38 @@ export default function AdminDashboard() {
                       <Label className="text-sm">XP Atual</Label>
                       <div className="flex gap-2 items-center">
                         <Input
-                          type="number"
-                          value={selectedUserForBadges.gamification_xp || 0}
+                          type="text"
+                          inputMode="numeric"
+                          value={selectedUserForBadges.gamification_xp || ''}
                           onChange={(e) => {
-                            const newXP = parseInt(e.target.value) || 0;
+                            const value = e.target.value.replace(/\D/g, '');
                             setSelectedUserForBadges({
                               ...selectedUserForBadges,
-                              gamification_xp: newXP
+                              gamification_xp: value ? parseInt(value) : 0
                             });
                           }}
-                          className="flex-1"
+                          placeholder="0"
+                          className="flex-1 text-lg font-semibold"
                         />
                         <Button
                           size="sm"
                           onClick={async () => {
                             try {
+                              const finalXP = selectedUserForBadges.gamification_xp || 0;
+                              
                               await base44.entities.User.update(selectedUserForBadges.id, {
-                                gamification_xp: selectedUserForBadges.gamification_xp || 0
+                                gamification_xp: finalXP
                               });
 
                               const profiles = await base44.entities.UserProfile.filter({ user_email: selectedUserForBadges.email });
                               if (profiles.length > 0) {
                                 await base44.entities.UserProfile.update(profiles[0].id, {
-                                  gamification_xp: selectedUserForBadges.gamification_xp || 0
+                                  gamification_xp: finalXP
                                 });
                               }
 
                               queryClient.invalidateQueries(['allUsers']);
-                              toast.success("XP atualizado!");
+                              toast.success(`XP definido para ${finalXP}!`);
                             } catch (error) {
                               toast.error("Erro ao atualizar XP");
                             }
