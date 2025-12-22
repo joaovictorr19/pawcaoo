@@ -1,148 +1,30 @@
 import React from 'react';
-import { ShieldCheck, Award, Home as HomeIcon, Sparkles } from 'lucide-react';
 
-const VerifiedBadge = ({ className = "", type = "walker", size = "md" }) => {
+/**
+ * Instagram-style Verified Badge
+ * Ícone de verificação idêntico ao do Instagram
+ */
+const VerifiedBadge = ({ size = "md", className = "", type = "walker" }) => {
   const sizeClasses = {
-    sm: 'w-[18px] h-[18px]',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8'
+    xs: 'w-3 h-3',
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+    xl: 'w-8 h-8'
   };
-
-  const iconSizes = {
-    sm: 'w-[10px] h-[10px]',
-    md: 'w-3.5 h-3.5',
-    lg: 'w-4.5 h-4.5'
-  };
-  
-  const badgeConfig = {
-    walker: {
-      colors: {
-        primary: '#3b82f6',
-        secondary: '#1d4ed8',
-        glow: 'rgba(59, 130, 246, 0.5)'
-      },
-      icon: ShieldCheck,
-      title: 'Passeador Verificado'
-    },
-    trainer: {
-      colors: {
-        primary: '#8b5cf6',
-        secondary: '#6d28d9',
-        glow: 'rgba(139, 92, 246, 0.5)'
-      },
-      icon: Award,
-      title: 'Treinador Certificado'
-    },
-    shelter: {
-      colors: {
-        primary: '#10b981',
-        secondary: '#047857',
-        glow: 'rgba(16, 185, 129, 0.5)'
-      },
-      icon: HomeIcon,
-      title: 'Abrigo Verificado'
-    },
-    partner: {
-      colors: {
-        primary: '#f59e0b',
-        secondary: '#d97706',
-        glow: 'rgba(245, 158, 11, 0.5)'
-      },
-      icon: Sparkles,
-      title: 'Parceiro Oficial'
-    }
-  };
-
-  const config = badgeConfig[type] || badgeConfig.walker;
-  const Icon = config.icon;
-  const uniqueId = `verified-${type}-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div className={`verified-badge-premium relative inline-flex items-center justify-center flex-shrink-0 ${sizeClasses[size]} ${className}`} title={config.title}>
-      <style>
-        {`
-          .verified-badge-${uniqueId} {
-            background: linear-gradient(135deg, ${config.colors.primary} 0%, ${config.colors.secondary} 100%);
-            position: relative;
-            border-radius: 50%;
-            box-shadow: 
-              0 0 0 2px rgba(255, 255, 255, 0.9),
-              0 0 0 4px ${config.colors.primary}40,
-              0 4px 12px ${config.colors.glow},
-              inset 0 2px 4px rgba(255, 255, 255, 0.3),
-              inset 0 -2px 4px rgba(0, 0, 0, 0.2);
-            will-change: transform;
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            .verified-badge-${uniqueId}::before,
-            .verified-icon-${uniqueId},
-            .verified-sparkle-${uniqueId} {
-              animation: none !important;
-            }
-          }
-
-          .verified-badge-${uniqueId}::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 50%;
-            background: conic-gradient(
-              from 0deg,
-              ${config.colors.primary}00,
-              ${config.colors.primary}80,
-              ${config.colors.secondary}80,
-              ${config.colors.primary}00
-            );
-            animation: verified-rotate-${uniqueId} 3s linear infinite;
-            z-index: -1;
-          }
-
-          .verified-badge-${uniqueId}::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: linear-gradient(
-              180deg,
-              rgba(255, 255, 255, 0.5) 0%,
-              rgba(255, 255, 255, 0) 50%,
-              rgba(0, 0, 0, 0.1) 100%
-            );
-            pointer-events: none;
-          }
-
-          @keyframes verified-rotate-${uniqueId} {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-
-          .verified-icon-${uniqueId} {
-            position: relative;
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-          }
-
-          @media (hover: hover) {
-            .verified-badge-premium:hover .verified-icon-${uniqueId} {
-              animation: verified-pulse-${uniqueId} 0.5s ease-in-out;
-            }
-          }
-
-          @keyframes verified-pulse-${uniqueId} {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-          }
-        `}
-      </style>
-      
-      <div className={`verified-badge-${uniqueId} ${sizeClasses[size]} flex items-center justify-center`}>
-        <Icon className={`verified-icon-${uniqueId} ${iconSizes[size]} text-white stroke-[2.5px]`} />
-      </div>
-    </div>
+    <svg 
+      viewBox="0 0 24 24" 
+      className={`${sizeClasses[size]} ${className} flex-shrink-0`}
+      title="Conta Verificada"
+      aria-label="Verificado"
+    >
+      <path 
+        fill="#1DA1F2" 
+        d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"
+      />
+    </svg>
   );
 };
 
