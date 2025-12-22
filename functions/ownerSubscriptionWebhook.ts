@@ -183,16 +183,44 @@ Deno.serve(async (req) => {
           const userEmail = subscription.metadata.user_email;
 
           if (userEmail) {
-            // Notificar utilizador (opcional - criar notificação)
+            // Notificar utilizador
             await base44.asServiceRole.entities.Notification.create({
               recipient_email: userEmail,
-              title: 'Pagamento da Subscrição Falhou',
-              message: 'O pagamento da sua subscrição PawCão falhou. Por favor atualize o seu método de pagamento.',
+              title: '⚠️ Pagamento da Subscrição Falhou',
+              message: 'O pagamento da sua subscrição PawCão falhou. Por favor atualize o seu método de pagamento nas próximas 24 horas para evitar a suspensão do serviço.',
               type: 'payment',
               priority: 'high'
             });
+
+            // Enviar email de alerta
+            await base44.asServiceRole.integrations.Core.SendEmail({
+              to: userEmail,
+              subject: '⚠️ Falha no Pagamento da Subscrição PawCão',
+              body: `Olá,\n\nO pagamento da sua subscrição PawCão não foi processado com sucesso.\n\nPor favor, atualize o seu método de pagamento nas próximas 24 horas para manter os seus benefícios ativos.\n\nPode gerir os seus pagamentos em: Painel → Planos Premium → Gerir Pagamentos\n\nSe tiver dúvidas, responda a este email.\n\nObrigado,\nEquipa PawCão`
+            });
+
             console.log(`Payment failed notification sent to ${userEmail}`);
           }
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        // Subscrição próxima de expirar (avisar 7 dias antes)
+        const subscription = event.data.object;
+        const userEmail = subscription.metadata.user_email;
+        const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+        const daysUntilRenewal = Math.ceil((currentPeriodEnd - new Date()) / (1000 * 60 * 60 * 24));
+
+        if (userEmail && daysUntilRenewal <= 7 && daysUntilRenewal > 0) {
+          await base44.asServiceRole.entities.Notification.create({
+            recipient_email: userEmail,
+            title: '🔔 Renovação da Subscrição em Breve',
+            message: `A sua subscrição será renovada em ${daysUntilRenewal} dia${daysUntilRenewal !== 1 ? 's' : ''}. Certifique-se de que o seu método de pagamento está atualizado.`,
+            type: 'payment',
+            priority: 'normal'
+          });
+          console.log(`Renewal reminder sent to ${userEmail} (${daysUntilRenewal} days)`);
         }
         break;
       }

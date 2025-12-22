@@ -62,6 +62,7 @@ import ClientDetails from "../components/admin/ClientDetails";
 import ProductManagement from "../components/admin/ProductManagement";
 import BroadcastManager from "../components/admin/BroadcastManager";
 import StoreItemsManager from "../components/admin/StoreItemsManager";
+import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 
 export default function AdminDashboard() {
   // ============================================
@@ -1404,6 +1405,7 @@ export default function AdminDashboard() {
           <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto rounded-xl min-h-[3rem] overflow-x-auto">
             <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('overview', language)}</TabsTrigger>
             <TabsTrigger value="analytics" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('analytics', language)}</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">👑 Subscrições</TabsTrigger>
             <TabsTrigger value="crm" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">👥 CRM</TabsTrigger>
             <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('accounts', language)}</TabsTrigger>
             <TabsTrigger value="applications" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">{t('verifications', language)}</TabsTrigger>
@@ -1433,6 +1435,12 @@ export default function AdminDashboard() {
                 services={allPartnerServices}
                 adoptionListings={adoptionListings}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="subscriptions">
+            <div className="mt-6">
+              <SubscriptionsManager />
             </div>
           </TabsContent>
 
