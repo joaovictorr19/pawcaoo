@@ -802,7 +802,7 @@ function LayoutContent({ children, currentPageName }) {
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap text-red-600 bg-red-50 hover:bg-red-100`}
                   >
                     <Zap className="w-4 h-4 flex-shrink-0 text-red-500" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Emergência' : 'Emergency'}</span>
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Passeio de Emergência' : 'Emergency Walk'}</span>
                   </Link>
                 </>
               )}
