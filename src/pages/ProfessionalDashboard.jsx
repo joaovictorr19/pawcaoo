@@ -50,6 +50,7 @@ export default function ProfessionalDashboard() {
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [dateRange, setDateRange] = useState("7days");
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
 
   // User and Profile queries with real-time updates
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -1552,34 +1553,34 @@ export default function ProfessionalDashboard() {
                       locale={ptBR}
                       walkerEmail={user?.email}
                       isInteractive={true}
+                      selectedDate={selectedCalendarDate}
                       onDateSelect={async (date, status) => {
-                        // Lógica de Toggle Time Off integrada
                         try {
                           const dateStr = format(date, 'yyyy-MM-dd');
                           
-                          // 1. Check if has bookings
-                          const hasBooking = allBookings.some(b => 
+                          // 1. Check bookings for this day
+                          const dayBookings = allBookings.filter(b => 
                             (b.walk_date === dateStr || b.session_date === dateStr) &&
                             (b.status !== 'cancelled' && b.status !== 'rejected')
                           );
                           
-                          if (hasBooking) {
-                            toast.error('📅 Dia com reservas!', {
-                              description: 'Não é possível marcar folga. Cancele ou reagende as reservas primeiro.'
-                            });
+                          // If has bookings, select date to show details
+                          if (dayBookings.length > 0) {
+                            setSelectedCalendarDate(date);
+                            toast.info(`📅 ${dayBookings.length} reservas em ${format(date, 'dd/MM')}`);
                             return;
                           }
 
+                          // If no bookings, toggle Time Off
                           // 2. Find existing availability record
                           const existingRecord = availability.find(a => a.date === dateStr);
 
                           if (status === 'day_off' && existingRecord) {
-                            // REMOVER FOLGA
+                            // REMOVE TIME OFF
                             await base44.entities.CalendarAvailability.delete(existingRecord.id);
                             toast.success('Folga removida. Dia disponível.');
                           } else {
-                            // MARCAR FOLGA
-                            // Se já existe registro (ex: fully booked manual), atualiza. Se não, cria.
+                            // SET TIME OFF
                             if (existingRecord) {
                                await base44.entities.CalendarAvailability.update(existingRecord.id, {
                                  is_day_off: true,
@@ -1601,7 +1602,8 @@ export default function ProfessionalDashboard() {
                             toast.success('Folga marcada! 🚫');
                           }
                           
-                          // Refresh
+                          // Clear selection and refresh
+                          setSelectedCalendarDate(null);
                           queryClient.invalidateQueries(['myAvailability']);
                           
                         } catch (err) {
@@ -1611,6 +1613,51 @@ export default function ProfessionalDashboard() {
                       }}
                     />
                   </div>
+                  
+                  {/* Selected Date Details */}
+                  <AnimatePresence>
+                    {selectedCalendarDate && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-6 border-t pt-4"
+                      >
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                            <CalendarIcon className="w-4 h-4 text-blue-600" />
+                            Reservas para {format(selectedCalendarDate, "d 'de' MMMM", { locale: ptBR })}
+                          </h3>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedCalendarDate(null)}>
+                            Fechar
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {allBookings
+                            .filter(b => {
+                              const d = new Date(b.walk_date || b.session_date);
+                              return format(d, 'yyyy-MM-dd') === format(selectedCalendarDate, 'yyyy-MM-dd') &&
+                                     b.status !== 'cancelled' && b.status !== 'rejected';
+                            })
+                            .map(booking => (
+                              <div key={booking.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border shadow-sm text-lg">
+                                    {booking.dog_size === 'small' ? '🐕' : '🦮'}
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-gray-900">{booking.dog_name}</p>
+                                    <p className="text-xs text-gray-600">{booking.walk_time || booking.session_time} • {booking.duration_hours}h • {booking.owner_name}</p>
+                                  </div>
+                                </div>
+                                <Badge className="bg-white text-blue-700 hover:bg-white">{booking.status}</Badge>
+                              </div>
+                            ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </CardContent>
               </Card>
             </div>
