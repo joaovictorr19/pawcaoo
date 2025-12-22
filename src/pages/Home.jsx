@@ -1322,48 +1322,47 @@ export default function Home() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap mb-4">
-                        <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                          {filteredProfessionals.length} {t('found', language)}
-                        </p>
-                        
-                        {selectedServiceTypes.length > 0 && (
-                          <Badge className="bg-blue-100 text-blue-800 text-xs">
-                            {selectedServiceTypes.length} {t('serviceCount', language)}
-                          </Badge>
-                        )}
-                        {selectedSpecializations.length > 0 && (
-                          <Badge className="bg-purple-100 text-purple-800 text-xs">
-                            {selectedSpecializations.length} {t('specializationCount', language)}
-                          </Badge>
-                        )}
-                        
-                        {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
-                          <Badge className="bg-green-100 text-green-800 text-xs">
-                            📊 {t('sortedByMatch', language)}
-                          </Badge>
-                        )}
-                        
-                        {filterDogSitting !== "all" && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                            {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
-                            {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
-                            {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
-                          </span>
-                        )}
-                        {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
-                          <span className="text-purple-600 font-semibold ml-2">
-                            ({t('upToDistance', language)} {advancedFilters.radius}km)
-                          </span>
-                        )}
-                        {filteredProfessionals.some(w => w.distance !== null) && 
-                         !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
-                          <span className="text-purple-600 font-semibold ml-2">
-                            ({t('sortedByDistance', language)})
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                      {filteredProfessionals.length} {t('found', language)}
+                    </p>
+                    
+                    {selectedServiceTypes.length > 0 && (
+                      <Badge className="bg-blue-100 text-blue-800 text-xs">
+                        {selectedServiceTypes.length} {t('serviceCount', language)}
+                      </Badge>
+                    )}
+                    {selectedSpecializations.length > 0 && (
+                      <Badge className="bg-purple-100 text-purple-800 text-xs">
+                        {selectedSpecializations.length} {t('specializationCount', language)}
+                      </Badge>
+                    )}
+                    
+                    {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                      <Badge className="bg-green-100 text-green-800 text-xs">
+                        📊 {t('sortedByMatch', language)}
+                      </Badge>
+                    )}
+                    
+                    {filterDogSitting !== "all" && (
+                      <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                        {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
+                        {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
+                        {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
+                      </span>
+                    )}
+                    {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
+                      <span className="text-purple-600 font-semibold ml-2">
+                        ({t('upToDistance', language)} {advancedFilters.radius}km)
+                      </span>
+                    )}
+                    {filteredProfessionals.some(w => w.distance !== null) && 
+                     !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                      <span className="text-purple-600 font-semibold ml-2">
+                        ({t('sortedByDistance', language)})
+                      </span>
+                    )}
+                    
                     {filterDogSitting !== "all" && (
                       <Button
                         variant="outline"
@@ -1371,7 +1370,7 @@ export default function Home() {
                           setFilterDogSitting("all");
                           navigate(createPageUrl("Home"));
                         }}
-                        className="text-sm"
+                        className="text-sm ml-auto"
                       >
                         {t('viewAll', language)}
                       </Button>
