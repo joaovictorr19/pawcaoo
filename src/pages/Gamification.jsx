@@ -316,14 +316,14 @@ export default function Gamification() {
         {/* Transparent glass background */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-purple-50/10 to-blue-50/10"></div>
         
-        <div className="max-w-7xl mx-auto px-4 py-12 md:py-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-16 relative z-10">
           {/* Header Title - Professional with Context */}
           <motion.div 
-            className="text-left mb-12"
+            className="text-center mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
                 <Trophy className="w-7 h-7 text-white" />
               </div>
@@ -331,34 +331,29 @@ export default function Gamification() {
                 <h1 className="text-4xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 bg-clip-text text-transparent">
                   Hall da Fama
                 </h1>
-                <p className="text-sm md:text-base text-gray-600 font-medium mt-1">
-                  Sistema de Recompensas e Rankings da Comunidade
-                </p>
               </div>
             </div>
             
-            <div className="max-w-3xl">
-              <p className="text-gray-700 leading-relaxed">
-                Acompanhe o seu progresso, desbloqueie conquistas exclusivas e compare-se com outros membros da comunidade. 
-                Cada interação, passeio e atividade contribui para o seu crescimento na plataforma.
-              </p>
-            </div>
+            <p className="text-sm md:text-base text-gray-600 font-medium max-w-2xl mx-auto">
+              Sistema de Recompensas e Rankings da Comunidade
+            </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 items-stretch mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 items-stretch mb-8 max-w-6xl mx-auto">
             {/* Card 1: Donut Chart de Nível - MODERNO SEM EMOJI */}
             <motion.div 
-              className="glass-panel p-4 md:p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
+              style={{ borderColor: `${colors?.primary}20` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" 
                    style={{ background: colors?.primary }}></div>
               <div className="relative z-10">
-                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
-                  <Star className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
-                  <span className="hidden sm:inline">Nível</span>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                  <Star className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>Nível Atual</span>
                 </h3>
                 
                 {/* Donut Chart */}
@@ -407,17 +402,18 @@ export default function Gamification() {
 
             {/* Card 2: XP Total */}
             <motion.div 
-              className="glass-panel p-4 md:p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
+              style={{ borderColor: `${colors?.primary}20` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20" 
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" 
                    style={{ background: colors?.primary }}></div>
               <div className="relative z-10">
-                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
-                  <Sparkles className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
-                  <span className="hidden sm:inline">XP Total</span>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>Experiência</span>
                 </h3>
                 <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border border-gray-200">
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
@@ -439,40 +435,41 @@ export default function Gamification() {
               </div>
             </motion.div>
 
-            {/* Card 3: Cashback - PERFEITO MOBILE/DESKTOP */}
+            {/* Card 3: Cashback - TEMA DINÂMICO */}
             <motion.div 
-              className="glass-panel p-4 md:p-6 rounded-2xl relative overflow-hidden shadow-xl"
+              className="glass-panel p-5 md:p-7 rounded-3xl relative overflow-hidden shadow-xl border-2"
+              style={{ borderColor: `${colors?.primary}20` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10" style={{ background: colors?.orb1 }}></div>
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: colors?.orb1 }}></div>
               <div className="relative z-10">
-                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center gap-1.5 uppercase tracking-wide">
-                  <Wallet className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
-                  <span className="hidden sm:inline">Cashback</span>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                  <Wallet className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>Carteira</span>
                 </h3>
                 
-                <div className="relative text-center rounded-2xl p-3 md:p-4 overflow-hidden border-2" style={{ borderColor: `${colors?.primary}30`, background: `linear-gradient(to bottom right, ${colors?.orb1}10, ${colors?.orb2}10)` }}>
+                <div className="relative text-center rounded-2xl p-4 md:p-5 overflow-hidden border-2" style={{ borderColor: `${colors?.primary}30`, background: `linear-gradient(135deg, ${colors?.orb1}15, ${colors?.orb2}15)` }}>
                   <div className="relative z-10">
-                    <div className="flex items-baseline justify-center gap-1 mb-1">
-                      <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-green-700">
+                    <div className="flex items-baseline justify-center gap-1 mb-2">
+                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter" style={{ color: colors?.primary }}>
                         €
                       </span>
-                      <span className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-green-700">
+                      <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter" style={{ color: colors?.primary }}>
                         {Math.floor(userWallet?.cashback_balance || 0).toLocaleString('pt-PT')}
                       </span>
-                      <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-green-600">
+                      <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter opacity-70" style={{ color: colors?.primary }}>
                         .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
                       </span>
                     </div>
-                    <div className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wide" style={{ color: colors?.primary }}>Saldo</div>
+                    <div className="text-xs md:text-sm font-bold uppercase tracking-wide opacity-70" style={{ color: colors?.primary }}>Cashback Disponível</div>
                   </div>
                 </div>
                 
-                <div className="mt-2 md:mt-3 text-center">
-                  <div className="text-[9px] md:text-xs text-gray-600 font-medium">
-                    💳 Use na Shop
+                <div className="mt-3 md:mt-4 text-center">
+                  <div className="text-xs md:text-sm font-semibold" style={{ color: colors?.primary }}>
+                    💳 Use na Loja
                   </div>
                 </div>
               </div>
@@ -480,16 +477,17 @@ export default function Gamification() {
 
             {/* Card 4: Badges */}
             <motion.div 
-              className="glass-panel p-4 md:p-6 rounded-2xl text-center relative overflow-hidden shadow-xl"
+              className="glass-panel p-5 md:p-7 rounded-3xl text-center relative overflow-hidden shadow-xl border-2"
+              style={{ borderColor: `${colors?.primary}20` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ background: colors?.orb2 }}></div>
+              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-15" style={{ background: colors?.orb2 }}></div>
               <div className="relative z-10">
-                <h3 className="text-[10px] md:text-xs font-black text-gray-900 mb-3 md:mb-4 flex items-center justify-center gap-1.5 uppercase tracking-wide">
-                  <Award className="w-3 h-3 md:w-4 md:h-4" style={{ color: colors?.primary }} />
-                  <span className="hidden sm:inline">Emblemas</span>
+                <h3 className="text-xs md:text-sm font-black mb-4 md:mb-5 flex items-center justify-center gap-2 uppercase tracking-wide" style={{ color: colors?.primary }}>
+                  <Award className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>Conquistas</span>
                 </h3>
                 <motion.div 
                   className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 relative shadow-2xl"
