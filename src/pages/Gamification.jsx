@@ -8,6 +8,7 @@ import {
   Trophy, Award, Lock, Sparkles, 
   Star, TrendingUp, Users, ChevronRight, Wallet
 } from "lucide-react";
+import { useLanguage } from "@/components/LanguageContext";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";

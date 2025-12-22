@@ -97,9 +97,9 @@ export default function LevelDonut({
         {/* Progresso linear: X/100 XP */}
         <span 
           className="text-gray-400 font-semibold"
-          style={{ fontSize: size * 0.07 }}
+          style={{ fontSize: size * 0.09 }}
         >
-          {Math.round(progress)}/100
+          {Math.round(progress)}/100 XP
         </span>
       </div>
     </div>
