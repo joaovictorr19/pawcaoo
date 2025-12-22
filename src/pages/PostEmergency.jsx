@@ -267,8 +267,8 @@ export default function PostEmergency() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 p-3 md:p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen p-3 md:p-6 relative">
+      <div className="max-w-2xl mx-auto relative z-10">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
             <Zap className="w-8 h-8 text-white" />
