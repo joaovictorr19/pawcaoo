@@ -1384,8 +1384,9 @@ export default function UserProfile() {
 
           <TabsContent value="gamification">
            {(() => {
-             const userXP = profileUser.gamification_xp || 0;
-             const tier = calculateTier(userXP);
+              // UserProfile is single source of truth for XP
+              const userXP = profileUser?.gamification_xp || 0;
+              const tier = calculateTier(userXP);
              return (
                <Card className={`bg-gradient-to-br ${tier.gradient} text-white border-0 shadow-2xl rounded-2xl`}>
                  <CardHeader className="pb-3 md:pb-4">
