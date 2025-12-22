@@ -3979,16 +3979,18 @@ export default function AdminDashboard() {
                             try {
                               const finalXP = selectedUserForBadges.gamification_xp || 0;
                               
-                              await base44.entities.User.update(selectedUserForBadges.id, {
-                                gamification_xp: finalXP
-                              });
-
+                              // CRÍTICO: Atualizar UserProfile PRIMEIRO (fonte única de verdade)
                               const profiles = await base44.entities.UserProfile.filter({ user_email: selectedUserForBadges.email });
                               if (profiles.length > 0) {
                                 await base44.entities.UserProfile.update(profiles[0].id, {
                                   gamification_xp: finalXP
                                 });
                               }
+
+                              // Depois atualizar User (backup)
+                              await base44.entities.User.update(selectedUserForBadges.id, {
+                                gamification_xp: finalXP
+                              });
 
                               queryClient.invalidateQueries(['allUsers']);
                               toast.success(`XP definido para ${finalXP}!`);
