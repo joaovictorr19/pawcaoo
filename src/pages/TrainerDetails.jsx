@@ -267,7 +267,7 @@ export default function TrainerDetails() {
             averageRating={averageRating}
             customBadges={
               <>
-                {trainer.verification_status === 'verified' && <VerifiedBadge size="lg" />}
+                {trainer.verification_status === 'verified' && <InstagramVerifiedBadge size="lg" />}
                 {trainer.is_verified_trainer && <TrainerVerifiedBadge size="lg" />}
                 {trainer.is_pawcao_employee && <GoldEmployeeBadge size="md" />}
               </>
