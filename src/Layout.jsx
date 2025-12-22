@@ -790,7 +790,7 @@ function LayoutContent({ children, currentPageName }) {
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:opacity-90 hover:shadow-green-400/50 hover:shadow-lg shadow-md text-sm px-4 h-9 transition-all"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
                 size="sm"
               >
                 {getMenuText('login')}
@@ -861,7 +861,7 @@ function LayoutContent({ children, currentPageName }) {
             ) : (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-emerald-400 to-green-500 text-white text-xs px-3 h-8 hover:shadow-green-400/50 hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs px-3 h-8"
                 size="sm"
               >
                 Entrar
